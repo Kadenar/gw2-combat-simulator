@@ -54,14 +54,14 @@ Use this table as the first place to look.
 
 | You're adding or changing...                                          | Usually belongs in...                                 |
 | --------------------------------------------------------------------- | ----------------------------------------------------- |
-| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills.ts` or `skills/<group>.ts`              |
+| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`        |
 | Shared mechanic data used by several skills                           | Profession `profiles.ts`                              |
 | Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                     |
 | Skill availability rule                                               | The owning skill or mechanic module                   |
 | Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                              |
 | Cast lifecycle behavior                                               | The owning skill, trait, or mechanic module            |
-| Declarative trait modifier                                            | `traits.ts` or `traits/<trait-line>.ts`                |
-| Complex trait proc or imperative behavior                             | `traits.ts` or `traits/<trait-line>.ts`                |
+| Declarative trait modifier                                            | `traits/modifiers.ts` or `traits/<trait-line>.ts`      |
+| Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`          |
 | Scheduler-specific skill implementation                               | The owning skill module; a focused handler if shared   |
 | Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
 | Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution`  |
@@ -112,17 +112,17 @@ under its game package; GW2 uses `js/games/gw2/app/`.
 
 ---
 
-## `js/games/gw2/app/profession/`
+## Shared profession application composition
 
-Shared profession application composition.
+Shared profession application composition spans `js/games/gw2/app/` and its `profession/` directory.
 
-| Module              | Responsibility                                 |
-| ------------------- | ---------------------------------------------- |
-| `registry.ts`       | Lazy registry of every profession              |
-| `create-runtime.ts` | Connects application builds to `simulateGw2()` |
-| `define-app.ts`     | Composes native profession browser adapters    |
-| `assumptions.ts`    | Shared assumption-control contracts            |
-| `slot-loadout.ts`   | Shared heal/utility/elite loadout behavior     |
+| Module                       | Responsibility                                 |
+| ---------------------------- | ---------------------------------------------- |
+| `profession/registry.ts`     | Lazy registry of every profession              |
+| `create-runtime.ts`          | Connects application builds to `simulateGw2()` |
+| `create-adapter.ts`          | Composes native profession browser adapters    |
+| `profession/assumptions.ts`  | Shared assumption-control contracts            |
+| `profession/slot-loadout.ts` | Shared heal/utility/elite loadout behavior      |
 
 The registry is also where a completely new profession would be exposed to the application.
 
@@ -135,15 +135,15 @@ Build authoring and persistence.
 Examples include:
 
 ```text
-persistence.ts
-files.ts
-gear-panel.ts
-traits-panel.ts
-attributes-panel.ts
-skills-panel.ts
-assumptions-panel.ts
-presets.ts
-selection.ts
+state/persistence.ts
+state/skill-selection.ts
+io/files.ts
+panels/gear.ts
+panels/traits.ts
+panels/attributes.ts
+panels/skills.ts
+panels/assumptions.ts
+panels/presets.ts
 page-controls.ts
 ```
 
@@ -186,7 +186,7 @@ random-distribution-runner.ts
 modifier-contributions.ts
 modifier-contribution-runner.ts
 relic-comparison-runner.ts
-patch-preview-view.ts
+relic-comparison.ts
 ```
 
 These modules orchestrate simulation work around the shared engine.
@@ -248,21 +248,23 @@ Examples include:
 
 Important modules include:
 
-| Module                      | Responsibility                                     |
-| --------------------------- | -------------------------------------------------- |
-| `scheduler.ts`              | Declarative scheduler and profession-hook dispatch |
-| `scheduler-state.ts`        | Profession-neutral scheduler state                 |
-| `task-queue.ts`             | Ordered delayed state work                         |
-| `event-queue.ts`            | Stable event ordering                              |
-| `scheduled-event-stream.ts` | Scheduler-to-resolver event boundary               |
-| `cooldown-controller.ts`    | Cooldown and ammo state machine                    |
-| `effect-factories.ts`       | Canonical effect constructors                      |
-| `effect-materializer.ts`    | Converts effects into scheduled events             |
-| `skill-factories.ts`        | Shared skill constructors                          |
-| `autoattack-chains.ts`      | Autoattack-chain indexing                          |
-| `profession.ts`             | Core + specialization contract composition         |
-| `ui-combinators.ts`         | Composition helpers for profession UI slices       |
-| `types.d.ts`                | Shared engine contracts                            |
+| Module                         | Responsibility                                     |
+| ------------------------------ | -------------------------------------------------- |
+| `execution/scheduler.ts`       | Declarative scheduler and profession-hook dispatch |
+| `execution/state.ts`           | Profession-neutral scheduler state                 |
+| `execution/tasks.ts`           | Ordered delayed state work                         |
+| `events/scheduled-stream.ts`   | Scheduler-to-resolver event boundary               |
+| `execution/cooldowns.ts`       | Cooldown and ammo state machine                    |
+| `effects/factories.ts`         | Canonical effect constructors                      |
+| `effects/materializer.ts`      | Converts effects into scheduled events             |
+| `skills/factories.ts`          | Shared skill constructors                          |
+| `skills/autoattack-chains.ts`  | Autoattack-chain indexing                          |
+| `profession/family.ts`         | Core + specialization contract composition         |
+| `profession/module.ts`         | Profession module composition                      |
+| `profession/ui-combinators.ts` | Composition helpers for profession UI slices       |
+| `types.d.ts`                   | Shared engine contracts                            |
+
+Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
 
 If a new abstraction would still make sense in a non-GW2 simulator, consider `js/kernel/`; otherwise keep it here.
 
@@ -291,20 +293,21 @@ Examples include:
 
 Important modules include:
 
-| Module                 | Responsibility                                |
-| ---------------------- | --------------------------------------------- |
-| `simulate.ts`          | Canonical `simulateGw2()` entry point         |
-| `native-profession.ts` | Native profession/module authoring layer      |
-| `modifier-rules.ts`    | Declarative scalar modifier system            |
-| `attributes.ts`        | Shared attribute calculations                 |
-| `damage.ts`            | Strike and condition damage formulas          |
-| `weapon-strength.ts`   | Weapon-strength profiles                      |
-| `weapon-sigils.ts`     | Shared sigil behavior                         |
-| `gear-data.ts`         | Shared equipment/consumable/relic lookup data |
-| `target-state.ts`      | Target assumptions                            |
-| `trait-state.ts`       | Shared selected-trait lookup                  |
-| `event-ownership.ts`   | Player/summon/effect ownership rules          |
-| `skill-patch.ts`       | Balance-preview overlay grammar               |
+| Module                            | Responsibility                                  |
+| --------------------------------- | ----------------------------------------------- |
+| `simulation/simulate.ts`          | Canonical `simulateGw2()` entry point           |
+| `combat/modifiers/rules.ts`       | Declarative scalar modifier system              |
+| `builds/attributes.ts`            | Shared attribute calculations                   |
+| `combat/damage/calculations.ts`   | Strike and condition damage formulas            |
+| `equipment/weapons/strength.ts`   | Weapon-strength profiles                        |
+| `equipment/sigils/rules.ts`       | Shared sigil behavior                           |
+| `equipment/`                      | Gear, consumable, relic, sigil, and weapon data |
+| `combat/state/targets.ts`         | Target assumptions                              |
+| `combat/state/traits.ts`          | Shared selected-trait lookup                    |
+| `combat/state/event-ownership.ts` | Player/summon/effect ownership rules            |
+
+Native profession and balance-preview authoring lives under
+`js/games/gw2/integrations/patches/authoring/`.
 
 Subdirectories such as:
 
@@ -577,16 +580,20 @@ Combat rules do not belong here.
 
 There is no mandatory one-file-per-role template.
 
-A small specialization may remain flat:
+A small specialization can keep each domain compact:
 
 ```text
 specializations/berserker/
 ├── module.ts
-├── skills.ts
 ├── profiles.ts
 ├── state.ts
-├── traits.ts
-├── mechanics.ts
+├── skills/
+│   ├── index.ts
+│   └── execution.ts
+├── traits/
+│   └── index.ts
+├── mechanics/
+│   └── berserk.ts
 └── presentation.ts
 ```
 
@@ -596,18 +603,20 @@ A larger Core module should group by GW2 concept:
 core/
 ├── module.ts
 ├── skills/
-│   ├── axe.ts
-│   ├── greatsword.ts
-│   └── utilities.ts
+│   ├── index.ts
+│   ├── execution.ts
+│   ├── slot-skills.ts
+│   └── weapons/
+│       ├── axe.ts
+│       └── greatsword.ts
 ├── traits/
-│   ├── strength.ts
-│   └── tactics.ts
+│   ├── index.ts
+│   └── modifiers.ts
 ├── mechanics/
-│   ├── adrenaline.ts
-│   └── bursts.ts
+│   ├── adrenaline-and-endurance.ts
+│   └── availability.ts
 ├── profiles.ts
-├── state/
-│   └── index.ts
+├── state.ts
 └── presentation.ts
 ```
 
@@ -681,7 +690,7 @@ Keep implementation details outside this file.
 
 ---
 
-## `skills.ts` and `skills/`
+## `skills/`
 
 Authoritative simulator mechanics for skills owned by the module.
 
@@ -699,7 +708,7 @@ Examples:
 If ArenaNet changes the damage coefficient of a skill, this is usually the first place to inspect.
 
 Group related skills by weapon, slot family, transformation, or another recognizable GW2 concept. Keep a single
-`skills.ts` when the module is already cohesive.
+`skills/index.ts` when the module is already cohesive.
 
 ---
 
@@ -744,7 +753,7 @@ it expresses one module's cast gate; split unrelated behavior into a named mecha
 
 ---
 
-## `traits.ts`
+## `traits/`
 
 Imperative trait mechanics.
 
@@ -986,7 +995,7 @@ js/games/gw2/content/professions/<profession>/build/build.ts
 Shared Guild Wars 2 build normalization belongs in:
 
 ```text
-js/games/gw2/platform/build-codec.ts
+js/games/gw2/platform/builds/codec.ts
 ```
 
 Profession code should own only the fields that are unique to that profession.
@@ -1292,8 +1301,8 @@ When deciding where new code belongs, follow these principles:
 
 1. **Keep profession behavior with its profession.**
 2. **Keep specialization-only behavior with its specialization.**
-3. **Move code to `platform/gw2` only when it represents reusable Guild Wars 2 behavior.**
-4. **Move code to `platform/engine` only when it is game-neutral simulation infrastructure.**
+3. **Move code to `js/games/gw2/platform/` only when it represents reusable Guild Wars 2 behavior.**
+4. **Move code to `js/games/gw2/platform/engine/` only when it is shared by profession runtimes.**
 5. **Keep browser concerns in `app`.**
 6. **Keep `module.ts`, `modules.ts`, and `definition.ts` focused on composition.**
 7. **Prefer descriptive files over oversized generic files.**

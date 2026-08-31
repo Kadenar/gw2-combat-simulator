@@ -177,7 +177,7 @@ berserkUntil;
 
 and those fields are available through `context.professionState`.
 
-Add the value to that specialization's `ui.ts`:
+Add the value to that specialization's `presentation.ts`:
 
 ```ts
 rotationStateSnapshot: (context: WarriorUiContext) => {
@@ -241,7 +241,7 @@ A profession may intentionally expose only selected state fields.
 For example, Warrior projects a whitelist through:
 
 ```text
-js/games/gw2/content/professions/warrior/core/state.ts
+js/games/gw2/content/professions/warrior/state.ts
 ```
 
 using:
@@ -361,7 +361,7 @@ calculations use.
 Two shared helpers are available in:
 
 ```text
-js/games/gw2/app/rotation/state-snapshot/model.ts
+js/games/gw2/platform/results/query.ts
 ```
 
 ## Timed buff
@@ -377,7 +377,7 @@ to find an active timed buff and its remaining duration.
 Example:
 
 ```ts
-import { timedBuffAt } from '../../../app/rotation/state-snapshot/model.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
 ```
 
 Then:
