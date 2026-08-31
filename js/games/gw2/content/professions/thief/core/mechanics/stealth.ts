@@ -9,14 +9,52 @@ import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechani
 import type {
   ThiefCastContext,
   ThiefCoreState,
+  ThiefPrecastContext,
   ThiefSkill,
   ThiefStealthAttackChargeState
 } from '#gw2/content/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 
+/** Removes active stealth, applies Revealed, and fires traits shared by every attack that breaks stealth. */
+function breakThiefStealth(context: ThiefPrecastContext, skill: ThiefSkill, reason: string): boolean {
+  const state = professionCoreState(context);
+  const stealthed = state.stealthUntil > context.start && state.revealedUntil <= context.start;
+  if (!stealthed) return false;
+  if (hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
+    gainThiefInitiative(
+      context,
+      Number(balanceProfileFromContext(context, PROFILE.shadowsRejuvenation)?.resourceGain || 1),
+      context.start,
+      'leave-stealth'
+    );
+  }
+
+  if (hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
+    const profile = balanceProfileFromContext(context, PROFILE.leechingVenoms);
+    state.spiderVenomCharges = Math.min(
+      Number(profile?.maximumStacks || 6),
+      Number(state.spiderVenomCharges || 0) + Number(profile?.resourceGain || 3)
+    );
+    state.spiderVenomExpiresAt = context.start + Number(profile?.durationMultiplier || 24);
+    state.spiderVenomGeneration += 1;
+  }
+
+  state.stealthUntil = context.start;
+  if (!skill.preservesStealth) state.revealedUntil = context.start + 3;
+  emitStateSnapshot(context, 'thief', context.start, reason, snapshotThiefState(context.state.profession));
+  return true;
+}
+
+/** Breaks stealth when a non-stealth skill activates at least one authored strike. */
+export function breakStealthOnStrike(context: ThiefPrecastContext, skill: ThiefSkill): void {
+  if (!skill.stealthAttack && skill.effects?.some((effect) => effect.type === 'strike')) {
+    breakThiefStealth(context, skill, 'strike-broke-stealth');
+  }
+}
+
 // Consume either active stealth or a specialization-granted attack charge, then
 // apply leave-stealth traits and Revealed from one cast-start transition.
-export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill): void {
+export function beginStealthAttack(context: ThiefPrecastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;
   const specializationState = specialization.state as Partial<ThiefStealthAttackChargeState>;
@@ -35,29 +73,9 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
     stealthAttackState.stealthAttackCharges = Number(stealthAttackState.stealthAttackCharges || 0) - 1;
   }
 
-  if (stealthed && hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
-    gainThiefInitiative(
-      context,
-      Number(balanceProfileFromContext(context, PROFILE.shadowsRejuvenation)?.resourceGain || 1),
-      context.start,
-      'leave-stealth'
-    );
-  }
-
-  if (stealthed && hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
-    const profile = balanceProfileFromContext(context, PROFILE.leechingVenoms);
-    state.spiderVenomCharges = Math.min(
-      Number(profile?.maximumStacks || 6),
-      Number(state.spiderVenomCharges || 0) + Number(profile?.resourceGain || 3)
-    );
-    state.spiderVenomExpiresAt = context.start + Number(profile?.durationMultiplier || 24);
-    state.spiderVenomGeneration += 1;
-  }
-
+  if (breakThiefStealth(context, skill, 'stealth-attack')) return;
   state.stealthUntil = context.start;
-  if (!skill?.preservesStealth) {
-    state.revealedUntil = context.start + 3;
-  }
+  if (!skill.preservesStealth) state.revealedUntil = context.start + 3;
 
   emitStateSnapshot(context, 'thief', context.start, 'stealth-attack', snapshotThiefState(context.state.profession));
 }

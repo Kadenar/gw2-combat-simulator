@@ -21,8 +21,12 @@ import {
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { updateThiefTraitCastState } from '#gw2/content/professions/thief/core/traits/index.js';
 import { updateThiefWeaponState } from '#gw2/content/professions/thief/core/mechanics/weapon-state.js';
+import { breakStealthOnStrike } from '#gw2/content/professions/thief/core/mechanics/stealth.js';
 import { thiefCoreTaskHandlers } from '#gw2/content/professions/thief/core/mechanics/task-handlers.js';
-import { applyThiefWeaponSwapEffects } from '#gw2/content/professions/thief/core/skills/actions.js';
+import {
+  applyThiefWeaponSwapEffects,
+  observeThievesGuildCombatEvent
+} from '#gw2/content/professions/thief/core/skills/actions.js';
 import type { SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierHooks, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
@@ -315,7 +319,8 @@ export const thiefCoreCastRules = Object.freeze({
 
 export const thiefCoreSchedulerHooks = Object.freeze({
   advance: advanceThiefCoreResources,
-  onCastStart: spendThiefCoreResources,
+  onCastStart: Object.freeze([spendThiefCoreResources, breakStealthOnStrike]),
+  onEventScheduled: observeThievesGuildCombatEvent,
   // Thief stance and trait effects run only after the shared swap is committed.
   onWeaponSwap: applyThiefWeaponSwapEffects,
   onCastComplete: {

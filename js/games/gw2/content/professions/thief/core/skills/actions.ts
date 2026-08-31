@@ -11,6 +11,7 @@ import type {
   ThiefCastContext,
   ThiefScheduledTask,
   ThiefSchedulerContext,
+  ThiefSimulationEvent,
   ThiefSkill,
   ThiefSummonAttack,
   ThiefSummonDefinition,
@@ -26,22 +27,46 @@ interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly summon: ThiefSummonDefinition;
 }
 
+function thievesGuildSummons(context: ThiefSchedulerContext, profile: ThiefSummonAttack): ThiefSummonDefinition[] {
+  const specializationSummon = thiefSpecializationGuildSummon(context.state.profession.specialization.kind);
+  const coreSummon = profile.summons.find((summon) => summon.variant === 'Core Thief');
+  const thirdSummon = specializationSummon || coreSummon;
+  // Shared thieves come from the core elite profile; only the specialization-owned third summon is swapped.
+  return [...profile.summons.filter((summon) => summon.variant == null), ...(thirdSummon ? [thirdSummon] : [])];
+}
+
+/** Starts the summoned thieves' rotations only after the player has entered combat. */
+function startThievesGuildAttacks(context: ThiefSchedulerContext, at: number): void {
+  const state = professionCoreState(context);
+  const active = state.activeThievesGuild;
+  if (!active || at >= active.expiresAt) return;
+  const skill = context.catalog.skillsById.get(ID.THIEVES_GUILD) as ThiefSkill | undefined;
+  const profile = skill?.summonAttack;
+  if (!profile) return;
+  for (const summon of thievesGuildSummons(context, profile)) {
+    const attacks = summon.attacks?.length ? summon.attacks : profile.fallbackAttacks || [];
+    for (const attack of attacks) {
+      const attackAt = at + Number(attack.initialDelay || 0);
+      if (attackAt >= active.expiresAt) continue;
+      context.tasks.schedule({
+        type: 'thief.thieves-guild-attack',
+        at: attackAt,
+        ownerId: 'thief.thieves-guild',
+        payload: { attack, expiresAt: active.expiresAt, profile, summon }
+      });
+    }
+  }
+}
+
 export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const profile = skill.summonAttack;
   if (!profile) return;
-  const specializationSummon = thiefSpecializationGuildSummon(context.state.profession.specialization.kind);
-  const coreSummon = profile.summons.find((summon) => summon.variant === 'Core Thief');
-  const thirdSummon = specializationSummon || coreSummon;
-  // Shared thieves come from the core elite profile; only the specialization-owned third summon is swapped.
-  const summons = [
-    ...profile.summons.filter((summon) => summon.variant == null),
-    ...(thirdSummon ? [thirdSummon] : [])
-  ];
+  const summons = thievesGuildSummons(context, profile);
   const expiresAt = context.start + Number(profile.duration || 0);
   state.activeThievesGuild = {
-    variant: thirdSummon?.name || 'Core Thief',
+    variant: summons.at(-1)?.name || 'Core Thief',
     expiresAt
   };
   context.tasks.cancelOwner('thief.thieves-guild');
@@ -51,21 +76,14 @@ export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill)
     ownerId: 'thief.thieves-guild',
     payload: { expiresAt }
   });
-  for (const summon of summons) {
-    const attacks = summon.attacks?.length ? summon.attacks : profile.fallbackAttacks || [];
-    for (const attack of attacks) {
-      const attackAt = at + Number(attack.initialDelay || 0);
-      if (attackAt >= expiresAt) continue;
-      context.tasks.schedule({
-        type: 'thief.thieves-guild-attack',
-        at: attackAt,
-        ownerId: 'thief.thieves-guild',
-        payload: { attack, expiresAt, profile, summon }
-      });
-    }
-  }
+  if (context.combatStartTime != null) startThievesGuildAttacks(context, at);
 
   emitStateSnapshot(context, 'thief', at, 'thieves-guild', snapshotThiefState(context.state.profession));
+}
+
+/** Wakes a precast Thieves Guild when the scheduler publishes its combat-start boundary. */
+export function observeThievesGuildCombatEvent(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
+  if (event.type === 'combat_start') startThievesGuildAttacks(context, context.combatStartTime ?? event.at);
 }
 
 export function handleThievesGuildAttack(

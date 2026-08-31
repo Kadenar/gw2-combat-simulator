@@ -114,6 +114,7 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
       }
     }
   }
+
   assert.deepEqual(
     THIEF_CORE_SKILL_MECHANICS[13006].effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
     [
@@ -163,6 +164,11 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
     thiefCatalog.skills
       .filter((skill) => skill.type === 'Weapon')
       .every((skill) => Number.isFinite(Number(skill.initiativeCost)))
+  );
+  assert.ok(
+    thiefCatalog.skills
+      .filter((skill) => skill.artifactKind)
+      .every((skill) => skill.type === 'Profession' && skill.slot === 'Profession_2')
   );
 });
 
@@ -616,6 +622,15 @@ test('stealth attacks remove stealth, apply Revealed, and block replacement', ()
   assert.match(result.warnings.at(-1), /requires stealth/);
   assert.ok(result.endState.profession.revealedUntil > 0);
   assert.equal(result.endState.profession.stealthUntil <= result.duration, true);
+});
+
+test('non-stealth strike skills remove stealth and restore the normal autoattack', () => {
+  const result = simulate('Core', ['Hide in Shadows', 'Heartseeker', 'Double Strike']);
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.endState.profession.revealedUntil > 0);
+  assert.equal(result.endState.profession.stealthUntil <= result.duration, true);
+  assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Double Strike'));
 });
 
 test('stealth replaces weapon skill 1 without a separate palette group', () => {
@@ -1683,6 +1698,31 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
 });
 
+test('Specter can use its shroud autoattack while stealth is active', () => {
+  const hauntShot = thiefCatalog.skillsByName.get('Haunt Shot');
+  const paletteContext = {
+    specialization: 'Specter',
+    time: 1,
+    activeWeaponSet: 1,
+    build: { weapons: ['Dagger', 'Dagger'], alternateWeapons: ['', ''] },
+    professionState: {
+      stealthUntil: 4,
+      revealedUntil: 0,
+      shadowForce: 100,
+      shadowShroudActive: true
+    }
+  };
+
+  assert.equal(thiefProfession.ui.isPaletteSkillAvailable(paletteContext, hauntShot), true);
+  const result = simulate('Specter', ['Hide in Shadows', 'Enter Shadow Shroud', 'Haunt Shot'], {
+    initialShadowForce: 100
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Haunt Shot'));
+  assert.ok(result.endState.profession.revealedUntil > 0);
+});
+
 test('Specter automatically leaves Shadow Shroud when shadow force depletes', () => {
   const result = simulate('Specter', ['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }], {
     initialShadowForce: 1
@@ -2519,7 +2559,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   assert.equal(doubleEdgeSuccess.warnings.length, 0);
   assert.equal(doubleEdgeSuccess.endState.profession.backfireState[76725], undefined);
 
-  const guild = simulate('Antiquary', ['Thieves Guild', { type: 'wait', durationMs: 2100 }], {
+  const guild = simulate('Antiquary', ['Thieves Guild', { type: 'combat-start' }, { type: 'wait', durationMs: 2100 }], {
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger'
   });
@@ -2529,6 +2569,31 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
       (event) => event.actorType === 'summon' && event.skillName === 'Thieves Guild — Sword/Dagger Skritt'
     )
   );
+});
+
+test('Thieves Guild waits for the player to enter combat before attacking', () => {
+  const idle = simulate('Core', ['Thieves Guild', { type: 'wait', durationMs: 4000 }]);
+
+  assert.equal(idle.combatStartTime, null);
+  assert.equal(
+    idle.events.some(
+      (event) => event.actorType === 'summon' && ['damage', 'condition', 'control', 'blind'].includes(event.type)
+    ),
+    false
+  );
+
+  const delayed = simulate('Core', [
+    'Thieves Guild',
+    { type: 'wait', durationMs: 2000 },
+    { type: 'combat-start' },
+    { type: 'wait', durationMs: 2100 }
+  ]);
+  const summonAttacks = delayed.events.filter(
+    (event) => event.actorType === 'summon' && ['damage', 'condition'].includes(event.type)
+  );
+
+  assert.ok(summonAttacks.length > 0);
+  assert.ok(summonAttacks.every((event) => event.at >= delayed.combatStartTime));
 });
 
 test('Thieves Guild summons three specialization-specific thieves for 24 seconds', () => {
@@ -2543,7 +2608,11 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
   ]);
 
   for (const [specialization, thirdSummon] of expectedThirdSummon) {
-    const result = simulate(specialization, ['Thieves Guild', { type: 'wait', durationMs: 1800 }]);
+    const result = simulate(specialization, [
+      'Thieves Guild',
+      { type: 'combat-start' },
+      { type: 'wait', durationMs: 1800 }
+    ]);
 
     assert.deepEqual(
       [
@@ -2565,7 +2634,11 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
     );
   }
 
-  const lifetime = simulate('Specter', ['Thieves Guild', { type: 'wait', durationMs: 26000 }]);
+  const lifetime = simulate('Specter', [
+    'Thieves Guild',
+    { type: 'combat-start' },
+    { type: 'wait', durationMs: 26000 }
+  ]);
   const summonPackets = lifetime.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.actorType === 'summon' && event.sourceId === 'thief.thieves-guild'
   );
@@ -2590,7 +2663,7 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
 });
 
 test('Specter Thieves Guild follows its measured scepter, well, and Triple Threat pattern', () => {
-  const result = simulate('Specter', ['Thieves Guild', { type: 'wait', durationMs: 26000 }]);
+  const result = simulate('Specter', ['Thieves Guild', { type: 'combat-start' }, { type: 'wait', durationMs: 26000 }]);
   const specterStrikes = result.events.filter(
     (event) =>
       event.type === 'damage' &&
@@ -2646,7 +2719,7 @@ test('Specter Thieves Guild follows its measured scepter, well, and Triple Threa
 });
 
 test('Thieves Guild uses independent summon weapons and attack profiles', () => {
-  const rotation = ['Thieves Guild', { type: 'wait', durationMs: 26000 }];
+  const rotation = ['Thieves Guild', { type: 'combat-start' }, { type: 'wait', durationMs: 26000 }];
   const result = simulate('Daredevil', rotation);
   const strikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.actorType === 'summon' && event.sourceId === 'thief.thieves-guild'

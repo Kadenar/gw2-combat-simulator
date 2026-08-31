@@ -312,9 +312,11 @@ export function createThiefModuleData(
                 resource: 'initiative'
               }
             : {}),
+          // API artifact aliases can claim weapon slots; the simulator exposes every artifact on Antiquary's profession bar.
           ...(mechanics.artifactKind
             ? {
-                ignoresStealthWeaponReplacement: true
+                type: 'Profession',
+                slot: 'Profession_2'
               }
             : {})
         }

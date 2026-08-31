@@ -233,7 +233,6 @@ export interface ThiefSkill extends Skill {
   readonly doubleEdge?: boolean;
   readonly dualWieldFollowup?: boolean;
   readonly dualWieldOpener?: boolean;
-  readonly ignoresStealthWeaponReplacement?: boolean;
   readonly initiativeCost?: number;
   readonly kneelSkill?: boolean;
   readonly malicious?: boolean;

@@ -103,7 +103,13 @@ function corePaletteSkillAvailability(
     };
   }
 
-  if ((stealthed || bonusStealthAttack) && skill.type === 'Weapon' && skill.slot === 'Weapon_1') {
+  // Shadow Shroud remains visible because stealth replacement applies only to the equipped weapon bar.
+  if (
+    (stealthed || bonusStealthAttack) &&
+    !skill.shadowShroudSkill &&
+    skill.type === 'Weapon' &&
+    skill.slot === 'Weapon_1'
+  ) {
     return {
       available: false,
       message: "The active weapon's stealth attack replaces skill 1"

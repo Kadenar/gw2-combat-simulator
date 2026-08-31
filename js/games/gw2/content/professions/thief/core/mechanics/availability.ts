@@ -92,6 +92,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   const bonusStealthAttack =
     Number(stealthAttackState.stealthAttackCharges || 0) > 0 &&
     Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start;
+  // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
   if (skill.stealthAttack) {
     if (!stealthed && !bonusStealthAttack) {
       return deny(skill, 'thief.not-stealthed', 'requires stealth.');
@@ -102,7 +103,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
     }
   } else if (
     (stealthed || bonusStealthAttack) &&
-    !skill.ignoresStealthWeaponReplacement &&
+    !skill.shadowShroudSkill &&
     skill.type === 'Weapon' &&
     skill.slot === 'Weapon_1'
   ) {

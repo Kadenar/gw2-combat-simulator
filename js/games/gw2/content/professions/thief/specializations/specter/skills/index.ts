@@ -395,7 +395,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 566.666666666667, coefficient: 1.075 }],
+        ticks: [{ atMs: 560, coefficient: 1.075 }],
         name: 'Haunt Shot',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -403,7 +403,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 566.666666666667, condition: 'Torment', stacks: 1, duration: 6 }],
+        ticks: [{ atMs: 560, condition: 'Torment', stacks: 1, duration: 6 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'cast'
