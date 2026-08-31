@@ -31,6 +31,7 @@ export function comboCombatMetadata(event: Readonly<Record<string, unknown>>): R
   for (const field of COMBO_COMBAT_METADATA_FIELDS) {
     if (event[field] !== undefined) metadata[field] = event[field];
   }
+
   return metadata;
 }
 

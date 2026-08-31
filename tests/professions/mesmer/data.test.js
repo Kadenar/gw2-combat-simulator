@@ -454,6 +454,7 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
         `${skill.name} entity ${index} converts before damage ends`
       );
     }
+
     for (const [index, damageAtMs] of timing.repeatDamageAtMsByEntity?.entries() ?? []) {
       assert.ok(
         (timing.repeatSpawnAtMsByEntity?.[index] ?? timing.repeatSpawnAtMs) >= damageAtMs,
