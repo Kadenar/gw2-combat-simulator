@@ -278,5 +278,5 @@ test('procedural helpers retain scheduler timestamp, priority, and insertion ord
     ]
   );
   assert.equal(result.events.at(-1).triggeredBy, 'Cause');
-  assert.ok(result.events.at(-1).causalOrder > result.events.at(-2).__order);
+  assert.ok(result.events.at(-1).causalOrder > result.events.at(-2).eventOrder);
 });

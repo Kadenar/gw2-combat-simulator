@@ -66,7 +66,7 @@ export function handleVirtuosoExpectedProcTask(
   }
 
   const payloadEvent = task.payload.event;
-  const canonicalEvent = context.eventByOrder(Number(payloadEvent.__order));
+  const canonicalEvent = context.eventByOrder(Number(payloadEvent.eventOrder));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
   // Jagged Mind applies fractional expected stacks directly in deterministic
   // mode, while stochastic mode consumes the canonical sampled critical fact.

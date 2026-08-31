@@ -269,7 +269,7 @@ export function observeBerserkerEvent(context: WarriorSchedulerContext, event: W
     type: 'warrior.king-of-fires-hit',
     at: Math.max(context.state.time, event.at),
     priority: -30,
-    payload: { eventOrder: Number(event.__order) },
+    payload: { eventOrder: Number(event.eventOrder) },
     required: true
   });
 }

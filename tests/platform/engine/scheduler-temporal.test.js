@@ -482,7 +482,9 @@ test('interrupted casts retain their original lane lockout only for cast-time sk
   assert.equal(uninterruptedAction.rechargeReadyAt, 11);
 });
 
-test('scheduler policies own chronological tasks and causal derivatives', () => {
+test('scheduler policies preserve event identity, task isolation, and causal derivatives', () => {
+  const taskIds = [];
+  let replacementLookupMatched = false;
   const profession = defineProfession({
     id: 'temporal-policy',
     name: 'Temporal Policy',
@@ -495,13 +497,15 @@ test('scheduler policies own chronological tasks and causal derivatives', () => 
         context.state.profession.lifecycle.push('profession');
       },
       onCastStart(context) {
-        context.emit({
+        const original = context.emit({
           type: 'marker',
           at: context.start,
           source: 'fixture',
           sourceId: 'fixture.original',
-          name: 'original-after-action'
+          name: 'original'
         });
+        const replacement = context.replaceEvent(original, { name: 'original-after-action' });
+        replacementLookupMatched = context.eventByOrder(Number(original.eventOrder)) === replacement;
       }
     }
   });
@@ -510,16 +514,20 @@ test('scheduler policies own chronological tasks and causal derivatives', () => 
       context.state.profession.lifecycle.push('policy');
     },
     onEventScheduled(context, event) {
-      if (event.type !== 'action') return;
-      context.tasks.schedule({
-        type: 'fixture.policy-observation',
-        at: event.at,
-        priority: -10,
-        payload: { event }
-      });
+      if (event.type !== 'action' && event.name !== 'original') return;
+      taskIds.push(
+        context.tasks.schedule({
+          id: `fixture.policy-observation:${String(event.eventOrder)}`,
+          type: 'fixture.policy-observation',
+          at: event.at,
+          priority: event.type === 'action' ? -10 : 10,
+          payload: { derive: event.type === 'action', event }
+        })
+      );
     },
     taskHandlers: {
       'fixture.policy-observation': (context, task) => {
+        if (!task.payload.derive) return;
         for (const name of ['derived-one', 'derived-two']) {
           context.emitDerived(task.payload.event, {
             type: 'marker',
@@ -536,12 +544,21 @@ test('scheduler policies own chronological tasks and causal derivatives', () => 
     profession,
     schedulerPolicy
   }).run(['Long Cast']);
+  const simultaneous = scheduled.events.filter((event) => event.at === 0);
+  const [cause, derivedOne, derivedTwo, unrelated] = simultaneous;
 
   assert.deepEqual(scheduled.state.profession.lifecycle, ['policy', 'profession']);
   assert.deepEqual(
-    scheduled.events.filter((event) => event.at === 0).map((event) => event.name),
+    simultaneous.map((event) => event.name),
     ['Long Cast', 'derived-one', 'derived-two', 'original-after-action']
   );
+  assert.equal(new Set(scheduled.events.map((event) => event.eventOrder)).size, scheduled.events.length);
+  assert.equal(replacementLookupMatched, true);
+  assert.equal(taskIds.length, 2);
+  assert.equal(new Set(taskIds).size, taskIds.length);
+  assert.ok(cause.eventOrder < unrelated.eventOrder);
+  assert.ok(derivedOne.causalOrder > cause.eventOrder && derivedOne.causalOrder < unrelated.eventOrder);
+  assert.ok(derivedTwo.causalOrder > derivedOne.causalOrder && derivedTwo.causalOrder < unrelated.eventOrder);
 });
 
 test('typed tasks order deterministically and reject zero-time loops', () => {

@@ -242,7 +242,7 @@ export interface RevenantEnergyContext {
 export type RevenantScheduledTask<TPayload extends SchedulerRecord = SchedulerRecord> = ScheduledTask<TPayload>;
 
 export type RevenantSimulationEvent = SimulationEvent & {
-  readonly __order?: number;
+  readonly eventOrder?: number;
   readonly weaponSet?: number;
 };
 

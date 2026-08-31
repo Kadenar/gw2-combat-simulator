@@ -292,7 +292,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     const bucket = eventTypeIndex.get(type);
     if (bucket) bucket.push(event);
     else eventTypeIndex.set(type, [event]);
-    const order = Number(event.__order);
+    const order = Number(event.eventOrder);
     if (Number.isFinite(order)) eventOrderIndex.set(order, event);
   };
 
@@ -316,7 +316,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       );
     }
 
-    const order = Number(event.__order);
+    const order = Number(event.eventOrder);
     if (Number.isFinite(order)) eventOrderIndex.set(order, replacement);
   };
 
@@ -401,7 +401,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
       const normalized = createEvent({
         ...prepared,
-        __order: eventOrder++
+        eventOrder: eventOrder++
       });
       events.push(normalized);
       indexEvent(normalized);
@@ -446,7 +446,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       return replacement;
     },
     emitDerived(/** @type {SimulationEvent} */ cause, /** @type {SimulationEventInput} */ event) {
-      const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.__order));
+      const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.eventOrder));
       if (!Number.isFinite(rootOrder)) {
         throw new TypeError('Derived events require a scheduled cause.');
       }

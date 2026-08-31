@@ -259,7 +259,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
         at: Math.max(context.state.time, event.at),
         // Priority -40 fires after priority -60 (lower = later), ensuring didCrit is populated first
         priority: -40,
-        payload: { eventOrder: Number(event.__order) }
+        payload: { eventOrder: Number(event.eventOrder) }
       });
     } else {
       applyCriticalTraits(context, event);
@@ -269,10 +269,10 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
   if (event.skillId !== ID.RAZORCLAWS_RAGE) {
     // Damage is emitted when a cast is scheduled, so defer charge checks until the hit actually occurs.
     context.tasks.schedule({
-      id: `${RENEGADE_RAZORCLAW_PROC_TASK}:${event.__order}`,
+      id: `${RENEGADE_RAZORCLAW_PROC_TASK}:${event.eventOrder}`,
       type: RENEGADE_RAZORCLAW_PROC_TASK,
       at: Math.max(context.state.time, event.at),
-      payload: { eventOrder: Number(event.__order) }
+      payload: { eventOrder: Number(event.eventOrder) }
     });
   }
 }

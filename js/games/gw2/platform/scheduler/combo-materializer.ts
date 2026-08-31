@@ -55,7 +55,7 @@ interface OwnedFinisherDescriptor extends SchedulerRecord {
 }
 
 function currentEvent(context: SchedulerContext, original: SimulationEvent): SimulationEvent {
-  return context.eventByOrder(Number(original.__order)) || original;
+  return context.eventByOrder(Number(original.eventOrder)) || original;
 }
 
 function fieldDescriptors(context: SchedulerContext, event: SimulationEvent): readonly OwnedFieldDescriptor[] {
@@ -142,7 +142,7 @@ function activeOwnedFields(context: SchedulerContext, ownerId: string, at: numbe
         event.at <= at + context.epsilon &&
         Number(event.expiresAt) > at + context.epsilon
     )
-    .sort((left, right) => left.at - right.at || Number(left.__order || 0) - Number(right.__order || 0));
+    .sort((left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0));
 }
 
 function descriptorBinding(
@@ -245,7 +245,7 @@ function produceField(
     skillId: event.skillId,
     skillName: event.skillName,
     activationId: event.activationId,
-    fieldId: `${descriptor.ownerId}:${event.activationId || event.__order}:field:${descriptorIndex + 1}`,
+    fieldId: `${descriptor.ownerId}:${event.activationId || event.eventOrder}:field:${descriptorIndex + 1}`,
     fieldType: descriptor.fieldType,
     expiresAt: at + descriptor.duration + (descriptor.inclusiveExpiry === true ? context.epsilon * 2 : 0),
     ownerId: descriptor.ownerId,
@@ -263,7 +263,7 @@ function produceFinisher(
   const at = event.type === 'action' ? Number(event.endsAt ?? event.at) : event.at;
   const { binding, fieldAt: boundFieldAt, warnOnUnbound } = descriptorBinding(context, descriptor, at);
   const resolvedAt = Math.max(at, Number(boundFieldAt ?? at));
-  const parentEventOrder = Number(event.causalOrder ?? event.__order ?? event.at);
+  const parentEventOrder = Number(event.causalOrder ?? event.eventOrder ?? event.at);
   const attemptRoot = String(event.activationId || `${event.sourceId}:${event.skillName || event.name}`);
   for (let attempt = 1; attempt <= descriptor.attempts; attempt += 1) {
     const packet = descriptor.finisherType === 'Projectile';

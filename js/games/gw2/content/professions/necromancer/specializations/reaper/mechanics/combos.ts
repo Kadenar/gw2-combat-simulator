@@ -68,7 +68,7 @@ export function resolveSummonOwnedComboFinisher(
     enqueueGw2OwnedComboFinisher(context, event, {
       ownerId: 'necromancer',
       // index+1 disambiguates multiple finishers on the same hit (e.g. multi-projectile summon attacks).
-      attemptId: `${event.activationId || event.sourceId}:projectile:${event.__order || event.at}:${index + 1}`,
+      attemptId: `${event.activationId || event.sourceId}:projectile:${event.eventOrder || event.at}:${index + 1}`,
       finisherType: 'Projectile',
       at: event.at,
       effectAt: event.at,

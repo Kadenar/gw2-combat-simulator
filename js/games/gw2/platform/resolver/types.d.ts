@@ -27,8 +27,6 @@ import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export type Gw2ResolverEvent = SimulationEvent & {
-  readonly causalOrder?: number;
-  readonly __order?: number;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;

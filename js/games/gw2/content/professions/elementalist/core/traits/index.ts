@@ -641,7 +641,7 @@ function observeFreshAir(context: ElementalistSchedulerContext, event: Simulatio
     // Lookahead needs the expected chance before the candidate is processed;
     // actual proc materialization still uses the canonical event and adapter.
     criticalChance: Number(criticalPolicy.critical?.(context, event)?.chance || 0),
-    eventOrder: Number(event.__order),
+    eventOrder: Number(event.eventOrder),
     sourceId: event.skillId ?? event.sourceId,
     sourceSkill: String(event.skillName || event.source || '')
   });

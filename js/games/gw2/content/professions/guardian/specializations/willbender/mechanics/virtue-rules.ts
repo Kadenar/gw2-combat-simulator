@@ -453,9 +453,9 @@ function observeWillbenderEvent(context: GuardianSchedulerContext, event: Schedu
   }
 
   context.tasks.schedule({
-    // __order (monotone emission index) is preferred over at because multiple events
+    // eventOrder (monotone emission index) is preferred over at because multiple events
     // can share the same timestamp; using at alone would collapse them into one task id.
-    id: `guardian.willbender-virtue-hit:${String(event.__order ?? event.at)}`,
+    id: `guardian.willbender-virtue-hit:${String(event.eventOrder ?? event.at)}`,
     type: 'guardian.willbender-virtue-hit',
     at: Number(event.at),
     payload: {

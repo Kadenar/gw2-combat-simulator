@@ -95,7 +95,7 @@ function createAristocracyState(): AristocracyState {
 function compareTimelineEvents(left: SimulationEvent, right: SimulationEvent): number {
   return (
     left.at - right.at ||
-    Number(left.causalOrder ?? left.__order ?? 0) - Number(right.causalOrder ?? right.__order ?? 0)
+    Number(left.causalOrder ?? left.eventOrder ?? 0) - Number(right.causalOrder ?? right.eventOrder ?? 0)
   );
 }
 

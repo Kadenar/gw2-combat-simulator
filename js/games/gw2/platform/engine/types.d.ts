@@ -62,6 +62,10 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly detail?: string;
   readonly triggeredBy?: string;
   readonly activationId?: string;
+  /** Monotone identity assigned when the scheduler emits the event. */
+  readonly eventOrder?: number;
+  /** Same-timestamp position of an event derived from another scheduled event. */
+  readonly causalOrder?: number;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
@@ -133,6 +137,8 @@ export interface SimulationEventInput {
   readonly detail?: string;
   readonly triggeredBy?: string;
   readonly activationId?: string;
+  readonly eventOrder?: number;
+  readonly causalOrder?: number;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
@@ -1148,12 +1154,3 @@ export interface CooldownResetCommand {
 }
 
 export type RotationCommand = CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;
-
-export interface QueuedEvent {
-  readonly at?: number;
-  readonly time?: number;
-  readonly priority?: number;
-  readonly causalOrder?: number;
-  readonly __order?: number;
-  readonly [field: string]: unknown;
-}

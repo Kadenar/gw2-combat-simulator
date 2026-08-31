@@ -116,9 +116,9 @@ export function observeSpecterEvent(context: ThiefSchedulerContext, event: Thief
     !hasTrait(context.config, TRAIT.LARCENOUS_TORMENT)
   )
     return;
-  // __order makes the id unique per Torment application so concurrent bursts don't collide.
+  // eventOrder makes the id unique per Torment application so concurrent bursts don't collide.
   context.tasks.schedule({
-    id: `thief.larcenous-torment:${event.__order}`,
+    id: `thief.larcenous-torment:${event.eventOrder}`,
     type: 'thief.larcenous-torment',
     at: Math.max(context.state.time, event.at),
     payload: { stacks: Number(event.stacks || 0) }

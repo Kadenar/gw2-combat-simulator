@@ -104,17 +104,17 @@ function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: Rev
     !isStandardBoon(event.kind) ||
     !appliedToAlly ||
     !hasTrait(context.config, TRAIT.SHARED_EMPOWERMENT) ||
-    !Number.isFinite(event.__order)
+    !Number.isFinite(event.eventOrder)
   ) {
     return;
   }
 
   // Resolve at the boon timestamp so future-authored packets cannot consume the ICD before earlier applications.
   context.tasks.schedule({
-    id: `${HERALD_SHARED_EMPOWERMENT_TASK}:${event.__order}`,
+    id: `${HERALD_SHARED_EMPOWERMENT_TASK}:${event.eventOrder}`,
     type: HERALD_SHARED_EMPOWERMENT_TASK,
     at: event.at,
-    payload: { eventOrder: event.__order }
+    payload: { eventOrder: event.eventOrder }
   });
 }
 

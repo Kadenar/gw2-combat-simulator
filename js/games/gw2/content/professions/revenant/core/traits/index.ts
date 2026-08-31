@@ -310,7 +310,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
   const state = professionCoreState(context);
   if (canTriggerImpossibleOdds(event)) {
     context.tasks.schedule({
-      id: `${IMPOSSIBLE_ODDS_TASK}:${event.__order}`,
+      id: `${IMPOSSIBLE_ODDS_TASK}:${event.eventOrder}`,
       type: IMPOSSIBLE_ODDS_TASK,
       at: event.at,
       payload: { event }

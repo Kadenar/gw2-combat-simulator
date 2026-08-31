@@ -9,7 +9,7 @@ export interface QueuedEvent {
   readonly time?: number;
   readonly priority?: number;
   readonly causalOrder?: number;
-  readonly __order?: number;
+  readonly eventOrder?: number;
   readonly [field: string]: unknown;
 }
 
@@ -24,7 +24,7 @@ function eventTimestamp(event: QueuedEvent): number {
 }
 
 function eventCausalOrder(event: QueuedEvent): number | null {
-  const order = Number(event.causalOrder ?? event.__order);
+  const order = Number(event.causalOrder ?? event.eventOrder);
   return Number.isFinite(order) ? order : null;
 }
 

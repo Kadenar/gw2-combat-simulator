@@ -83,7 +83,7 @@ export function observeDeadeyeScheduledEvent(context: ThiefSchedulerContext, eve
     at: event.at,
     priority: -50,
     ownerId: event.activationId,
-    payload: { eventOrder: event.__order }
+    payload: { eventOrder: event.eventOrder }
   });
 }
 

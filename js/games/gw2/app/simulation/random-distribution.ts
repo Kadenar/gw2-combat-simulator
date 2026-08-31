@@ -258,7 +258,7 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
 
       if (event.weaponStrengthSampled === true && Number.isFinite(event.resolvedWeaponStrength)) {
         const profileId = String(event.weaponStrengthProfileId || 'weapon.unknown');
-        const activationId = String(event.activationId || `event:${String(event.__order)}`);
+        const activationId = String(event.activationId || `event:${String(event.eventOrder)}`);
         const activationKey = `${profileId}|${activationId}`;
         if (!seenWeaponActivations.has(activationKey)) {
           seenWeaponActivations.add(activationKey);

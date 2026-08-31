@@ -919,7 +919,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
         at: Math.max(context.state.time, event.at),
         priority: -40,
         payload: {
-          eventOrder: Number(event.__order),
+          eventOrder: Number(event.eventOrder),
           firstBurstHit
         }
       });

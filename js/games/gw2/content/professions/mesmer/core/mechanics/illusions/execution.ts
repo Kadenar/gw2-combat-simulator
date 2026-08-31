@@ -203,7 +203,7 @@ export function handleExpectedProcTask(
 ): void {
   const runtime = mesmerRuntimeFor(context);
   const payloadEvent = task.payload.type === 'hit' ? task.payload.event : null;
-  const canonicalEvent = payloadEvent ? context.eventByOrder(Number(payloadEvent.__order)) : null;
+  const canonicalEvent = payloadEvent ? context.eventByOrder(Number(payloadEvent.eventOrder)) : null;
   // The trigger materializer runs first and replaces the canonical event with
   // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
   // original candidate (such as a skill-derived `blade` flag).

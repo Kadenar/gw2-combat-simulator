@@ -79,7 +79,7 @@ export function selectComboFieldForFinisher(
   options: SelectComboFieldOptions = {}
 ): { readonly field?: ComboFieldEvent; readonly ambiguous: boolean } {
   const ordered = [...fields].sort(
-    (left, right) => left.at - right.at || Number(left.__order || 0) - Number(right.__order || 0)
+    (left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0)
   );
   // comboBindingPriority > 0 marks an authoritative field (e.g., the specific
   // field placed by a skill that also carries a finisher). When present, only

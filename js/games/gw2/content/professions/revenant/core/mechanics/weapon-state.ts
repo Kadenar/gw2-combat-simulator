@@ -34,7 +34,7 @@ export function observeRevenantWeaponEvent(context: RevenantSchedulerContext, ev
   }
 
   context.tasks.schedule({
-    id: `revenant.drop-the-hammer-reset:${event.__order}`,
+    id: `revenant.drop-the-hammer-reset:${event.eventOrder}`,
     type: 'revenant.drop-the-hammer-reset',
     at: event.at,
     payload: {}

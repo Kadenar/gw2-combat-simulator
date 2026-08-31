@@ -132,7 +132,7 @@ export function scheduleAbyssalRazeRechargeReduction(
   const seconds = Number(skill.rechargeReduction || 0);
   if (!seconds || event.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
   context.tasks.schedule({
-    id: `${RECHARGE_TASK}:${event.__order ?? event.at}`,
+    id: `${RECHARGE_TASK}:${event.eventOrder ?? event.at}`,
     type: RECHARGE_TASK,
     at: event.at,
     payload: {
@@ -230,7 +230,7 @@ export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task:
 export function observeRevenantSpearEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   if (event.type !== 'weapon_set' || event.skillId !== ID.SWAP_WEAPONS) return;
   context.tasks.schedule({
-    id: `${CRUSHING_SWAP_TASK}:${event.__order ?? event.at}`,
+    id: `${CRUSHING_SWAP_TASK}:${event.eventOrder ?? event.at}`,
     type: CRUSHING_SWAP_TASK,
     at: event.at,
     payload: { weaponSet: event.weaponSet }

@@ -56,7 +56,7 @@ export function handleDeadlyBladesCriticalTask(
 ): void {
   const runtime = mesmerRuntimeFor(context);
   const payloadEvent = task.payload.event;
-  const canonicalEvent = context.eventByOrder(Number(payloadEvent.__order));
+  const canonicalEvent = context.eventByOrder(Number(payloadEvent.eventOrder));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
   const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'condition');
   // Vulnerability follows the same sampled-or-weighted critical fact as Jagged

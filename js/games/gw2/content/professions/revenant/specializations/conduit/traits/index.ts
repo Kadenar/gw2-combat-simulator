@@ -113,7 +113,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
     // Affinity gain is deferred to a task so it resolves at the hit timestamp, not at cast start.
     // Skills costing ≥ 25 energy grant 2 affinity; cheaper skills grant 1.
     context.tasks.schedule({
-      id: `revenant.affinity-hit:${event.__order}`,
+      id: `revenant.affinity-hit:${event.eventOrder}`,
       type: 'revenant.affinity-hit',
       at: event.at,
       payload: { amount: cost >= 25 ? 2 : 1 }

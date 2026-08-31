@@ -1,6 +1,6 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
-import { eventCausalOrder, eventTimestamp } from '#gw2/platform/engine/events/events.js';
+import { eventCausalOrder } from '#gw2/platform/engine/events/events.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -52,7 +52,7 @@ export function createGw2TimelineIndex({
    * @param {SimulationEvent} right
    */
   const compareEvents = (left: SimulationEvent, right: SimulationEvent): number =>
-    eventTimestamp(left) - eventTimestamp(right) || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0);
+    left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0);
   // Late-derived events use neutral stable insertion without changing the GW2-specific comparator.
   const insertOrdered = (target: SimulationEvent[], event: SimulationEvent): void =>
     insertSorted(target, event, compareEvents);

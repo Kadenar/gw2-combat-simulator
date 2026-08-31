@@ -2,14 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { compareQueuedEvents, StableEventQueue } from '#kernel/events/queue.js';
-import { eventCausalOrder, eventTimestamp } from '#gw2/platform/engine/events/events.js';
+import { eventCausalOrder } from '#gw2/platform/engine/events/events.js';
 
-test('event ordering primitives preserve canonical and legacy field precedence', () => {
-  assert.equal(eventTimestamp({ at: 3, time: 4 }), 3);
-  assert.equal(eventTimestamp({ time: 4 }), 4);
-  assert.equal(eventTimestamp({}), 0);
-  assert.equal(eventCausalOrder({ causalOrder: 2, __order: 3 }), 2);
-  assert.equal(eventCausalOrder({ __order: 3 }), 3);
+test('event ordering prefers explicit causal placement over emission order', () => {
+  assert.equal(eventCausalOrder({ causalOrder: 2, eventOrder: 3 }), 2);
+  assert.equal(eventCausalOrder({ eventOrder: 3 }), 3);
   assert.equal(eventCausalOrder({ causalOrder: Number.NaN }), null);
 });
 
