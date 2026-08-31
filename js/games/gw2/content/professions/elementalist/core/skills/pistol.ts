@@ -15,12 +15,12 @@ import {
   PISTOL_SKILL_ELEMENTS
 } from '#gw2/content/professions/elementalist/core/constants.js';
 import {
-  applyElementalistAura,
   emitProfiledBuff,
   emitProfiledCondition,
   profiledEffect,
   skillWeapon
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceValue,

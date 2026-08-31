@@ -22,10 +22,8 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import {
-  applyElementalistAura,
-  elementalistEventSkill
-} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { elementalistEventSkill } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import type { ElementalistAttunement } from '#gw2/content/professions/elementalist/core/state.js';
 import type { CatalystEmpowermentPool } from '#gw2/content/professions/elementalist/types.js';
 import type {

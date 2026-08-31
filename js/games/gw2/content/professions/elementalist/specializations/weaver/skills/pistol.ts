@@ -7,12 +7,12 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistCastContext } from '#gw2/content/professions/elementalist/types.js';
 import {
-  applyElementalistAura,
   emitProfiledBuff,
   emitProfiledCondition,
   profiledEffect,
   skillWeapon
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
 

@@ -269,6 +269,27 @@ test('profession data stays declarative and concept modules never import composi
   }
 });
 
+// Keep Revenant trait-line implementations private so mechanics and elite
+// specializations cannot bypass the ordered Core dispatcher.
+test('Revenant Core trait lines are imported only by their dispatcher', () => {
+  const lineTargets = new Set(
+    ['corruption', 'devastation', 'invocation', 'retribution'].map((line) => `core/traits/${line}.js`)
+  );
+  const sources = professionSources('revenant');
+
+  assert.equal(
+    sources.some(({ relativePath }) => relativePath === 'core/traits/legend-invocation.ts'),
+    false
+  );
+  for (const source of sources) {
+    for (const target of professionImportTargets(source, 'revenant')) {
+      if (lineTargets.has(target)) {
+        assert.equal(source.relativePath, 'core/traits/index.ts', `${source.relativePath} imports ${target}`);
+      }
+    }
+  }
+});
+
 test('scheduler and resolver state factories never share a mutable state instance', () => {
   for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
     for (const module of modules) {

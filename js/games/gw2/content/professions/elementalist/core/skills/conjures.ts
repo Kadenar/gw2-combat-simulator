@@ -3,7 +3,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/content/professions/elementalist/types.js';
 import { CONJURE_SKILLS } from '#gw2/content/professions/elementalist/core/constants.js';
-import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceValue,

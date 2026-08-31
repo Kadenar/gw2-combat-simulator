@@ -6,17 +6,12 @@
  * this module; it must not depend on them.
  */
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
 import { ETCHING_CHAINS } from '#gw2/content/professions/elementalist/core/constants.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceEffect,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
@@ -161,34 +156,30 @@ export function emitElementalistProc(
   });
 }
 
-// Register the adjusted aura window first, then emit its canonical event and
-// combat-only trait boons so every consumer observes one shared application.
-export function applyElementalistAura(
+export interface ElementalistAuraApplication {
+  readonly at: number;
+  readonly aura: string;
+  readonly duration: number;
+  readonly skillName: string;
+  readonly sourceId: Skill['id'];
+  readonly priority?: number;
+}
+
+export type ElementalistAuraApplier = (
   context: ElementalistSchedulerContext,
-  {
-    at,
-    aura,
-    duration,
-    skillName,
-    sourceId,
-    priority = 0
-  }: {
-    at: number;
-    aura: string;
-    duration: number;
-    skillName: string;
-    sourceId: Skill['id'];
-    priority?: number;
-  }
+  application: ElementalistAuraApplication
+) => void;
+
+// Register one finalized aura window and emit its canonical event; trait dispatchers adjust and react before calling in.
+export function emitElementalistAura(
+  context: ElementalistSchedulerContext,
+  { at, aura, duration, skillName, sourceId, priority = 0 }: ElementalistAuraApplication
 ): void {
   const state = professionCoreState(context);
-  const adjustedDuration = hasTrait(context, 'Smothering Auras')
-    ? duration * elementalistBalanceValue(context, PROFILE.smotheringAuras, 'durationMultiplier', 1.33)
-    : duration;
   const auraState: ElementalistAuraState = {
     type: aura,
     appliedAt: at,
-    expiresAt: at + adjustedDuration,
+    expiresAt: at + duration,
     skillName
   };
   state.activeAuras.push(auraState);
@@ -200,16 +191,7 @@ export function applyElementalistAura(
     actorType: 'effect',
     skillName,
     aura,
-    duration: adjustedDuration,
+    duration,
     ...(priority ? { priority } : {})
   });
-  if (!combatStarted(context, at)) return;
-  if (hasTrait(context, "Zephyr's Boon")) {
-    emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Fury', 'Fury', 1, 5, skillName, sourceId);
-    emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Swiftness', 'Swiftness', 1, 5, skillName, sourceId);
-  }
-
-  if (hasTrait(context, 'Elemental Shielding')) {
-    emitProfiledBuff(context, at, PROFILE.elementalShielding, 'Protection', 'Protection', 1, 3, skillName, sourceId);
-  }
 }

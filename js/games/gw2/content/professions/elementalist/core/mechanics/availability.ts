@@ -26,10 +26,8 @@ import {
   HAMMER_ORB_SKILLS
 } from '#gw2/content/professions/elementalist/core/constants.js';
 import { elementalistElementalAvailability } from '#gw2/content/professions/elementalist/core/skills/elementals.js';
-import {
-  projectedFreshAirReadyAt,
-  targetAttunement
-} from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
+import { targetAttunement } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
+import { projectedFreshAirReadyAt } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   activeHammerOrbElements,
   hammerOrbMatchesAttunement

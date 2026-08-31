@@ -15,7 +15,6 @@ import {
   targetAttunement
 } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import {
-  applyElementalistAura,
   etchingChain,
   profiledEffect,
   skillWeapon
@@ -31,6 +30,7 @@ import {
   type ElementalistAttunement
 } from '#gw2/content/professions/elementalist/core/state.js';
 import {
+  applyElementalistAura,
   applyGenericPostCast,
   extendPersistingFlamesPackets,
   triggerEvasiveArcana

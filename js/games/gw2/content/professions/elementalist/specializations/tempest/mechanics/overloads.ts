@@ -22,11 +22,9 @@ import type {
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitElementalistProc } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistAura,
-  emitElementalistProc
-} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
   triggerEarthenBlast,
   triggerElectricDischarge,
   triggerFlameExpulsion,

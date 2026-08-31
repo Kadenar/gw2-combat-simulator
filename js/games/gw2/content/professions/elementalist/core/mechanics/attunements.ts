@@ -1,4 +1,3 @@
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -15,19 +14,10 @@ import {
   ATTUNEMENT_RECHARGE_SECONDS,
   OFF_ATTUNEMENT_RECHARGE_SECONDS
 } from '#gw2/content/professions/elementalist/core/constants.js';
+import { combatStarted } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
-  combatStarted,
-  emitProfiledBuff,
-  profiledEffect
-} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
-  grantElementalAttunementBoon,
-  grantElementalistRockSolid,
-  triggerBountifulPower,
-  triggerEarthenBlast,
-  triggerElectricDischarge,
-  triggerFlameExpulsion,
-  triggerSunspot
+  applyElementalistAttunementTraits,
+  projectedFreshAirReadyAt
 } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   inFlightAutoattackCarryover,
@@ -52,27 +42,6 @@ export interface ElementalistAttunementTransition {
   readonly secondaryAttunement?: ElementalistAttunement | null;
   readonly rechargeDuration?: number;
   readonly shouldTriggerAttunementTrait?: (trigger: ElementalistAttunementTraitTrigger) => boolean;
-}
-
-/**
- * Looks ahead through queued Fresh Air critical candidates for the timestamp at
- * which their accumulated critical chance is expected to complete a proc and
- * reset Air. Returns null when the trait is unselected, Air is already the
- * primary attunement, or no candidate up to `upTo` completes a proc.
- */
-export function projectedFreshAirReadyAt(context: ElementalistCastContext, upTo: number): number | null {
-  if (!hasTrait(context, 'Fresh Air')) return null;
-  const state = professionCoreState(context);
-  if (state.primaryAttunement === 'Air') return null;
-  let progress = state.freshAirProgress;
-  const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
-  for (const candidate of candidates) {
-    if (candidate.at > upTo + context.epsilon) break;
-    progress += candidate.criticalChance;
-    if (progress + context.epsilon >= 1) return candidate.at;
-  }
-
-  return null;
 }
 
 /** Maps an attunement-swap skill to the attunement it enters, or null for any other skill. */
@@ -196,67 +165,12 @@ export function onAttunementComplete(
   const shouldTriggerAttunementTrait = (attunement: ElementalistAttunement, profileId: Skill['id']): boolean =>
     transition.shouldTriggerAttunementTrait?.({ attunement, profileId }) !== false;
 
-  // Attunement-exit and attunement-entry trait effects follow, each of them
-  // vetoable by the specialization's transition policy.
-  if (previous === 'Fire' && target !== 'Fire' && shouldTriggerAttunementTrait('Fire', PROFILE.pyromancersPuissance)) {
-    triggerFlameExpulsion(context, at, skill.id);
-  }
-
-  if (target === 'Fire' && shouldTriggerAttunementTrait('Fire', PROFILE.sunspot)) {
-    triggerSunspot(context, at, skill.id);
-  }
-
-  if (target === 'Air') {
-    if (shouldTriggerAttunementTrait('Air', PROFILE.electricDischarge)) {
-      triggerElectricDischarge(context, at, skill.id);
-    }
-
-    if (previous !== 'Air' && hasTrait(context, 'Fresh Air')) {
-      state.freshAirLastResetAt = at;
-      const freshAir = profiledEffect(context, PROFILE.freshAir, 'buff');
-      emitSkillBuff(context, skill, {
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: 'fresh air',
-        stacks: Number(freshAir?.stacks ?? 1),
-        duration: Number(freshAir?.duration ?? 5),
-        skillName: skill.name,
-        priority: -10
-      });
-    }
-
-    if (hasTrait(context, 'One with Air')) {
-      emitProfiledBuff(context, at, PROFILE.oneWithAir, 'Superspeed', 'Superspeed', 1, 3, skill.name, skill.id);
-    }
-
-    if (hasTrait(context, 'Inscription')) {
-      emitProfiledBuff(context, at, PROFILE.inscription, 'Air Entry', 'Resistance', 1, 3, skill.name, skill.id);
-    }
-  }
-
-  if (target === 'Earth') {
-    if (shouldTriggerAttunementTrait('Earth', PROFILE.earthenBlast)) {
-      triggerEarthenBlast(context, at, skill.id);
-    }
-
-    if (shouldTriggerAttunementTrait('Earth', PROFILE.rockSolid)) {
-      grantElementalistRockSolid(context, at, skill.id);
-    }
-  }
-
-  if (hasTrait(context, 'Arcane Prowess')) {
-    emitProfiledBuff(context, at, PROFILE.arcaneProwess, 'Might', 'Might', 1, 8, 'Arcane Prowess', skill.id);
-  }
-
-  // Re-entering the same element through a dual attunement does not re-grant the
-  // entry boon, and Bountiful Power only counts single-attunement swaps.
-  if (!dualAttunement || target !== previous) {
-    grantElementalAttunementBoon(context, at, target, skill.id);
-  }
-
-  if (!dualAttunement) {
-    triggerBountifulPower(context, at, 1, skill.id);
-  }
+  applyElementalistAttunementTraits(context, {
+    at,
+    skill,
+    previous,
+    target,
+    dualAttunement,
+    shouldTrigger: shouldTriggerAttunementTrait
+  });
 }
