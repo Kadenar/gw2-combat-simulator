@@ -1,14 +1,15 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/content/professions/elementalist/types.js';
 import { CONJURE_SKILLS } from '#gw2/content/professions/elementalist/core/constants.js';
 import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /**
  * Track equipped and ground-copy conjures as timed flip state so pickup and
@@ -32,7 +33,11 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
       applyElementalistAura(context, {
         at,
         aura: 'Fire Aura',
-        duration: elementalistEffectValue(context, PROFILE.conjurer, 'buff', 'duration', 4, 'Conjurer'),
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.conjurer, 'buff', 0, 'Conjurer'),
+          'duration',
+          4
+        ),
         skillName: 'Conjurer',
         sourceId: skill.id
       });

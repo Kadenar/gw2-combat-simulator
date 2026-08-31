@@ -1,14 +1,15 @@
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
-import {
-  ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  engineerBalanceEffectValue
-} from '#gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/core/profiles.js';
 import {
   applyEngineerDerivedCondition,
   procState,
@@ -34,8 +35,9 @@ export function applyGrenadier(context: EngineerCastContext, skill: EngineerSkil
     return;
   state.traitProcReadyAt.grenadier =
     at + balanceProfileValueFromContext(context, PROFILE.grenadier, 'internalCooldown', 20);
-  const hits = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'hits', 6);
-  const coefficient = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'coefficient', 0.5);
+  const grenadier = balanceProfileEffectFromContext(context, PROFILE.grenadier, 'strike');
+  const hits = balanceProfileValue(grenadier, 'hits', 6);
+  const coefficient = balanceProfileValue(grenadier, 'coefficient', 0.5);
   // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     emitSkillDamage(context, {
@@ -75,7 +77,11 @@ export function applyExplosiveEntrance(context: EngineerResolverContext, event: 
   state.explosiveEntranceFired = true;
   queueDamage(context, event, {
     name: 'Explosive Entrance',
-    coefficient: engineerBalanceEffectValue(context, PROFILE.explosiveEntrance, 'strike', 'coefficient', 1.25),
+    coefficient: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.explosiveEntrance, 'strike'),
+      'coefficient',
+      1.25
+    ),
     sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
     actorType: 'effect',
     ownerActorType: 'player',
@@ -94,8 +100,16 @@ export function applySteelPackedPowder(
   applyEngineerDerivedCondition(context, event, {
     name: 'Steel-Packed Powder',
     condition: 'Vulnerability',
-    stacks: engineerBalanceEffectValue(context, PROFILE.steelPackedPowder, 'condition', 'stacks', 1),
-    duration: engineerBalanceEffectValue(context, PROFILE.steelPackedPowder, 'condition', 'duration', 5),
+    stacks: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.steelPackedPowder, 'condition'),
+      'stacks',
+      1
+    ),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.steelPackedPowder, 'condition'),
+      'duration',
+      5
+    ),
     sourceId: TRAIT.STEEL_PACKED_POWDER,
     actorType: 'effect'
   });
@@ -121,7 +135,7 @@ export function applyShortFuse(
     name: 'Short Fuse',
     kind: 'fury',
     stacks: 1,
-    duration: engineerBalanceEffectValue(context, PROFILE.shortFuse, 'boon', 'duration', 4),
+    duration: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.shortFuse, 'boon'), 'duration', 4),
     sourceId: TRAIT.SHORT_FUSE,
     actorType: 'effect'
   });
@@ -139,7 +153,11 @@ export function applyExplosiveTemper(
     name: 'Explosive Temper',
     kind: 'explosive-temper',
     stacks: 1,
-    duration: engineerBalanceEffectValue(context, PROFILE.explosiveTemper, 'buff', 'duration', 10),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.explosiveTemper, 'buff'),
+      'duration',
+      10
+    ),
     sourceId: TRAIT.EXPLOSIVE_TEMPER,
     actorType: 'effect'
   });
@@ -198,8 +216,12 @@ export function applyShrapnel(
   applyEngineerDerivedCondition(context, event, {
     name: 'Shrapnel',
     condition: 'Bleeding',
-    stacks: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'stacks', 1),
-    duration: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'duration', 6),
+    stacks: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition'), 'stacks', 1),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition'),
+      'duration',
+      6
+    ),
     sourceId: TRAIT.SHRAPNEL,
     actorType: 'effect',
     ownerActorType: 'player'
@@ -207,8 +229,16 @@ export function applyShrapnel(
   queueBuff(context, event, {
     name: 'Shrapnel',
     kind: 'target-crippled',
-    stacks: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'stacks', 1, 1),
-    duration: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'duration', 1, 1),
+    stacks: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition', 1),
+      'stacks',
+      1
+    ),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition', 1),
+      'duration',
+      1
+    ),
     sourceId: TRAIT.SHRAPNEL,
     actorType: 'effect'
   });
@@ -243,30 +273,14 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
   const alternateEvery = balanceProfileValueFromContext(context, PROFILE.aimAssistedRocket, 'maximumStacks', 5);
   const orbital = state.aimAssistedRocketCount % alternateEvery === 0;
+  const rocket = balanceProfileEffectFromContext(context, PROFILE.aimAssistedRocket, 'strike', orbital ? 1 : 0);
   queueDamage(context, event, {
     name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
-    coefficient: engineerBalanceEffectValue(
-      context,
-      PROFILE.aimAssistedRocket,
-      'strike',
-      'coefficient',
-      orbital ? 1.92 : 1,
-      orbital ? 1 : 0
-    ),
+    coefficient: balanceProfileValue(rocket, 'coefficient', orbital ? 1.92 : 1),
     sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
     actorType: 'effect',
     ownerActorType: 'player',
-    at:
-      event.at +
-      engineerBalanceEffectValue(
-        context,
-        PROFILE.aimAssistedRocket,
-        'strike',
-        'atMs',
-        orbital ? 2000 : 40,
-        orbital ? 1 : 0
-      ) /
-        1000,
+    at: event.at + balanceProfileValue(rocket, 'atMs', orbital ? 2000 : 40) / 1000,
     explosion: !orbital,
     ...(orbital
       ? {

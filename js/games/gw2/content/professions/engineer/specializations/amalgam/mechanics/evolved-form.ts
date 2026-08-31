@@ -1,4 +1,8 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -7,7 +11,6 @@ import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.j
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
 import { AMALGAM_NEW_GENES_BOONS } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
 import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
@@ -155,7 +158,11 @@ function scheduleThornsRetaliation(context: EngineerCastContext, skill: Engineer
       skillId: skill.id,
       skillName: skill.name,
       name: 'Thorns Retaliation',
-      coefficient: engineerBalanceEffectValue(context, PROFILE.morphs, 'strike', 'coefficient', 0.5),
+      coefficient: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.morphs, 'strike'),
+        'coefficient',
+        0.5
+      ),
       hits: 1,
       hitIndex: index + 1,
       totalHits: hits,
@@ -212,14 +219,22 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     const buffs: AmalgamBuff[] = [
       {
         kind: 'alacrity',
-        duration: engineerBalanceEffectValue(context, PROFILE.newGenes, 'boon', 'duration', 5),
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.newGenes, 'boon'),
+          'duration',
+          5
+        ),
         sourceId: TRAIT.NEW_GENES,
         name: 'New Genes'
       },
       {
         kind: 'might',
-        duration: engineerBalanceEffectValue(context, PROFILE.newGenes, 'boon', 'duration', 12, 1),
-        stacks: engineerBalanceEffectValue(context, PROFILE.newGenes, 'boon', 'stacks', 4, 1),
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.newGenes, 'boon', 1),
+          'duration',
+          12
+        ),
+        stacks: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.newGenes, 'boon', 1), 'stacks', 4),
         sourceId: TRAIT.NEW_GENES,
         name: 'New Genes'
       }

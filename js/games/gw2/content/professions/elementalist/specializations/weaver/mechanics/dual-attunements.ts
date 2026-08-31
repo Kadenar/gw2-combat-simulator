@@ -7,7 +7,11 @@
  * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
  * pulses, and the traits that react to swaps and dual-skill completions.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type {
@@ -38,11 +42,7 @@ import {
   type ElementalistAttunement
 } from '#gw2/content/professions/elementalist/core/state.js';
 import { weaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
 import { applyWeaverPistolState } from '#gw2/content/professions/elementalist/specializations/weaver/skills/pistol.js';
 import {
@@ -271,7 +271,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   // Pre-combat setup swaps must not generate trait procs.
   if (at < Number(context.combatStartTime || 0) - context.epsilon) return;
   if (hasTrait(context, "Weaver's Prowess") && (unravelActive || target === previous)) {
-    const resistance = elementalistBalanceEffect(context, PROFILE.weaversProwess, 'boon', 'Resistance');
+    const resistance = balanceProfileEffectFromContext(context, PROFILE.weaversProwess, 'boon', 0, 'Resistance');
     emitSkillBuff(context, elementalistEventSkill(context, "Weaver's Prowess", sourceId), {
       at,
       source: "Weaver's Prowess",
@@ -433,7 +433,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
           : previousPrimary === 'Air'
             ? (['Air', 'Fury', 1] as const)
             : (['Earth', 'Protection', 1] as const);
-    const profiledBoon = elementalistBalanceEffect(context, PROFILE.unravel, 'boon', boon[0]);
+    const profiledBoon = balanceProfileEffectFromContext(context, PROFILE.unravel, 'boon', 0, boon[0]);
     const boonKind = String(profiledBoon?.boon || boon[1]).toLowerCase();
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
@@ -461,7 +461,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
 
   // Fervent Stance grants might on the next dual attack inside its window.
   if (dualAttunements && state.ferventStanceUntil >= at) {
-    const might = elementalistBalanceEffect(context, PROFILE.ferventStance, 'boon', 'Might');
+    const might = balanceProfileEffectFromContext(context, PROFILE.ferventStance, 'boon', 0, 'Might');
     emitSkillBuff(context, skill, {
       at,
       source: 'Fervent Stance',
@@ -606,13 +606,17 @@ function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task:
     actorType: 'player',
     skillName: 'Primordial Stance',
     skillId: sourceId,
-    coefficient: elementalistEffectValue(context, PROFILE.primordialStance, 'strike', 'coefficient', 0.33),
+    coefficient: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.primordialStance, 'strike'),
+      'coefficient',
+      0.33
+    ),
     skillWeapon: 'Unequipped',
     damageKind: 'field-tick'
   });
   for (const attunement of attunements) {
     const [condition, stacks, duration] = effects[attunement];
-    const effect = elementalistBalanceEffect(context, PROFILE.primordialStance, 'condition', attunement);
+    const effect = balanceProfileEffectFromContext(context, PROFILE.primordialStance, 'condition', 0, attunement);
     emitSkillCondition(context, {
       at: task.at,
       source: 'Primordial Stance',

@@ -1,7 +1,10 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
-import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { queueBuff } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import {
   holosmithEventMetadata,
@@ -32,6 +35,8 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
     balanceProfileValueFromContext(context, PROFILE.primeLightBeamHeatTier, 'packetInterval', 1)
   );
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.primeLightBeamHeatTier, snapshot);
+  const strike = balanceProfileEffectFromContext(context, PROFILE.primeLightBeamHeatTier, 'strike');
+  const condition = balanceProfileEffectFromContext(context, PROFILE.primeLightBeamHeatTier, 'condition');
   const conditionBaseDurationFactor = enhancedCapacityTier
     ? balanceProfileValueFromContext(
         context,
@@ -48,7 +53,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
       at,
       name: 'Field Damage',
       skillName: event.skillName,
-      coefficient: engineerBalanceEffectValue(context, PROFILE.primeLightBeamHeatTier, 'strike', 'coefficient', 0.5),
+      coefficient: balanceProfileValue(strike, 'coefficient', 0.5),
       hits: 1,
       hitIndex: pulse + 1,
       totalHits: packets,
@@ -67,8 +72,8 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
       name: `${event.skillName} — Burning`,
       skillName: event.skillName,
       condition: 'Burning',
-      stacks: engineerBalanceEffectValue(context, PROFILE.primeLightBeamHeatTier, 'condition', 'stacks', 1),
-      duration: engineerBalanceEffectValue(context, PROFILE.primeLightBeamHeatTier, 'condition', 'duration', 3),
+      stacks: balanceProfileValue(condition, 'stacks', 1),
+      duration: balanceProfileValue(condition, 'duration', 3),
       applicationIndex: pulse + 1,
       totalApplications: packets,
       source: 'engineer',
@@ -103,6 +108,8 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
     balanceProfileValueFromContext(context, PROFILE.laserDiskHeatTier, 'packetInterval', 0.52)
   );
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.laserDiskHeatTier, snapshot);
+  const strike = balanceProfileEffectFromContext(context, PROFILE.laserDiskHeatTier, 'strike');
+  const condition = balanceProfileEffectFromContext(context, PROFILE.laserDiskHeatTier, 'condition');
   // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
@@ -111,7 +118,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
       at,
       name: 'Laser Disk',
       skillName: event.skillName,
-      coefficient: engineerBalanceEffectValue(context, PROFILE.laserDiskHeatTier, 'strike', 'coefficient', 0.5),
+      coefficient: balanceProfileValue(strike, 'coefficient', 0.5),
       hits: 1,
       hitIndex: pulse + 1,
       totalHits: pulses,
@@ -129,8 +136,8 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
       name: `${event.skillName} - Bleeding`,
       skillName: event.skillName,
       condition: 'Bleeding',
-      stacks: engineerBalanceEffectValue(context, PROFILE.laserDiskHeatTier, 'condition', 'stacks', 1),
-      duration: engineerBalanceEffectValue(context, PROFILE.laserDiskHeatTier, 'condition', 'duration', 2),
+      stacks: balanceProfileValue(condition, 'stacks', 1),
+      duration: balanceProfileValue(condition, 'duration', 2),
       applicationIndex: pulse + 1,
       totalApplications: pulses,
       source: 'engineer',
@@ -161,6 +168,8 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   const at =
     event.at + Math.max(0, balanceProfileValueFromContext(context, PROFILE.launchWallHeatTier, 'initialDelay', 0.48));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.launchWallHeatTier, snapshot);
+  const strike = balanceProfileEffectFromContext(context, PROFILE.launchWallHeatTier, 'strike');
+  const condition = balanceProfileEffectFromContext(context, PROFILE.launchWallHeatTier, 'condition');
   // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
     enqueueOrdered(context.queue, {
@@ -168,7 +177,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
       at,
       name: 'Launch Wall',
       skillName: event.skillName,
-      coefficient: engineerBalanceEffectValue(context, PROFILE.launchWallHeatTier, 'strike', 'coefficient', 1.5),
+      coefficient: balanceProfileValue(strike, 'coefficient', 1.5),
       hits: 1,
       hitIndex: wall + 1,
       totalHits: walls,
@@ -187,8 +196,8 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
       name: `${event.skillName} - Vulnerability`,
       skillName: event.skillName,
       condition: 'Vulnerability',
-      stacks: engineerBalanceEffectValue(context, PROFILE.launchWallHeatTier, 'condition', 'stacks', 3),
-      duration: engineerBalanceEffectValue(context, PROFILE.launchWallHeatTier, 'condition', 'duration', 5),
+      stacks: balanceProfileValue(condition, 'stacks', 3),
+      duration: balanceProfileValue(condition, 'duration', 5),
       applicationIndex: wall + 1,
       totalApplications: walls,
       source: 'engineer',
@@ -216,6 +225,8 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
     0,
     balanceProfileValueFromContext(context, PROFILE.refractionCutterHeatTier, 'initialDelay', 0.36)
   );
+  const strike = balanceProfileEffectFromContext(context, PROFILE.refractionCutterHeatTier, 'strike');
+  const condition = balanceProfileEffectFromContext(context, PROFILE.refractionCutterHeatTier, 'condition');
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;
@@ -224,7 +235,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
       at,
       name: 'Refraction Cutter Blade',
       skillName: event.skillName,
-      coefficient: engineerBalanceEffectValue(context, PROFILE.refractionCutterHeatTier, 'strike', 'coefficient', 0.4),
+      coefficient: balanceProfileValue(strike, 'coefficient', 0.4),
       hits: 1,
       hitIndex: blade + 2,
       totalHits: extraBlades + 1,
@@ -262,8 +273,8 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
       name: `${event.skillName} - Bleeding`,
       skillName: event.skillName,
       condition: 'Bleeding',
-      stacks: engineerBalanceEffectValue(context, PROFILE.refractionCutterHeatTier, 'condition', 'stacks', 1),
-      duration: engineerBalanceEffectValue(context, PROFILE.refractionCutterHeatTier, 'condition', 'duration', 4),
+      stacks: balanceProfileValue(condition, 'stacks', 1),
+      duration: balanceProfileValue(condition, 'duration', 4),
       applicationIndex: blade + 2,
       totalApplications: extraBlades + 1,
       source: 'engineer',

@@ -1,4 +1,8 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
@@ -10,7 +14,6 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitEngineerBarSwap } from '#gw2/content/professions/engineer/core/mechanics/event-handlers.js';
-import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
 import {
   HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS,
@@ -161,6 +164,7 @@ function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
 
 /** Emits one profiled Enhanced Capacity Storage Unit might pulse. */
 function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number): void {
+  const boon = balanceProfileEffectFromContext(context, PROFILE.enhancedCapacity, 'boon');
   const sourceSkill = {
     id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
     name: 'Enhanced Capacity Storage Unit'
@@ -172,13 +176,8 @@ function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number
     actorType: 'player',
     name: 'Enhanced Capacity Storage Unit — might',
     kind: 'might',
-    duration: gw2SchedulerBoonDuration(
-      context,
-      sourceSkill,
-      'might',
-      engineerBalanceEffectValue(context, PROFILE.enhancedCapacity, 'boon', 'duration', 6)
-    ),
-    stacks: engineerBalanceEffectValue(context, PROFILE.enhancedCapacity, 'boon', 'stacks', 2)
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', balanceProfileValue(boon, 'duration', 6)),
+    stacks: balanceProfileValue(boon, 'stacks', 2)
   });
 }
 
@@ -272,6 +271,8 @@ function scheduleToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: 
 
 /** Emits the delayed strike and burning packets owned by Photonic Blasting Module. */
 function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, effectAt: number): void {
+  const strike = balanceProfileEffectFromContext(context, PROFILE.photonicBlastingModule, 'strike');
+  const condition = balanceProfileEffectFromContext(context, PROFILE.photonicBlastingModule, 'condition');
   // The explosion owns the blast finisher and resolves before its same-time condition packet.
   emitSkillDamage(context, {
     at: effectAt,
@@ -280,7 +281,7 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
     actorType: 'player',
     skillName: 'Photonic Blasting Module',
     name: 'Photonic Blasting Module',
-    coefficient: engineerBalanceEffectValue(context, PROFILE.photonicBlastingModule, 'strike', 'coefficient', 5),
+    coefficient: balanceProfileValue(strike, 'coefficient', 5),
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
@@ -303,8 +304,8 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
     skillName: 'Photonic Blasting Module',
     name: 'Photonic Blasting Module — Burning',
     condition: 'Burning',
-    stacks: engineerBalanceEffectValue(context, PROFILE.photonicBlastingModule, 'condition', 'stacks', 7),
-    duration: engineerBalanceEffectValue(context, PROFILE.photonicBlastingModule, 'condition', 'duration', 6)
+    stacks: balanceProfileValue(condition, 'stacks', 7),
+    duration: balanceProfileValue(condition, 'duration', 6)
   });
 }
 
@@ -608,6 +609,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
 export function triggerThermalReleaseValve(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
+  const boon = balanceProfileEffectFromContext(context, PROFILE.thermalReleaseValve, 'boon');
   emitSkillBuff(context, {
     at,
     source: 'Trait',
@@ -617,13 +619,8 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
     skillName: skill.name,
     name: 'Thermal Release Valve — vigor',
     kind: 'vigor',
-    duration: gw2SchedulerBoonDuration(
-      context,
-      skill,
-      'vigor',
-      engineerBalanceEffectValue(context, PROFILE.thermalReleaseValve, 'boon', 'duration', 3)
-    ),
-    stacks: engineerBalanceEffectValue(context, PROFILE.thermalReleaseValve, 'boon', 'stacks', 1)
+    duration: gw2SchedulerBoonDuration(context, skill, 'vigor', balanceProfileValue(boon, 'duration', 3)),
+    stacks: balanceProfileValue(boon, 'stacks', 1)
   });
   if (state.heat <= 0 || (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated)) return;
   triggerVentExhaust(context, skill, at);
@@ -674,6 +671,7 @@ export function observeHolosmithScheduledEvent(
 
   state.solarFocusingLensStacks -= 1;
   context.replaceEvent(event, { solarFocusingLens: true });
+  const condition = balanceProfileEffectFromContext(context, PROFILE.solarFocusingLens, 'condition');
   emitSkillCondition(context, {
     cause: event,
 
@@ -685,8 +683,8 @@ export function observeHolosmithScheduledEvent(
     skillName: event.skillName,
     name: 'Solar Focusing Lens — Burning',
     condition: 'Burning',
-    stacks: engineerBalanceEffectValue(context, PROFILE.solarFocusingLens, 'condition', 'stacks', 1),
-    duration: engineerBalanceEffectValue(context, PROFILE.solarFocusingLens, 'condition', 'duration', 3)
+    stacks: balanceProfileValue(condition, 'stacks', 1),
+    duration: balanceProfileValue(condition, 'duration', 3)
   });
 }
 

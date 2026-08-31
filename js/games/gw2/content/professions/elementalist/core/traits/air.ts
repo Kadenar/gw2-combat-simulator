@@ -1,5 +1,6 @@
 /** Imperative Air trait behavior; dispatch and reaction registration stay with their existing owners. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
@@ -16,15 +17,10 @@ import {
   combatStarted,
   emitElementalistProc,
   emitProfiledBuff,
-  emitProfiledCondition,
-  profiledEffect
+  emitProfiledCondition
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { queueElementalistBuff } from '#gw2/content/professions/elementalist/core/mechanics/resolution-helpers.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceEffect,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /** Emits Electric Discharge from a qualifying Air-attunement transition. */
 export function triggerElectricDischarge(
@@ -40,13 +36,10 @@ export function triggerElectricDischarge(
     actorType: 'effect',
     ownerActorType: 'player',
     skillName: 'Electric Discharge',
-    coefficient: elementalistEffectValue(
-      context,
-      PROFILE.electricDischarge,
-      'strike',
+    coefficient: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.electricDischarge, 'strike', 0, 'Electric Discharge'),
       'coefficient',
-      0.35,
-      'Electric Discharge'
+      0.35
     ),
     skillWeapon: 'Unequipped'
   });
@@ -79,7 +72,7 @@ export function applyFreshAirAttunementEntry(
 ): void {
   if (previous === 'Air' || !hasTrait(context, 'Fresh Air')) return;
   professionCoreState(context).freshAirLastResetAt = at;
-  const freshAir = profiledEffect(context, PROFILE.freshAir, 'buff');
+  const freshAir = balanceProfileEffectFromContext(context, PROFILE.freshAir, 'buff');
   emitSkillBuff(context, skill, {
     at,
     source: skill.name,
@@ -229,7 +222,11 @@ export function applyLightningRod(context: ElementalistSchedulerContext, event: 
     actorType: 'effect',
     ownerActorType: 'player',
     skillName: 'Lightning Rod',
-    coefficient: elementalistEffectValue(context, PROFILE.lightningRod, 'strike', 'coefficient', 1.5),
+    coefficient: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.lightningRod, 'strike'),
+      'coefficient',
+      1.5
+    ),
     skillWeapon: 'Unequipped'
   });
   emitProfiledCondition(
@@ -254,7 +251,7 @@ export function applyLightningRod(context: ElementalistSchedulerContext, event: 
 
 /** Materializes Raging Storm after its registered critical-hit reaction succeeds. */
 export function applyRagingStorm(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const fury = elementalistBalanceEffect(context, PROFILE.ragingStorm, 'boon', 'Fury');
+  const fury = balanceProfileEffectFromContext(context, PROFILE.ragingStorm, 'boon', 0, 'Fury');
   queueElementalistBuff(
     context,
     event,
@@ -280,8 +277,8 @@ export function applySchedulerZephyrsBoon(
 /** Grants resolver-side Zephyr's Boon effects for one classified aura event. */
 export function applyResolverZephyrsBoon(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, "Zephyr's Boon")) return;
-  const fury = elementalistBalanceEffect(context, PROFILE.zephyrsBoon, 'boon', 'Fury');
-  const swiftness = elementalistBalanceEffect(context, PROFILE.zephyrsBoon, 'boon', 'Swiftness');
+  const fury = balanceProfileEffectFromContext(context, PROFILE.zephyrsBoon, 'boon', 0, 'Fury');
+  const swiftness = balanceProfileEffectFromContext(context, PROFILE.zephyrsBoon, 'boon', 0, 'Swiftness');
   const source = String(event.skillName || event.name || event.source || '');
   queueElementalistBuff(
     context,

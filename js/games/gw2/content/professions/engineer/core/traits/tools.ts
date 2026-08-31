@@ -1,5 +1,9 @@
 /** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -7,10 +11,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
-import {
-  ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  engineerBalanceEffectValue
-} from '#gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/core/profiles.js';
 import { resolverSkill } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import type {
   EngineerCastContext,
@@ -44,7 +45,11 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
     actorType: 'player',
     name: 'Streamlined Kits — swiftness',
     kind: 'swiftness',
-    duration: engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'boon', 'duration', 20),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.streamlinedKits, 'boon'),
+      'duration',
+      20
+    ),
     stacks: 1
   });
   // Grenade Kit additionally drops the trait's mine strike on entry.
@@ -59,7 +64,11 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
       skillName: 'Drop Mine',
       parentSkillName: skill.name,
       name: 'Drop Mine',
-      coefficient: engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'strike', 'coefficient', 1.75),
+      coefficient: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.streamlinedKits, 'strike'),
+        'coefficient',
+        1.75
+      ),
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
@@ -80,7 +89,11 @@ export function applyOptimizedActivation(context: EngineerSchedulerContext, skil
     actorType: 'player',
     name: 'Optimized Activation — vigor',
     kind: 'vigor',
-    duration: engineerBalanceEffectValue(context, PROFILE.optimizedActivation, 'boon', 'duration', 4),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.optimizedActivation, 'boon'),
+      'duration',
+      4
+    ),
     stacks: 1
   });
 }
@@ -99,7 +112,11 @@ export function applyStaticDischarge(context: EngineerSchedulerContext, skill: E
     parentSkillName: skill.name,
     icon: context.catalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
     name: 'Static Discharge',
-    coefficient: engineerBalanceEffectValue(context, PROFILE.staticDischarge, 'strike', 'coefficient', 0.33),
+    coefficient: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.staticDischarge, 'strike'),
+      'coefficient',
+      0.33
+    ),
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
@@ -119,7 +136,11 @@ export function applyKineticBattery(context: EngineerSchedulerContext, skill: En
   // Proc quickness and reset charges every fifth toolbelt cast.
   if (state.kineticCharges >= maximumCharges) {
     state.kineticCharges = 0;
-    const buffDuration = engineerBalanceEffectValue(context, PROFILE.kineticBattery, 'buff', 'duration', 5);
+    const buffDuration = balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.kineticBattery, 'buff'),
+      'duration',
+      5
+    );
     emitSkillBuff(context, skill, {
       at,
       source: 'Trait',
@@ -137,7 +158,11 @@ export function applyKineticBattery(context: EngineerSchedulerContext, skill: En
       actorType: 'player',
       name: 'Kinetic Battery — quickness',
       kind: 'quickness',
-      duration: engineerBalanceEffectValue(context, PROFILE.kineticBattery, 'boon', 'duration', 5),
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.kineticBattery, 'boon'),
+        'duration',
+        5
+      ),
       stacks: 1
     });
   }

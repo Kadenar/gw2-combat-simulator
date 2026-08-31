@@ -5,7 +5,10 @@
  * payload that spends them, plus the queries availability uses to gate both.
  * Hammer skill data itself lives in `weapons/hammer.ts`.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -22,7 +25,6 @@ import { HAMMER_ORB_SKILLS } from '#gw2/content/professions/elementalist/core/co
 import {
   activeBuffEvents,
   emitProfiledCondition,
-  profiledEffect,
   skillWeapon
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
@@ -50,7 +52,7 @@ export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext
   const at = context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.grandFinale, 'initialDelay', 0.68);
   for (let index = 0; index < active.length; index += 1) {
     const element = active[index];
-    const strike = profiledEffect(context, PROFILE.grandFinale, 'strike', element);
+    const strike = balanceProfileEffectFromContext(context, PROFILE.grandFinale, 'strike', 0, element);
     emitSkillDamage(context, {
       at,
       source: skill.name,

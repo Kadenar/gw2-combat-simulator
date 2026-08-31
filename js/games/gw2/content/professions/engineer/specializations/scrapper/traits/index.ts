@@ -1,8 +1,11 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
@@ -71,7 +74,11 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       actorType: 'player',
       name: 'Gyroscopic Acceleration — superspeed',
       kind: 'superspeed',
-      duration: engineerBalanceEffectValue(context, PROFILE.gyroscopicAcceleration, 'buff', 'duration', 5),
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.gyroscopicAcceleration, 'buff'),
+        'duration',
+        5
+      ),
       stacks: 1,
       maximumDuration: 10
     });
@@ -115,7 +122,11 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       skillName: skill.name,
       name: 'System Shocker — daze',
       controlKind: 'daze',
-      duration: engineerBalanceEffectValue(context, PROFILE.systemShocker, 'control', 'duration', 1)
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.systemShocker, 'control'),
+        'duration',
+        1
+      )
     });
   }
 
@@ -128,7 +139,11 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       actorType: 'player',
       name: 'Mass Momentum — stability',
       kind: 'stability',
-      duration: engineerBalanceEffectValue(context, PROFILE.massMomentum, 'boon', 'duration', 3, 1),
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.massMomentum, 'boon', 1),
+        'duration',
+        3
+      ),
       stacks: 1
     });
   }

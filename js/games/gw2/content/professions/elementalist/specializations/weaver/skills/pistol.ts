@@ -3,13 +3,13 @@
  * pistol skill data lives in `skills/weapons/pistol.ts`.
  */
 import { emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistCastContext } from '#gw2/content/professions/elementalist/types.js';
 import {
   emitProfiledBuff,
   emitProfiledCondition,
-  profiledEffect,
   skillWeapon
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
@@ -36,7 +36,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
   for (const element of active) {
     state.pistolBullets[element] = false;
     if (skill.name === 'Frostfire Flurry' && element === 'Fire') {
-      const aura = profiledEffect(context, PROFILE.frostfireFlurry, 'buff', 'Fire');
+      const aura = balanceProfileEffectFromContext(context, PROFILE.frostfireFlurry, 'buff', 0, 'Fire');
       applyElementalistAura(context, {
         at,
         aura: String(aura?.kind || 'Fire Aura'),
@@ -51,7 +51,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
     } else if (skill.name === 'Molten Meteor' && element === 'Earth') {
       emitProfiledCondition(context, at, PROFILE.moltenMeteor, 'Earth', 'Bleeding', 3, 8, skill.name, skill.id);
     } else if (skill.name === 'Flowing Finesse' && element === 'Water') {
-      const aura = profiledEffect(context, PROFILE.flowingFinesse, 'buff', 'Water');
+      const aura = balanceProfileEffectFromContext(context, PROFILE.flowingFinesse, 'buff', 0, 'Water');
       applyElementalistAura(context, {
         at,
         aura: String(aura?.kind || 'Frost Aura'),

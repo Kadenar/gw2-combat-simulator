@@ -1,4 +1,8 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -9,7 +13,6 @@ import {
   queueBuff,
   recordTrait
 } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
-import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
 import { scrapperState } from '#gw2/content/professions/engineer/specializations/scrapper/state.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/content/professions/engineer/types.js';
@@ -40,7 +43,11 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
       name: 'Mass Momentum',
       kind: 'might',
       stacks: 1,
-      duration: engineerBalanceEffectValue(context, PROFILE.massMomentum, 'boon', 'duration', 5),
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.massMomentum, 'boon'),
+        'duration',
+        5
+      ),
       sourceId: TRAIT.MASS_MOMENTUM,
       actorType: 'effect'
     });
@@ -93,7 +100,11 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
         name: 'Applied Force',
         kind: 'stability',
         stacks: 1,
-        duration: engineerBalanceEffectValue(context, PROFILE.appliedForce, 'boon', 'duration', 3),
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.appliedForce, 'boon'),
+          'duration',
+          3
+        ),
         sourceId: TRAIT.APPLIED_FORCE,
         actorType: 'effect'
       });

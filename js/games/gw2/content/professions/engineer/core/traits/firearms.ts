@@ -1,13 +1,14 @@
 /** Owns imperative Core Engineer Firearms critical-hit and condition reactions. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
-import {
-  ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  engineerBalanceEffectValue
-} from '#gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/core/profiles.js';
 import {
   applyEngineerDerivedCondition,
   procState,
@@ -48,8 +49,16 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
         name: 'Serrated Steel',
         condition: 'Bleeding',
         stacks:
-          engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'stacks', 1) * application.quantity,
-        duration: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'duration', 3),
+          balanceProfileValue(
+            balanceProfileEffectFromContext(context, PROFILE.serratedSteel, 'condition'),
+            'stacks',
+            1
+          ) * application.quantity,
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.serratedSteel, 'condition'),
+          'duration',
+          3
+        ),
         sourceId: TRAIT.SERRATED_STEEL,
         actorType: 'effect',
         ownerActorType: 'player'
@@ -80,7 +89,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
         name: 'No Scope',
         kind: 'fury',
         stacks: 1,
-        duration: engineerBalanceEffectValue(context, PROFILE.noScope, 'boon', 'duration', 4),
+        duration: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.noScope, 'boon'), 'duration', 4),
         sourceId: TRAIT.NO_SCOPE,
         actorType: 'effect'
       });
@@ -111,8 +120,16 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       applyEngineerDerivedCondition(context, event, {
         name: 'Incendiary Powder',
         condition: 'Burning',
-        stacks: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
-        duration: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'duration', 8),
+        stacks: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.incendiaryPowder, 'condition'),
+          'stacks',
+          1
+        ),
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.incendiaryPowder, 'condition'),
+          'duration',
+          8
+        ),
         sourceId: TRAIT.INCENDIARY_POWDER,
         actorType: 'effect',
         ownerActorType: 'player'
@@ -132,7 +149,8 @@ export function applyThermalVision(context: EngineerResolverContext, event: Engi
   // Math.max extends the window when multiple Burning applications overlap.
   state.traitProcReadyAt.thermalVisionUntil = Math.max(
     Number(state.traitProcReadyAt.thermalVisionUntil || 0),
-    event.at + engineerBalanceEffectValue(context, PROFILE.thermalVision, 'buff', 'duration', 4)
+    event.at +
+      balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.thermalVision, 'buff'), 'duration', 4)
   );
 }
 
@@ -146,7 +164,11 @@ export function applySanguineArray(context: EngineerResolverContext, event: Engi
     name: 'Sanguine Array',
     kind: 'might',
     stacks: Math.max(1, Number(event.stacks || 1)),
-    duration: engineerBalanceEffectValue(context, PROFILE.sanguineArray, 'boon', 'duration', 4),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.sanguineArray, 'boon'),
+      'duration',
+      4
+    ),
     sourceId: TRAIT.SANGUINE_ARRAY,
     actorType: 'effect'
   });
@@ -166,7 +188,11 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
     name: 'Hematic Focus',
     kind: 'fury',
     stacks: 1,
-    duration: engineerBalanceEffectValue(context, PROFILE.hematicFocus, 'boon', 'duration', 8),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.hematicFocus, 'boon'),
+      'duration',
+      8
+    ),
     sourceId: TRAIT.HEMATIC_FOCUS,
     actorType: 'effect'
   });

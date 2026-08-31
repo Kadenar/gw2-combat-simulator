@@ -6,7 +6,11 @@
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type {
@@ -39,11 +43,7 @@ import {
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/content/professions/elementalist/data/ids.js';
 import { tempestModifierRules } from '#gw2/content/professions/elementalist/specializations/tempest/traits/modifiers.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
 import { tempestState } from '#gw2/content/professions/elementalist/specializations/tempest/state.js';
 
@@ -56,7 +56,7 @@ const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOA
  */
 export function applyTempestShoutTraits(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Tempestuous Aria')) return;
-  const might = elementalistBalanceEffect(context, PROFILE.tempestuousAria, 'boon', 'Shout Might');
+  const might = balanceProfileEffectFromContext(context, PROFILE.tempestuousAria, 'boon', 0, 'Shout Might');
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,
     source: skill.name,
@@ -76,7 +76,7 @@ export function applyTempestShoutTraits(context: ElementalistCastContext, skill:
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   if (hasTrait(context, 'Hardy Conduit')) {
-    const protection = elementalistBalanceEffect(context, PROFILE.hardyConduit, 'boon', 'Protection');
+    const protection = balanceProfileEffectFromContext(context, PROFILE.hardyConduit, 'boon', 0, 'Protection');
     emitSkillBuff(context, skill, {
       at: context.start,
       source: 'Hardy Conduit',
@@ -90,8 +90,8 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   }
 
   if (hasTrait(context, 'Harmonious Conduit')) {
-    const swiftness = elementalistBalanceEffect(context, PROFILE.harmoniousConduit, 'boon', 'Swiftness');
-    const stability = elementalistBalanceEffect(context, PROFILE.harmoniousConduit, 'boon', 'Stability');
+    const swiftness = balanceProfileEffectFromContext(context, PROFILE.harmoniousConduit, 'boon', 0, 'Swiftness');
+    const stability = balanceProfileEffectFromContext(context, PROFILE.harmoniousConduit, 'boon', 0, 'Stability');
     for (const boon of [
       {
         kind: String(swiftness?.boon || 'Swiftness').toLowerCase(),
@@ -172,7 +172,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
     .slice(0, balanceProfileValueFromContext(context, PROFILE.lucidSingularity, 'maximumStacks', 5));
   hits.forEach((event: SimulationEvent, index: number) => {
     const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
-    const alacrity = elementalistBalanceEffect(context, PROFILE.lucidSingularity, 'boon', effectName);
+    const alacrity = balanceProfileEffectFromContext(context, PROFILE.lucidSingularity, 'boon', 0, effectName);
     emitSkillBuff(context, skill, {
       at: event.at,
       source: 'Lucid Singularity',
@@ -180,14 +180,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
       actorType: 'player',
       kind: String(alacrity?.boon || 'Alacrity').toLowerCase(),
       stacks: Number(alacrity?.stacks ?? 1),
-      duration: elementalistEffectValue(
-        context,
-        PROFILE.lucidSingularity,
-        'boon',
-        'duration',
-        index === hits.length - 1 ? 4.5 : 1,
-        effectName
-      ),
+      duration: balanceProfileValue(alacrity, 'duration', index === hits.length - 1 ? 4.5 : 1),
       skillName: 'Lucid Singularity'
     });
   });
@@ -197,7 +190,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
 // for overloads the attunement lockout and each completion trait.
 function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (skill.type === 'Heal' && hasTrait(context, 'Gale Song')) {
-    const protection = elementalistBalanceEffect(context, PROFILE.galeSong, 'boon', 'Protection');
+    const protection = balanceProfileEffectFromContext(context, PROFILE.galeSong, 'boon', 0, 'Protection');
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Gale Song',
@@ -235,7 +228,11 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     applyElementalistAura(context as never, {
       at: context.effectiveEnd,
       aura,
-      duration: elementalistEffectValue(context, PROFILE.unstableConduit, 'buff', 'duration', 4, attunement),
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.unstableConduit, 'buff', 0, attunement),
+        'duration',
+        4
+      ),
       skillName: 'Unstable Conduit',
       sourceId: skill.id,
       // The completion aura precedes the same-time Overload packet.
@@ -266,7 +263,11 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   // Overload Air's completion strike: a non-critical unequipped-weapon hit, mirrored onto an
   // active fire/earth elemental and recorded as its own proc for attribution.
   if (skill.name === 'Overload Air') {
-    const coefficient = elementalistEffectValue(context, PROFILE.lightningJolt, 'strike', 'coefficient', 1.32);
+    const coefficient = balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.lightningJolt, 'strike'),
+      'coefficient',
+      1.32
+    );
     emitSkillDamage(context, {
       at: context.effectiveEnd,
       source: 'Lightning Jolt',
@@ -328,7 +329,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
     if (isInternalCooldownReady(event.at, state.latentStaminaReadyAt)) {
       state.latentStaminaReadyAt =
         event.at + balanceProfileValueFromContext(context, PROFILE.latentStamina, 'internalCooldown', 10);
-      const vigor = elementalistBalanceEffect(context, PROFILE.latentStamina, 'boon', 'Vigor');
+      const vigor = balanceProfileEffectFromContext(context, PROFILE.latentStamina, 'boon', 0, 'Vigor');
       const sourceId = event.skillId ?? event.sourceId;
       emitSkillBuff(context, elementalistEventSkill(context, 'Latent Stamina', sourceId), {
         at: event.at,
@@ -351,7 +352,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
   const sourceId = event.skillId ?? event.sourceId;
   if (hasTrait(context, 'Invigorating Torrents')) {
     for (const name of ['Vigor', 'Regeneration'] as const) {
-      const boon = elementalistBalanceEffect(context, PROFILE.invigoratingTorrents, 'boon', name);
+      const boon = balanceProfileEffectFromContext(context, PROFILE.invigoratingTorrents, 'boon', 0, name);
       emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
         at: event.at,
         source,
@@ -366,7 +367,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
   }
 
   if (hasTrait(context, 'Elemental Bastion')) {
-    const alacrity = elementalistBalanceEffect(context, PROFILE.elementalBastion, 'boon', 'Alacrity');
+    const alacrity = balanceProfileEffectFromContext(context, PROFILE.elementalBastion, 'boon', 0, 'Alacrity');
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
       at: event.at,
       source,

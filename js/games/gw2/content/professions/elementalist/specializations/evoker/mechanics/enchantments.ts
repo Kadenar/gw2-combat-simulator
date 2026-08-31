@@ -7,13 +7,13 @@
  * be charged twice.
  */
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
   ElementalistCastContext,
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { ELECTRIC_ENCHANTMENT_ICON } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
@@ -21,8 +21,8 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/
 // Materialize Electric Enchantment's strike and control package for the invoking
 // skill while preserving shared event attribution.
 export function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  const strike = elementalistBalanceEffect(context, PROFILE.galvanicEnchantment, 'strike');
-  const burning = elementalistBalanceEffect(context, PROFILE.galvanicEnchantment, 'condition');
+  const strike = balanceProfileEffectFromContext(context, PROFILE.galvanicEnchantment, 'strike');
+  const burning = balanceProfileEffectFromContext(context, PROFILE.galvanicEnchantment, 'condition');
   emitSkillDamage(context, {
     cause: event,
 

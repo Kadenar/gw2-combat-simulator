@@ -1,4 +1,7 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ElementalistResolverContext } from '#gw2/content/professions/elementalist/types.js';
@@ -9,7 +12,6 @@ import {
   recordElementalistTraitProc,
   refreshElementalistBuffs
 } from '#gw2/content/professions/elementalist/core/mechanics/reactions.js';
-import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
 
 /**
@@ -41,7 +43,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
       ['Vigor', 'Vigor'],
       ['Regeneration', 'Regeneration']
     ] as const) {
-      const effect = elementalistBalanceEffect(context, PROFILE.invigoratingTorrents, 'boon', name);
+      const effect = balanceProfileEffectFromContext(context, PROFILE.invigoratingTorrents, 'boon', 0, name);
       queueElementalistBuff(
         context,
         event,
@@ -56,7 +58,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
   }
 
   if (hasTrait(context, 'Elemental Bastion')) {
-    const alacrity = elementalistBalanceEffect(context, PROFILE.elementalBastion, 'boon', 'Alacrity');
+    const alacrity = balanceProfileEffectFromContext(context, PROFILE.elementalBastion, 'boon', 0, 'Alacrity');
     queueElementalistBuff(
       context,
       event,

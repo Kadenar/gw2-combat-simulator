@@ -8,7 +8,10 @@
  *
  * The resolver counterparts live in `mechanics/reactions.ts`.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type {
@@ -39,10 +42,7 @@ import {
   grantCatalystElementalEmpowerment
 } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
 import { catalystModifierRules } from '#gw2/content/professions/elementalist/specializations/catalyst/traits/modifiers.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
 
 const SPHERE_COST = 10;
@@ -183,7 +183,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
           SPHERE_SPECIALIST_DURATION_MULTIPLIER
         )
       : 1;
-    const quickness = elementalistBalanceEffect(context, PROFILE.spectacularSphere, 'boon', 'Quickness');
+    const quickness = balanceProfileEffectFromContext(context, PROFILE.spectacularSphere, 'boon', 0, 'Quickness');
     emitSkillBuff(context, {
       at: context.start,
       source: skill.name,
@@ -210,7 +210,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
           : skill.attunement === 'Air'
             ? (['Air', 'fury', 1, 5] as const)
             : (['Earth', 'aegis', 1, 3] as const);
-    const profiledBoon = elementalistBalanceEffect(context, PROFILE.spectacularSphere, 'boon', boon[0]);
+    const profiledBoon = balanceProfileEffectFromContext(context, PROFILE.spectacularSphere, 'boon', 0, boon[0]);
     emitSkillBuff(context, {
       at: context.start,
       source: skill.name,
@@ -328,7 +328,7 @@ function activateElementalCelerity(context: ElementalistSchedulerContext, skill:
   ];
   for (const [element, kind, stacks, duration] of boons) {
     if (state.sphereExpiry[element] <= at) continue;
-    const effect = elementalistBalanceEffect(context, PROFILE.elementalCelerity, 'boon', element);
+    const effect = balanceProfileEffectFromContext(context, PROFILE.elementalCelerity, 'boon', 0, element);
     emitSkillBuff(context, skill, {
       at,
       source: skill.name,
@@ -433,7 +433,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
   // Elemental Epitome's other half: an aura gain also grants an empowerment stack.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Elemental Epitome')) {
-    const empowerment = elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', 'Empowerment');
+    const empowerment = balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, 'Empowerment');
     const source = String(event.skillName || event.source || 'Elemental Epitome');
     const sourceId = event.skillId ?? event.sourceId;
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
@@ -454,7 +454,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     const before = state.energy;
     const energyGain = balanceProfileValueFromContext(context, PROFILE.energizedElements, 'resourceGain', 2);
     state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
-    const fury = elementalistBalanceEffect(context, PROFILE.energizedElements, 'boon', 'Fury');
+    const fury = balanceProfileEffectFromContext(context, PROFILE.energizedElements, 'boon', 0, 'Fury');
     emitSkillBuff(context, elementalistEventSkill(context, 'Energized Elements', event.sourceId), {
       at: event.at,
       source: 'Energized Elements',
@@ -501,7 +501,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
             : attunement === 'Air'
               ? (['Shocking Aura', 3] as const)
               : (['Magnetic Aura', 3] as const);
-      const profiledAura = elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', attunement);
+      const profiledAura = balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, attunement);
       applyElementalistAura(context as never, {
         at: event.at,
         aura: String(profiledAura?.kind || aura[0]),
@@ -518,7 +518,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       state.elementalSynergyReadyAt[attunement] =
         event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
       if (attunement === 'Fire' || attunement === 'Earth') {
-        const effect = elementalistBalanceEffect(context, PROFILE.elementalSynergy, 'boon', attunement);
+        const effect = balanceProfileEffectFromContext(context, PROFILE.elementalSynergy, 'boon', 0, attunement);
         emitSkillBuff(context, elementalistEventSkill(context, 'Elemental Synergy', event.sourceId), {
           at: event.at,
           source: 'Elemental Synergy',
@@ -671,7 +671,7 @@ function handleViciousEmpowerment(context: ElementalistSchedulerContext, task: S
   if (!isInternalCooldownReady(at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
     at + balanceProfileValueFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
-  const empowerment = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'buff', 'Empowerment');
+  const empowerment = balanceProfileEffectFromContext(context, PROFILE.viciousEmpowerment, 'buff', 0, 'Empowerment');
   grantCatalystElementalEmpowerment(
     state,
     at,

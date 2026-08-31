@@ -5,7 +5,11 @@
  * already loaded one for an enhanced payload; this module owns that flip at
  * cast completion. Pistol skill data lives in `weapons/pistol.ts`.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -18,14 +22,10 @@ import {
 import {
   emitProfiledBuff,
   emitProfiledCondition,
-  profiledEffect,
   skillWeapon
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /**
  * Applies the load-or-spend bullet flip for one completed pistol cast: a loaded
@@ -46,7 +46,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
     if (skill.name === 'Raging Ricochet') {
       emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', 'Might', 1, 10, skill.name, skill.id);
     } else if (skill.name === 'Searing Salvo') {
-      const aura = profiledEffect(context, PROFILE.searingSalvo, 'buff', 'Fire');
+      const aura = balanceProfileEffectFromContext(context, PROFILE.searingSalvo, 'buff', 0, 'Fire');
       applyElementalistAura(context, {
         at,
         aura: String(aura?.kind || 'Fire Aura'),
@@ -65,7 +65,11 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         actorType: 'player',
         skillName: skill.name,
         skillId: skill.id,
-        coefficient: elementalistEffectValue(context, PROFILE.frozenFusillade, 'strike', 'coefficient', 0.75),
+        coefficient: balanceProfileValue(
+          balanceProfileEffectFromContext(context, PROFILE.frozenFusillade, 'strike'),
+          'coefficient',
+          0.75
+        ),
         skillWeapon: 'Pistol'
       });
       emitProfiledCondition(

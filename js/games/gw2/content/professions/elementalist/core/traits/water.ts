@@ -1,5 +1,9 @@
 /** Imperative Water trait behavior; post-cast ordering stays in the trait dispatcher. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -7,10 +11,7 @@ import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/content/professions/elementalist/types.js';
 import type { ElementalistAuraApplier } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { emitProfiledBuff } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /** Applies Soothing Ice's Frost Aura and regeneration from an eligible healing skill. */
 export function applySoothingIce(
@@ -29,7 +30,11 @@ export function applySoothingIce(
   applyAura(context, {
     at,
     aura: 'Frost Aura',
-    duration: elementalistEffectValue(context, PROFILE.soothingIce, 'buff', 'duration', 4, 'Frost Aura'),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.soothingIce, 'buff', 0, 'Frost Aura'),
+      'duration',
+      4
+    ),
     skillName: 'Soothing Ice',
     sourceId: skill.id
   });

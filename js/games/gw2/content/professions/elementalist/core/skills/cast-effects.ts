@@ -1,5 +1,8 @@
 /** Owns Core Elementalist cast effects shared by weapon and slot skill families. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -15,11 +18,7 @@ import {
   onAttunementComplete,
   targetAttunement
 } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
-import {
-  etchingChain,
-  profiledEffect,
-  skillWeapon
-} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { etchingChain, skillWeapon } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { updateEndurance } from '#gw2/content/professions/elementalist/core/mechanics/endurance.js';
 import { shareAttunementVariantRecharge } from '#gw2/content/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
@@ -285,7 +284,13 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
       Earth: ['Magnetic Aura', 3]
     };
     const [fallbackAura, fallbackDuration] = auraByAttunement[state.primaryAttunement];
-    const auraEffect = profiledEffect(context, PROFILE.elementalExplosion, 'buff', state.primaryAttunement);
+    const auraEffect = balanceProfileEffectFromContext(
+      context,
+      PROFILE.elementalExplosion,
+      'buff',
+      0,
+      state.primaryAttunement
+    );
     applyElementalistAura(context, {
       at,
       aura: String(auraEffect?.kind || fallbackAura),
@@ -402,7 +407,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   }
 
   if (skill.name === 'Fulgor') {
-    const pulse = profiledEffect(context, PROFILE.fulgor, 'strike');
+    const pulse = balanceProfileEffectFromContext(context, PROFILE.fulgor, 'strike');
     if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
     // Fulgor owns one secondary action at a time, so a recast replaces only
     // the prior action's pulses that had not occurred when the recast began.

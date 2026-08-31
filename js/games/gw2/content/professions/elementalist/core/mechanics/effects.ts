@@ -6,12 +6,12 @@
  * this module; it must not depend on them.
  */
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEvent, Skill, SkillEffect } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
 import { ETCHING_CHAINS } from '#gw2/content/professions/elementalist/core/constants.js';
-import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
@@ -59,16 +59,6 @@ export function activeBuffEvents(context: ElementalistSchedulerContext, kind: st
   );
 }
 
-/** Looks up a balance-profile effect entry so emitters can be retuned by data rather than code. */
-export function profiledEffect<TType extends SkillEffect['type']>(
-  context: unknown,
-  profileId: Skill['id'],
-  type: TType,
-  name?: string
-) {
-  return elementalistBalanceEffect(context, profileId, type, name);
-}
-
 /** Emits a boon whose kind, stacks, and duration come from the balance profile, falling back to the supplied literals. */
 export function emitProfiledBuff(
   context: ElementalistSchedulerContext,
@@ -83,7 +73,7 @@ export function emitProfiledBuff(
   priority = 0,
   recipients: 'self' | 'party' = 'self'
 ): void {
-  const effect = profiledEffect(context, profileId, 'boon', effectName);
+  const effect = balanceProfileEffectFromContext(context, profileId, 'boon', 0, effectName);
   const kind = String(effect?.boon || fallbackKind).toLowerCase();
   emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
     at,
@@ -111,7 +101,7 @@ export function emitProfiledCondition(
   source: string,
   sourceId: Skill['id']
 ): void {
-  const effect = profiledEffect(context, profileId, 'condition', effectName);
+  const effect = balanceProfileEffectFromContext(context, profileId, 'condition', 0, effectName);
   emitSkillCondition(context, elementalistEventSkill(context, source, sourceId), {
     at,
     source,

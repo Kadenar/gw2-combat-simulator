@@ -7,7 +7,10 @@
  * is disabled - fire the entry effects from empowered familiar casts without any
  * attunement actually changing.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -34,10 +37,7 @@ import {
   triggerElectricDischarge,
   triggerSunspot
 } from '#gw2/content/professions/elementalist/core/traits/index.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { OFF_ATTUNEMENT_RECHARGE_SECONDS } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
@@ -179,7 +179,7 @@ export function triggerSpecializedElementEntry(
   } else if (element === 'Air') {
     triggerElectricDischarge(context as never, at, skill.id);
     if (hasTrait(context, 'One with Air')) {
-      const superspeed = elementalistBalanceEffect(context, CORE_PROFILE.oneWithAir, 'buff', 'Superspeed');
+      const superspeed = balanceProfileEffectFromContext(context, CORE_PROFILE.oneWithAir, 'buff', 0, 'Superspeed');
       emitSkillBuff(context, skill, {
         at,
         source: skill.name,
@@ -193,7 +193,7 @@ export function triggerSpecializedElementEntry(
     }
 
     if (hasTrait(context, 'Inscription')) {
-      const resistance = elementalistBalanceEffect(context, CORE_PROFILE.inscription, 'boon', 'Air Entry');
+      const resistance = balanceProfileEffectFromContext(context, CORE_PROFILE.inscription, 'boon', 0, 'Air Entry');
       emitSkillBuff(context, skill, {
         at,
         source: skill.name,
@@ -207,7 +207,7 @@ export function triggerSpecializedElementEntry(
     }
 
     if (hasTrait(context, 'Fresh Air')) {
-      const freshAir = elementalistBalanceEffect(context, CORE_PROFILE.freshAir, 'buff');
+      const freshAir = balanceProfileEffectFromContext(context, CORE_PROFILE.freshAir, 'buff');
       emitSkillBuff(context, skill, {
         at,
         source: skill.name,
