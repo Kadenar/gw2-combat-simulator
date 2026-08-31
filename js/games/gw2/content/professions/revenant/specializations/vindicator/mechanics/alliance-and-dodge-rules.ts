@@ -15,7 +15,7 @@ import { denySkillCast as denyRevenantSkill } from '#gw2/content/professions/lib
 import {
   emitLegendInvocationProfile,
   emitLegendInvocationSkill
-} from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+} from '#gw2/content/professions/revenant/core/traits/index.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
 import {
   revenantRuntimeCoreState,

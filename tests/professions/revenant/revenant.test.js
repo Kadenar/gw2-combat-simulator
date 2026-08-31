@@ -50,6 +50,8 @@ import {
   REVENANT_CORE_BALANCE_PROFILE_IDS,
   REVENANT_CORE_BASE_SKILL_MECHANICS
 } from '#gw2/content/professions/revenant/core/skills/index.js';
+import { createRevenantCoreState } from '#gw2/content/professions/revenant/core/state.js';
+import { afterRevenantCast, observeRevenantEvent } from '#gw2/content/professions/revenant/core/traits/index.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
 import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
 import {
@@ -2170,6 +2172,7 @@ test('legend invocation traits resolve after swap effects', () => {
     observationTail(1000)
   );
   const swap = result.events.find((event) => event.type === 'sigil_swap');
+  const spiritBoon = result.events.find((event) => event.sourceId === TRAIT.SPIRIT_BOON);
   const call = result.events.find((event) => event.name === 'Call of the Demon');
   const invoke = result.events.find((event) => event.type === 'damage' && event.name === 'Invoke Torment');
 
@@ -2178,6 +2181,8 @@ test('legend invocation traits resolve after swap effects', () => {
   assert.equal(call.coefficient, 0.9);
   assert.equal(invoke.at, 0.75);
   assert.equal(invoke.coefficient, 1);
+  assert.ok(spiritBoon.eventOrder < call.eventOrder);
+  assert.ok(call.eventOrder < invoke.eventOrder);
   assert.deepEqual(
     result.events
       .filter((event) => event.type === 'condition' && event.skillName === 'Invoke Torment')
@@ -2509,6 +2514,107 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
         event.type === 'buff' && event.skillName === 'Brutality' && event.kind === 'quickness' && event.duration === 3
     )
   );
+});
+
+// Exercise one same-time condition and strike through the public dispatcher so
+// cross-line reactions retain Corruption, Devastation, then Retribution order.
+test('Core Revenant trait lines preserve scheduled-event reaction order', () => {
+  const config = {
+    ...baseConfig,
+    specialization: 'Core',
+    selectedTraitIds: [TRAIT.ABYSSAL_CHILL, TRAIT.ASSASSINS_PRESENCE, TRAIT.VICIOUS_REPRISAL]
+  };
+  const sources = [];
+  const context = {
+    config,
+    catalog: revenantCatalog,
+    profession: revenantProfession,
+    epsilon: 1e-9,
+    hasExplicitCombatStart: false,
+    combatStartTime: null,
+    state: {
+      time: 1,
+      profession: {
+        core: createRevenantCoreState(config),
+        specialization: { kind: 'Core', state: {} }
+      }
+    },
+    tasks: { schedule() {} },
+    hasBuff: (kind) => kind === 'resolution',
+    emit(event) {
+      return { ...event, eventOrder: sources.length + 1 };
+    },
+    emitDerived(_cause, event) {
+      sources.push(event.sourceId);
+      return { ...event, eventOrder: sources.length };
+    }
+  };
+
+  observeRevenantEvent(context, {
+    type: 'condition',
+    at: 1,
+    eventOrder: 1,
+    source: 'revenant',
+    actorType: 'player',
+    condition: 'Chilled',
+    stacks: 1
+  });
+  observeRevenantEvent(context, {
+    type: 'damage',
+    at: 1,
+    eventOrder: 2,
+    source: 'revenant',
+    actorType: 'player',
+    skillId: SKILL.PHASE_TRAVERSAL,
+    skillName: 'Phase Traversal',
+    coefficient: 1
+  });
+
+  assert.deepEqual(sources, [TRAIT.ABYSSAL_CHILL, TRAIT.ASSASSINS_PRESENCE, TRAIT.VICIOUS_REPRISAL]);
+});
+
+// Observe trait emissions and the upkeep setter directly to pin the mixed
+// after-cast contract: Battle Scarred, Notoriety, then base Embrace bookkeeping.
+test('Core Revenant after-cast traits run before Embrace empowerment', () => {
+  const config = {
+    ...baseConfig,
+    specialization: 'Core',
+    selectedTraitIds: [TRAIT.BATTLE_SCARRED, TRAIT.NOTORIETY]
+  };
+  const order = [];
+  let empowered = false;
+  const upkeep = { skillId: SKILL.EMBRACE_THE_DARKNESS };
+  Object.defineProperty(upkeep, 'empoweredNextPulse', {
+    get: () => empowered,
+    set(value) {
+      empowered = value;
+      order.push('Embrace the Darkness');
+    }
+  });
+  const core = createRevenantCoreState(config);
+  core.activeUpkeeps = [upkeep];
+  const context = {
+    config,
+    catalog: revenantCatalog,
+    profession: revenantProfession,
+    epsilon: 1e-9,
+    hasExplicitCombatStart: false,
+    combatStartTime: null,
+    effectiveEnd: 1,
+    state: {
+      time: 1,
+      profession: { core, specialization: { kind: 'Core', state: {} } }
+    },
+    emit(event) {
+      order.push(event.sourceId === TRAIT.BATTLE_SCARRED ? 'Battle Scarred' : 'Notoriety');
+      return { ...event, eventOrder: order.length };
+    }
+  };
+
+  afterRevenantCast(context, revenantCatalog.skillsById.get(SKILL.ENCHANTED_DAGGERS));
+
+  assert.deepEqual(order, ['Battle Scarred', 'Notoriety', 'Embrace the Darkness']);
+  assert.equal(empowered, true);
 });
 
 test('upkeep drains net energy and cancels exactly on starvation', () => {

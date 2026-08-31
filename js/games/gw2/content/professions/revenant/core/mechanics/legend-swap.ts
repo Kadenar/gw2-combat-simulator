@@ -10,21 +10,14 @@ import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.j
  */
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { applyLegendInvocationTraits } from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import {
+  applyLegendInvocationTraits,
+  revenantCombatActive
+} from '#gw2/content/professions/revenant/core/traits/index.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/content/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSkill } from '#gw2/content/professions/revenant/types.js';
 
-/** Reports whether invocation-only combat effects may run at a timestamp. */
-export function revenantCombatActive(context: RevenantSchedulerContext, at = context.state.time): boolean {
-  return (
-    !context.hasExplicitCombatStart ||
-    (context.combatStartTime != null && at + context.epsilon >= Number(context.combatStartTime))
-  );
-}
+export { revenantCombatActive };
 
 /** Executes the complete legend-swap transition at cast completion. */
 export function swapRevenantLegend(context: RevenantCastContext, skill: RevenantSkill): void {

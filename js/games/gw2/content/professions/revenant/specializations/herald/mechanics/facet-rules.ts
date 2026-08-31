@@ -11,7 +11,7 @@ import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mec
 import {
   emitLegendInvocationProfile,
   emitLegendInvocationSkill
-} from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+} from '#gw2/content/professions/revenant/core/traits/index.js';
 import { revenantActiveBoonCount, revenantTimedBuff } from '#gw2/content/professions/revenant/core/traits/modifiers.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,

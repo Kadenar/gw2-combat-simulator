@@ -1,20 +1,34 @@
+/**
+ * Dispatches Core Revenant trait behavior while preserving base-skill and relic event order.
+ * Trait-line modules remain private implementation details behind this public surface.
+ */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-/**
- * Scheduler-side Revenant trait lifecycle and event observation.
- *
- * Initializes trait-owned state, modifies cast/recharge durations, applies
- * after-cast boons and resource effects, and reacts to newly scheduled damage,
- * condition, control, buff, and swap events. Elite trait reactions live in
- * their specialization slices.
- */
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
-import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
+import {
+  applySongOfTheMists,
+  applySpiritBoon,
+  emitLegendInvocationProfile,
+  emitLegendInvocationSkill
+} from '#gw2/content/professions/revenant/core/traits/invocation.js';
+import { applyAbyssalChill, applyInvokingTorment } from '#gw2/content/professions/revenant/core/traits/corruption.js';
+import {
+  applyAssassinsPresence,
+  applyBattleScarred,
+  applyBrutality,
+  applyDanceOfDeath,
+  applyExposeDefenses,
+  applyNotoriety,
+  applyThrillOfCombat,
+  consumeBattleScar
+} from '#gw2/content/professions/revenant/core/traits/devastation.js';
+import {
+  applyDwarvenBattleTraining,
+  applyViciousReprisal
+} from '#gw2/content/professions/revenant/core/traits/retribution.js';
 import type {
   BalanceProfile,
   SchedulerRecord,
@@ -24,7 +38,6 @@ import type {
 } from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,
-  RevenantCoreState,
   RevenantPrecastContext,
   RevenantRechargeContext,
   RevenantScheduledTask,
@@ -33,34 +46,24 @@ import type {
   RevenantSkill
 } from '#gw2/content/professions/revenant/types.js';
 
+export { emitLegendInvocationProfile, emitLegendInvocationSkill };
+
 function balanceProfileById(context: RevenantSchedulerContext, id: SkillId): BalanceProfile {
   const profile = context.catalog.balanceProfilesById.get(id);
   if (!profile) throw new Error(`Missing Revenant balance profile ${String(id)}.`);
   return profile;
 }
 
-function effectByType(profile: BalanceProfile | RevenantSkill, type: SkillEffect['type'], trigger = ''): SkillEffect {
+function effectByType(profile: BalanceProfile | RevenantSkill, type: SkillEffect['type']): SkillEffect {
   const effect = profile.effects?.find(
-    (candidate) => candidate.type === type && String(candidate.metadata?.trigger || '') === trigger
+    (candidate) => candidate.type === type && String(candidate.metadata?.trigger || '') === ''
   );
-  if (!effect) {
-    throw new Error(`${profile.name} is missing its ${type} effect.`);
-  }
-
+  if (!effect) throw new Error(`${profile.name} is missing its ${type} effect.`);
   return effect;
 }
 
 interface ImpossibleOddsTaskPayload extends SchedulerRecord {
   readonly event: SimulationEvent;
-}
-
-interface BattleScarGrant {
-  readonly at: number;
-  readonly stacks: number;
-  readonly sourceId: SkillId;
-  readonly sourceName: string;
-  readonly duration?: number;
-  readonly cause?: SimulationEvent | null;
 }
 
 const IMPOSSIBLE_ODDS_TASK = 'revenant.impossible-odds-strike';
@@ -71,6 +74,14 @@ function canTriggerImpossibleOdds(event: RevenantSimulationEvent): boolean {
     Number(event.coefficient || 0) > 0 &&
     event.skillId !== ID.IMPOSSIBLE_ODDS &&
     (event.actorType === 'player' || event.source === 'Sigil')
+  );
+}
+
+/** Reports whether invocation-only combat effects may run at a timestamp. */
+export function revenantCombatActive(context: RevenantSchedulerContext, at = context.state.time): boolean {
+  return (
+    !context.hasExplicitCombatStart ||
+    (context.combatStartTime != null && at + context.epsilon >= Number(context.combatStartTime))
   );
 }
 
@@ -87,13 +98,14 @@ export function handleImpossibleOddsStrike(
     !impossible ||
     !(state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === impossible.id) ||
     task.at + context.epsilon < Number(state.traitProcReadyAt.impossibleOdds || 0)
-  )
+  ) {
     return;
+  }
+
   const strike = effectByType(impossible, 'strike');
   state.traitProcReadyAt.impossibleOdds = task.at + Number(strike.intervalMs || 0) / 1000;
   emitSkillDamage(context, {
-    cause: cause,
-
+    cause,
     at: task.at + Number(strike.atMs || 0) / 1000,
     name: 'Impossible Odds',
     skillName: 'Impossible Odds',
@@ -109,136 +121,6 @@ export function handleImpossibleOddsStrike(
     skillWeapon: 'Unequipped',
     canTriggerCriticalSigils: true
   });
-}
-
-function pruneBattleScars(state: RevenantCoreState, at: number): void {
-  state.battleScars = (state.battleScars || []).filter((stack) => stack.expiresAt > at);
-}
-
-// Add expiring Battle Scars up to the shared cap and emit one causally attributed
-// buff application for the stacks actually granted.
-function grantBattleScars(
-  context: RevenantSchedulerContext,
-  { at, stacks, sourceId, sourceName, duration: durationOverride, cause = null }: BattleScarGrant
-): void {
-  const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
-  const buff = effectByType(profile, 'buff');
-  const duration = Math.max(0, Number(durationOverride ?? buff.duration ?? 0));
-  const state = professionCoreState(context);
-  pruneBattleScars(state, at);
-  const count = Math.min(
-    Math.max(0, Math.trunc(Number(stacks || 0))),
-    Math.max(0, Number(profile.maximumStacks || 0) - state.battleScars.length)
-  );
-  if (!count) return;
-  for (let index = 0; index < count; index += 1) {
-    state.battleScars.push({
-      at,
-      expiresAt: at + duration
-    });
-  }
-
-  const event = {
-    type: 'buff',
-    at,
-    source: 'revenant',
-    sourceId,
-    actorType: 'player' as const,
-    skillId: sourceId,
-    skillName: sourceName,
-    name: `${sourceName} — Battle Scars`,
-    kind: 'battle-scars',
-    duration,
-    stacks: count
-  };
-  if (cause) context.emitDerived(cause, event);
-  else context.emit(event);
-}
-
-// Catch Thrill of Combat up to the current event time, retaining only grants that
-// can still be active and respecting the shared Battle Scars stack cap.
-function materializeThrillOfCombat(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  if (!hasTrait(context.config, TRAIT.THRILL_OF_COMBAT)) return;
-  const state = professionCoreState(context);
-  const battleScars = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
-  const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.thrillOfCombat);
-  const buff = effectByType(profile, 'buff');
-  const interval = Math.max(context.epsilon, Number(profile.cooldown || 0));
-  const duration = Math.max(0, Number(buff.duration || 0));
-  if (state.nextThrillOfCombatAt == null) {
-    state.nextThrillOfCombatAt = Number(state.combatBeganAt ?? event.at) + interval;
-  }
-
-  const next = Number(state.nextThrillOfCombatAt);
-  if (!Number.isFinite(next) || next > event.at + context.epsilon) return;
-  const elapsedGrants = Math.floor((event.at - next + context.epsilon) / interval) + 1;
-  const maximumActiveGrants = Math.ceil(duration / interval);
-  const firstActiveIndex = Math.max(0, elapsedGrants - maximumActiveGrants);
-  let activeGrants = 0;
-  for (let index = firstActiveIndex; index < elapsedGrants; index += 1) {
-    const grantedAt = next + index * interval;
-    pruneBattleScars(state, grantedAt);
-    if (state.battleScars.length >= Number(battleScars.maximumStacks || 0)) continue;
-    state.battleScars.push({
-      at: grantedAt,
-      expiresAt: grantedAt + duration
-    });
-    activeGrants += 1;
-  }
-
-  state.nextThrillOfCombatAt = next + elapsedGrants * interval;
-  if (activeGrants) {
-    emitSkillBuff(context, {
-      cause: event,
-
-      at: event.at,
-      source: 'revenant',
-      sourceId: TRAIT.THRILL_OF_COMBAT,
-      actorType: 'player',
-      skillId: TRAIT.THRILL_OF_COMBAT,
-      skillName: 'Thrill of Combat',
-      name: 'Thrill of Combat — Battle Scars',
-      kind: 'battle-scars',
-      duration,
-      stacks: activeGrants
-    });
-  }
-}
-
-function consumeBattleScar(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
-  const strike = effectByType(profile, 'strike');
-  const state = professionCoreState(context);
-  pruneBattleScars(state, event.at);
-  if (!state.battleScars.length) return;
-  state.battleScars.pop();
-  emitSkillDamage(context, {
-    cause: event,
-
-    at: event.at,
-    source: 'revenant',
-    sourceId: 'revenant.battle-scars',
-    actorType: 'effect',
-    skillId: 'revenant.battle-scars',
-    skillName: 'Battle Scars',
-    name: 'Battle Scars — Life Siphon',
-    coefficient: 0,
-    flatStrikeBase: Number(strike.flatStrikeBase || 0),
-    flatStrikePowerCoeff: Number(strike.flatStrikePowerCoeff || 0),
-    noCrit: true,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: 'Unequipped'
-  });
-}
-
-function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
-  if (['Heal', 'Utility', 'Elite'].includes(String(skill.slot || '')) && skill.legendId) {
-    return true;
-  }
-
-  return skill.type === 'Profession';
 }
 
 /** Seeds trait-owned proc state that depends on the selected build. */
@@ -260,36 +142,19 @@ export function modifyRevenantRechargeDuration(context: RevenantRechargeContext,
   return duration;
 }
 
-/** Commits trait effects that trigger once a cast's packet handling finishes. */
-export function afterRevenantCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  if (skill?.slot === 'Heal' && hasTrait(context.config, TRAIT.BATTLE_SCARRED)) {
-    const battleScarred = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScarred);
-    const buff = effectByType(battleScarred, 'buff');
-    grantBattleScars(context, {
-      at: context.effectiveEnd,
-      stacks: Number(buff.stacks || 0),
-      sourceId: TRAIT.BATTLE_SCARRED,
-      sourceName: 'Battle Scarred',
-      duration: Number(buff.duration || 0)
-    });
-  }
+/** Applies selected invocation traits in their stable legend-swap order. */
+export function applyLegendInvocationTraits(context: RevenantCastContext, _swapSkill: RevenantSkill): void {
+  const at = context.effectiveEnd;
+  const legendId = professionCoreState(context).activeLegendId;
+  applySpiritBoon(context, legendId, at);
+  applySongOfTheMists(context, legendId, at);
+  applyInvokingTorment(context, at);
+}
 
-  if (
-    isLegendaryStanceSkill(skill) &&
-    revenantCombatActive(context, context.effectiveEnd) &&
-    hasTrait(context.config, TRAIT.NOTORIETY)
-  ) {
-    const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety);
-    const boon = effectByType(profile, 'boon');
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
-      sourceId: TRAIT.NOTORIETY,
-      name: 'Notoriety — might',
-      kind: String(boon.boon || 'might'),
-      duration: Number(boon.duration || 0),
-      stacks: Number(boon.stacks || 0)
-    });
-  }
+/** Commits trait effects and Embrace bookkeeping after cast packet handling finishes. */
+export function afterRevenantCast(context: RevenantCastContext, skill: RevenantSkill): void {
+  applyBattleScarred(context, skill);
+  if (revenantCombatActive(context, context.effectiveEnd)) applyNotoriety(context, skill);
 
   if (
     !([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]).includes(Number(skill.id)) &&
@@ -303,12 +168,8 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
   }
 }
 
-/**
- * Observes each scheduler event once and materializes causally derived trait,
- * Core trait, Enchanted Dagger, and upkeep effects.
- */
+/** Observes each scheduler event once and preserves mixed trait, relic, and base-skill ordering. */
 export function observeRevenantEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  const state = professionCoreState(context);
   if (canTriggerImpossibleOdds(event)) {
     context.tasks.schedule({
       id: `${IMPOSSIBLE_ODDS_TASK}:${event.eventOrder}`,
@@ -338,184 +199,21 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     });
   }
 
-  if (
-    ['action', 'sigil_swap'].includes(event.type) &&
-    event.skillId === ID.SWAP_WEAPONS &&
-    hasTrait(context.config, TRAIT.BRUTALITY) &&
-    isInternalCooldownReady(
-      Number(event.endsAt ?? event.at),
-      Number(professionCoreState(context).traitProcReadyAt.brutality || 0)
-    )
-  ) {
-    const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.brutality);
-    const boon = effectByType(profile, 'boon');
-    const at = Number(event.endsAt ?? event.at);
-    const sourceSkill =
-      context.catalog.skillsById.get(event.skillId ?? '') ||
-      ({ id: TRAIT.BRUTALITY, name: 'Brutality' } as RevenantSkill);
-    professionCoreState(context).traitProcReadyAt.brutality = at + Number(profile.cooldown || 0);
-    emitSkillBuff(context, {
-      cause: event,
-
-      at,
-      source: 'revenant',
-      sourceId: TRAIT.BRUTALITY,
-      actorType: 'player',
-      skillId: TRAIT.BRUTALITY,
-      skillName: 'Brutality',
-      name: 'Brutality — quickness',
-      kind: String(boon.boon || 'quickness'),
-      duration: gw2SchedulerBoonDuration(
-        context,
-        sourceSkill,
-        String(boon.boon || 'quickness'),
-        Number(boon.duration || 0)
-      ),
-      stacks: Number(boon.stacks || 0)
-    });
-  }
-
-  if (event.type === 'control' && hasTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)) {
-    const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining);
-    const condition = effectByType(profile, 'condition');
-    const conditionName = String(condition.condition || 'Weakness');
-    emitSkillCondition(context, {
-      cause: event,
-      at: event.at,
-      source: 'revenant',
-      sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
-      actorType: 'player',
-      skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
-      skillName: 'Dwarven Battle Training',
-      name: `Dwarven Battle Training — ${conditionName}`,
-      condition: conditionName,
-      stacks: Number(condition.stacks || 0),
-      duration: Number(condition.duration || 0)
-    });
-  }
-
+  applyBrutality(context, event);
+  applyDwarvenBattleTraining(context, event);
   if (event.type === 'condition') {
-    if (event.condition === 'Chilled' && hasTrait(context.config, TRAIT.ABYSSAL_CHILL)) {
-      const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill);
-      const condition = effectByType(profile, 'condition');
-      const conditionName = String(condition.condition || 'Torment');
-      emitSkillCondition(context, {
-        cause: event,
-        at: event.at,
-        source: 'revenant',
-        sourceId: TRAIT.ABYSSAL_CHILL,
-        actorType: 'player',
-        skillId: TRAIT.ABYSSAL_CHILL,
-        skillName: 'Abyssal Chill',
-        name: `Abyssal Chill — ${conditionName}`,
-        condition: conditionName,
-        stacks: Math.max(0, Number(condition.stacks || 0)) * Math.max(1, Number(event.stacks || 1)),
-        duration: Number(condition.duration || 0)
-      });
-    }
-
-    if (event.condition === 'Vulnerability' && hasTrait(context.config, TRAIT.DANCE_OF_DEATH)) {
-      grantBattleScars(context, {
-        at: event.at,
-        stacks: event.stacks,
-        sourceId: TRAIT.DANCE_OF_DEATH,
-        sourceName: 'Dance of Death',
-        cause: event
-      });
-    }
+    applyAbyssalChill(context, event);
+    applyDanceOfDeath(context, event);
   }
 
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient || 0) > 0) {
-    materializeThrillOfCombat(context, event);
+    applyThrillOfCombat(context, event);
     consumeBattleScar(context, event);
-    if (
-      hasTrait(context.config, TRAIT.ASSASSINS_PRESENCE) &&
-      isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.assassinsPresence || 0))
-    ) {
-      const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
-      const boon = effectByType(profile, 'boon');
-      const sourceSkill =
-        context.catalog.skillsById.get(event.skillId ?? '') ||
-        ({ id: TRAIT.ASSASSINS_PRESENCE, name: "Assassin's Presence" } as RevenantSkill);
-      state.traitProcReadyAt.assassinsPresence = event.at + Number(profile.cooldown || 0);
-      emitSkillBuff(context, {
-        cause: event,
+    applyAssassinsPresence(context, event);
+    applyViciousReprisal(context, event);
+    if (revenantCombatActive(context, event.at)) applyExposeDefenses(context, event);
 
-        at: event.at,
-        source: 'revenant',
-        sourceId: TRAIT.ASSASSINS_PRESENCE,
-        actorType: 'player',
-        skillId: TRAIT.ASSASSINS_PRESENCE,
-        skillName: "Assassin's Presence",
-        name: "Assassin's Presence — fury",
-        kind: String(boon.boon || 'fury'),
-        duration: gw2SchedulerBoonDuration(
-          context,
-          sourceSkill,
-          String(boon.boon || 'fury'),
-          Number(boon.duration || 0)
-        ),
-        stacks: Number(boon.stacks || 0)
-      });
-    }
-
-    if (
-      hasTrait(context.config, TRAIT.VICIOUS_REPRISAL) &&
-      context.hasBuff('resolution', event.at) &&
-      isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.viciousReprisal || 0))
-    ) {
-      const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.viciousReprisal);
-      const boon = effectByType(profile, 'boon');
-      const sourceSkill =
-        context.catalog.skillsById.get(event.skillId ?? '') ||
-        ({ id: TRAIT.VICIOUS_REPRISAL, name: 'Vicious Reprisal' } as RevenantSkill);
-      state.traitProcReadyAt.viciousReprisal = event.at + Number(profile.cooldown || 0);
-      emitSkillBuff(context, {
-        cause: event,
-
-        at: event.at,
-        source: 'revenant',
-        sourceId: TRAIT.VICIOUS_REPRISAL,
-        actorType: 'player',
-        skillId: TRAIT.VICIOUS_REPRISAL,
-        skillName: 'Vicious Reprisal',
-        name: 'Vicious Reprisal — might',
-        kind: String(boon.boon || 'might'),
-        duration: gw2SchedulerBoonDuration(
-          context,
-          sourceSkill,
-          String(boon.boon || 'might'),
-          Number(boon.duration || 0)
-        ),
-        stacks: Number(boon.stacks || 0)
-      });
-    }
-
-    if (
-      !state.exposeDefensesUsed &&
-      hasTrait(context.config, TRAIT.EXPOSE_DEFENSES) &&
-      revenantCombatActive(context, event.at)
-    ) {
-      const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.exposeDefenses);
-      const condition = effectByType(profile, 'condition');
-      state.exposeDefensesUsed = true;
-      const conditionName = String(condition.condition || 'Vulnerability');
-      emitSkillCondition(context, {
-        cause: event,
-        at: event.at,
-        source: 'revenant',
-        sourceId: TRAIT.EXPOSE_DEFENSES,
-        actorType: 'player',
-        skillId: TRAIT.EXPOSE_DEFENSES,
-        skillName: 'Expose Defenses',
-        name: `Expose Defenses — ${conditionName}`,
-        condition: conditionName,
-        stacks: Number(condition.stacks || 0),
-        duration: Number(condition.duration || 0)
-      });
-    }
-
-    const daggers = state.enchantedDaggers;
+    const daggers = professionCoreState(context).enchantedDaggers;
     if (
       event.skillId !== ID.ENCHANTED_DAGGERS &&
       Number(daggers?.charges || 0) > 0 &&
@@ -523,10 +221,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       isInternalCooldownReady(event.at, Number(daggers.readyAt || 0))
     ) {
       const enchantedDaggers = context.catalog.skillsById.get(ID.ENCHANTED_DAGGERS);
-      if (!enchantedDaggers) {
-        throw new Error('Missing Enchanted Daggers skill declaration.');
-      }
-
+      if (!enchantedDaggers) throw new Error('Missing Enchanted Daggers skill declaration.');
       const strike = effectByType(enchantedDaggers, 'strike');
       const buff = effectByType(enchantedDaggers, 'buff');
       const interval = Number(strike.intervalMs || 0) / 1000;
@@ -534,7 +229,6 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       daggers.readyAt = event.at + interval;
       emitSkillDamage(context, {
         cause: event,
-
         at: event.at + interval,
         source: 'revenant',
         sourceId: ID.ENCHANTED_DAGGERS,

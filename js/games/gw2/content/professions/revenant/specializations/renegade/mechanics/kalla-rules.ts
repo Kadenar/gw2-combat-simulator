@@ -19,7 +19,7 @@ import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mec
 import {
   emitLegendInvocationProfile,
   emitLegendInvocationSkill
-} from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+} from '#gw2/content/professions/revenant/core/traits/index.js';
 import { grantKallasFervor } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { renegadeState } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
 import {

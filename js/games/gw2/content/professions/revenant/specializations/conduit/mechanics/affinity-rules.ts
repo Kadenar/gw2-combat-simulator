@@ -30,7 +30,7 @@ import {
 } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity-and-forms.js';
 import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
-import { emitLegendInvocationProfile } from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import { emitLegendInvocationProfile } from '#gw2/content/professions/revenant/core/traits/index.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import {
   afterConduitTraitCast,

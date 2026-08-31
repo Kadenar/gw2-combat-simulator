@@ -1,27 +1,8 @@
+/** Materializes shared legend-invocation profiles for Core and elite trait callers. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-/**
- * Trait effects triggered by invoking a legend.
- *
- * Materializes Spirit Boon, Song of the Mists, Invoking Torment, Diabolic
- * Inferno for Core legends at legend-swap completion. Elite legends add their
- * own invocation behavior through specialization-local observers.
- */
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/content/professions/revenant/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/content/professions/revenant/types.js';
-
-const CORE_LEGENDS = new Set<string>([LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.DWARF, LEGEND.CENTAUR]);
+import type { RevenantSchedulerContext } from '#gw2/content/professions/revenant/types.js';
 
 /** Emits a declarative proc skill while preserving the triggering trait as its source. */
 export function emitLegendInvocationSkill(
@@ -107,58 +88,5 @@ export function emitLegendInvocationProfile(
     for (const application of applications) {
       context.emit(application.event);
     }
-  }
-}
-
-function emitSpiritBoon(context: RevenantCastContext, _swapSkill: RevenantSkill, legendId: string, at: number): void {
-  emitLegendInvocationProfile(
-    context,
-    REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
-    at,
-    TRAIT.SPIRIT_BOON,
-    (effect) => effect.metadata?.legendId === legendId
-  );
-}
-
-function emitSongOfTheMists(
-  context: RevenantCastContext,
-  _swapSkill: RevenantSkill,
-  legendId: string,
-  at: number
-): void {
-  emitLegendInvocationProfile(
-    context,
-    REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
-    at,
-    TRAIT.SONG_OF_THE_MISTS,
-    (effect) => effect.metadata?.legendId === legendId
-  );
-}
-
-function emitInvokingTorment(context: RevenantCastContext, at: number): void {
-  const diabolicInferno = hasTrait(context.config, TRAIT.DIABOLIC_INFERNO);
-  emitLegendInvocationProfile(
-    context,
-    REVENANT_CORE_BALANCE_PROFILE_IDS.invokingTorment,
-    at,
-    TRAIT.INVOKING_TORMENT,
-    (effect) => effect.metadata?.trigger !== 'diabolic-inferno' || diabolicInferno
-  );
-}
-
-/** Applies every selected trait that triggers from the newly invoked legend. */
-export function applyLegendInvocationTraits(context: RevenantCastContext, swapSkill: RevenantSkill): void {
-  const at = context.effectiveEnd;
-  const legendId = professionCoreState(context).activeLegendId;
-  if (CORE_LEGENDS.has(legendId) && hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    emitSpiritBoon(context, swapSkill, legendId, at);
-  }
-
-  if (CORE_LEGENDS.has(legendId) && hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
-    emitSongOfTheMists(context, swapSkill, legendId, at);
-  }
-
-  if (hasTrait(context.config, TRAIT.INVOKING_TORMENT)) {
-    emitInvokingTorment(context, at);
   }
 }
