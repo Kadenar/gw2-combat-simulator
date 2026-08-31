@@ -101,6 +101,13 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
+      skill: { id: 2, name: 'Tome Chapter', tome: 'justice' },
+      config: { primaryWeapon: 'Axe' }
+    }),
+    'bundle.ascended'
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(event, {
       skill: { id: 1, name: 'Dodge', type: 'Action' }
     }),
     'nonweapon.unequipped'

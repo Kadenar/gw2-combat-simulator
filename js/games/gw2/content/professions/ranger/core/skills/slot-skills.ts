@@ -195,7 +195,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         persistsAfterInterrupt: true
       }
     ],
-    quicknessCastTimeMs: 333,
+    // Match the measured Quickness animation from the benchmark EVTC.
+    quicknessCastTimeMs: 600,
     comboFields: [
       {
         ownerId: 'ranger',
@@ -233,10 +234,17 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     implemented: true,
     effects: [
       {
+        // Sun Spirit shakes four times after landing, matching the delayed
+        // two-stack Might packets emitted by the game rather than front-loading eight.
         type: 'boon',
         boon: 'might',
         duration: 15,
-        stacks: 8,
+        stacks: 2,
+        applications: 4,
+        atMs: 2840,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         recipients: 'party',
         maximumRecipients: 5
       },
@@ -247,7 +255,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ],
     recharge: 20,
     cooldown: 20,
-    quicknessCastTimeMs: 167,
+    // Use the measured Quickness animation so later casts begin at the logged time.
+    quicknessCastTimeMs: 360,
     handlerId: 'ranger.sun-spirit'
   },
   [ID.FLAME_TRAP]: {
@@ -420,7 +429,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         persistsAfterInterrupt: true
       }
     ],
-    quicknessCastTimeMs: 500
+    // Match the measured Quickness animation from the benchmark EVTC.
+    quicknessCastTimeMs: 680
   },
   [ID.SOLAR_FLARE]: {
     implemented: true,

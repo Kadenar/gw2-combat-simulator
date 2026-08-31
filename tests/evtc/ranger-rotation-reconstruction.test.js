@@ -310,6 +310,78 @@ test('reconstructs Druid Avatar cycles, hidden Seeds, and Avatar weapon transiti
   assert.equal(names.filter((name) => name === 'Swap Weapons').length, 1);
 });
 
+test('retains repeated pet commands while the same pet remains active', () => {
+  const skills = [
+    skill(44980, "Jacaranda's Embrace", {
+      petSkill: true,
+      quicknessCastTimeMs: 1480
+    })
+  ];
+  const fixture = log(
+    5,
+    [{ id: 44980, name: "Jacaranda's Embrace" }],
+    [
+      event({ time: 1000, target: 1n, stateChange: 1 }),
+      event({ time: 1000, source: PET, stateChange: 6, sourceInstance: 24, sourceMasterInstance: 23 }),
+      event({
+        time: 1100,
+        source: PET,
+        target: TARGET,
+        skillId: 44980,
+        value: 1480,
+        sourceInstance: 24,
+        sourceMasterInstance: 23,
+        stateChange: 67
+      }),
+      event({
+        time: 2580,
+        source: PET,
+        skillId: 44980,
+        value: 1480,
+        activation: 5,
+        sourceInstance: 24,
+        sourceMasterInstance: 23,
+        stateChange: 68
+      }),
+      event({
+        time: 22100,
+        source: PET,
+        target: TARGET,
+        skillId: 44980,
+        value: 1480,
+        sourceInstance: 24,
+        sourceMasterInstance: 23,
+        stateChange: 67
+      }),
+      event({
+        time: 23580,
+        source: PET,
+        skillId: 44980,
+        value: 1480,
+        activation: 5,
+        sourceInstance: 24,
+        sourceMasterInstance: 23,
+        stateChange: 68
+      }),
+      event({ time: 25000, source: TARGET, stateChange: 4 })
+    ],
+    [
+      agent({
+        address: PET,
+        profession: 12345,
+        elite: 0xffffffff,
+        character: 'Juvenile Jacaranda',
+        account: '',
+        subgroup: ''
+      })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.ok(result.actions.some((action) => action.name === "Jacaranda's Embrace" && action.timestampMs >= 21000));
+});
+
 test('reconstructs Untamed state changes, unleashed pet commands, and composite Smash', () => {
   const skills = [
     skill(63147, 'Unleash Ranger'),

@@ -97,17 +97,12 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         type: 'strike',
         coefficient: 1.6,
         hits: 2
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 6
       }
     ],
     recharge: 6,
     cooldown: 6,
     quicknessCastTimeMs: 600,
+    // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
     handlerId: 'ranger.poisonous-strikes'
   },
   [ID.DEADLY_DELIVERY]: {

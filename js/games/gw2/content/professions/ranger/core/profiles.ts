@@ -58,7 +58,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   },
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {
     playerStacks: 2,
-    durationMultiplier: 10,
+    durationMultiplier: 7,
     effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }]
   }),
   variant(
@@ -93,7 +93,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
       {
         type: 'condition',
         condition: 'Vulnerability',
-        duration: 1,
+        duration: 10,
         stacks: 10
       }
     ]

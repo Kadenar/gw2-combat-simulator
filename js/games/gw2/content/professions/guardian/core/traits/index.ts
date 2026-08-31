@@ -5,6 +5,7 @@ import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import { applyWritOfPersistence } from '#gw2/content/professions/guardian/core/traits/honor.js';
@@ -89,7 +90,10 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
     });
   }
 
-  const virtueSlot = skill.categories?.includes('Virtue') ? String(skill.slot || '') : '';
+  let virtueSlot = skill.categories?.includes('Virtue') ? String(skill.slot || '') : '';
+  // Virtue activation traits only trigger when the passive was ready before
+  // the activation disabled it; repeat activations cannot retrigger them.
+  if (virtueSlot && !professionCoreState(context).lastVirtuePassiveWasReady) virtueSlot = '';
   if (virtueSlot) {
     applyInspiredVirtue(context, skill, virtueSlot, at);
     applyVirtueOfResolution(context, skill, at);

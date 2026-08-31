@@ -437,7 +437,8 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       relicConditionDamage > 0
         ? { ...modifiedStats, conditionDamage: Number(modifiedStats.conditionDamage ?? 0) + relicConditionDamage }
         : modifiedStats;
-    // Independent summons use their own base stats instead of the player's.
+    // Independent summons use their own base stats instead of the player's,
+    // including condition duration so food and other owner bonuses cannot leak in.
     // summonInheritsCriticalAttributes=true lets them share precision/ferocity
     // (e.g., for illusions that scale with the player's crit chance).
     if (
@@ -456,7 +457,9 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
         conditionDamage:
           Number(event.summonBaseConditionDamage ?? stats.conditionDamage) +
           summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
-        expertise: Number(event.summonBaseExpertise ?? stats.expertise)
+        expertise: Number(event.summonBaseExpertise ?? stats.expertise),
+        conditionDurationBonus: 0,
+        conditionDurationBonuses: {}
       };
     }
 

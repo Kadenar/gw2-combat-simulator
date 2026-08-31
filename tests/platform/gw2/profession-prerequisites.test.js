@@ -451,7 +451,12 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
   const query = createGw2CombatQuery({
     profession: queryProfession,
     config: {
-      stats: { power: 1000, precision: 1000 },
+      stats: {
+        power: 1000,
+        precision: 1000,
+        conditionDurationBonus: 25,
+        conditionDurationBonuses: { Bleeding: 15 }
+      },
       boons: { might: 25, fury: false },
       sharePlayerBoonsWithSummons: false
     },
@@ -469,11 +474,18 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
     ...summonEvent,
     independentSummonStrike: true,
     summonBasePower: 1524,
-    summonBaseConditionDamage: 1000
+    summonBaseConditionDamage: 1000,
+    summonBaseExpertise: 150
   };
 
   assert.equal(query.statsAt(1, summonEvent).power, 1060);
   assert.equal(query.statsAt(1, independentSummonEvent).conditionDamage, 1060);
+  assert.equal(query.statsAt(1, independentSummonEvent).conditionDurationBonus, 0);
+  assert.deepEqual(query.statsAt(1, independentSummonEvent).conditionDurationBonuses, {});
+  assert.equal(
+    query.conditionDurationMultiplier('Bleeding', 1, query.statsAt(1, independentSummonEvent), independentSummonEvent),
+    1.1
+  );
   assert.deepEqual(
     {
       power: query.statsAt(1, { ...independentSummonEvent, summonUsesMight: false }).power,

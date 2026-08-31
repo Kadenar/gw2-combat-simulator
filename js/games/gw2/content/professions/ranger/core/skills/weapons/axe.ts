@@ -69,7 +69,8 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 600,
+    // Match the observed median Quickness animation, rounded to the 40 ms action tick.
+    quicknessCastTimeMs: 560,
     missileHits: 5
   },
   [ID.WINTERS_BITE]: {

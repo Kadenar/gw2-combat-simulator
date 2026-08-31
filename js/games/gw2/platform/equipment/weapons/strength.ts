@@ -195,8 +195,8 @@ export function weaponStrengthProfileIdForEvent(
     return SHROUD_PROFILE_IDS[skillShroud];
   }
 
-  // Only explicit kits use bundle strength; other Bundle-tagged profession skills retain their weapon fallback.
-  if (skill?.kit) return 'bundle.ascended';
+  // Kits and Firebrand tome chapters use ascended bundle strength instead of the equipped weapon fallback.
+  if (skill?.kit || skill?.tome) return 'bundle.ascended';
 
   for (const candidate of [event.weapon, event.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);

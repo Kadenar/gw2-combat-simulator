@@ -266,14 +266,14 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   return result;
 }
 
-// Apply skill-specific trap multipliers and positional projectile bonuses to the
-// base condition duration before general Expertise scaling.
-function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
-  let result = duration;
+// Apply skill-specific multipliers and convert flat shortbow extensions into
+// multipliers before general Expertise scaling.
+function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
+  let result = multiplier;
   const skill = eventSkill(context);
   if (skill?.categories?.includes('Trap') && hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)) {
     return (
-      duration *
+      multiplier *
       balanceProfileValueFromContext(
         context,
         PROFILE.trappersExpertise,
@@ -283,20 +283,22 @@ function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, duration
     );
   }
 
+  let extension = 0;
   if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && positional(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') {
-      return result + balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
-    }
-
-    if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') {
-      return result + balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
-    }
-
-    if (skill?.id === ID.CRIPPLING_SHOT && context.condition === 'Immobilized') {
-      return result + balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'minimumStacks', 1);
+      extension = balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
+    } else if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') {
+      extension = balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
+    } else if (skill?.id === ID.CRIPPLING_SHOT && context.condition === 'Immobilized') {
+      extension = balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'minimumStacks', 1);
     }
   }
 
+  const baseDuration = Number(
+    skill?.effects?.find((effect) => effect.type === 'condition' && effect.condition === context.condition)?.duration ||
+      0
+  );
+  if (extension > 0 && baseDuration > 0) result *= (baseDuration + extension) / baseDuration;
   return result;
 }
 
@@ -457,6 +459,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'multiply',
     factor: 1.25,
+    // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
     when: (context) =>
       context.condition === 'Poisoned' &&
       isGw2PlayerModifierOwnedEvent(context.event) &&

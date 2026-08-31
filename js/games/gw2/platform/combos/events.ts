@@ -1,6 +1,6 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
-import { comboDefinition } from '#gw2/platform/combos/definitions.js';
+import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
 import type { SchedulerRecord, SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/types.js';
 import type {
@@ -364,6 +364,7 @@ export function resolveComboAttempt(
   const definition = comboDefinition(field.fieldType, event.finisherType);
   return Object.freeze(
     Array.from({ length: event.successfulCombos }, (_, index) => ({
+      ...comboCombatMetadata(event),
       type: 'combo' as const,
       at: event.effectAt,
       source: event.source,

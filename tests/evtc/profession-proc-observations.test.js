@@ -370,6 +370,27 @@ test('matches Sharpened Edges with separate player and equipped-pet expertise', 
   });
 });
 
+test('matches Sharpened Edges before and during Light on Your Feet', () => {
+  const result = analyzeRangerSharpenedEdgesObservation(
+    fixture([
+      event({ time: 1_000, sourceInstance: 7 }),
+      condition(1_000, 736, 4_500, { sourceInstance: 7 }),
+      event({ time: 2_000, sourceInstance: 7 }),
+      condition(2_000, 736, 4_800, { sourceInstance: 7 })
+    ]),
+    PLAYER,
+    catalog([sharpenedEdgesProfile]),
+    {
+      selectedTraitIds: [RANGER_TRAIT.SHARPENED_EDGES, RANGER_TRAIT.LIGHT_ON_YOUR_FEET],
+      stats: { expertise: 750 }
+    }
+  );
+
+  assert.equal(result.playerCriticalHits, 2);
+  assert.equal(result.playerMatchedApplications, 2);
+  assert.deepEqual(result.playerMatchedDurationsMs, [4_500, 4_800]);
+});
+
 test('does not infer profession trait procs when the active build omits each trait', () => {
   const log = fixture([event({ skillId: EXPLOSION_SKILL_ID })]);
   assert.equal(analyzeEngineerShrapnelObservation(log, PLAYER, catalog([shrapnelProfile]), {}), null);

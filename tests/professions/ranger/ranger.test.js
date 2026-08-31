@@ -748,7 +748,7 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
 
 test('Ranger party boons prioritize players before the active pet', () => {
   const simulateSunSpirit = (alliedPlayerCount) =>
-    simulate('Core', ['Sun Spirit'], {
+    simulate('Core', ['Sun Spirit', { type: 'wait', durationMs: 6000 }], {
       selectedSkills: ['Sun Spirit'],
       selectedPet: 'Fanged Iboga',
       allies: { count: alliedPlayerCount, strikesPerSecond: 1 },
@@ -2525,7 +2525,10 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     selectedTraitIds: [TRAIT.ARACHNOPHOBIA]
   });
 
-  for (const result of [spider, devourer]) {
+  for (const [result, duration, effectiveDuration] of [
+    [spider, 3, 3.75],
+    [devourer, 1.5, 1.875]
+  ]) {
     assert.deepEqual(result.warnings, []);
     assert.equal(
       result.resolvedEvents.some(
@@ -2533,11 +2536,27 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
           event.sourceId === TRAIT.ARACHNOPHOBIA &&
           event.condition === 'Torment' &&
           event.stacks === 1 &&
-          event.duration === 3
+          event.duration === duration &&
+          event.effectiveDuration === effectiveDuration &&
+          event.summonBaseExpertise === 375
       ),
       true
     );
   }
+
+  const twinDartsBleeding = rangerCatalog.skillsById
+    .get(ID.TWIN_DARTS)
+    .effects.find(({ type, condition, ticks }) =>
+      type === 'condition' ? condition === 'Bleeding' || ticks?.some((tick) => tick.condition === 'Bleeding') : false
+    );
+
+  assert.deepEqual(
+    twinDartsBleeding.ticks.map(({ stacks, duration }) => [stacks, duration]),
+    [
+      [2, 2],
+      [2, 2]
+    ]
+  );
 
   const familyAttackDoesNotArmPoisonMaster = simulate(
     'Core',

@@ -712,8 +712,8 @@ test('Phantasmal Swordsman converts on its measured base and Chronophantasma tim
     ).events.find((event) => event.type === 'resource' && event.reason === 'Phantasmal Swordsman phantasm conversion')
       ?.at;
 
-  assert.equal(Number(conversionAt('Core', [], 4000)?.toFixed(3)), 4.28);
-  assert.equal(Number(conversionAt('Chronomancer', [TRAIT.CHRONOPHANTASMA], 8000)?.toFixed(3)), 7.92);
+  assert.equal(Number(conversionAt('Core', [], 4000)?.toFixed(3)), 4.29);
+  assert.equal(Number(conversionAt('Chronomancer', [TRAIT.CHRONOPHANTASMA], 8000)?.toFixed(3)), 8);
 });
 
 test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
@@ -784,14 +784,22 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
   const repeat = chronophantasma.events.find((event) => event.name === 'Phantasmal Warlock - Chronophantasma');
   const proc = chronophantasma.events.find((event) => event.type === 'proc' && event.name === 'Chronophantasma');
 
-  assert.equal(normalConversions.length, 1);
-  assert.equal(normalConversions[0].amount, 2);
-  assert.ok(Math.abs(normalConversions[0].at - 5.0801) < 0.00001);
-  assert.equal(chronoConversions.length, 1);
-  assert.equal(chronoConversions[0].amount, 2);
-  assert.ok(Math.abs(proc.at - 5.08) < 0.00001);
-  assert.ok(Math.abs(repeat.at - 6.324) < 0.00001);
-  assert.ok(Math.abs(chronoConversions[0].at - 9.5701) < 0.00001);
+  assert.deepEqual(
+    normalConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
+    [
+      [1, 4.9201],
+      [1, 5.0201]
+    ]
+  );
+  assert.deepEqual(
+    chronoConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
+    [
+      [1, 9.2801],
+      [1, 9.3201]
+    ]
+  );
+  assert.ok(Math.abs(proc.at - 4.92) < 0.00001);
+  assert.ok(Math.abs(repeat.at - 6.4) < 0.00001);
 
   const normalDamage = normal.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Phantasmal Warlock'
@@ -941,11 +949,11 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 
   assert.deepEqual(
     triggers.map((event) => Number(event.at.toFixed(4))),
-    [0.84, 5.08, 9.5701]
+    [0.84, 4.92, 9.2801, 9.3201]
   );
 });
 
-test('Compounding Power does not increase illusion attack damage', () => {
+test('Compounding Power excludes illusion strikes but applies to their conditions', () => {
   const simulate = (selectedTraitIds) =>
     simulateMesmer(
       ['Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
@@ -961,8 +969,15 @@ test('Compounding Power does not increase illusion attack damage', () => {
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.name === 'Phantasmal Warlock')
       .reduce((sum, event) => sum + event.damage, 0);
+  const warlockConditionDamage = (result) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.skillName === 'Phantasmal Warlock')
+      .reduce((sum, event) => sum + event.damage, 0);
+  const withTrait = simulate([TRAIT.COMPOUNDING_POWER]);
+  const withoutTrait = simulate([]);
 
-  assert.equal(warlockDamage(simulate([TRAIT.COMPOUNDING_POWER])), warlockDamage(simulate([])));
+  assert.equal(warlockDamage(withTrait), warlockDamage(withoutTrait));
+  assert.ok(warlockConditionDamage(withTrait) > warlockConditionDamage(withoutTrait));
 });
 
 test('Vicious Expression and Empowered Illusions respect illusion ownership', () => {
@@ -1333,11 +1348,11 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
   );
 
   assert.equal(normalConversion.amount, 1);
-  assert.ok(Math.abs(normalConversion.at - 3.4401) < 0.00001);
-  assert.ok(Math.abs(resummon.at - 3.44) < 0.00001);
-  assert.ok(Math.abs(repeat.at - 5.94) < 0.00001);
+  assert.ok(Math.abs(normalConversion.at - 3.3601) < 0.00001);
+  assert.ok(Math.abs(resummon.at - 3.36) < 0.00001);
+  assert.ok(Math.abs(repeat.at - 5.82) < 0.00001);
   assert.equal(chronoConversion.amount, 1);
-  assert.ok(Math.abs(chronoConversion.at - 6.5701) < 0.00001);
+  assert.ok(Math.abs(chronoConversion.at - 6.3601) < 0.00001);
 });
 
 test('Mimic resets the next utility skill within its ten-second window', () => {
@@ -1370,38 +1385,68 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword',
       initial: [845, 1321, 1362, 1645, 1679, 1920, 1962, 2246, 2279],
-      repeat: [4474, 4960, 5002, 5277, 5319, 5559, 5602, 5876, 5920]
+      repeat: [4560, 5040, 5080, 5360, 5400, 5640, 5680, 5960, 6000]
     },
     {
       skill: 'Phantasmal Duelist',
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
-      initial: [883, 1083, 1283, 1483, 1683, 1883, 2083, 2283],
-      repeat: [3972, 4173, 4372, 4571, 4771, 4973, 5171, 5380]
+      initial: [830, 1030, 1230, 1430, 1630, 1830, 2030, 2230],
+      repeat: [3860, 4060, 4260, 4460, 4660, 4860, 5060, 5260]
+    },
+    {
+      skill: 'Phantasmal Mage',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Torch',
+      initial: [2000],
+      repeat: [3920]
     },
     {
       skill: 'Phantasmal Berserker',
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Sword',
       traits: [TRAIT.CHRONOPHANTASMA, TRAIT.BOUNTIFUL_BLADES],
-      initial: [717, 834, 883, 951, 1000, 1085, 1117, 1251],
-      repeat: [3186, 3302, 3362, 3427, 3480, 3544, 3595, 3721]
+      initial: [720, 840, 960, 980, 1080, 1100, 1220, 1340],
+      repeat: [3160, 3320, 3320, 3400, 3440, 3520, 3560, 3680]
+    },
+    {
+      skill: 'Phantasmal Disenchanter',
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: 'Sword',
+      selectedSkills: ['Phantasmal Disenchanter'],
+      initial: [1240],
+      repeat: [3230]
+    },
+    {
+      skill: 'Phantasmal Warden',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Focus',
+      initial: [880, 1240, 1600, 1960, 2320, 2680, 3080, 3440, 3800, 4160, 4520, 4880],
+      repeat: [8020, 8380, 8740, 9100, 9460, 9820, 10220, 10580, 10940, 11300, 11670, 12020]
     },
     {
       skill: 'Phantasmal Warlock',
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
-      initial: [1117, 1160, 1918, 1960, 2722, 2766],
-      repeat: [5484, 5642, 6280, 6441, 7085, 7243]
+      initial: [1200, 1300, 2000, 2100, 2800, 2900],
+      repeat: [5560, 5600, 6360, 6400, 7160, 7200]
+    },
+    {
+      skill: 'Phantasmal Lancer',
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      initial: [1160],
+      repeat: [3300]
     }
   ];
 
   for (const testCase of cases) {
     const result = simulateMesmer(
-      [testCase.skill, { name: '__wait', waitMs: 9000 }],
+      [testCase.skill, { name: '__wait', waitMs: 15000 }],
       defaultSimulationConfig({
         specialization: 'Chronomancer',
         selectedTraitIds: testCase.traits || [TRAIT.CHRONOPHANTASMA],
+        ...(testCase.selectedSkills ? { selectedSkills: testCase.selectedSkills } : {}),
         primaryWeapon: testCase.primaryWeapon,
         secondaryWeapon: testCase.secondaryWeapon,
         initialResource: 0
@@ -2205,13 +2250,13 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
   assert.ok(
     log.some(
       (event) =>
-        Math.abs(event.at - 2.843) < 0.00001 && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'
+        Math.abs(event.at - 2.79) < 0.00001 && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'
     )
   );
   assert.ok(
     log.some(
       (event) =>
-        Math.abs(event.at - 3.4401) < 0.00001 &&
+        Math.abs(event.at - 3.3601) < 0.00001 &&
         event.description.includes('CLONE SPAWNED x1') &&
         event.description.includes('Phantasmal Duelist phantasm conversion')
     )
@@ -3178,6 +3223,21 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
   assert.equal(flipped.endState.profession.resource, 1);
   assert.equal(flipped.endState.profession.counterspellAvailable, false);
   assert.ok(flipped.breakdown.some((entry) => entry.name === 'Counterspell'));
+
+  const interrupted = simulateMesmer(
+    ['Illusionary Counter', { name: 'Counterspell', interruptMs: 360 }, 'Swap Weapons'],
+    config
+  );
+  const counterspell = interrupted.steps.find((step) => step.skill === 'Counterspell');
+
+  assert.equal(counterspell.end - counterspell.start, 360);
+  assert.equal(interrupted.steps.find((step) => step.skill === 'Swap Weapons').start, counterspell.end);
+  assert.equal(interrupted.endState.profession.resource, 1);
+  assert.ok(
+    interrupted.resolvedEvents.some(
+      (event) => event.type === 'condition' && event.skillName === 'Counterspell' && event.condition === 'Confusion'
+    )
+  );
 });
 
 test('Ether Bolt and Ether Blast do not generate clones', () => {
@@ -4762,6 +4822,27 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
   });
 });
 
+test("Phantasmal Blade lands one second after Phantasmal Lancer's phantasm hit", () => {
+  const result = simulateMesmer(
+    ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
+    defaultSimulationConfig({
+      specialization: 'Virtuoso',
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      selectedTraitIds: [TRAIT.PHANTASMAL_BLADES],
+      initialResource: 0
+    })
+  );
+  const blade = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade'
+  );
+  const phantasm = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Lancer' && event.source === 'Phantasm'
+  );
+
+  assert.equal(Number((blade.at - phantasm.at).toFixed(3)), 1);
+});
+
 test('Phantasmal Lancer converts after recovery and Chronophantasma repeats before final conversion', () => {
   const rotation = ['Phantasmal Lancer', { name: '__wait', waitMs: 5000 }];
   const baseConfig = {
@@ -4801,11 +4882,11 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
     (event) => event.reason === 'Phantasmal Lancer phantasm conversion'
   );
 
-  assert.ok(Math.abs(normalDamage.at - (normalCastEnd + 1.08)) < 0.00001);
-  assert.ok(Math.abs(normalConversion.at - (normalCastEnd + 1.9201)) < 0.00001);
-  assert.ok(Math.abs(resummon.at - (chronoCastEnd + 1.92)) < 0.00001);
-  assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.24)) < 0.00001);
-  assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.0801)) < 0.00001);
+  assert.ok(Math.abs(normalDamage.at - (normalCastEnd + 1.16)) < 0.00001);
+  assert.ok(Math.abs(normalConversion.at - (normalCastEnd + 2.0401)) < 0.00001);
+  assert.ok(Math.abs(resummon.at - (chronoCastEnd + 2.04)) < 0.00001);
+  assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.3)) < 0.00001);
+  assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.1401)) < 0.00001);
 });
 
 test('Flying Cutter and Unstable Bladestorm remain available outside Virtuoso', () => {
@@ -5192,7 +5273,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
       .map((event) => event.coefficient),
     [0.33, 0.33, 0.33]
   );
-  assert.deepEqual(times('Phantasm'), [1.443, 1.643, 1.843, 2.043, 2.243, 2.443, 2.643, 2.843]);
+  assert.deepEqual(times('Phantasm'), [1.39, 1.59, 1.79, 1.99, 2.19, 2.39, 2.59, 2.79]);
   assert.ok(
     result.resolvedEvents
       .filter(
@@ -5207,7 +5288,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
           event.type === 'condition' && event.skillName === 'Phantasmal Duelist' && event.condition === 'Bleeding'
       )
       .map((event) => Number(event.at.toFixed(3))),
-    [1.443, 1.643, 1.843, 2.043, 2.243, 2.443, 2.643, 2.843]
+    [1.39, 1.59, 1.79, 1.99, 2.19, 2.39, 2.59, 2.79]
   );
 });
 
@@ -5625,22 +5706,26 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     result.endState.profession.activeInstruments.map((instrument) => instrument.name),
     ['Lute', 'Flute']
   );
-  const notesView = mesmerProfession
+  const resourceViews = mesmerProfession
     .resolveRuntime({
       specialization: 'Troubadour'
     })
     .ui.resourceViews({
       specialization: 'Troubadour',
       professionState: result.endState.profession
-    })[0];
+    });
+  const notesView = resourceViews.find((view) => view.id === 'notes');
+  const playingView = resourceViews.find((view) => view.id === 'playing-instruments');
 
   assert.equal(notesView.pipStyle, 'mesmer-notes');
-  assert.equal(notesView.statusItemsLabel, 'Playing');
+  assert.equal(notesView.statusItems, undefined);
+  assert.equal(playingView.displayMode, 'status');
+  assert.equal(playingView.statusItemsLabel, undefined);
   assert.deepEqual(
-    notesView.statusItems.map((item) => item.label),
+    playingView.statusItems.map((item) => item.label),
     ['Lute', 'Flute']
   );
-  assert.ok(notesView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
+  assert.ok(playingView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
   const resourceHtml = activeResourceGroup({
     profession: mesmerProfession,
     adapter: { eliteSpecialization: () => 'Troubadour' },
@@ -5651,6 +5736,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
   assert.match(resourceHtml, /active-resource-pips mesmer-notes/);
   assert.equal([...resourceHtml.matchAll(/<span class="active-resource-pip(?: active)?"><\/span>/g)].length, 3);
   assert.match(resourceHtml, /active-resource-statuses/);
+  assert.doesNotMatch(resourceHtml, /active-resource-status-label/);
   assert.match(resourceHtml, />Lute</);
   assert.match(resourceHtml, />Flute</);
   for (const index of [0, 2]) {
@@ -5911,6 +5997,66 @@ test('Bountiful Blades stocks each Berserker blade independently', () => {
   assert.ok(Math.abs(conversions[1].at - 4.0001) < 0.00001);
 });
 
+test('Chronophantasma preserves each Bountiful Blades conversion timestamp', () => {
+  const result = simulateMesmer(
+    ['Phantasmal Berserker', { name: '__wait', waitMs: 6000 }],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.CHRONOPHANTASMA],
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: '',
+      initialResource: 0
+    })
+  );
+  const conversions = result.events.filter(
+    (event) => event.type === 'resource' && event.reason === 'Phantasmal Berserker phantasm conversion'
+  );
+
+  assert.deepEqual(
+    conversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
+    [
+      [1, 5.6801],
+      [1, 5.7201]
+    ]
+  );
+});
+
+test('Chronophantasma conversions preserve clone spends across a Continuum Split boundary', () => {
+  const result = simulateMesmer(
+    [
+      'Phantasmal Berserker',
+      'Phantasmal Disenchanter',
+      { name: '__wait', waitMs: 3980 },
+      'Continuum Split',
+      { name: '__wait', waitMs: 150 },
+      'Time Sink',
+      'Rewinder',
+      'Decoy',
+      { name: '__wait', waitMs: 300 },
+      'Continuum Shift',
+      'Rewinder'
+    ],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.CHRONOPHANTASMA],
+      selectedSkills: ['Phantasmal Disenchanter', 'Decoy'],
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: '',
+      initialResource: 2
+    })
+  );
+  const spends = result.events
+    .filter((event) => event.type === 'resource' && event.reason === 'profession mechanic')
+    .map((event) => [event.sourceSkill, -event.amount]);
+
+  assert.deepEqual(spends, [
+    ['Continuum Split', 2],
+    ['Time Sink', 1],
+    ['Rewinder', 0],
+    ['Rewinder', 3]
+  ]);
+});
+
 test('Rain of Swords pulses after its cast with fixed damage and vulnerability timing', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(['Rain of Swords', 'Rain of Swords'], {
@@ -6061,7 +6207,7 @@ test('Clarity makes only an empowered Mental Collapse a control skill', () => {
 
 test('Shackles converts Lancer immobilize into a stun that triggers Syncopate', () => {
   const result = simulateMesmer(
-    ['Mind the Gap', 'Phantasmal Lancer', { name: '__wait', waitMs: 6100 }],
+    ['Mind the Gap', 'Phantasmal Lancer', { name: '__wait', waitMs: 6200 }],
     defaultSimulationConfig({
       specialization: 'Troubadour',
       primaryWeapon: 'Spear',

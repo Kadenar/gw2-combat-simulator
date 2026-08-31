@@ -29,18 +29,25 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
   NativeResolvedDamageDetails
 >;
 
-export function applyRangerDodgeTraits(context: RangerCastContext): void {
+export function applyRangerDodgeTraits(context: RangerCastContext, at = context.effectiveEnd): void {
   if (!hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) return;
   const effect = profileEffect(context, PROFILE.lightOnYourFeet, 'buff');
+  const kind = String(effect?.kind || 'light-on-your-feet');
+  const baseDuration = Number(effect?.duration ?? 6);
+  // Reapplications stack duration in game, so preserve the live remainder
+  // instead of replacing it with another six-second overlapping window.
+  const activeUntil = context.events
+    .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
+    .reduce((maximum, event) => Math.max(maximum, event.at + Number(event.duration || 0)), at);
   emitSkillBuff(context, {
-    at: context.effectiveEnd,
+    at,
     source: 'Trait',
     sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
     actorType: 'effect',
     skillId: TRAIT.LIGHT_ON_YOUR_FEET,
     skillName: 'Light on your Feet',
-    kind: String(effect?.kind || 'light-on-your-feet'),
-    duration: Number(effect?.duration ?? 6),
+    kind,
+    duration: baseDuration + Math.max(0, activeUntil - at),
     stacks: Number(effect?.stacks ?? 1)
   });
 }

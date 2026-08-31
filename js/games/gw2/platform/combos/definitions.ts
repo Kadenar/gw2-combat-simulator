@@ -1,6 +1,39 @@
 import type { SimulationEventInput, SkillId } from '#gw2/platform/engine/types.js';
 import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 
+const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
+  'ownerActorType',
+  'summonKind',
+  'summonOwner',
+  'independentSummonStrike',
+  'summonInheritsAttributes',
+  'summonInheritsCriticalAttributes',
+  'summonIgnoresBoons',
+  'summonUsesMight',
+  'summonUsesEquipmentModifiers',
+  'summonUsesProfessionModifiers',
+  'summonBasePower',
+  'summonBasePrecision',
+  'summonBaseToughness',
+  'summonBaseVitality',
+  'summonBaseFerocity',
+  'summonBaseConditionDamage',
+  'summonBaseExpertise',
+  'summonBaseHealingPower',
+  'summonCriticalChance',
+  'summonCriticalDamage',
+  'summonDamagePerCoefficient'
+]);
+
+/** Carries finisher ownership and summon scaling through semantic combo events and outcomes. */
+export function comboCombatMetadata(event: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
+  const metadata: Record<string, unknown> = {};
+  for (const field of COMBO_COMBAT_METADATA_FIELDS) {
+    if (event[field] !== undefined) metadata[field] = event[field];
+  }
+  return metadata;
+}
+
 export type ComboOutcome =
   | {
       readonly kind: 'aura';
@@ -324,6 +357,7 @@ interface ComboOutcomeEventBase extends Record<string, unknown> {
 
 function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {
   return {
+    ...comboCombatMetadata(combo),
     at: combo.at,
     source: combo.source,
     sourceId: combo.sourceId,
@@ -367,7 +401,9 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           kind: outcome.boon.toLowerCase(),
           stacks: outcome.stacks,
           duration: outcome.duration,
-          affectsSelf: true
+          // Area combo boons use normal party targeting so an active companion
+          // can claim an open target slot after players.
+          ...(outcome.name.startsWith('Area ') ? { recipients: 'party', maximumRecipients: 5 } : { affectsSelf: true })
         };
       case 'condition':
         return {

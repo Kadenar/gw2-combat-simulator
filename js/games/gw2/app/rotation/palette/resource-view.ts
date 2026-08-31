@@ -15,12 +15,17 @@ import type { ProfessionResourceView, SchedulerRecord, SkillId } from '#gw2/plat
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import type { PaletteResourceView } from '#gw2/app/presentation/rotation/palette.js';
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
-import { activeSpecialization, paletteProfessionState, professionEndState } from '#gw2/app/rotation/shared/context.js';
+import {
+  activeSpecialization,
+  paletteEndState,
+  paletteProfessionState,
+  professionEndState
+} from '#gw2/app/rotation/shared/context.js';
 
 function normalizeResourceView(view: ProfessionResourceView): ProfessionResourceView {
   const maximum = Math.max(0, Number(view.maximum || 0));
   const displayMode =
-    typeof view.displayMode === 'string' && ['bar', 'counter', 'pips'].includes(view.displayMode)
+    typeof view.displayMode === 'string' && ['bar', 'counter', 'pips', 'status'].includes(view.displayMode)
       ? view.displayMode
       : maximum > 20
         ? 'bar'
@@ -95,6 +100,8 @@ function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceV
   return resourceDisplayViews(app.profession, {
     specialization,
     build: app.build,
+    // Profession views use scheduler seconds for their live cooldown labels.
+    simulationTime: Number(paletteEndState(app)?.time || 0) / 1000,
     value: professionState.resource ?? app.build?.initialResource,
     professionState,
     initialResource: app.build?.initialResource,
@@ -221,10 +228,13 @@ function resourceCounterHtml(definition: ProfessionResourceView, value: number):
 function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
   const items = definition.statusItems || [];
   if (!items.length) return '';
-  const label = definition.statusItemsLabel || 'Active';
+  const label = definition.statusItemsLabel || '';
+  // An empty visible label intentionally produces a chips-only row while the
+  // resource status remains available to assistive technology.
+  const ariaLabel = label || definition.statusLabel || 'Status';
   return `<div class="active-resource-statuses"
-      aria-label="${esc(label)}">
-      <span class="active-resource-statuses-label">${esc(label)}</span>
+      aria-label="${esc(ariaLabel)}">
+      ${label ? `<span class="active-resource-statuses-label">${esc(label)}</span>` : ''}
       ${items
         .map((item) => {
           const title = item.title || `${item.label} ${item.valueLabel || ''}`;
@@ -259,6 +269,11 @@ export function activeResourceGroup(
   );
   const groups = definitions
     .map((definition) => {
+      if (definition.displayMode === 'status') {
+        return `<div class="pal-group active-resource-group active-resource-status-only"
+            data-resource-id="${esc(definition.id)}">${resourceStatusItemsHtml(definition)}</div>`;
+      }
+
       const buildValue = definition.buildKey ? app.build[definition.buildKey] : 0;
       const value = Math.max(0, Math.min(definition.maximum, Number(definition.value ?? buildValue)));
       const displayValue = formatResourceValue(value);

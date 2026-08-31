@@ -35,7 +35,8 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ],
     recharge: 25,
     cooldown: 25,
-    quicknessCastTimeMs: 333,
+    // Match the measured Quickness animation from the benchmark EVTC.
+    quicknessCastTimeMs: 560,
     comboFields: [
       {
         ownerId: 'ranger',
@@ -69,6 +70,6 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ammo: 2,
     ammoRecharge: 15,
     ammoCastLockout: 1,
-    quicknessCastTimeMs: 333
+    quicknessCastTimeMs: 440
   }
 });

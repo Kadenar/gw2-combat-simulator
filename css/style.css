@@ -3810,6 +3810,27 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   display: block;
 }
 
+/* Dormant virtues keep their Tome usable, so tint the icon red without using
+   disabled styling or suppressing palette interaction. */
+.guardian-tome-f-keys.tome-justice-dormant .pal-skill[data-skill='Tome of Justice'],
+.guardian-tome-f-keys.tome-resolve-dormant .pal-skill[data-skill='Tome of Resolve'],
+.guardian-tome-f-keys.tome-courage-dormant .pal-skill[data-skill='Tome of Courage'] {
+  border-color: #b74343;
+}
+
+.guardian-tome-f-keys.tome-justice-dormant .pal-skill[data-skill='Tome of Justice']::after,
+.guardian-tome-f-keys.tome-resolve-dormant .pal-skill[data-skill='Tome of Resolve']::after,
+.guardian-tome-f-keys.tome-courage-dormant .pal-skill[data-skill='Tome of Courage']::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: rgba(190, 35, 35, 0.38);
+  box-shadow: inset 0 0 12px rgba(255, 70, 55, 0.65);
+  content: '';
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
 .skill-variant-badge {
   position: absolute;
   z-index: 3;

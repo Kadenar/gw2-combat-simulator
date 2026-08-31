@@ -365,6 +365,54 @@ test('reconstructs casts, inferred instants, serial weapon swaps, dodges, and 40
   assert.match(result.warnings[1], /not present/);
 });
 
+test('does not add EVTC idle time after a weapon-swap-cancelled retained cast', () => {
+  const retainedSkill = {
+    id: 4_100,
+    name: 'Retained Cast',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    quicknessCastTimeMs: 600,
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [],
+    implemented: true
+  };
+  const nextSkill = {
+    id: 4_101,
+    name: 'Next Cast',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    quicknessCastTimeMs: 400,
+    effects: [],
+    implemented: true
+  };
+  const fixture = log({
+    skills: [
+      { id: retainedSkill.id, name: retainedSkill.name },
+      { id: nextSkill.id, name: nextSkill.name }
+    ],
+    events: [
+      event({ time: 1_200, stateChange: 67, skillId: retainedSkill.id, value: 900 }),
+      event({ time: 1_561, stateChange: 68, skillId: retainedSkill.id, value: 361, activation: 4 }),
+      event({ time: 1_561, stateChange: 11, target: 5n }),
+      event({ time: 1_800, stateChange: 67, skillId: nextSkill.id, value: 600 }),
+      event({ time: 2_200, stateChange: 68, skillId: nextSkill.id, value: 400, activation: 3 })
+    ]
+  });
+
+  const result = reconstructEvtcRotation(
+    fixture,
+    { skills: [retainedSkill, nextSkill, catalog.skills.at(-1)] },
+    { includeCombatStart: false, inferInstantCasts: false }
+  );
+
+  assert.deepEqual(result.rotation, [
+    { name: 'Retained Cast', skillId: 4_100, interruptMs: 360 },
+    { name: 'Swap Weapons', skillId: -3 },
+    { name: 'Next Cast', skillId: 4_101 }
+  ]);
+});
+
 test('preserves cancelled autoattacks and their recorded timeline without artificial waits', () => {
   const autoattack = {
     id: 4_000,

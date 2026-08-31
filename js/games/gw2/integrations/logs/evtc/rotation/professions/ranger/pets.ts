@@ -40,6 +40,7 @@ export function ownedPetAddresses(
   return addresses;
 }
 
+/** Keeps every non-autonomous pet animation because F2 commands can repeat without respawning the pet. */
 function petCommandActions(
   context: EvtcProfessionReconstructionContext,
   ownerInstance: number,

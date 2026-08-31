@@ -901,6 +901,14 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
   };
   const inactiveFirebrandGroups = guardianProfession.ui.paletteGroups(inactiveFirebrand);
   const activeFirebrandGroups = guardianProfession.ui.paletteGroups(activeFirebrand);
+  const dormantFirebrandGroup = guardianProfession.ui.paletteGroups({
+    ...inactiveFirebrand,
+    time: 10,
+    professionState: {
+      ...inactiveFirebrand.professionState,
+      tomeDormantReadyAt: { justice: 20, resolve: 10, courage: 30 }
+    }
+  })[0];
   const groupIds = (groups) => groups.map((group) => group.id);
 
   assert.deepEqual(groupIds(inactiveFirebrandGroups), ['profession', 'tome-justice', 'tome-resolve', 'tome-courage']);
@@ -908,6 +916,11 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
     activeFirebrandGroups.map((group) => group.skillIds),
     inactiveFirebrandGroups.map((group) => group.skillIds)
   );
+  assert.deepEqual(dormantFirebrandGroup.resourceIds, ['pages']);
+  assert.equal(dormantFirebrandGroup.resourcePlacement, 'above');
+  assert.match(dormantFirebrandGroup.className, /tome-justice-dormant/);
+  assert.doesNotMatch(dormantFirebrandGroup.className, /tome-resolve-dormant/);
+  assert.match(dormantFirebrandGroup.className, /tome-courage-dormant/);
   assert.equal(
     inactiveFirebrandGroups
       .find((group) => group.id === 'tome-justice')
@@ -1993,7 +2006,6 @@ test('Firebrand tome chapters use their reference packets and cooldowns', () => 
   const firebrandConfig = {
     ...config,
     specialization: 'Firebrand',
-    primaryWeapon: 'Mace',
     maximumTomePages: 8,
     initialTomePages: 8
   };
@@ -2416,7 +2428,6 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
   const firebrandConfig = {
     ...config,
     specialization: 'Firebrand',
-    primaryWeapon: 'Axe',
     boons: { quickness: true }
   };
   const axe = simulateGw2({
@@ -3013,7 +3024,6 @@ test('Quickfire grants one Ashes charge to a self-only quickness recipient', () 
     config: {
       ...config,
       specialization: 'Firebrand',
-      primaryWeapon: 'Mace',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
       allies: { count: 0, strikesPerSecond: 0 }
     }
@@ -3027,21 +3037,22 @@ test('Quickfire grants one Ashes charge to a self-only quickness recipient', () 
   assert.equal(quickfireBurns[0].triggeredByAlly, undefined);
 });
 
-test('equipping a dormant tome does not restart its Swift Scholar lockout', () => {
+test('dormant Tome equips preserve recharge and do not trigger virtue traits', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
       'Tome of Justice',
       'Stow Tome',
-      { type: 'wait', durationMs: 1000 },
+      { type: 'wait', durationMs: 11000 },
       'Tome of Justice',
       'Stow Tome',
-      { type: 'wait', durationMs: 19000 },
+      { type: 'wait', durationMs: 9000 },
       'Tome of Justice'
     ],
     config: {
       ...config,
-      specialization: 'Firebrand'
+      specialization: 'Firebrand',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
     }
   });
 
@@ -3051,8 +3062,35 @@ test('equipping a dormant tome does not restart its Swift Scholar lockout', () =
     ).length,
     2
   );
+  assert.deepEqual(
+    result.procSteps.filter((step) => step.skill === 'Lesser Symbol of Blades').map((step) => step.start),
+    [0, 20000]
+  );
+  assert.equal(
+    result.events.filter((event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)
+      .length,
+    2
+  );
   assert.equal(result.endState.profession.virtueReadyAt.justice, 40);
   assert.deepEqual(result.warnings, []);
+});
+
+test('Power of the Virtuous reduces each Tome dormancy duration', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 'Tome of Courage'],
+    config: {
+      ...config,
+      specialization: 'Firebrand',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]
+    }
+  });
+
+  assert.deepEqual(result.endState.profession.tomeDormantReadyAt, {
+    justice: 17,
+    resolve: 25.5,
+    courage: 38.25
+  });
 });
 
 test('Firebrand specialization traits drive pages, quickness, and tome bonuses', () => {
@@ -3069,7 +3107,6 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
     config: {
       ...config,
       specialization: 'Firebrand',
-      primaryWeapon: 'Mace',
       initialTomePages: 5,
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE]
     }
@@ -3166,7 +3203,6 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
     config: {
       ...config,
       specialization: 'Firebrand',
-      primaryWeapon: 'Mace',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
     }
   });
@@ -3218,7 +3254,6 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
       config: {
         ...config,
         specialization: 'Firebrand',
-        primaryWeapon: 'Mace',
         selectedTraitIds
       }
     });
@@ -4597,9 +4632,11 @@ test('elite specializations expose their profession mechanics', () => {
     .flatMap((group) => group.skillIds);
   const firebrandResources = guardianProfession.ui.resourceViews({
     specialization: 'Firebrand',
+    simulationTime: 10,
     professionState: {
       tomePages: 3,
-      maximumTomePages: 5
+      maximumTomePages: 5,
+      tomeDormantReadyAt: { justice: 20, resolve: 10, courage: 0 }
     }
   });
 
@@ -4609,6 +4646,17 @@ test('elite specializations expose their profession mechanics', () => {
   assert.equal(verdict.flipParentId, spear.id);
   assert.equal(firebrand.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL), true);
   assert.equal(firebrandResources[0].value, 3);
+  assert.equal(firebrandResources[1].id, 'tome-dormancy');
+  assert.equal(firebrandResources[1].displayMode, 'status');
+  assert.equal(firebrandResources[1].statusItemsLabel, undefined);
+  assert.deepEqual(
+    firebrandResources[1].statusItems.map(({ id, valueLabel }) => [id, valueLabel]),
+    [
+      ['justice', 'Dormant 10.0s'],
+      ['resolve', 'Ready'],
+      ['courage', 'Ready']
+    ]
+  );
 });
 
 test('Guardian declarative scheduling respects the configured starting set', () => {

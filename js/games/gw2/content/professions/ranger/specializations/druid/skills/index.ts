@@ -82,20 +82,30 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ],
     recharge: 8,
     cooldown: 8,
-    quicknessCastTimeMs: 500,
+    // Match the measured Quickness animation from the condition Druid EVTC.
+    quicknessCastTimeMs: 920,
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.REJUVENATING_TIDES]: {
     implemented: true,
     effects: [
       {
+        // Rejuvenating Tides applies one party-wide Might stack on each of its
+        // five delayed pulses so the active pet can receive the boon.
         type: 'boon',
         boon: 'might',
         duration: 10,
-        stacks: 5
+        stacks: 1,
+        applications: 5,
+        atMs: 960,
+        intervalMs: 600,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        recipients: 'party',
+        maximumRecipients: 5
       }
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 480,
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.NATURAL_CONVERGENCE]: {
@@ -185,7 +195,10 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 1,
         atMs,
         timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const
+        timingScale: 'fixed' as const,
+        // Natural Convergence grants every pulse to nearby allies, including pets.
+        recipients: 'party',
+        maximumRecipients: 5
       }))
     ],
     recharge: 10,

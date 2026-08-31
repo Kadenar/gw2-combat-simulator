@@ -96,6 +96,8 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         actorType: 'player'
       },
       {
+        // EVTC attributes both the command strike and its poison applications
+        // to the Ranger even though the active Devourer executes the command.
         type: 'condition',
         ticks: [1000, 2000, 3000, 4000, 5000, 6000].map((atMs) => ({
           atMs,
@@ -110,13 +112,16 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         actorType: 'player'
       }
     ],
-    quicknessCastTimeMs: 880,
+    // Match the commanded pet animation measured in the benchmark EVTC.
+    quicknessCastTimeMs: 1800,
     comboFields: [
       {
         ownerId: 'ranger',
         fieldType: 'Poison',
         duration: 5,
-        startAnchor: 'castEnd'
+        // The five-second field runs from the first fixed pulse through the sixth.
+        startMs: 1000,
+        startAnchor: 'castStart'
       }
     ],
     petSkill: true
@@ -1182,7 +1187,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         actorType: 'summon'
       }
     ],
-    quicknessCastTimeMs: 880,
+    quicknessCastTimeMs: 1480,
     petSkill: true
   },
   [ID.JACARANDA_ROOT_SLAP]: {
@@ -1492,6 +1497,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         ]
       },
       {
+        // Each projectile applies the tooltip's two Bleeding stacks.
         type: 'condition',
         ticks: [840, 920].map((atMs) => ({
           atMs,

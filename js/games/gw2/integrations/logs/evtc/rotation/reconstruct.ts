@@ -861,11 +861,18 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
 
 /** Uses normalized replay timing while preserving EVTC boundaries needed to position overlapping actions. */
 function replayActionEnd(action: ResolvedAction): number {
-  if (action.replayCastEnd != null) return action.replayCastEnd;
-  if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
-  if (action.status !== 'completed') return action.end;
   const runtimeDuration = quicknessRuntimeDurationMs(action.skill);
-  return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
+  const observedReplayEnd =
+    action.replayCastEnd ??
+    (action.replayInterruptMs != null
+      ? action.start + action.replayInterruptMs
+      : action.status === 'completed' && runtimeDuration > 0
+        ? Math.max(action.end, action.start + runtimeDuration)
+        : action.end);
+  // The command retains the safe observed interrupt, while timeline spacing remains anchored to the full aftercast.
+  return action.skill?.retainsCastLockoutAfterInterrupt === true && runtimeDuration > 0
+    ? Math.max(observedReplayEnd, action.start + runtimeDuration)
+    : observedReplayEnd;
 }
 
 function buildRotation(

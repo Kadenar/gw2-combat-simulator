@@ -38,6 +38,7 @@ import {
 import {
   beginRangerPetCommand,
   observeRangerPetEvent,
+  prepareRangerPetEvent,
   rangerPetCompanionId,
   rangerPetTaskHandlers
 } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
@@ -50,9 +51,12 @@ const rangerCoreExecutionHooks = Object.freeze({
     id: 'ranger.boon-companion-candidates',
     order: 5,
     handler: (context: RangerSchedulerContext, event: SimulationEventInput) =>
-      prepareGw2BuffCompanionCandidates(
-        event,
-        professionCoreState(context).petActive ? [rangerPetCompanionId(context)] : []
+      prepareRangerPetEvent(
+        context,
+        prepareGw2BuffCompanionCandidates(
+          event,
+          professionCoreState(context).petActive ? [rangerPetCompanionId(context)] : []
+        )
       )
   },
   advance: {

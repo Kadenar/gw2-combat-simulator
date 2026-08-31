@@ -49,9 +49,24 @@ function firebrandEventLogRow(
 
 const TOME_F_KEY_NAMES = Object.freeze(['Tome of Justice', 'Tome of Resolve', 'Tome of Courage']);
 const TOME_PALETTE_NAMES = Object.freeze([...TOME_F_KEY_NAMES, 'Stow Tome']);
+const TOME_DORMANCY_LABELS = Object.freeze([
+  ['justice', 'F1 Justice'],
+  ['resolve', 'F2 Resolve'],
+  ['courage', 'F3 Courage']
+] as const);
 
 function professionState(context: GuardianUiContext): Partial<GuardianState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
+}
+
+function dormantTomeClasses(context: GuardianUiContext): string {
+  const readyAt = professionState(context).tomeDormantReadyAt;
+  const at = Number(context.time ?? context.simulationTime ?? 0);
+  // Project dormancy onto the existing Tome group so CSS can tint only the
+  // affected opener while the skill remains available to equip.
+  return TOME_DORMANCY_LABELS.filter(([virtue]) => Number(readyAt?.[virtue] || 0) > at)
+    .map(([virtue]) => `tome-${virtue}-dormant`)
+    .join(' ');
 }
 
 function tomeGroups(context: GuardianUiContext): ProfessionSkillBarGroup[] {
@@ -106,9 +121,12 @@ export const firebrandUi = Object.freeze({
       label: 'F',
       skillIds: guardianUiSkillIdsByName(TOME_PALETTE_NAMES, context),
       color: '#2f7eb8',
+      className: `guardian-tome-f-keys ${dormantTomeClasses(context)}`.trim(),
       // resourceAnchor attaches the tome-pages resource view to this group's
-      // position in the palette UI rather than floating it independently.
-      resourceAnchor: true
+      // position while the unattached dormancy view follows the Tome row.
+      resourceAnchor: true,
+      resourceIds: ['pages'],
+      resourcePlacement: 'above'
     },
     ...[
       ['justice', 'F1', '#d26b46'],
@@ -164,6 +182,14 @@ export const firebrandUi = Object.freeze({
   resourceViews: (context: GuardianUiContext) => {
     const state = professionState(context);
     const maximum = Number(state.maximumTomePages || 5);
+    const simulationTime = Number(context.simulationTime || 0);
+    const readyAt = state.tomeDormantReadyAt || { justice: 0, resolve: 0, courage: 0 };
+    // Keep passive readiness visible without adding three more resource bars.
+    const virtueStatuses = TOME_DORMANCY_LABELS.map(([virtue, label]) => {
+      const remaining = Math.max(0, Number(readyAt[virtue] || 0) - simulationTime);
+      const valueLabel = remaining > 0 ? `Dormant ${remaining.toFixed(1)}s` : 'Ready';
+      return { id: virtue, label, valueLabel, title: `${label}: ${valueLabel}` };
+    });
     return [
       {
         id: 'pages',
@@ -175,6 +201,19 @@ export const firebrandUi = Object.freeze({
         canStart: false,
         shortLabel: 'Pgs',
         statusLabel: 'Current'
+      },
+      {
+        id: 'tome-dormancy',
+        singular: 'dormancy',
+        plural: 'dormancy',
+        maximum: 1,
+        value: 0,
+        canStart: false,
+        shortLabel: 'Dormancy',
+        statusLabel: 'Tome dormancy',
+        displayMode: 'status',
+        statusItems: virtueStatuses,
+        showValue: false
       }
     ];
   }

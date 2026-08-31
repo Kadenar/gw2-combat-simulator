@@ -83,16 +83,24 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
   const rotation: ReconstructedCommand[] = [];
   let activeCastEnd = origin;
+  let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
   const appendObservedIdle = (nextActionAt: number): void => {
-    const waitMs = quantizeMs(nextActionAt - activeCastEnd);
-    if (waitMs > minimumWaitMs) rotation.push({ name: '__wait', waitMs });
+    const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
+    const observedGapMs = nextActionAt - blockingEnd;
+    const retainedTimingJitter =
+      retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
+    const waitMs = quantizeMs(observedGapMs);
+    // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
+    // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
+    if (!retainedTimingJitter && waitMs > minimumWaitMs) rotation.push({ name: '__wait', waitMs });
     activeCastEnd = nextActionAt;
   };
 
   for (const entry of entries) {
     const at = entry.type === 'action' ? entry.action.start : entry.at;
-    const overlapping = at < activeCastEnd - timingToleranceMs;
+    const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
+    const overlapping = at < blockingEnd - timingToleranceMs;
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
         rotation.push({ name: '__combat_start', offset: quantizeMs(at - previousCastStart) });
@@ -128,7 +136,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const concurrent =
       action.name !== 'Swap Weapons' &&
       (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
-    const boundaryTransition = policy.isBoundaryTransition?.(action, activeCastEnd, previousCastStart) === true;
+    const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = quantizeMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
@@ -147,6 +155,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     } else {
       previousCastStart = at;
       activeCastEnd = Math.max(activeCastEnd, instant ? at : actionReplayEnd);
+      if (action.skill?.retainsCastLockoutAfterInterrupt === true) {
+        retainedCastEnd = Math.max(retainedCastEnd, actionReplayEnd);
+      }
     }
   }
 

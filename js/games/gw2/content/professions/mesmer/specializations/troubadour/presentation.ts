@@ -48,24 +48,39 @@ export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
   skillBarGroups: () => mesmerMechanicSkillBarGroups('Instruments', TROUBADOUR_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) => {
     const activeInstruments = (context.professionState as TroubadourUiState | undefined)?.activeInstruments || [];
-    return mesmerResourceViews(context, {
+    const notes = mesmerResourceViews(context, {
       id: 'notes',
       singular: 'note',
       plural: 'notes',
       maximum: 3,
       pipStyle: 'mesmer-notes'
-    }).map((view) => ({
-      ...view,
-      statusItemsLabel: 'Playing',
-      statusItems: activeInstruments.map((instrument) => {
-        const remaining = `${(instrument.remaining / 1000).toFixed(1)}s`;
-        return {
-          id: instrument.name.toLowerCase(),
-          label: instrument.name,
-          valueLabel: remaining,
-          title: `${instrument.name} playing — ${remaining} remaining`
-        };
-      })
-    }));
+    });
+    if (!activeInstruments.length) return notes;
+    // Notes remain attached above the instrument row; these unlabeled playing
+    // chips are anchored immediately below it to keep the F-key row central.
+    return [
+      ...notes,
+      {
+        id: 'playing-instruments',
+        singular: 'instrument',
+        plural: 'instruments',
+        maximum: 1,
+        value: 0,
+        canStart: false,
+        shortLabel: 'Playing',
+        statusLabel: 'Playing',
+        displayMode: 'status',
+        statusItems: activeInstruments.map((instrument) => {
+          const remaining = `${(instrument.remaining / 1000).toFixed(1)}s`;
+          return {
+            id: instrument.name.toLowerCase(),
+            label: instrument.name,
+            valueLabel: remaining,
+            title: `${instrument.name} playing — ${remaining} remaining`
+          };
+        }),
+        showValue: false
+      }
+    ];
   }
 });

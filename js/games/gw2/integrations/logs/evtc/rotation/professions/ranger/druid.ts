@@ -28,7 +28,6 @@ const SEED_OF_LIFE = Object.freeze({ name: 'Seed of Life', skillId: 31406 });
 const VIPERS_NEST = Object.freeze({ name: "Viper's Nest", skillId: 12496 });
 const DODGE = Object.freeze({ name: 'Dodge', skillId: -5 });
 const LIGHT_ON_YOUR_FEET = 30673;
-const JACARANDAS_EMBRACE = 44980;
 
 const TRANSITION_WINDOW_MS = 150;
 const SEED_CHANNEL_OFFSET_MS = 600;
@@ -212,24 +211,6 @@ function seedOfLifeActions(actions: readonly EvtcRecordedRotationAction[]): Evtc
   });
 }
 
-function removeAutonomousPetRecasts(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  return actions.filter((action) => {
-    if (action.rawSkillId !== JACARANDAS_EMBRACE) return true;
-    const source = context.log.events[Math.floor(action.eventIndex)]?.source;
-    if (source == null) return true;
-    return context.log.events.some(
-      (event) =>
-        event.source === source &&
-        event.stateChange === 6 &&
-        event.time <= action.start &&
-        action.start - event.time <= 1000
-    );
-  });
-}
-
 function dodgeActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -278,6 +259,5 @@ export function reconstructDruidActions(
   actions = [...actions, ...initialVipersNest(context, actions)];
   actions = alignInitialAvatar(actions);
   actions = removeAvatarWeaponSwaps(actions);
-  actions = removeAutonomousPetRecasts(context, actions);
   return [...actions, ...seedOfLifeActions(actions), ...dodgeActions(context, actions)];
 }

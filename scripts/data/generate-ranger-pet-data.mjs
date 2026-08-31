@@ -123,6 +123,8 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
   ]
 ]);
 const SIMULATED_SKILL_OVERRIDES = new Map([
+  // Preserve combat-log recharge corrections when upstream pet metadata differs.
+  [40487, { recharge: 15 }],
   [
     12676,
     {

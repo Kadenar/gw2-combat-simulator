@@ -63,7 +63,9 @@ function isBeastSkill(skill: RangerSkill): boolean {
 // transient Quick Draw state only on the next qualifying weapon skill.
 export function completeRangerTraits(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
-  if (skill.evades) applyRangerDodgeTraits(context);
+  // Evade skills activate the trait during their evade window, allowing their
+  // own packets to receive Light on Your Feet; dodge rolls still apply it on completion.
+  if (skill.evades) applyRangerDodgeTraits(context, context.start);
   if (
     skill.type === 'Weapon' &&
     skill.slot !== 'Weapon_1' &&
@@ -374,11 +376,13 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
     );
   }
 
-  if (
-    skill?.id === ID.CONCUSSION_SHOT &&
-    hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
-    context.config?.target?.defiant
-  ) {
+  if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config?.target?.defiant) {
+    const bleeding = skill.effects?.find((effect) => effect.type === 'condition' && effect.condition === 'Bleeding');
+    // Defiant Crossfire gains a second stack with the same extended base duration.
+    queueBleeding(context, event, Number(bleeding?.duration ?? 3) + 2, TRAIT.LIGHT_ON_YOUR_FEET, 'Light on your Feet');
+  }
+
+  if (skill?.id === ID.CONCUSSION_SHOT && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
     const vulnerability = balanceProfileEffect(
       balanceProfileFromContext(context, PROFILE.lightOnYourFeet),
       'condition'
@@ -393,7 +397,8 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
       skillName: 'Light on your Feet',
       name: 'Light on your Feet — Vulnerability',
       condition: String(vulnerability?.condition || 'Vulnerability'),
-      duration: Number(vulnerability?.duration ?? 1),
+      // The vulnerability upgrade is unconditional once the trait is selected.
+      duration: Number(vulnerability?.duration ?? 10),
       stacks: Number(vulnerability?.stacks ?? 10),
       triggeredBy: event.skillName
     });

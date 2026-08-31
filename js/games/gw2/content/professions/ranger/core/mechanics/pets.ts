@@ -24,6 +24,7 @@ import type {
   RangerSkill
 } from '#gw2/content/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
+import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
 
 const PET_AUTO_TASK = 'ranger.pet-autonomous-skill';
 const PET_COMMAND_START_TASK = 'ranger.pet-command-start';
@@ -52,9 +53,9 @@ export const RANGER_PET_STRIKE_SCALING = Object.freeze({
   damagePerCoefficient: (2880 * 1524) / 2597
 });
 
-// Resolve the active pet's level-80 base attributes plus inherited Ranger traits
-// and passive Signet of the Wild state for independent summon scaling.
-function rangerPetAttributes(context?: RangerSchedulerContext) {
+// Resolve each active pet's level-80 base attributes plus inherited Ranger
+// traits so independent summon packets do not fall back to player attributes.
+function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverContext) {
   const petName = context ? professionCoreState(context).activePet : 'Carrion Devourer';
   let power = 1524;
   let precision = petName === 'Tiger' ? 2211 : petName === 'Pig' ? 1180 : 1524;
@@ -63,10 +64,19 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
   let ferocity = 0;
   let conditionDamage = petName === 'Pig' ? 700 : 1000;
   let expertise = 0;
-  const healingPower = petName === 'Pig' ? 600 : 0;
+  let healingPower = petName === 'Pig' ? 600 : 0;
+
+  if (petName === 'Carrion Devourer') {
+    toughness = 2898;
+    vitality = 2211;
+  }
+
   if (petName === 'Jacaranda') {
     power = 1868;
+    toughness = 2211;
+    vitality = 2211;
     conditionDamage = 400;
+    healingPower = 1200;
   }
 
   if (context) {
@@ -91,9 +101,18 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
       ferocity += balanceProfileValueFromContext(context, PROFILE.petsProwess, 'attributeBonus', 300);
     }
 
+    if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
+      expertise += balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'attributeBonus', 150);
+      if (['spider', 'devourer'].includes(rangerPetByName(petName).family)) {
+        expertise += balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'weaponAttributeBonus', 225);
+      }
+    }
+
+    const scheduler = 'state' in context ? (context as RangerSchedulerContext) : null;
     if (
-      petHasSelectedSkill(context, 'Signet of the Wild') &&
-      Number(context.state.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= context.state.time
+      scheduler &&
+      petHasSelectedSkill(scheduler, 'Signet of the Wild') &&
+      Number(scheduler.state.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= scheduler.state.time
     ) {
       ferocity += balanceProfileValueFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
     }
@@ -111,7 +130,9 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
   };
 }
 
-export function rangerPetCombatMetadata(context?: RangerSchedulerContext): Readonly<SchedulerRecord> {
+export function rangerPetCombatMetadata(
+  context?: RangerSchedulerContext | RangerResolverContext
+): Readonly<SchedulerRecord> {
   const attributes = rangerPetAttributes(context);
   return {
     weaponStrength: undefined,
@@ -131,6 +152,18 @@ export function rangerPetCombatMetadata(context?: RangerSchedulerContext): Reado
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
     summonDamagePerCoefficient: (2880 * attributes.power) / 2597
   };
+}
+
+/** Stamps pet-owned packets before shared scheduler consumers such as combo finishers derive child events. */
+export function prepareRangerPetEvent(
+  context: RangerSchedulerContext,
+  event: SimulationEventInput
+): SimulationEventInput {
+  return event.source === 'ranger-pet' &&
+    event.actorType === 'summon' &&
+    (event.type === 'damage' || event.type === 'condition')
+    ? { ...event, ...rangerPetCombatMetadata(context) }
+    : event;
 }
 
 interface PetAutoSkill {
@@ -169,7 +202,8 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freez
     openingDelay: 0.44,
     openingRecoveryDelay: 0.8,
     basic: { id: ID.TWIN_DARTS, recovery: 1.88 },
-    specials: [{ id: ID.PET_TAIL_LASH, recovery: 2.4, cooldown: 22.4 }],
+    // Tail Lash recovery is serialized separately from its twenty-second recharge.
+    specials: [{ id: ID.PET_TAIL_LASH, recovery: 2.4, cooldown: 20 }],
     commandRecovery: { [ID.POISONOUS_CLOUD]: 2.08 }
   },
   'Fanged Iboga': {
@@ -197,7 +231,8 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freez
     openingDelay: 0.44,
     basic: { id: ID.JACARANDA_ROOT_SLAP, recovery: 1.6 },
     specials: [
-      { id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 10 },
+      // Match the observed pet recharge used by the catalog skill.
+      { id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 15 },
       { id: ID.PHOTOSYNTHESIZE, recovery: 1.48, cooldown: 20 }
     ],
     commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 }
@@ -410,14 +445,6 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
 
   if (commandDelay > 0 && event.type !== 'action') {
     updates.at = Number(event.at) + commandDelay;
-  }
-
-  if (
-    event.source === 'ranger-pet' &&
-    event.actorType === 'summon' &&
-    (event.type === 'damage' || event.type === 'condition')
-  ) {
-    Object.assign(updates, rangerPetCombatMetadata(context));
   }
 
   if (event.source === 'ranger-pet' && !event.icon) {

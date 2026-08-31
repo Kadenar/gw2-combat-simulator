@@ -73,6 +73,10 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
       .stacks,
     6
   );
+  assert.equal(
+    doubleArc.effects.some(({ type, condition }) => type === 'condition' && condition === 'Poisoned'),
+    false
+  );
 
   const throwTorch = rangerCatalog.skillsById.get(ID.THROW_TORCH);
 
@@ -110,6 +114,18 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
     ]
   );
 
+  const convergenceStrikes = simulate(['Celestial Avatar', 'Natural Convergence']).resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.NATURAL_CONVERGENCE && event.coefficient > 0
+  );
+
+  assert.equal(convergenceStrikes.length, 4);
+  assert.ok(
+    convergenceStrikes.every(
+      ({ weaponStrengthProfileId, resolvedWeaponStrength }) =>
+        weaponStrengthProfileId === 'transform.celestial-avatar' && resolvedWeaponStrength === 617
+    )
+  );
+
   const entangle = rangerCatalog.skillsById.get(ID.ENTANGLE);
 
   assert.deepEqual(
@@ -130,15 +146,53 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   const sunSpirit = rangerCatalog.skillsById.get(ID.SUN_SPIRIT);
 
   assert.equal(sunSpirit.recharge, 20);
+  assert.equal(sunSpirit.quicknessCastTimeMs, 360);
+  assert.deepEqual(
+    [
+      ID.ENTANGLE,
+      ID.BONFIRE,
+      ID.THROW_TORCH,
+      ID.VIPERS_NEST,
+      ID.LUNAR_IMPACT,
+      ID.REJUVENATING_TIDES,
+      ID.POISONOUS_CLOUD,
+      ID.JACARANDAS_EMBRACE,
+      ID.SPLITBLADE
+    ].map((id) => rangerCatalog.skillsById.get(id).quicknessCastTimeMs),
+    [680, 560, 440, 600, 920, 480, 1800, 1480, 560]
+  );
   assert.deepEqual(
     sunSpirit.effects.map(({ type, duration, stacks }) => [type, duration, stacks]),
     [
-      ['boon', 15, 8],
+      ['boon', 15, 2],
       ['blind', 5, undefined]
     ]
   );
+  assert.equal(sunSpirit.effects[0].applications, 4);
+  assert.equal(sunSpirit.effects[0].atMs, 2840);
+  assert.equal(sunSpirit.effects[0].intervalMs, 1000);
   assert.equal(sunSpirit.effects[0].recipients, 'party');
   assert.equal(sunSpirit.effects[0].maximumRecipients, 5);
+
+  const rejuvenatingTides = rangerCatalog.skillsById.get(ID.REJUVENATING_TIDES).effects[0];
+
+  assert.deepEqual(
+    [
+      rejuvenatingTides.stacks,
+      rejuvenatingTides.applications,
+      rejuvenatingTides.atMs,
+      rejuvenatingTides.intervalMs,
+      rejuvenatingTides.recipients,
+      rejuvenatingTides.maximumRecipients
+    ],
+    [1, 5, 960, 600, 'party', 5]
+  );
+  assert.ok(
+    rangerCatalog.skillsById
+      .get(ID.NATURAL_CONVERGENCE)
+      .effects.filter(({ type, boon }) => type === 'boon' && boon === 'might')
+      .every(({ recipients, maximumRecipients }) => recipients === 'party' && maximumRecipients === 5)
+  );
 });
 
 test('Ranger evade skills and dodges trigger Light on Your Feet', () => {
@@ -202,6 +256,95 @@ test('Light on Your Feet and Natural Balance add condition duration', () => {
   );
 });
 
+test('Light on Your Feet applies its six-second buff and shortbow upgrades', () => {
+  const buffed = simulate(['Dodge', 'Crossfire'], {
+    primaryWeapon: 'Shortbow',
+    offHandWeapon: '',
+    stats: { expertise: 0 },
+    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
+  });
+  const buff = buffed.events.find((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
+  const crossfireBleeding = buffed.resolvedEvents.filter(
+    (event) =>
+      event.type === 'condition' &&
+      event.condition === 'Bleeding' &&
+      (event.sourceId === ID.CROSSFIRE || event.sourceId === TRAIT.LIGHT_ON_YOUR_FEET)
+  );
+
+  assert.equal(buff.duration, 6);
+  assert.equal(
+    crossfireBleeding.reduce((total, event) => total + event.stacks, 0),
+    2
+  );
+  assert.ok(crossfireBleeding.every((event) => event.effectiveDuration === 5.5));
+
+  const evade = simulate(["Stalker's Strike"], {
+    stats: { expertise: 0 },
+    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
+  });
+  const evadePoison = evade.resolvedEvents.filter(
+    (event) => event.sourceId === ID.STALKERS_STRIKE && event.condition === 'Poisoned'
+  );
+
+  assert.ok(evadePoison.every((event) => event.effectiveDuration === 8.8));
+
+  const stacked = simulate(['Dodge', 'Dodge'], {
+    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
+  }).events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
+
+  assert.deepEqual(
+    stacked.map(({ duration }) => duration),
+    [6, 11.2]
+  );
+
+  const shortbow = simulate(['Poison Volley', 'Poison Volley'], {
+    primaryWeapon: 'Shortbow',
+    offHandWeapon: '',
+    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
+  });
+
+  assert.equal(shortbow.steps[1].start - shortbow.steps[0].end, 6400);
+
+  const upgrades = simulate(['Poison Volley', 'Crippling Shot', 'Concussion Shot'], {
+    primaryWeapon: 'Shortbow',
+    offHandWeapon: '',
+    stats: { expertise: 0 },
+    target: { defiant: false, conditions: {} },
+    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
+  });
+  const poison = upgrades.resolvedEvents.find(
+    (event) => event.sourceId === ID.POISON_VOLLEY && event.condition === 'Poisoned'
+  );
+  const immobilized = upgrades.resolvedEvents.find(
+    (event) => event.sourceId === ID.CRIPPLING_SHOT && event.condition === 'Immobilized'
+  );
+  const vulnerability = upgrades.resolvedEvents.find(
+    (event) => event.sourceId === TRAIT.LIGHT_ON_YOUR_FEET && event.condition === 'Vulnerability'
+  );
+
+  assert.equal(poison.duration, 5);
+  assert.equal(immobilized.duration, 1.5);
+  assert.deepEqual([vulnerability.stacks, vulnerability.duration], [10, 10]);
+
+  const defiant = simulate(['Poison Volley', 'Crippling Shot'], {
+    primaryWeapon: 'Shortbow',
+    offHandWeapon: '',
+    stats: { expertise: 0 },
+    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
+  });
+
+  assert.equal(
+    defiant.resolvedEvents.find((event) => event.sourceId === ID.POISON_VOLLEY && event.condition === 'Poisoned')
+      .effectiveDuration,
+    7
+  );
+  assert.equal(
+    defiant.resolvedEvents.find((event) => event.sourceId === ID.CRIPPLING_SHOT && event.condition === 'Immobilized')
+      .effectiveDuration,
+    2.5
+  );
+});
+
 test('Jacaranda AI and Beast command expose the requested pulses', () => {
   const jacaranda = RANGER_PETS.find(({ name }) => name === 'Jacaranda');
 
@@ -214,7 +357,7 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
 
   const callLightning = rangerCatalog.skillsById.get(ID.JACARANDA_CALL_LIGHTNING);
 
-  assert.equal(callLightning.recharge, 10);
+  assert.equal(callLightning.recharge, 15);
   assert.equal(callLightning.effects[0].ticks.length, 5);
   assert.equal(
     callLightning.effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
@@ -231,6 +374,86 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
       .map(({ duration }) => duration),
     [1, 2, 2, 2, 2]
   );
+
+  const result = simulate(['__combat_start', { type: 'wait', durationMs: 3000 }], {
+    selectedPet: 'Jacaranda',
+    selectedTraitIds: []
+  });
+  const packet = result.resolvedEvents.find(({ type, actorType }) => type === 'damage' && actorType === 'summon');
+
+  assert.deepEqual(
+    [
+      packet.summonBasePower,
+      packet.summonBasePrecision,
+      packet.summonBaseToughness,
+      packet.summonBaseVitality,
+      packet.summonBaseConditionDamage,
+      packet.summonBaseFerocity,
+      packet.summonBaseHealingPower
+    ],
+    [1868, 1524, 2211, 2211, 400, 0, 1200]
+  );
+});
+
+test('Carrion Devourer packets use its level-80 attributes', () => {
+  const result = simulate(['__combat_start', { type: 'wait', durationMs: 2000 }], {
+    selectedPet: 'Carrion Devourer',
+    selectedTraitIds: []
+  });
+  const packet = result.resolvedEvents.find(({ type, actorType }) => type === 'damage' && actorType === 'summon');
+
+  assert.deepEqual(
+    [
+      packet.summonBasePower,
+      packet.summonBasePrecision,
+      packet.summonBaseToughness,
+      packet.summonBaseVitality,
+      packet.summonBaseConditionDamage,
+      packet.summonBaseFerocity,
+      packet.summonBaseHealingPower
+    ],
+    [1524, 1524, 2898, 2211, 1000, 0, 0]
+  );
+});
+
+test('Poisonous Cloud uses six player packets across its fixed field window', () => {
+  const result = simulate(['Poisonous Cloud', { type: 'wait', durationMs: 10000 }], {
+    selectedPet: 'Carrion Devourer',
+    selectedTraitIds: [],
+    stats: { conditionDamage: 0, expertise: 0 }
+  });
+  const packets = result.resolvedEvents.filter(({ skillId }) => skillId === ID.POISONOUS_CLOUD);
+  const strikes = packets.filter(({ type }) => type === 'damage');
+  const poison = packets.filter(({ type }) => type === 'condition');
+  const skill = rangerCatalog.skillsById.get(ID.POISONOUS_CLOUD);
+
+  assert.equal(skill.recharge, 30);
+  assert.equal(strikes.length, 6);
+  assert.ok(strikes.every(({ coefficient }) => coefficient === 0.2));
+  assert.ok(strikes.every(({ actorType }) => actorType === 'player'));
+  assert.equal(poison.length, 6);
+  assert.ok(poison.every(({ actorType, source }) => actorType === 'player' && source === 'ranger'));
+  assert.ok(
+    poison.every(({ stacks, duration, effectiveDuration }) => stacks === 1 && duration === 6 && effectiveDuration === 6)
+  );
+  assert.deepEqual(skill.comboFields[0], {
+    ownerId: 'ranger',
+    fieldType: 'Poison',
+    duration: 5,
+    startMs: 1000,
+    startAnchor: 'castStart'
+  });
+
+  const twinDarts = rangerCatalog.skillsById.get(ID.TWIN_DARTS);
+  const tailLash = rangerCatalog.skillsById.get(ID.PET_TAIL_LASH);
+
+  assert.equal(
+    twinDarts.effects[0].ticks.reduce((total, { coefficient }) => total + coefficient, 0),
+    0.3
+  );
+  assert.equal(twinDarts.effects[0].comboFinishers[0].chance, 0.2);
+  assert.equal(tailLash.recharge, 20);
+  assert.equal(tailLash.effects[0].ticks[0].coefficient, 0.5);
 });
 
 test('pet commands do not reserve the player cast lane', () => {
@@ -254,8 +477,18 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
 
   assert.equal(poisonMasterProc.stacks, 2);
   assert.equal(poisonMasterProc.duration, 8);
+  assert.equal(poisonMasterProc.effectiveDuration, 14.4);
   assert.equal(poisonMasterProc.actorType, 'effect');
   assert.equal(Object.hasOwn(poisonMasterProc, 'summonBaseConditionDamage'), false);
+
+  const zeroPlayerConditionDamage = simulate(["Jacaranda's Embrace", { type: 'wait', durationMs: 4000 }], {
+    stats: { conditionDamage: 0, expertise: 0 },
+    selectedTraitIds: [TRAIT.POISON_MASTER]
+  }).resolvedEvents.find((event) => event.type === 'condition' && event.sourceId === TRAIT.POISON_MASTER);
+
+  // The pet triggers Poison Master, but the trait packet scales from the Ranger's Condition Damage and Expertise.
+  assert.ok(poisonMasterProc.damage > zeroPlayerConditionDamage.damage);
+  assert.equal(zeroPlayerConditionDamage.effectiveDuration, 8);
 
   const poisonousStrikes = simulate([{ name: '__combat_start' }, 'Double Arc', { type: 'wait', durationMs: 8000 }]);
   const poisonousStrikeProcs = poisonousStrikes.resolvedEvents.filter(
@@ -263,10 +496,31 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   );
 
   assert.equal(poisonousStrikeProcs.length, 2);
-  assert.equal(poisonousStrikes.events.find((event) => event.type === 'ranger.poisonous-strikes').duration, 10);
+  assert.equal(poisonousStrikes.events.find((event) => event.type === 'ranger.poisonous-strikes').duration, 7);
+  assert.equal(
+    poisonousStrikes.resolvedEvents.some(
+      (event) =>
+        event.sourceId === ID.DOUBLE_ARC && event.condition === 'Poisoned' && event.skillName !== 'Poisonous Strikes'
+    ),
+    false
+  );
   assert.equal(
     poisonousStrikeProcs.every((event) => event.actorType === 'summon' && event.summonBaseConditionDamage != null),
     true
+  );
+  assert.ok(poisonousStrikeProcs.every((event) => event.duration === 6 && event.effectiveDuration === 6));
+
+  const poisonousStrikesWithPoisonMaster = simulate(
+    [{ name: '__combat_start' }, 'Double Arc', { type: 'wait', durationMs: 8000 }],
+    {
+      selectedTraitIds: [TRAIT.POISON_MASTER]
+    }
+  ).resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.sourceId === ID.DOUBLE_ARC && event.skillName === 'Poisonous Strikes'
+  );
+
+  assert.ok(
+    poisonousStrikesWithPoisonMaster.every((event, index) => event.damage === poisonousStrikeProcs[index].damage)
   );
 });
 
@@ -311,6 +565,20 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       3,
     true
   );
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'condition' &&
+          event.sourceId === TRAIT.BLOOD_MOON &&
+          (event.triggeredBy === 'Lunar Impact' || event.triggeredBy === 'Eclipse')
+      )
+      .map(({ triggeredBy, stacks, duration }) => [triggeredBy, stacks, duration]),
+    [
+      ['Lunar Impact', 2, 4],
+      ['Eclipse', 2, 4]
+    ]
+  );
   assert.equal(result.endState.profession.celestialAvatarActive, false);
   assert.equal(result.endState.profession.astralForce > 0, true);
 
@@ -351,10 +619,29 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       .map(({ at }) => Math.round(at * 1000)),
     [1560, 3080, 4600, 6120, 7640]
   );
+
+  const embrace = simulate(
+    ["Jacaranda's Embrace", { type: 'wait', durationMs: 2000 }, 'Swap Pets', { type: 'wait', durationMs: 6000 }],
+    { selectedTraitIds: [TRAIT.BLOOD_MOON] }
+  );
+  const embraceBloodMoon = embrace.resolvedEvents.filter(
+    (event) =>
+      event.type === 'condition' && event.sourceId === TRAIT.BLOOD_MOON && event.triggeredBy === "Jacaranda's Embrace"
+  );
+
+  assert.equal(embraceBloodMoon.length, 5);
+  assert.ok(
+    embraceBloodMoon.every(
+      ({ actorType, ownerActorType, stacks, duration }) =>
+        actorType === 'effect' && ownerActorType === 'player' && stacks === 2 && duration === 4
+    )
+  );
 });
 
 test("Sun Spirit emits Solar Flare's burning packet", () => {
-  const result = simulate(['Sun Spirit']);
+  const result = simulate(['Sun Spirit', { type: 'wait', durationMs: 6000 }], {
+    sharePlayerBoonsWithSummons: true
+  });
   const solarFlare = result.resolvedEvents.find(
     (event) => event.type === 'condition' && event.sourceId === ID.SOLAR_FLARE
   );
@@ -362,6 +649,38 @@ test("Sun Spirit emits Solar Flare's burning packet", () => {
   assert.equal(solarFlare.stacks, 3);
   assert.equal(solarFlare.duration, 6);
   assert.equal(solarFlare.triggeredBy, 'Sun Spirit');
+  const might = result.events.filter(({ type, kind }) => type === 'buff' && kind === 'might');
+
+  assert.deepEqual(
+    might.map(({ at, stacks }) => [at, stacks]),
+    [
+      [2.84, 2],
+      [3.84, 2],
+      [4.84, 2],
+      [5.84, 2]
+    ]
+  );
+  assert.ok(might.every(({ affectsSummons }) => affectsSummons));
+});
+
+test('Celestial Avatar Might pulses reach the active pet', () => {
+  const result = simulate(
+    [
+      'Celestial Avatar',
+      'Natural Convergence',
+      'Rejuvenating Tides',
+      { type: 'wait', durationMs: 4000 },
+      'Release Celestial Avatar'
+    ],
+    { selectedTraitIds: [], sharePlayerBoonsWithSummons: true }
+  );
+  const might = result.events.filter(
+    ({ type, kind, skillId }) =>
+      type === 'buff' && kind === 'might' && [ID.NATURAL_CONVERGENCE, ID.REJUVENATING_TIDES].includes(skillId)
+  );
+
+  assert.equal(might.length, 9);
+  assert.ok(might.every(({ stacks, affectsSummons }) => stacks === 1 && affectsSummons));
 });
 
 test('legacy healing-rate assumptions no longer generate Astral Force', () => {
@@ -417,7 +736,7 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     selectedTraitIds: [TRAIT.ECLIPSE]
   });
 
-  assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 500);
+  assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 900);
 });
 
 test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () => {

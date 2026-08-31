@@ -109,11 +109,15 @@ export function triggerArachnophobia(context: RangerResolverContext, event: Rang
   }
 
   const torment = profileEffect(context, PROFILE.arachnophobia, 'condition');
+  // Twin Darts splits the trait's per-attack Torment across its two projectiles;
+  // single-hit spider Spit keeps the full duration.
+  const duration =
+    Number(torment?.duration ?? 3) / (event.skillId === ID.TWIN_DARTS ? Number(event.totalHits || 2) : 1);
   queueCondition(
     context,
     event,
     String(torment?.condition || 'Torment'),
-    Number(torment?.duration ?? 3),
+    duration,
     Number(torment?.stacks ?? 1),
     TRAIT.ARACHNOPHOBIA,
     'Arachnophobia'

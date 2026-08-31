@@ -8,6 +8,7 @@ import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-p
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { emitGuardianEvent } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
 import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
@@ -59,14 +60,17 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       state.swiftScholarCount = 0;
     }
 
-    // If the passive was on cooldown when the tome opened, don't reset the
-    // timer; the existing tomeDormantReadyAt carries the correct future time.
+    // A ready passive starts its dormancy clock; Power of the Virtuous shortens
+    // that clock, while reopening a dormant Tome preserves it.
+    const dormantCooldown = Number(
+      balanceProfileFromContext(context, DORMANT_PROFILE_BY_VIRTUE[virtue])?.cooldown ||
+        (virtue === 'justice' ? 20 : virtue === 'resolve' ? 30 : 45)
+    );
+    const dormantRechargeMultiplier = hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
+      ? Number(balanceProfileFromContext(context, CORE_PROFILE.powerOfTheVirtuous)?.rechargeMultiplier || 0.85)
+      : 1;
     const passiveReadyAt = passiveWasReady
-      ? at +
-        Number(
-          balanceProfileFromContext(context, DORMANT_PROFILE_BY_VIRTUE[virtue])?.cooldown ||
-            (virtue === 'justice' ? 20 : virtue === 'resolve' ? 30 : 45)
-        )
+      ? at + dormantCooldown * dormantRechargeMultiplier
       : state.tomeDormantReadyAt[virtue];
     state.tomeDormantReadyAt[virtue] = passiveReadyAt;
     // virtueReadyAt on coreState is the canonical source the virtue subsystem

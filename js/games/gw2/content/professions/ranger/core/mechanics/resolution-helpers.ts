@@ -1,6 +1,6 @@
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
-import { rangerPetCompanionId } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
 import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '#gw2/content/professions/ranger/types.js';
 
 export function eventSkill(context: RangerResolverContext, event: RangerResolverEvent): RangerSkill | undefined {
@@ -18,17 +18,10 @@ export function petDerivedConditionMetadata(
   event: RangerResolverEvent
 ): Record<string, unknown> {
   if (!isPetStrike(event)) return {};
+  // Derived pet conditions always use the active pet's independent attributes,
+  // even when ArcDPS attributes the triggering command strike to the player.
   return {
-    source: 'ranger-pet',
-    actorType: 'summon',
-    independentSummonStrike: event.independentSummonStrike,
-    summonUsesProfessionModifiers: event.summonUsesProfessionModifiers,
-    summonInheritsAttributes: event.summonInheritsAttributes,
-    summonBasePower: event.summonBasePower,
-    summonBasePrecision: event.summonBasePrecision,
-    summonBaseFerocity: event.summonBaseFerocity,
-    summonBaseConditionDamage: event.summonBaseConditionDamage,
-    summonBaseExpertise: event.summonBaseExpertise,
+    ...rangerPetCombatMetadata(context),
     summonOwner: event.summonOwner ?? rangerPetCompanionId(context)
   };
 }

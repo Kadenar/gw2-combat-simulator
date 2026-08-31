@@ -2,6 +2,7 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill
 import type { AvailabilityResult, SimulationEvent } from '#gw2/platform/engine/types.js';
 import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileEffectFromContext,
@@ -142,7 +143,8 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
 }
 
 function naturalBalanceActive(context: Gw2ModifierContext): boolean {
-  if (!hasTrait(context, TRAIT.NATURAL_BALANCE)) return false;
+  // Natural Balance modifies the Druid, not independently scaled pet conditions.
+  if (!isGw2PlayerModifierOwnedEvent(context.event) || !hasTrait(context, TRAIT.NATURAL_BALANCE)) return false;
   // Scheduler path uses a timeline; resolver path reads from the runtime boon list
   if (context.timeline?.timedActive('natural-balance', context.time)) return true;
   return (context.runtime?.boons?.get('natural-balance') || []).some(

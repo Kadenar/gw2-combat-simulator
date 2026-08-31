@@ -1,8 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { COMBO_DEFINITIONS, comboDefinition, validateComboDefinitions } from '#gw2/platform/combos/definitions.js';
-import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/events.js';
+import {
+  COMBO_DEFINITIONS,
+  comboDefinition,
+  materializeComboOutcome,
+  validateComboDefinitions
+} from '#gw2/platform/combos/definitions.js';
+import {
+  COMBO_FIELD_TYPES,
+  COMBO_FINISHER_TYPES,
+  createGw2ComboRuntimeState,
+  registerComboField,
+  resolveComboAttempt
+} from '#gw2/platform/combos/events.js';
 import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
@@ -49,6 +60,74 @@ test('combo events normalize casing and clamp chance at the GW2 boundary', () =>
     fieldType: 'Fire'
   });
   assert.equal(prepared.chance, 1);
+});
+
+test('combo outcomes retain summon condition scaling from the finisher', () => {
+  const state = createGw2ComboRuntimeState();
+  registerComboField(state, {
+    type: 'combo_field',
+    at: 0,
+    source: 'Ranger',
+    sourceId: 'fixture.poison-field',
+    actorType: 'player',
+    fieldId: 'field:poison',
+    fieldType: 'Poison',
+    expiresAt: 5,
+    ownerId: 'ranger',
+    ownerActorType: 'player'
+  });
+  const [combo] = resolveComboAttempt(
+    state,
+    {
+      type: 'combo_finisher',
+      at: 1,
+      effectAt: 1,
+      source: 'ranger-pet',
+      sourceId: 'fixture.pet-projectile',
+      actorType: 'summon',
+      attemptId: 'attempt:summon',
+      finisherType: 'Projectile',
+      fieldBinding: { kind: 'field-id', fieldId: 'field:poison' },
+      chance: 1,
+      applications: 1,
+      successfulCombos: 1,
+      independentSummonStrike: true,
+      summonBasePower: 1524,
+      summonBaseConditionDamage: 1000,
+      summonBaseExpertise: 375,
+      summonUsesProfessionModifiers: true
+    },
+    { stochastic: false, roll: () => true, warn: () => {} }
+  );
+  const [poison] = materializeComboOutcome(combo);
+
+  assert.deepEqual(
+    [poison.actorType, poison.independentSummonStrike, poison.summonBaseConditionDamage, poison.summonBaseExpertise],
+    ['summon', true, 1000, 375]
+  );
+});
+
+test('area combo boons use party targeting and can reach a summon', () => {
+  const [areaMight] = materializeComboOutcome({
+    type: 'combo',
+    at: 1,
+    source: 'Fixture Blast',
+    sourceId: 'fixture.blast',
+    actorType: 'player',
+    fieldType: 'Fire',
+    finisherType: 'Blast',
+    applicationCount: 1
+  });
+  const prepared = createGw2EventPreparer().prepare(
+    { ...context, config: { allies: { count: 0 }, sharePlayerBoonsWithSummons: true } },
+    areaMight
+  );
+
+  assert.equal(areaMight.recipients, 'party');
+  assert.equal(areaMight.maximumRecipients, 5);
+  assert.equal(prepared.affectsSelf, true);
+  assert.equal(prepared.affectsSummons, true);
+  assert.equal(prepared.recipientCount, 2);
 });
 
 test('missing bindings and invalid field lifetimes fail event validation', () => {

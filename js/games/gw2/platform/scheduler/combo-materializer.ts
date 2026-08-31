@@ -7,7 +7,7 @@ import {
   resolveComboAttempt,
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
-import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
+import { comboCombatMetadata, materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 import {
   gw2BoonDurationMultiplier,
   gw2SigilSet,
@@ -268,6 +268,7 @@ function produceFinisher(
   for (let attempt = 1; attempt <= descriptor.attempts; attempt += 1) {
     const packet = descriptor.finisherType === 'Projectile';
     context.emitDerived(event, {
+      ...comboCombatMetadata(event),
       type: 'combo_finisher',
       at: resolvedAt,
       effectAt: Math.max(resolvedAt, Number(descriptor.effectAt ?? at + Number(descriptor.effectDelay || 0))),
