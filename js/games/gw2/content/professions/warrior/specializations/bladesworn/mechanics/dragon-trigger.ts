@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
@@ -41,8 +42,6 @@ export interface DragonChargeTick {
   readonly granted: boolean;
 }
 
-const PROJECTION_EPSILON = 1e-9;
-
 export function projectDragonFlow(
   flow: number,
   maximumFlow: number,
@@ -66,9 +65,9 @@ export function projectDragonCharges(input: DragonChargeProjectionInput): readon
   let flow = Math.min(input.maximumFlow, Math.max(0, input.flow));
   let charges = Math.min(input.maximumCharges, Math.max(0, input.initialCharges ?? 0));
 
-  while (at <= input.deadline + PROJECTION_EPSILON && charges < input.maximumCharges) {
+  while (at <= input.deadline + EPSILON && charges < input.maximumCharges) {
     flow = projectDragonFlow(flow, input.maximumFlow, previousAt, at, input.flowRateSegments);
-    const granted = flow + PROJECTION_EPSILON >= input.flowPerInterval;
+    const granted = flow + EPSILON >= input.flowPerInterval;
     if (granted) {
       flow = Math.max(0, flow - input.flowPerInterval);
       charges = Math.min(input.maximumCharges, charges + input.chargesPerInterval);

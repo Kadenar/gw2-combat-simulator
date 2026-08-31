@@ -1,6 +1,6 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
@@ -19,7 +19,7 @@ import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/conten
 function scheduleMassMomentumPulse(context: EngineerResolverContext, at: number): void {
   const state = procState(context);
   const scheduledAt = Number(state.massMomentumPulseAt || 0);
-  if (scheduledAt > 0 && scheduledAt <= at + 1e-9) return;
+  if (scheduledAt > 0 && scheduledAt <= at + EPSILON) return;
   state.massMomentumPulseAt = at;
   enqueueOrdered(context.queue, {
     type: 'engineer.mass-momentum-pulse',
@@ -59,7 +59,7 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
 // Clears the stale pulse sentinel, then re-checks stability to keep the loop alive.
 function handleMassMomentumPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const state = procState(context);
-  if (Math.abs(Number(state.massMomentumPulseAt || 0) - event.at) <= 1e-9) {
+  if (Math.abs(Number(state.massMomentumPulseAt || 0) - event.at) <= EPSILON) {
     state.massMomentumPulseAt = 0;
   }
 

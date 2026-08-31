@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -44,7 +45,7 @@ function handleWillbenderVirtueActivation(context: GuardianResolverContext, even
   state.flameVirtue = virtue;
   // Resolver state is seeded from scratch, so hit counts from the scheduler phase
   // may be stale if the virtue window already lapsed by the time this event arrives.
-  if (state[`${virtue}Until`] <= event.at + Number(context.epsilon ?? 1e-9)) {
+  if (state[`${virtue}Until`] <= event.at + (context.epsilon ?? EPSILON)) {
     state.virtueHitCounts[virtue] = 0;
   }
 

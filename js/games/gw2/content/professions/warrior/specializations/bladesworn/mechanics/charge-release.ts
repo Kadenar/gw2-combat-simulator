@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import type { SchedulerRecord, SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
@@ -106,7 +107,7 @@ export function dragonChargeReleaseProjection(context: {
     rows: chargeLevels.map((charges, index) => {
       const tick = projection.find((candidate) => candidate.granted && candidate.charges === charges);
       const earliestAt = firstTickAt + index * DRAGON_CHARGE_INTERVAL_SECONDS;
-      const pastDeadline = earliestAt > deadline + 1e-9;
+      const pastDeadline = earliestAt > deadline + EPSILON;
       return {
         charges,
         at: tick?.at ?? earliestAt,

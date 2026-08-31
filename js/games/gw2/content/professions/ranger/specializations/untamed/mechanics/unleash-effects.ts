@@ -23,11 +23,6 @@ export const untamedEventHandlers = Object.freeze({
   'ranger.untamed-state': handleUntamedState
 });
 
-// Floating-point guard: prevents a cooldown check from failing due to sub-nanosecond rounding.
-function epsilon(context: RangerResolverContext): number {
-  return Number(context.epsilon || 1e-9);
-}
-
 function isPetStrike(event: RangerResolverEvent): boolean {
   return event.source === 'ranger-pet';
 }

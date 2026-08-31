@@ -3,7 +3,7 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
@@ -43,7 +43,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
     const kind = String(effect.boon || effect.kind || '');
     enqueueOrdered(context.queue, {
       type: 'buff',
-      at: event.at + 1e-9,
+      at: event.at + EPSILON,
       priority: -5,
       source: 'Trait',
       sourceId: TRAIT.SIGNET_MASTERY,
