@@ -1,6 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { mesmerNumericResourceState } from '#gw2/content/professions/mesmer/state/resources.js';
+import { triggerCompoundingPower } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type { SchedulerState } from '#gw2/platform/engine/types.js';
 import type {
   MesmerActivePrimaryWeapon,
@@ -50,19 +50,6 @@ export function createResourceController({
   let cloneSequence = 0;
   const gainHandlers: Array<Parameters<MesmerResourceController['addGainHandler']>[0]> = [];
   const numericResourceState = () => mesmerNumericResourceState(state);
-
-  const markCompounding = (at: number, count: number): void => {
-    const duration = Number(balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier || 8);
-    for (let index = 0; index < count; index += 1) {
-      addEvent({
-        type: 'buff',
-        at: at + index * epsilon,
-        kind: 'compounding',
-        stacks: 1,
-        duration
-      });
-    }
-  };
 
   const gainResources = (
     at: number,
@@ -115,9 +102,14 @@ export function createResourceController({
       reason,
       created
     });
-    if (traits.has(TRAIT.COMPOUNDING_POWER) && cause.kind !== 'initial') {
-      markCompounding(at, gained);
-      addTraitProc('Compounding Power', at, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
+    if (cause.kind !== 'initial') {
+      triggerCompoundingPower(
+        { traits, epsilon, addEvent, addTraitProc, balanceProfile },
+        at,
+        gained,
+        reason,
+        `${gained} stack${gained === 1 ? '' : 's'}`
+      );
     }
 
     const resourceTraitId = Number(cause.traitId);
@@ -150,7 +142,6 @@ export function createResourceController({
       gainHandlers.push(handler);
     },
     gainResources,
-    markCompounding,
     queueResources
   };
 }

@@ -22,7 +22,7 @@ import {
   handleSignetIllusionsPassiveTask,
   mesmerCoreSignetSkillMechanicHandlers
 } from '#gw2/content/professions/mesmer/core/skills/signets.js';
-import { handleChaoticInterruptionTask } from '#gw2/content/professions/mesmer/core/traits/chaotic-interruption.js';
+import { handleChaoticInterruptionTask } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import { mesmerCoreAttributeRules } from '#gw2/content/professions/mesmer/core/traits/modifiers.js';
 import { createMesmerCoreResolverState, createMesmerCoreState } from '#gw2/content/professions/mesmer/core/state.js';
 import { projectMesmerEndState, snapshotMesmerState } from '#gw2/content/professions/mesmer/state/index.js';

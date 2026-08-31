@@ -6,8 +6,8 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
  * @returns {Object} Profession action controller
  */
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { mesmerNumericResourceState } from '#gw2/content/professions/mesmer/state/resources.js';
+import { triggerMesmerPostShatterTraits } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type { SchedulerState } from '#gw2/platform/engine/types.js';
 import type {
   MesmerAddCondition,
@@ -55,22 +55,6 @@ export function createProfessionActionController({
   shatterResolvers,
   balanceProfile
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
-  const profileValue = (id: number | string, field: string, fallback: number) => {
-    const value = balanceProfile(id)?.[field];
-    return Number.isFinite(Number(value)) ? Number(value) : fallback;
-  };
-
-  const profileEffect = (id: number | string, type: string, index = 0) =>
-    balanceProfile(id)?.effects?.filter((effect) => effect.type === type)[index];
-  const conditionFromProfile = (id: number | string, fallback: { name: string; duration: number; stacks: number }) => {
-    const effect = profileEffect(id, 'condition');
-    return {
-      name: String(effect?.condition || fallback.name),
-      duration: Number(effect?.duration ?? fallback.duration),
-      stacks: Number(effect?.stacks ?? fallback.stacks)
-    };
-  };
-
   const numericResourceState = () => mesmerNumericResourceState(state);
 
   // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) use a counter.
@@ -155,41 +139,13 @@ export function createProfessionActionController({
   };
 
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
-  const triggerShatterTraits = ({ skill, at, spent, traitHits }: MesmerShatterResolution): void => {
-    const shatter = shatters[skill.id];
-    if (traitHits.length && traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
-      const maim = conditionFromProfile(TRAIT.MAIM_THE_DISILLUSIONED, {
-        name: 'Torment',
-        duration: 6,
-        stacks: 1
-      });
-      for (const hit of traitHits) {
-        if (hit.count <= 0) continue;
-        addCondition(
-          skill.name,
-          hit.at,
-          { ...maim, stacks: maim.stacks * hit.count },
-          'Player',
-          `${skill.name} — Maim the Disillusioned`,
-          { shatter: true, shatterTraitEligible: true }
-        );
-      }
-
-      addTraitProc('Maim the Disillusioned', at, skill.name);
-    }
-
-    // Illusionary Membrane only procs on the F2 shatter (slot 2).
-    if (shatter?.slot === 2 && traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) {
-      const effect = profileEffect(TRAIT.ILLUSIONARY_MEMBRANE, 'buff');
-      addEvent({
-        type: 'buff',
-        at: at + epsilon,
-        kind: 'illusionary-membrane',
-        stacks: Number(effect?.stacks || 1),
-        duration: Number(effect?.duration || 15)
-      });
-      addTraitProc('Illusionary Membrane', at + epsilon, skill.name);
-    }
+  const triggerShatterTraits = (resolution: MesmerShatterResolution): void => {
+    triggerMesmerPostShatterTraits(
+      { traits, addEvent, addTraitProc, addCondition, balanceProfile },
+      shatters[resolution.skill.id],
+      resolution,
+      epsilon
+    );
   };
 
   // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.

@@ -243,7 +243,6 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     allSkills,
     epsilon: EPSILON,
     activePrimaryWeapon,
-    markCompounding: resources.markCompounding,
     queueResources: resources.queueResources,
     addEvent,
     addTraitProc,

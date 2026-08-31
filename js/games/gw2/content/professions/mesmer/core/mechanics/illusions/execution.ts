@@ -14,7 +14,7 @@ import type {
 import { createMesmerRuntime } from '#gw2/content/professions/mesmer/core/mechanics/illusions/controller.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import { restartSignetIllusionsPassive } from '#gw2/content/professions/mesmer/core/skills/signets.js';
-import { triggerChaoticInterruption } from '#gw2/content/professions/mesmer/core/traits/chaotic-interruption.js';
+import { triggerChaoticInterruption, triggerDazzling } from '#gw2/content/professions/mesmer/core/traits/index.js';
 
 /**
  * Initializes the per-simulation Mesmer runtime, weapon set, resource pool,
@@ -91,14 +91,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
   if (event.type === 'control') {
     const skillId = Number(event.skillId);
     const skillName = String(event.skillName || event.name || 'Control effect');
-    if (runtime.traits.has(TRAIT.DAZZLING)) {
-      runtime.addEvent({
-        type: 'weakness_vulnerability',
-        at: event.at,
-        skillId: Number.isFinite(skillId) ? skillId : undefined,
-        skillName
-      });
-    }
+    triggerDazzling(context, event, skillId, skillName);
 
     // Cooldowns can change between scheduling and impact, so delayed control
     // packets must evaluate the recharge against state at their actual hit time.

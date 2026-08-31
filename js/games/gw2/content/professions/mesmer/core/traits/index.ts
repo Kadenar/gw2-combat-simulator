@@ -1,57 +1,74 @@
-/**
- * Resolver-only Mesmer trait mechanics whose trigger does not affect later
- * scheduler-owned state.
- */
-
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+/** Public dispatcher for imperative Core Mesmer trait behavior. */
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type {
+  MesmerSchedulerContext,
+  MesmerSchedulerTask,
+  MesmerShatter,
+  MesmerShatterResolution
+} from '#gw2/content/professions/mesmer/types.js';
 import {
-  mesmerBalanceProfile,
-  mesmerBalanceProfileEffect,
-  mesmerBalanceValue
-} from '#gw2/content/professions/mesmer/core/profiles.js';
-import type { MesmerResolverContext, MesmerResolverEvent } from '#gw2/content/professions/mesmer/types.js';
+  triggerChaoticInterruption,
+  triggerIllusionaryMembrane,
+  type MesmerIllusionaryMembraneContext
+} from '#gw2/content/professions/mesmer/core/traits/chaos.js';
+import {
+  triggerMasterFencer,
+  triggerSharperImages,
+  type MesmerDuelingCriticalContext
+} from '#gw2/content/professions/mesmer/core/traits/dueling.js';
+import {
+  triggerMaimTheDisillusioned,
+  type MesmerMaimContext
+} from '#gw2/content/professions/mesmer/core/traits/illusions.js';
 
-// Attach Ineptitude's Confusion to a qualifying blindness application through
-// the resolver condition hook, preserving causal attribution.
-function applyIneptitudeConfusion(ctx: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
-  if (!ctx.traits.has(TRAIT.INEPTITUDE)) return;
-  const count = Math.max(1, Math.trunc(Number(event.count || 1)));
-  const effect = mesmerBalanceProfileEffect(mesmerBalanceProfile(ctx, TRAIT.INEPTITUDE), 'condition');
-  ctx.recordProc('trait', 'Ineptitude', event.at, event.skillName, count > 1 ? `${detail}, ${count} strikes` : detail);
-  // Resolve Ineptitude immediately so nested condition hooks observe the
-  // confusion application during the originating blind/control reaction.
-  ctx.applyCondition({
-    type: 'condition',
-    at: event.at,
-    name: `${event.skillName} — Ineptitude`,
-    skillName: event.skillName,
-    condition: String(effect?.condition || 'Confusion'),
-    duration: Number(effect?.duration || 5),
-    stacks: Number(effect?.stacks || 2) * count,
-    source: 'Player'
-  });
+export { triggerDazzling } from '#gw2/content/professions/mesmer/core/traits/domination.js';
+export {
+  emitFencersFinesseStacks,
+  recordFencersFinesseProc,
+  triggerBlindingDissipation,
+  triggerIneptitudeFromBlind,
+  triggerIneptitudeFromInterrupt
+} from '#gw2/content/professions/mesmer/core/traits/dueling.js';
+export { triggerMethodOfMadness } from '#gw2/content/professions/mesmer/core/traits/chaos.js';
+export {
+  applyCryOfPain,
+  phantasmalHasteSpeed,
+  triggerCompoundingPower
+} from '#gw2/content/professions/mesmer/core/traits/illusions.js';
+
+type MesmerPostShatterTraitContext = MesmerIllusionaryMembraneContext & MesmerMaimContext;
+
+/** Preserves Master Fencer before Sharper Images for one critical observation. */
+export function triggerMesmerCriticalTraits(
+  context: MesmerDuelingCriticalContext,
+  event: SimulationEvent,
+  chance: number
+): void {
+  triggerMasterFencer(context, event, chance);
+  triggerSharperImages(context, event, chance);
 }
 
-/**
- * Interrupting a foe inflicts blind. Only this half of Ineptitude observes the
- * three-second interval against defiant targets.
- */
-export function triggerIneptitudeFromInterrupt(ctx: MesmerResolverContext, event: MesmerResolverEvent): void {
-  if (!ctx.traits.has(TRAIT.INEPTITUDE)) return;
-  const defiant = Boolean(ctx.config.target?.defiant);
-  if (defiant && !isInternalCooldownReady(event.at, ctx.profession.ineptitudeReadyAt)) return;
-  if (defiant) {
-    ctx.profession.ineptitudeReadyAt = event.at + mesmerBalanceValue(ctx, TRAIT.INEPTITUDE, 'internalCooldown', 3);
-  }
-
-  applyIneptitudeConfusion(ctx, { ...event, count: defiant ? 1 : event.count }, 'interrupt → blind → confusion');
+/** Preserves Maim before Illusionary Membrane after shatter packet resolution. */
+export function triggerMesmerPostShatterTraits(
+  context: MesmerPostShatterTraitContext,
+  shatter: MesmerShatter | undefined,
+  resolution: MesmerShatterResolution,
+  epsilon: number
+): void {
+  triggerMaimTheDisillusioned(context, resolution);
+  triggerIllusionaryMembrane(context, shatter, resolution.skill.name, resolution.at, epsilon);
 }
 
-/**
- * Blinding a foe inflicts confusion without an internal cooldown, including
- * against defiant targets.
- */
-export function triggerIneptitudeFromBlind(ctx: MesmerResolverContext, event: MesmerResolverEvent): void {
-  applyIneptitudeConfusion(ctx, event, 'blind → confusion');
+/** Evaluates Chaotic Interruption when a delayed control packet actually lands. */
+export function handleChaoticInterruptionTask(
+  context: MesmerSchedulerContext,
+  task: MesmerSchedulerTask<'chaoticInterruption'>
+): void {
+  triggerChaoticInterruption(
+    context,
+    { type: 'control', at: task.at, source: 'Skill', sourceId: task.payload.skillId },
+    task.payload.skillName
+  );
 }
+
+export { triggerChaoticInterruption };

@@ -1,7 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/content/professions/mesmer/core/mechanics/definitions.js';
+import { triggerMethodOfMadness } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type { SchedulerState } from '#gw2/platform/engine/types.js';
 import type {
   MesmerAddCondition,
@@ -177,31 +177,9 @@ export function createSkillSpecialEffectController({
       }
     }
 
-    if (skill.type !== 'Heal' || !traits.has(TRAIT.METHOD_OF_MADNESS)) return;
-    const storm = traitDamage['Lesser Chaos Storm'];
-    const readyAt = professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
-    if (!isInternalCooldownReady(at, readyAt)) return;
-    const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
-    addDamage(
-      {
-        id: 'Lesser Chaos Storm',
-        name: 'Lesser Chaos Storm',
-        weapon: 'Utility',
-        blade: false
-      },
-      at,
-      {
-        coefficient: Number(storm.coefficient || 0),
-        hits,
-        intervalMs: Math.max(0, Number(storm.intervalMs || 0)),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        source: 'Player',
-        weapon: 'utility'
-      }
-    );
-    addTraitProc('Method of Madness', at, skill.name);
-    professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] = at + Number(storm.cooldown || 0);
+    if (skill.type === 'Heal') {
+      triggerMethodOfMadness({ state, traits, addDamage, addTraitProc }, skill, at, traitDamage['Lesser Chaos Storm']);
+    }
   };
 
   return { consumeClarity, apply };

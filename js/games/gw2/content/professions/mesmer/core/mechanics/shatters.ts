@@ -1,5 +1,5 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type {
   MesmerCastContext,
   MesmerConditionApplication,
@@ -72,9 +72,7 @@ export function resolveCloneShatter(
       duration: 3,
       stacks: 1
     });
-    const confusion = runtime.traits.has(TRAIT.CRY_OF_PAIN)
-      ? conditionFromProfile(context, TRAIT.CRY_OF_PAIN, baseConfusion)
-      : baseConfusion;
+    const confusion = applyCryOfPain(runtime, baseConfusion);
     runtime.addCondition(
       skill.name,
       at,
@@ -87,15 +85,7 @@ export function resolveCloneShatter(
       { shatter: true, shatterTraitEligible: true }
     );
 
-    if (runtime.traits.has(TRAIT.BLINDING_DISSIPATION)) {
-      runtime.addEvent({
-        type: 'blind',
-        at,
-        skillName: skill.name,
-        count: sources
-      });
-      runtime.addTraitProc('Blinding Dissipation', at, skill.name);
-    }
+    triggerBlindingDissipation(runtime, skill.name, at, sources);
   } else if (shatter.kind === 'defense') {
     // Zero-coefficient packets preserve defensive shatters as hits for on-hit effects.
     runtime.addDamage(

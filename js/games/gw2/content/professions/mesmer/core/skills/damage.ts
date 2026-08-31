@@ -1,5 +1,8 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  emitFencersFinesseStacks,
+  recordFencersFinesseProc
+} from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -59,6 +62,7 @@ export function createSkillDamageController({
   addCondition,
   addDamage
 }: SkillDamageControllerOptions): MesmerSkillDamageController {
+  const fencersFinesseContext = { traits, epsilon, addEvent, addTraitProc };
   const schedulePlayerStrike = (
     skill: MesmerSkill,
     group: MesmerStrikeEffect,
@@ -243,37 +247,11 @@ export function createSkillDamageController({
   ): MesmerSkillDamageResult => {
     const playerHitTimes: number[] = [];
     let firstFencerTriggerAt = Infinity;
-    // Add Fencer's Finesse stacks from the materialized hit cadence rather than
-    // the aggregate effect count, preserving per-hit expiry timing.
     const addFencerStacks = (hitTimes: readonly number[], hits: number | undefined): void => {
-      if (!traits.has(TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword' || hitTimes.length === 0) {
-        return;
-      }
-
-      const hitCount = Math.max(1, Math.trunc(Number(hits || 1)));
-      if (hitTimes.length === hitCount) {
-        for (const hitAt of hitTimes) {
-          addEvent({
-            type: 'buff',
-            at: hitAt + epsilon,
-            kind: 'fencer',
-            stacks: 1,
-            duration: 6
-          });
-          firstFencerTriggerAt = Math.min(firstFencerTriggerAt, hitAt + epsilon);
-        }
-
-        return;
-      }
-
-      addEvent({
-        type: 'buff',
-        at: hitTimes[0] + epsilon,
-        kind: 'fencer',
-        stacks: Math.min(10, hitCount),
-        duration: 6
-      });
-      firstFencerTriggerAt = Math.min(firstFencerTriggerAt, hitTimes[0] + epsilon);
+      firstFencerTriggerAt = Math.min(
+        firstFencerTriggerAt,
+        emitFencersFinesseStacks(fencersFinesseContext, skill, hitTimes, hits)
+      );
     };
 
     const strikeEffects = (skill.effects || []).filter(
@@ -332,9 +310,7 @@ export function createSkillDamageController({
   };
 
   const finish = (skill: MesmerSkill, result: MesmerSkillDamageResult): void => {
-    if (Number.isFinite(result.firstFencerTriggerAt)) {
-      addTraitProc("Fencer's Finesse", result.firstFencerTriggerAt, skill.name);
-    }
+    recordFencersFinesseProc(fencersFinesseContext, skill, result.firstFencerTriggerAt);
   };
 
   return { schedule, finish };

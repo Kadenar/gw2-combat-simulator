@@ -604,7 +604,6 @@ export interface MesmerResourceController {
     reason?: string,
     cause?: MesmerResourceCause
   ): void;
-  markCompounding(at: number, count: number): void;
   queueResources: MesmerQueueResources;
 }
 

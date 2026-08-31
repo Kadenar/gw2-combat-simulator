@@ -1,4 +1,5 @@
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -70,7 +71,6 @@ interface PhantasmEffectControllerOptions {
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly epsilon: number;
-  readonly markCompounding: (at: number, count: number) => void;
   readonly queueResources: MesmerQueueResources;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
@@ -91,7 +91,6 @@ export function createPhantasmEffectController({
   phantasmAttackTimings,
   phantasmPolicy,
   epsilon,
-  markCompounding,
   queueResources,
   addEvent,
   addTraitProc,
@@ -121,9 +120,7 @@ export function createPhantasmEffectController({
     }
 
     // Phantasmal Haste compresses all post-cast timing offsets by 1/speed.
-    const speed = traits.has(TRAIT.PHANTASMAL_HASTE)
-      ? Number(balanceProfile(TRAIT.PHANTASMAL_HASTE)?.quicknessCastMultiplier || 1.5)
-      : 1;
+    const speed = phantasmalHasteSpeed({ traits, balanceProfile });
     const endpoint = (atMs: number | undefined): number => {
       const measuredPostCast = Number(atMs) / 1000;
       const actualCastTime = summonAt - castStart;
@@ -198,10 +195,13 @@ export function createPhantasmEffectController({
     const repeatDamageAt = Math.max(...executions.map((item) => item.repeatDamageAt));
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
 
-    if (traits.has(TRAIT.COMPOUNDING_POWER)) {
-      markCompounding(execution.summonAt, count);
-      addTraitProc('Compounding Power', execution.summonAt, skill.name, `${count} phantasm${count === 1 ? '' : 's'}`);
-    }
+    triggerCompoundingPower(
+      { traits, epsilon, addEvent, addTraitProc, balanceProfile },
+      execution.summonAt,
+      count,
+      skill.name,
+      `${count} phantasm${count === 1 ? '' : 's'}`
+    );
 
     addEvent({
       type: 'mesmer.phantasm-summoned',
@@ -229,15 +229,13 @@ export function createPhantasmEffectController({
     if (!execution.hasRepeat || !policy.repeat) return;
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
-    if (traits.has(TRAIT.COMPOUNDING_POWER)) {
-      markCompounding(execution.spawnAt, count);
-      addTraitProc(
-        'Compounding Power',
-        execution.spawnAt,
-        `${skill.name} - ${policy.repeat.label}`,
-        `${count} phantasm${count === 1 ? '' : 's'}`
-      );
-    }
+    triggerCompoundingPower(
+      { traits, epsilon, addEvent, addTraitProc, balanceProfile },
+      execution.spawnAt,
+      count,
+      `${skill.name} - ${policy.repeat.label}`,
+      `${count} phantasm${count === 1 ? '' : 's'}`
+    );
 
     addEvent({
       type: 'mesmer.phantasm-resummoned',

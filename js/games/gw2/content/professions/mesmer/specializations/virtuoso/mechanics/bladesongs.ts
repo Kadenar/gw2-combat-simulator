@@ -1,5 +1,5 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import { applyCryOfPain } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type {
   MesmerCastContext,
   MesmerConditionApplication,
@@ -59,9 +59,7 @@ export function resolveBladesong(
       duration: 3,
       stacks: 1
     });
-    const confusion = runtime.traits.has(TRAIT.CRY_OF_PAIN)
-      ? conditionFromProfile(context, TRAIT.CRY_OF_PAIN, baseConfusion)
-      : baseConfusion;
+    const confusion = applyCryOfPain(runtime, baseConfusion);
     const duration = Number(confusion.duration || 0);
     const stacks = Number(confusion.stacks || 1);
     const ticks = packetTicks(() => 0);
