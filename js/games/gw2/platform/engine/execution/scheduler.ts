@@ -179,6 +179,8 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
       sourceId: effect.sourceId ?? skill.id,
       actorType: effect.actorType || 'player',
       ...(effect.ownerActorType ? { ownerActorType: effect.ownerActorType } : {}),
+      // Preserve explicit child-effect art so result rows do not fall back to the parent skill icon.
+      ...(effect.icon ? { icon: effect.icon } : {}),
       skillId: skill.id,
       skillName: skill.name,
       ...(effect.persistsAfterInterrupt === true ? { persistsAfterInterrupt: true } : {})

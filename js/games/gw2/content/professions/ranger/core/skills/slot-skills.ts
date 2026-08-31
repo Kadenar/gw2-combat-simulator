@@ -433,6 +433,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 680
   },
   [ID.SOLAR_FLARE]: {
+    // The API exposes a generic missing-icon asset, so pin the wiki's dedicated icon for result rows.
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Solar_Flare.png',
     implemented: true,
     effects: [
       {

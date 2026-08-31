@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
+import { resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { migrateRangerBuild } from '#gw2/content/professions/ranger/build/build.js';
@@ -661,6 +663,33 @@ test("Sun Spirit emits Solar Flare's burning packet", () => {
     ]
   );
   assert.ok(might.every(({ affectsSummons }) => affectsSummons));
+});
+
+test('Ranger child damage rows resolve their dedicated icons', () => {
+  const app = {
+    attributeData: { activeTraits: [] },
+    results: { procSteps: [] },
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    skills: rangerCatalog.skills
+  };
+  const solarFlare = skillBreakdownRows(simulate(['Sun Spirit', { type: 'wait', durationMs: 6000 }])).find(
+    ({ sourceSkill }) => sourceSkill === 'Solar Flare'
+  );
+  const blackHole = skillBreakdownRows(simulate(['Celestial Avatar', 'Natural Convergence'])).find(
+    ({ sourceSkill }) => sourceSkill === 'Black Hole'
+  );
+
+  assert.ok(solarFlare);
+  assert.ok(blackHole);
+  assert.equal(
+    resultSkillIcon(app, solarFlare),
+    'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Solar_Flare.png'
+  );
+  assert.equal(
+    resultSkillIcon(app, blackHole),
+    'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Black_Hole.png'
+  );
 });
 
 test('Celestial Avatar Might pulses reach the active pet', () => {
