@@ -1,7 +1,10 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
-import { ritualistEventHandlers, ritualistResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
+import {
+  ritualistEventHandlers,
+  ritualistResolverEventReactions
+} from '#gw2/content/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
 import {
   ritualistAttributeRules,
   ritualistCastRules,

@@ -1,5 +1,8 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   inferDetonateActions,
   kitIdentity,

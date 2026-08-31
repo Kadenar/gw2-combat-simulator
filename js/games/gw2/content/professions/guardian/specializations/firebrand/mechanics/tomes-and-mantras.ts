@@ -3,8 +3,15 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { guardianBoonActive } from '#gw2/content/professions/guardian/core/traits/modifiers.js';
-import { advanceTomeState, tomePageAvailability, tomeStateAvailability } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import { observeFirebrandScheduledEvent, updateFirebrandCastState } from '#gw2/content/professions/guardian/specializations/firebrand/traits/index.js';
+import {
+  advanceTomeState,
+  tomePageAvailability,
+  tomeStateAvailability
+} from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import {
+  observeFirebrandScheduledEvent,
+  updateFirebrandCastState
+} from '#gw2/content/professions/guardian/specializations/firebrand/traits/index.js';
 import {
   advanceFirebrandMantras,
   completeFirebrandMantra,

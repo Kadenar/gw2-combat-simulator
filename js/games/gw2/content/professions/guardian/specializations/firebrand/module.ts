@@ -1,13 +1,16 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
-import {
-  onBuffApplied,
-  onResolvedDamage,
-  skillAvailability
-} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { onBuffApplied, onResolvedDamage, skillAvailability } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createGuardianModuleData } from '#gw2/content/professions/guardian/catalog/module-data.js';
 import { firebrandSkillHandlers } from '#gw2/content/professions/guardian/specializations/firebrand/skills/execution.js';
-import { firebrandEventHandlers, firebrandEventReactions } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tome-effects.js';
-import { firebrandAttributeRules, firebrandCastRules, firebrandSchedulerHooks } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
+import {
+  firebrandEventHandlers,
+  firebrandEventReactions
+} from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tome-effects.js';
+import {
+  firebrandAttributeRules,
+  firebrandCastRules,
+  firebrandSchedulerHooks
+} from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/content/professions/guardian/specializations/firebrand/skills/index.js';
 import { firebrandState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
 import { firebrandUi } from '#gw2/content/professions/guardian/specializations/firebrand/presentation.js';

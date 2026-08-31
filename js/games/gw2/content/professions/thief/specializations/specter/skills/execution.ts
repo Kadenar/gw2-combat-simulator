@@ -1,7 +1,11 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { emitStealTraitEffects } from '#gw2/content/professions/thief/core/traits/index.js';
-import { completeSiphon, enterShadowShroud, exitShadowShroud } from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
+import {
+  completeSiphon,
+  enterShadowShroud,
+  exitShadowShroud
+} from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
 import type { ThiefCastContext } from '#gw2/content/professions/thief/types.js';
 import { completeShadowShroudSkill } from '#gw2/content/professions/thief/specializations/specter/traits/index.js';

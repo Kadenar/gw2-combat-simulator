@@ -8,7 +8,10 @@ import {
 } from '#gw2/content/professions/revenant/specializations/vindicator/mechanics/alliance-and-dodge-rules.js';
 import { vindicatorState } from '#gw2/content/professions/revenant/specializations/vindicator/state.js';
 import { vindicatorUi } from '#gw2/content/professions/revenant/specializations/vindicator/presentation.js';
-import { VINDICATOR_BASE_SKILL_MECHANICS, VINDICATOR_BALANCE_PROFILES } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+import {
+  VINDICATOR_BASE_SKILL_MECHANICS,
+  VINDICATOR_BALANCE_PROFILES
+} from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
 
 export const vindicatorModule = defineNativeModule({
   id: 'Vindicator',

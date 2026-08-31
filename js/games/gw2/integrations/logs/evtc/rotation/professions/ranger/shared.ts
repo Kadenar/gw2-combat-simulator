@@ -1,7 +1,10 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 export interface RangerActionIdentity {
   readonly name: string;

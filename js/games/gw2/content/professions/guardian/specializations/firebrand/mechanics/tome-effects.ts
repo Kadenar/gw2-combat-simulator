@@ -1,4 +1,7 @@
-import { guardianTomeEventHandlers, reactToAshesHit } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import {
+  guardianTomeEventHandlers,
+  reactToAshesHit
+} from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import {
   handleFirebrandVirtueActivation,
   reactToFirebrandBuffTraits,

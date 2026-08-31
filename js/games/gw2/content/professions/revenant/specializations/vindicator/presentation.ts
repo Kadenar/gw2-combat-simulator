@@ -1,4 +1,7 @@
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as SKILL
+} from '#gw2/content/professions/revenant/data/ids.js';
 import { revenantUiState } from '#gw2/content/professions/revenant/core/presentation.js';
 import type {
   ProfessionPaletteActionIdentity,

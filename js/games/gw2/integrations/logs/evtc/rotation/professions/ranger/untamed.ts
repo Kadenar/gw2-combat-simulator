@@ -1,8 +1,17 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import { ownedPetAddresses } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/pets.js';
-import { directAction, playerInstance, rangerSkill, rawSkillName, type RangerActionIdentity } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
+import {
+  directAction,
+  playerInstance,
+  rangerSkill,
+  rawSkillName,
+  type RangerActionIdentity
+} from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 
 const UNLEASH_RANGER_BUFF = 63317;
 const UNLEASH_RANGER = Object.freeze({

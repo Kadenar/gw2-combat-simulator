@@ -1,6 +1,9 @@
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import { isFirebrandTomeActionId } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/firebrand.js';
 import { SWAP_WEAPONS } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 

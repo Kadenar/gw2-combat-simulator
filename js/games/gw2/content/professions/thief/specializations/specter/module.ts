@@ -2,7 +2,11 @@ import { defineNativeModule } from '#gw2/integrations/patches/authoring/professi
 import { onConditionApplied } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createThiefModuleData } from '#gw2/content/professions/thief/catalog/module-data.js';
 import { specterSkillHandlers } from '#gw2/content/professions/thief/specializations/specter/skills/execution.js';
-import { specterAttributeRules, specterCastRules, specterSchedulerHooks } from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud-rules.js';
+import {
+  specterAttributeRules,
+  specterCastRules,
+  specterSchedulerHooks
+} from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud-rules.js';
 import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
 import { specterUi } from '#gw2/content/professions/thief/specializations/specter/presentation.js';
 import { SPECTER_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/specter/skills/index.js';

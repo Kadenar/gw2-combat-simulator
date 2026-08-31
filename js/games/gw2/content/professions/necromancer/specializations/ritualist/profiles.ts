@@ -1,5 +1,8 @@
 import type { BalanceProfile } from '#gw2/platform/engine/types.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
 
 export const RITUALIST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'necromancer.ritualist.resources',

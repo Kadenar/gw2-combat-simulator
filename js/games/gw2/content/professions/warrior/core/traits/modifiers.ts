@@ -11,7 +11,10 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { warriorCastAvailability } from '#gw2/content/professions/warrior/core/mechanics/availability.js';
-import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
+import {
+  warriorBalanceProfile,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/content/professions/warrior/core/profiles.js';
 import {
   advanceWarriorTraits,
   applyWarriorWeaponSwapTraits,
@@ -25,7 +28,11 @@ import { advanceWarriorResources } from '#gw2/content/professions/warrior/core/m
 import { handleWarriorAdrenalineTask } from '#gw2/content/professions/warrior/resources.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/content/professions/warrior/types.js';
+import type {
+  WarriorCastContext,
+  WarriorSchedulerContext,
+  WarriorSkill
+} from '#gw2/content/professions/warrior/types.js';
 import type { WarriorCoreState } from '#gw2/content/professions/warrior/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 

@@ -3,7 +3,11 @@ import { onConditionApplied } from '#gw2/integrations/patches/authoring/mechanic
 import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
 import { scourgeSkillHandlers } from '#gw2/content/professions/necromancer/specializations/scourge/skills/execution.js';
 import { scourgeResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/scourge/mechanics/shade-effects.js';
-import { scourgeAttributeRules, scourgeCastRules, scourgeSchedulerHooks } from '#gw2/content/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
+import {
+  scourgeAttributeRules,
+  scourgeCastRules,
+  scourgeSchedulerHooks
+} from '#gw2/content/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
 import { scourgeState } from '#gw2/content/professions/necromancer/specializations/scourge/state.js';
 import { scourgeUi } from '#gw2/content/professions/necromancer/specializations/scourge/presentation.js';
 import { SCOURGE_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/scourge/skills/index.js';

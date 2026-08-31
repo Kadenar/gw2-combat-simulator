@@ -2,7 +2,11 @@ import { defineNativeModule } from '#gw2/integrations/patches/authoring/professi
 import { onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
 import { harbingerResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight-effects.js';
-import { harbingerAttributeRules, harbingerCastRules, harbingerSchedulerHooks } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight-and-shroud.js';
+import {
+  harbingerAttributeRules,
+  harbingerCastRules,
+  harbingerSchedulerHooks
+} from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight-and-shroud.js';
 import { harbingerState } from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
 import { harbingerUi } from '#gw2/content/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/index.js';

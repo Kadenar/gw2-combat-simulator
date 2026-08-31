@@ -16,7 +16,11 @@ import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
 import type { BalanceProfile } from '#gw2/platform/engine/types.js';
-import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/content/professions/revenant/types.js';
+import type {
+  RevenantCastContext,
+  RevenantSchedulerContext,
+  RevenantSkill
+} from '#gw2/content/professions/revenant/types.js';
 
 function skillById(context: RevenantSchedulerContext, id: string | number): RevenantSkill | undefined {
   return context.catalog.skillsById.get(id);

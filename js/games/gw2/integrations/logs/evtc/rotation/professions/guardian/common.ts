@@ -1,8 +1,16 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import { canonicalAction, encounterEndTime, recordedDuration, SIGNAL_WINDOW_MS } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  canonicalAction,
+  encounterEndTime,
+  recordedDuration,
+  SIGNAL_WINDOW_MS
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 
 const ZEALOTS_FLAME = Object.freeze({
   name: "Zealot's Flame",

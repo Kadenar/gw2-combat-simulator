@@ -2,10 +2,7 @@
 // Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Necromancer to refresh.
 // Simulator mechanics are maintained under necromancer/mechanics/.
 
-import type {
-  Gw2ApiSpecialization,
-  Gw2ApiTrait
-} from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 
 export type NecromancerApiTrait = Gw2ApiTrait;
