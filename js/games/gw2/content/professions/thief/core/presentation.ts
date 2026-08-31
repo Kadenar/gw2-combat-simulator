@@ -49,6 +49,7 @@ function corePaletteSkillAvailability(
 ): { available: boolean; message: string } {
   const state = thiefUiState(context);
   const stealthed =
+    Number(state.stealthStartedAt || 0) <= Number(context.time || 0) &&
     Number(state.stealthUntil || 0) > Number(context.time || 0) &&
     Number(state.revealedUntil || 0) <= Number(context.time || 0);
   const bonusStealthAttack =
@@ -147,7 +148,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ];
   }
 
-  const stealthRemaining = Number(state.stealthUntil || 0) - at;
+  const stealthRemaining = Number(state.stealthStartedAt || 0) <= at ? Number(state.stealthUntil || 0) - at : 0;
   return stealthRemaining > 0
     ? [
         {

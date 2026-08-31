@@ -21,7 +21,7 @@ import {
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { updateThiefTraitCastState } from '#gw2/content/professions/thief/core/traits/index.js';
 import { updateThiefWeaponState } from '#gw2/content/professions/thief/core/mechanics/weapon-state.js';
-import { breakStealthOnStrike } from '#gw2/content/professions/thief/core/mechanics/stealth.js';
+import { observeStealthBreakingStrike } from '#gw2/content/professions/thief/core/mechanics/stealth.js';
 import { thiefCoreTaskHandlers } from '#gw2/content/professions/thief/core/mechanics/task-handlers.js';
 import {
   applyThiefWeaponSwapEffects,
@@ -226,7 +226,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       return (
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.HIDDEN_KILLER) &&
-        (Number(state.stealthUntil || 0) > context.time || Number(state.revealedUntil || 0) + 1 > context.time)
+        ((Number(state.stealthStartedAt || 0) <= context.time && Number(state.stealthUntil || 0) > context.time) ||
+          Number(state.revealedUntil || 0) + 1 > context.time)
       );
     }
   }
@@ -319,8 +320,19 @@ export const thiefCoreCastRules = Object.freeze({
 
 export const thiefCoreSchedulerHooks = Object.freeze({
   advance: advanceThiefCoreResources,
-  onCastStart: Object.freeze([spendThiefCoreResources, breakStealthOnStrike]),
-  onEventScheduled: observeThievesGuildCombatEvent,
+  onCastStart: spendThiefCoreResources,
+  onEventScheduled: Object.freeze([
+    {
+      id: 'thief.stealth-breaking-strikes',
+      order: 10,
+      handler: observeStealthBreakingStrike
+    },
+    {
+      id: 'thief.thieves-guild-combat',
+      order: 20,
+      handler: observeThievesGuildCombatEvent
+    }
+  ]),
   // Thief stance and trait effects run only after the shared swap is committed.
   onWeaponSwap: applyThiefWeaponSwapEffects,
   onCastComplete: {

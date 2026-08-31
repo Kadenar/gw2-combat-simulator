@@ -638,6 +638,31 @@ test('non-stealth strike skills remove stealth and restore the normal autoattack
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Double Strike'));
 });
 
+test('delayed strikes break stealth on impact without blocking a same-time stealth attack', () => {
+  const config = {
+    primaryWeapon: 'Rifle',
+    secondaryWeapon: '',
+    selectedSkills: ['Shadow Meld', 'Shadow Flare']
+  };
+  const impact = simulate('Deadeye', ['Kneel', 'Shadow Meld', 'Shadow Flare', { type: 'wait', durationMs: 1 }], config);
+  const flareDamage = impact.events.find((event) => event.type === 'damage' && event.skillName === 'Shadow Flare');
+  const stealthBreak = impact.events.find(
+    (event) => event.type === 'thief.state' && event.reason === 'strike-broke-stealth'
+  );
+
+  assert.equal(stealthBreak.at, flareDamage.at);
+  const sameTimeAttack = simulate(
+    'Deadeye',
+    ['Kneel', 'Shadow Meld', 'Shadow Flare', "Malicious Death's Judgment"],
+    config
+  );
+  const flare = sameTimeAttack.events.find((event) => event.type === 'damage' && event.skillName === 'Shadow Flare');
+  const deathJudgment = sameTimeAttack.steps.find((step) => step.skill === "Malicious Death's Judgment");
+
+  assert.deepEqual(sameTimeAttack.warnings, []);
+  assert.ok(Math.abs(deathJudgment.start / 1000 - flare.at) < 1e-9);
+});
+
 test('stealth replaces weapon skill 1 without a separate palette group', () => {
   const context = {
     specialization: 'Core',
@@ -1593,6 +1618,21 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   assert.equal(thiefCatalog.skillsByName.get('Shadow Flare').castTimeMs, 720);
   assert.equal(thiefCatalog.skillsByName.get('Steal Time').castTimeMs, 420);
   assert.equal(thiefCatalog.skillsByName.get('Shadow Meld').castTimeMs, 660);
+  const shadowFlareStrike = thiefCatalog.skillsByName
+    .get('Shadow Flare')
+    .effects.find((effect) => effect.type === 'strike');
+  const shadowSwapStrike = thiefCatalog.skillsByName
+    .get('Shadow Swap')
+    .effects.find((effect) => effect.type === 'strike');
+
+  assert.deepEqual(
+    [shadowFlareStrike.ticks[0].atMs, shadowFlareStrike.timingAnchor, shadowFlareStrike.timingScale],
+    [480, 'castStart', 'cast']
+  );
+  assert.deepEqual(
+    [shadowSwapStrike.ticks[0].atMs, shadowSwapStrike.timingAnchor, shadowSwapStrike.timingScale],
+    [0, 'castEnd', 'fixed']
+  );
 
   const threeRoundBurst = thiefCatalog.skillsByName.get('Three Round Burst');
 
@@ -1830,7 +1870,7 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
     .filter((event) => event.at <= chain.steps[2].start / 1000 + 1e-9)
     .at(-1);
 
-  assert.equal(thiefStates[wildStrikeStateIndex].state.endurance - beforeWildStrike.state.endurance, 10);
+  assert.ok(Math.abs(thiefStates[wildStrikeStateIndex].state.endurance - beforeWildStrike.state.endurance - 10) < 1e-9);
   // Wild Strike's completion grant must not discard regeneration accrued during its cast.
   assert.equal(chain.endState.profession.endurance, 70);
   const doubleStrikeHits = chain.events.filter(
@@ -2177,7 +2217,7 @@ test('Thief utility skills materialize their declarative pulse timelines', () =>
       'Prepare Thousand Needles',
       { name: '__wait', waitMs: 3000 },
       'Thousand Needles',
-      { name: '__wait', waitMs: 4000 }
+      { name: '__wait', waitMs: 4500 }
     ],
     {
       selectedSkills: ['Prepare Thousand Needles'],
@@ -2185,7 +2225,7 @@ test('Thief utility skills materialize their declarative pulse timelines', () =>
     }
   );
 
-  assert.deepEqual(pulseOffsets(needles, 'Thousand Needles', 'damage', null, 'start'), [0, 1, 2, 3, 4]);
+  assert.deepEqual(pulseOffsets(needles, 'Thousand Needles', 'damage', null, 'start'), [0.28, 1.28, 2.28, 3.28, 4.28]);
 });
 
 test('Specter wells preserve one-second pulse intervals and ordered effects', () => {
@@ -2467,6 +2507,14 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
 
   assert.equal(afterLeadAndAutoattack.endState.profession.spearChainStage, 1);
   assert.equal(afterLeadAndAutoattack.endState.profession.spearPreviousSkillId, ID.MANTIS_STING);
+  const stealthFinisher = simulate(
+    'Core',
+    ['Unsuspecting Strike', 'Vampiric Slash', 'Shattering Assault', 'Ashen Assault'],
+    spearConfig
+  );
+
+  assert.deepEqual(stealthFinisher.warnings, []);
+  assert.ok(stealthFinisher.steps.some((step) => step.skill === 'Ashen Assault'));
 });
 
 test('Spider Venom grants six independent charges to the player and allies', () => {

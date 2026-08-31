@@ -183,11 +183,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        // Scale the observed cast-end hit from cast start so Quickness preserves packet alignment.
+        ticks: [{ atMs: 480, coefficient: 1 }],
         name: 'Shadow Flare',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },

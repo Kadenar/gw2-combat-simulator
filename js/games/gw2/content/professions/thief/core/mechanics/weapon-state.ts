@@ -27,7 +27,9 @@ export function grantThiefStealth(
   if (!(duration > 0)) return;
   const state = professionCoreState(context);
   if (state.revealedUntil > at) return;
-  const entering = state.stealthUntil <= at;
+  // Track the interval start so an earlier delayed strike cannot see a future stealth grant as already active.
+  const entering = state.stealthStartedAt > at || state.stealthUntil <= at;
+  if (entering) state.stealthStartedAt = at;
   state.stealthUntil = Math.min(at + 15, Math.max(at, state.stealthUntil) + duration);
   if (entering && hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(context, 2, at, 'enter-stealth');
