@@ -3758,6 +3758,110 @@ test('Necromancer trait procs resolve from real event state', () => {
   assert.ok(deathlyChill.resolvedEvents.some((event) => event.name === 'Deathly Chill - Bleeding'));
 });
 
+test('migrated Core trait lines retain previously uncovered threshold, blind, heal, and fear behavior', () => {
+  const threshold = simulate('Core', ['Ghastly Claws'], {
+    primaryWeapon: 'Axe',
+    selectedTraitIds: [TRAIT.SIPHONED_POWER, TRAIT.CHILL_OF_DEATH],
+    target: { ...baseConfig.target, health: 1 }
+  });
+  const blind = simulate('Core', ['Deathly Swarm'], {
+    primaryWeapon: 'Dagger',
+    secondaryWeapon: 'Dagger',
+    selectedTraitIds: [TRAIT.CHILLING_DARKNESS]
+  });
+  const heal = simulate('Core', ['Summon Blood Fiend'], {
+    selectedSkills: ['Summon Blood Fiend'],
+    selectedTraitIds: [TRAIT.DARK_DEFENSE]
+  });
+  const fear = (selectedTraitIds = []) =>
+    simulate('Core', ['Wail of Doom'], {
+      initialResource: 0,
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Warhorn',
+      selectedTraitIds
+    });
+  const plainFear = fear();
+  const fearOfDeath = fear([TRAIT.FEAR_OF_DEATH]);
+
+  assert.equal(
+    threshold.procSteps.some((step) => step.skill === 'Siphoned Power'),
+    true
+  );
+  assert.equal(
+    threshold.procSteps.some((step) => step.skill === 'Lesser Spinal Shivers'),
+    true
+  );
+  assert.equal(
+    blind.resolvedEvents.some((event) => event.condition === 'Chilled' && event.sourceId === TRAIT.CHILLING_DARKNESS),
+    true
+  );
+  assert.equal(
+    heal.events.some((event) => event.type === 'buff' && event.kind === 'protection' && event.duration === 3),
+    true
+  );
+  assert.equal(heal.endState.profession.carapaceExpiries.length, 10);
+  assert.equal(fearOfDeath.endState.profession.lifeForce - plainFear.endState.profession.lifeForce, 15);
+});
+
+test('Core trait dispatch preserves cross-line order and keeps registration out of line modules', async () => {
+  const directory = new URL('../../../js/games/gw2/content/professions/necromancer/core/traits/', import.meta.url);
+  const source = await readFile(new URL('index.ts', directory), 'utf8');
+  const ordered = (functionName, calls) => {
+    const body = source.slice(source.indexOf(`export function ${functionName}`));
+    const positions = calls.map((call) => body.indexOf(call));
+    assert.equal(
+      positions.every((position) => position >= 0),
+      true,
+      functionName
+    );
+    assert.deepEqual(
+      positions,
+      positions.toSorted((left, right) => left - right),
+      functionName
+    );
+  };
+
+  // These source-level contracts protect reaction positions that cannot all emit on one real combat event.
+  ordered('reactToNecromancerCoreDamage', [
+    'applyVampiric(',
+    'applyReapersMight(',
+    'applySiphonedPower(',
+    'applySpitefulFortitude(',
+    'applyChillOfDeath(',
+    'applyDhuumfire(',
+    'applyUnyieldingBlast(',
+    'necromancerBarbedPrecisionReaction.handler(',
+    'applyVampiricPresence(',
+    'applyOverflowingThirstDamage('
+  ]);
+  ordered('reactToNecromancerCoreCondition', ['targetChilledUntil', 'applyBitterChill(', 'applyCorruptorsFervor(']);
+  ordered('reactToNecromancerCoreControl', [
+    'targetControlledUntil',
+    'dreadUntil',
+    'applyTerror(',
+    'applyInsidiousDisruption('
+  ]);
+  ordered('applyNecromancerAfterCastTraits', [
+    'updateNecromancerCastState(',
+    'applyDarkDefense(',
+    'applySignetsOfSuffering(',
+    'applyMaliciousSwarm(',
+    'applyTransfusion(',
+    'finalizeNecromancerCast('
+  ]);
+
+  const castState = source.slice(source.indexOf('function updateNecromancerCastState'));
+  assert.ok(castState.indexOf('availableFlips') < castState.indexOf('applyFearOfDeath('));
+  for (const file of ['spite.ts', 'curses.ts', 'death-magic.ts', 'blood-magic.ts', 'soul-reaping.ts']) {
+    const lineSource = await readFile(new URL(file, directory), 'utf8');
+    assert.doesNotMatch(
+      lineSource,
+      /core\/traits\/index\.js|defineNativeModule|onResolved(?:Damage|Blind|Control)/,
+      file
+    );
+  }
+});
+
 test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
   const result = simulate('Harbinger', ['Blood Is Power', 'Plague Signet', { type: 'wait', durationMs: 10_100 }], {
     selectedSkills: ['Blood Is Power', 'Plague Signet'],
