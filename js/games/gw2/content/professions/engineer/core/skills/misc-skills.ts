@@ -41,6 +41,7 @@ export const ENGINEER_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         coefficient: 3,
         hits: 6,
+        atMs: 0,
         name: 'Lesser Grenade Barrage',
         actorType: 'player'
       }

@@ -28,6 +28,8 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.SYMBOL_OF_ENERGY]: {
     implemented: true,
     quicknessCastTimeMs: 400,
+    // The symbol creates its four-second Light field with the initial impact.
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
     effects: [
       {
         type: 'strike',

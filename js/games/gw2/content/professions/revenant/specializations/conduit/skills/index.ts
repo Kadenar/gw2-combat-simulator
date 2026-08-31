@@ -128,7 +128,9 @@ const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
   },
   {
     type: 'strike',
-    ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 1402 + index * 0, coefficient: 0.4 / 2 })),
+    coefficient: 0.4,
+    hits: 2,
+    atMs: 1402,
     name: 'Twin Moon Sweep — Shatter',
     actorType: 'player',
     timingAnchor: 'castStart',

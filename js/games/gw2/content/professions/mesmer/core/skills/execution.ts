@@ -24,8 +24,7 @@ function observeDeclarativeEffect(
 ): void {
   if (!event) return;
   if (event.type === 'damage') {
-    const individuallyTimed =
-      Array.isArray(effect.ticks) || Number(effect.intervalMs || 0) > 0 || Number(skill.pulseCount || 0) > 1;
+    const individuallyTimed = Array.isArray(effect.ticks) || Number(skill.pulseCount || 0) > 1;
     const phantasmOwned = effect.summonKind === 'phantasm';
     context.replaceEvent(event, {
       source: phantasmOwned ? 'Phantasm' : 'Player',

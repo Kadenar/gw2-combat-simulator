@@ -4,15 +4,14 @@
  *
  * Mechanic and skill-variant profiles carry their own ids; trait profiles are
  * keyed by trait id so a profile can be looked up straight from the trait. Code
- * reads these through the accessors at the bottom of the file and always passes
+ * reads these through the shared balance-profile accessors and always passes
  * a hardcoded fallback, so a build with no patch data still simulates.
  */
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
 } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -85,7 +84,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 // Effect-literal builders keep the profile table below readable; the `name`
-// is the lookup key callers pass to `elementalistBalanceEffect`.
+// is the lookup key callers pass to `balanceProfileEffectFromContext`.
 const namedBoon = (name: string, boon: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -240,15 +239,15 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     }
   ),
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.fulgor, ID.FULGOR, 'Fulgor - Pulses', {
-    initialDelay: 0.32,
-    pulseInterval: 1,
     effects: [
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 6,
-        flatStrikeBase: 200,
-        flatStrikePowerCoeff: 0.4
+        ticks: Array.from({ length: 6 }, (_, index) => ({
+          atMs: 320 + index * 1000,
+          coefficient: 0,
+          flatStrikeBase: 200,
+          flatStrikePowerCoeff: 0.4
+        }))
       }
     ]
   }),
@@ -468,27 +467,3 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     ]
   })
 ]);
-
-/** Selects one authored effect from a profile by type, and optionally by name/index. */
-export function elementalistBalanceEffect(
-  context: unknown,
-  id: SkillId,
-  type: string,
-  name?: string,
-  index = 0
-): SkillEffect | undefined {
-  return balanceProfileEffectFromContext(context, id, type, index, name);
-}
-
-/** Reads one field off a profile effect (stacks, duration, coefficient) with a fallback. */
-export function elementalistEffectValue(
-  context: unknown,
-  id: SkillId,
-  type: string,
-  field: string,
-  fallback: number,
-  name?: string,
-  index = 0
-): number {
-  return balanceProfileValue(elementalistBalanceEffect(context, id, type, name, index), field, fallback);
-}

@@ -1,7 +1,7 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId, StrikeTick } from '#gw2/platform/engine/types.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -21,9 +21,9 @@ interface DaredevilDodgeEffectBase {
 type DaredevilDodgeEffect = Readonly<
   | (DaredevilDodgeEffectBase & {
       type: 'strike';
-      coefficient: number;
-      hits: number;
-      atMsList?: readonly number[];
+      coefficient?: number;
+      hits?: 1;
+      ticks?: readonly StrikeTick[];
     })
   | (DaredevilDodgeEffectBase & {
       type: 'condition';
@@ -48,9 +48,11 @@ const DAREDEVIL_DODGE_EFFECTS: Readonly<Partial<Record<ThiefDodge, readonly Dare
     Object.freeze({
       type: 'strike',
       sourceId: TRAIT.LOTUS_TRAINING,
-      coefficient: 0.5625,
-      hits: 3,
-      atMsList: [200, 360, 520]
+      ticks: [
+        { atMs: 200, coefficient: 0.1875 },
+        { atMs: 360, coefficient: 0.1875 },
+        { atMs: 520, coefficient: 0.1875 }
+      ]
     }),
     Object.freeze({
       type: 'condition',
@@ -123,18 +125,28 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
     name: dodgeSkillName
   } as const;
   if (effect.type === 'strike') {
-    const hits = Math.max(1, Number(authoredEffect?.hits || effect.hits || 1));
-    const atMsList = effect.atMsList || [];
-    for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
+    const authoredStrike = balanceProfileEffect(profile, 'strike');
+    const ticks = authoredStrike?.ticks?.length ? authoredStrike.ticks : effect.ticks;
+    if (ticks?.length) {
+      for (const [index, tick] of ticks.entries()) {
+        const hitIndex = index + 1;
+        emitSkillDamage(context, {
+          ...common,
+          at: context.start + Number(tick.atMs) / 1000,
+          source: 'thief',
+          coefficient: Number(tick.coefficient),
+          hits: 1,
+          hitIndex,
+          totalHits: ticks.length,
+          skillWeapon: 'Unequipped'
+        });
+      }
+    } else {
       emitSkillDamage(context, {
         ...common,
-        at: atMsList[hitIndex - 1] == null ? common.at : context.start + atMsList[hitIndex - 1] / 1000,
-
         source: 'thief',
-        coefficient: Number(authoredEffect?.coefficient || effect.coefficient || 0) / hits,
+        coefficient: Number(authoredStrike?.coefficient || effect.coefficient || 0),
         hits: 1,
-        hitIndex,
-        totalHits: hits,
         skillWeapon: 'Unequipped'
       });
     }

@@ -95,7 +95,8 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       {
         type: 'strike',
         coefficient: 0.5,
-        hits: 2
+        hits: 2,
+        atMs: 0
       }
     ],
     adrenalineCost: 10,
@@ -239,7 +240,8 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       {
         type: 'strike',
         coefficient: 1,
-        hits: 2
+        hits: 2,
+        atMs: 0
       },
       {
         type: 'condition',

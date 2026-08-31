@@ -13,7 +13,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 0.6,
-        hits: 6
+        hits: 6,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -81,7 +82,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 1.2,
-        hits: 3
+        hits: 3,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -258,7 +260,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 1.54,
-        hits: 7
+        hits: 7,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -385,7 +388,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 2,
-        hits: 5
+        hits: 5,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -443,7 +447,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 2.5,
-        hits: 5
+        hits: 5,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -499,7 +504,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 1.4,
-        hits: 2
+        hits: 2,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -755,7 +761,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 1,
-        hits: 2
+        hits: 2,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -772,7 +779,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 2.8,
-        hits: 8
+        hits: 8,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -840,7 +848,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 0.8,
-        hits: 4
+        hits: 4,
+        atMs: 0
       },
       {
         type: 'condition',
@@ -919,7 +928,8 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 5
+        hits: 5,
+        atMs: 0
       },
       {
         type: 'condition',

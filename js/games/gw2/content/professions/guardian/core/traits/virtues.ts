@@ -120,10 +120,10 @@ export function applyMasterOfConsecrations(context: GuardianCastContext, skill: 
   const profile = balanceProfileFromContext(context, PROFILE.masterOfConsecrations);
   const strike = balanceProfileEffect(profile, 'strike');
   const burning = balanceProfileEffect(profile, 'condition');
-  const hits = Math.max(1, Math.trunc(Number(strike?.hits || 2)));
-  const interval = Number(strike?.intervalMs || 1000) / 1000;
-  for (let index = 0; index < hits; index += 1) {
-    const pulseAt = context.start + 6.32 + index * interval;
+  const ticks = strike?.type === 'strike' ? strike.ticks : null;
+  if (!ticks?.length) throw new Error('Master of Consecrations requires an explicit strike timeline.');
+  for (const [index, tick] of ticks.entries()) {
+    const pulseAt = context.start + 6.32 + Number(tick.atMs) / 1000;
     context.emit(
       buildGuardianStrike({
         at: pulseAt,
@@ -131,10 +131,10 @@ export function applyMasterOfConsecrations(context: GuardianCastContext, skill: 
         skillId: skill.id,
         skillName: skill.name,
         name: skill.name,
-        coefficient: Number(strike?.coefficient || 0.4) / hits,
+        coefficient: Number(tick.coefficient),
         skillWeapon: 'Unequipped',
         hitIndex: 7 + index,
-        totalHits: 6 + hits
+        totalHits: 6 + ticks.length
       })
     );
     emitSkillCondition(context, {

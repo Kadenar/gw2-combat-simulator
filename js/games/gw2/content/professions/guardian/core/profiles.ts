@@ -146,9 +146,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'strike',
-        coefficient: 3.25,
-        hits: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.25 / 5 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'
@@ -160,9 +158,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 2,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: index * 1000, coefficient: 0.4 / 2 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'
@@ -258,9 +254,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 2.5 / 5 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'

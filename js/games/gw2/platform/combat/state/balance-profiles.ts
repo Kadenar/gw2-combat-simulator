@@ -1,4 +1,25 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  BalanceProfile,
+  ConditionEffect,
+  ControlEffect,
+  CustomEffect,
+  SkillEffect,
+  SkillId,
+  StatusEffect,
+  StrikeEffect
+} from '#gw2/platform/engine/types.js';
+
+export type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
+  ? StrikeEffect
+  : TType extends ConditionEffect['type']
+    ? ConditionEffect
+    : TType extends ControlEffect['type']
+      ? ControlEffect
+      : TType extends StatusEffect['type']
+        ? StatusEffect
+        : TType extends CustomEffect['type']
+          ? CustomEffect
+          : never;
 
 interface BalanceProfileCatalogLike {
   readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
@@ -36,23 +57,24 @@ export function balanceProfileFromContext(context: unknown, id: SkillId): Balanc
 }
 
 /** Selects one profile effect by type and optional authored name without changing declaration order. */
-export function balanceProfileEffect(
+export function balanceProfileEffect<TType extends SkillEffect['type']>(
   profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
-  type: string,
+  type: TType,
   index = 0,
   name?: string
-): SkillEffect | undefined {
-  return profile?.effects?.filter((effect) => effect.type === type && (name == null || effect.name === name))[index];
+): SkillEffectByType<TType> | undefined {
+  return profile?.effects?.filter((effect) => effect.type === type && (name == null || effect.name === name))[index] as
+    SkillEffectByType<TType> | undefined;
 }
 
 /** Resolves a profile and selects one authored effect without profession-local lookup wrappers. */
-export function balanceProfileEffectFromContext(
+export function balanceProfileEffectFromContext<TType extends SkillEffect['type']>(
   context: unknown,
   id: SkillId,
-  type: string,
+  type: TType,
   index = 0,
   name?: string
-): SkillEffect | undefined {
+): SkillEffectByType<TType> | undefined {
   return balanceProfileEffect(balanceProfileFromContext(context, id), type, index, name);
 }
 

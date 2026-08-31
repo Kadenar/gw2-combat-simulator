@@ -2406,12 +2406,16 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
     ['strike', 'blind', 'condition']
   );
   assert.deepEqual(
-    nightfallSkill.effects.map((effect) => effect.applications ?? effect.hits),
+    nightfallSkill.effects.map((effect) => effect.ticks?.length ?? effect.applications ?? effect.hits),
     [4, 4, 4]
   );
   assert.deepEqual(
     executionersScythe.effects.find((effect) => effect.type === 'condition').ticks.map((tick) => tick.atMs),
     [840, 1840, 2840, 3840, 4840]
+  );
+  assert.deepEqual(
+    executionersScythe.effects.find((effect) => effect.type === 'strike').ticks.map((tick) => tick.atMs),
+    [840]
   );
   assert.deepEqual(
     grasp.events
@@ -2434,6 +2438,11 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
   );
 
   assert.equal(nightfallHits.length, 4);
+  const nightfallAction = nightfall.events.find((event) => event.type === 'action' && event.skillName === 'Nightfall');
+  assert.deepEqual(
+    nightfallHits.map((event) => Math.round((event.at - nightfallAction.at) * 1000)),
+    [560, 1560, 2560, 3560]
+  );
   assert.deepEqual(
     nightfallHits.map((event) => event.coefficient),
     [1.15, 1.15, 1.15, 1.15]
@@ -2458,7 +2467,7 @@ test('Nightfall commits its declarative field at the first pulse', () => {
     [
       {
         name: 'Nightfall',
-        interruptAfterMs: 560
+        interruptAfterMs: 400
       },
       {
         type: 'wait',
@@ -2470,23 +2479,10 @@ test('Nightfall commits its declarative field at the first pulse', () => {
       primaryWeapon: 'Greatsword'
     }
   );
-  const afterCommit = simulate(
-    'Harbinger',
-    [
-      {
-        name: 'Nightfall',
-        interruptAfterMs: 640
-      },
-      {
-        type: 'wait',
-        durationMs: 4000
-      }
-    ],
-    {
-      initialResource: 0,
-      primaryWeapon: 'Greatsword'
-    }
-  );
+  const afterCommit = simulate('Harbinger', ['Nightfall', { type: 'wait', durationMs: 4000 }], {
+    initialResource: 0,
+    primaryWeapon: 'Greatsword'
+  });
   const quickness = simulate('Harbinger', ['Nightfall', { type: 'wait', durationMs: 4000 }], {
     boons: { quickness: true },
     initialResource: 0,
@@ -2504,7 +2500,7 @@ test('Nightfall commits its declarative field at the first pulse', () => {
     nightfallHits(quickness).map(
       (event, index) => Math.round(event.at * 1000 - quickness.steps[0].start) - index * 1000
     ),
-    [400, 400, 400, 400]
+    [560, 560, 560, 560]
   );
 });
 

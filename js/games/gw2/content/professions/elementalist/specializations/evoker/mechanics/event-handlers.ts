@@ -6,7 +6,10 @@
  * consumption, and the Elemental Balance / Elemental Dynamo attunement-entry
  * traits.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,7 +19,6 @@ import {
   elementalistEventSkill,
   emitElementalistProc
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { emitElectricEnchantment } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
@@ -39,7 +41,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     isInternalCooldownReady(event.at, state.ignitePassiveReadyAt)
   ) {
     state.ignitePassiveReadyAt = event.at + balanceProfileValueFromContext(context, PROFILE.ignite, 'pulseInterval', 1);
-    const might = elementalistBalanceEffect(context, PROFILE.evocation, 'boon', 'Fire Familiar');
+    const might = balanceProfileEffectFromContext(context, PROFILE.evocation, 'boon', 0, 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
     emitSkillBuff(context, elementalistEventSkill(context, 'Fire Familiar', sourceId), {
       at: event.at,

@@ -37,19 +37,28 @@ function instrumentAttack(
   actorType: 'player' | 'summon' = 'player'
 ): void {
   const runtime = mesmerRuntimeFor(context);
-  if (data.coefficient) {
+  if (data.coefficient || data.ticks?.length) {
     const shredding = profileEffect(runtime, TRAIT.SHREDDING, 'strike');
     const shreddingCoefficient = Number(shredding?.coefficient || 1);
-    const shreddingHits = Number(shredding?.hits || 1);
-    const coefficient =
-      data.coefficient + (data.instrument === 'Lute' && runtime.traits.has(TRAIT.SHREDDING) ? shreddingCoefficient : 0);
+    const shreddingActive = data.instrument === 'Lute' && runtime.traits.has(TRAIT.SHREDDING);
+    if (shreddingActive && shredding?.atMs == null) {
+      throw new TypeError('Shredding requires an explicit Lute packet timestamp.');
+    }
+
+    // Shredding appends its authored fourth note instead of extending an aggregate interval at runtime.
+    const ticks = data.ticks?.length
+      ? [
+          ...data.ticks,
+          ...(shreddingActive ? [{ atMs: Number(shredding?.atMs), coefficient: shreddingCoefficient }] : [])
+        ]
+      : undefined;
     runtime.addDamage(
       skill,
       damageAt,
       {
-        coefficient,
-        hits: data.hits + (coefficient > data.coefficient ? shreddingHits : 0),
-        intervalMs: data.intervalMs,
+        ...(ticks
+          ? { ticks, timingAnchor: 'castStart' as const, timingScale: 'fixed' as const }
+          : { coefficient: Number(data.coefficient), hits: Number(data.hits) }),
         source,
         actorType,
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'

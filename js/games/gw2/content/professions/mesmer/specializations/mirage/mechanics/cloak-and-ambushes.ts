@@ -156,10 +156,19 @@ export function createMirageActionController({
       const impactAt = at + Number(ambush.clone.castTimeMs || 0) / 1000;
       addDamage(
         pseudo,
-        impactAt,
+        ambush.clone.ticks?.length ? at : impactAt,
         {
-          coefficient: ambush.clone.coefficient,
-          hits: ambush.clone.hits,
+          ...(ambush.clone.ticks?.length
+            ? {
+                ticks: ambush.clone.ticks,
+                timingAnchor: 'castStart' as const,
+                timingScale: 'fixed' as const
+              }
+            : {
+                coefficient: ambush.clone.coefficient,
+                hits: ambush.clone.hits,
+                atMs: ambush.clone.atMs
+              }),
           source: 'Clone'
         },
         {
@@ -279,18 +288,17 @@ export function createMirageActionController({
       ? ambush.player.ticks.map((tick) => castStart + tick.atMs / 1000)
       : [impactAt];
     if (ambush.player.ticks?.length) {
-      const coefficientPerHit = ambush.player.coefficient / Math.max(1, ambush.player.hits);
-      for (const packetAt of impactTimes) {
-        addDamage(pseudo, packetAt, {
-          coefficient: coefficientPerHit,
-          hits: 1,
-          source: 'Player'
-        });
-      }
+      addDamage(pseudo, castStart, {
+        ticks: ambush.player.ticks,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        source: 'Player'
+      });
     } else {
       addDamage(pseudo, impactAt, {
         coefficient: ambush.player.coefficient,
         hits: ambush.player.hits,
+        atMs: ambush.player.atMs,
         source: 'Player'
       });
     }

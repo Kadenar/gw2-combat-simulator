@@ -6,6 +6,8 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SYMBOL_OF_BLADES]: {
     implemented: true,
     castTimeMs: 250,
+    // The Light field begins with the first symbol pulse and lasts through the fifth.
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 250, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',
@@ -65,7 +67,8 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         coefficient: 1.65,
-        hits: 3
+        hits: 3,
+        atMs: 0
       }
     ]
   },
@@ -82,6 +85,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'strike',
         coefficient: 2.5,
         hits: 4,
+        atMs: 0,
         name: "Executioner's Calling — Secondary Attacks"
       }
     ]
@@ -93,7 +97,8 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         coefficient: 2.5,
-        hits: 2
+        hits: 2,
+        atMs: 0
       }
     ]
   }

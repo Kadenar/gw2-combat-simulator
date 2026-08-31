@@ -1,5 +1,9 @@
 /** Imperative Fire trait behavior; dispatch order remains centralized in the trait index. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -25,11 +29,7 @@ import {
   queueElementalistBuff,
   recordElementalistTraitProc
 } from '#gw2/content/professions/elementalist/core/mechanics/resolution-helpers.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceEffect,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 const SUNSPOT_ICON = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png';
 const FLAME_EXPULSION_ICON = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
@@ -46,7 +46,11 @@ export function triggerSunspot(
   applyAura(context, {
     at,
     aura: 'Fire Aura',
-    duration: elementalistEffectValue(context, PROFILE.sunspot, 'buff', 'duration', 3, 'Sunspot Aura'),
+    duration: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.sunspot, 'buff', 0, 'Sunspot Aura'),
+      'duration',
+      3
+    ),
     skillName: 'Sunspot',
     sourceId
   });
@@ -58,7 +62,11 @@ export function triggerSunspot(
     ownerActorType: 'player',
     skillName: 'Sunspot',
     icon: SUNSPOT_ICON,
-    coefficient: elementalistEffectValue(context, PROFILE.sunspot, 'strike', 'coefficient', 0.6, 'Sunspot'),
+    coefficient: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.sunspot, 'strike', 0, 'Sunspot'),
+      'coefficient',
+      0.6
+    ),
     skillWeapon: 'Unequipped',
     noCrit: true
   });
@@ -84,28 +92,28 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     balanceProfileValueFromContext(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10),
     context.buffStacks('might', at)
   );
-  const baseCoefficient = elementalistEffectValue(
+  const flameExpulsionStrike = balanceProfileEffectFromContext(
     context,
     PROFILE.pyromancersPuissance,
     'strike',
-    'coefficient',
-    1,
+    0,
     'Flame Expulsion'
   );
+  const flameExpulsionCondition = balanceProfileEffectFromContext(
+    context,
+    PROFILE.pyromancersPuissance,
+    'condition',
+    0,
+    'Flame Expulsion'
+  );
+  const baseCoefficient = balanceProfileValue(flameExpulsionStrike, 'coefficient', 1);
   const coefficientPerMight = balanceProfileValueFromContext(
     context,
     PROFILE.pyromancersPuissance,
     'damageIncreasePerStack',
     0.1
   );
-  const baseBurningDuration = elementalistEffectValue(
-    context,
-    PROFILE.pyromancersPuissance,
-    'condition',
-    'duration',
-    2,
-    'Flame Expulsion'
-  );
+  const baseBurningDuration = balanceProfileValue(flameExpulsionCondition, 'duration', 2);
   const burningDurationPerMight = balanceProfileValueFromContext(
     context,
     PROFILE.pyromancersPuissance,
@@ -129,7 +137,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     sourceId,
     actorType: 'player',
     condition: 'Burning',
-    stacks: elementalistEffectValue(context, PROFILE.pyromancersPuissance, 'condition', 'stacks', 1, 'Flame Expulsion'),
+    stacks: balanceProfileValue(flameExpulsionCondition, 'stacks', 1),
     duration: Math.min(
       baseBurningDuration + burningDurationPerMight * cappedMight,
       baseBurningDuration +
@@ -223,7 +231,13 @@ export function extendPersistingFlamesField(context: ElementalistSchedulerContex
 
 /** Materializes Burning Precision after its registered critical-hit reaction succeeds. */
 export function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const burning = elementalistBalanceEffect(context, PROFILE.burningPrecision, 'condition', 'Burning Precision');
+  const burning = balanceProfileEffectFromContext(
+    context,
+    PROFILE.burningPrecision,
+    'condition',
+    0,
+    'Burning Precision'
+  );
   applyElementalistDerivedCondition(context, event, {
     source: 'Burning Precision',
     sourceId: TRAIT.BURNING_PRECISION,

@@ -24,7 +24,8 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'strike',
         coefficient: 1.4,
-        hits: 2
+        hits: 2,
+        atMs: 0
       },
       {
         type: 'condition',

@@ -261,6 +261,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         type: 'strike',
         coefficient: 3.85,
         hits: 5,
+        atMs: 0,
         name: 'Damage per Mine',
         actorType: 'player',
         metadata: {

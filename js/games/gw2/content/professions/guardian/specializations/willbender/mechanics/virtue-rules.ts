@@ -270,16 +270,18 @@ function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task
   const flameGeneration = state.flameGeneration;
   const flameId = Number(payload.flameId);
   const flames = balanceProfileFromContext(context, PROFILE.flames);
-  const pulses = Math.max(1, Math.trunc(Number(flames?.maximumStacks || 5)));
-  const interval = Number(flames?.pulseInterval || 1);
+  const strike = balanceProfileEffect(flames, 'strike');
+  const ticks = strike?.type === 'strike' ? strike.ticks : null;
+  if (!ticks?.length) throw new Error('Willbender Flames requires an explicit strike timeline.');
   // A flame field is a separate activation from the virtue that created it, so its unequipped weapon-strength
   // roll is shared by its pulses without colliding with the virtue impact's profession-mechanic roll.
   const activationId = context.createActivationId('effect');
-  for (let pulse = 1; pulse <= pulses; pulse += 1) {
+  for (const [index, tick] of ticks.entries()) {
+    const pulse = index + 1;
     context.tasks.schedule({
       id: `guardian.willbender-flame:${flameGeneration}:${task.at}:${pulse}`,
       type: 'guardian.willbender-flame-pulse',
-      at: Number(task.at) + pulse * interval,
+      at: Number(task.at) + Number(tick.atMs) / 1000,
       payload: { activationId, flameGeneration, flameId, pulse }
     });
   }
@@ -299,7 +301,9 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
   const pulse = Number(payload.pulse);
   const flames = balanceProfileFromContext(context, PROFILE.flames);
   const strike = balanceProfileEffect(flames, 'strike');
-  const totalHits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
+  const ticks = strike?.type === 'strike' ? strike.ticks : null;
+  const tick = ticks?.[pulse - 1];
+  if (!ticks?.length || !tick) throw new Error('Willbender Flames pulse is missing its strike tick.');
   context.emit(
     buildGuardianStrike({
       at,
@@ -307,10 +311,10 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
       skillId: flameId,
       skillName: 'Willbender Flames',
       name: 'Willbender Flames',
-      coefficient: Number(strike?.coefficient || 0.22),
+      coefficient: Number(tick.coefficient),
       skillWeapon: 'Unequipped',
       hitIndex: pulse,
-      totalHits,
+      totalHits: ticks.length,
       willbenderFlames: true
     })
   );

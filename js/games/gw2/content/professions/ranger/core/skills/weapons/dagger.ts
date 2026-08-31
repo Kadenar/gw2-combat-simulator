@@ -91,7 +91,8 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       {
         type: 'strike',
         coefficient: 1.6,
-        hits: 2
+        hits: 2,
+        atMs: 0
       }
     ],
     recharge: 6,

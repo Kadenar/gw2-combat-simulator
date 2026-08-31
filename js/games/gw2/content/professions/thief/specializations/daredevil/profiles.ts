@@ -35,7 +35,14 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining, 'Lotus Training', {
     durationMultiplier: 6,
     effects: [
-      { type: 'strike', coefficient: 0.5625, hits: 3 },
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 200, coefficient: 0.1875 },
+          { atMs: 360, coefficient: 0.1875 },
+          { atMs: 520, coefficient: 0.1875 }
+        ]
+      },
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 4 },
       { type: 'condition', condition: 'Torment', stacks: 2, duration: 4 },
       { type: 'condition', condition: 'Crippled', stacks: 1, duration: 3 }

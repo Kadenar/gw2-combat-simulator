@@ -1,5 +1,9 @@
 /** Imperative Arcane trait behavior; callers preserve cross-line ordering through the trait index. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,8 +20,7 @@ import {
   elementalistEventSkill,
   emitElementalistProc,
   emitProfiledBuff,
-  emitProfiledCondition,
-  profiledEffect
+  emitProfiledCondition
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistDerivedCondition,
@@ -25,11 +28,7 @@ import {
   queueElementalistBuff,
   recordElementalistTraitProc
 } from '#gw2/content/professions/elementalist/core/mechanics/resolution-helpers.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceEffect,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /** Grants Arcane Prowess might for one completed attunement transition. */
 export function applyArcaneProwess(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
@@ -80,7 +79,7 @@ export function triggerBountifulPower(
   while (state.bountifulPowerProgress >= threshold) {
     state.bountifulPowerProgress -= threshold;
     emitProfiledBuff(context, at, PROFILE.bountifulPower, 'Quickness', 'Quickness', 1, 5, 'Bountiful Power', sourceId);
-    const active = profiledEffect(context, PROFILE.bountifulPower, 'buff', 'Damage Window');
+    const active = balanceProfileEffectFromContext(context, PROFILE.bountifulPower, 'buff', 0, 'Damage Window');
     emitSkillBuff(context, elementalistEventSkill(context, 'Bountiful Power', sourceId), {
       at,
       source: 'Bountiful Power',
@@ -120,7 +119,11 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
       actorType: 'effect',
       ownerActorType: 'player',
       skillName: source,
-      coefficient: elementalistEffectValue(context, PROFILE.evasiveArcana, 'strike', 'coefficient', 1, 'Fire'),
+      coefficient: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.evasiveArcana, 'strike', 0, 'Fire'),
+        'coefficient',
+        1
+      ),
       skillWeapon: 'Unequipped'
     });
     emitProfiledCondition(context, at, PROFILE.evasiveArcana, 'Fire Burning', 'Burning', 3, 6, source, skill.id);
@@ -142,7 +145,11 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
       sourceId: skill.id,
       actorType: 'effect',
       skillName: source,
-      coefficient: elementalistEffectValue(context, PROFILE.evasiveArcana, 'strike', 'coefficient', 0.5, 'Earth'),
+      coefficient: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.evasiveArcana, 'strike', 0, 'Earth'),
+        'coefficient',
+        0.5
+      ),
       skillWeapon: 'Unequipped',
       comboFinishers: [{ ownerId: 'elementalist', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
     });
@@ -172,7 +179,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
 export function applyArcaneLightning(context: ElementalistLifecycleContext, skill: Skill): void {
   if (!hasTrait(context, 'Arcane Lightning') || skill.skillFamily !== 'Arcane') return;
   const at = context.effectiveEnd;
-  const arcaneWindow = profiledEffect(context, PROFILE.arcaneLightning, 'buff', 'Arcane Lightning');
+  const arcaneWindow = balanceProfileEffectFromContext(context, PROFILE.arcaneLightning, 'buff', 0, 'Arcane Lightning');
   emitSkillBuff(context, skill, {
     at,
     source: skill.name,
@@ -256,7 +263,7 @@ export function applyElementalLockdown(context: ElementalistSchedulerContext, ev
 /** Materializes Arcane Precision after its registered critical-hit reaction succeeds. */
 export function applyArcanePrecision(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const attunement = elementalistResolverCoreState(context).primaryAttunement;
-  const condition = elementalistBalanceEffect(context, PROFILE.arcanePrecision, 'condition', attunement);
+  const condition = balanceProfileEffectFromContext(context, PROFILE.arcanePrecision, 'condition', 0, attunement);
   const fallback = {
     Fire: { condition: 'Burning', duration: 1.5 },
     Water: { condition: 'Vulnerability', duration: 10 },
@@ -275,7 +282,7 @@ export function applyArcanePrecision(context: Gw2ResolverRuntime, event: Gw2Reso
 
 /** Materializes Renewing Stamina after its registered critical-hit reaction succeeds. */
 export function applyRenewingStamina(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const vigor = elementalistBalanceEffect(context, PROFILE.renewingStamina, 'boon', 'Vigor');
+  const vigor = balanceProfileEffectFromContext(context, PROFILE.renewingStamina, 'boon', 0, 'Vigor');
   queueElementalistBuff(
     context,
     event,

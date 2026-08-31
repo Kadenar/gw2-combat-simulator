@@ -31,7 +31,8 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       {
         type: 'strike',
         coefficient: 0.9,
-        hits: 2
+        hits: 2,
+        atMs: 0
       }
     ]
   },
@@ -114,13 +115,9 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 2.7,
-        hits: 9,
-        atMs: 480,
-        intervalMs: 160,
-        intervalTimingScale: 'fixed',
+        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 480 + index * 160, coefficient: 2.7 / 9 })),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true
       }
     ],

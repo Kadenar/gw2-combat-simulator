@@ -227,20 +227,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 480,
-            coefficient: 0.39999999999999997
-          },
-          {
-            atMs: 480,
-            coefficient: 0.39999999999999997
-          },
-          {
-            atMs: 480,
-            coefficient: 0.39999999999999997
-          }
-        ],
+        coefficient: 1.2,
+        hits: 3,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

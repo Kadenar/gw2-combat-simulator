@@ -15,6 +15,7 @@ import type {
   ThiefStealthAttackChargeState
 } from '#gw2/content/professions/thief/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { THIEF_BREAK_STEALTH_TASK } from '#gw2/content/professions/thief/core/mechanics/stealth.js';
 
 function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
@@ -88,10 +89,16 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   }
 
   const [mainHand] = activeWeapons(context);
-  const stealthed = state.stealthUntil > context.start && state.revealedUntil <= context.start;
+  const stealthed =
+    state.stealthStartedAt <= context.start &&
+    state.stealthUntil > context.start &&
+    state.revealedUntil <= context.start;
   const bonusStealthAttack =
     Number(stealthAttackState.stealthAttackCharges || 0) > 0 &&
     Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start;
+  // At a shared activation/damage timestamp, either replacement may be the causally earlier event in EVTC.
+  const strikeBreakPending =
+    context.tasks.nextAt(THIEF_BREAK_STEALTH_TASK) <= context.start + Number(context.epsilon || 0.0001) * 2;
   // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
   if (skill.stealthAttack) {
     if (!stealthed && !bonusStealthAttack) {
@@ -102,7 +109,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
       return deny(skill, 'thief.stealth-weapon', `requires ${skill.requiredMainHand}.`);
     }
   } else if (
-    (stealthed || bonusStealthAttack) &&
+    ((stealthed && !strikeBreakPending) || bonusStealthAttack) &&
     !skill.shadowShroudSkill &&
     skill.type === 'Weapon' &&
     skill.slot === 'Weapon_1'

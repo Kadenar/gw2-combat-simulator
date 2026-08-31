@@ -39,7 +39,8 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 2
+        hits: 2,
+        atMs: 0
       },
       {
         type: 'strike',
@@ -106,10 +107,9 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 350, coefficient: 1.175 },
-          { atMs: 350, coefficient: 1.175 }
-        ],
+        coefficient: 2.35,
+        hits: 2,
+        atMs: 350,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -134,6 +134,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         type: 'strike',
         coefficient: 1.76,
         hits: 2,
+        atMs: 0,
         comboFinishers: [
           {
             ownerId: 'warrior',

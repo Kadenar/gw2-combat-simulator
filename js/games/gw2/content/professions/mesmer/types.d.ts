@@ -753,8 +753,9 @@ export interface MesmerAttackStatus extends MesmerConditionApplication {
 export interface MesmerCloneAttackStep {
   readonly id?: SkillId;
   readonly name?: string;
-  readonly coefficient: number;
-  readonly hits: number;
+  readonly coefficient?: number;
+  readonly hits?: number;
+  readonly atMs?: number;
   /** Observed clone cast duration, in milliseconds. */
   readonly castTimeMs?: number;
   /** Damage offset from clone cast start, in milliseconds. */
@@ -781,11 +782,12 @@ export interface MesmerSequencedCloneAttack extends MesmerCloneAttackBase {
 export type MesmerCloneAttack = MesmerDirectCloneAttack | MesmerSequencedCloneAttack;
 
 export interface MesmerAmbushStrike {
-  readonly coefficient: number;
-  readonly hits: number;
+  readonly coefficient?: number;
+  readonly hits?: number;
+  readonly atMs?: number;
   readonly castTimeMs?: number;
   readonly damageAtMs?: number;
-  readonly ticks?: readonly MesmerAttackTimingTick[];
+  readonly ticks?: readonly StrikeTick[];
   readonly conditions?: readonly MesmerAttackStatus[];
 }
 
@@ -834,9 +836,9 @@ export interface MesmerPhantasmAttackTiming {
 
 export interface MesmerTraitDamage {
   readonly balanceProfileId?: SkillId;
-  readonly coefficient: number;
-  readonly hits: number;
-  readonly intervalMs?: number;
+  readonly coefficient?: number;
+  readonly hits?: number;
+  readonly ticks?: readonly StrikeTick[];
   readonly cooldown?: number;
   readonly weaponStrength?: number;
   readonly duration?: number;
@@ -853,20 +855,19 @@ export interface MesmerShatter {
   readonly consumesResources?: boolean;
   readonly resetBySignetOfIllusions?: boolean;
   readonly hitsPerSource?: number;
-  readonly strikeIntervalMs?: number;
+  readonly ticks?: readonly (readonly StrikeTick[])[];
   readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;
   readonly damageAtMs?: number;
-  readonly ticks?: readonly MesmerAttackTimingTick[];
 }
 
 export interface MesmerInstrument {
   readonly balanceProfileId?: SkillId;
   readonly slot: number;
   readonly instrument: string;
-  readonly coefficient: number;
-  readonly hits: number;
+  readonly coefficient?: number;
+  readonly hits?: number;
   readonly damageAtMs?: number;
-  readonly intervalMs?: number;
+  readonly ticks?: readonly StrikeTick[];
   readonly conditions?: readonly MesmerAttackStatus[];
 }

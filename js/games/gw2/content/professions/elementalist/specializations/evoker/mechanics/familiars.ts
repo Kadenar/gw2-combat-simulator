@@ -8,7 +8,11 @@
  * the familiar traits (Prowess, Blessing, Galvanic Enchantment, Specialized
  * Elements), and the Evoker meditation payloads.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
@@ -18,10 +22,6 @@ import type {
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
-  elementalistBalanceEffect,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
 import {
   BASIC_FAMILIARS,
   ELECTRIC_ENCHANTMENT_ICON,
@@ -227,13 +227,10 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     for (const event of context.events) {
       if (event.activationId === context.reservationId && event.type === 'condition' && event.condition === 'Burning') {
         context.replaceEvent(event, {
-          duration: elementalistEffectValue(
-            context,
-            PROFILE.ignite,
-            'condition',
+          duration: balanceProfileValue(
+            balanceProfileEffectFromContext(context, PROFILE.ignite, 'condition', 0, `Tier ${state.igniteTier + 1}`),
             'duration',
-            durations[state.igniteTier],
-            `Tier ${state.igniteTier + 1}`
+            durations[state.igniteTier]
           )
         });
       }
@@ -249,8 +246,8 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     const threshold = balanceProfileValueFromContext(context, PROFILE.foxsFury, 'threshold', 10);
     const tier = might >= threshold * 2 ? 2 : might >= threshold ? 1 : 0;
     const effectName = `Tier ${tier + 1}`;
-    const strike = elementalistBalanceEffect(context, PROFILE.foxsFury, 'strike', effectName);
-    const burning = elementalistBalanceEffect(context, PROFILE.foxsFury, 'condition', effectName);
+    const strike = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'strike', 0, effectName);
+    const burning = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'condition', 0, effectName);
     const at =
       context.start +
       balanceProfileValueFromContext(context, PROFILE.foxsFury, 'initialDelay', 0.56) /
@@ -348,10 +345,11 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
   const familiarElement = FAMILIAR_ELEMENTS[skill.name];
   if (familiarElement && hasTrait(context, "Familiar's Blessing")) {
     const quick = familiarElement === 'Fire' || familiarElement === 'Air';
-    const blessing = elementalistBalanceEffect(
+    const blessing = balanceProfileEffectFromContext(
       context,
       PROFILE.familiarsBlessing,
       'boon',
+      0,
       quick ? 'Quickness' : 'Alacrity'
     );
     emitSkillBuff(context, skill, {
@@ -399,7 +397,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
   }
 
   if (skill.name === 'Zap') {
-    const zap = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'buff', 'Zap Window');
+    const zap = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'buff', 0, 'Zap Window');
     emitSkillBuff(context, {
       at,
       source: skill.name,
@@ -470,7 +468,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
     });
     materializeArmedElectricEnchantments(context, state);
   } else if (skill.name === "Toad's Fortitude" && state.element === 'Earth') {
-    const resistance = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Toad Resistance');
+    const resistance = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Toad Resistance');
     emitSkillBuff(context, skill, {
       at,
       source: skill.name,
@@ -482,9 +480,9 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       skillName: skill.name
     });
   } else if (skill.name === "Fox's Fury") {
-    const might = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Fox Might');
-    const fireMight = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Fox Fire Bonus');
-    const fury = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Fox Fury');
+    const might = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Might');
+    const fireMight = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Fire Bonus');
+    const fury = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Fury');
     for (const boon of [
       {
         kind: String(might?.boon || 'Might').toLowerCase(),

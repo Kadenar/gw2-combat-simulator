@@ -32,17 +32,16 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     implemented: true,
     quicknessCastTimeMs: 560,
     handlerId: 'guardian.radiant-weapon',
+    // Luminous Staff's symbol creates a four-second Light field on its first pulse.
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 440, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 4,
-        atMs: 440,
-        intervalMs: 1000,
+        // EVTC records four Quickness packets at 440 ms and fixed one-second intervals.
+        ticks: [440, 1440, 2440, 3440].map((atMs) => ({ atMs, coefficient: 1.2 / 4 })),
         name: 'Luminous Staff — Symbol Damage',
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        intervalTimingScale: 'fixed'
+        timingScale: 'fixed'
       }
     ]
   },

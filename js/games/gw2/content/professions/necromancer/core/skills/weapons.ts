@@ -272,6 +272,7 @@ function graspingDarknessCommitted(context: NecromancerCastContext, skill: Necro
 
 // Treats Nightfall as committed once its first runtime-scaled damage packet is due.
 function nightfallCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
+  if (context.effectiveEnd >= context.fullEnd - context.epsilon) return true;
   const firstPacket = skill.effects?.find((effect) => effect.type === 'strike');
   const authoredOffsetMs = Number(
     firstPacket?.type === 'strike' ? effectFirstAtMs(firstPacket) || skill.castTimeMs || 0 : skill.castTimeMs || 0

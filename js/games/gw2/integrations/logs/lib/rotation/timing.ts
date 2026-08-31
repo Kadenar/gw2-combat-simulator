@@ -18,9 +18,7 @@ export function strikePacketOffsets(
 
   const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
   const first = origin + (effect.atMs == null ? runtimeDurationMs - origin : Number(effect.atMs) * castScale);
-  const intervalScale = effect.intervalTimingScale === 'fixed' ? 1 : castScale;
-  const interval = Math.max(0, Number(effect.intervalMs || 0)) * intervalScale;
-  return Array.from({ length: hits }, (_, index) => first + index * interval);
+  return Array.from({ length: hits }, () => first);
 }
 
 /** Returns the earliest catalog-modeled strike packet used by either combat-log source to verify commitment. */

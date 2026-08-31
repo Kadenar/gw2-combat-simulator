@@ -68,8 +68,7 @@ export function createSkillDamageController({
     group: MesmerStrikeEffect,
     selectedGroup: MesmerDamageGroup,
     at: number,
-    castStart: number,
-    pulseTimes: readonly number[]
+    castStart: number
   ): readonly number[] => {
     const castScale =
       group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
@@ -81,9 +80,6 @@ export function createSkillDamageController({
         : {
             ...selectedGroup,
             ...(selectedGroup.atMs == null ? {} : { atMs: Number(selectedGroup.atMs) * castScale }),
-            ...(selectedGroup.intervalMs == null || selectedGroup.intervalTimingScale === 'fixed'
-              ? {}
-              : { intervalMs: Number(selectedGroup.intervalMs) * castScale }),
             ...(Array.isArray(selectedGroup.ticks)
               ? {
                   ticks: selectedGroup.ticks.map((tick) => ({
@@ -98,49 +94,17 @@ export function createSkillDamageController({
       source: 'Player'
     };
     const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
-    const interval = Number(damageGroup.intervalMs || 0);
     const emittedAt = (origin: number, effect: MesmerDamageGroup): readonly number[] =>
       addDamage(skill, origin, effect).map((event) => event.at);
     if (fixedTicks?.length) {
-      const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || fixedTicks.length || 1)));
       const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
-      const ticks = Array.from({ length: hits }, (_, index) => {
-        const packet = fixedTicks[index % fixedTicks.length];
-        return {
-          ...packet,
-          coefficient: Number(packet.coefficient)
-        };
-      });
       return emittedAt(timingAnchorAt, {
         ...damageGroup,
         coefficient: undefined,
         hits: undefined,
         atMs: undefined,
         intervalMs: undefined,
-        ticks,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      });
-    }
-
-    if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
-      const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
-      return emittedAt(timingAnchorAt, damageGroup);
-    }
-
-    if (pulseTimes.length > 0 && Number(damageGroup.hits || 1) === pulseTimes.length) {
-      const origin = Math.min(...pulseTimes);
-      const coefficient = Number(damageGroup.coefficient || 0) / pulseTimes.length;
-      return emittedAt(origin, {
-        ...damageGroup,
-        coefficient: undefined,
-        hits: undefined,
-        atMs: undefined,
-        intervalMs: undefined,
-        ticks: pulseTimes.map((pulseAt) => ({
-          atMs: (pulseAt - origin) * 1000,
-          coefficient
-        })),
+        ticks: fixedTicks,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       });
@@ -269,9 +233,10 @@ export function createSkillDamageController({
         }
 
         for (const phantasm of phantasmExecutions) {
-          const result = phantasms.scheduleStrike(phantasm, group, selectedGroup, at, castStart);
-          addFencerStacks(result.initialHitTimes, result.damageGroup.hits);
-          addFencerStacks(result.repeatHitTimes, result.damageGroup.hits);
+          const result = phantasms.scheduleStrike(phantasm, group, selectedGroup, castStart);
+          const packetCount = result.damageGroup.ticks?.length ?? result.damageGroup.hits;
+          addFencerStacks(result.initialHitTimes, packetCount);
+          addFencerStacks(result.repeatHitTimes, packetCount);
         }
 
         continue;
@@ -286,10 +251,10 @@ export function createSkillDamageController({
           ? castStart + (at - castStart) * Number(group.castProgress)
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
       if (hitAt > playerEffectEnd + epsilon) continue;
-      const hitTimes = schedulePlayerStrike(skill, group, selectedGroup, at, castStart, pulseTimes);
+      const hitTimes = schedulePlayerStrike(skill, group, selectedGroup, at, castStart);
       if (group.actorType === 'player') {
         playerHitTimes.push(...hitTimes);
-        addFencerStacks(hitTimes, selectedGroup.hits);
+        addFencerStacks(hitTimes, selectedGroup.ticks?.length ?? selectedGroup.hits);
       }
     }
 

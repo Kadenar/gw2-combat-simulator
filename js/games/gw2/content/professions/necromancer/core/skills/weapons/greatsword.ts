@@ -61,14 +61,11 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
-        coefficient: 4.6,
-        hits: 4,
+        // EVTC records four Quickness pulses at 560 ms and fixed one-second intervals.
+        ticks: [560, 1560, 2560, 3560].map((atMs) => ({ atMs, coefficient: 4.6 / 4 })),
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 3 }],
-        atMs: 400,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {

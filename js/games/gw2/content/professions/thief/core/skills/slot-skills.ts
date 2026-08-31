@@ -2,6 +2,9 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+// The prepared field's five packets begin after the activation-to-damage delay observed in EVTC.
+const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
+
 export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SCORPION_WIRE]: {
     implemented: true,
@@ -460,7 +463,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
+        ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, coefficient: 0.5 }],
         name: 'Thousand Needles — Initial Strike',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -468,10 +471,10 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       {
         type: 'strike',
         ticks: [
-          { atMs: 1000, coefficient: 0.2 },
-          { atMs: 2000, coefficient: 0.2 },
-          { atMs: 3000, coefficient: 0.2 },
-          { atMs: 4000, coefficient: 0.2 }
+          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 1000, coefficient: 0.2 },
+          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 2000, coefficient: 0.2 },
+          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 3000, coefficient: 0.2 },
+          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 4000, coefficient: 0.2 }
         ],
         name: 'Thousand Needles — Pulse',
         timingAnchor: 'castStart',
@@ -479,14 +482,14 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, condition: 'Immobilized', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 0 + index * 1000,
+          atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + index * 1000,
           condition: 'Poisoned',
           stacks: 1,
           duration: 8
@@ -497,7 +500,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 0 + index * 1000,
+          atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + index * 1000,
           condition: 'Bleeding',
           stacks: 2,
           duration: 5
@@ -508,7 +511,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 0 + index * 1000,
+          atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + index * 1000,
           condition: 'Crippled',
           stacks: 1,
           duration: 2

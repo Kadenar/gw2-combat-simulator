@@ -59,7 +59,6 @@ export interface MesmerPhantasmEffectController {
     execution: MesmerPhantasmExecution,
     group: MesmerStrikeEffect,
     selectedGroup: MesmerDamageGroup,
-    at: number,
     castStart: number
   ): MesmerPhantasmStrikeResult;
   scheduleConditions(execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void;
@@ -268,7 +267,6 @@ export function createPhantasmEffectController({
     execution: MesmerPhantasmExecution,
     group: MesmerStrikeEffect,
     selectedGroup: MesmerDamageGroup,
-    at: number,
     castStart: number
   ): MesmerPhantasmStrikeResult => {
     const sourcedGroup: MesmerDamageGroup = {
@@ -277,18 +275,19 @@ export function createPhantasmEffectController({
       actorType: 'summon',
       summonKind: 'phantasm'
     };
-    // Flatten tick-array definitions into a single coefficient sum so the damageGroup
-    // holds a scalar value regardless of how the source data was authored.
-    const baseTicks = Array.isArray(sourcedGroup.ticks) ? sourcedGroup.ticks : null;
-    const baseHits = baseTicks?.length || Math.max(1, Math.trunc(Number(sourcedGroup.hits || 1)));
-    const totalCoefficient = baseTicks
-      ? baseTicks.reduce((total, tick) => total + Number(tick.coefficient), 0)
-      : Number(sourcedGroup.coefficient || 0);
+    const baseTicks = sourcedGroup.ticks?.length ? sourcedGroup.ticks : null;
     const damageGroup: MesmerDamageGroup = {
       ...sourcedGroup,
-      ticks: undefined,
-      coefficient: totalCoefficient * execution.damageMultiplier,
-      hits: baseHits
+      ...(baseTicks
+        ? {
+            coefficient: undefined,
+            hits: undefined,
+            ticks: baseTicks.map((tick) => ({
+              ...tick,
+              coefficient: Number(tick.coefficient) * execution.damageMultiplier
+            }))
+          }
+        : { coefficient: Number(sourcedGroup.coefficient || 0) * execution.damageMultiplier })
     };
     const groupName = group.name || '';
     const attackDisplayName = phantasmAttackDisplayName(execution.skill.id, groupName);
@@ -299,57 +298,63 @@ export function createPhantasmEffectController({
         }
       : undefined;
 
-    // Prefer per-entity measured ticks (from game recordings) over static tick arrays.
-    // Measured ticks use endpoint() for absolute timestamps; fixed ticks use ms offsets.
+    // Measured phantasm timings position the authored damage packets without changing their formulas.
     const measuredTicks =
       execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[groupName] ??
       (Array.isArray(execution.timing.damageTicks?.[groupName]) ? execution.timing.damageTicks[groupName] : null);
-    const fixedTicks = group.ticks?.length ? group.ticks : null;
-    const packets = measuredTicks?.length ? measuredTicks : fixedTicks;
-    const interval = Number(group.intervalMs || 0);
+    const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
     let initialEvents: ReturnType<MesmerAddDamage>;
 
-    // Branch 1: tick-packet list (measured or fixed). Coefficients split evenly across
-    // hits when measured; per-packet when fixed. Wraps packets if hits > packets.length.
-    if (packets?.length) {
-      const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
-      const timingAnchorAt = measuredTicks?.length ? castStart : group.timingAnchor === 'castStart' ? castStart : at;
-      const ticks = Array.from({ length: hits }, (_, index) => {
-        const packet = packets[index % packets.length];
-        const packetAt = measuredTicks?.length
-          ? execution.endpoint(packet.atMs)
-          : timingAnchorAt + Number(packet.atMs) / 1000;
-        return {
-          atMs: (packetAt - timingAnchorAt) * 1000,
-          coefficient: measuredTicks?.length
-            ? Number(damageGroup.coefficient || 0) / hits
-            : Number(packet.coefficient) * execution.damageMultiplier
-        };
-      });
+    if (measuredTicks?.length) {
+      const coefficients = fixedTicks?.map((tick) => Number(tick.coefficient)) ?? [
+        Number(damageGroup.coefficient || 0)
+      ];
+      if (measuredTicks.length !== coefficients.length) {
+        throw new TypeError(
+          `Phantasm strike ${execution.skill.id} packet count does not match its measured timing metadata.`
+        );
+      }
+
       initialEvents = addDamage(
         execution.skill,
-        timingAnchorAt,
+        castStart,
         {
           ...damageGroup,
           coefficient: undefined,
           hits: undefined,
           atMs: undefined,
           intervalMs: undefined,
-          ticks,
+          ticks: measuredTicks.map((packet, index) => ({
+            atMs: (execution.endpoint(packet.atMs) - castStart) * 1000,
+            coefficient: coefficients[index]
+          })),
           timingAnchor: 'castStart',
           timingScale: 'fixed'
         },
         initialEventExtra
       );
-      // Branch 2: interval-based multi-hit (e.g. sustained channel with regular spacing).
-    } else if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
-      const timingAnchorAt = group.timingAnchor === 'castStart' ? castStart : at;
-      initialEvents = addDamage(execution.skill, timingAnchorAt, damageGroup, initialEventExtra);
-      // Branch 3: single-hit or simple multi-hit at the phantasm's damage timestamp.
+    } else if (fixedTicks?.length) {
+      initialEvents = addDamage(
+        execution.skill,
+        castStart,
+        {
+          ...damageGroup,
+          atMs: undefined,
+          intervalMs: undefined,
+          // Skill-owned phantasm packets use measured post-cast offsets and still inherit Phantasmal Haste.
+          ticks: fixedTicks.map((tick) => ({
+            ...tick,
+            atMs: (execution.endpoint(tick.atMs) - castStart) * 1000
+          })),
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
+        },
+        initialEventExtra
+      );
     } else {
       initialEvents = addDamage(
         execution.skill,
-        execution.damageAt,
+        damageGroup.atMs == null ? execution.damageAt : execution.endpoint(damageGroup.atMs),
         {
           ...damageGroup,
           atMs: undefined,
@@ -373,7 +378,15 @@ export function createPhantasmEffectController({
         execution.timing.repeatDamageTicks?.[groupName] ??
         null;
       if (repeatMeasuredTicks?.length) {
-        const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
+        const coefficients = fixedTicks?.map((tick) => Number(tick.coefficient)) ?? [
+          Number(damageGroup.coefficient || 0)
+        ];
+        if (repeatMeasuredTicks.length !== coefficients.length) {
+          throw new TypeError(
+            `Phantasm strike ${execution.skill.id} packet count does not match its measured repeat timing metadata.`
+          );
+        }
+
         repeatHitTimes = addDamage(
           execution.skill,
           castStart,
@@ -383,10 +396,9 @@ export function createPhantasmEffectController({
             hits: undefined,
             atMs: undefined,
             intervalMs: undefined,
-            ticks: Array.from({ length: hits }, (_, index) => ({
-              atMs:
-                (execution.endpoint(repeatMeasuredTicks[index % repeatMeasuredTicks.length].atMs) - castStart) * 1000,
-              coefficient: Number(damageGroup.coefficient || 0) / hits
+            ticks: repeatMeasuredTicks.map((packet, index) => ({
+              atMs: (execution.endpoint(packet.atMs) - castStart) * 1000,
+              coefficient: coefficients[index]
             })),
             timingAnchor: 'castStart',
             timingScale: 'fixed'
@@ -448,13 +460,19 @@ export function createPhantasmEffectController({
       actorType: 'summon' as const,
       summonKind: 'phantasm' as const
     };
+    const authoredDamageTicks = (label: string) =>
+      execution.skill.effects?.find(
+        (candidate): candidate is MesmerStrikeEffect => candidate.type === 'strike' && candidate.name === label
+      )?.ticks;
     for (const effect of entityConditions) {
       const condition = { ...effect, name: effect.condition };
       // packetLabel ties the condition's application times to a named damage-tick sequence,
       // so conditions that apply on each hit are synchronized with the actual hit packets.
+      const authoredTicks = condition.packetLabel ? authoredDamageTicks(condition.packetLabel) : null;
       const conditionTicks = condition.packetLabel
         ? (execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
           execution.timing.damageTicks?.[condition.packetLabel] ??
+          authoredTicks ??
           null)
         : null;
       if (conditionTicks && conditionTicks.length > 0) {
@@ -498,6 +516,7 @@ export function createPhantasmEffectController({
       const initialConditionTicks = condition.packetLabel
         ? (execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
           execution.timing.damageTicks?.[condition.packetLabel] ??
+          authoredDamageTicks(condition.packetLabel) ??
           null)
         : null;
       const repeatConditionTicks = condition.packetLabel

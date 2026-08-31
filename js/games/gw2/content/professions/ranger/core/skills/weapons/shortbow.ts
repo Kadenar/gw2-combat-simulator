@@ -9,7 +9,8 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 5
+        hits: 5,
+        atMs: 0
       },
       {
         type: 'condition',

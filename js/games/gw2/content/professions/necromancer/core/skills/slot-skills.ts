@@ -581,14 +581,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 6,
-        atMs: 1000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 6 }, (_, index) => ({
+          atMs: 1000 + index * 1000,
+          coefficient: 0,
+          flatStrikeBase: 163,
+          flatStrikePowerCoeff: 0.05
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        flatStrikeBase: 163,
-        flatStrikePowerCoeff: 0.05,
         actorType: 'effect',
         name: 'Signet of Vampirism - Vampiric Mark',
         metadata: { noCrit: true, damageKind: 'life-steal' }

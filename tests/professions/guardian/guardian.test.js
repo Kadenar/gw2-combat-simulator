@@ -132,7 +132,10 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
   assert.equal(profile('Core', GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).profile.threshold, 5);
   assert.equal(profile('Dragonhunter', DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).profile.effects[0].duration, 2);
   assert.equal(profile('Firebrand', FIREBRAND_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
-  assert.equal(profile('Willbender', WILLBENDER_BALANCE_PROFILE_IDS.flames).profile.effects[0].coefficient, 0.22);
+  assert.equal(
+    profile('Willbender', WILLBENDER_BALANCE_PROFILE_IDS.flames).profile.effects[0].ticks[0].coefficient,
+    0.22
+  );
   assert.equal(profile('Luminary', LUMINARY_BALANCE_PROFILE_IDS.forge).patchableFields.maximumStacks, 4);
   assert.deepEqual(
     modules.get('Core').modifierRules.find((rule) => rule.id === 'guardian.inspired-virtue').parameters,
@@ -174,6 +177,7 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
         effects: [
           {
             effectIndex: 0,
+            tickIndex: 'all',
             coefficient: { from: 0.22, to: 0.3 }
           }
         ]
@@ -188,7 +192,11 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).threshold, 4);
   assert.equal(preview.balanceProfilesById.get(DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).effects[0].duration, 3);
   assert.equal(preview.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
-  assert.equal(preview.balanceProfilesById.get(WILLBENDER_BALANCE_PROFILE_IDS.flames).effects[0].coefficient, 0.3);
+  assert.ok(
+    preview.balanceProfilesById
+      .get(WILLBENDER_BALANCE_PROFILE_IDS.flames)
+      .effects[0].ticks.every((tick) => tick.coefficient === 0.3)
+  );
   assert.equal(preview.balanceProfilesById.get(LUMINARY_BALANCE_PROFILE_IDS.forge).maximumStacks, 5);
 
   assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0].coefficient, 0.8);

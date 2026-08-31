@@ -1,4 +1,8 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -6,7 +10,6 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { activeBoonStacks } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
-import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
@@ -51,13 +54,25 @@ function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event:
   for (const boon of [
     {
       kind: 'quickness',
-      duration: engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'duration', 3),
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.kineticAccelerators, 'boon'),
+        'duration',
+        3
+      ),
       stacks: 1
     },
     {
       kind: 'might',
-      duration: engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'duration', 10, 1),
-      stacks: engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'stacks', 3, 1)
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.kineticAccelerators, 'boon', 1),
+        'duration',
+        10
+      ),
+      stacks: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.kineticAccelerators, 'boon', 1),
+        'stacks',
+        3
+      )
     }
   ]) {
     emitSkillBuff(context, {

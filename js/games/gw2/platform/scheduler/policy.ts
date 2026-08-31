@@ -111,7 +111,7 @@ function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, eff
     ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
       ? {}
       : { intervalMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(effect.intervalMs)) })
-  };
+  } as SkillEffect;
 }
 
 export function gw2BuffActiveForAudience<TProfessionState extends object>(

@@ -94,6 +94,8 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 440,
     unaffectedByQuickness: true,
     cooldown: 15,
+    // The Light field begins on the initial impact and lasts four seconds.
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 360, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',

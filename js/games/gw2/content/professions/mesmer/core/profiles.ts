@@ -53,12 +53,22 @@ export function mesmerShatterProfile(
   return variant(id, parentId, `${name} - Shatter`, {
     ...(shatter.rechargeReductionPerSource == null ? {} : { rechargeReduction: shatter.rechargeReductionPerSource }),
     effects: [
-      ...shatter.coefficients.map((coefficient, resourceCount) => ({
-        type: 'strike' as const,
-        name: `${resourceCount} resources`,
-        coefficient,
-        hits: 1
-      })),
+      ...shatter.coefficients.map((coefficient, resourceCount) =>
+        shatter.ticks?.[resourceCount]?.length
+          ? {
+              type: 'strike' as const,
+              name: `${resourceCount} resources`,
+              ticks: shatter.ticks[resourceCount],
+              timingAnchor: 'castEnd' as const,
+              timingScale: 'fixed' as const
+            }
+          : {
+              type: 'strike' as const,
+              name: `${resourceCount} resources`,
+              coefficient,
+              hits: 1
+            }
+      ),
       ...effects
     ]
   });
@@ -70,18 +80,18 @@ export function mesmerTraitDamageProfile(id: SkillId, name: string, damage: Mesm
     ...(damage.duration == null ? {} : { durationMultiplier: damage.duration }),
     ...(damage.damageIncrease == null ? {} : { damageIncrease: damage.damageIncrease }),
     effects: [
-      {
-        type: 'strike',
-        coefficient: damage.coefficient,
-        hits: damage.hits,
-        ...(damage.intervalMs == null
-          ? {}
-          : {
-              intervalMs: damage.intervalMs,
-              timingAnchor: 'castEnd',
-              timingScale: 'fixed'
-            })
-      }
+      damage.ticks?.length
+        ? {
+            type: 'strike',
+            ticks: damage.ticks,
+            timingAnchor: 'castEnd',
+            timingScale: 'fixed'
+          }
+        : {
+            type: 'strike',
+            coefficient: damage.coefficient,
+            hits: damage.hits
+          }
     ]
   });
 }
@@ -256,9 +266,12 @@ export function mesmerProfiledShatters(
     Object.entries(shatters).map(([skillId, shatter]) => {
       const balanceProfileId = profileIds[Number(skillId)];
       const profile = balanceProfileFromContext(context, balanceProfileId);
-      const coefficients = (profile?.effects || [])
-        .filter((effect) => effect.type === 'strike')
-        .map((effect) => Number(effect.coefficient));
+      const strikes = (profile?.effects || []).filter((effect) => effect.type === 'strike');
+      const coefficients = strikes.map((effect) =>
+        effect.ticks?.length
+          ? effect.ticks.reduce((total, tick) => total + Number(tick.coefficient), 0)
+          : Number(effect.coefficient)
+      );
       return [
         Number(skillId),
         {
@@ -268,6 +281,10 @@ export function mesmerProfiledShatters(
             coefficients.length === shatter.coefficients.length && coefficients.every(Number.isFinite)
               ? coefficients
               : shatter.coefficients,
+          ticks:
+            strikes.length === shatter.coefficients.length && strikes.every((effect) => effect.ticks?.length)
+              ? strikes.map((effect) => effect.ticks || [])
+              : shatter.ticks,
           ...(shatter.rechargeReductionPerSource == null
             ? {}
             : {
@@ -294,9 +311,13 @@ export function mesmerProfiledTraitDamage(
   return {
     ...damage,
     balanceProfileId,
-    coefficient: Number(strike?.coefficient ?? damage.coefficient),
-    hits: Number(strike?.hits ?? damage.hits),
-    intervalMs: Number(strike?.intervalMs ?? (damage.intervalMs || 0)),
+    ...(strike?.ticks?.length
+      ? { coefficient: undefined, hits: undefined, ticks: strike.ticks }
+      : {
+          coefficient: Number(strike?.coefficient ?? damage.coefficient),
+          hits: Number(strike?.hits ?? damage.hits),
+          ticks: undefined
+        }),
     cooldown: balanceProfileValueFromContext(
       context,
       balanceProfileId,

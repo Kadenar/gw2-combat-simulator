@@ -71,9 +71,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        coefficient: 3.5,
-        hits: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.5 / 5 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },

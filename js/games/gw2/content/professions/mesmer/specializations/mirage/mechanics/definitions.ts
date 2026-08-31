@@ -15,6 +15,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     player: {
       coefficient: 1,
       hits: 2,
+      atMs: 0,
       damageAtMs: 360,
       conditions: [
         {
@@ -28,6 +29,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     clone: {
       coefficient: 3.7,
       hits: 2,
+      atMs: 0,
       castTimeMs: 1110,
       conditions: [
         {
@@ -48,6 +50,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     player: {
       coefficient: 3,
       hits: 3,
+      atMs: 0,
       conditions: [
         {
           name: 'Bleeding',
@@ -64,6 +67,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     clone: {
       coefficient: 3,
       hits: 3,
+      atMs: 0,
       castTimeMs: 0,
       conditions: [
         {
@@ -87,13 +91,16 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     castTimeMs: 1440,
     cooldown: 0.5,
     player: {
-      coefficient: 3.1875,
-      hits: 3,
-      ticks: [{ atMs: 360 }, { atMs: 520 }, { atMs: 680 }]
+      ticks: [
+        { atMs: 360, coefficient: 3.1875 / 3 },
+        { atMs: 520, coefficient: 3.1875 / 3 },
+        { atMs: 680, coefficient: 3.1875 / 3 }
+      ]
     },
     clone: {
       coefficient: 3.1875,
-      hits: 3
+      hits: 3,
+      atMs: 0
     },
     playerBoons: [
       {
@@ -116,11 +123,13 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     cooldown: 1,
     player: {
       coefficient: 2.6,
-      hits: 4
+      hits: 4,
+      atMs: 0
     },
     clone: {
       coefficient: 1.2,
-      hits: 4
+      hits: 4,
+      atMs: 0
     },
     playerBoons: [
       {
@@ -141,6 +150,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     player: {
       coefficient: 1.25,
       hits: 5,
+      atMs: 0,
       conditions: [
         {
           name: 'Confusion',
@@ -157,6 +167,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     clone: {
       coefficient: 3.75,
       hits: 5,
+      atMs: 0,
       conditions: [
         {
           name: 'Confusion',
@@ -179,14 +190,13 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     castTimeMs: 1320,
     cooldown: 1,
     player: {
-      coefficient: 3.15,
-      hits: 7,
       // Fractured Glass applies one strike and one Vulnerability stack at each measured packet.
-      ticks: [{ atMs: 400 }, { atMs: 480 }, { atMs: 520 }, { atMs: 560 }, { atMs: 640 }, { atMs: 720 }, { atMs: 760 }]
+      ticks: [400, 480, 520, 560, 640, 720, 760].map((atMs) => ({ atMs, coefficient: 3.15 / 7 }))
     },
     clone: {
       coefficient: 3.15,
-      hits: 7
+      hits: 7,
+      atMs: 0
     },
     vulnerability: {
       duration: 6,
@@ -204,6 +214,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     player: {
       coefficient: 0.6,
       hits: 1,
+      atMs: 0,
       conditions: [
         {
           name: 'Bleeding',
@@ -225,6 +236,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     clone: {
       coefficient: 1.12,
       hits: 1,
+      atMs: 0,
       conditions: [
         {
           name: 'Bleeding',
@@ -277,11 +289,13 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     cooldown: 1,
     player: {
       coefficient: 3,
-      hits: 1
+      hits: 1,
+      atMs: 0
     },
     clone: {
       coefficient: 3,
-      hits: 1
+      hits: 1,
+      atMs: 0
     },
     createsClone: true,
     control: true

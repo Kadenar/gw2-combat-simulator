@@ -31,6 +31,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     initiative: Math.min(maximumInitiative, Math.max(0, Number(config.initialInitiative ?? 12))),
     maximumInitiative,
     initiativeUpdatedAt: 0,
+    stealthStartedAt: 0,
     stealthUntil: 0,
     revealedUntil: 0,
     storedStolenSkillId: null,
@@ -69,6 +70,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
 export const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Object.freeze([
   'initiative',
   'maximumInitiative',
+  'stealthStartedAt',
   'stealthUntil',
   'revealedUntil',
   'storedStolenSkillId',

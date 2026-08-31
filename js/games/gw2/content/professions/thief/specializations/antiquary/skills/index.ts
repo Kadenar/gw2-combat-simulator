@@ -11,7 +11,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 0, coefficient: 3.2 / 4 })),
+        coefficient: 3.2,
+        hits: 4,
+        atMs: 0,
         name: 'Metal Legion Guitar — Packet 1',
         actorType: 'player',
         timingAnchor: 'castEnd',
@@ -354,7 +356,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 0, coefficient: 1.5 / 5 })),
+        coefficient: 1.5,
+        hits: 5,
+        atMs: 0,
         name: 'Chak Shield',
         actorType: 'player',
         timingAnchor: 'castEnd',

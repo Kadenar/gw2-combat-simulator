@@ -6,6 +6,8 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.SYMBOL_OF_VENGEANCE]: {
     implemented: true,
     quicknessCastTimeMs: 800,
+    // The Light field begins with the first symbol pulse and lasts through the fifth.
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 680, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',

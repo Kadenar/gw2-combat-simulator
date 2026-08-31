@@ -66,6 +66,7 @@ export interface ThiefCoreState {
   initiative: number;
   maximumInitiative: number;
   initiativeUpdatedAt: number;
+  stealthStartedAt: number;
   stealthUntil: number;
   revealedUntil: number;
   storedStolenSkillId: SkillId | null;

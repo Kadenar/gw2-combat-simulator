@@ -42,8 +42,16 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'strike',
-        coefficient: 0.92,
-        hits: 8,
+        ticks: [
+          { atMs: 830, coefficient: 0.115 },
+          { atMs: 1030, coefficient: 0.115 },
+          { atMs: 1230, coefficient: 0.115 },
+          { atMs: 1430, coefficient: 0.115 },
+          { atMs: 1630, coefficient: 0.115 },
+          { atMs: 1830, coefficient: 0.115 },
+          { atMs: 2030, coefficient: 0.115 },
+          { atMs: 2230, coefficient: 0.115 }
+        ],
         name: 'Illusion Damage',
         actorType: 'summon',
         summonKind: 'phantasm',

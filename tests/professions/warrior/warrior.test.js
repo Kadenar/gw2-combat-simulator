@@ -88,6 +88,11 @@ function simulate(specialization, rotation, config = {}, observationPolicy = und
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
+const strikeCoefficient = (effect) =>
+  effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
+
+const skillStrikeCoefficient = (skill) => strikeCoefficient(skill.effects.find((effect) => effect.type === 'strike'));
+
 const applyWarriorPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(warriorCatalog, patch), patch);
 
 test('Warrior catalog pins the API snapshot and all elite specializations', () => {
@@ -905,7 +910,7 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
 
   assert.equal(arc.cooldown, 5);
   assert.equal(arc.skillWeapon, 'Greatsword');
-  assert.equal(arc.effects[0].coefficient, 3.5);
+  assert.equal(strikeCoefficient(arc.effects[0]), 3.5);
   assert.equal(wildThrow.cooldown, 5);
   assert.equal(wildThrow.skillWeapon, 'Spear');
   assert.deepEqual(
@@ -926,7 +931,7 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   );
   assert.equal(maimingSpear.cooldown, 5);
   assert.deepEqual(
-    maimingSpear.effects.filter((effect) => effect.type === 'strike').map((effect) => effect.coefficient),
+    maimingSpear.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient),
     [1.1, 1.125]
   );
   assert.equal(
@@ -1023,14 +1028,17 @@ test('Spellbreaker Winds and Kick use the supplied PvE mechanics', () => {
   const kickStrike = kick.effects.find((effect) => effect.type === 'strike');
   const kickControl = kick.effects.find((effect) => effect.type === 'control');
 
-  assert.equal(windsStrike.coefficient, 2.25);
-  assert.equal(windsStrike.hits, 5);
-  assert.equal(windsStrike.intervalMs, 1000);
-  assert.equal(windsStrike.coefficient / windsStrike.hits, 0.45);
+  assert.equal(strikeCoefficient(windsStrike), 2.25);
+  assert.equal(windsStrike.ticks.length, 5);
+  assert.deepEqual(
+    windsStrike.ticks.map((tick) => tick.atMs),
+    [800, 1800, 2800, 3800, 4800]
+  );
+  assert.ok(windsStrike.ticks.every((tick) => tick.coefficient === 0.45));
   assert.equal(kick.ammo, 3);
   assert.equal(kick.ammoCastLockout, 3);
   assert.equal(kick.ammoRecharge, 20);
-  assert.equal(kickStrike.coefficient, 1);
+  assert.equal(strikeCoefficient(kickStrike), 1);
   assert.equal(kickControl.metadata.controlKind, 'knockback');
 
   const result = simulate('Spellbreaker', ['Winds of Disenchantment'], {}, observationTail(5000));
@@ -1062,11 +1070,10 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
   const hushblade = warriorCatalog.skillsById.get(ID.HUSHBLADE);
   const breachingStrike = warriorCatalog.skillsById.get(ID.BREACHING_STRIKE);
   const slicingMaelstrom = warriorCatalog.skillsById.get(ID.SLICING_MAELSTROM);
-  const strikeCoefficient = (skill) => skill.effects.find((effect) => effect.type === 'strike')?.coefficient;
   const damage = (result, name) => result.breakdown.find((entry) => entry.name === name)?.damage || 0;
 
   assert.deepEqual(
-    [keenStrike, focusedSlash, preciseCut].map((skill) => [strikeCoefficient(skill), skill.weapon]),
+    [keenStrike, focusedSlash, preciseCut].map((skill) => [skillStrikeCoefficient(skill), skill.weapon]),
     [
       [1.05, 'Dagger'],
       [0.65, 'Dagger'],
@@ -1074,22 +1081,22 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
     ]
   );
 
-  assert.deepEqual([wastrelsRuin.cooldown, strikeCoefficient(wastrelsRuin)], [12, 1.5]);
+  assert.deepEqual([wastrelsRuin.cooldown, skillStrikeCoefficient(wastrelsRuin)], [12, 1.5]);
   assert.deepEqual(
     [
       hushblade.ammo,
       hushblade.ammoCastLockout,
       hushblade.ammoRecharge,
-      strikeCoefficient(hushblade),
+      skillStrikeCoefficient(hushblade),
       hushblade.effects.find((effect) => effect.type === 'control')?.metadata.controlKind
     ],
     [2, 1, 12, 1.5, 'daze']
   );
   assert.deepEqual(
-    [breachingStrike.cooldown, strikeCoefficient(breachingStrike), breachingStrike.skillWeapon],
+    [breachingStrike.cooldown, skillStrikeCoefficient(breachingStrike), breachingStrike.skillWeapon],
     [8, 2.5, 'Dagger']
   );
-  assert.deepEqual([slicingMaelstrom.cooldown, strikeCoefficient(slicingMaelstrom)], [5, 2.5]);
+  assert.deepEqual([slicingMaelstrom.cooldown, skillStrikeCoefficient(slicingMaelstrom)], [5, 2.5]);
 
   const normalWastrel = simulate('Spellbreaker', ["Wastrel's Ruin"], {
     primaryWeapon: 'Sword',

@@ -153,6 +153,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
         type: 'strike',
         coefficient: 0.7,
         hits: 2,
+        atMs: 0,
         name: 'Damage',
         actorType: 'player',
         weapon: 'unequipped'

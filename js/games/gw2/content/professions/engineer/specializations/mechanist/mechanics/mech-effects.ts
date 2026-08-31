@@ -1,4 +1,8 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
@@ -9,10 +13,7 @@ import {
   recordTrait,
   resolverSkill
 } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
-import {
-  ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  engineerBalanceEffectValue
-} from '#gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/engineer/core/profiles.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
@@ -59,8 +60,16 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
       applyEngineerDerivedCondition(context, event, {
         name: 'Incendiary Powder',
         condition: 'Burning',
-        stacks: engineerBalanceEffectValue(context, CORE_PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
-        duration: engineerBalanceEffectValue(context, CORE_PROFILE.incendiaryPowder, 'condition', 'duration', 8),
+        stacks: balanceProfileValue(
+          balanceProfileEffectFromContext(context, CORE_PROFILE.incendiaryPowder, 'condition'),
+          'stacks',
+          1
+        ),
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, CORE_PROFILE.incendiaryPowder, 'condition'),
+          'duration',
+          8
+        ),
         sourceId: TRAIT.INCENDIARY_POWDER,
         actorType: 'summon',
         metadata: { engineerMech: true }

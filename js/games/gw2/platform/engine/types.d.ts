@@ -206,9 +206,13 @@ export interface SkillEffectBase {
 
 export interface StrikeEffect extends SkillEffectBase {
   readonly type: 'strike';
+  /** Aggregate coefficient; hits above one require one explicit shared atMs timestamp. */
   readonly coefficient?: number;
   readonly hits?: number;
+  /** Distinct packet timestamps and formulas. Mutually exclusive with aggregate fields. */
   readonly ticks?: readonly StrikeTick[];
+  /** Strike intervals are invalid; distinct timestamps belong in ticks. */
+  readonly intervalMs?: never;
   readonly canCrit?: boolean;
   readonly coefficientModifiers?: DamageEvent['coefficientModifiers'];
   readonly weapon?: string;

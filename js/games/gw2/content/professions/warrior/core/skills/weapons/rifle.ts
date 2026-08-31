@@ -43,7 +43,8 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'strike',
         coefficient: 4,
-        hits: 5
+        hits: 5,
+        atMs: 0
       }
     ]
   },

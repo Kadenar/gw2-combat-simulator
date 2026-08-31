@@ -1,5 +1,9 @@
 /** Imperative Earth trait behavior; dispatch and event classification remain outside this line module. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,8 +18,7 @@ import type { ElementalistAuraApplier } from '#gw2/content/professions/elemental
 import {
   combatStarted,
   emitElementalistProc,
-  emitProfiledBuff,
-  profiledEffect
+  emitProfiledBuff
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistDerivedCondition,
@@ -23,11 +26,7 @@ import {
   queueElementalistBuff,
   recordElementalistTraitProc
 } from '#gw2/content/professions/elementalist/core/mechanics/resolution-helpers.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceEffect,
-  elementalistEffectValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 const EARTHEN_BLAST_ICON = 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png';
 
@@ -42,7 +41,11 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
     ownerActorType: 'player',
     skillName: 'Earthen Blast',
     icon: EARTHEN_BLAST_ICON,
-    coefficient: elementalistEffectValue(context, PROFILE.earthenBlast, 'strike', 'coefficient', 0.36),
+    coefficient: balanceProfileValue(
+      balanceProfileEffectFromContext(context, PROFILE.earthenBlast, 'strike'),
+      'coefficient',
+      0.36
+    ),
     skillWeapon: 'Unequipped',
     noCrit: true
   });
@@ -96,7 +99,7 @@ export function applyWrittenInStone(
           ? (['Earth', 'Magnetic Aura', 3] as const)
           : null;
   if (!aura) return;
-  const effect = profiledEffect(context, PROFILE.writtenInStone, 'buff', aura[0]);
+  const effect = balanceProfileEffectFromContext(context, PROFILE.writtenInStone, 'buff', 0, aura[0]);
   applyAura(context, {
     at: context.effectiveEnd,
     aura: String(effect?.kind || aura[1]),
@@ -113,7 +116,13 @@ export function applyStrengthOfStone(context: Gw2ResolverRuntime, event: Gw2Reso
   if (!isInternalCooldownReady(event.at, Number(state.procReadyAt.strengthOfStone || 0))) return;
   state.procReadyAt.strengthOfStone =
     event.at + balanceProfileValueFromContext(context, PROFILE.strengthOfStone, 'internalCooldown', 3);
-  const bleeding = elementalistBalanceEffect(context, PROFILE.strengthOfStone, 'condition', 'Strength of Stone');
+  const bleeding = balanceProfileEffectFromContext(
+    context,
+    PROFILE.strengthOfStone,
+    'condition',
+    0,
+    'Strength of Stone'
+  );
   applyElementalistDerivedCondition(context, event, {
     source: 'Strength of Stone',
     sourceId: 'Strength of Stone',
@@ -139,7 +148,7 @@ export function applySchedulerElementalShielding(
 /** Grants resolver-side Elemental Shielding protection for one classified aura event. */
 export function applyResolverElementalShielding(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Elemental Shielding')) return;
-  const protection = elementalistBalanceEffect(context, PROFILE.elementalShielding, 'boon', 'Protection');
+  const protection = balanceProfileEffectFromContext(context, PROFILE.elementalShielding, 'boon', 0, 'Protection');
   queueElementalistBuff(
     context,
     event,

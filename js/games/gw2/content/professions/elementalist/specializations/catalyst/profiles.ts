@@ -1,7 +1,7 @@
 /**
  * Balance-profile data for Catalyst: the energy resource, the three augment skill
  * variants, and every Catalyst trait. Mechanics read these through
- * `balanceProfileValueFromContext`/`elementalistBalanceEffect`, so patch data can retune
+ * `balanceProfileValueFromContext`/`balanceProfileEffectFromContext`, so patch data can retune
  * Catalyst numbers without touching handler code.
  */
 import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
@@ -32,7 +32,7 @@ export const CATALYST_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 // Named boon/aura effect shorthands; `name` is the lookup key handlers pass to
-// elementalistBalanceEffect (usually the attunement), not the buff itself.
+// balanceProfileEffectFromContext (usually the attunement), not the buff itself.
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,

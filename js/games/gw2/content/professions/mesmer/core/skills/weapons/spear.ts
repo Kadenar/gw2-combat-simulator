@@ -65,6 +65,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         coefficient: 3,
         hits: 3,
+        atMs: 0,
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear'

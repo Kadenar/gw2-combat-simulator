@@ -95,22 +95,21 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
   assert.equal(thiefCatalog.skillsById.get(13006).castTimeMs, 1560);
-  // Thief packets have one canonical authoring shape so handlers never need aggregate-effect fallbacks.
+  // Thief strike timelines stay explicit unless every hit shares one timestamp.
   for (const skill of thiefCatalog.skills) {
     for (const effect of skill.effects || []) {
-      if (effect.type !== 'strike' && effect.type !== 'condition') continue;
-      assert.ok(Array.isArray(effect.ticks), skill.name);
-      for (const field of [
-        'coefficient',
-        'hits',
-        'condition',
-        'stacks',
-        'duration',
-        'applications',
-        'atMs',
-        'intervalMs'
-      ]) {
-        assert.equal(field in effect, false, `${skill.name}: ${field}`);
+      if (effect.type === 'strike') {
+        if (effect.ticks) {
+          for (const field of ['coefficient', 'hits', 'atMs', 'intervalMs']) {
+            assert.equal(field in effect, false, `${skill.name}: ${field}`);
+          }
+        } else {
+          assert.ok(Number(effect.coefficient) >= 0, skill.name);
+          assert.ok(Number.isInteger(effect.hits) && effect.hits > 0, skill.name);
+          if (effect.hits > 1) assert.ok(Number.isFinite(effect.atMs), skill.name);
+        }
+      } else if (effect.type === 'condition') {
+        assert.ok(Array.isArray(effect.ticks), skill.name);
       }
     }
   }
@@ -189,7 +188,10 @@ test('Thief modules expose isolated balance-profile authoring', () => {
 
   assert.equal(profile('Core', THIEF_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 12);
   assert.equal(
-    profile('Daredevil', DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).profile.effects[0].coefficient,
+    profile('Daredevil', DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).profile.effects[0].ticks.reduce(
+      (total, tick) => total + tick.coefficient,
+      0
+    ),
     0.5625
   );
   assert.equal(profile('Deadeye', DEADEYE_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
@@ -217,7 +219,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
         fields: { maximumStacks: { from: 12, to: 13 } }
       },
       [DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 0.5625, to: 0.6 } }]
+        effects: [{ effectIndex: 0, tickIndex: 'all', coefficient: { from: 0.1875, to: 0.2 } }]
       },
       [DEADEYE_BALANCE_PROFILE_IDS.resources]: {
         fields: { maximumStacks: { from: 5, to: 6 } }
@@ -233,9 +235,12 @@ test('Thief modules expose isolated balance-profile authoring', () => {
 
   assert.ok(preview.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 12));
   assert.equal(preview.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 13);
-  assert.equal(
-    preview.balanceProfilesById.get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).effects[0].coefficient,
-    0.6
+  assert.ok(
+    Math.abs(
+      preview.balanceProfilesById
+        .get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining)
+        .effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0) - 0.6
+    ) < 1e-12
   );
   assert.equal(preview.balanceProfilesById.get(DEADEYE_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
   assert.equal(preview.balanceProfilesById.get(SPECTER_BALANCE_PROFILE_IDS.resources).resourceGain, 1.25);
@@ -631,6 +636,31 @@ test('non-stealth strike skills remove stealth and restore the normal autoattack
   assert.ok(result.endState.profession.revealedUntil > 0);
   assert.equal(result.endState.profession.stealthUntil <= result.duration, true);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Double Strike'));
+});
+
+test('delayed strikes break stealth on impact without blocking a same-time stealth attack', () => {
+  const config = {
+    primaryWeapon: 'Rifle',
+    secondaryWeapon: '',
+    selectedSkills: ['Shadow Meld', 'Shadow Flare']
+  };
+  const impact = simulate('Deadeye', ['Kneel', 'Shadow Meld', 'Shadow Flare', { type: 'wait', durationMs: 1 }], config);
+  const flareDamage = impact.events.find((event) => event.type === 'damage' && event.skillName === 'Shadow Flare');
+  const stealthBreak = impact.events.find(
+    (event) => event.type === 'thief.state' && event.reason === 'strike-broke-stealth'
+  );
+
+  assert.equal(stealthBreak.at, flareDamage.at);
+  const sameTimeAttack = simulate(
+    'Deadeye',
+    ['Kneel', 'Shadow Meld', 'Shadow Flare', "Malicious Death's Judgment"],
+    config
+  );
+  const flare = sameTimeAttack.events.find((event) => event.type === 'damage' && event.skillName === 'Shadow Flare');
+  const deathJudgment = sameTimeAttack.steps.find((step) => step.skill === "Malicious Death's Judgment");
+
+  assert.deepEqual(sameTimeAttack.warnings, []);
+  assert.ok(Math.abs(deathJudgment.start / 1000 - flare.at) < 1e-9);
 });
 
 test('stealth replaces weapon skill 1 without a separate palette group', () => {
@@ -1588,6 +1618,21 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   assert.equal(thiefCatalog.skillsByName.get('Shadow Flare').castTimeMs, 720);
   assert.equal(thiefCatalog.skillsByName.get('Steal Time').castTimeMs, 420);
   assert.equal(thiefCatalog.skillsByName.get('Shadow Meld').castTimeMs, 660);
+  const shadowFlareStrike = thiefCatalog.skillsByName
+    .get('Shadow Flare')
+    .effects.find((effect) => effect.type === 'strike');
+  const shadowSwapStrike = thiefCatalog.skillsByName
+    .get('Shadow Swap')
+    .effects.find((effect) => effect.type === 'strike');
+
+  assert.deepEqual(
+    [shadowFlareStrike.ticks[0].atMs, shadowFlareStrike.timingAnchor, shadowFlareStrike.timingScale],
+    [480, 'castStart', 'cast']
+  );
+  assert.deepEqual(
+    [shadowSwapStrike.ticks[0].atMs, shadowSwapStrike.timingAnchor, shadowSwapStrike.timingScale],
+    [0, 'castEnd', 'fixed']
+  );
 
   const threeRoundBurst = thiefCatalog.skillsByName.get('Three Round Burst');
 
@@ -1825,7 +1870,7 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
     .filter((event) => event.at <= chain.steps[2].start / 1000 + 1e-9)
     .at(-1);
 
-  assert.equal(thiefStates[wildStrikeStateIndex].state.endurance - beforeWildStrike.state.endurance, 10);
+  assert.ok(Math.abs(thiefStates[wildStrikeStateIndex].state.endurance - beforeWildStrike.state.endurance - 10) < 1e-9);
   // Wild Strike's completion grant must not discard regeneration accrued during its cast.
   assert.equal(chain.endState.profession.endurance, 70);
   const doubleStrikeHits = chain.events.filter(
@@ -2144,7 +2189,7 @@ test('Specter packet offsets align scepter and shroud impacts', () => {
 
   assert.deepEqual(packetOffsets(shroud, 'Grasping Shadows'), [1.24]);
   assert.deepEqual(packetOffsets(shroud, 'Eternal Night'), [0.36, 0.68]);
-  assert.deepEqual(packetOffsets(shroud, 'Haunt Shot'), [0.567]);
+  assert.deepEqual(packetOffsets(shroud, 'Haunt Shot'), [0.56]);
 });
 
 test('Thief utility skills materialize their declarative pulse timelines', () => {
@@ -2172,7 +2217,7 @@ test('Thief utility skills materialize their declarative pulse timelines', () =>
       'Prepare Thousand Needles',
       { name: '__wait', waitMs: 3000 },
       'Thousand Needles',
-      { name: '__wait', waitMs: 4000 }
+      { name: '__wait', waitMs: 4500 }
     ],
     {
       selectedSkills: ['Prepare Thousand Needles'],
@@ -2180,7 +2225,7 @@ test('Thief utility skills materialize their declarative pulse timelines', () =>
     }
   );
 
-  assert.deepEqual(pulseOffsets(needles, 'Thousand Needles', 'damage', null, 'start'), [0, 1, 2, 3, 4]);
+  assert.deepEqual(pulseOffsets(needles, 'Thousand Needles', 'damage', null, 'start'), [0.28, 1.28, 2.28, 3.28, 4.28]);
 });
 
 test('Specter wells preserve one-second pulse intervals and ordered effects', () => {
@@ -2462,6 +2507,14 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
 
   assert.equal(afterLeadAndAutoattack.endState.profession.spearChainStage, 1);
   assert.equal(afterLeadAndAutoattack.endState.profession.spearPreviousSkillId, ID.MANTIS_STING);
+  const stealthFinisher = simulate(
+    'Core',
+    ['Unsuspecting Strike', 'Vampiric Slash', 'Shattering Assault', 'Ashen Assault'],
+    spearConfig
+  );
+
+  assert.deepEqual(stealthFinisher.warnings, []);
+  assert.ok(stealthFinisher.steps.some((step) => step.skill === 'Ashen Assault'));
 });
 
 test('Spider Venom grants six independent charges to the player and allies', () => {

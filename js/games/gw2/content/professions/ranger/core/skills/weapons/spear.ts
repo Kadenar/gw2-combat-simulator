@@ -78,7 +78,8 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       {
         type: 'strike',
         coefficient: 2.5,
-        hits: 2
+        hits: 2,
+        atMs: 0
       },
       {
         type: 'condition',

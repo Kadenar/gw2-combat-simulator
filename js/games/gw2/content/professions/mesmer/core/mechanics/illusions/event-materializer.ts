@@ -66,7 +66,7 @@ export function createMesmerEventMaterializer({
 
   const addCondition: MesmerAddCondition = (skillName, at, condition, source = 'Player', label = '', extra = {}) => {
     const name = canonicalTargetConditionName(condition.name);
-    if (!condition.duration) return [];
+    if (!condition.duration && !condition.ticks?.length) return [];
     const eventSource = String(extra.source || source);
     const sourceId = extra.sourceId ?? skillName;
     const summonKind = mesmerSummonKind(eventSource, extra.summonKind ?? condition.summonKind);
@@ -135,8 +135,7 @@ export function createMesmerEventMaterializer({
     const sourceId = extra.sourceId ?? skill.id ?? skill.name;
     const summonKind = mesmerSummonKind(source, group.summonKind ?? extra.summonKind);
     const actorType = group.actorType || extra.actorType || (summonKind ? 'summon' : gw2ActorTypeForSource(source));
-    const hasExplicitTiming =
-      group.atMs != null || group.intervalMs != null || (Array.isArray(group.ticks) && group.ticks.length > 0);
+    const hasExplicitTiming = group.atMs != null || (Array.isArray(group.ticks) && group.ticks.length > 0);
     const effect: StrikeEffect = {
       ...group,
       type: 'strike',
@@ -165,7 +164,7 @@ export function createMesmerEventMaterializer({
       },
       skillWeaponFallback: slotSkill ? 'Utility' : activePrimaryWeapon()
     });
-    const individuallyTimed = Array.isArray(group.ticks) || Number(group.intervalMs || 0) > 0;
+    const individuallyTimed = Array.isArray(group.ticks);
     return applications.flatMap((application) => {
       const explicit = String(group.weapon || '');
       const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();

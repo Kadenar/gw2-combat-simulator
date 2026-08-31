@@ -28,11 +28,14 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SYMBOL_OF_SWIFTNESS]: {
     implemented: true,
     castTimeMs: 750,
+    // The symbol creates its four-second Light field when the cast completes.
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
     effects: [
       {
         type: 'strike',
         coefficient: 2.5,
-        hits: 5
+        hits: 5,
+        atMs: 0
       }
     ]
   },

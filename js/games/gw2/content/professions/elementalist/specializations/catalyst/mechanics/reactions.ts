@@ -6,7 +6,10 @@
  * combo-finisher traits (Elemental Epitome, Elemental Synergy), pay out Vicious
  * Empowerment, and queue the Shattering Ice packet.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -26,10 +29,7 @@ import {
   catalystState,
   grantCatalystElementalEmpowerment
 } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
 
 /**
@@ -61,7 +61,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
     return;
   }
 
-  const empowerment = elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', 'Empowerment');
+  const empowerment = balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, 'Empowerment');
   queueElementalistBuff(
     context,
     event,
@@ -99,7 +99,9 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
       context,
       event,
       aura[0],
-      Number(elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', attunement)?.duration ?? aura[1]),
+      Number(
+        balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, attunement)?.duration ?? aura[1]
+      ),
       'Elemental Epitome'
     );
     recordElementalistTraitProc(context, event, 'Elemental Epitome');
@@ -110,7 +112,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
     state.elementalSynergyReadyAt[attunement] =
       event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
     if (attunement === 'Fire') {
-      const might = elementalistBalanceEffect(context, PROFILE.elementalSynergy, 'boon', 'Fire');
+      const might = balanceProfileEffectFromContext(context, PROFILE.elementalSynergy, 'boon', 0, 'Fire');
       queueElementalistBuff(
         context,
         event,
@@ -120,7 +122,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
         'Elemental Synergy'
       );
     } else if (attunement === 'Earth') {
-      const stability = elementalistBalanceEffect(context, PROFILE.elementalSynergy, 'boon', 'Earth');
+      const stability = balanceProfileEffectFromContext(context, PROFILE.elementalSynergy, 'boon', 0, 'Earth');
       queueElementalistBuff(
         context,
         event,
@@ -178,8 +180,8 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
   if (!isInternalCooldownReady(event.at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
     event.at + balanceProfileValueFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
-  const empowerment = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'buff', 'Empowerment');
-  const might = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'boon', 'Might');
+  const empowerment = balanceProfileEffectFromContext(context, PROFILE.viciousEmpowerment, 'buff', 0, 'Empowerment');
+  const might = balanceProfileEffectFromContext(context, PROFILE.viciousEmpowerment, 'boon', 0, 'Might');
   queueCatalystBuff(
     context,
     event,
@@ -250,8 +252,8 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
 
   state.shatteringIceReadyAt =
     event.at + balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'internalCooldown', 1);
-  const strike = elementalistBalanceEffect(context, PROFILE.shatteringIce, 'strike');
-  const chilled = elementalistBalanceEffect(context, PROFILE.shatteringIce, 'condition');
+  const strike = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'strike');
+  const chilled = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'condition');
   enqueueOrdered(context.queue, {
     type: 'damage',
     at: event.at,

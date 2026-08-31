@@ -1,6 +1,5 @@
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 
 export const ENGINEER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -41,7 +40,7 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   },
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.grenadier, 'Grenadier', {
     internalCooldown: 20,
-    effects: [{ type: 'strike', coefficient: 0.5, hits: 6 }]
+    effects: [{ type: 'strike', coefficient: 0.5, hits: 6, atMs: 0 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.streamlinedKits, 'Streamlined Kits', {
     internalCooldown: 20,
@@ -150,15 +149,3 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     coefficientMultiplier: 2 / 3
   })
 ]);
-
-/** Reads a numeric field from a specific typed effect in an Engineer balance profile. */
-export function engineerBalanceEffectValue(
-  context: unknown,
-  id: SkillId,
-  type: string,
-  field: string,
-  fallback: number,
-  index = 0
-): number {
-  return balanceProfileValue(balanceProfileEffectFromContext(context, id, type, index), field, fallback);
-}

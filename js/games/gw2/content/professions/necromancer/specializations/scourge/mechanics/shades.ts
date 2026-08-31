@@ -176,17 +176,13 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     const desert = balanceProfileFromContext(context, PROFILE.desertShroud);
     const strike = balanceProfileEffect(desert, 'strike');
     const torment = balanceProfileEffect(desert, 'condition');
-    const hits = Number(strike?.hits || 7);
-    const interval = Number(strike?.intervalMs || 1000) / 1000;
-    emitSkillDamage(context, skill, {
-      at,
-      coefficient: Number(strike?.coefficient || 3.15),
-      hits,
-      interval
-    });
-    for (let index = 0; index < hits; index += 1) {
+    const ticks = strike?.type === 'strike' ? strike.ticks : null;
+    if (!ticks?.length) throw new Error('Desert Shroud requires an explicit strike timeline.');
+    for (const tick of ticks) {
+      const pulseAt = at + Number(tick.atMs) / 1000;
+      emitSkillDamage(context, skill, { at: pulseAt, coefficient: Number(tick.coefficient) });
       emitSkillCondition(context, skill, {
-        at: at + index * interval,
+        at: pulseAt,
         condition: String(torment?.condition || ''),
         stacks: Number(torment?.stacks || 1),
         duration: Number(torment?.duration || 0)
