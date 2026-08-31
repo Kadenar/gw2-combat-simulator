@@ -1,13 +1,13 @@
-import type { Skill } from '../../../../../platform/engine/types.js';
-import { normalizeAutoattackChains } from '../../../lib/rotation/rules/autoattack-chains.js';
-import { reconstructDragonhunterDpsReportActions } from './guardian/dragonhunter.js';
-import { reconstructLuminaryDpsReportActions } from './guardian/luminary.js';
-import { reconstructWillbenderDpsReportActions } from './guardian/willbender.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
+import { reconstructDragonhunterDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian/dragonhunter.js';
+import { reconstructLuminaryDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian/luminary.js';
+import { reconstructWillbenderDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian/willbender.js';
 import type {
   DpsReportProfessionActionReconstructor,
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
-} from '../types.js';
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
   ['dragonhunter', reconstructDragonhunterDpsReportActions],

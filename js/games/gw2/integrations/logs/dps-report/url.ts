@@ -1,6 +1,6 @@
-import { DpsReportError } from './errors.js';
-import { parseDpsReport } from './parser.js';
-import type { ParsedDpsReport } from './types.js';
+import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
+import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
+import type { ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
 
 const REPORT_ID = /^[A-Za-z0-9]{4}[A-Za-z0-9_-]*$/;
 

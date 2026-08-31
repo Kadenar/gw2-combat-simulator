@@ -1,20 +1,25 @@
-import { enqueueOrdered } from '../../../../kernel/events/queue.js';
-import { materializeComboOutcome } from '../combos/definitions.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 import {
   normalizeComboFinisherType,
   registerComboField,
   resolveComboAttempt,
   selectComboFieldForFinisher
-} from '../combos/events.js';
-import { gw2BoonDurationMultiplier, gw2SigilSet } from '../combat/query/runtime-rules.js';
+} from '#gw2/platform/combos/events.js';
+import { gw2BoonDurationMultiplier, gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 
-import type { ComboFieldEvent, ComboFieldType, ComboFinisherEvent, ComboFinisherType } from '../combos/types.js';
+import type {
+  ComboFieldEvent,
+  ComboFieldType,
+  ComboFinisherEvent,
+  ComboFinisherType
+} from '#gw2/platform/combos/types.js';
 import type {
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime
-} from './types.js';
+} from '#gw2/platform/resolver/types.js';
 
 export interface EnqueueGw2OwnedComboFinisherOptions {
   readonly ownerId: string;

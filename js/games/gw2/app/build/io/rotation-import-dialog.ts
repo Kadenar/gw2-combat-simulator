@@ -1,13 +1,13 @@
-import { getRotationItems, readJsonFile } from './files.js';
-import { isJsonRotationFile, readEvtcRotationFile } from './evtc-rotation-import.js';
-import { readDpsReportRotationData, readDpsReportRotationUrl } from './dps-report-rotation-import.js';
-import { isDpsReportData } from '../../../integrations/logs/dps-report/parser.js';
-import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
-import { errorMessage } from '../../../../../ui/shared/dom.js';
+import { getRotationItems, readJsonFile } from '#gw2/app/build/io/files.js';
+import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc-rotation-import.js';
+import { readDpsReportRotationData, readDpsReportRotationUrl } from '#gw2/app/build/io/dps-report-rotation-import.js';
+import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { errorMessage } from '#ui/shared/dom.js';
 
-import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../types.js';
-import type { RotationImportObservation } from './rotation-import-model.js';
+import type { RotationCommand } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 

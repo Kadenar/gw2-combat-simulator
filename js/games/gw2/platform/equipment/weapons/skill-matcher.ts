@@ -1,5 +1,5 @@
-import type { Skill } from '../../engine/types.js';
-import type { Gw2WeaponMatcherContext, Gw2WeaponSkillMatcher } from './types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Gw2WeaponMatcherContext, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
 function slotNumber(skill: Skill): number {
   return Number(String(skill?.slot || '').match(/(\d+)$/)?.[1] || 0);

@@ -1,6 +1,6 @@
-import { EPSILON, isInternalCooldownReady } from '../../../../../kernel/core/clock.js';
-import type { SimulationEvent, SimulationEventInput } from '../../engine/types.js';
-import type { Gw2SigilProc } from '../types.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
 
 export const RESOLVER_CRITICAL_SIGILS = Object.freeze(new Set(['Air', 'Earth', 'Torment']));
 
@@ -24,7 +24,7 @@ export function isSchedulerSigilPrediction(event: SimulationEvent): boolean {
 function commonSigilEvent(
   name: string,
   sourceSkill: string
-): Pick<SimulationEventInput, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType'> & {
+): Pick<SimulationEventInput, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType' | 'ownerActorType'> & {
   readonly triggeredBy: string;
 } {
   return {
@@ -33,6 +33,7 @@ function commonSigilEvent(
     source: 'Sigil',
     sourceId: `sigil.${name.toLowerCase()}`,
     actorType: 'effect',
+    ownerActorType: 'player',
     triggeredBy: sourceSkill
   };
 }
@@ -41,7 +42,6 @@ function commonSigilEvent(
 export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
   return {
     ...commonSigilEvent(name, sourceSkill),
-    ...(name === 'Air' ? { ownerActorType: 'player' as const } : {}),
     type: 'damage',
     at: 0,
     coefficient: proc.coefficient,

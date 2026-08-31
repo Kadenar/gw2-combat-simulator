@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { warriorCoreUi } from '../../../js/games/gw2/content/professions/warrior/core/ui.js';
+import { warriorCoreUi } from '#gw2/content/professions/warrior/core/presentation.js';
 
 // Two Signet Mastery applications (1 stack each, 60s) plus a later one that
 // only comes up after the first two lapse. Mirrors how the trait stacks the

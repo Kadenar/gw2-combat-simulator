@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '../../../js/games/gw2/platform/scheduler/policy.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   return defineProfession({
@@ -307,6 +307,7 @@ test('cancelled summon attacks do not create resolver combo outcomes', () => {
       actorType: 'summon',
       activationId: 'summon:replaced',
       coefficient: 1,
+      weaponStrengthProfileId: 'summon.weapon-type-1',
       cancelled: true,
       comboFinishers: [
         {

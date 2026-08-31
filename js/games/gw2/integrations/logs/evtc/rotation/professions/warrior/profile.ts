@@ -1,5 +1,5 @@
-import type { EvtcProfessionProfileSource } from '../../profiles.js';
-import { BLADESWORN_BUFF_TRANSITIONS } from './bladesworn.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { BLADESWORN_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bladesworn.js';
 
 /**
  * Adds EVTC-only Warrior evidence so Bladesworn Gunsaber buff changes become explicit bundle actions.

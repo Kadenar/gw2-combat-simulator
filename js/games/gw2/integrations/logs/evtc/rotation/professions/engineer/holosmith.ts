@@ -1,7 +1,15 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import { effectWindowMs, findRotationSkill } from '../../catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { inferDetonateActions, kitIdentity, openingDamageSkillNames, PRECOMBAT_BOMBS } from './kits.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { effectWindowMs, findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  inferDetonateActions,
+  kitIdentity,
+  openingDamageSkillNames,
+  PRECOMBAT_BOMBS
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/kits.js';
 import {
   canonicalAction,
   castDuration,
@@ -10,7 +18,7 @@ import {
   normalized,
   selectedSkill,
   skillForAction
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
 
 const ENGAGE_FORGE = Object.freeze({
   name: 'Engage Photon Forge',

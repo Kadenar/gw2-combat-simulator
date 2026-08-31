@@ -1,5 +1,5 @@
-import { flattenProfessionState, projectPublicProfessionState } from '../../../platform/engine/profession/state.js';
-import type { WarriorEndStateProjectionOptions, WarriorState } from './types.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { WarriorEndStateProjectionOptions, WarriorState } from '#gw2/content/professions/warrior/types.js';
 
 /** Aggregates Core and active-specialization state at the Warrior family boundary. */
 export function snapshotWarriorState(state: unknown): WarriorState {

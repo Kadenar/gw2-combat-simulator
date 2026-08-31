@@ -1,10 +1,13 @@
-import type { RotationCatalog } from '../../lib/rotation/catalog.js';
-import { ROTATION_PROFILES, type RotationProfessionProfile } from '../../lib/rotation/profiles.js';
-import { DpsReportError } from '../errors.js';
-import type { DpsReportRotationReconstruction, ParsedDpsReport } from '../types.js';
-import { detectDpsReportRotationPlayers, reconstructDpsReportWithProfile } from './reconstruct.js';
-import type { DpsReportRotationOptions } from './types.js';
-import { selectRotationPlayer } from '../../lib/rotation/selection.js';
+import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
+import type { DpsReportRotationReconstruction, ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
+import {
+  detectDpsReportRotationPlayers,
+  reconstructDpsReportWithProfile
+} from '#gw2/integrations/logs/dps-report/rotation/reconstruct.js';
+import type { DpsReportRotationOptions } from '#gw2/integrations/logs/dps-report/rotation/types.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 
 export interface DpsReportProfessionRotationParser {
   readonly id: string;

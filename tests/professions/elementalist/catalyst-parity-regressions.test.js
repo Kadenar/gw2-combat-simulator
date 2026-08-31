@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
+import { createModifierHooks } from '#gw2/platform/combat/modifiers/rules.js';
+import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
 import {
   applyCatalystEmpowerment,
   applyCatalystResolvedDamage
-} from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/resolver.js';
-import { catalystAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/rules.js';
-import { createCatalystState } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/state.js';
+} from '#gw2/content/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
+import { catalystAttributeRules } from '#gw2/content/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
+import { createCatalystState } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
+import { catalystModifierRules } from '#gw2/content/professions/elementalist/specializations/catalyst/traits/modifiers.js';
 
 // These unit checks exercise Catalyst state and catalog behavior directly so
 // their expectations do not depend on a saved full rotation.
@@ -70,6 +72,28 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
     expertise: 1700,
     concentration: 1700
   });
+});
+
+test('Relentless Fire exposes separate strike and condition modifiers for its active window', () => {
+  const modifiers = createModifierHooks({ rules: catalystModifierRules });
+  const context = {
+    time: 1,
+    runtime: {
+      boons: new Map([['relentless fire', [{ at: 0, expiresAt: 5, stacks: 1 }]]])
+    }
+  };
+
+  assert.deepEqual(
+    catalystModifierRules
+      .filter(({ id }) => id.startsWith('elementalist.relentless-fire'))
+      .map(({ id, target }) => ({ id, target })),
+    [
+      { id: 'elementalist.relentless-fire', target: 'strikeDamage' },
+      { id: 'elementalist.relentless-fire-condition', target: 'conditionDamage' }
+    ]
+  );
+  assert.ok(Math.abs(modifiers.modifyStrikeDamage(context, 1) - 1.1) < 1e-12);
+  assert.ok(Math.abs(modifiers.modifyConditionDamage(context, 1) - 1.1) < 1e-12);
 });
 
 test('Catalyst zero-damage finishers preserve combo metadata', () => {

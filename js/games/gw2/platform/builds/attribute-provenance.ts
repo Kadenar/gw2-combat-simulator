@@ -1,5 +1,5 @@
-import type { Gw2Config } from '../simulation/config.js';
-import type { Gw2AttributeProvenance } from './types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2AttributeProvenance } from '#gw2/platform/builds/types.js';
 
 /**
  * Describes which static profession rules are already included in a

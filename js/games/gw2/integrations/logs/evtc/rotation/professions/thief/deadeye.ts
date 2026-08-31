@@ -1,5 +1,8 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   ASSASSINS_SIGNET,
   ASSASSINS_SIGNET_ACTIVE_BUFF,
@@ -8,7 +11,7 @@ import {
   hasRecordedAction,
   hasSelectedSkill,
   SIGNAL_WINDOW_MS
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/thief/shared.js';
 
 const STEAL_TIME = Object.freeze({ name: 'Steal Time', skillId: 42863 });
 const DEADEYES_MARK = Object.freeze({

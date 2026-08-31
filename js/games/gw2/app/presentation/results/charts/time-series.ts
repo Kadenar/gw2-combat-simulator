@@ -1,13 +1,13 @@
-import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '../../../../platform/resolver/types.js';
-import { remainingDurationStackSeconds } from '../../../../platform/combat/state/boons.js';
-import { escapeHtml } from '../../shared/html.js';
+import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import {
   bindHitTimelineHover,
   drawHitTimeline,
   filterHitsToPhase,
   type HitTimelineLayout,
   type SkillHit
-} from '../../../../../../ui/results/charts/hit-timeline.js';
+} from '#ui/results/charts/hit-timeline.js';
 
 export interface ChartPoint {
   readonly t: number;

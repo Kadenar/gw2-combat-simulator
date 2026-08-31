@@ -1,13 +1,13 @@
 /** Applies relic reactions only after resolver events have acquired chronological combat facts. */
-import type { SimulationEvent, Skill } from '../engine/types.js';
-import { isStandardBoon } from '../combat/state/boons.js';
-import { invokeRelicHook } from '../equipment/relics/runtime.js';
+import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import type {
   Gw2ApplyCondition,
   Gw2ConditionHelpers,
   Gw2RelicContext,
   Gw2RelicRuntimeContext
-} from '../equipment/relics/types.js';
+} from '#gw2/platform/equipment/relics/types.js';
 
 /**
  * Applies the selected relic's boon trigger, if any.

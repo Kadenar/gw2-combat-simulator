@@ -1,30 +1,29 @@
-import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../catalog-data.js';
-import { revenantCoreEventHandlers } from './resolver.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createRevenantModuleData } from '#gw2/content/professions/revenant/catalog/module-data.js';
+import { revenantCoreEventHandlers } from '#gw2/content/professions/revenant/core/mechanics/state-events.js';
 import {
   revenantCoreAttributeRules,
   revenantCastRules,
   revenantSchedulerHooks,
   snapshotRevenantState
-} from './rules.js';
-import { createRevenantCoreState } from './state.js';
-import { projectRevenantEndState } from '../state.js';
-import { revenantCoreUi } from './ui.js';
+} from '#gw2/content/professions/revenant/core/traits/modifiers.js';
+import { createRevenantCoreState } from '#gw2/content/professions/revenant/core/state.js';
+import { projectRevenantEndState } from '#gw2/content/professions/revenant/state.js';
+import { revenantCoreUi } from '#gw2/content/professions/revenant/core/presentation.js';
 import {
   REVENANT_CORE_BALANCE_PROFILES,
   REVENANT_CORE_BASE_SKILL_MECHANICS,
   REVENANT_CORE_EXTRA_SKILLS
-} from './skills.js';
-import { revenantCoreSkillHandlers } from './handlers.js';
-import type { RevenantSchedulerContext } from '../types.js';
+} from '#gw2/content/professions/revenant/core/skills/index.js';
+import { revenantCoreSkillHandlers } from '#gw2/content/professions/revenant/core/skills/execution.js';
+import type { RevenantSchedulerContext } from '#gw2/content/professions/revenant/types.js';
 
 export const revenantCoreModule = defineNativeModule({
   id: 'Core',
   data: createRevenantModuleData('Core', {
     skillMechanics: REVENANT_CORE_BASE_SKILL_MECHANICS,
     extraSkills: REVENANT_CORE_EXTRA_SKILLS,
-    balanceProfiles: REVENANT_CORE_BALANCE_PROFILES,
-    handlers: revenantCoreSkillHandlers
+    balanceProfiles: REVENANT_CORE_BALANCE_PROFILES
   }),
   state: {
     scheduler: createRevenantCoreState,
@@ -33,13 +32,18 @@ export const revenantCoreModule = defineNativeModule({
   },
   mechanics: {
     modifiers: revenantCoreAttributeRules,
-    castRules: revenantCastRules,
-    schedulerHooks: {
-      ...revenantSchedulerHooks,
-      snapshot: (context: RevenantSchedulerContext) => snapshotRevenantState(context.state.profession)
+    execution: {
+      skillHandlers: revenantCoreSkillHandlers,
+      castRules: revenantCastRules,
+      hooks: {
+        ...revenantSchedulerHooks,
+        snapshot: (context: RevenantSchedulerContext) => snapshotRevenantState(context.state.profession)
+      }
     },
-    resolverHooks: {
-      eventHandlers: revenantCoreEventHandlers
+    resolution: {
+      hooks: {
+        eventHandlers: revenantCoreEventHandlers
+      }
     }
   },
   presentation: revenantCoreUi

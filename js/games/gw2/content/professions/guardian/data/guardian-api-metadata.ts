@@ -2,11 +2,8 @@
 // Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Guardian to refresh.
 // Simulator mechanics are maintained under guardian/mechanics/.
 
-import type {
-  Gw2ApiSpecialization,
-  Gw2ApiTrait
-} from '../../../../integrations/patches/authoring/api-metadata-types.js';
-import type { GuardianSkill } from '../types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { GuardianSkill } from '#gw2/content/professions/guardian/types.js';
 
 export type GuardianApiTrait = Gw2ApiTrait;
 export type GuardianApiSpecialization = Gw2ApiSpecialization;

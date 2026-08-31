@@ -4,17 +4,16 @@
  * only the mutable state required by that relic.
  */
 
-import { EPSILON, isInternalCooldownReady } from '../../../../../kernel/core/clock.js';
-import { enqueueOrdered } from '../../../../../kernel/events/queue.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
-  isGw2PlayerActorEvent,
-  isGw2PlayerModifierOwnedEvent
-} from '../../combat/state/event-ownership.js';
-import { combinedTargetDamage } from '../../combat/state/target-health.js';
+  isGw2PlayerActorEvent
+} from '#gw2/platform/combat/state/event-ownership.js';
+import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 
-import type { SimulationEvent, Skill } from '../../engine/types.js';
+import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import type {
   Gw2ApplyCondition,
   Gw2ConditionHelpers,
@@ -24,7 +23,7 @@ import type {
   Gw2RelicRuntime,
   Gw2RelicRuntimeContext,
   Gw2RelicState
-} from './types.js';
+} from '#gw2/platform/equipment/relics/types.js';
 
 interface TimedBuffProcOptions {
   readonly duration: number;
@@ -33,8 +32,19 @@ interface TimedBuffProcOptions {
 }
 
 function isBloodstoneOwnerStrike(event: SimulationEvent): boolean {
-  // Fervor follows modifier ownership, while its delayed relic explosion remains eligible explicitly.
-  return isGw2PlayerModifierOwnedEvent(event) || event.sourceId === 'relic.bloodstone';
+  // Preserve the explicitly owned effects Fervor already covered before legacy effect ownership was migrated.
+  return (
+    isGw2PlayerActorEvent(event) ||
+    event.sourceId === 'relic.bloodstone' ||
+    event.sourceId === 'engineer.rapacious-strain'
+  );
+}
+
+/** Keeps Claw on its already-owned effect packets without broadening it to migrated effects. */
+function isClawOwnerStrike(event: SimulationEvent): boolean {
+  return (
+    isGw2PlayerActorEvent(event) || event.sourceId === 'sigil.air' || event.sourceId === 77164 // Sovereign of Light
+  );
 }
 
 const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
@@ -95,7 +105,7 @@ function createAristocracyState(): AristocracyState {
 function compareTimelineEvents(left: SimulationEvent, right: SimulationEvent): number {
   return (
     left.at - right.at ||
-    Number(left.causalOrder ?? left.__order ?? 0) - Number(right.causalOrder ?? right.__order ?? 0)
+    Number(left.causalOrder ?? left.eventOrder ?? 0) - Number(right.causalOrder ?? right.eventOrder ?? 0)
   );
 }
 
@@ -336,7 +346,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
           stacks,
           source: 'Relic',
           sourceId: 'relic.blightbringer',
-          actorType: 'effect'
+          actorType: 'effect',
+          ownerActorType: 'player'
         });
       }
     }
@@ -390,6 +401,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         source: 'Relic',
         sourceId: 'relic.bloodstone',
         actorType: 'effect',
+        ownerActorType: 'player',
         skillWeapon: 'Unequipped',
         canCrit: true,
         triggeredBy: event.skillName
@@ -405,6 +417,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         source: 'Relic',
         sourceId: 'relic.bloodstone',
         actorType: 'effect',
+        ownerActorType: 'player',
         triggeredBy: event.skillName
       });
     },
@@ -451,7 +464,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         name: 'Relic of the Claw'
       });
     },
-    strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerModifierOwnedEvent)
+    strikeMultiplier: timedStrikeBuff(1.07, isClawOwnerStrike)
   }),
 
   Dragonhunter: defineRelic({
@@ -522,6 +535,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
       // The condition hook fires with the new stacks already counted, so subtract
       // application.stacks to check for the required six pre-existing stacks.
+      // Relic damage stays effect-sourced while explicitly inheriting the player's outgoing modifiers.
       state.readyAt = application.at + 20;
       ctx.recordProc('relic', 'Relic of the Fractal', application.at, application.skillName);
       applyCondition(ctx, {
@@ -533,7 +547,9 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         duration: 8,
         stacks: 2,
         source: 'Relic',
-        sourceId: 'relic.fractal'
+        sourceId: 'relic.fractal',
+        actorType: 'effect',
+        ownerActorType: 'player'
       });
       applyCondition(ctx, {
         type: 'condition',
@@ -544,7 +560,9 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         duration: 8,
         stacks: 3,
         source: 'Relic',
-        sourceId: 'relic.fractal'
+        sourceId: 'relic.fractal',
+        actorType: 'effect',
+        ownerActorType: 'player'
       });
     }
   }),
@@ -657,11 +675,13 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         condition: 'Torment',
         duration: 7,
         stacks: 2,
-        source: 'Relic'
+        source: 'Relic',
+        actorType: 'effect',
+        ownerActorType: 'player'
       });
     },
-    // Peitha's temporary outgoing-damage bonus belongs to the player who triggered it.
-    strikeMultiplier: timedStrikeBuff(1.1, isGw2PlayerModifierOwnedEvent)
+    // Peitha's established multiplier covers direct player packets, not effect-owned follow-ups.
+    strikeMultiplier: timedStrikeBuff(1.1, isGw2PlayerActorEvent)
   }),
 
   Shackles: defineRelic({
@@ -700,6 +720,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         source: 'Relic',
         sourceId: 'relic.shackles',
         actorType: 'effect',
+        ownerActorType: 'player',
         skillWeapon: 'Unequipped',
         canCrit: true,
         triggeredBy: application.skillName
@@ -747,6 +768,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         source: 'Relic',
         sourceId: 'relic.steamshrieker',
         actorType: 'effect',
+        ownerActorType: 'player',
         skillName: 'Relic of Steamshrieker',
         name: 'Relic of Steamshrieker — Burning',
         condition: 'Burning',

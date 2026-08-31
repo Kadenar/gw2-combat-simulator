@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createSimulationRandom } from '../../js/kernel/core/simulation-random.js';
-import { createEventQueue } from '../../js/kernel/events/queue.js';
-import { createEventStream } from '../../js/kernel/events/stream.js';
-import { normalizeObservationPolicy, observationEndTime } from '../../js/kernel/execution/observation.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createEventQueue } from '#kernel/events/queue.js';
+import { createEventStream } from '#kernel/events/stream.js';
+import { normalizeObservationPolicy, observationEndTime } from '#kernel/execution/observation.js';
 
 test('kernel event streams keep caller identity and queue equal-time events stably', () => {
   const events = [

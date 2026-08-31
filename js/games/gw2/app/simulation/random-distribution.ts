@@ -1,7 +1,7 @@
-import type { RotationCommand, SimulationEvent } from '../../platform/engine/types.js';
-import type { Gw2Config } from '../../platform/simulation/config.js';
-import type { Gw2ProcStep, Gw2ResolverEvent } from '../../platform/resolver/types.js';
-import { SIMULATION_RANDOMNESS_MODES } from '../../../../kernel/core/simulation-random.js';
+import type { RotationCommand, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ProcStep, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import type {
   RandomDistributionDriver,
   RandomDistributionMetricSample,
@@ -9,7 +9,7 @@ import type {
   RandomDistributionOutcome,
   RandomDistributionRequest,
   RandomDistributionSummary
-} from '../types.js';
+} from '#gw2/app/types.js';
 
 /** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;
@@ -258,7 +258,7 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
 
       if (event.weaponStrengthSampled === true && Number.isFinite(event.resolvedWeaponStrength)) {
         const profileId = String(event.weaponStrengthProfileId || 'weapon.unknown');
-        const activationId = String(event.activationId || `event:${String(event.__order)}`);
+        const activationId = String(event.activationId || `event:${String(event.eventOrder)}`);
         const activationKey = `${profileId}|${activationId}`;
         if (!seenWeaponActivations.has(activationKey)) {
           seenWeaponActivations.add(activationKey);

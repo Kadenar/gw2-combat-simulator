@@ -1,13 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildScheduledEventStream } from '../../../js/games/gw2/platform/engine/events/scheduled-stream.js';
-import { createSimulationRandom } from '../../../js/kernel/core/simulation-random.js';
-import {
-  createGw2ComboRuntimeState,
-  registerComboField,
-  resolveComboAttempt
-} from '../../../js/games/gw2/platform/combos/events.js';
+import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createGw2ComboRuntimeState, registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 
 const query = {

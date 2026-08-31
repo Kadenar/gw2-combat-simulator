@@ -1,11 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  groupWeaponSkillsByAttunement,
-  weaponBarSkillStacks
-} from '../../js/games/gw2/app/profession/weapon-attunement-groups.js';
-import { weaverWeaponPaletteLayout } from '../../js/games/gw2/content/professions/elementalist/specializations/weaver/ui.js';
+import { groupWeaponSkillsByAttunement, weaponBarSkillStacks } from '#gw2/app/profession/weapon-attunement-groups.js';
+import { weaverWeaponPaletteLayout } from '#gw2/content/professions/elementalist/specializations/weaver/presentation.js';
 
 const skill = (id, name, slot, attunement, chainStep = null) => ({
   id,

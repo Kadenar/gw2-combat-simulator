@@ -1,33 +1,37 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../catalog-data.js';
-import { harbingerResolverEventReactions } from './resolver.js';
-import { harbingerAttributeRules, harbingerCastRules, harbingerSchedulerHooks } from './rules.js';
-import { harbingerState } from './state.js';
-import { harbingerUi } from './ui.js';
-import { HARBINGER_BASE_SKILL_MECHANICS } from './skills.js';
-import { harbingerSkillHandlers } from './handlers.js';
-import { HARBINGER_BALANCE_PROFILES } from './profiles.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
+import { harbingerResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight-effects.js';
+import { harbingerAttributeRules, harbingerCastRules, harbingerSchedulerHooks } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight-and-shroud.js';
+import { harbingerState } from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
+import { harbingerUi } from '#gw2/content/professions/necromancer/specializations/harbinger/presentation.js';
+import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/index.js';
+import { harbingerSkillHandlers } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/execution.js';
+import { HARBINGER_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
 
 export const harbingerModule = defineNativeModule({
   id: 'Harbinger',
   data: createNecromancerModuleData('Harbinger', {
     skillMechanics: HARBINGER_BASE_SKILL_MECHANICS,
-    balanceProfiles: HARBINGER_BALANCE_PROFILES,
-    handlers: harbingerSkillHandlers
+    balanceProfiles: HARBINGER_BALANCE_PROFILES
   }),
   // Scheduler and resolver share the same state factory because blight stacks must be readable in both phases.
   state: { scheduler: harbingerState.create, resolver: harbingerState.create },
   mechanics: {
     modifiers: harbingerAttributeRules,
-    castRules: harbingerCastRules,
-    reactions: [
-      onResolvedDamage({
-        id: 'necromancer.harbinger.damage',
-        handler: harbingerResolverEventReactions.damage
-      })
-    ],
-    schedulerHooks: harbingerSchedulerHooks
+    execution: {
+      skillHandlers: harbingerSkillHandlers,
+      castRules: harbingerCastRules,
+      hooks: harbingerSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        onResolvedDamage({
+          id: 'necromancer.harbinger.damage',
+          handler: harbingerResolverEventReactions.damage
+        })
+      ]
+    }
   },
   presentation: harbingerUi
 });

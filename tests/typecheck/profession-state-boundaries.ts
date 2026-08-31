@@ -1,32 +1,26 @@
-import {
-  defineProfessionSpecializationState,
-  professionCoreState
-} from '../../js/games/gw2/platform/engine/profession/state.js';
-import { holosmithState } from '../../js/games/gw2/content/professions/engineer/specializations/holosmith/state.js';
-import { mechanistState } from '../../js/games/gw2/content/professions/engineer/specializations/mechanist/state.js';
+import { defineProfessionSpecializationState, professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
+import { mechanistState } from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
 import type {
   EngineerCoreState,
   EngineerSchedulerContext,
   HolosmithState
-} from '../../js/games/gw2/content/professions/engineer/types.js';
-import type {
-  GuardianCoreState,
-  GuardianFirebrandState
-} from '../../js/games/gw2/content/professions/guardian/types.js';
-import type { MesmerCoreState, MesmerVirtuosoState } from '../../js/games/gw2/content/professions/mesmer/types.js';
-import type { NecromancerCoreState, ScourgeState } from '../../js/games/gw2/content/professions/necromancer/types.js';
+} from '#gw2/content/professions/engineer/types.js';
+import type { GuardianCoreState, GuardianFirebrandState } from '#gw2/content/professions/guardian/types.js';
+import type { MesmerCoreState, MesmerVirtuosoState } from '#gw2/content/professions/mesmer/types.js';
+import type { NecromancerCoreState, ScourgeState } from '#gw2/content/professions/necromancer/types.js';
 import type {
   ConduitState,
   RenegadeState,
   RevenantCoreState,
   VindicatorState
-} from '../../js/games/gw2/content/professions/revenant/types.js';
-import { weaverState } from '../../js/games/gw2/content/professions/elementalist/specializations/weaver/state.js';
-import { catalystState } from '../../js/games/gw2/content/professions/elementalist/specializations/catalyst/state.js';
-import type { CatalystState } from '../../js/games/gw2/content/professions/elementalist/specializations/catalyst/state.js';
-import type { WeaverState } from '../../js/games/gw2/content/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistCoreState } from '../../js/games/gw2/content/professions/elementalist/core/state.js';
-import type { ElementalistSchedulerContext } from '../../js/games/gw2/content/professions/elementalist/types.js';
+} from '#gw2/content/professions/revenant/types.js';
+import { weaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
+import { catalystState } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
+import type { CatalystState } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
+import type { WeaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
+import type { ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
+import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 
 type Assert<T extends true> = T;
 type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? true : false;

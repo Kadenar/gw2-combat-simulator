@@ -6,13 +6,13 @@ import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
-} from '../../js/games/gw2/app/build/io/build-template-import.js';
-import { elementalistCatalog } from '../../js/games/gw2/content/professions/elementalist/catalog.js';
-import { elementalistAppAdapter } from '../../js/games/gw2/content/professions/elementalist/app/app-definition.js';
-import { engineerCatalog } from '../../js/games/gw2/content/professions/engineer/catalog.js';
-import { engineerAppAdapter } from '../../js/games/gw2/content/professions/engineer/app/app-definition.js';
-import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
-import { mesmerAppAdapter } from '../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
+} from '#gw2/app/build/io/build-template-import.js';
+import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
+import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import { engineerAppAdapter } from '#gw2/content/professions/engineer/app/app-definition.js';
+import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
+import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
 
 const ELEMENTALIST_CODE = '[&DQYfHSkvMBfHEicPwxIAAL4BAADLAMsAJgCWAAAAAAAAAAAAAAAAAAAAAAADVgBnAC8AAA==]';
 const ENGINEER_CODE = '[&DQMGJyY5SzYqDwAAhgAAAAcBAACTAQAAex0AAAAAAAAAAAAAAAAAAAAAAAACCQE2AAA=]';

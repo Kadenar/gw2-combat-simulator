@@ -1,5 +1,5 @@
 import { loadGameWorkerDriver } from '../../games/worker-driver.js';
-import type { GameContentAddress } from '../shell/types.js';
+import type { GameContentAddress } from '#app/shell/types.js';
 
 export interface GameWorkerRequestEnvelope<TRequest extends GameContentAddress> {
   readonly requestId: number;

@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { createEventQueue } from '../../../js/kernel/events/queue.js';
-import { createGw2ConditionResolution } from '../../../js/games/gw2/platform/resolver/condition-resolution.js';
-import { createGw2ResolverExtensions } from '../../../js/games/gw2/platform/resolver/extensions.js';
+import { createEventQueue } from '#kernel/events/queue.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
 import {
   createGw2ResolverReactionRegistry,
   defineGw2ResolverReactions
-} from '../../../js/games/gw2/platform/resolver/reaction-registry.js';
-import { createGw2ResolverRuntimeState } from '../../../js/games/gw2/platform/resolver/runtime-state.js';
+} from '#gw2/platform/resolver/reaction-registry.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 test('generic resolver modules contain no concrete equipment policy', () => {
   const resolver = new URL('../../../js/games/gw2/platform/resolver/', import.meta.url);

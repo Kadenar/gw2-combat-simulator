@@ -1,4 +1,4 @@
-import { applyAdditiveDamageBucket } from '../damage/modifier-buckets.js';
+import { applyAdditiveDamageBucket } from '#gw2/platform/combat/damage/modifier-buckets.js';
 
 import type {
   Gw2AttributeModifierHook,
@@ -13,8 +13,8 @@ import type {
   Gw2ModifierRule,
   Gw2ModifierTarget,
   Gw2NormalizedModifierRule
-} from './types.js';
-import type { Gw2ResolvedStats } from '../query/types.js';
+} from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;

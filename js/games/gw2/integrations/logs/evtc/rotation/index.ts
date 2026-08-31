@@ -1,9 +1,9 @@
-export * from './catalog.js';
-export * from './profiles.js';
-export * from './reconstruct.js';
-export * from './registry.js';
-export * from './professions/engineer/proc-observations.js';
-export * from './professions/mesmer/sharper-images-observation.js';
-export * from './professions/necromancer/barbed-precision-observation.js';
-export { initialHarbingerBlight } from './professions/necromancer/harbinger.js';
-export * from './professions/warrior/bloodlust-observation.js';
+export * from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+export * from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+export * from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
+export * from '#gw2/integrations/logs/evtc/rotation/registry.js';
+export * from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
+export * from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
+export * from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
+export { initialHarbingerBlight } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/harbinger.js';
+export * from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';

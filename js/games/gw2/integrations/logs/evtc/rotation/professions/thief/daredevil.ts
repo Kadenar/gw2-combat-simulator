@@ -1,6 +1,13 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { canonicalAction, hasRecordedAction, SIGNAL_WINDOW_MS } from './shared.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  canonicalAction,
+  hasRecordedAction,
+  SIGNAL_WINDOW_MS
+} from '#gw2/integrations/logs/evtc/rotation/professions/thief/shared.js';
 
 const STEAL = Object.freeze({ name: 'Steal', skillId: 13014 });
 const VIGOR_BUFF = 726;

@@ -1,9 +1,19 @@
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import { createStrikePacketMatcher, firstStrikePacketOffsetMs } from '../../effect-packets.js';
-import { findRotationSkill } from '../../catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { playerInitialBuff, sequentialInitialActions, type WarriorActionIdentity } from './shared.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import {
+  createStrikePacketMatcher,
+  firstStrikePacketOffsetMs
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  playerInitialBuff,
+  sequentialInitialActions,
+  type WarriorActionIdentity
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/shared.js';
 
 // Stable identities for core skills that specialization openers may recover
 // from the buffs present in ArcDPS's initial-state snapshot.

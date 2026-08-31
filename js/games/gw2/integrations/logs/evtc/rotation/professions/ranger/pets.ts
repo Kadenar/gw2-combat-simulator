@@ -1,6 +1,6 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { directAction, firstPlayerEventTime, playerInstance, rangerSkill, rawSkillName } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { directAction, firstPlayerEventTime, playerInstance, rangerSkill, rawSkillName } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 
 const SWAP_PETS = Object.freeze({ name: 'Swap Pets', skillId: -4 });
 const AGENT_SPAWN_STATE_CHANGE = 6;

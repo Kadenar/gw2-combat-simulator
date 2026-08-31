@@ -1,4 +1,4 @@
-import type { SimulationEventInput } from '../../engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
 
 export type Gw2EventActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
 
@@ -75,15 +75,6 @@ export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | nu
 /** True when an event inherits the player's outgoing damage modifiers. */
 export function isGw2PlayerModifierOwnedEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
   return gw2EventOwnerActorType(event) === GW2_EVENT_ACTOR_TYPES.PLAYER;
-}
-
-/**
- * Preserves profession-modifier compatibility for legacy effect packets that
- * predate ownerActorType. An explicit owner always remains authoritative.
- */
-export function isGw2PlayerModifierEligibleEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
-  if (event?.ownerActorType != null) return isGw2PlayerModifierOwnedEvent(event);
-  return isGw2PlayerModifierOwnedEvent(event) || gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.EFFECT;
 }
 
 /**

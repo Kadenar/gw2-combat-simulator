@@ -1,20 +1,23 @@
-import type { ScheduledTask, SchedulerContext, SchedulerRecord, SimulationEvent } from '../engine/types.js';
-import { isStandardBoon } from '../combat/state/boons.js';
-import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
-import { createGw2CombatQuery, selectedGw2TraitValues } from '../combat/query/combat-query.js';
+import type { ScheduledTask, SchedulerContext, SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
 import {
   materializeBoonRelics,
   materializeConditionRelics,
   materializeWeaknessVulnerabilityRelic
-} from './relic-materializer.js';
-import { relicConditionDurationBonus } from '../equipment/relics/query.js';
-import type { Gw2Config } from '../simulation/config.js';
-import type { Gw2TriggerMaterializer } from './types.js';
-import { isSchedulerSigilPrediction } from '../equipment/sigils/proc-events.js';
-import { createGw2CombatObserver } from './combat-observer.js';
-import { hasStochasticCriticalFood, resolveCriticalTrigger } from './critical-facts.js';
-import { createMaterializerState, type MaterializerProfessionState } from './materializer-state.js';
-import { createSigilProcEngine, sigilCapabilities } from './sigil-proc-engine.js';
+} from '#gw2/platform/scheduler/relic-materializer.js';
+import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2TriggerMaterializer } from '#gw2/platform/scheduler/types.js';
+import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createGw2CombatObserver } from '#gw2/platform/scheduler/combat-observer.js';
+import { hasStochasticCriticalFood, resolveCriticalTrigger } from '#gw2/platform/scheduler/critical-facts.js';
+import {
+  createMaterializerState,
+  type MaterializerProfessionState
+} from '#gw2/platform/scheduler/materializer-state.js';
+import { createSigilProcEngine, sigilCapabilities } from '#gw2/platform/scheduler/sigil-proc-engine.js';
 
 interface CreateGw2TriggerMaterializerOptions {
   readonly traits?: ReadonlySet<string | number> | null;

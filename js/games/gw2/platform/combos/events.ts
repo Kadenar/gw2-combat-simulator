@@ -1,8 +1,8 @@
-import { EPSILON } from '../../../../kernel/core/clock.js';
-import { clamp } from '../combat/numeric.js';
-import { comboDefinition } from './definitions.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
+import { comboDefinition } from '#gw2/platform/combos/definitions.js';
 
-import type { SchedulerRecord, SimulationActorType, SimulationEventInput } from '../engine/types.js';
+import type { SchedulerRecord, SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/types.js';
 import type {
   ComboEvent,
   ComboFieldBinding,
@@ -11,7 +11,7 @@ import type {
   ComboFinisherEvent,
   ComboFinisherType,
   Gw2ComboRuntimeState
-} from './types.js';
+} from '#gw2/platform/combos/types.js';
 
 export const COMBO_FIELD_TYPES: readonly ComboFieldType[] = Object.freeze([
   'Dark',
@@ -79,7 +79,7 @@ export function selectComboFieldForFinisher(
   options: SelectComboFieldOptions = {}
 ): { readonly field?: ComboFieldEvent; readonly ambiguous: boolean } {
   const ordered = [...fields].sort(
-    (left, right) => left.at - right.at || Number(left.__order || 0) - Number(right.__order || 0)
+    (left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0)
   );
   // comboBindingPriority > 0 marks an authoritative field (e.g., the specific
   // field placed by a skill that also carries a finisher). When present, only

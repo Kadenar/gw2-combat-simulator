@@ -94,16 +94,22 @@ platform tree.
 ## Declarative profession mechanics layout
 
 Every native profession — Elementalist, Engineer, Guardian, Mesmer, Necromancer, Ranger, Revenant, Thief, and Warrior —
-uses the typed authoring layer in `platform/gw2/native-profession.ts`. A native module is a vertical slice with four
+uses the typed authoring layer in `integrations/patches/authoring/profession.ts`. A native module is a vertical slice with four
 explicit sections:
 
 - `data` owns generated identities, skill mechanics and overrides, extra skills, traits, specialization metadata,
-  handlers, weapon hands, and chain exceptions;
+  weapon hands, and chain exceptions;
 - `state.scheduler` creates scheduler state, optional `state.resolver` creates distinct resolver state, and optional
   `state.project` defines the public end-state projection;
-- `mechanics` owns modifiers, availability, cast lifecycle declarations, and resolved-event reactions; and
+- `mechanics.execution` owns skill handlers, availability, cast lifecycle declarations, cast rules, and scheduler hooks;
+- `mechanics.resolution` owns resolved-event reactions and resolver hooks;
+- `mechanics.modifiers` owns declarative modifier rules that the engine compiles into the appropriate phase; and
 - `presentation` owns UI contributions. It may be a catalog-aware factory when labels or palettes require the complete
   application catalog.
+
+The nested phase sections are the only supported registration surface. `defineNativeModule()` rejects retired flat
+fields and reports their phase-explicit replacement paths. This keeps a skill, trait, or mechanic in one owner-local
+definition while making its engine phase explicit at the composition boundary.
 
 `defineNativeModule()` retains each module's literal ID and inferred state type. `defineNativeProfession()` requires
 Core first, infers the active-state union and specialization IDs, and compiles to the existing engine
@@ -126,7 +132,7 @@ The normal author workflow is:
 3. Add the module to the profession's Core-first tuple in `modules.ts`.
 4. Export `assembleNativeApplicationCatalog(modules, options)` through the stable root `catalog.ts`; do not hand-build
    runtime fragments.
-5. Keep browser persistence and rendering composition in `app/app-definition`, separate from the engine-facing family
+5. Keep browser persistence and rendering composition in `app/app-definition`, separate from the engine-facing
    definition.
 
 Every native profession otherwise uses the same source roles:
@@ -139,17 +145,19 @@ Every native profession otherwise uses the same source roles:
   reason.
 - `data/traits-data.ts` is the only module that exports the flattened runtime `TRAITS` collection; it derives that view
   from specialization metadata.
-- Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts`. Tests that need a
+- Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts` or grouped
+  `skills/*.ts` modules. Tests that need a
   profession-wide inventory compose those owner-local fragments under `tests/`; production does not expose a root
   skill-mechanics aggregate.
-- Triggered effects and state machines live in owner-local `mechanics.ts` files; families do not use mixed
+- Triggered effects and state machines live in owner-local, concept-named `mechanics/*.ts` files (or a small
+  `mechanics.ts`); families do not use mixed
   profession-wide runtime aggregates.
-- `catalog-data.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
+- `catalog/module-data.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
 - `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
   import it.
-- owner-local `handlers.ts`, when needed, registers `augmentSkill()` or `replaceSkill()` strategies for behavior that
-  cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application catalog
-  is assembled from module contributions.
+- Owner-local `skills/execution.ts` modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that
+  cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application
+  catalog is assembled from module contributions.
 
 Profession-specific state machines remain in named feature modules beside these boundaries. Skill entries reference
 those handlers explicitly. The repeatable module authoring and migration requirements are defined in
@@ -236,7 +244,7 @@ preserves the single GW2 additive-damage bucket while excluding inactive special
 return `{ type, description, className, order, flags }`; `null` deliberately suppresses an internal event and
 `undefined` requests the diagnostic fallback.
 
-Native-profession scalar combat bonuses are declared as per-effect rules in owner-local Core or elite `rules.ts`
+Native-profession scalar combat bonuses are declared as per-effect rules in owner-local trait, skill, or mechanic
 modules. The shared `platform/gw2/modifier-rules.ts` adapter compiles those rules into the existing critical chance,
 critical damage, strike damage, condition damage, and condition duration hooks. It owns scalar sequencing and the single
 GW2 outgoing additive-damage bucket rebuild; profession modules own predicates and runtime state. Ordered attribute
@@ -263,11 +271,11 @@ secondary proc rolls, floating-point tolerance, and internal-cooldown behavior. 
 threshold materialization and apply every returned proc quantity; weighted declarations apply fractional quantities
 directly.
 
-The higher-level helpers intentionally cover only recurring, order-sensitive mechanics. Raw `mechanics.castRules`,
-`mechanics.schedulerHooks`, and `mechanics.resolverHooks` remain escape hatches for typed tasks, custom event types,
-complex cooldown/ammo policy, multi-event state machines, and existing hook bundles that do not become clearer when
-split. Raw modifier hook bundles are also supported beside typed modifier-rule arrays. Escape hatches must stay
-owner-local and must not import inactive specialization behavior.
+The higher-level helpers intentionally cover only recurring, order-sensitive mechanics. Raw
+`mechanics.execution.castRules`, `mechanics.execution.hooks`, and `mechanics.resolution.hooks` remain escape hatches for
+typed tasks, custom event types, complex cooldown/ammo policy, multi-event state machines, and existing hook bundles
+that do not become clearer when split. Raw modifier hook bundles are also supported beside typed modifier-rule arrays.
+Escape hatches must stay owner-local and must not import inactive specialization behavior.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill uses, pending events, and `profession`.
 For families, Core resources live under `state.profession.core`; active-elite resources live under

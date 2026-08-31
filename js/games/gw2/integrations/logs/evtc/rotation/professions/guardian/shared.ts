@@ -1,6 +1,9 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import { findRotationSkill } from '../../catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 export interface GuardianActionIdentity {
   readonly name: string;

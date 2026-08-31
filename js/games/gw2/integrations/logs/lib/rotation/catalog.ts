@@ -1,6 +1,6 @@
-import type { CanonicalCatalog, Skill, SkillId } from '../../../../platform/engine/types.js';
-import type { RotationActionKind } from './model.js';
-import type { RotationProfessionProfile } from './profiles.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { RotationActionKind } from '#gw2/integrations/logs/lib/rotation/model.js';
+import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 
 export type RotationCatalog = Pick<CanonicalCatalog, 'skills'> &
   Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName'>>;

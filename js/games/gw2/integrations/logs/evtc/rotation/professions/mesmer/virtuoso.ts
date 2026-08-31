@@ -1,4 +1,7 @@
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   MESMER_EFFECT_GUIDS,
   buffGainSignals,
@@ -9,7 +12,7 @@ import {
   hasNearbyAction,
   type MesmerActionIdentity,
   type MesmerSignal
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/shared.js';
 
 const BLADETURN_REQUIEM = Object.freeze({
   name: 'Bladeturn Requiem',

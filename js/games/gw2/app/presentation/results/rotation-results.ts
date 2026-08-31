@@ -1,9 +1,12 @@
-import type { ChartOptions, ChartSeries } from './charts/time-series.js';
-import { mountTimeSeriesCharts } from './charts/time-series.js';
-import { mountHitTimeline } from '../../../../../ui/results/charts/hit-timeline.js';
-import type { RelicComparisonModel } from './charts/relic-comparison.js';
-import { bindRelicComparisonChartHover, relicComparisonChartSvg } from './charts/relic-comparison.js';
-import { escapeHtml } from '../shared/html.js';
+import type { ChartOptions, ChartSeries } from '#gw2/app/presentation/results/charts/time-series.js';
+import { mountTimeSeriesCharts } from '#gw2/app/presentation/results/charts/time-series.js';
+import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
+import type { RelicComparisonModel } from '#gw2/app/presentation/results/charts/relic-comparison.js';
+import {
+  bindRelicComparisonChartHover,
+  relicComparisonChartSvg
+} from '#gw2/app/presentation/results/charts/relic-comparison.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;

@@ -1,10 +1,14 @@
-import { clamp } from '../numeric.js';
-import { selectedSkillNameSet } from '../../builds/selected-skills.js';
-import { CANONICAL_TARGET_CONDITIONS, canonicalTargetConditionName, targetHasCondition } from '../state/targets.js';
-import { remainingTargetHealthFraction } from '../state/target-health.js';
-import type { Skill, SkillId } from '../../engine/types.js';
-import type { Gw2ModifierContext } from '../modifiers/types.js';
-import type { Gw2TimedBuffApplication } from '../state/types.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import {
+  CANONICAL_TARGET_CONDITIONS,
+  canonicalTargetConditionName,
+  targetHasCondition
+} from '#gw2/platform/combat/state/targets.js';
+import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
 
 interface RuntimeSkillEvent {
   readonly skillId?: SkillId | null;

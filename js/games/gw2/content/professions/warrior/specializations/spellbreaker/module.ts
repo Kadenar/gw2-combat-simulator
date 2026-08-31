@@ -1,20 +1,25 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onResolvedControl, onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createWarriorModuleData } from '../../catalog-data.js';
-import { SPELLBREAKER_SKILL_MECHANICS } from './skills.js';
-import { spellbreakerSkillHandlers } from './handlers.js';
-import { reactToSpellbreakerControl, reactToSpellbreakerDamage } from './resolver.js';
-import { spellbreakerAttributeRules, spellbreakerSchedulerHooks } from './rules.js';
-import { spellbreakerState } from './state.js';
-import { spellbreakerUi } from './ui.js';
-import { SPELLBREAKER_BALANCE_PROFILES } from './profiles.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedControl, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createWarriorModuleData } from '#gw2/content/professions/warrior/catalog/module-data.js';
+import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/content/professions/warrior/specializations/spellbreaker/skills/index.js';
+import { spellbreakerSkillHandlers } from '#gw2/content/professions/warrior/specializations/spellbreaker/skills/execution.js';
+import {
+  reactToSpellbreakerControl,
+  reactToSpellbreakerDamage
+} from '#gw2/content/professions/warrior/specializations/spellbreaker/mechanics/full-counter-effects.js';
+import {
+  spellbreakerAttributeRules,
+  spellbreakerSchedulerHooks
+} from '#gw2/content/professions/warrior/specializations/spellbreaker/mechanics/full-counter-rules.js';
+import { spellbreakerState } from '#gw2/content/professions/warrior/specializations/spellbreaker/state.js';
+import { spellbreakerUi } from '#gw2/content/professions/warrior/specializations/spellbreaker/presentation.js';
+import { SPELLBREAKER_BALANCE_PROFILES } from '#gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
 
 export const spellbreakerModule = defineNativeModule({
   id: 'Spellbreaker',
   data: createWarriorModuleData('Spellbreaker', {
     skillMechanics: SPELLBREAKER_SKILL_MECHANICS,
-    balanceProfiles: SPELLBREAKER_BALANCE_PROFILES,
-    handlers: spellbreakerSkillHandlers
+    balanceProfiles: SPELLBREAKER_BALANCE_PROFILES
   }),
   state: {
     scheduler: spellbreakerState.create,
@@ -22,17 +27,22 @@ export const spellbreakerModule = defineNativeModule({
   },
   mechanics: {
     modifiers: spellbreakerAttributeRules,
-    schedulerHooks: spellbreakerSchedulerHooks,
-    reactions: [
-      onResolvedControl({
-        id: 'warrior.spellbreaker-control',
-        handler: reactToSpellbreakerControl
-      }),
-      onResolvedDamage({
-        id: 'warrior.spellbreaker-damage',
-        handler: reactToSpellbreakerDamage
-      })
-    ]
+    execution: {
+      skillHandlers: spellbreakerSkillHandlers,
+      hooks: spellbreakerSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        onResolvedControl({
+          id: 'warrior.spellbreaker-control',
+          handler: reactToSpellbreakerControl
+        }),
+        onResolvedDamage({
+          id: 'warrior.spellbreaker-damage',
+          handler: reactToSpellbreakerDamage
+        })
+      ]
+    }
   },
   presentation: spellbreakerUi
 });

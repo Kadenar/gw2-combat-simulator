@@ -1,5 +1,5 @@
 /** Owns the combat/state/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord } from '../../engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 
 export type Gw2BuffAudience = 'all' | 'summon' | 'summon-trait';
 

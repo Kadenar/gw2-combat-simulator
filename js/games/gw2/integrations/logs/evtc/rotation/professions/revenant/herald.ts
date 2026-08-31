@@ -1,12 +1,20 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   assembleRevenantActions,
   firstActionAnchor,
   initialEnchantedDaggersActions,
   recoverRevenantPrecastActions
-} from './common.js';
-import { directAction, rawSkillName, runtimeDuration, type RevenantActionIdentity } from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
+import {
+  directAction,
+  rawSkillName,
+  runtimeDuration,
+  type RevenantActionIdentity
+} from '#gw2/integrations/logs/evtc/rotation/professions/revenant/shared.js';
 
 const FACET_BUFF_ACTIONS = new Map<number, RevenantActionIdentity>([
   [27336, { name: 'Facet of Light', skillId: 27220 }],

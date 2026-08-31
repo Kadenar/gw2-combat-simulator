@@ -18,12 +18,12 @@
 import { readFile } from 'node:fs/promises';
 
 import '../testing/register-dist-loader.mjs';
-import { loadProfession } from '../../dist/js/games/gw2/app/profession/registry.js';
-import { fetchDpsReport } from '../../dist/js/games/gw2/integrations/logs/dps-report/url.js';
+import { loadProfession } from '#gw2/app/profession/registry.js';
+import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import {
   detectDpsReportRotationPlayers,
   reconstructDpsReportRotation
-} from '../../dist/js/games/gw2/integrations/logs/dps-report/rotation/index.js';
+} from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { parseGameOption } from '../lib/game-data.mjs';
 
 const { gameId, args } = parseGameOption(process.argv.slice(2));

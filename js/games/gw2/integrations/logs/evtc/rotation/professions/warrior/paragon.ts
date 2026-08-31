@@ -1,5 +1,11 @@
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { detectedWarriorCorePrecastIdentity, WARRIOR_CORE_ACTIONS } from './common.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  detectedWarriorCorePrecastIdentity,
+  WARRIOR_CORE_ACTIONS
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/common.js';
 import {
   combatStart,
   initialAction,
@@ -7,7 +13,7 @@ import {
   recordedDuration,
   sequentialInitialActions,
   type WarriorActionIdentity
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/shared.js';
 
 const CHANT_OF_ACTION = Object.freeze({
   name: 'Chant of Action',

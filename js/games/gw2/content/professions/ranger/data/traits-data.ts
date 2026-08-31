@@ -1,7 +1,7 @@
-import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from './ranger-api-metadata.js';
-import type { CatalogEntity } from '../../../../platform/engine/types.js';
-import type { RangerSpecializationSelection } from '../types.js';
-import { createProfessionTraitData } from '../../lib/traits.js';
+import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/content/professions/ranger/data/ranger-api-metadata.js';
+import type { CatalogEntity } from '#gw2/platform/engine/types.js';
+import type { RangerSpecializationSelection } from '#gw2/content/professions/ranger/types.js';
+import { createProfessionTraitData } from '#gw2/content/professions/lib/traits.js';
 
 const traitData = createProfessionTraitData<CatalogEntity>(CATALOG_SPECIALIZATIONS);
 

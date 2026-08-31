@@ -1,7 +1,7 @@
-import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from './thief-api-metadata.js';
-import type { ThiefApiTrait } from './thief-api-metadata.js';
-import type { ThiefSpecializationSelection } from '../types.js';
-import { createProfessionTraitData } from '../../lib/traits.js';
+import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/content/professions/thief/data/thief-api-metadata.js';
+import type { ThiefApiTrait } from '#gw2/content/professions/thief/data/thief-api-metadata.js';
+import type { ThiefSpecializationSelection } from '#gw2/content/professions/thief/types.js';
+import { createProfessionTraitData } from '#gw2/content/professions/lib/traits.js';
 
 const traitData = createProfessionTraitData<ThiefApiTrait>(CATALOG_SPECIALIZATIONS);
 

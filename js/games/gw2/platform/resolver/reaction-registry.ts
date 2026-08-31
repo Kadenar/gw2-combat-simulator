@@ -1,4 +1,4 @@
-import { createEventReactions } from '../engine/profession/contract.js';
+import { createEventReactions } from '#gw2/platform/engine/profession/contract.js';
 
 import type {
   Gw2ResolverReaction,
@@ -8,7 +8,7 @@ import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
   Gw2ResolverStage
-} from './types.js';
+} from '#gw2/platform/resolver/types.js';
 
 type AuthoringHandler = (...args: never[]) => unknown;
 

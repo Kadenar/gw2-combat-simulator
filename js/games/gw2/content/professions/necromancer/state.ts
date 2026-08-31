@@ -1,7 +1,10 @@
-import { flattenProfessionState, projectPublicProfessionState } from '../../../platform/engine/profession/state.js';
-import { syncNecromancerResources } from './core/state.js';
-import { syncHarbingerState } from './specializations/harbinger/state.js';
-import type { NecromancerEndStateProjectionOptions, NecromancerState } from './types.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { syncNecromancerResources } from '#gw2/content/professions/necromancer/core/state.js';
+import { syncHarbingerState } from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
+import type {
+  NecromancerEndStateProjectionOptions,
+  NecromancerState
+} from '#gw2/content/professions/necromancer/types.js';
 
 /** Builds the stable flattened state boundary shared by scheduler snapshots and result projection. */
 export function snapshotNecromancerState(state: unknown): NecromancerState {

@@ -1,5 +1,5 @@
-import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../types.js';
+import type { RotationCommand } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /**
  * Undo/redo history for the rotation timeline.

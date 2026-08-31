@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { insertSorted, toEntries } from '../../../js/kernel/core/collections.js';
+import { insertSorted, toEntries } from '#kernel/core/collections.js';
 
 test('insertSorted preserves order and inserts after equal values', () => {
   const values = [

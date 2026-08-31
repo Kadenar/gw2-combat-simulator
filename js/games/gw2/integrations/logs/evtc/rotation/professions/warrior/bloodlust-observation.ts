@@ -1,7 +1,7 @@
-import type { BalanceProfile, CanonicalCatalog } from '../../../../../../platform/engine/types.js';
-import type { Gw2Config } from '../../../../../../platform/simulation/config.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '../../../../../../content/professions/warrior/data/ids.js';
-import type { ParsedEvtc } from '../../../types.js';
+import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
@@ -11,7 +11,7 @@ import {
   matchingConditionApplications,
   primaryStrikeTarget,
   traitBalanceProfile
-} from '../condition-proc-observation.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 
 export interface WarriorBloodlustObservation {
   readonly targetAddress: bigint;

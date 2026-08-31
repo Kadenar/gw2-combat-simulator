@@ -1,13 +1,13 @@
-import { createCalculateAttributes } from '../platform/builds/attributes.js';
-import { RELIC_NAMES } from '../platform/equipment/relics/catalog.js';
-import { WEAPON_DATA, createProfessionWeaponData } from '../platform/equipment/weapons/data.js';
-import { defaultWeaponSkillMatchesSet } from '../platform/equipment/weapons/skill-matcher.js';
-import { renderRotationBuilder } from './rotation/index.js';
-import { createProfessionRuntime } from './create-runtime.js';
-import { gw2BuildEditor } from './build-editor.js';
-import { gw2AppCapabilities } from './capabilities.js';
-import { gw2SimulationPresentation, renderResults } from './presentation.js';
-import type { Skill } from '../platform/engine/types.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
+import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import { renderRotationBuilder } from '#gw2/app/rotation/index.js';
+import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
+import { gw2BuildEditor } from '#gw2/app/build-editor.js';
+import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
+import { gw2SimulationPresentation, renderResults } from '#gw2/app/presentation.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 import type {
   DefineProfessionAppOptions,
   ProfessionAssumptionControl,
@@ -16,7 +16,7 @@ import type {
   ProfessionSkillAvailabilityContext,
   Gw2AppAdapter,
   ProfessionSlotLoadout
-} from './types.js';
+} from '#gw2/app/types.js';
 
 /**
  * Default availability rule for shared-shell profession skill selectors.

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfessionAppAdapter } from '../../js/games/gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 
 test('Condition Quickness Scrapper preset preserves the submitted spear build', async () => {
   const manifest = JSON.parse(

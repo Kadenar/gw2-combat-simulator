@@ -4,12 +4,12 @@ import test from 'node:test';
 import {
   analyzeEngineerSerratedSteelObservation,
   analyzeEngineerShrapnelObservation
-} from '../../js/games/gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
-import { analyzeMesmerSharperImagesObservation } from '../../js/games/gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
-import { analyzeNecromancerBarbedPrecisionObservation } from '../../js/games/gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
-import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
-import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '../../js/games/gw2/content/professions/necromancer/data/ids.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
+import { analyzeMesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
+import { analyzeNecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
+import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;

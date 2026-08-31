@@ -1,25 +1,32 @@
-import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import {
   onConditionApplied,
   onResolvedCriticalHit,
   onResolvedDamage
-} from '../../../../integrations/patches/authoring/mechanics.js';
-import { createEngineerModuleData } from '../catalog-data.js';
-import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
-import { engineerCoreSkillHandlers } from './handlers.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import { engineerCoreSkillHandlers } from '#gw2/content/professions/engineer/core/skills/execution.js';
 import {
   engineerCoreAttributeRules,
   engineerCoreCastRules,
   engineerCoreSchedulerHooks,
   snapshotEngineerState
-} from './rules.js';
-import { engineerCoreResolverEventHandlers, engineerCoreResolverEventReactions } from './resolver.js';
-import { ENGINEER_CORE_EXTRA_SKILLS, ENGINEER_CORE_SKILL_MECHANICS, ENGINEER_TURRET_ATTACK_SKILLS } from './skills.js';
-import { createEngineerCoreState } from './state.js';
-import { projectEngineerEndState } from '../state.js';
-import { ENGINEER_CORE_BALANCE_PROFILES } from './profiles.js';
-import { bindEngineerCoreUi } from './ui.js';
-import type { EngineerSchedulerContext } from '../types.js';
+} from '#gw2/content/professions/engineer/core/traits/modifiers.js';
+import {
+  engineerCoreResolverEventHandlers,
+  engineerCoreResolverEventReactions
+} from '#gw2/content/professions/engineer/core/mechanics/reactions.js';
+import {
+  ENGINEER_CORE_EXTRA_SKILLS,
+  ENGINEER_CORE_SKILL_MECHANICS,
+  ENGINEER_TURRET_ATTACK_SKILLS
+} from '#gw2/content/professions/engineer/core/skills/index.js';
+import { createEngineerCoreState } from '#gw2/content/professions/engineer/core/state.js';
+import { projectEngineerEndState } from '#gw2/content/professions/engineer/state.js';
+import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/content/professions/engineer/core/profiles.js';
+import { bindEngineerCoreUi } from '#gw2/content/professions/engineer/core/presentation.js';
+import type { EngineerSchedulerContext } from '#gw2/content/professions/engineer/types.js';
 
 export const engineerCoreModule = defineNativeModule({
   id: 'Core',
@@ -27,7 +34,6 @@ export const engineerCoreModule = defineNativeModule({
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
     balanceProfiles: ENGINEER_CORE_BALANCE_PROFILES,
     extraSkills: [...ENGINEER_CORE_EXTRA_SKILLS, ...ENGINEER_TURRET_ATTACK_SKILLS],
-    handlers: engineerCoreSkillHandlers,
     // RIFLE_BURST_GRENADE is a sub-packet of Rifle Burst, not a standalone chain member
     autoattackChains: { excludeSkillIds: [ID.RIFLE_BURST_GRENADE] }
   }),
@@ -39,20 +45,25 @@ export const engineerCoreModule = defineNativeModule({
   },
   mechanics: {
     modifiers: engineerCoreAttributeRules,
-    castRules: engineerCoreCastRules,
-    schedulerHooks: {
-      ...engineerCoreSchedulerHooks,
-      // snapshot wraps snapshotEngineerState to match the hook signature (context → state)
-      snapshot: (context: EngineerSchedulerContext) => snapshotEngineerState(context.state.profession)
+    execution: {
+      skillHandlers: engineerCoreSkillHandlers,
+      castRules: engineerCoreCastRules,
+      hooks: {
+        ...engineerCoreSchedulerHooks,
+        // snapshot wraps snapshotEngineerState to match the hook signature (context → state)
+        snapshot: (context: EngineerSchedulerContext) => snapshotEngineerState(context.state.profession)
+      }
     },
-    reactions: [
-      // Authoring helpers adapt profession declarations to platform reaction hooks.
-      ...engineerCoreResolverEventReactions.critical.map(onResolvedCriticalHit),
-      ...engineerCoreResolverEventReactions.damage.map(onResolvedDamage),
-      ...engineerCoreResolverEventReactions.condition.map(onConditionApplied)
-    ],
-    resolverHooks: {
-      eventHandlers: engineerCoreResolverEventHandlers
+    resolution: {
+      reactions: [
+        // Authoring helpers adapt profession declarations to platform reaction hooks.
+        ...engineerCoreResolverEventReactions.critical.map(onResolvedCriticalHit),
+        ...engineerCoreResolverEventReactions.damage.map(onResolvedDamage),
+        ...engineerCoreResolverEventReactions.condition.map(onConditionApplied)
+      ],
+      hooks: {
+        eventHandlers: engineerCoreResolverEventHandlers
+      }
     }
   },
   presentation: bindEngineerCoreUi

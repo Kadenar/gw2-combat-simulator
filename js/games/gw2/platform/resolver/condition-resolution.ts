@@ -1,9 +1,9 @@
-import { EPSILON } from '../../../../kernel/core/clock.js';
-import { enqueueOrdered } from '../../../../kernel/events/queue.js';
-import { conditionTickDamage } from '../combat/damage/condition-formulas.js';
-import { clamp } from '../combat/numeric.js';
-import { GW2_EVENT_ACTOR_TYPES } from '../combat/state/event-ownership.js';
-import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '../combat/state/targets.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
+import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 
 import type {
   Gw2ConditionResolution,
@@ -14,8 +14,8 @@ import type {
   Gw2ResolverEvent,
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime
-} from './types.js';
-import type { Gw2EventDraft } from '../equipment/relics/types.js';
+} from '#gw2/platform/resolver/types.js';
+import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 
 interface CreateGw2ConditionResolutionOptions {
   readonly reactions: Gw2ResolverReactionRegistry;

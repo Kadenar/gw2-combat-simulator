@@ -1,16 +1,18 @@
 # Thief
 
-Native shared-engine profession. Entry point `thief.html`. Core owns shared
+Native shared-engine profession. Entry point `thief.html`. `definition.ts`
+composes the Core-first tuple from `modules.ts`; a runtime contains Core plus at
+most one of Daredevil, Deadeye, Specter, or Antiquary. Core owns shared
 initiative, stealth, weapons, and traits; each specialization owns a complete
-vertical slice under `specializations/<name>/` and only the selected elite
-(Daredevil, Deadeye, Specter, or Antiquary) is present in a given runtime.
+vertical slice under `specializations/<name>/`.
 
 ## Data
 
 - API identity snapshot: 2026-07-28 (official GW2 API).
 - Refresh: `npm run update:profession-data -- --profession Thief`.
-- Runtime simulation is network-free. Initiative and other non-API mechanics
-  are manually reviewed and checked into the mechanics modules.
+- Runtime simulation is network-free. Initiative, skill mechanics, modifiers,
+  and other non-API behavior are checked into owner-local `skills/`, `traits/`,
+  and `mechanics/` modules.
 
 ## Implemented systems
 
@@ -29,9 +31,9 @@ vertical slice under `specializations/<name>/` and only the selected elite
   Edge outcomes, backfire state, and persistent Antiquary summons.
 - All 108 traits have a validated coverage disposition.
 
-The default stolen skill is Throw Gunk (standard raid-golem scenario). Double
-Edge success/backfire is saved per rotation entry; simulation never uses
-unseeded randomness.
+Core Steal exposes Throw Gunk, Consume Plasma, and Whirling Axe as its standard
+stolen-skill choice pool. Double Edge success/backfire is saved per rotation
+entry; simulation never uses unseeded randomness.
 
 ## Modeling boundaries
 

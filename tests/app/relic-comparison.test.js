@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { bindRelicComparisonChartHover } from '../../js/games/gw2/app/presentation/results/charts/relic-comparison.js';
+import { bindRelicComparisonChartHover } from '#gw2/app/presentation/results/charts/relic-comparison.js';
 import {
   CROSSOVER_EVALUATION_START_MS,
   RELIC_COMPARISON_TARGET,
   THORNS_COMPARISON_OPPONENTS,
   buildRelicComparisonModel,
   relicComparisonAvailable
-} from '../../js/games/gw2/app/simulation/relic-comparison.js';
+} from '#gw2/app/simulation/relic-comparison.js';
 
 test('break-even chart hover shows the time and both relic DPS values', () => {
   const tooltip = { innerHTML: '', style: {} };

@@ -1,14 +1,14 @@
-import { FOOD_DATA } from '../../platform/equipment/consumables/food.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import {
   UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
   UTILITY_STAT_DATA
-} from '../../platform/equipment/consumables/utilities.js';
-import { RUNE_DATA } from '../../platform/equipment/gear/runes.js';
-import { GEAR_STATS } from '../../platform/equipment/gear/stats.js';
-import { RELIC_DATA } from '../../platform/equipment/relics/catalog.js';
-import { SIGIL_PROCS } from '../../platform/equipment/sigils/catalog.js';
-import { SIGIL_DATA } from '../../platform/equipment/sigils/data.js';
+} from '#gw2/platform/equipment/consumables/utilities.js';
+import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/stats.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 
 type NumericValues = Readonly<Record<string, number>>;
 type UnknownValues = Readonly<Record<string, unknown>>;

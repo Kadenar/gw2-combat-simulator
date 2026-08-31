@@ -3,11 +3,11 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { thiefCatalog, thiefSkillRuntimeOwner } from '../../../js/games/gw2/content/professions/thief/catalog.js';
-import { thiefCoreModule } from '../../../js/games/gw2/content/professions/thief/core/module.js';
-import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/core/skills.js';
-import { thiefProfession } from '../../../js/games/gw2/content/professions/thief/definition.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { thiefCatalog, thiefSkillRuntimeOwner } from '#gw2/content/professions/thief/catalog.js';
+import { thiefCoreModule } from '#gw2/content/professions/thief/core/module.js';
+import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/content/professions/thief/core/skills/index.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
 
 // Tests derive elite names from the same canonical catalog consumed by production.
 function eliteSpecializationNames(catalog) {
@@ -20,15 +20,32 @@ function nativeModifierRules(module) {
   return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
 }
 
-import { THIEF_SKILL_IDS as ID } from '../../../js/games/gw2/content/professions/thief/data/ids.js';
-import { antiquaryModule } from '../../../js/games/gw2/content/professions/thief/specializations/antiquary/module.js';
-import { ANTIQUARY_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/antiquary/skills.js';
-import { daredevilModule } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/module.js';
-import { DAREDEVIL_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/skills.js';
-import { deadeyeModule } from '../../../js/games/gw2/content/professions/thief/specializations/deadeye/module.js';
-import { DEADEYE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/deadeye/skills.js';
-import { specterModule } from '../../../js/games/gw2/content/professions/thief/specializations/specter/module.js';
-import { SPECTER_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/specter/skills.js';
+function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
+  return readdirSync(directoryUrl, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap((entry) => {
+      const relativePath = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
+      const url = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directoryUrl);
+
+      if (entry.isDirectory()) return collectTypeScriptSources(url, relativePath);
+      if (!entry.isFile() || !entry.name.endsWith('.ts')) return [];
+      return [{ relativePath, source: readFileSync(url, 'utf8') }];
+    });
+}
+
+function combinedSource(entries) {
+  return entries.map(({ source }) => source).join('\n');
+}
+
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import { antiquaryModule } from '#gw2/content/professions/thief/specializations/antiquary/module.js';
+import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/antiquary/skills/index.js';
+import { daredevilModule } from '#gw2/content/professions/thief/specializations/daredevil/module.js';
+import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/daredevil/skills/index.js';
+import { deadeyeModule } from '#gw2/content/professions/thief/specializations/deadeye/module.js';
+import { DEADEYE_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/deadeye/skills/index.js';
+import { specterModule } from '#gw2/content/professions/thief/specializations/specter/module.js';
+import { SPECTER_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/specter/skills/index.js';
 
 const slices = Object.freeze([
   ['core', thiefCoreModule],
@@ -70,18 +87,16 @@ test('Thief modules own vertical source slices', () => {
 
   for (const [directory, module] of slices) {
     const directoryUrl = new URL(`../../../js/games/gw2/content/professions/thief/${directory}/`, import.meta.url);
+    const sources = collectTypeScriptSources(directoryUrl);
 
-    for (const entry of readdirSync(directoryUrl, { withFileTypes: true })) {
-      if (!entry.isFile() || !entry.name.endsWith('.ts')) continue;
-      const source = readFileSync(new URL(entry.name, directoryUrl), 'utf8');
-
+    for (const { relativePath, source } of sources) {
       if (directory === 'core') {
         assert.doesNotMatch(source, /from\s+["'][^"']*specializations\//);
       } else {
         assert.doesNotMatch(
           source,
           /from\s+["']\.\.\/(?:daredevil|deadeye|specter|antiquary)(?:\/|["'])/,
-          `${directory}/${entry.name} imports a sibling specialization`
+          `${directory}/${relativePath} imports a sibling specialization`
         );
       }
 
@@ -90,34 +105,26 @@ test('Thief modules own vertical source slices', () => {
           ? /from\s+["']\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|ui)\.js["']/
           : /from\s+["']\.\.\/\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js["']/;
 
-      assert.doesNotMatch(source, rootFacadeImport, `${directory}/${entry.name} imports an application facade`);
+      assert.doesNotMatch(source, rootFacadeImport, `${directory}/${relativePath} imports an application facade`);
 
-      if (entry.name !== 'module.ts') {
+      if (relativePath !== 'module.ts') {
         assert.doesNotMatch(
           source,
           directory === 'core' ? /from\s+["']\.\.\/catalog\.js["']/ : /from\s+["']\.\.\/\.\.\/catalog\.js["']/,
-          `${directory}/${entry.name} imports the application catalog`
+          `${directory}/${relativePath} imports the application catalog`
         );
       }
     }
 
-    for (const filename of ['module.ts', 'state.ts', 'skills.ts']) {
-      const url = new URL(`../../../js/games/gw2/content/professions/thief/${directory}/${filename}`, import.meta.url);
-
-      assert.equal(existsSync(url), true, `${directory}/${filename}`);
-      const source = readFileSync(url, 'utf8');
-
-      assert.doesNotMatch(
-        source,
-        /specializations\/(?:daredevil|deadeye|specter|antiquary)\//,
-        `${directory}/${filename} imports a sibling specialization`
-      );
-
-      if (filename === 'skills.ts') {
-        assert.match(source, /_SKILL_MECHANICS\b/);
-        assert.doesNotMatch(source, /from\s+["'][^"']*catalog\.js["']/);
-      }
-    }
+    assert.ok(
+      sources.some(({ relativePath }) => relativePath === 'module.ts'),
+      `${directory}/module.ts`
+    );
+    const skills = combinedSource(
+      sources.filter(({ relativePath }) => relativePath === 'skills.ts' || relativePath.startsWith('skills/'))
+    );
+    assert.match(skills, /_SKILL_MECHANICS\b/);
+    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/);
 
     assert.equal(typeof module.state?.scheduler, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
@@ -132,11 +139,9 @@ test('Thief modules own vertical source slices', () => {
   assert.equal(modifierRuleOwners.get('thief.strength-of-shadows'), 'Specter');
   assert.equal(modifierRuleOwners.get('thief.meticulous-custodian-artifact-strike'), 'Antiquary');
 
-  const coreSources = ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']
-    .map((filename) =>
-      readFileSync(new URL(`../../../js/games/gw2/content/professions/thief/core/${filename}`, import.meta.url), 'utf8')
-    )
-    .join('\n');
+  const coreSources = combinedSource(
+    collectTypeScriptSources(new URL('../../../js/games/gw2/content/professions/thief/core/', import.meta.url))
+  );
 
   assert.doesNotMatch(coreSources, /specializations\//);
   assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);

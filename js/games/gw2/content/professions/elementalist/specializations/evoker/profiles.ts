@@ -1,10 +1,26 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../../platform/engine/types.js';
+/**
+ * Data-driven balance tunables for Evoker.
+ *
+ * Every retunable number the mechanics read (charge caps, ICDs, familiar delays
+ * and interrupt windows, trait boons, recharge multipliers) lives here as a
+ * balance profile, so patch adjustments are data edits rather than code edits.
+ * Code looks values up through `elementalistBalanceValue`/`Effect`, with the
+ * literal at the call site acting only as a fallback.
+ */
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/elementalist/data/ids.js';
 
+/**
+ * Stable lookup keys for Evoker's profiles. Trait-backed entries reuse the trait
+ * id so the profile resolves against the selected trait.
+ */
 export const EVOKER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'elementalist.evoker.resources',
   foxsFury: 'elementalist.evoker.foxs-fury',
@@ -27,6 +43,7 @@ export const EVOKER_BALANCE_PROFILE_IDS = Object.freeze({
   specializedElementsEmpoweredRecharge: 'elementalist.evoker.specialized-elements.empowered-recharge'
 });
 
+// terse constructor for the many named boon effects declared below
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -35,6 +52,11 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
   duration
 });
 
+/**
+ * The profile set registered with the Elementalist catalog: one mechanic profile
+ * for the charge economy, skill-variant profiles for tiered or stateful familiar
+ * skills, and one profile per Evoker trait.
+ */
 export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: EVOKER_BALANCE_PROFILE_IDS.resources,

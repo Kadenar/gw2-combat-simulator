@@ -164,7 +164,7 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-sword-btth.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-sword-btth.json",
         "dpsReportUrl": "https://dps.report/SKgL-20260418-001356_golem",
-        "benchmarkDps": 41476,
+        "benchmarkDps": 41403,
         "upToDate": true
       },
       {
@@ -172,7 +172,7 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-sword-fa.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/lvrB-20260416-105919_golem",
-        "benchmarkDps": 39204,
+        "benchmarkDps": 39267,
         "upToDate": true
       },
       {
@@ -180,14 +180,14 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-scepter-btth.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/aAgi-20260414-165732_golem",
-        "benchmarkDps": 41574,
+        "benchmarkDps": 41609,
         "upToDate": true
       },
       {
         "label": "Power (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-catalyst-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-spear.json",
-        "benchmarkDps": 41572,
+        "benchmarkDps": 41534,
         "upToDate": true
       },
       {
@@ -195,7 +195,7 @@
         "build": "data/gw2/builds/elementalist/b-power-quick-catalyst-sword-fa.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/iKCM-20260416-002204_golem",
-        "benchmarkDps": 34336,
+        "benchmarkDps": 34322,
         "upToDate": true
       },
       {
@@ -203,7 +203,7 @@
         "build": "data/gw2/builds/elementalist/b-power-quick-catalyst-scepter-btth.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/63Dx-20260416-134815_golem",
-        "benchmarkDps": 35348,
+        "benchmarkDps": 35504,
         "upToDate": true
       },
       {
@@ -233,14 +233,14 @@
         "label": "Inferno (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-inferno-catalyst.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-catalyst.json",
-        "benchmarkDps": 40444,
+        "benchmarkDps": 40862,
         "upToDate": false
       },
       {
         "label": "Inferno Quickness (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-inferno-quick-catalyst.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-quick-catalyst.json",
-        "benchmarkDps": 36929,
+        "benchmarkDps": 37369,
         "upToDate": false
       }
     ]
@@ -253,7 +253,7 @@
         "build": "data/gw2/builds/elementalist/b-power-evoker-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-spear-evtc.json",
         "dpsReportUrl": "https://dps.report/43o1-20260523-171228_golem",
-        "benchmarkDps": 39085,
+        "benchmarkDps": 39254,
         "upToDate": true
       },
       {

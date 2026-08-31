@@ -1,6 +1,6 @@
-import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '../../../app/simulation/randomness.js';
-import { createDefaultTargetConditions } from '../../../platform/builds/default-target-conditions.js';
-import type { RotationCommand, SchedulerRecord } from '../../../platform/engine/types.js';
+import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/app/simulation/randomness.js';
+import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/types.js';
 
 export const DEFAULT_TARGET_HEALTH = 4_000_000;
 export const DEFAULT_TARGET_ARMOR = 2597;

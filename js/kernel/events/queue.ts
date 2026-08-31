@@ -2,14 +2,14 @@
  * Stable event queue helpers used by both scheduling and resolution. Events are
  * ordered by timestamp, then explicit priority, then insertion order.
  */
-export { EPSILON } from '../core/clock.js';
+export { EPSILON } from '#kernel/core/clock.js';
 
 export interface QueuedEvent {
   readonly at?: number;
   readonly time?: number;
   readonly priority?: number;
   readonly causalOrder?: number;
-  readonly __order?: number;
+  readonly eventOrder?: number;
   readonly [field: string]: unknown;
 }
 
@@ -24,7 +24,7 @@ function eventTimestamp(event: QueuedEvent): number {
 }
 
 function eventCausalOrder(event: QueuedEvent): number | null {
-  const order = Number(event.causalOrder ?? event.__order);
+  const order = Number(event.causalOrder ?? event.eventOrder);
   return Number.isFinite(order) ? order : null;
 }
 

@@ -7,7 +7,7 @@ import {
   gw2AlliedPlayerProcTimeline,
   gw2BuffApplicationRecipients,
   prepareGw2BuffCompanionCandidates
-} from '../../../js/games/gw2/platform/combat/state/allied-players.js';
+} from '#gw2/platform/combat/state/allied-players.js';
 
 test('boon companion candidates bind before canonical recipient selection', () => {
   const event = { type: 'buff', at: 1, source: 'test', recipients: 'party', maximumRecipients: 5 };

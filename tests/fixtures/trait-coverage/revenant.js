@@ -1,5 +1,5 @@
 import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { revenantCatalog } from '../../../js/games/gw2/content/professions/revenant/catalog.js';
+import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Ferocious Aggression',

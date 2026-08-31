@@ -2,11 +2,11 @@ import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
-} from './build-template-import.js';
-import { errorMessage } from '../../../../../ui/shared/dom.js';
+} from '#gw2/app/build/io/build-template-import.js';
+import { errorMessage } from '#ui/shared/dom.js';
 
-import type { BuildTemplateImportPreview } from './build-template-import.js';
-import type { ProfessionAppState } from '../../types.js';
+import type { BuildTemplateImportPreview } from '#gw2/app/build/io/build-template-import.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface BuildTemplateDialogElements {
   readonly dialog: HTMLDialogElement;

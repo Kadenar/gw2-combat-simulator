@@ -1,8 +1,9 @@
 # Revenant
 
 Native shared-engine profession. Entry point `revenant.html`. `definition.ts`
-is the stable export; the family composes Core with exactly one of Herald,
-Renegade, Vindicator, or Conduit. Core owns the always-active energy, legend,
+is the stable export and composes the Core-first tuple from `modules.ts`. A
+runtime contains Core plus at most one of Herald, Renegade, Vindicator, or
+Conduit. Core owns the always-active energy, legend,
 weapon, upkeep, trait, state, rules, and UI behavior; each specialization owns
 a complete vertical slice under `specializations/<name>/`. Only the selected
 elite module is present in a given runtime.
@@ -11,8 +12,9 @@ elite module is present in a given runtime.
 
 - API identity snapshot: 2026-07-28 (official GW2 API).
 - Refresh: `npm run update:profession-data -- --profession Revenant`.
-- Runtime simulation is network-free. Energy, upkeep, and other non-API
-  mechanics are manually reviewed and checked into the mechanics modules.
+- Runtime simulation is network-free. Energy, upkeep, skill mechanics,
+  modifiers, and other non-API behavior are checked into owner-local `skills/`,
+  `traits/`, and `mechanics/` modules.
 
 ## Implemented systems
 

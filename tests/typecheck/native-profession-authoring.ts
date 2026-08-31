@@ -1,10 +1,7 @@
-import {
-  defineNativeModule,
-  defineNativeProfession
-} from '../../js/games/gw2/integrations/patches/authoring/profession.js';
-import { onResolvedDamage, skillAvailability } from '../../js/games/gw2/integrations/patches/authoring/mechanics.js';
-import type { NativeProfessionRuntimeState } from '../../js/games/gw2/integrations/patches/authoring/module-types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../js/games/gw2/platform/resolver/types.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedDamage, skillAvailability } from '#gw2/integrations/patches/authoring/mechanics.js';
+import type { NativeProfessionRuntimeState } from '#gw2/integrations/patches/authoring/module-types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;
@@ -17,16 +14,20 @@ const core = defineNativeModule({
     resolver: () => ({ resolvedCoreValue: 2 })
   },
   mechanics: {
-    availability: skillAvailability({
-      id: 'fixture.available',
-      handler: () => ({ ready: true })
-    }),
-    reactions: [
-      onResolvedDamage<Gw2ResolverRuntime, Gw2ResolverEvent>({
-        id: 'fixture.damage',
-        handler: () => undefined
+    execution: {
+      availability: skillAvailability({
+        id: 'fixture.available',
+        handler: () => ({ ready: true })
       })
-    ]
+    },
+    resolution: {
+      reactions: [
+        onResolvedDamage<Gw2ResolverRuntime, Gw2ResolverEvent>({
+          id: 'fixture.damage',
+          handler: () => undefined
+        })
+      ]
+    }
   }
 });
 
@@ -75,16 +76,37 @@ if (false) {
     data: {},
     state: { scheduler: () => ({}) },
     mechanics: {
-      reactions: [
-        {
-          // @ts-expect-error Resolver declarations cannot claim the scheduler phase.
-          phase: 'scheduler',
-          eventType: 'damage',
-          id: 'invalid.phase',
-          order: 0,
-          handler: () => undefined
-        }
-      ]
+      resolution: {
+        reactions: [
+          {
+            // @ts-expect-error Resolver declarations cannot claim the scheduler phase.
+            phase: 'scheduler',
+            eventType: 'damage',
+            id: 'invalid.phase',
+            order: 0,
+            handler: () => undefined
+          }
+        ]
+      }
+    }
+  });
+
+  defineNativeModule({
+    id: 'LegacyHandlers',
+    data: {
+      // @ts-expect-error Skill handlers belong to the execution phase.
+      handlers: {}
+    },
+    state: { scheduler: () => ({}) }
+  });
+
+  defineNativeModule({
+    id: 'LegacyReactions',
+    data: {},
+    state: { scheduler: () => ({}) },
+    mechanics: {
+      // @ts-expect-error Resolver reactions belong under mechanics.resolution.
+      reactions: []
     }
   });
 }

@@ -1,6 +1,9 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import { findRotationSkill } from '../../catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   ASSASSINS_SIGNET,
   ASSASSINS_SIGNET_ACTIVE_BUFF,
@@ -10,8 +13,8 @@ import {
   playerEvent,
   SIGNAL_WINDOW_MS,
   skillDuration
-} from './shared.js';
-import type { ThiefActionIdentity } from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/thief/shared.js';
+import type { ThiefActionIdentity } from '#gw2/integrations/logs/evtc/rotation/professions/thief/shared.js';
 
 const CALTROPS = Object.freeze({ name: 'Caltrops', skillId: 13028 });
 const SPIDER_VENOM = Object.freeze({ name: 'Spider Venom', skillId: 13037 });

@@ -1,6 +1,6 @@
-import { mountSimulationView } from '../../ui/simulation-view.js';
-import { updateFloatingDps } from './workspace.js';
-import type { SimulationViewModel } from './types.js';
+import { mountSimulationView } from '#ui/simulation-view.js';
+import { updateFloatingDps } from '#app/shell/workspace.js';
+import type { SimulationViewModel } from '#app/shell/types.js';
 
 export interface SimulationRenderState {
   readonly inputRevision: number;

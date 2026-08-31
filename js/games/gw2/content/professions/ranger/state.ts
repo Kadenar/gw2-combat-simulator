@@ -1,20 +1,23 @@
-import { flattenProfessionState, projectPublicProfessionState } from '../../../platform/engine/profession/state.js';
-import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
-import { DRUID_PUBLIC_END_STATE_KEYS, DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS } from './specializations/druid/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/core/state.js';
+import {
+  DRUID_PUBLIC_END_STATE_KEYS,
+  DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS
+} from '#gw2/content/professions/ranger/specializations/druid/state.js';
 import {
   GALESHOT_PUBLIC_END_STATE_KEYS,
   GALESHOT_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/galeshot/state.js';
+} from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
 import {
   SOULBEAST_PUBLIC_END_STATE_KEYS,
   SOULBEAST_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/soulbeast/state.js';
+} from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
 import {
   UNTAMED_PUBLIC_END_STATE_KEYS,
   UNTAMED_PUBLIC_INACTIVE_STATE_DEFAULTS,
   UNTAMED_RESOLVER_END_STATE_KEYS
-} from './specializations/untamed/state.js';
-import type { RangerEndStateProjectionOptions, RangerState } from './types.js';
+} from '#gw2/content/professions/ranger/specializations/untamed/state.js';
+import type { RangerEndStateProjectionOptions, RangerState } from '#gw2/content/professions/ranger/types.js';
 
 /** Aggregates Core and active-specialization state at the Ranger family boundary. */
 export function snapshotRangerState(state: unknown): RangerState {

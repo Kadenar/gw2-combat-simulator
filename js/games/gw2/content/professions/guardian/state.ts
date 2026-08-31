@@ -1,27 +1,30 @@
-import { flattenProfessionState, projectPublicProfessionState } from '../../../platform/engine/profession/state.js';
-import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import { GUARDIAN_CORE_PUBLIC_END_STATE_KEYS, GUARDIAN_CORE_RESOLVER_END_STATE_KEYS } from './core/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import {
+  GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
+  GUARDIAN_CORE_RESOLVER_END_STATE_KEYS
+} from '#gw2/content/professions/guardian/core/state.js';
 import {
   DRAGONHUNTER_PUBLIC_END_STATE_DEFAULTS,
   DRAGONHUNTER_PUBLIC_END_STATE_KEYS,
   DRAGONHUNTER_RESOLVER_END_STATE_KEYS
-} from './specializations/dragonhunter/state.js';
+} from '#gw2/content/professions/guardian/specializations/dragonhunter/state.js';
 import {
   FIREBRAND_PUBLIC_END_STATE_DEFAULTS,
   FIREBRAND_PUBLIC_END_STATE_KEYS,
   FIREBRAND_RESOLVER_END_STATE_KEYS
-} from './specializations/firebrand/state.js';
+} from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
 import {
   LUMINARY_PUBLIC_END_STATE_DEFAULTS,
   LUMINARY_PUBLIC_END_STATE_KEYS,
   LUMINARY_RESOLVER_END_STATE_KEYS
-} from './specializations/luminary/state.js';
+} from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 import {
   WILLBENDER_PUBLIC_END_STATE_DEFAULTS,
   WILLBENDER_PUBLIC_END_STATE_KEYS,
   WILLBENDER_RESOLVER_END_STATE_KEYS
-} from './specializations/willbender/state.js';
-import type { GuardianEndStateProjectionOptions, GuardianState } from './types.js';
+} from '#gw2/content/professions/guardian/specializations/willbender/state.js';
+import type { GuardianEndStateProjectionOptions, GuardianState } from '#gw2/content/professions/guardian/types.js';
 
 const PUBLIC_STATE_SLICES = Object.freeze([
   GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,

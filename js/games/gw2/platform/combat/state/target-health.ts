@@ -1,6 +1,6 @@
-import { clamp } from '../numeric.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
 
-import type { Gw2Config } from '../../simulation/config.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2TargetDamageState {
   readonly totals?: {

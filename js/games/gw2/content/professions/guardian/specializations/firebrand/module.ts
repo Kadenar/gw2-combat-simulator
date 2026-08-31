@@ -1,24 +1,23 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import {
   onBuffApplied,
   onResolvedDamage,
   skillAvailability
-} from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createGuardianModuleData } from '../../catalog-data.js';
-import { firebrandSkillHandlers } from './handlers.js';
-import { firebrandEventHandlers, firebrandEventReactions } from './resolver.js';
-import { firebrandAttributeRules, firebrandCastRules, firebrandSchedulerHooks } from './rules.js';
-import { FIREBRAND_SKILL_MECHANICS } from './skills.js';
-import { firebrandState } from './state.js';
-import { firebrandUi } from './ui.js';
-import { FIREBRAND_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createGuardianModuleData } from '#gw2/content/professions/guardian/catalog/module-data.js';
+import { firebrandSkillHandlers } from '#gw2/content/professions/guardian/specializations/firebrand/skills/execution.js';
+import { firebrandEventHandlers, firebrandEventReactions } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tome-effects.js';
+import { firebrandAttributeRules, firebrandCastRules, firebrandSchedulerHooks } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
+import { FIREBRAND_SKILL_MECHANICS } from '#gw2/content/professions/guardian/specializations/firebrand/skills/index.js';
+import { firebrandState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
+import { firebrandUi } from '#gw2/content/professions/guardian/specializations/firebrand/presentation.js';
+import { FIREBRAND_BALANCE_PROFILES } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 
 export const firebrandModule = defineNativeModule({
   id: 'Firebrand',
   data: createGuardianModuleData('Firebrand', {
     skillMechanics: FIREBRAND_SKILL_MECHANICS,
-    balanceProfiles: FIREBRAND_BALANCE_PROFILES,
-    handlers: firebrandSkillHandlers
+    balanceProfiles: FIREBRAND_BALANCE_PROFILES
   }),
   state: {
     // Scheduler and resolver each get their own independent copy of the same
@@ -28,14 +27,19 @@ export const firebrandModule = defineNativeModule({
   },
   mechanics: {
     modifiers: firebrandAttributeRules,
-    availability: firebrandCastRules.availability.map(skillAvailability),
-    schedulerHooks: firebrandSchedulerHooks,
-    reactions: [
-      ...firebrandEventReactions.damage.map(onResolvedDamage),
-      ...firebrandEventReactions.buff.map(onBuffApplied)
-    ],
-    resolverHooks: {
-      eventHandlers: firebrandEventHandlers
+    execution: {
+      skillHandlers: firebrandSkillHandlers,
+      availability: firebrandCastRules.availability.map(skillAvailability),
+      hooks: firebrandSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        ...firebrandEventReactions.damage.map(onResolvedDamage),
+        ...firebrandEventReactions.buff.map(onBuffApplied)
+      ],
+      hooks: {
+        eventHandlers: firebrandEventHandlers
+      }
     }
   },
   presentation: firebrandUi

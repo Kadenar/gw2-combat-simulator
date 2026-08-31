@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { nativeSkillRuntimeOwner } from '../../js/games/gw2/integrations/patches/authoring/catalog.js';
-import { GW2_RESOLVER_STAGES } from '../../js/games/gw2/platform/resolver/reaction-registry.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
+import { nativeSkillRuntimeOwner } from '#gw2/integrations/patches/authoring/catalog.js';
+import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const EXECUTABLE_FAMILY_KEYS = Object.freeze([
   'createProfessionState',
@@ -25,10 +25,10 @@ function sortedIds(entries) {
 }
 
 function registryKeys(core, specialization, container, key) {
-  return [
-    ...Object.keys(core.mechanics?.[container]?.[key] || {}),
-    ...Object.keys(specialization?.mechanics?.[container]?.[key] || {})
-  ].sort();
+  const hooks = (module) =>
+    container === 'schedulerHooks' ? module?.mechanics?.execution?.hooks : module?.mechanics?.resolution?.hooks;
+
+  return [...Object.keys(hooks(core)?.[key] || {}), ...Object.keys(hooks(specialization)?.[key] || {})].sort();
 }
 
 function presentationFor(module, catalog) {
@@ -41,8 +41,8 @@ function reactionKeys(...modules) {
   return [
     ...new Set(
       modules.flatMap((module) => [
-        ...Object.keys(module?.mechanics?.resolverHooks?.eventReactions || {}),
-        ...(module?.mechanics?.reactions || []).map((reaction) => reaction.stage)
+        ...Object.keys(module?.mechanics?.resolution?.hooks?.eventReactions || {}),
+        ...(module?.mechanics?.resolution?.reactions || []).map((reaction) => reaction.stage)
       ])
     )
   ].sort();
@@ -76,12 +76,12 @@ export function assertProfessionFamilyConformance({ family, core, specialization
   );
   assertUniqueOwners(
     modules,
-    (module) => Object.keys(module.mechanics?.schedulerHooks?.taskHandlers || {}),
+    (module) => Object.keys(module.mechanics?.execution?.hooks?.taskHandlers || {}),
     `${family.id} task handler`
   );
   assertUniqueOwners(
     modules,
-    (module) => Object.keys(module.mechanics?.resolverHooks?.eventHandlers || {}),
+    (module) => Object.keys(module.mechanics?.resolution?.hooks?.eventHandlers || {}),
     `${family.id} event handler`
   );
   for (const key of EXECUTABLE_FAMILY_KEYS) {

@@ -1,4 +1,4 @@
-import { LogAnalyzerError } from '../lib/errors.js';
+import { LogAnalyzerError } from '#gw2/integrations/logs/lib/errors.js';
 
 export type EvtcErrorCode =
   | 'FILE_TOO_LARGE'

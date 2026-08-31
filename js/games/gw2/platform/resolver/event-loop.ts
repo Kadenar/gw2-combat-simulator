@@ -1,14 +1,14 @@
-import { EPSILON } from '../../../../kernel/core/clock.js';
-import { sortQueuedEvents, takeNextEvent } from '../../../../kernel/events/queue.js';
-import { HandlerRegistry } from '../engine/resolution/handler-registry.js';
-import { combinedTargetDamage } from '../combat/state/target-health.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { sortQueuedEvents, takeNextEvent } from '#kernel/events/queue.js';
+import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
+import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 
 import type {
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
   Gw2ResolverHandlerRegistry,
   Gw2ResolverRuntime
-} from './types.js';
+} from '#gw2/platform/resolver/types.js';
 
 interface CreateGw2ResolverHandlerRegistryOptions {
   readonly commonHandlers?: Gw2ResolverEventHandlers;

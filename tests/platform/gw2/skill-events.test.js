@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
-import { createEvent } from '../../../js/games/gw2/platform/engine/events/events.js';
-import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
-import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createEvent } from '#gw2/platform/engine/events/events.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../js/games/gw2/platform/scheduler/skill-events.js';
+} from '#gw2/platform/scheduler/skill-events.js';
 
 function captureContext(effectDuration) {
   const events = [];
@@ -278,5 +278,5 @@ test('procedural helpers retain scheduler timestamp, priority, and insertion ord
     ]
   );
   assert.equal(result.events.at(-1).triggeredBy, 'Cause');
-  assert.ok(result.events.at(-1).causalOrder > result.events.at(-2).__order);
+  assert.ok(result.events.at(-1).causalOrder > result.events.at(-2).eventOrder);
 });

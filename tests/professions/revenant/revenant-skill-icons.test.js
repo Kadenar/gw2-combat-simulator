@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resultSkillIcon } from '../../../js/games/gw2/app/rotation/shared/icons.js';
-import { revenantCatalog } from '../../../js/games/gw2/content/professions/revenant/catalog.js';
-import { REVENANT_SKILL_IDS as SKILL } from '../../../js/games/gw2/content/professions/revenant/data/ids.js';
+import { resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
+import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
 
 const EXPECTED_CALL_ICONS = new Map([
   [SKILL.CALL_OF_THE_DEMON, 'https://render.guildwars2.com/file/1A1407F7D34E5ED41B59A25F39EBF728CC926423/961413.png'],

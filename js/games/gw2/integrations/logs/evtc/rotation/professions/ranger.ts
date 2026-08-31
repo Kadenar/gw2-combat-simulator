@@ -1,11 +1,17 @@
-import { addRangerCommonActions, normalizeRangerCommonActions } from './ranger/common.js';
-import { reconstructDruidActions } from './ranger/druid.js';
-import { reconstructGaleshotActions } from './ranger/galeshot.js';
-import { reconstructRangerPetActions } from './ranger/pets.js';
-import { finalizeRangerActions } from './ranger/shared.js';
-import { reconstructSoulbeastActions } from './ranger/soulbeast.js';
-import { reconstructUntamedActions } from './ranger/untamed.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './types.js';
+import {
+  addRangerCommonActions,
+  normalizeRangerCommonActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/ranger/common.js';
+import { reconstructDruidActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/druid.js';
+import { reconstructGaleshotActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/galeshot.js';
+import { reconstructRangerPetActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/pets.js';
+import { finalizeRangerActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
+import { reconstructSoulbeastActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/soulbeast.js';
+import { reconstructUntamedActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/untamed.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 type RangerActionTransform = (
   context: EvtcProfessionReconstructionContext,

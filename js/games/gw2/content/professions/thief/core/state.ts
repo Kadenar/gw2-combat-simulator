@@ -1,7 +1,7 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasTrait } from '../../../../platform/combat/state/traits.js';
-import type { ThiefConfig, ThiefCoreState } from '../types.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { ThiefConfig, ThiefCoreState } from '#gw2/content/professions/thief/types.js';
 
 export const THIEF_BASE_HEALTH = 1645;
 

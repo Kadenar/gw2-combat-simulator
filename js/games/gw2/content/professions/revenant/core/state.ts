@@ -1,7 +1,7 @@
-import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasTrait } from '../../../../platform/combat/state/traits.js';
-import { normalizeRevenantLegendIds } from '../legend-rules.js';
-import type { RevenantConfig, RevenantCoreState } from '../types.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { normalizeRevenantLegendIds } from '#gw2/content/professions/revenant/data/legends.js';
+import type { RevenantConfig, RevenantCoreState } from '#gw2/content/professions/revenant/types.js';
 
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,
 // weapon-chain, and trait bookkeeping.

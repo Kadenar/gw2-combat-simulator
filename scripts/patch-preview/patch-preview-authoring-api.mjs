@@ -9,7 +9,7 @@ import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { generatePatchOverview } from '../../js/games/gw2/integrations/patches/app/model.js';
+import { generatePatchOverview } from '#gw2/integrations/patches/app/model.js';
 
 const API_PATH = '/api/patch-preview';
 const MAX_REQUEST_BYTES = 5 * 1024 * 1024;

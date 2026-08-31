@@ -2,12 +2,12 @@
 // runtime config mapping, persistence metadata, and shared-shell adapter
 // behavior to the engine contract exported by ../definition.js.
 
-import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyNecromancerBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
-import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
-import { getActiveTraits } from '../data/traits-data.js';
-import { necromancerProfession } from '../definition.js';
+import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { applyNecromancerBuildAttributeRules } from '#gw2/content/professions/necromancer/build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/necromancer/build/build.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/content/professions/necromancer/data/traits-data.js';
+import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
 
 // Exposes Necromancer only through the shared browser application contract.
 export const necromancerAppAdapter = defineProfessionApp({
@@ -17,14 +17,17 @@ export const necromancerAppAdapter = defineProfessionApp({
   toApplicationBuild,
   specializationFallback: 'Spite',
   runtime: {
+    // Map persisted life force to the shared initial-resource input.
     buildConfigInputs: (app) => ({
       initialResource: app.build.initialResource
     }),
+    // Forward Harbinger's persisted starting resources to specialization initialization.
     buildConfigExtras: (app) => ({
       initialBlight: app.build.initialBlight,
       initialCascadingCorruptionStacks: app.build.initialCascadingCorruptionStacks
     })
   },
+  // Keep trait-replaced scepter skills mutually exclusive in the browser catalog.
   isSkillAvailable(skill, context = {}) {
     if (skill.implemented === false || skill.simulatorExcluded) return false;
     const lingeringCurse = getActiveTraits(context.build?.specializations || []).some(

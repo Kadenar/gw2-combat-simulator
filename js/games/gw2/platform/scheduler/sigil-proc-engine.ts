@@ -1,17 +1,17 @@
-import type { SchedulerContext, SimulationEvent } from '../engine/types.js';
-import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
-import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
-import { grantEndurance } from '../combat/resources/endurance.js';
+import type { SchedulerContext, SimulationEvent } from '#gw2/platform/engine/types.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
   GW2_SCHEDULER_SIGIL_PREDICTION,
   isResolverCriticalSigil,
   isSigilInternalCooldownReady
-} from '../equipment/sigils/proc-events.js';
-import type { Gw2Config } from '../simulation/config.js';
-import type { Gw2SigilProc } from '../equipment/types.js';
-import type { MaterializerProfessionState, MaterializerState } from './materializer-state.js';
+} from '#gw2/platform/equipment/sigils/proc-events.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
+import type { MaterializerProfessionState, MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
 export type SigilTrigger = 'crit' | 'swap' | 'control' | 'strike';
 

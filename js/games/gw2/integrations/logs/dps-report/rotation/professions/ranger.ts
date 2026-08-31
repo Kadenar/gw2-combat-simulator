@@ -1,8 +1,11 @@
-import type { Skill } from '../../../../../platform/engine/types.js';
-import { quicknessReferenceCastTimeMs } from '../../../../../platform/skills/timing.js';
-import { findRotationSkill } from '../../../lib/rotation/catalog.js';
-import { mergedActionStatus, mergeCompositeActions } from '../../../lib/rotation/rules/composites.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const OVERBEARING_SMASH_ID = 69_262;
 const OVERBEARING_SMASH_FINISH_ID = 63_201;

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reconstructEvtcRotation } from '../../js/games/gw2/integrations/logs/evtc/rotation/index.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 
 const PLAYER = 0x1000n;
 const PET = 0x2000n;

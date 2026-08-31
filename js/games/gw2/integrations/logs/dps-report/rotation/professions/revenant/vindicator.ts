@@ -1,4 +1,7 @@
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../../types.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const DEATH_DROP_IDS = new Set([62693, 62730]);
 

@@ -1,20 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { readDpsReportRotationData } from '../../js/games/gw2/app/build/io/dps-report-rotation-import.js';
-import {
-  applyRotationImportPreview,
-  previewDpsReportUrl
-} from '../../js/games/gw2/app/build/io/rotation-import-dialog.js';
-import { DpsReportError } from '../../js/games/gw2/integrations/logs/dps-report/errors.js';
-import { isDpsReportData, parseDpsReport } from '../../js/games/gw2/integrations/logs/dps-report/parser.js';
+import { readDpsReportRotationData } from '#gw2/app/build/io/dps-report-rotation-import.js';
+import { applyRotationImportPreview, previewDpsReportUrl } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
+import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import {
   DPS_REPORT_PROFESSION_ROTATION_PARSERS,
   detectDpsReportRotationPlayers,
   getDpsReportProfessionRotationParser,
   reconstructDpsReportRotation
-} from '../../js/games/gw2/integrations/logs/dps-report/rotation/index.js';
-import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '../../js/games/gw2/integrations/logs/dps-report/url.js';
+} from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extras });
 

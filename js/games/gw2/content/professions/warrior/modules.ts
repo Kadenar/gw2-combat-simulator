@@ -1,8 +1,8 @@
-import { warriorCoreModule } from './core/module.js';
-import { berserkerModule } from './specializations/berserker/module.js';
-import { spellbreakerModule } from './specializations/spellbreaker/module.js';
-import { bladeswornModule } from './specializations/bladesworn/module.js';
-import { paragonModule } from './specializations/paragon/module.js';
+import { warriorCoreModule } from '#gw2/content/professions/warrior/core/module.js';
+import { berserkerModule } from '#gw2/content/professions/warrior/specializations/berserker/module.js';
+import { spellbreakerModule } from '#gw2/content/professions/warrior/specializations/spellbreaker/module.js';
+import { bladeswornModule } from '#gw2/content/professions/warrior/specializations/bladesworn/module.js';
+import { paragonModule } from '#gw2/content/professions/warrior/specializations/paragon/module.js';
 
 export const warriorNativeModules = Object.freeze([
   warriorCoreModule,

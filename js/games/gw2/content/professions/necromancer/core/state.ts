@@ -1,10 +1,11 @@
-import { professionStaticRulesApplied } from '../../../../platform/builds/attribute-provenance.js';
-import { hasTrait } from '../../../../platform/combat/state/traits.js';
-import { NECROMANCER_TRAIT_IDS } from '../data/ids.js';
-import type { NecromancerConfig, NecromancerCoreState } from '../types.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { NECROMANCER_TRAIT_IDS } from '#gw2/content/professions/necromancer/data/ids.js';
+import type { NecromancerConfig, NecromancerCoreState } from '#gw2/content/professions/necromancer/types.js';
 
 export const NECROMANCER_BASE_HEALTH = 9212;
 
+/** Calculates maximum health after Core vitality traits that were not already applied by the build layer. */
 function necromancerMaximumHealth(config: NecromancerConfig, traits: ReadonlySet<string | number>): number {
   let vitality = Number(config.stats?.vitality ?? config.attributes?.vitality ?? 1000);
   if (!professionStaticRulesApplied(config)) {
@@ -20,6 +21,7 @@ function necromancerMaximumHealth(config: NecromancerConfig, traits: ReadonlySet
   return NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10;
 }
 
+/** Converts a base-health percentage cost into the normalized life-force resource scale. */
 export function normalizedNecromancerLifeForceCost(
   state: Partial<NecromancerCoreState>,
   baseHealthPercent: number
@@ -30,10 +32,12 @@ export function normalizedNecromancerLifeForceCost(
   return (actualCost * normalizedCapacity) / actualCapacity;
 }
 
+/** Converts a base-health percentage into its raw life-force pool cost. */
 export function actualNecromancerLifeForceCost(baseHealthPercent: number): number {
   return (NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0))) / 100;
 }
 
+/** Clamps life force and reconciles the public soul-shard count with its active expiries. */
 export function syncNecromancerResources<TState extends NecromancerCoreState>(state: TState): TState {
   state.lifeForce = Math.max(0, Math.min(Number(state.maximumLifeForce || 100), Number(state.lifeForce || 0)));
   state.resource = state.lifeForce;
@@ -42,6 +46,7 @@ export function syncNecromancerResources<TState extends NecromancerCoreState>(st
   return state;
 }
 
+/** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
 export function createNecromancerCoreState(config: NecromancerConfig = {}): NecromancerCoreState {
   // Normalize canonical selected IDs once for all initial state calculations.
   const traits = new Set(
@@ -53,6 +58,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   const lifeForcePoolCapacity = maximumHealth * 0.69 * (soulBattery ? 1.2 : 1);
   const configuredLifeForce = Number(config.initialResource ?? 100);
   const lifeForce = (maximumLifeForce * Math.max(0, Math.min(100, configuredLifeForce))) / 100;
+  // Seed every mutable subsystem independently, then reconcile public resource aliases once.
   return syncNecromancerResources({
     lifeForce,
     resource: lifeForce,

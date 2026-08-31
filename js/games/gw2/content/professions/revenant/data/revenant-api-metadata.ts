@@ -2,11 +2,8 @@
 // Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Revenant to refresh.
 // Simulator mechanics are maintained under revenant/mechanics/.
 
-import type {
-  Gw2ApiSpecialization,
-  Gw2ApiTrait
-} from '../../../../integrations/patches/authoring/api-metadata-types.js';
-import type { RevenantSkill } from '../types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { RevenantSkill } from '#gw2/content/professions/revenant/types.js';
 
 export type RevenantApiTrait = Gw2ApiTrait;
 export type RevenantApiSpecialization = Gw2ApiSpecialization;

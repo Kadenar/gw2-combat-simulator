@@ -1,12 +1,16 @@
-import type { SkillId } from '../../platform/engine/types.js';
-import type { Gw2AttributeBreakdown } from '../../platform/builds/types.js';
-import type { Gw2Config } from '../../platform/simulation/config.js';
-import type { Gw2Stats } from '../../platform/equipment/types.js';
-import { createAttributeProvenance } from '../../platform/builds/attribute-provenance.js';
-import { aggregateSigilSet, weaponSigilsForSet } from '../../platform/equipment/sigils/loadout.js';
-import { assumptionControlsForSpecialization } from '../profession/assumptions.js';
-import type { Gw2SimulationConfigOptions, ProfessionAttributeData, ProfessionBuildAssumptions } from '../types.js';
-import { isSimulationRandomnessControl, simulationRandomnessFromAssumptions } from './randomness.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2AttributeBreakdown } from '#gw2/platform/builds/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import { createAttributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
+import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import { assumptionControlsForSpecialization } from '#gw2/app/profession/assumptions.js';
+import type {
+  Gw2SimulationConfigOptions,
+  ProfessionAttributeData,
+  ProfessionBuildAssumptions
+} from '#gw2/app/types.js';
+import { isSimulationRandomnessControl, simulationRandomnessFromAssumptions } from '#gw2/app/simulation/randomness.js';
 
 /**
  * Assembles common equipment, boon, target, weapon, and stat simulation input.

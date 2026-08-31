@@ -1,19 +1,19 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   inferDetonateActions,
   kitIdentity,
   normalizeKitTransitions,
   openingDamageSkillNames,
   PRECOMBAT_BOMBS
-} from './kits.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/kits.js';
 import {
   canonicalAction,
   castDuration,
   type EngineerActionIdentity,
   findOpeningPrecast,
   selectedSkill
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
 
 const COMMANDS: ReadonlyMap<number, EngineerActionIdentity> = new Map([
   [63121, { name: 'Jade Mortar', skillId: 63121 }],

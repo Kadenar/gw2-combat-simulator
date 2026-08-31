@@ -1,6 +1,9 @@
-import { findRotationSkill } from '../../catalog.js';
-import { committedActionsFromStrikePackets } from '../../effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 const AUTOATTACK_CHAINS = Object.freeze([
   Object.freeze([

@@ -1,4 +1,4 @@
-import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '../../../platform/builds/attributes.js';
+import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 
 // Build-panel metadata centralizes the attribute, condition, and armor choices shared by renderers.
 

@@ -1,33 +1,37 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onConditionApplied } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../catalog-data.js';
-import { scourgeSkillHandlers } from './handlers.js';
-import { scourgeResolverEventReactions } from './resolver.js';
-import { scourgeAttributeRules, scourgeCastRules, scourgeSchedulerHooks } from './rules.js';
-import { scourgeState } from './state.js';
-import { scourgeUi } from './ui.js';
-import { SCOURGE_BASE_SKILL_MECHANICS } from './skills.js';
-import { SCOURGE_BALANCE_PROFILES } from './profiles.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onConditionApplied } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
+import { scourgeSkillHandlers } from '#gw2/content/professions/necromancer/specializations/scourge/skills/execution.js';
+import { scourgeResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/scourge/mechanics/shade-effects.js';
+import { scourgeAttributeRules, scourgeCastRules, scourgeSchedulerHooks } from '#gw2/content/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
+import { scourgeState } from '#gw2/content/professions/necromancer/specializations/scourge/state.js';
+import { scourgeUi } from '#gw2/content/professions/necromancer/specializations/scourge/presentation.js';
+import { SCOURGE_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/scourge/skills/index.js';
+import { SCOURGE_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/specializations/scourge/profiles.js';
 
 export const scourgeModule = defineNativeModule({
   id: 'Scourge',
   data: createNecromancerModuleData('Scourge', {
     skillMechanics: SCOURGE_BASE_SKILL_MECHANICS,
-    balanceProfiles: SCOURGE_BALANCE_PROFILES,
-    handlers: scourgeSkillHandlers
+    balanceProfiles: SCOURGE_BALANCE_PROFILES
   }),
   state: { scheduler: scourgeState.create, resolver: scourgeState.create },
   mechanics: {
     modifiers: scourgeAttributeRules,
-    castRules: scourgeCastRules,
-    schedulerHooks: scourgeSchedulerHooks,
-    reactions: [
-      // Demonic Lore fires on every Torment application; ICD is enforced inside the handler
-      onConditionApplied({
-        id: 'necromancer.scourge.condition',
-        handler: scourgeResolverEventReactions.condition
-      })
-    ]
+    execution: {
+      skillHandlers: scourgeSkillHandlers,
+      castRules: scourgeCastRules,
+      hooks: scourgeSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        // Demonic Lore fires on every Torment application; ICD is enforced inside the handler
+        onConditionApplied({
+          id: 'necromancer.scourge.condition',
+          handler: scourgeResolverEventReactions.condition
+        })
+      ]
+    }
   },
   presentation: scourgeUi
 });

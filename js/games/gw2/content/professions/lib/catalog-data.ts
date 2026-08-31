@@ -1,17 +1,9 @@
-import type {
-  BalanceProfile,
-  Skill,
-  SkillFragment,
-  SkillHandlerStrategy,
-  SkillId
-} from '../../../platform/engine/types.js';
+import type { BalanceProfile, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
 
-export interface ProfessionModuleDataOptions<TContext extends object, TSkill extends Skill = Skill> {
+export interface ProfessionModuleDataOptions<TSkill extends Skill = Skill> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 }
 
 export type ProfessionWeaponHand = 'mh' | 'oh' | 'mh+oh' | '2h';

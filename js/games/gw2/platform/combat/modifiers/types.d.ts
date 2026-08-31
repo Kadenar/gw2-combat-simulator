@@ -1,13 +1,13 @@
 /** Owns the combat/modifiers/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord, SimulationEvent } from '../../engine/types.js';
+import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
   Gw2CombatQuery,
   Gw2CriticalChanceContributor,
   Gw2QueryRuntime,
   Gw2ResolvedStats,
   Gw2TimelineIndex
-} from '../query/types.js';
-import type { Gw2Config } from '../../simulation/config.js';
+} from '#gw2/platform/combat/query/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export type Gw2ModifierTarget =
   | 'criticalChance'

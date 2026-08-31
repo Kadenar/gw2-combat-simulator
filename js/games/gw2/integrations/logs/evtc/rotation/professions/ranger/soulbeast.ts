@@ -1,7 +1,7 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcRotationBuffTransition } from '../../profiles.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { directAction, firstPlayerEventTime, rawSkillName } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { directAction, firstPlayerEventTime, rawSkillName } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 
 const BEASTMODE_BUFF = 42014;
 const BEASTMODE = Object.freeze({ name: 'Beastmode', skillId: 42944 });

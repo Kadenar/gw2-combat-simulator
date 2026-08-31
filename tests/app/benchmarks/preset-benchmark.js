@@ -10,7 +10,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { loadProfessionAppAdapter } from '../../../js/games/gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 
 const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 

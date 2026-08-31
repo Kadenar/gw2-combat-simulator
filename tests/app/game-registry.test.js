@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bootstrapGameApp } from '../../js/app/bootstrap.js';
-import { defineGameRegistry, loadGameContent } from '../../js/app/game/registry.js';
+import { bootstrapGameApp } from '#app/bootstrap.js';
+import { defineGameRegistry, loadGameContent } from '#app/game/registry.js';
 import { loadGameWorkerDriver } from '../../js/games/worker-driver.js';
 import { createFakeGamePlugin } from '../fixtures/fake-game-plugin.js';
 
@@ -35,8 +35,8 @@ test('legacy profession markup defaults to the GW2 game ID', async () => {
 
 test('the GW2 game plug-in exposes the existing lazy profession registry', async () => {
   const [{ professionRegistry }, { gw2Plugin }] = await Promise.all([
-    import('../../js/games/gw2/app/profession/registry.js'),
-    import('../../js/games/gw2/plugin.js')
+    import('#gw2/app/profession/registry.js'),
+    import('#gw2/plugin.js')
   ]);
 
   assert.deepEqual(

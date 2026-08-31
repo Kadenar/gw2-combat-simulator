@@ -1,5 +1,8 @@
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const KIT_SWAP_SIGNAL_WINDOW_MS = 25;
 const MINE_SETUP_WAIT_MS = 5000;

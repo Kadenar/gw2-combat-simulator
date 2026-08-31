@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig } from '../../js/games/gw2/app/simulation/config.js';
-import { createSimulationRandom } from '../../js/kernel/core/simulation-random.js';
+import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   calculateRandomDistribution,
   partitionRandomDistributionTrials,
@@ -10,32 +10,32 @@ import {
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
-} from '../../js/games/gw2/app/simulation/random-distribution.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
+} from '#gw2/app/simulation/random-distribution.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   validateEngineerBuild
-} from '../../js/games/gw2/content/professions/engineer/build.js';
-import { engineerAppAdapter } from '../../js/games/gw2/content/professions/engineer/app/app-definition.js';
-import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
-import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
-import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
-import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build.js';
-import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
-import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build.js';
-import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
+} from '#gw2/content/professions/engineer/build/build.js';
+import { engineerAppAdapter } from '#gw2/content/professions/engineer/app/app-definition.js';
+import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
+import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
+import { createGuardianBuildDefaults } from '#gw2/content/professions/guardian/build/build.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
+import { createMesmerBuildDefaults } from '#gw2/content/professions/mesmer/build/build.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild
-} from '../../js/games/gw2/content/professions/necromancer/build.js';
-import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '../../js/games/gw2/content/professions/necromancer/data/ids.js';
-import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
-import { createRevenantBuildDefaults } from '../../js/games/gw2/content/professions/revenant/build.js';
-import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
-import { createThiefBuildDefaults } from '../../js/games/gw2/content/professions/thief/build.js';
+} from '#gw2/content/professions/necromancer/build/build.js';
+import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
+import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
+import { createRevenantBuildDefaults } from '#gw2/content/professions/revenant/build/build.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
+import { createThiefBuildDefaults } from '#gw2/content/professions/thief/build/build.js';
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };

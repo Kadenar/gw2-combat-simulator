@@ -1,6 +1,6 @@
-import { prepareSimulationConfig } from '../../js/games/gw2/platform/engine/config.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
-import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
+import { prepareSimulationConfig } from '#gw2/platform/engine/config.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
 
 export function createDefaultConfig() {
   return {

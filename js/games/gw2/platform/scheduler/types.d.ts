@@ -5,8 +5,8 @@ import type {
   SchedulerPolicy,
   SchedulerRecord,
   SimulationEvent
-} from '../engine/types.js';
-import type { Gw2CriticalResult } from '../combat/query/types.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
 
 export interface Gw2TriggerMaterializer {
   readonly state: SchedulerRecord;

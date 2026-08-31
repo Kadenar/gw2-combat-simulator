@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../shared/html.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 // Structural shapes matching the app-layer break-even model. Declared locally so
 // this platform-layer chart does not depend on the app layer; any object with

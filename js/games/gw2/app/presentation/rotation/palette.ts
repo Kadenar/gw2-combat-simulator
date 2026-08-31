@@ -1,6 +1,6 @@
-import type { ProfessionPaletteGroup, SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
-import { GW2_ICON_PLACEHOLDER } from '../shared/gw2-icon-fallback.js';
-import { escapeHtml } from '../shared/html.js';
+import type { ProfessionPaletteGroup, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import { GW2_ICON_PLACEHOLDER } from '#gw2/app/presentation/shared/gw2-icon-fallback.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 export interface AmmoView {
   readonly current?: number;

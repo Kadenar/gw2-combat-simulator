@@ -3,12 +3,11 @@
  * Professions may add custom types, but every event crossing the boundary must
  * still satisfy this base shape.
  */
-import type { QueuedEvent, SimulationActorType, SimulationEvent } from '../types.js';
+import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/types.js';
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
 
 const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'environment', 'unknown']);
-const LEGACY_EVENT_TYPES = new Set(['boon', 'cooldown_snapshot', 'self_condition']);
 
 /**
  * @param {unknown} value
@@ -18,14 +17,9 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-/** Extracts the canonical queue timestamp while retaining legacy `time` event support. */
-export function eventTimestamp(event: QueuedEvent): number {
-  return Number(event.at ?? event.time ?? 0);
-}
-
-/** Returns finite causal metadata from either the canonical or legacy event-order field. */
-export function eventCausalOrder(event: QueuedEvent): number | null {
-  const order = Number(event.causalOrder ?? event.__order);
+/** Returns finite ordering metadata, preferring explicit causal placement over emission order. */
+export function eventCausalOrder(event: SimulationEvent): number | null {
+  const order = Number(event.causalOrder ?? event.eventOrder);
   return Number.isFinite(order) ? order : null;
 }
 
@@ -50,6 +44,8 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'marker',
   'resource',
   'buff',
+  'cooldown_snapshot',
+  'self_condition',
   'weakness_vulnerability',
   'peitha'
 ]);
@@ -71,7 +67,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     throw new Error('Event type is required.');
   }
 
-  if (!COMMON_EVENT_TYPE_SET.has(event.type) && !LEGACY_EVENT_TYPES.has(event.type) && !event.type.includes('.')) {
+  if (!COMMON_EVENT_TYPE_SET.has(event.type) && !event.type.includes('.')) {
     throw new Error(`Unsupported simulation event type: ${event.type}.`);
   }
 

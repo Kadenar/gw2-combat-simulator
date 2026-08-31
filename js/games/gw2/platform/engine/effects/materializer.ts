@@ -11,7 +11,7 @@ import type {
   Skill,
   SkillEffect,
   SkillId
-} from '../types.js';
+} from '#gw2/platform/engine/types.js';
 
 export interface EffectEventBase extends SchedulerRecord {
   readonly source: string;

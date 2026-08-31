@@ -1,9 +1,9 @@
-import { escapeHtml as esc, gw2ApiText } from '../../presentation/shared/html.js';
-import { isSlotSkillSelectable } from '../state/skill-selection.js';
+import { escapeHtml as esc, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
+import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
-import type { ProfessionSkillBarGroup, SchedulerRecord, Skill, SkillId } from '../../../platform/engine/types.js';
-import type { ProfessionAppState, ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '../../types.js';
-import { requiredElement } from '../../../../../ui/shared/dom.js';
+import type { ProfessionSkillBarGroup, SchedulerRecord, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState, ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '#gw2/app/types.js';
+import { requiredElement } from '#ui/shared/dom.js';
 
 const RANGER_BUILD_SELECTION_GROUP_IDS = new Set([
   'ranger-pet-1-selection',

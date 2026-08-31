@@ -1,14 +1,14 @@
-import { reconstructCommonRevenantActions } from './revenant/common.js';
-import { reconstructConduitActions } from './revenant/conduit.js';
-import { reconstructHeraldActions } from './revenant/herald.js';
-import { normalizeRevenantCastPackets } from './revenant/normalization.js';
-import { reconstructRenegadeActions } from './revenant/renegade.js';
-import { reconstructVindicatorActions } from './revenant/vindicator.js';
+import { reconstructCommonRevenantActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
+import { reconstructConduitActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/conduit.js';
+import { reconstructHeraldActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/herald.js';
+import { normalizeRevenantCastPackets } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/normalization.js';
+import { reconstructRenegadeActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/renegade.js';
+import { reconstructVindicatorActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/vindicator.js';
 import type {
   EvtcProfessionActionReconstructor,
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
-} from './types.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 const specializationReconstructors: ReadonlyMap<string, EvtcProfessionActionReconstructor> = new Map([
   ['conduit', reconstructConduitActions],

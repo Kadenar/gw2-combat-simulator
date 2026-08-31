@@ -1,7 +1,8 @@
-import type { ReaperState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { registerNecromancerStatePreserver } from '../../core/state-reconciliation.js';
+import type { ReaperState } from '#gw2/content/professions/necromancer/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { registerNecromancerStatePreserver } from '#gw2/content/professions/necromancer/core/mechanics/state-reconciliation.js';
 
+/** Creates isolated Reaper trait proc state with snapshot-preserved Chilling Nova progress. */
 export function createReaperState(): ReaperState {
   const state: ReaperState = {
     // Expected-value proc progress and its ICD belong only to Reaper's Chilling Nova reaction.

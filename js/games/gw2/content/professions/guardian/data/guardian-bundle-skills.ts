@@ -1,7 +1,7 @@
 // Guardian bundle skills missing from the profession API payload.
 // Simulation behavior lives exclusively in owner-local skills.ts fragments.
 
-import type { GuardianSkill } from '../types.js';
+import type { GuardianSkill } from '#gw2/content/professions/guardian/types.js';
 
 function wikiSkillIcon(fileName: string): string {
   return `https://wiki.guildwars2.com/wiki/Special:Redirect/file/${encodeURIComponent(fileName)}`;

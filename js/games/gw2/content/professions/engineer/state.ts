@@ -2,27 +2,27 @@ import {
   flattenProfessionState,
   professionCoreState,
   projectPublicProfessionState
-} from '../../../platform/engine/profession/state.js';
-import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
+} from '#gw2/platform/engine/profession/state.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/engineer/core/state.js';
 import {
   AMALGAM_PUBLIC_END_STATE_KEYS,
   AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/amalgam/state.js';
+} from '#gw2/content/professions/engineer/specializations/amalgam/state.js';
 import {
   HOLOSMITH_PUBLIC_END_STATE_KEYS,
   HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/holosmith/state.js';
+} from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
 import {
   MECHANIST_PUBLIC_END_STATE_KEYS,
   MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/mechanist/state.js';
+} from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
 import type {
   EngineerEndStateProjectionOptions,
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerState
-} from './types.js';
+} from '#gw2/content/professions/engineer/types.js';
 
 /** Aggregates Core and active-specialization state at the Engineer family boundary. */
 export function snapshotEngineerState(state: unknown): EngineerState {

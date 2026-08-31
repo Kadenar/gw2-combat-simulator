@@ -3,11 +3,11 @@ import {
   weaponStrengthMidpoint,
   weaponStrengthProfile,
   weaponStrengthProfileIdForEvent
-} from '../equipment/weapons/strength.js';
-import { skillForEvent } from './event-skill.js';
+} from '#gw2/platform/equipment/weapons/strength.js';
+import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 
-import type { Gw2ResolvedWeaponStrength } from '../equipment/types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from './types.js';
+import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 
 function streamActor(event: Gw2ResolverEvent): string {
   if (event.actorType === 'summon') {
@@ -45,13 +45,11 @@ export function resolvedWeaponStrength(
   const skill = skillForEvent(context.helpers, event) ?? null;
   const profileId = weaponStrengthProfileIdForEvent(event, { skill });
   if (!profileId) {
-    const fallback = Number(context.helpers.weaponStrength(event, context.config));
-    return {
-      activationId: typeof event.activationId === 'string' ? event.activationId : null,
-      profileId: 'fixed-legacy',
-      value: fallback,
-      sampled: false
-    };
+    // Scaling strikes must resolve through a canonical profile or explicit override so malformed packets fail loudly.
+    throw new TypeError(
+      `Coefficient damage event ${String(event.skillId ?? event.sourceId ?? event.skillName ?? event.source ?? 'unknown')} ` +
+        'requires a resolvable weapon-strength profile or explicit weaponStrength.'
+    );
   }
 
   const profile = weaponStrengthProfile(profileId);

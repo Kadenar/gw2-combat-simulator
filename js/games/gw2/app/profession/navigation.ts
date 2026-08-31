@@ -7,8 +7,8 @@
  * the rest are its DOM helpers.
  */
 
-import { resetRotationWorkspace } from '../../../../app/shell/workspace.js';
-import { embedRoute, isEmbedded } from '../../../../app/embed.js';
+import { resetRotationWorkspace } from '#app/shell/workspace.js';
+import { embedRoute, isEmbedded } from '#app/embed.js';
 
 export type SimulatorView = 'workspace' | 'analysis';
 type SimulatorSection = 'professions' | SimulatorView;

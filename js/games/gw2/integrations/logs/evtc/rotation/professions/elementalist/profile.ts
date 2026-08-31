@@ -1,5 +1,5 @@
-import type { EvtcProfessionProfileSource } from '../../profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../../../content/professions/elementalist/data/ids.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 
 export const elementalistProfileSource: EvtcProfessionProfileSource = {
   professionId: 'elementalist',

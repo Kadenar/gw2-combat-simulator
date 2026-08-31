@@ -1,7 +1,7 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcRotationBuffTransition } from '../../profiles.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { directAction, firstPlayerEventTime, rangerSkill, rawSkillName } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { directAction, firstPlayerEventTime, rangerSkill, rawSkillName } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 
 const CELESTIAL_AVATAR_BUFF = 31508;
 const CELESTIAL_AVATAR = Object.freeze({

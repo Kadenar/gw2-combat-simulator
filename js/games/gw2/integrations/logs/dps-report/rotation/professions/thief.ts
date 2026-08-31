@@ -1,6 +1,9 @@
-import type { Skill } from '../../../../../platform/engine/types.js';
-import { mergedActionStatus, mergeCompositeActions } from '../../../lib/rotation/rules/composites.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const SKRITT_SWIPE_ID = 77_397;
 const SKRITT_SCUFFLE_ID = 77_255;

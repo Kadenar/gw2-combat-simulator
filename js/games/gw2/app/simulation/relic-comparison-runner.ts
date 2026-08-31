@@ -1,6 +1,6 @@
-import { buildChartSeries } from '../rotation/result/model.js';
-import { buildRelicComparisonModel } from './relic-comparison.js';
-import type { ProfessionAppState } from '../types.js';
+import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
+import { buildRelicComparisonModel } from '#gw2/app/simulation/relic-comparison.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /**
  * Drives the opt-in Relic of Thorns break-even comparison. Unlike the RNG and

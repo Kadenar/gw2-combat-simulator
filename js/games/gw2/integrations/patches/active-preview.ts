@@ -1,4 +1,4 @@
-import type { PatchPreview } from './authoring/patches.js';
+import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 
 /**
  * The repository supports one preview at a time. Keep this null until an

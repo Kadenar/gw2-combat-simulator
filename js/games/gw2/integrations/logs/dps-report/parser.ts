@@ -1,4 +1,4 @@
-import { DpsReportError } from './errors.js';
+import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import type {
   DpsReportCast,
   DpsReportPhase,
@@ -6,7 +6,7 @@ import type {
   DpsReportRotationGroup,
   DpsReportSkillMetadata,
   ParsedDpsReport
-} from './types.js';
+} from '#gw2/integrations/logs/dps-report/types.js';
 
 function record(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === 'object' && !Array.isArray(value);

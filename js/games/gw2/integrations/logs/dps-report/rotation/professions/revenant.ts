@@ -1,15 +1,15 @@
-import { mergedActionStatus, mergeCompositeActions } from '../../../lib/rotation/rules/composites.js';
-import { normalizeAutoattackChains } from '../../../lib/rotation/rules/autoattack-chains.js';
-import type { Skill } from '../../../../../platform/engine/types.js';
-import { reconstructConduitDpsReportActions } from './revenant/conduit.js';
-import { reconstructHeraldDpsReportActions } from './revenant/herald.js';
-import { reconstructRenegadeDpsReportActions } from './revenant/renegade.js';
-import { reconstructVindicatorDpsReportActions } from './revenant/vindicator.js';
+import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/conduit.js';
+import { reconstructHeraldDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/herald.js';
+import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/renegade.js';
+import { reconstructVindicatorDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/vindicator.js';
 import type {
   DpsReportProfessionActionReconstructor,
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
-} from '../types.js';
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
   ['conduit', reconstructConduitDpsReportActions],

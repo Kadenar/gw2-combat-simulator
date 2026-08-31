@@ -5,7 +5,7 @@ import type {
   RotationActionStatus,
   RotationPlayerIdentity,
   RotationReconstructionBase
-} from '../lib/rotation/model.js';
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 
 export interface DpsReportSkillMetadata {
   readonly name: string;

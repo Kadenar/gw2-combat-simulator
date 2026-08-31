@@ -1,15 +1,15 @@
-import { reconstructAmalgamActions } from './engineer/amalgam.js';
-import { removeUncommittedEngineerAutoattacks } from './engineer/autoattacks.js';
-import { reconstructHolosmithActions } from './engineer/holosmith.js';
+import { reconstructAmalgamActions } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/amalgam.js';
+import { removeUncommittedEngineerAutoattacks } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/autoattacks.js';
+import { reconstructHolosmithActions } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/holosmith.js';
 import {
   inferDetonateActions,
   kitIdentity,
   normalizeKitTransitions,
   openingDamageSkillNames,
   PRECOMBAT_BOMBS
-} from './engineer/kits.js';
-import { reconstructMechanistActions } from './engineer/mechanist.js';
-import { reconstructScrapperActions } from './engineer/scrapper.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/kits.js';
+import { reconstructMechanistActions } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/mechanist.js';
+import { reconstructScrapperActions } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/scrapper.js';
 import {
   canonicalAction,
   castDuration,
@@ -19,12 +19,12 @@ import {
   selectedIdentity,
   selectedSkill,
   type EngineerActionIdentity
-} from './engineer/shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
 import type {
   EvtcProfessionActionReconstructor,
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
-} from './types.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 const specializationReconstructors: ReadonlyMap<string, EvtcProfessionActionReconstructor> = new Map([
   ['amalgam', reconstructAmalgamActions],

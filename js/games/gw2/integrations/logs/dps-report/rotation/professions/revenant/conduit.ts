@@ -1,5 +1,8 @@
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const RELINQUISH_POWER_ID = 28382;
 const GENERATED_SIGNAL_IDS = new Set([76818, 77116, 77141]);

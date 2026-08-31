@@ -1,8 +1,11 @@
-import type { BalanceProfile } from '../../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerShatterProfile, mesmerTraitDamageProfile } from '../../core/profiles.js';
-import { MESMER_VIRTUOSO_SHATTERS, MESMER_VIRTUOSO_TRAIT_DAMAGE } from './mechanics.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerShatterProfile, mesmerTraitDamageProfile } from '#gw2/content/professions/mesmer/core/profiles.js';
+import {
+  MESMER_VIRTUOSO_SHATTERS,
+  MESMER_VIRTUOSO_TRAIT_DAMAGE
+} from '#gw2/content/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 
 export const VIRTUOSO_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.virtuoso.resources',

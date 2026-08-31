@@ -5,11 +5,11 @@
  * derived so compatibility consumers cannot drift from the sampled ranges.
  */
 
-import type { SimulationEventInput, Skill } from '../../engine/types.js';
-import { isGw2NonWeaponEffectEvent } from '../../combat/state/event-ownership.js';
-import type { Gw2Config } from '../../simulation/config.js';
-import type { Gw2WeaponStrengthProfile } from '../types.js';
-import { gw2PrimaryWeapon } from './loadout.js';
+import type { SimulationEventInput, Skill } from '#gw2/platform/engine/types.js';
+import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2WeaponStrengthProfile } from '#gw2/platform/equipment/types.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 const PROFILE_ROWS: ReadonlyArray<readonly [string, number, number]> = Object.freeze([
   ['weapon.axe', 900, 1100],
@@ -193,6 +193,7 @@ export function weaponStrengthProfileIdForEvent(
     return SHROUD_PROFILE_IDS[skillShroud];
   }
 
+  // Only explicit kits use bundle strength; other Bundle-tagged profession skills retain their weapon fallback.
   if (skill?.kit) return 'bundle.ascended';
 
   for (const candidate of [event.weapon, event.skillWeapon]) {
@@ -230,7 +231,8 @@ export function weaponStrengthProfileIdForEvent(
     if (profile) return profile.id;
   }
 
-  if (['Heal', 'Utility', 'Elite'].includes(String(skill?.type || ''))) {
+  // Slot skills and system actions are explicitly independent of equipped weapons.
+  if (['Action', 'Heal', 'Utility', 'Elite'].includes(String(skill?.type || ''))) {
     return 'nonweapon.unequipped';
   }
 

@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../presentation/shared/html.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';
 export const ROTATION_HOTKEY_ENABLED_STORAGE_KEY = 'gw2-rotation-hotkeys-enabled-v1';

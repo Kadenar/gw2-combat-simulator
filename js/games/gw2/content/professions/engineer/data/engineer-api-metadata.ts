@@ -2,11 +2,8 @@
 // Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Engineer to refresh.
 // Simulator mechanics are maintained under engineer/mechanics/.
 
-import type {
-  Gw2ApiSpecialization,
-  Gw2ApiTrait
-} from '../../../../integrations/patches/authoring/api-metadata-types.js';
-import type { EngineerSkill } from '../types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
 export type EngineerApiTrait = Gw2ApiTrait;
 export type EngineerApiSpecialization = Gw2ApiSpecialization;

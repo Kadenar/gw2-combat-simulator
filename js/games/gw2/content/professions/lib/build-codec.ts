@@ -1,9 +1,9 @@
-import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../../app/profession/assumptions.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
-import { createGw2BuildCodec } from '../../../platform/builds/codec.js';
-import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '../../../platform/builds/types.js';
-import type { ProfessionAssumptionControl } from '../../../app/types.js';
-import type { SchedulerRecord } from '../../../platform/engine/types.js';
+import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '#gw2/app/profession/assumptions.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
+import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { ProfessionAssumptionControl } from '#gw2/app/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 
 export interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
   readonly assumptionControls?: readonly ProfessionAssumptionControl[];

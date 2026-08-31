@@ -1,7 +1,20 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+/**
+ * Balance-profile data for Catalyst: the energy resource, the three augment skill
+ * variants, and every Catalyst trait. Mechanics read these through
+ * `elementalistBalanceValue`/`elementalistBalanceEffect`, so patch data can retune
+ * Catalyst numbers without touching handler code.
+ */
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/elementalist/data/ids.js';
 
+/**
+ * Stable ids the mechanics look profiles up by; trait entries reuse the trait id so a
+ * trait patch and its profile address the same record.
+ */
 export const CATALYST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'elementalist.catalyst.resources',
   relentlessFire: 'elementalist.catalyst.relentless-fire',
@@ -18,6 +31,8 @@ export const CATALYST_BALANCE_PROFILE_IDS = Object.freeze({
   sphereSpecialist: TRAIT.SPHERE_SPECIALIST
 });
 
+// Named boon/aura effect shorthands; `name` is the lookup key handlers pass to
+// elementalistBalanceEffect (usually the attunement), not the buff itself.
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -34,6 +49,11 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
   duration
 });
 
+/**
+ * The Catalyst profile table. `resources` carries the energy cap, the Jade Sphere
+ * cost and the per-hit gain; the augment variants carry their buff windows; each
+ * trait entry carries its internal cooldown and the effects its handler emits.
+ */
 export const CATALYST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: CATALYST_BALANCE_PROFILE_IDS.resources,
@@ -44,6 +64,8 @@ export const CATALYST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     resourceGain: 1,
     effects: []
   },
+  // For both augment windows `durationMultiplier` is the base window and
+  // `durationPerTier` the longer one granted while the matching sphere is still active.
   {
     id: CATALYST_BALANCE_PROFILE_IDS.relentlessFire,
     parentId: ID.RELENTLESS_FIRE,
@@ -98,6 +120,8 @@ export const CATALYST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     resourceGain: 2,
     effects: [boon('Fury', 'fury', 1, 2)]
   }),
+  // playerStacks is the permanent in-combat baseline; the three attribute fields feed
+  // the empowerment attribute bonus (flat per-stack, or the Empowered Empowerment scaling).
   trait(CATALYST_BALANCE_PROFILE_IDS.elementalEmpowerment, 'Elemental Empowerment', {
     maximumStacks: 10,
     playerStacks: 3,

@@ -1,9 +1,16 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '../../types.js';
-import { findRotationSkill } from '../catalog.js';
-import { createStrikePacketMatcher, quicknessRuntimeDurationMs, skillForAction } from '../effect-packets.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../../content/professions/elementalist/data/ids.js';
-import { reconstructEvokerActions } from './elementalist/evoker.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import {
+  createStrikePacketMatcher,
+  quicknessRuntimeDurationMs,
+  skillForAction
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import { reconstructEvokerActions } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/evoker.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 const ELEMENTAL_COMMANDS = Object.freeze([
   {

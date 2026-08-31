@@ -1,10 +1,10 @@
-import { isDpsReportData, parseDpsReport } from '../../../integrations/logs/dps-report/parser.js';
-import { fetchDpsReport } from '../../../integrations/logs/dps-report/url.js';
-import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
-import type { ParsedDpsReport } from '../../../integrations/logs/dps-report/types.js';
-import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../types.js';
-import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from './log-rotation-import.js';
+import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
+import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import type { ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/build/io/log-rotation-import.js';
 
 export interface ImportedDpsReportRotation {
   readonly rotation: readonly RotationCommand[];
@@ -24,7 +24,7 @@ export async function readDpsReportRotationData(
   }
 
   const report = parseDpsReport(input);
-  const rotationModule = await import('../../../integrations/logs/dps-report/rotation/index.js');
+  const rotationModule = await import('#gw2/integrations/logs/dps-report/rotation/index.js');
   const players = rotationModule.detectDpsReportRotationPlayers(report);
   const selected = selectActiveBuildLogPlayer(players, app, 'report', 'Select a single-player report.');
   const result = rotationModule.reconstructDpsReportRotation(report, app.activeCatalog, {

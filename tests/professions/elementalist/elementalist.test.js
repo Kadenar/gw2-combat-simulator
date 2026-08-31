@@ -10,35 +10,32 @@ import {
   professionOptions,
   professionRegistry,
   professionRoute
-} from '../../../js/games/gw2/app/profession/registry.js';
-import {
-  applyBalanceProfilePatch,
-  applySkillPatch
-} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
-import { selectedGw2TraitValues } from '../../../js/games/gw2/platform/combat/query/combat-query.js';
+} from '#gw2/app/profession/registry.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild
-} from '../../../js/games/gw2/content/professions/elementalist/build.js';
-import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
-import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
+} from '#gw2/content/professions/elementalist/build/build.js';
+import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '../../../js/games/gw2/content/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/games/gw2/content/professions/elementalist/core/elemental-profile.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/elementalist/core/skills.js';
+} from '#gw2/content/professions/elementalist/data/ids.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
   elementalistBalanceValue
-} from '../../../js/games/gw2/content/professions/elementalist/core/profiles.js';
-import { elementalistAttunementRechargeDuration } from '../../../js/games/gw2/content/professions/elementalist/core/rules.js';
-import { TEMPEST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/tempest/profiles.js';
-import { WEAVER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/evoker/profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { elementalistAttunementRechargeDuration } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
+import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
+import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
+import { CATALYST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 const professionRoot = new URL('../../../js/games/gw2/content/professions/elementalist/', import.meta.url);
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
@@ -113,8 +110,11 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) =>
-    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  const profile = (moduleId, profileId) => {
+    const module = modules.get(moduleId);
+
+    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
+  };
 
   assert.equal(profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.recharge, 10);
   assert.equal(

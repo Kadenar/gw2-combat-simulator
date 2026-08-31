@@ -2,29 +2,32 @@ import {
   flattenProfessionState,
   professionCoreState,
   projectPublicProfessionState
-} from '../../../platform/engine/profession/state.js';
-import { REVENANT_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
+} from '#gw2/platform/engine/profession/state.js';
+import { REVENANT_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/revenant/core/state.js';
 import {
   CONDUIT_PUBLIC_END_STATE_KEYS,
   CONDUIT_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/conduit/state.js';
-import { HERALD_PUBLIC_END_STATE_KEYS, HERALD_PUBLIC_INACTIVE_STATE_DEFAULTS } from './specializations/herald/state.js';
+} from '#gw2/content/professions/revenant/specializations/conduit/state.js';
+import {
+  HERALD_PUBLIC_END_STATE_KEYS,
+  HERALD_PUBLIC_INACTIVE_STATE_DEFAULTS
+} from '#gw2/content/professions/revenant/specializations/herald/state.js';
 import {
   RENEGADE_PUBLIC_END_STATE_KEYS,
   RENEGADE_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/renegade/state.js';
+} from '#gw2/content/professions/revenant/specializations/renegade/state.js';
 import {
   VINDICATOR_PUBLIC_END_STATE_KEYS,
   VINDICATOR_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from './specializations/vindicator/state.js';
+} from '#gw2/content/professions/revenant/specializations/vindicator/state.js';
 import type {
   RenegadeState,
   RevenantResolverContext,
   RevenantResolverEvent,
   RevenantRuntimeState,
   RevenantState
-} from './types.js';
-import type { SchedulerState } from '../../../platform/engine/types.js';
+} from '#gw2/content/professions/revenant/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/types.js';
 
 /** Flattens the family runtime state for stable scheduler and resolver handoff. */
 export function snapshotRevenantState(state: unknown): RevenantState {

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GW2_STANDARD_BOONS, isStandardBoon } from '../../../js/games/gw2/platform/combat/state/boons.js';
+import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import {
   canonicalTargetConditionName,
   GW2_DAMAGING_CONDITIONS,
   isDamagingCondition
-} from '../../../js/games/gw2/platform/combat/state/targets.js';
+} from '#gw2/platform/combat/state/targets.js';
 
 test('standard boon taxonomy recognizes every canonical boon and rejects unknown effects', () => {
   assert.deepEqual(GW2_STANDARD_BOONS, [

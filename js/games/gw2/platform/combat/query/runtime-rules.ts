@@ -1,11 +1,11 @@
-import type { SimulationEventInput, Skill } from '../../engine/types.js';
-import { clamp } from '../numeric.js';
-import { conditionDurationFractionFromExpertise } from '../damage/stat-scaling.js';
-import { gw2BaseRecharge } from '../../skills/recharge.js';
-import type { Gw2Config } from '../../simulation/config.js';
-import type { Gw2ResolvedStats } from './types.js';
-import type { Gw2SigilSet, Gw2Stats } from '../../equipment/types.js';
-import { gw2PrimaryWeapon } from '../../equipment/weapons/loadout.js';
+import type { SimulationEventInput, Skill } from '#gw2/platform/engine/types.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
+import { conditionDurationFractionFromExpertise } from '#gw2/platform/combat/damage/stat-scaling.js';
+import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 interface RechargeRateOptions {
   readonly alacrityRate?: number;

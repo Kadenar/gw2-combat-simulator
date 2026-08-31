@@ -1,5 +1,8 @@
-import type { Skill } from '../../../../../platform/engine/types.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const HARBINGER_SHROUD = Object.freeze({ name: 'Harbinger Shroud', skillId: 62567 });
 const HARBINGER_SHROUD_SKILL_IDS = new Set([62539, 62563, 62611, 62621, 62672]);

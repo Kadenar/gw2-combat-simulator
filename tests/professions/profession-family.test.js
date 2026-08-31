@@ -2,75 +2,72 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../js/games/gw2/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../js/games/gw2/platform/engine/profession/contract.js';
-import {
-  defineProfessionFamily,
-  resolveProfessionRuntime
-} from '../../js/games/gw2/platform/engine/profession/family.js';
-import { defineProfessionModule } from '../../js/games/gw2/platform/engine/profession/module.js';
-import { nativeSkillRuntimeOwner } from '../../js/games/gw2/integrations/patches/authoring/catalog.js';
-import { createResolverState } from '../../js/games/gw2/platform/engine/resolution/resolver.js';
-import { createScheduler } from '../../js/games/gw2/platform/engine/execution/scheduler.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineProfessionFamily, resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { defineProfessionModule } from '#gw2/platform/engine/profession/module.js';
+import { nativeSkillRuntimeOwner } from '#gw2/integrations/patches/authoring/catalog.js';
+import { createResolverState } from '#gw2/platform/engine/resolution/resolver.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { assertProfessionFamilyConformance } from '../helpers/profession-family-conformance.js';
 import { composeSkillMechanics } from '../helpers/skill-mechanics.js';
-import { engineerCatalog } from '../../js/games/gw2/content/professions/engineer/catalog.js';
-import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
-import { engineerCoreModule } from '../../js/games/gw2/content/professions/engineer/core/module.js';
-import { ENGINEER_CORE_SKILL_MECHANICS } from '../../js/games/gw2/content/professions/engineer/core/skills.js';
-import { ENGINEER_SKILL_IDS as ENGINEER_ID } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
-import { amalgamModule } from '../../js/games/gw2/content/professions/engineer/specializations/amalgam/module.js';
-import { AMALGAM_SKILL_MECHANICS } from '../../js/games/gw2/content/professions/engineer/specializations/amalgam/skills.js';
-import { holosmithModule } from '../../js/games/gw2/content/professions/engineer/specializations/holosmith/module.js';
-import { HOLOSMITH_SKILL_MECHANICS } from '../../js/games/gw2/content/professions/engineer/specializations/holosmith/skills.js';
-import { mechanistModule } from '../../js/games/gw2/content/professions/engineer/specializations/mechanist/module.js';
-import { MECHANIST_SKILL_MECHANICS } from '../../js/games/gw2/content/professions/engineer/specializations/mechanist/skills.js';
-import { scrapperModule } from '../../js/games/gw2/content/professions/engineer/specializations/scrapper/module.js';
-import { SCRAPPER_SKILL_MECHANICS } from '../../js/games/gw2/content/professions/engineer/specializations/scrapper/skills.js';
-import { necromancerCatalog } from '../../js/games/gw2/content/professions/necromancer/catalog.js';
-import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
-import { necromancerCoreModule } from '../../js/games/gw2/content/professions/necromancer/core/module.js';
-import { harbingerModule } from '../../js/games/gw2/content/professions/necromancer/specializations/harbinger/module.js';
-import { reaperModule } from '../../js/games/gw2/content/professions/necromancer/specializations/reaper/module.js';
-import { ritualistModule } from '../../js/games/gw2/content/professions/necromancer/specializations/ritualist/module.js';
-import { scourgeModule } from '../../js/games/gw2/content/professions/necromancer/specializations/scourge/module.js';
-import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
-import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
-import { guardianCoreModule } from '../../js/games/gw2/content/professions/guardian/core/module.js';
-import { dragonhunterModule } from '../../js/games/gw2/content/professions/guardian/specializations/dragonhunter/module.js';
-import { firebrandModule } from '../../js/games/gw2/content/professions/guardian/specializations/firebrand/module.js';
-import { luminaryModule } from '../../js/games/gw2/content/professions/guardian/specializations/luminary/module.js';
-import { willbenderModule } from '../../js/games/gw2/content/professions/guardian/specializations/willbender/module.js';
-import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
-import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
-import { mesmerCoreModule } from '../../js/games/gw2/content/professions/mesmer/core/module.js';
-import { chronomancerModule } from '../../js/games/gw2/content/professions/mesmer/specializations/chronomancer/module.js';
-import { mirageModule } from '../../js/games/gw2/content/professions/mesmer/specializations/mirage/module.js';
-import { troubadourModule } from '../../js/games/gw2/content/professions/mesmer/specializations/troubadour/module.js';
-import { virtuosoModule } from '../../js/games/gw2/content/professions/mesmer/specializations/virtuoso/module.js';
-import { revenantCatalog } from '../../js/games/gw2/content/professions/revenant/catalog.js';
-import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
-import { revenantCoreModule } from '../../js/games/gw2/content/professions/revenant/core/module.js';
-import { REVENANT_SKILL_IDS } from '../../js/games/gw2/content/professions/revenant/data/ids.js';
-import { conduitModule } from '../../js/games/gw2/content/professions/revenant/specializations/conduit/module.js';
-import { heraldModule } from '../../js/games/gw2/content/professions/revenant/specializations/herald/module.js';
-import { renegadeModule } from '../../js/games/gw2/content/professions/revenant/specializations/renegade/module.js';
-import { vindicatorModule } from '../../js/games/gw2/content/professions/revenant/specializations/vindicator/module.js';
-import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
-import { thiefCatalog } from '../../js/games/gw2/content/professions/thief/catalog.js';
-import { thiefCoreModule } from '../../js/games/gw2/content/professions/thief/core/module.js';
-import { antiquaryModule as thiefAntiquaryModule } from '../../js/games/gw2/content/professions/thief/specializations/antiquary/module.js';
-import { daredevilModule as thiefDaredevilModule } from '../../js/games/gw2/content/professions/thief/specializations/daredevil/module.js';
-import { deadeyeModule as thiefDeadeyeModule } from '../../js/games/gw2/content/professions/thief/specializations/deadeye/module.js';
-import { specterModule as thiefSpecterModule } from '../../js/games/gw2/content/professions/thief/specializations/specter/module.js';
-import { elementalistCatalog } from '../../js/games/gw2/content/professions/elementalist/catalog.js';
-import { elementalistProfession } from '../../js/games/gw2/content/professions/elementalist/definition.js';
-import { elementalistCoreModule } from '../../js/games/gw2/content/professions/elementalist/core/module.js';
-import { tempestModule } from '../../js/games/gw2/content/professions/elementalist/specializations/tempest/module.js';
-import { weaverModule } from '../../js/games/gw2/content/professions/elementalist/specializations/weaver/module.js';
-import { catalystModule } from '../../js/games/gw2/content/professions/elementalist/specializations/catalyst/module.js';
-import { evokerModule } from '../../js/games/gw2/content/professions/elementalist/specializations/evoker/module.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
+import { engineerCoreModule } from '#gw2/content/professions/engineer/core/module.js';
+import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/index.js';
+import { ENGINEER_SKILL_IDS as ENGINEER_ID } from '#gw2/content/professions/engineer/data/ids.js';
+import { amalgamModule } from '#gw2/content/professions/engineer/specializations/amalgam/module.js';
+import { AMALGAM_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/amalgam/skills/index.js';
+import { holosmithModule } from '#gw2/content/professions/engineer/specializations/holosmith/module.js';
+import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/holosmith/skills/index.js';
+import { mechanistModule } from '#gw2/content/professions/engineer/specializations/mechanist/module.js';
+import { MECHANIST_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/mechanist/skills/index.js';
+import { scrapperModule } from '#gw2/content/professions/engineer/specializations/scrapper/module.js';
+import { SCRAPPER_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/scrapper/skills/index.js';
+import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
+import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
+import { necromancerCoreModule } from '#gw2/content/professions/necromancer/core/module.js';
+import { harbingerModule } from '#gw2/content/professions/necromancer/specializations/harbinger/module.js';
+import { reaperModule } from '#gw2/content/professions/necromancer/specializations/reaper/module.js';
+import { ritualistModule } from '#gw2/content/professions/necromancer/specializations/ritualist/module.js';
+import { scourgeModule } from '#gw2/content/professions/necromancer/specializations/scourge/module.js';
+import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
+import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
+import { guardianCoreModule } from '#gw2/content/professions/guardian/core/module.js';
+import { dragonhunterModule } from '#gw2/content/professions/guardian/specializations/dragonhunter/module.js';
+import { firebrandModule } from '#gw2/content/professions/guardian/specializations/firebrand/module.js';
+import { luminaryModule } from '#gw2/content/professions/guardian/specializations/luminary/module.js';
+import { willbenderModule } from '#gw2/content/professions/guardian/specializations/willbender/module.js';
+import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
+import { mesmerCoreModule } from '#gw2/content/professions/mesmer/core/module.js';
+import { chronomancerModule } from '#gw2/content/professions/mesmer/specializations/chronomancer/module.js';
+import { mirageModule } from '#gw2/content/professions/mesmer/specializations/mirage/module.js';
+import { troubadourModule } from '#gw2/content/professions/mesmer/specializations/troubadour/module.js';
+import { virtuosoModule } from '#gw2/content/professions/mesmer/specializations/virtuoso/module.js';
+import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
+import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
+import { revenantCoreModule } from '#gw2/content/professions/revenant/core/module.js';
+import { REVENANT_SKILL_IDS } from '#gw2/content/professions/revenant/data/ids.js';
+import { conduitModule } from '#gw2/content/professions/revenant/specializations/conduit/module.js';
+import { heraldModule } from '#gw2/content/professions/revenant/specializations/herald/module.js';
+import { renegadeModule } from '#gw2/content/professions/revenant/specializations/renegade/module.js';
+import { vindicatorModule } from '#gw2/content/professions/revenant/specializations/vindicator/module.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
+import { thiefCatalog } from '#gw2/content/professions/thief/catalog.js';
+import { thiefCoreModule } from '#gw2/content/professions/thief/core/module.js';
+import { antiquaryModule as thiefAntiquaryModule } from '#gw2/content/professions/thief/specializations/antiquary/module.js';
+import { daredevilModule as thiefDaredevilModule } from '#gw2/content/professions/thief/specializations/daredevil/module.js';
+import { deadeyeModule as thiefDeadeyeModule } from '#gw2/content/professions/thief/specializations/deadeye/module.js';
+import { specterModule as thiefSpecterModule } from '#gw2/content/professions/thief/specializations/specter/module.js';
+import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+import { elementalistCoreModule } from '#gw2/content/professions/elementalist/core/module.js';
+import { tempestModule } from '#gw2/content/professions/elementalist/specializations/tempest/module.js';
+import { weaverModule } from '#gw2/content/professions/elementalist/specializations/weaver/module.js';
+import { catalystModule } from '#gw2/content/professions/elementalist/specializations/catalyst/module.js';
+import { evokerModule } from '#gw2/content/professions/elementalist/specializations/evoker/module.js';
 
 // Tests derive elite names from the same canonical catalog consumed by production.
 function eliteSpecializationNames(catalog) {
@@ -81,6 +78,44 @@ function nativeModifierRules(module) {
   const modifiers = module.mechanics?.modifiers;
 
   return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
+}
+
+function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
+  return readdirSync(directoryUrl, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap((entry) => {
+      const relativePath = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
+      const url = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directoryUrl);
+
+      if (entry.isDirectory()) return collectTypeScriptSources(url, relativePath);
+      if (!entry.isFile() || !entry.name.endsWith('.ts')) return [];
+      return [{ relativePath, source: readFileSync(url, 'utf8') }];
+    });
+}
+
+function professionSliceSources(profession, directory) {
+  return collectTypeScriptSources(
+    new URL(`../../js/games/gw2/content/professions/${profession}/${directory}/`, import.meta.url)
+  );
+}
+
+function combinedSource(entries) {
+  return entries.map(({ source }) => source).join('\n');
+}
+
+// Remove the current slice's absolute alias before checking for imports from sibling specializations.
+function withoutCurrentSpecializationAlias(source, profession, directory) {
+  return source.replaceAll(`#gw2/content/professions/${profession}/${directory}/`, '');
+}
+
+function skillSource(entries) {
+  return combinedSource(
+    entries.filter(({ relativePath }) => relativePath === 'skills.ts' || relativePath.startsWith('skills/'))
+  );
+}
+
+function nativeSkillHandlers(module) {
+  return module.mechanics?.execution?.skillHandlers;
 }
 
 function nativeSkillOwnerMap(slices, catalog) {
@@ -283,10 +318,8 @@ test('native module contributions assemble disjoint application and runtime cata
         }
       }
 
-      const handlers =
-        module.data.handlers instanceof Map
-          ? module.data.handlers
-          : new Map(Object.entries(module.data.handlers || {}));
+      const moduleHandlers = nativeSkillHandlers(module);
+      const handlers = moduleHandlers instanceof Map ? moduleHandlers : new Map(Object.entries(moduleHandlers || {}));
 
       for (const handlerId of handlers.keys()) {
         assert.equal(contributed.handlers.has(handlerId), false, `${name}:handler:${handlerId}`);
@@ -708,17 +741,17 @@ test('Necromancer modules contain complete vertical slices', () => {
     'obsolete aggregate handler-mechanics table'
   );
   for (const relative of [
-    'specializations/reaper/combos.ts',
-    'specializations/reaper/resolver.ts',
-    'specializations/scourge/shades.ts',
-    'specializations/scourge/resolver.ts',
-    'specializations/harbinger/blight.ts',
-    'specializations/harbinger/dark-barrage.ts',
-    'specializations/harbinger/resolver.ts',
-    'specializations/ritualist/spirits.ts',
-    'specializations/ritualist/weapon-spells.ts',
-    'specializations/ritualist/events.ts',
-    'specializations/ritualist/resolver.ts'
+    'specializations/reaper/mechanics/combos.ts',
+    'specializations/reaper/mechanics/shroud-effects.ts',
+    'specializations/scourge/mechanics/shades.ts',
+    'specializations/scourge/mechanics/shade-effects.ts',
+    'specializations/harbinger/mechanics/blight.ts',
+    'specializations/harbinger/skills/dark-barrage.ts',
+    'specializations/harbinger/mechanics/blight-effects.ts',
+    'specializations/ritualist/mechanics/spirits.ts',
+    'specializations/ritualist/skills/weapon-spells.ts',
+    'specializations/ritualist/mechanics/event-handlers.ts',
+    'specializations/ritualist/mechanics/spirit-effects.ts'
   ]) {
     assert.equal(
       existsSync(new URL(`../../js/games/gw2/content/professions/necromancer/${relative}`, import.meta.url)),
@@ -737,47 +770,35 @@ test('Necromancer modules contain complete vertical slices', () => {
   const modifierRuleOwners = new Map();
 
   for (const [directory, module] of slices) {
-    for (const filename of ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']) {
-      const url = new URL(
-        `../../js/games/gw2/content/professions/necromancer/${directory}/${filename}`,
-        import.meta.url
-      );
-
-      assert.equal(existsSync(url), true, `${directory}/${filename}`);
-
+    const sources = professionSliceSources('necromancer', directory);
+    assert.ok(
+      sources.some(({ relativePath }) => relativePath === 'module.ts'),
+      `${directory}/module.ts`
+    );
+    for (const { relativePath, source } of sources) {
       if (directory.startsWith('specializations/')) {
-        const source = readFileSync(url, 'utf8');
-
         assert.doesNotMatch(
-          source,
+          withoutCurrentSpecializationAlias(source, 'necromancer', directory),
           /specializations\/(?:reaper|scourge|harbinger|ritualist)\//,
-          `${directory}/${filename} imports a sibling specialization`
+          `${directory}/${relativePath} imports a sibling specialization`
         );
-
-        if (filename === 'handlers.ts') {
-          assert.doesNotMatch(
-            source,
-            /\.\.\/\.\.\/handlers\.js/,
-            `${directory}/${filename} imports the application handler facade`
-          );
-        }
-      }
-
-      if (filename === 'skills.ts') {
-        const source = readFileSync(url, 'utf8');
-
-        assert.match(source, /_BASE_SKILL_MECHANICS\b/, `${directory}/${filename} owns no skill mechanics`);
         assert.doesNotMatch(
           source,
-          /from\s+["'][^"']*catalog\.js["']/,
-          `${directory}/${filename} forwards to the aggregate catalog`
+          /\.\.\/\.\.\/handlers\.js/,
+          `${directory}/${relativePath} imports the application handler facade`
         );
       }
     }
 
+    const skills = skillSource(sources);
+    assert.match(skills, /_BASE_SKILL_MECHANICS\b/, `${directory} owns no skill mechanics`);
+    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/, `${directory} forwards to the aggregate catalog`);
+
     assert.equal(typeof module.state?.scheduler, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
-    assert.equal(typeof module.data?.handlers, 'object');
+    // Reaper has no custom activation registry; omit the empty placeholder instead of enforcing file symmetry.
+    if (module.id === 'Reaper') assert.equal(nativeSkillHandlers(module), undefined);
+    else assert.equal(typeof nativeSkillHandlers(module), 'object');
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
@@ -791,21 +812,10 @@ test('Necromancer modules contain complete vertical slices', () => {
   assert.equal(modifierRuleOwners.get('necromancer.soul-eater'), 'Reaper');
   assert.equal(modifierRuleOwners.get('necromancer.spirits-strength'), 'Ritualist');
   assert.match(
-    readFileSync(
-      new URL('../../js/games/gw2/content/professions/necromancer/specializations/reaper/rules.ts', import.meta.url),
-      'utf8'
-    ),
+    combinedSource(professionSliceSources('necromancer', 'specializations/reaper')),
     /function modifyReaperCastDuration/
   );
-  const coreSource = readdirSync(new URL('../../js/games/gw2/content/professions/necromancer/core', import.meta.url))
-    .filter((filename) => filename.endsWith('.ts'))
-    .map((filename) =>
-      readFileSync(
-        new URL(`../../js/games/gw2/content/professions/necromancer/core/${filename}`, import.meta.url),
-        'utf8'
-      )
-    )
-    .join('\n');
+  const coreSource = combinedSource(professionSliceSources('necromancer', 'core'));
   assert.doesNotMatch(
     coreSource,
     /TRAIT\.(?:ALCHEMIC_VIGOR|DEATHLY_CHILL|HERALD_OF_SORROW|LINGERING_SPIRITS|NOURISHING_ASHES|SAND_SAGE|SOUL_TWISTING|SPIRITS_STRENGTH)/,
@@ -961,28 +971,24 @@ test('Guardian modules own disjoint vertical slices', () => {
   const modifierRuleOwners = new Map();
 
   for (const [directory, module] of slices) {
-    const filenames = ['module.ts', 'state.ts', 'skills.ts', 'ui.ts'];
-
-    if (module.data?.handlers) filenames.push('handlers.ts');
-    for (const filename of filenames) {
-      const url = new URL(`../../js/games/gw2/content/professions/guardian/${directory}/${filename}`, import.meta.url);
-
-      assert.equal(existsSync(url), true, `${directory}/${filename}`);
-      const source = readFileSync(url, 'utf8');
-
+    const sources = professionSliceSources('guardian', directory);
+    assert.ok(
+      sources.some(({ relativePath }) => relativePath === 'module.ts'),
+      `${directory}/module.ts`
+    );
+    for (const { relativePath, source } of sources) {
       if (directory.startsWith('specializations/')) {
         assert.doesNotMatch(
-          source,
+          withoutCurrentSpecializationAlias(source, 'guardian', directory),
           /specializations\/(?:dragonhunter|firebrand|willbender|luminary)\//,
-          `${directory}/${filename} imports a sibling specialization`
+          `${directory}/${relativePath} imports a sibling specialization`
         );
       }
-
-      if (filename === 'skills.ts') {
-        assert.match(source, /_SKILL_MECHANICS\b/, `${directory}/${filename} owns no skill mechanics`);
-        assert.doesNotMatch(source, /from\s+["'][^"']*catalog\.js["']/);
-      }
     }
+
+    const skills = skillSource(sources);
+    assert.match(skills, /_SKILL_MECHANICS\b/, `${directory} owns no skill mechanics`);
+    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/);
 
     assert.equal(typeof module.state?.scheduler, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
@@ -995,11 +1001,7 @@ test('Guardian modules own disjoint vertical slices', () => {
   assert.equal(modifierRuleOwners.get('guardian.empowered-armaments'), 'Luminary');
   assert.equal(modifierRuleOwners.get('guardian.radiant-power-critical-chance'), 'Core');
 
-  const coreDirectory = new URL('../../js/games/gw2/content/professions/guardian/core/', import.meta.url);
-  const coreSource = readdirSync(coreDirectory)
-    .filter((filename) => filename.endsWith('.ts'))
-    .map((filename) => readFileSync(new URL(filename, coreDirectory), 'utf8'))
-    .join('\n');
+  const coreSource = combinedSource(professionSliceSources('guardian', 'core'));
 
   assert.doesNotMatch(coreSource, /Dragonhunter|Firebrand|Willbender|Luminary/i);
   for (const key of Object.values(guardianInactiveStateKeys).flat()) {
@@ -1133,36 +1135,31 @@ test('Mesmer modules are vertical slices with disjoint catalog ownership', () =>
   const modifierRuleOwners = new Map();
 
   for (const [directory, module] of mesmerSlices) {
-    for (const filename of ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'mechanics.ts', 'rules.ts', 'ui.ts']) {
-      const url = new URL(`../../js/games/gw2/content/professions/mesmer/${directory}/${filename}`, import.meta.url);
-
-      assert.equal(existsSync(url), true, `${directory}/${filename}`);
-      const source = readFileSync(url, 'utf8');
-
+    const sources = professionSliceSources('mesmer', directory);
+    assert.ok(
+      sources.some(({ relativePath }) => relativePath === 'module.ts'),
+      `${directory}/module.ts`
+    );
+    for (const { relativePath, source } of sources) {
       if (directory.startsWith('specializations/')) {
         assert.doesNotMatch(
-          source,
+          withoutCurrentSpecializationAlias(source, 'mesmer', directory),
           /specializations\/(?:chronomancer|mirage|virtuoso|troubadour)\//,
-          `${directory}/${filename} imports a sibling specialization`
-        );
-      }
-
-      if (filename === 'skills.ts') {
-        assert.match(source, /MESMER_SKILL_IDS\s+as\s+ID/, `${directory}/${filename} must use the shared skill ID map`);
-        assert.match(source, /_SKILL_MECHANICS\b/, `${directory}/${filename} owns no skill mechanics`);
-        assert.doesNotMatch(source, /from\s+["'][^"']*catalog\.js["']/);
-        assert.doesNotMatch(
-          source,
-          /^\s*["']?-?\d+["']?\s*:/m,
-          `${directory}/${filename} has a hardcoded skill ID key`
-        );
-        assert.doesNotMatch(
-          source,
-          /\b(?:id|skillId|nextChainId|flipParentId|flipChildId)\s*:\s*-?\d+/,
-          `${directory}/${filename} has a hardcoded skill ID reference`
+          `${directory}/${relativePath} imports a sibling specialization`
         );
       }
     }
+
+    const skills = skillSource(sources);
+    assert.match(skills, /MESMER_SKILL_IDS\s+as\s+ID/, `${directory} must use the shared skill ID map`);
+    assert.match(skills, /_SKILL_MECHANICS\b/, `${directory} owns no skill mechanics`);
+    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/);
+    assert.doesNotMatch(skills, /^\s*["']?-?\d+["']?\s*:/m, `${directory} has a hardcoded skill ID key`);
+    assert.doesNotMatch(
+      skills,
+      /\b(?:id|skillId|nextChainId|flipParentId|flipChildId)\s*:\s*-?\d+/,
+      `${directory} has a hardcoded skill ID reference`
+    );
 
     assert.equal(typeof module.state?.scheduler, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
@@ -1172,27 +1169,21 @@ test('Mesmer modules are vertical slices with disjoint catalog ownership', () =>
     }
   }
 
-  const coreSources = ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']
-    .map((filename) =>
-      readFileSync(new URL(`../../js/games/gw2/content/professions/mesmer/core/${filename}`, import.meta.url), 'utf8')
-    )
-    .join('\n');
+  const coreSources = combinedSource(professionSliceSources('mesmer', 'core'));
 
   assert.doesNotMatch(coreSources, /specializations\//);
 });
 
 test('Mesmer specialization mechanics contribute only registries they own', () => {
   const mechanicsSources = Object.fromEntries(
-    ['chronomancer', 'mirage', 'virtuoso', 'troubadour'].map((specialization) => [
-      specialization,
-      readFileSync(
-        new URL(
-          `../../js/games/gw2/content/professions/mesmer/specializations/${specialization}/mechanics.ts`,
-          import.meta.url
-        ),
-        'utf8'
-      )
-    ])
+    ['chronomancer', 'mirage', 'virtuoso', 'troubadour'].map((specialization) => {
+      const mechanics = professionSliceSources('mesmer', `specializations/${specialization}`).filter(
+        ({ relativePath }) => relativePath === 'mechanics.ts' || relativePath.startsWith('mechanics/')
+      );
+
+      assert.ok(mechanics.length > 0, `${specialization} owns no mechanics modules`);
+      return [specialization, combinedSource(mechanics)];
+    })
   );
 
   for (const [specialization, source] of Object.entries(mechanicsSources)) {
@@ -1204,13 +1195,7 @@ test('Mesmer specialization mechanics contribute only registries they own', () =
   }
 
   for (const specialization of Object.keys(mechanicsSources)) {
-    const skills = readFileSync(
-      new URL(
-        `../../js/games/gw2/content/professions/mesmer/specializations/${specialization}/skills.ts`,
-        import.meta.url
-      ),
-      'utf8'
-    );
+    const skills = skillSource(professionSliceSources('mesmer', `specializations/${specialization}`));
     assert.doesNotMatch(
       skills,
       /_SUPPLEMENTAL_SKILL_MECHANICS[^=]*=\s*Object\.freeze\(\{\}\)|_EXTRA_SKILLS[^=]*=\s*Object\.freeze\(\[\]/,
@@ -1225,26 +1210,20 @@ test('Mesmer specialization mechanics contribute only registries they own', () =
     ['troubadour']
   );
 
-  const coreState = readFileSync(
-    new URL('../../js/games/gw2/content/professions/mesmer/core/state.ts', import.meta.url),
-    'utf8'
+  const coreState = combinedSource(
+    professionSliceSources('mesmer', 'core').filter(
+      ({ relativePath }) => relativePath === 'state.ts' || relativePath.startsWith('state/')
+    )
   );
   assert.doesNotMatch(
     coreState,
     /numericResource|instruments|lastInstrument|mirrors|riddleOfSand|continuum|timeBomb|bloodsong|nextForge/
   );
 
-  const coreProfiles = readFileSync(
-    new URL('../../js/games/gw2/content/professions/mesmer/core/profiles.ts', import.meta.url),
-    'utf8'
-  );
+  const coreProfiles = combinedSource(professionSliceSources('mesmer', 'core'));
   assert.doesNotMatch(coreProfiles, /mesmerProfiledAmbush|mesmerProfiledInstrument/);
 
-  const coreBehavior = ['expected-procs.ts', 'resources.ts', 'rules.ts']
-    .map((filename) =>
-      readFileSync(new URL(`../../js/games/gw2/content/professions/mesmer/core/${filename}`, import.meta.url), 'utf8')
-    )
-    .join('\n');
+  const coreBehavior = combinedSource(professionSliceSources('mesmer', 'core'));
   assert.doesNotMatch(
     coreBehavior,
     /Infinite Horizon|Riddle of Sand|Sigil of Energy|Danger Time|Harmonize|Syncopate|Jagged Mind|Bloodsong/
@@ -1384,43 +1363,29 @@ test('Revenant modules are vertical slices with disjoint ownership', () => {
   const modifierRuleOwners = new Map();
 
   for (const [directory, module] of revenantSlices) {
-    for (const filename of ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']) {
-      const url = new URL(`../../js/games/gw2/content/professions/revenant/${directory}/${filename}`, import.meta.url);
-
-      assert.equal(existsSync(url), true, `${directory}/${filename}`);
-      const source = readFileSync(url, 'utf8');
-
+    const sources = professionSliceSources('revenant', directory);
+    assert.ok(
+      sources.some(({ relativePath }) => relativePath === 'module.ts'),
+      `${directory}/module.ts`
+    );
+    for (const { relativePath, source } of sources) {
       if (directory.startsWith('specializations/')) {
         assert.doesNotMatch(
-          source,
+          withoutCurrentSpecializationAlias(source, 'revenant', directory),
           /specializations\/(?:herald|renegade|vindicator|conduit)\//,
-          `${directory}/${filename} imports a sibling specialization`
+          `${directory}/${relativePath} imports a sibling specialization`
         );
-
-        if (filename === 'handlers.ts') {
-          assert.doesNotMatch(source, /\.\.\/\.\.\/handlers\.js/);
-        }
-      }
-
-      if (filename === 'skills.ts') {
-        assert.match(source, /_BASE_SKILL_MECHANICS\b/, `${directory}/${filename} owns no skill mechanics`);
-        assert.doesNotMatch(
-          source,
-          /from\s+["'][^"']*catalog\.js["']/,
-          `${directory}/${filename} forwards to the aggregate catalog`
-        );
+        assert.doesNotMatch(source, /\.\.\/\.\.\/handlers\.js/);
       }
     }
 
-    const mechanicsUrl = new URL(
-      `../../js/games/gw2/content/professions/revenant/${directory}/mechanics.ts`,
-      import.meta.url
-    );
+    const skills = skillSource(sources);
+    assert.match(skills, /_BASE_SKILL_MECHANICS\b/, `${directory} owns no skill mechanics`);
+    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/, `${directory} forwards to the aggregate catalog`);
 
-    assert.equal(existsSync(mechanicsUrl), directory === 'specializations/herald', `${directory}/mechanics.ts`);
     assert.equal(typeof module.state?.scheduler, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
-    assert.equal(typeof module.data?.handlers, 'object');
+    assert.equal(typeof nativeSkillHandlers(module), 'object');
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
@@ -1433,24 +1398,7 @@ test('Revenant modules are vertical slices with disjoint ownership', () => {
   assert.equal(modifierRuleOwners.get('revenant.leviathan-strength'), 'Vindicator');
   assert.equal(modifierRuleOwners.get('revenant.release-warrior-affinity'), 'Conduit');
 
-  const coreSources = [
-    'availability.ts',
-    'energy.ts',
-    'events.ts',
-    'handlers.ts',
-    'legend-traits.ts',
-    'module.ts',
-    'rules.ts',
-    'skills.ts',
-    'state.ts',
-    'ui.ts',
-    'upkeep.ts',
-    'weapon-state.ts'
-  ]
-    .map((filename) =>
-      readFileSync(new URL(`../../js/games/gw2/content/professions/revenant/core/${filename}`, import.meta.url), 'utf8')
-    )
-    .join('\n');
+  const coreSources = combinedSource(professionSliceSources('revenant', 'core'));
 
   assert.doesNotMatch(coreSources, /specializations\//);
   assert.doesNotMatch(
@@ -1590,42 +1538,30 @@ test('Engineer modules are vertical slices with disjoint ownership', () => {
   const modifierRuleOwners = new Map();
 
   for (const [directory, module] of engineerSlices) {
-    const filenames = ['module.ts', 'state.ts', 'skills.ts', 'rules.ts', 'ui.ts'];
-
-    if (['specializations/holosmith', 'specializations/mechanist', 'specializations/amalgam'].includes(directory)) {
-      filenames.push('mechanics.ts');
-    }
-
-    if (module.data?.handlers) filenames.push('handlers.ts');
-    for (const filename of filenames) {
-      const url = new URL(`../../js/games/gw2/content/professions/engineer/${directory}/${filename}`, import.meta.url);
-
-      assert.equal(existsSync(url), true, `${directory}/${filename}`);
-      const source = readFileSync(url, 'utf8');
-
+    const sources = professionSliceSources('engineer', directory);
+    assert.ok(
+      sources.some(({ relativePath }) => relativePath === 'module.ts'),
+      `${directory}/module.ts`
+    );
+    for (const { relativePath, source } of sources) {
       if (directory.startsWith('specializations/')) {
         assert.doesNotMatch(
-          source,
+          withoutCurrentSpecializationAlias(source, 'engineer', directory),
           /specializations\/(?:scrapper|holosmith|mechanist|amalgam)\//,
-          `${directory}/${filename} imports a sibling specialization`
-        );
-      }
-
-      if (filename === 'skills.ts') {
-        assert.match(source, /SKILL_MECHANICS\b/, `${directory}/${filename} owns no skill mechanics`);
-        assert.doesNotMatch(
-          source,
-          /from\s+["'][^"']*catalog\.js["']/,
-          `${directory}/${filename} forwards to the aggregate catalog`
+          `${directory}/${relativePath} imports a sibling specialization`
         );
       }
     }
+
+    const skills = skillSource(sources);
+    assert.match(skills, /SKILL_MECHANICS\b/, `${directory} owns no skill mechanics`);
+    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/, `${directory} forwards to the aggregate catalog`);
 
     assert.equal(typeof module.state?.scheduler, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
 
-    if (module.data?.handlers) {
-      assert.equal(typeof module.data.handlers, 'object');
+    if (nativeSkillHandlers(module)) {
+      assert.equal(typeof nativeSkillHandlers(module), 'object');
     }
 
     assert.ok(module.presentation);
@@ -1640,25 +1576,22 @@ test('Engineer modules are vertical slices with disjoint ownership', () => {
   assert.equal(modifierRuleOwners.get('engineer.force-signet'), 'Mechanist');
   assert.equal(modifierRuleOwners.get('engineer.willing-host'), 'Amalgam');
 
-  const coreSources = ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']
-    .map((filename) =>
-      readFileSync(new URL(`../../js/games/gw2/content/professions/engineer/core/${filename}`, import.meta.url), 'utf8')
-    )
-    .join('\n');
+  const coreSources = combinedSource(professionSliceSources('engineer', 'core'));
 
   assert.doesNotMatch(coreSources, /specializations\//);
 
-  const coreSkillSource = readFileSync(
-    new URL('../../js/games/gw2/content/professions/engineer/core/skills.ts', import.meta.url),
-    'utf8'
+  const engineerCoreSources = professionSliceSources('engineer', 'core');
+  const coreSkillSource = skillSource(engineerCoreSources);
+  const coreTraitSource = combinedSource(
+    engineerCoreSources.filter(({ relativePath }) => relativePath === 'traits.ts' || relativePath.startsWith('traits/'))
   );
-  const coreTraitSource = readFileSync(
-    new URL('../../js/games/gw2/content/professions/engineer/core/traits.ts', import.meta.url),
-    'utf8'
-  );
-  const coreAvailabilitySource = readFileSync(
-    new URL('../../js/games/gw2/content/professions/engineer/core/availability.ts', import.meta.url),
-    'utf8'
+  const coreAvailabilitySource = combinedSource(
+    engineerCoreSources.filter(
+      ({ relativePath }) =>
+        relativePath === 'availability.ts' ||
+        relativePath.startsWith('skills/') ||
+        relativePath.startsWith('mechanics/')
+    )
   );
 
   assert.doesNotMatch(coreSkillSource, /\[ID\.(?:RADIANT_ARC|SUN_EDGE|SUN_RIPPER|GLEAM_SABER|REFRACTION_CUTTER)\]:/);

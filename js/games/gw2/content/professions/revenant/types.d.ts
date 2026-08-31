@@ -9,11 +9,11 @@ import type {
   SchedulerRecord,
   Skill,
   SkillId
-} from '../../../platform/engine/types.js';
-import type { Gw2Build, Gw2CanonicalBuild } from '../../../platform/builds/types.js';
-import type { Gw2Config } from '../../../platform/simulation/config.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/resolver/types.js';
-import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../../app/types.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '#gw2/app/types.js';
 
 export interface RevenantSpecializationSelection {
   readonly name?: string;
@@ -242,7 +242,7 @@ export interface RevenantEnergyContext {
 export type RevenantScheduledTask<TPayload extends SchedulerRecord = SchedulerRecord> = ScheduledTask<TPayload>;
 
 export type RevenantSimulationEvent = SimulationEvent & {
-  readonly __order?: number;
+  readonly eventOrder?: number;
   readonly weaponSet?: number;
 };
 

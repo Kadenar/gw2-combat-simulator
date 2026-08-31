@@ -1,21 +1,24 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../catalog-data.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createMesmerModuleData } from '#gw2/content/professions/mesmer/catalog/module-data.js';
 import {
   chronomancerAttributeRules,
   chronomancerCastRules,
   chronomancerRuntimeHooks,
   chronomancerSkillMechanicHandlers
-} from './rules.js';
-import { createChronomancerResolverState, chronomancerState } from './state.js';
-import { chronomancerUi } from './ui.js';
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/continuum-split-rules.js';
+import {
+  createChronomancerResolverState,
+  chronomancerState
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/state.js';
+import { chronomancerUi } from '#gw2/content/professions/mesmer/specializations/chronomancer/presentation.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
-} from './skills.js';
-import { chronomancerSkillHandlers } from './handlers.js';
-import { chronomancerEventHandlers } from './resolver.js';
-import { CHRONOMANCER_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/skills/index.js';
+import { chronomancerSkillHandlers } from '#gw2/content/professions/mesmer/specializations/chronomancer/skills/execution.js';
+import { chronomancerEventHandlers } from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/state-events.js';
+import { CHRONOMANCER_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
 
 export const chronomancerModule = defineNativeModule({
   id: 'Chronomancer',
@@ -23,8 +26,7 @@ export const chronomancerModule = defineNativeModule({
     skillMechanics: MESMER_CHRONOMANCER_SKILL_MECHANICS,
     supplementalSkillMechanics: MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS,
-    balanceProfiles: CHRONOMANCER_BALANCE_PROFILES,
-    handlers: chronomancerSkillHandlers
+    balanceProfiles: CHRONOMANCER_BALANCE_PROFILES
   }),
   state: {
     scheduler: chronomancerState.create,
@@ -32,10 +34,15 @@ export const chronomancerModule = defineNativeModule({
   },
   mechanics: {
     modifiers: chronomancerAttributeRules,
-    castRules: chronomancerCastRules,
-    skillMechanicHandlers: chronomancerSkillMechanicHandlers,
-    schedulerHooks: chronomancerRuntimeHooks,
-    resolverHooks: { eventHandlers: chronomancerEventHandlers }
+    execution: {
+      skillHandlers: chronomancerSkillHandlers,
+      castRules: chronomancerCastRules,
+      skillMechanicHandlers: chronomancerSkillMechanicHandlers,
+      hooks: chronomancerRuntimeHooks
+    },
+    resolution: {
+      hooks: { eventHandlers: chronomancerEventHandlers }
+    }
   },
   presentation: chronomancerUi
 });

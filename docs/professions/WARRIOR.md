@@ -1,8 +1,9 @@
 # Warrior
 
 Native shared-engine profession. Entry point `warrior.html`. `definition.ts`
-is the stable export; `family.ts` composes Core with exactly one of Berserker,
-Spellbreaker, Bladesworn, or Paragon. Core owns adrenaline, bursts, weapon
+is the stable export and composes the Core-first tuple from `modules.ts`. A
+runtime contains Core plus at most one of Berserker, Spellbreaker, Bladesworn,
+or Paragon. Core owns adrenaline, bursts, weapon
 state, shared traits, and profession actions; each specialization owns its
 state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 
@@ -12,8 +13,9 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
   traits, and all nine specialization lines. Twelve API-omitted Bladesworn
   gunsaber and Dragon Slash skills are checked in as supplemental identities.
 - Refresh: `npm run update:warrior-data`. The updater drops invalid API skill
-  `62857`, repairs Dragon Trigger's dangling flip reference, and rejects
-  zero-duration effects / duplicate mode variants.
+  `62857`, repairs Dragon Trigger's dangling flip reference, and regenerates
+  Warrior IDs and supplemental skills. Its skill generator currently writes
+  retired flat `skills.ts` outputs that the runtime does not import.
 - Public API data omits some activation times and mode-specific facts; the
   generator uses current Wiki activation data where available and deterministic
   fallbacks elsewhere.

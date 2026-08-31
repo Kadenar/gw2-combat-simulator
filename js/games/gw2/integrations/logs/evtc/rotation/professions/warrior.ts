@@ -1,9 +1,15 @@
-import { reconstructBerserkerActions } from './warrior/berserker.js';
-import { reconstructBladeswornActions } from './warrior/bladesworn.js';
-import { normalizeWarriorCommonActions, removePostEncounterWarriorActions } from './warrior/common.js';
-import { reconstructParagonActions } from './warrior/paragon.js';
-import { reconstructSpellbreakerActions } from './warrior/spellbreaker.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './types.js';
+import { reconstructBerserkerActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/berserker.js';
+import { reconstructBladeswornActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bladesworn.js';
+import {
+  normalizeWarriorCommonActions,
+  removePostEncounterWarriorActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/common.js';
+import { reconstructParagonActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/paragon.js';
+import { reconstructSpellbreakerActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/spellbreaker.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 type WarriorActionTransform = (
   context: EvtcProfessionReconstructionContext,

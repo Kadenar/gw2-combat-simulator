@@ -1,16 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  defineSkillVariantProfile,
-  defineTraitProfile
-} from '../../../js/games/gw2/integrations/patches/authoring/balance-profiles.js';
-import { applyBalanceProfilePatch } from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
+import { defineSkillVariantProfile, defineTraitProfile } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
   balanceProfileValue
-} from '../../../js/games/gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/combat/state/balance-profiles.js';
 
 test('balance-profile authoring helpers attach canonical trait and variant metadata', () => {
   assert.deepEqual(defineTraitProfile(101, 'Test Trait', { threshold: 3 }), {

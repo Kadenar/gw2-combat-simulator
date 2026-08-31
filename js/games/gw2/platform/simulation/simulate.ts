@@ -1,5 +1,5 @@
-import { simulateDeclarativeGw2 } from './pipeline.js';
-import type { Gw2DeclarativeSimulationOptions, Gw2SimulationResult } from './types.js';
+import { simulateDeclarativeGw2 } from '#gw2/platform/simulation/pipeline.js';
+import type { Gw2DeclarativeSimulationOptions, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 /**
  * Canonical GW2 simulation entry point.

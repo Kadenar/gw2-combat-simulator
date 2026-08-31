@@ -1,13 +1,16 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import { effectWindowMs, findRotationSkill } from '../../catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { effectWindowMs, findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   inferDetonateActions,
   kitIdentity,
   normalizeKitTransitions,
   openingDamageSkillNames,
   PRECOMBAT_BOMBS
-} from './kits.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/kits.js';
 import {
   canonicalAction,
   castDuration,
@@ -17,8 +20,8 @@ import {
   selectedIdentity,
   selectedSkill,
   skillForAction
-} from './shared.js';
-import { mergeCompositeActions } from '../../../../lib/rotation/rules/composites.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
+import { mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 
 const THROW_MINE = Object.freeze({ name: 'Throw Mine', skillId: 6161 });
 const EVOLVE = Object.freeze({ name: 'Evolve', skillId: 76642 });

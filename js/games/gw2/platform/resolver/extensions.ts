@@ -1,16 +1,20 @@
-import type { SimulationEvent } from '../engine/types.js';
-import { createRelicRuntime, createRelicTimelineRuntime } from '../equipment/relics/runtime.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import { createRelicRuntime, createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import {
   recordPassiveRelicTimeline,
   relicConditionDurationBonus,
   relicStrikeMultiplier
-} from '../equipment/relics/query.js';
-import { createGw2EquipmentReactionContributions } from './equipment-reactions.js';
-import { createGw2ResolverReactionRegistry } from './reaction-registry.js';
+} from '#gw2/platform/equipment/relics/query.js';
+import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
+import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 
-import type { Gw2Config } from '../simulation/config.js';
-import type { Gw2QueryRuntime } from '../combat/query/types.js';
-import type { Gw2ResolverExtensions, Gw2ResolverReactionRegistry, Gw2ResolverReactions } from './types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/types.js';
+import type {
+  Gw2ResolverExtensions,
+  Gw2ResolverReactionRegistry,
+  Gw2ResolverReactions
+} from '#gw2/platform/resolver/types.js';
 
 /** Composes all resolver-stage and synchronous equipment capabilities once. */
 export function createGw2ResolverExtensions({

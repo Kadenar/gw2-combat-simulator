@@ -6,6 +6,7 @@ import ts from 'typescript';
 
 const PLATFORM_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2/platform');
 const APP_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2/app');
+const GW2_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2');
 
 // Scan every platform source module so app-specific composition cannot leak
 // back into the reusable engine, GW2 data, persistence, or UI layers.
@@ -67,8 +68,10 @@ test('platform modules do not depend on app modules', async () => {
     const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
 
     for (const specifier of moduleSpecifiers(sourceFile)) {
-      if (!specifier.startsWith('.')) continue;
-      const resolved = path.resolve(path.dirname(file), specifier);
+      if (!specifier.startsWith('.') && !specifier.startsWith('#gw2/')) continue;
+      const resolved = specifier.startsWith('#gw2/')
+        ? path.resolve(GW2_ROOT, specifier.slice('#gw2/'.length))
+        : path.resolve(path.dirname(file), specifier);
 
       if (isInside(APP_ROOT, resolved)) {
         violations.push(`${path.relative(PLATFORM_ROOT, file)} imports ${specifier}`);

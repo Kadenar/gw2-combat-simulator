@@ -1,5 +1,5 @@
-import { SKILLS, SPECIALIZATIONS } from './engineer-api-metadata.js';
-import { ENGINEER_SUPPLEMENTAL_SKILLS } from './engineer-supplemental-skills.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/engineer/data/engineer-api-metadata.js';
+import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/engineer/data/engineer-supplemental-skills.js';
 
 function constantName(value: unknown): string {
   return String(value || '')

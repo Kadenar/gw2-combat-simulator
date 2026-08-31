@@ -1,17 +1,17 @@
-import { reconstructElementalistProfessionActions } from './elementalist.js';
-import { reconstructGuardianProfessionActions } from './guardian.js';
-import { reconstructEngineerProfessionActions } from './engineer.js';
-import { reconstructMesmerProfessionActions } from './mesmer.js';
-import { reconstructNecromancerProfessionActions } from './necromancer.js';
-import { reconstructRangerProfessionActions } from './ranger.js';
-import { reconstructRevenantProfessionActions } from './revenant.js';
-import { reconstructThiefProfessionActions } from './thief.js';
-import { reconstructWarriorProfessionActions } from './warrior.js';
+import { reconstructElementalistProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist.js';
+import { reconstructGuardianProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/guardian.js';
+import { reconstructEngineerProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/engineer.js';
+import { reconstructMesmerProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer.js';
+import { reconstructNecromancerProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer.js';
+import { reconstructRangerProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger.js';
+import { reconstructRevenantProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant.js';
+import { reconstructThiefProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
+import { reconstructWarriorProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior.js';
 import type {
   EvtcProfessionActionReconstructor,
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
-} from './types.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 const reconstructors: ReadonlyMap<string, EvtcProfessionActionReconstructor> = new Map([
   ['elementalist', reconstructElementalistProfessionActions],
@@ -31,4 +31,7 @@ export function reconstructProfessionActions(
   return reconstructors.get(context.profile.professionId)?.(context) || context.recordedActions;
 }
 
-export type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './types.js';
+export type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';

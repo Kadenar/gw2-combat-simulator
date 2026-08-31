@@ -1,13 +1,13 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '../../../platform/builds/attributes.js';
+import { finalizeBuildAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 
 import type {
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../platform/builds/types.js';
+} from '#gw2/platform/builds/types.js';
 
-import type { Skill, SkillId } from '../../../platform/engine/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/types.js';
 
 /**
  * Minimum trait shape required by the shared build-attribute helpers.

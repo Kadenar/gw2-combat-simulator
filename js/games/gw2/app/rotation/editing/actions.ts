@@ -1,6 +1,6 @@
-import type { RotationCommand, Skill, SkillId } from '../../../platform/engine/types.js';
-import type { ProfessionAppState, RotationActionOptions } from '../../types.js';
-import { normalizeRotationInsertionIndex } from '../../../../../ui/rotation/insertion-cursor.js';
+import type { RotationCommand, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 /**
  * Resolves the catalog skill behind a rotation entry or palette item. Non-cast

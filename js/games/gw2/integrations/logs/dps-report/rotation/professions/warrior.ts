@@ -1,11 +1,14 @@
-import { mergedActionStatus, mergeCompositeActions } from '../../../lib/rotation/rules/composites.js';
-import { findRotationSkill } from '../../../lib/rotation/catalog.js';
+import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   firstStrikePacketOffsetMs,
   openingStrikeCombatStartMs,
   quicknessRuntimeDurationMs
-} from '../../../lib/rotation/timing.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../types.js';
+} from '#gw2/integrations/logs/lib/rotation/timing.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const REND_ANIMATION_ID = 80_247;
 const REND_FOLLOW_UP_ANIMATION_ID = 80_224;

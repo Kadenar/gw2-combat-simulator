@@ -1,9 +1,9 @@
-import type { BalanceProfile } from '../../../../../platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as skillVariant,
   defineTraitProfile as trait
-} from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 
 // These IDs are the shared lookup contract between heat-state code, delayed
 // packet resolvers, modifier rules, and balance overrides.

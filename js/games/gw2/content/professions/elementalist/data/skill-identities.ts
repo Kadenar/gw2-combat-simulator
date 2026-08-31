@@ -1,4 +1,4 @@
-import { ELEMENTALIST_SKILL_IDS as ID } from './ids.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 
 /**
  * Connects attunement-specific simulator actions to the stable GW2 loadout

@@ -4,43 +4,48 @@ import {
   isDurationStackingBoon,
   remainingDurationStackSeconds,
   sumActiveStacks
-} from '../state/boons.js';
-import { criticalChance, criticalDamageMultiplier } from '../damage/calculations.js';
-import { gw2EventActorType } from '../state/event-ownership.js';
-import { clamp } from '../numeric.js';
-import { createRelicTimelineRuntime } from '../../equipment/relics/runtime.js';
+} from '#gw2/platform/combat/state/boons.js';
+import { criticalChance, criticalDamageMultiplier } from '#gw2/platform/combat/damage/calculations.js';
+import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
+import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import {
   relicConditionDamageBonus,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
   relicOutgoingDamageBonus
-} from '../../equipment/relics/query.js';
+} from '#gw2/platform/equipment/relics/query.js';
 import {
   gw2ConditionDurationMultiplier,
   gw2SigilSet,
   gw2StatsForWeaponSet,
   gw2StaticAttributes,
   MIGHT_ATTRIBUTE_BONUS_PER_STACK
-} from './runtime-rules.js';
-import { sigilCriticalContribution } from '../../equipment/sigils/rules.js';
+} from '#gw2/platform/combat/query/runtime-rules.js';
+import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
 import {
   canonicalTargetConditionName,
   createPermanentTargetConditionStacks,
   runtimeTargetConditionStacks
-} from '../state/targets.js';
-import { createGw2TimelineIndex } from './timeline-index.js';
-import { gw2PrimaryWeapon } from '../../equipment/weapons/loadout.js';
+} from '#gw2/platform/combat/state/targets.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 import type {
   CatalogEntity,
   NormalizedProfessionContract,
   SchedulerRecord,
   SimulationEvent
-} from '../../engine/types.js';
-import type { Gw2BuffAudience } from '../state/types.js';
-import type { Gw2CombatQuery, Gw2CriticalChanceContributor, Gw2QueryRuntime, Gw2ResolvedStats } from './types.js';
-import type { Gw2Config } from '../../simulation/config.js';
-import type { Gw2ResolverExtensions } from '../../resolver/types.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
+import type {
+  Gw2CombatQuery,
+  Gw2CriticalChanceContributor,
+  Gw2QueryRuntime,
+  Gw2ResolvedStats
+} from '#gw2/platform/combat/query/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ResolverExtensions } from '#gw2/platform/resolver/types.js';
 
 interface TraitCatalog {
   readonly traits?: readonly CatalogEntity[];

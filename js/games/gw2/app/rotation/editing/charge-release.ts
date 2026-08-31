@@ -2,9 +2,9 @@ import {
   openChargeReleaseEditor,
   type ChargeReleaseEditorHandle,
   type ChargeReleaseEditorRow
-} from '../../../../../ui/rotation/editors/charge-release-editor.js';
-import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../types.js';
+} from '#ui/rotation/editors/charge-release-editor.js';
+import type { SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /**
  * Coerces an untyped projection payload into validated editor rows. Each

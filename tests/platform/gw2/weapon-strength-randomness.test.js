@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
-import { createSimulationRandom } from '../../../js/kernel/core/simulation-random.js';
-import { WEAPON_DATA } from '../../../js/games/gw2/platform/equipment/weapons/data.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   WEAPON_STRENGTH_PROFILES,
   sampleWeaponStrength,
@@ -14,7 +15,7 @@ import {
   weaponStrengthProfile,
   weaponStrengthProfileForName,
   weaponStrengthProfileIdForEvent
-} from '../../../js/games/gw2/platform/equipment/weapons/strength.js';
+} from '#gw2/platform/equipment/weapons/strength.js';
 
 const EXPECTED_PROFILES = Object.freeze({
   'weapon.axe': [900, 1100, 1000],
@@ -97,6 +98,12 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
       skill: { id: 1, name: 'Kit', kit: 'Grenade Kit' }
     }),
     'bundle.ascended'
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(event, {
+      skill: { id: 1, name: 'Dodge', type: 'Action' }
+    }),
+    'nonweapon.unequipped'
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
@@ -325,4 +332,22 @@ test('explicit fixed strength remains exempt from stochastic sampling', () => {
   assert.equal(hit.weaponStrengthProfileId, 'fixed');
   assert.equal(hit.resolvedWeaponStrength, 777);
   assert.equal(hit.weaponStrengthSampled, false);
+});
+
+test('unprofiled coefficient packets are rejected instead of receiving legacy fixed strength', () => {
+  assert.throws(
+    () =>
+      resolvedWeaponStrength(
+        { helpers: {} },
+        {
+          type: 'damage',
+          at: 0,
+          source: 'player',
+          sourceId: 990003,
+          actorType: 'player',
+          coefficient: 1
+        }
+      ),
+    /requires a resolvable weapon-strength profile or explicit weaponStrength/
+  );
 });

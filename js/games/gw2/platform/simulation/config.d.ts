@@ -1,15 +1,13 @@
 /** Owns the simulation/config.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord, SimulationRandomnessConfig } from '../engine/types.js';
-import type { Gw2AttributeProvenance } from '../builds/types.js';
-import type { Gw2SelectedSkillLoadout } from '../builds/selected-skills.js';
-import type { Gw2TargetConfig } from '../combat/state/types.js';
-import type { Gw2SigilSet, Gw2Stats } from '../equipment/types.js';
+import type { SchedulerRecord, SimulationRandomnessConfig } from '#gw2/platform/engine/types.js';
+import type { Gw2AttributeProvenance } from '#gw2/platform/builds/types.js';
+import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
+import type { Gw2TargetConfig } from '#gw2/platform/combat/state/types.js';
+import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
 
 export interface Gw2Config extends SchedulerRecord {
   readonly patchId?: string;
-  readonly patchValues?: Readonly<
-    Record<string, import('../../integrations/patches/authoring/patch-types.js').NumEdit>
-  >;
+  readonly patchValues?: Readonly<Record<string, import('#gw2/integrations/patches/authoring/patch-types.js').NumEdit>>;
   readonly stats?: Gw2Stats;
   readonly weaponSetStats?: readonly Gw2Stats[];
   readonly attributes?: Gw2Stats;

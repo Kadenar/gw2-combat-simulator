@@ -8,13 +8,13 @@ import {
   runeOptionLabel,
   sigilOptionLabel,
   utilityOptionLabel
-} from '../../js/games/gw2/app/build/equipment-option-labels.js';
-import { FOOD_GROUPS } from '../../js/games/gw2/platform/equipment/consumables/food.js';
-import { UTILITY_GROUPS } from '../../js/games/gw2/platform/equipment/consumables/utilities.js';
-import { RUNE_GROUPS } from '../../js/games/gw2/platform/equipment/gear/runes.js';
-import { PREFIX_GROUPS } from '../../js/games/gw2/platform/equipment/gear/stats.js';
-import { RELIC_GROUPS } from '../../js/games/gw2/platform/equipment/relics/catalog.js';
-import { SIGIL_GROUPS } from '../../js/games/gw2/platform/equipment/sigils/catalog.js';
+} from '#gw2/app/build/equipment-option-labels.js';
+import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
+import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
+import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
+import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
+import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 
 test('equipment dropdown labels expose their effects without hover text', () => {
   assert.equal(prefixOptionLabel("Berserker's"), "Berserker's — Power, Precision, Ferocity");

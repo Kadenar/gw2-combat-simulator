@@ -4,11 +4,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { timelineDeadTimeMarkers } from '../../../js/games/gw2/app/presentation/rotation/timeline.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { timelineDeadTimeMarkers } from '#gw2/app/presentation/rotation/timeline.js';
 
 const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -63,6 +63,7 @@ function contractProfession() {
       {
         id: 990003,
         name: 'Committed Channel',
+        type: 'Utility',
         castTimeMs: 1000,
         interruptCommitMs: 300,
         effects: [

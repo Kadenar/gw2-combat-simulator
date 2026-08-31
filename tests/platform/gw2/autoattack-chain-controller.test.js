@@ -1,15 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
-import {
-  defineNativeModule,
-  defineNativeProfession
-} from '../../../js/games/gw2/integrations/patches/authoring/profession.js';
-import {
-  replaceAutoattackChains,
-  resetAutoattackChains
-} from '../../../js/games/gw2/platform/skills/autoattack-chains.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
+import { replaceAutoattackChains, resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 
 const skill = (id, name, extra = {}) => ({
   id,

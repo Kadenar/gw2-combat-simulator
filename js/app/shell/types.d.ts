@@ -1,6 +1,6 @@
-import type { SimulationViewModel } from '../../ui/simulation-view.js';
+import type { SimulationViewModel } from '#ui/simulation-view.js';
 
-export type { SimulationViewModel, SimulationViewSection } from '../../ui/simulation-view.js';
+export type { SimulationViewModel, SimulationViewSection } from '#ui/simulation-view.js';
 
 /** Stable address used by the shell, workers, and game registry. */
 export interface GameContentAddress {

@@ -1,17 +1,17 @@
-import type { SchedulerContext, SimulationEvent } from '../engine/types.js';
+import type { SchedulerContext, SimulationEvent } from '#gw2/platform/engine/types.js';
 import {
   advanceCriticalProc,
   criticalOpportunity,
   type CriticalProcApplication,
   type CriticalProcRequest,
   type CriticalProcState
-} from '../combat/critical-procs.js';
-import { FOOD_DATA } from '../equipment/consumables/food.js';
-import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
-import { consumeExpectedCriticalProgress } from '../combat/numeric.js';
-import type { Gw2Config } from '../simulation/config.js';
-import type { MaterializerState } from './materializer-state.js';
-import type { Gw2SchedulerPolicy } from './types.js';
+} from '#gw2/platform/combat/critical-procs.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/numeric.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 
 export type ScheduledCriticalProcRequest = Omit<CriticalProcRequest, 'at' | 'stochastic' | 'roll'>;
 
@@ -95,7 +95,7 @@ export function resolveCriticalTrigger(
     const didCrit = state.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`);
 
     // Persist the result on the canonical event for resolver reactions.
-    const canonicalEvent = context.eventByOrder(Number(event.__order)) || event;
+    const canonicalEvent = context.eventByOrder(Number(event.eventOrder)) || event;
     const cause = context.replaceEvent(canonicalEvent, { didCrit });
 
     // Only an eligible actual crit can trigger critical sigils.

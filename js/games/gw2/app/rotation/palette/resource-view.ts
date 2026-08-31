@@ -11,11 +11,11 @@
  * counter. This is the supported hook for profession-specific visuals such as
  * Mesmer notes and Revenant affinity emblems.
  */
-import type { ProfessionResourceView, SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
-import type { ProfessionAppContract, ProfessionAppState } from '../../types.js';
-import type { PaletteResourceView } from '../../presentation/rotation/palette.js';
-import { escapeHtml as esc } from '../../presentation/shared/html.js';
-import { activeSpecialization, paletteProfessionState, professionEndState } from '../shared/context.js';
+import type { ProfessionResourceView, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
+import type { PaletteResourceView } from '#gw2/app/presentation/rotation/palette.js';
+import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { activeSpecialization, paletteProfessionState, professionEndState } from '#gw2/app/rotation/shared/context.js';
 
 function normalizeResourceView(view: ProfessionResourceView): ProfessionResourceView {
   const maximum = Math.max(0, Number(view.maximum || 0));

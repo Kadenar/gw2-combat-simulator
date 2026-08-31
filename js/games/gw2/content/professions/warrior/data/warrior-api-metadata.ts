@@ -2,11 +2,8 @@
 // Snapshot: 2026-08-08. Run npm run update:warrior-data to refresh.
 // Simulator mechanics are maintained under warrior/mechanics/.
 
-import type {
-  Gw2ApiSpecialization,
-  Gw2ApiTrait
-} from '../../../../integrations/patches/authoring/api-metadata-types.js';
-import type { WarriorSkill } from '../types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { WarriorSkill } from '#gw2/content/professions/warrior/types.js';
 
 export type WarriorApiTrait = Gw2ApiTrait;
 export type WarriorApiSpecialization = Gw2ApiSpecialization;

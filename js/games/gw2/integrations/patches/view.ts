@@ -1,7 +1,7 @@
-import { skillBreakdownRows } from '../../app/rotation/result/model.js';
-import { escapeHtml } from '../../app/presentation/shared/html.js';
-import type { PatchComparison, ProfessionAppState } from '../../app/types.js';
-import type { PatchOverviewEntry } from './authoring/patches.js';
+import { skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import type { PatchComparison, ProfessionAppState } from '#gw2/app/types.js';
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/patches.js';
 
 function httpUrl(value: string | undefined): string | null {
   if (!value) return null;

@@ -1,12 +1,12 @@
-import { escapeHtml as esc } from '../../presentation/shared/html.js';
+import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
 import {
   DERIVED_ATTRIBUTES,
   PERCENT_ATTRIBUTES,
   PRIMARY_ATTRIBUTES,
   SPECIFIC_CONDITION_DURATION_ATTRIBUTES
-} from './options.js';
+} from '#gw2/app/build/panels/options.js';
 
-import type { ProfessionAppState } from '../../types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function renderAttributes(app: ProfessionAppState): void {
   const weaponSet = document.getElementById('attribute-weapon-set');

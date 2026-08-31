@@ -9,16 +9,20 @@ import type {
   SkillFragment,
   SkillHandlerStrategy,
   SkillId
-} from '../../../platform/engine/types.js';
+} from '#gw2/platform/engine/types.js';
 import type {
   Gw2HitResolutionContext,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
   Gw2ResolverStage
-} from '../../../platform/resolver/types.js';
-import type { Gw2ModifierRule } from '../../../platform/combat/modifiers/types.js';
-import type { PatchPreview, PatchRuntimeValues, ProfessionPatchPreview } from './patches.js';
-import type { Gw2AutoattackChainOptions } from '../../../platform/skills/autoattack-chains.js';
+} from '#gw2/platform/resolver/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  PatchPreview,
+  PatchRuntimeValues,
+  ProfessionPatchPreview
+} from '#gw2/integrations/patches/authoring/patches.js';
+import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chains.js';
 
 export interface NativeAutoattackChains {
   readonly additional?: readonly (readonly SkillId[])[];
@@ -28,7 +32,7 @@ export interface NativeAutoattackChains {
 export type NativeSkillHandlerRegistry<TContext extends object> =
   ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 
-export interface NativeModuleCatalogData<THandlerContext extends object = object> {
+export interface NativeModuleCatalogData {
   readonly generatedSkills?: readonly Skill[];
   readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
   readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
@@ -36,7 +40,6 @@ export interface NativeModuleCatalogData<THandlerContext extends object = object
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
-  readonly handlers?: NativeSkillHandlerRegistry<THandlerContext>;
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: NativeAutoattackChains;
@@ -98,30 +101,59 @@ export interface NativeSchedulerMechanic {
   readonly handler: (...args: never[]) => object | boolean | number | string | null | void;
 }
 
+/** Scheduler-owned behavior exposed by one canonical profession-content module. */
+export interface NativeExecutionMechanicsDefinition<
+  THandlerContext extends object,
+  TCastRulesEscape extends object,
+  TSchedulerHooksEscape extends object,
+  TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
+> {
+  /** Runtime implementations selected by declarative skill handler ids. */
+  /** A registry may compose handlers with narrower, handler-specific contexts. */
+  readonly skillHandlers?: NativeSkillHandlerRegistry<THandlerContext> | NativeSkillHandlerRegistry<never>;
+  /** Phase-explicit availability declarations. */
+  readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
+  /** Phase-explicit cast lifecycle declarations. */
+  readonly castLifecycle?: TSchedulerMechanics;
+  /** Profession-owned implementations for declarative skill mechanic triggers. */
+  readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
+  /** Advanced scheduler cast-policy escape hatch. */
+  readonly castRules?: TCastRulesEscape;
+  /** Advanced scheduler lifecycle/task escape hatch. */
+  readonly hooks?: TSchedulerHooksEscape;
+}
+
+/** Resolver-owned behavior exposed by one canonical profession-content module. */
+export interface NativeResolutionMechanicsDefinition<
+  TResolverHooksEscape extends object,
+  TReactions extends readonly NativeResolverMechanic[]
+> {
+  /** Phase-explicit resolver reactions. */
+  readonly reactions?: TReactions;
+  /** Advanced resolver event-handler/reaction escape hatch. */
+  readonly hooks?: TResolverHooksEscape;
+}
+
 export interface NativeMechanicsDefinition<
   TModifierEscape extends object,
   TCastRulesEscape extends object,
   TSchedulerHooksEscape extends object,
   TResolverHooksEscape extends object,
   TReactions extends readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
+  TSchedulerMechanics extends readonly NativeSchedulerMechanic[],
+  THandlerContext extends object = object
 > {
   /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
-  /** Phase-explicit availability declarations. */
-  readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
-  /** Phase-explicit cast lifecycle declarations. */
-  readonly castLifecycle?: TSchedulerMechanics;
-  /** Phase-explicit resolver reactions. */
-  readonly reactions?: TReactions;
-  /** Advanced scheduler cast-policy escape hatch. */
-  readonly castRules?: TCastRulesEscape;
-  /** Advanced scheduler lifecycle/task escape hatch. */
-  readonly schedulerHooks?: TSchedulerHooksEscape;
-  /** Profession-owned implementations for declarative skill mechanic triggers. */
-  readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
-  /** Advanced resolver event-handler/reaction escape hatch. */
-  readonly resolverHooks?: TResolverHooksEscape;
+  /** Scheduler-owned behavior. */
+  readonly execution?: NativeExecutionMechanicsDefinition<
+    THandlerContext,
+    TCastRulesEscape,
+    TSchedulerHooksEscape,
+    TSchedulerMechanics
+  >;
+  /** Resolver-owned behavior. */
+  readonly resolution?: NativeResolutionMechanicsDefinition<TResolverHooksEscape, TReactions>;
 }
 
 export interface NativeModuleDefinition<
@@ -140,7 +172,7 @@ export interface NativeModuleDefinition<
   TPresentation extends object
 > {
   readonly id: TId;
-  readonly data: NativeModuleCatalogData<THandlerContext>;
+  readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TSchedulerState, TResolverState, TProjectOptions, TProjectedState>;
   readonly mechanics?: NativeMechanicsDefinition<
     TModifierEscape,
@@ -148,7 +180,8 @@ export interface NativeModuleDefinition<
     TSchedulerHooksEscape,
     TResolverHooksEscape,
     TReactions,
-    TSchedulerMechanics
+    TSchedulerMechanics,
+    THandlerContext
   >;
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
 }

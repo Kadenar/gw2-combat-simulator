@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { revenantCatalog } from '../../js/games/gw2/content/professions/revenant/catalog.js';
-import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
-import { parseDpsReport } from '../../js/games/gw2/integrations/logs/dps-report/parser.js';
-import { reconstructDpsReportRotation } from '../../js/games/gw2/integrations/logs/dps-report/rotation/index.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
+import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
+import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
+import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
+import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const report = parseDpsReport({
   durationMS: 2000,

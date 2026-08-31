@@ -1,6 +1,6 @@
-import type { Skill } from '../../../../platform/engine/types.js';
-import { GW2_ACTION_TICK_MS } from '../../../../platform/skills/timing.js';
-import { mountFloatingEditor } from '../../../../../../ui/rotation/editors/floating-editor.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
+import { mountFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
 
 export interface ActivationEditorOptions {
   readonly anchor: HTMLElement;

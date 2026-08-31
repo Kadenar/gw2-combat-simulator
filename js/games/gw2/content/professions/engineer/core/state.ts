@@ -1,5 +1,5 @@
-import type { SkillId } from '../../../../platform/engine/types.js';
-import type { EngineerConfig, EngineerCoreState } from '../types.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { EngineerConfig, EngineerCoreState } from '#gw2/content/professions/engineer/types.js';
 
 // Core owns the stable public fields that exist for every Engineer runtime.
 export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -16,13 +16,14 @@ export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'kineticCharges'
 ] as const satisfies readonly (keyof EngineerCoreState)[]);
 
-// Normalizes canonical trait IDs for state initialization.
+/** Normalizes canonical trait IDs for state initialization and runtime membership checks. */
 export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId> {
   return new Set(
     (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
   );
 }
 
+/** Creates a fresh Core Engineer state with resources, kit state, flips, and proc windows reset. */
 export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerCoreState {
   return {
     endurance: 100,

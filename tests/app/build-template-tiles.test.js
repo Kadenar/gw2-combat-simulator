@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { templateSnowCrowsLink, templateTileContent } from '../../js/games/gw2/app/build/panels/presets.js';
+import { templateSnowCrowsLink, templateTileContent } from '#gw2/app/build/panels/presets.js';
 
 test('build template tiles separate canonical roles, weapons, and DPS', () => {
   assert.deepEqual(

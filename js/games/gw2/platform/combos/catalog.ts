@@ -1,5 +1,5 @@
-import { normalizeComboFieldType, normalizeComboFinisherType } from './events.js';
-import type { SchedulerRecord, SkillEffect, SkillFragment } from '../engine/types.js';
+import { normalizeComboFieldType, normalizeComboFinisherType } from '#gw2/platform/combos/events.js';
+import type { SchedulerRecord, SkillEffect, SkillFragment } from '#gw2/platform/engine/types.js';
 
 function positiveInteger(value: unknown, fallback: number, label: string): number {
   const normalized = Number(value ?? fallback);

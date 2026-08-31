@@ -1,13 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { assertSimulationEvent, createEvent } from '../../../js/games/gw2/platform/engine/events/events.js';
-import {
-  assertScheduledEventStream,
-  buildScheduledEventStream
-} from '../../../js/games/gw2/platform/engine/events/scheduled-stream.js';
-import { emitStateSnapshot, sameSnapshotValue } from '../../../js/games/gw2/platform/engine/events/state-snapshots.js';
-import { skillDamageIdentityKey } from '../../../js/games/gw2/app/presentation/results/result-tables.js';
+import { assertSimulationEvent, COMMON_EVENT_TYPES, createEvent } from '#gw2/platform/engine/events/events.js';
+import { assertScheduledEventStream, buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { emitStateSnapshot, sameSnapshotValue } from '#gw2/platform/engine/events/state-snapshots.js';
+import { skillDamageIdentityKey } from '#gw2/app/presentation/results/result-tables.js';
 
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.equal(
@@ -91,6 +88,18 @@ test('typed event boundary rejects values outside the declared contract', () => 
         coefficient: 1
       }),
     /summonKind must be a non-empty string/
+  );
+});
+
+test('live snapshot event types are canonical and event-form boon is rejected', () => {
+  for (const type of ['cooldown_snapshot', 'self_condition']) {
+    assert.equal(COMMON_EVENT_TYPES.includes(type), true);
+    assert.equal(assertSimulationEvent({ type, at: 0, source: 'fixture', sourceId: 1 }).type, type);
+  }
+
+  assert.throws(
+    () => assertSimulationEvent({ type: 'boon', at: 0, source: 'fixture', sourceId: 1 }),
+    /Unsupported simulation event type/
   );
 });
 

@@ -1,35 +1,27 @@
-import { createScheduler } from '../engine/execution/scheduler.js';
-import { cloneProfessionState, flattenProfessionState } from '../engine/profession/state.js';
-import { resolveProfessionRuntime } from '../engine/profession/family.js';
-import type { NormalizedProfessionContract, SchedulerRunResult, SkillId } from '../engine/types.js';
-import { createGw2ConditionResolution } from '../resolver/condition-resolution.js';
-import { createGw2ResolverEventHandlers } from '../resolver/event-handlers.js';
-import { createGw2ResolverExtensions } from '../resolver/extensions.js';
-import { createGw2HitResolution } from '../resolver/hit-resolution.js';
-import { resolveGw2Timeline } from '../resolver/resolve-timeline.js';
-import { createGw2ResolverRuntimeState } from '../resolver/runtime-state.js';
-import { WEAPON_DATA } from '../equipment/weapons/data.js';
-import { createGw2CombatQuery, selectedGw2TraitValues } from '../combat/query/combat-query.js';
-import { gw2WeaponStrength } from '../combat/query/runtime-rules.js';
-import { createGw2SchedulerPolicy } from '../scheduler/policy.js';
-import { isSchedulerComboPrediction } from '../combos/events.js';
-import { isSchedulerSigilPrediction } from '../equipment/sigils/proc-events.js';
-import { canonicalTargetConditionName } from '../combat/state/targets.js';
-import type { Gw2Config } from './config.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { cloneProfessionState, flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import type { NormalizedProfessionContract, SchedulerRunResult, SkillId } from '#gw2/platform/engine/types.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
+import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
+import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { isSchedulerComboPrediction } from '#gw2/platform/combos/events.js';
+import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type {
   Gw2DeclarativeSimulationOptions,
   Gw2ProfessionContract,
   Gw2SimulationEndState,
   Gw2SimulationResult
-} from './types.js';
-import type { Gw2ResolverResult } from '../resolver/types.js';
-import type { Gw2WeaponSkillMatcher } from '../equipment/weapons/types.js';
-
-// Flatten gear data once so resolver events can select a weapon strength without
-// depending on the UI-facing gear schema.
-const WEAPON_STRENGTHS: Readonly<Record<string, number>> = Object.freeze(
-  Object.fromEntries(Object.entries(WEAPON_DATA).map(([name, data]) => [name, Number(data.weaponStrength || 0)]))
-);
+} from '#gw2/platform/simulation/types.js';
+import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
 export const MAX_SCHEDULER_REFINEMENT_PASSES = 5;
 
@@ -165,11 +157,7 @@ function simulateDeclarativeGw2Pass({
       conditionName,
       skillsById: runtimeProfession.catalog?.skillsById || new Map(),
       skillsByName: runtimeProfession.catalog?.skillsByName || new Map(),
-      balanceProfilesById: runtimeProfession.catalog?.balanceProfilesById || new Map(),
-      weaponStrength: (event, currentConfig) =>
-        gw2WeaponStrength(event, currentConfig, {
-          strengths: WEAPON_STRENGTHS
-        })
+      balanceProfilesById: runtimeProfession.catalog?.balanceProfilesById || new Map()
     },
     createRuntimeState(options) {
       return createGw2ResolverRuntimeState({

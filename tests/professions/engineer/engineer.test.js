@@ -2,59 +2,49 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import {
-  loadProfession,
-  loadProfessionAppAdapter,
-  professionRoute
-} from '../../../js/games/gw2/app/profession/registry.js';
-import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
-import { paletteSkillView, renderPalette } from '../../../js/games/gw2/app/rotation/palette/view.js';
-import { buildChartSeries, skillBreakdownRows } from '../../../js/games/gw2/app/rotation/result/model.js';
+import { loadProfession, loadProfessionAppAdapter, professionRoute } from '#gw2/app/profession/registry.js';
+import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
+import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
 import {
   automaticPhotonForgeExitTimelineMarkers,
   timelineWeaponLineExitMarkerRowIndex,
   timelineWeaponRows
-} from '../../../js/games/gw2/app/rotation/timeline/model.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import {
-  applyBalanceProfilePatch,
-  applySkillPatch
-} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
+} from '#gw2/app/rotation/timeline/model.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   toApplicationBuild,
   validateEngineerBuild
-} from '../../../js/games/gw2/content/professions/engineer/build.js';
-import { engineerCatalog } from '../../../js/games/gw2/content/professions/engineer/catalog.js';
-import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/engineer/data/engineer-api-metadata.js';
-import { ENGINEER_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/engineer/data/engineer-supplemental-skills.js';
+} from '#gw2/content/professions/engineer/build/build.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import { DATA_SNAPSHOT } from '#gw2/content/professions/engineer/data/engineer-api-metadata.js';
+import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/engineer.js';
-import {
-  ENGINEER_SKILL_IDS as ID,
-  ENGINEER_TRAIT_IDS as TRAIT
-} from '../../../js/games/gw2/content/professions/engineer/data/ids.js';
-import { engineerProfession } from '../../../js/games/gw2/content/professions/engineer/definition.js';
-import { engineerCoreModule } from '../../../js/games/gw2/content/professions/engineer/core/module.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/core/profiles.js';
-import { ENGINEER_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/engineer/core/skills.js';
-import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from '../../../js/games/gw2/content/professions/engineer/core/turrets.js';
-import { amalgamModule } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/module.js';
-import { AMALGAM_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/profiles.js';
-import { amalgamAttributeRules } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/rules.js';
-import { holosmithModule } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/module.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/profiles.js';
-import { holosmithProfileStrikeFactor } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/heat-tiers.js';
-import { holosmithModifierRules } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/rules.js';
-import { mechanistModule } from '../../../js/games/gw2/content/professions/engineer/specializations/mechanist/module.js';
-import { MECHANIST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/mechanist/profiles.js';
-import { engineerMechAttributes } from '../../../js/games/gw2/content/professions/engineer/specializations/mechanist/state.js';
-import { scrapperModule } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/module.js';
-import { SCRAPPER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/profiles.js';
-import { scrapperSchedulerHooks } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/rules.js';
-import { createScrapperState } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/state.js';
-import { engineerAppAdapter } from '../../../js/games/gw2/content/professions/engineer/app/app-definition.js';
-import { AMALGAM_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/skills.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
+import { engineerCoreModule } from '#gw2/content/professions/engineer/core/module.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/index.js';
+import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
+import { amalgamModule } from '#gw2/content/professions/engineer/specializations/amalgam/module.js';
+import { AMALGAM_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
+import { amalgamAttributeRules } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { holosmithModule } from '#gw2/content/professions/engineer/specializations/holosmith/module.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
+import { holosmithProfileStrikeFactor } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { holosmithModifierRules } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { mechanistModule } from '#gw2/content/professions/engineer/specializations/mechanist/module.js';
+import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/mechanist/profiles.js';
+import { engineerMechAttributes } from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
+import { scrapperModule } from '#gw2/content/professions/engineer/specializations/scrapper/module.js';
+import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
+import { scrapperSchedulerHooks } from '#gw2/content/professions/engineer/specializations/scrapper/traits/modifiers.js';
+import { createScrapperState } from '#gw2/content/professions/engineer/specializations/scrapper/state.js';
+import { engineerAppAdapter } from '#gw2/content/professions/engineer/app/app-definition.js';
+import { AMALGAM_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/amalgam/skills/index.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
@@ -306,8 +296,11 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) =>
-    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  const profile = (moduleId, profileId) => {
+    const module = modules.get(moduleId);
+
+    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
+  };
 
   assert.equal(profile('Core', ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.resourceCost, 50);
   assert.equal(profile('Scrapper', SCRAPPER_BALANCE_PROFILE_IDS.appliedForce).patchableFields.attributePerStack, 30);
@@ -692,6 +685,14 @@ test('Amalgam protocol IDs survive application build conversion', () => {
   });
 
   assert.deepEqual(legacyApplication.rotation, application.rotation);
+
+  const malformedPrefix = toApplicationBuild({
+    ...defaults,
+    selectedMorphSkillIds: [77103, 77104, 76705],
+    rotation: [null, 'Offensive Protocol: Shred']
+  });
+
+  assert.deepEqual(malformedPrefix.rotation, [{ type: 'cast', skillId: 77103 }]);
 });
 
 test('kits replace the weapon bar and trigger swap procs', () => {

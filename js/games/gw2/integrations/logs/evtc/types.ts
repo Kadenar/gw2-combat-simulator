@@ -8,7 +8,7 @@ import type {
   RotationActionSummary,
   RotationPlayerIdentity,
   RotationReconstructionBase
-} from '../lib/rotation/model.js';
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 
 export const EVTC_STATE_CHANGE = Object.freeze({
   NONE: 0,
@@ -268,7 +268,4 @@ export interface EvtcRotationPlayer extends RotationPlayerIdentity {
   readonly address: string;
 }
 
-export interface EvtcRotationReconstruction extends RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
-  /** @deprecated Use timelineOriginMs. */
-  readonly logStartTime: number;
-}
+export type EvtcRotationReconstruction = RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction>;

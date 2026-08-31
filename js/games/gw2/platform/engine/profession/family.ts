@@ -11,14 +11,14 @@ import type {
   ProfessionSource,
   SchedulerConfig,
   SchedulerRecord
-} from '../types.js';
+} from '#gw2/platform/engine/types.js';
 import {
   ATTRIBUTE_HOOK_NAMES,
   CAST_HOOK_NAMES,
   SCHEDULER_HOOK_NAMES,
   assertDefinition,
   defineProfession
-} from './contract.js';
+} from '#gw2/platform/engine/profession/contract.js';
 import {
   assertModuleDefinition,
   composeEventReactions,
@@ -27,9 +27,9 @@ import {
   composeStateFragments,
   defineProfessionModule,
   mergeHandlerRegistries
-} from './module.js';
-import type { NamedModule } from './module.js';
-import { composeModuleUi, createProfessionFamilyUi, singleOwnerValue } from './ui.js';
+} from '#gw2/platform/engine/profession/module.js';
+import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
+import { composeModuleUi, createProfessionFamilyUi, singleOwnerValue } from '#gw2/platform/engine/profession/ui.js';
 
 /**
  * Composes ordinary attribute hooks plus optional declarative rule fragments.

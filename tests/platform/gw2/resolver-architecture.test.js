@@ -4,31 +4,31 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
-import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/kernel/events/queue.js';
-import { buildScheduledEventStream } from '../../../js/games/gw2/platform/engine/events/scheduled-stream.js';
-import { createSimulationRandom } from '../../../js/kernel/core/simulation-random.js';
-import { createCloneAttackScheduler } from '../../../js/games/gw2/content/professions/mesmer/core/clone-attacks.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../js/games/gw2/content/professions/mesmer/data/ids.js';
-import { createGw2ResolverEventHandlers } from '../../../js/games/gw2/platform/resolver/event-handlers.js';
-import { createGw2ConditionResolution } from '../../../js/games/gw2/platform/resolver/condition-resolution.js';
+import { createEventQueue, enqueueOrdered, takeNextEvent } from '#kernel/events/queue.js';
+import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createCloneAttackScheduler } from '#gw2/content/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 
 test('Mesmer skill damage scheduling is split into focused modules', () => {
   const core = new URL('../../../js/games/gw2/content/professions/mesmer/core/', import.meta.url);
 
-  for (const filename of [
-    'clone-attacks.ts',
-    'phantasms.ts',
-    'skill-damage.ts',
-    'illusion-resources.ts',
-    'skill-special-effects.ts',
-    'skill-effects.ts'
+  for (const path of [
+    'mechanics/illusions/clone-attacks.ts',
+    'mechanics/illusions/phantasms.ts',
+    'skills/damage.ts',
+    'mechanics/illusions/resources.ts',
+    'skills/special-effects.ts',
+    'skills/effects.ts'
   ]) {
-    assert.equal(existsSync(new URL(filename, core)), true, filename);
+    assert.equal(existsSync(new URL(path, core)), true, path);
   }
 
   assert.equal(existsSync(new URL('illusions.ts', core)), false);
 
-  const pipeline = readFileSync(new URL('skill-effects.ts', core), 'utf8');
+  const pipeline = readFileSync(new URL('skills/effects.ts', core), 'utf8');
 
   assert.match(pipeline, /createPhantasmEffectController/);
   assert.match(pipeline, /createSkillDamageController/);
@@ -37,8 +37,8 @@ test('Mesmer skill damage scheduling is split into focused modules', () => {
   assert.doesNotMatch(pipeline, /\baddDamage\s*\(/);
   assert.doesNotMatch(pipeline, /mesmer\.phantasm-(?:summoned|attack)/);
 
-  const phantasms = readFileSync(new URL('phantasms.ts', core), 'utf8');
-  const clones = readFileSync(new URL('clone-attacks.ts', core), 'utf8');
+  const phantasms = readFileSync(new URL('mechanics/illusions/phantasms.ts', core), 'utf8');
+  const clones = readFileSync(new URL('mechanics/illusions/clone-attacks.ts', core), 'utf8');
 
   assert.match(phantasms, /mesmer\.phantasm-summoned/);
   assert.match(phantasms, /\baddDamage\s*\(/);
@@ -659,6 +659,7 @@ test('target-health coefficient thresholds include environment damage', () => {
       actorType: 'player',
       name: 'Threshold Opening',
       coefficient: 0.04,
+      weaponStrengthProfileId: 'weapon.sword',
       noCrit: true
     },
     {
@@ -669,6 +670,7 @@ test('target-health coefficient thresholds include environment damage', () => {
       actorType: 'player',
       name: 'Threshold Finisher',
       coefficient: 0.04,
+      weaponStrengthProfileId: 'weapon.sword',
       coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 2 }],
       noCrit: true
     }
@@ -781,7 +783,7 @@ test('heap event queues preserve priority and stable insertion order', () => {
 test('heap event queues keep derived causal order local to each queue', () => {
   // Consume enough fallback insertions to expose implementations that share
   // an ordering counter across otherwise independent simulations.
-  const warmup = createEventQueue([{ type: 'damage', at: 0, name: 'warmup', __order: 0 }]);
+  const warmup = createEventQueue([{ type: 'damage', at: 0, name: 'warmup', eventOrder: 0 }]);
 
   takeNextEvent(warmup);
   for (let index = 0; index < 20; index += 1) {
@@ -793,8 +795,8 @@ test('heap event queues keep derived causal order local to each queue', () => {
   }
 
   const queue = createEventQueue([
-    { type: 'damage', at: 1, name: 'cause', __order: 10 },
-    { type: 'damage', at: 1, name: 'unrelated', __order: 11 }
+    { type: 'damage', at: 1, name: 'cause', eventOrder: 10 },
+    { type: 'damage', at: 1, name: 'unrelated', eventOrder: 11 }
   ]);
 
   assert.equal(takeNextEvent(queue).name, 'cause');

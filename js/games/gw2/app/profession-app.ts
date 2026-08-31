@@ -1,15 +1,21 @@
-import { bindPageControls, createDefaultBuild, loadBuild, normalizeSelectedSkills, saveBuild } from './build/index.js';
-import { addRotation } from './rotation/editing/actions.js';
-import { recordRotationHistory } from './rotation/editing/history.js';
-import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
-import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
-import { RelicComparisonRunner } from './simulation/relic-comparison-runner.js';
-import { RELIC_NAMES as SHARED_RELIC_NAMES } from '../platform/equipment/relics/catalog.js';
-import { readStoredRotationProcOverlayVisibility } from './rotation/timeline/proc-overlays.js';
-import { BaselineSimulationRunner } from './simulation/baseline-simulation-runner.js';
-import { renderRotationEditor, renderSimulationOutput } from './rotation/index.js';
-import { SIMULATOR_VIEW_CHANGE_EVENT } from './profession/navigation.js';
-import type { ShellSession } from '../../../app/shell/types.js';
+import {
+  bindPageControls,
+  createDefaultBuild,
+  loadBuild,
+  normalizeSelectedSkills,
+  saveBuild
+} from '#gw2/app/build/index.js';
+import { addRotation } from '#gw2/app/rotation/editing/actions.js';
+import { recordRotationHistory } from '#gw2/app/rotation/editing/history.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contribution-runner.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution-runner.js';
+import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison-runner.js';
+import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
+import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/index.js';
+import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/profession/navigation.js';
+import type { ShellSession } from '#app/shell/types.js';
 
 import type {
   BuildTemplatePreset,
@@ -24,7 +30,7 @@ import type {
   ProfessionFeatureRunner,
   ProfessionRotationDragState,
   RotationActionOptions
-} from './types.js';
+} from '#gw2/app/types.js';
 
 const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
   isRunning: false,

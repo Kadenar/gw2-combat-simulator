@@ -1,0 +1,163 @@
+/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+
+export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  [ID.HAMMER_SWING]: {
+    implemented: true,
+    quicknessCastTimeMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.9,
+        hits: 1,
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.STAGGERING_BLOW]: {
+    implemented: true,
+    cooldown: 18,
+    quicknessCastTimeMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'warrior',
+            finisherType: 'Whirl',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
+      },
+      {
+        type: 'control',
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: {
+          controlKind: 'knockback'
+        }
+      }
+    ]
+  },
+  [ID.HAMMER_BASH]: {
+    implemented: true,
+    quicknessCastTimeMs: 640,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.9,
+        hits: 1,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.HAMMER_SMASH]: {
+    implemented: true,
+    interruptCommitMs: 320,
+    quicknessCastTimeMs: 440,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.2,
+        hits: 1,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.FIERCE_BLOW]: {
+    implemented: true,
+    interruptCommitMs: 600,
+    cooldown: 6,
+    quicknessCastTimeMs: 880,
+    handlerId: 'warrior.fierce-blow',
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.8,
+        hits: 1,
+        atMs: 600,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 4,
+        atMs: 600,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.HAMMER_SHOCK]: {
+    implemented: true,
+    cooldown: 8,
+    quicknessCastTimeMs: 600,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.8,
+        hits: 1,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 7,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
+  [ID.BACKBREAKER]: {
+    implemented: true,
+    cooldown: 25,
+    // Backbreaker refreshes Fierce Blow when its cast completes.
+    mechanicTriggers: [
+      {
+        type: 'warrior.core.reset-fierce-blow',
+        timingAnchor: 'castEnd'
+      }
+    ],
+    quicknessCastTimeMs: 880,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.25,
+        hits: 1,
+        atMs: 680,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'control',
+        atMs: 680,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: {
+          controlKind: 'knockdown',
+          duration: 3
+        }
+      }
+    ]
+  }
+});

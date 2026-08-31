@@ -1,8 +1,8 @@
-import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { selectedThiefTraits } from '../../core/state.js';
-import type { DaredevilState, ThiefConfig, ThiefDodge } from '../../types.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { selectedThiefTraits } from '#gw2/content/professions/thief/core/state.js';
+import type { DaredevilState, ThiefConfig, ThiefDodge } from '#gw2/content/professions/thief/types.js';
 
 function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>): ThiefDodge {
   // Trait-based dodge replaces any explicit config choice; only one Daredevil minor trait can be active

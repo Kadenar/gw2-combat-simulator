@@ -1,4 +1,4 @@
-import { MESMER_SKILL_IDS as ID } from './ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 
 /**
  * Positive-ID terrestrial Mesmer skills absent from the checked-in API

@@ -1,8 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { SKILLS, SPECIALIZATIONS } from '../../js/games/gw2/content/professions/revenant/data/revenant-api-metadata.js';
-import { REVENANT_SUPPLEMENTAL_SKILLS } from '../../js/games/gw2/content/professions/revenant/data/revenant-supplemental-skills.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/revenant/data/revenant-api-metadata.js';
+import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/revenant/data/revenant-supplemental-skills.js';
 
 function constantName(value) {
   return String(value || '')

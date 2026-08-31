@@ -9,9 +9,14 @@ import type {
   ProfessionUiContract,
   SchedulerRecord,
   Skill
-} from '../types.js';
-import type { NamedModule } from './module.js';
-import { everyUiSlice, firstUiMatch, mergeUiList, someUiSlice } from './ui-combinators.js';
+} from '#gw2/platform/engine/types.js';
+import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
+import {
+  everyUiSlice,
+  firstUiMatch,
+  mergeUiList,
+  someUiSlice
+} from '#gw2/platform/engine/profession/ui-combinators.js';
 
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
   'paletteGroups',

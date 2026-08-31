@@ -4,61 +4,54 @@ import path from 'node:path';
 import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { createCanonicalCatalog } from '../../js/games/gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import {
   deriveAutoattackChains,
   indexAutoattackChains,
   resolveAutoattackChainStep
-} from '../../js/games/gw2/platform/engine/skills/autoattack-chains.js';
-import { conditionTimeline, strikeTimeline } from '../../js/games/gw2/platform/engine/effects/factories.js';
-import { COMMON_EVENT_TYPES } from '../../js/games/gw2/platform/engine/events/events.js';
-import { HandlerRegistry } from '../../js/games/gw2/platform/engine/resolution/handler-registry.js';
-import { defineProfession } from '../../js/games/gw2/platform/engine/profession/contract.js';
-import { resolveScheduledStream } from '../../js/games/gw2/platform/engine/resolution/resolver.js';
-import { normalizeRotation } from '../../js/games/gw2/platform/engine/execution/rotation.js';
-import { createSchedulerState } from '../../js/games/gw2/platform/engine/execution/state.js';
-import { createScheduler } from '../../js/games/gw2/platform/engine/execution/scheduler.js';
-import { buildScheduledEventStream } from '../../js/games/gw2/platform/engine/events/scheduled-stream.js';
-import {
-  augmentSkillHandler,
-  replaceSkillHandler,
-  SKILL_HANDLER_MODES
-} from '../../js/games/gw2/platform/engine/skills/handlers.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
-import { professionRegistry } from '../../js/games/gw2/app/profession/registry.js';
-import { createProfessionWeaponData, WEAPON_DATA } from '../../js/games/gw2/platform/equipment/weapons/data.js';
-import { createGw2ResolverExtensions } from '../../js/games/gw2/platform/resolver/extensions.js';
-import {
-  createRelicRuntime,
-  createRelicTimelineRuntime
-} from '../../js/games/gw2/platform/equipment/relics/runtime.js';
-import { handleWeaknessVulnerabilityRelic } from '../../js/games/gw2/platform/resolver/relic-reactions.js';
-import { materializeBoonRelics } from '../../js/games/gw2/platform/scheduler/relic-materializer.js';
+} from '#gw2/platform/engine/skills/autoattack-chains.js';
+import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
+import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { resolveScheduledStream } from '#gw2/platform/engine/resolution/resolver.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { augmentSkillHandler, replaceSkillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { professionRegistry } from '#gw2/app/profession/registry.js';
+import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
+import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { createRelicRuntime, createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { handleWeaknessVulnerabilityRelic } from '#gw2/platform/resolver/relic-reactions.js';
+import { materializeBoonRelics } from '#gw2/platform/scheduler/relic-materializer.js';
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
   relicStrikeMultiplier,
   recordPassiveRelicTimeline
-} from '../../js/games/gw2/platform/equipment/relics/query.js';
-import { sigilCriticalContribution } from '../../js/games/gw2/platform/equipment/sigils/rules.js';
+} from '#gw2/platform/equipment/relics/query.js';
+import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '../../js/games/gw2/platform/combat/damage/stat-scaling.js';
+} from '#gw2/platform/combat/damage/stat-scaling.js';
 import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
   validateMesmerBuild
-} from '../../js/games/gw2/content/professions/mesmer/build.js';
-import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
-import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
+} from '#gw2/content/professions/mesmer/build/build.js';
+import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
 import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
-import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
-import { necromancerCatalog } from '../../js/games/gw2/content/professions/necromancer/catalog.js';
+import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
+import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
-import { snapshotMesmerState } from '../../js/games/gw2/content/professions/mesmer/state.js';
+import { snapshotMesmerState } from '#gw2/content/professions/mesmer/state/index.js';
 import { testProfession } from '../fixtures/test-profession.js';
-import { isStandardBoon } from '../../js/games/gw2/platform/combat/state/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 
 test('native professions share one skill timing contract', async () => {
   for (const entry of professionRegistry) {
@@ -332,6 +325,7 @@ test('declarative boons can gate dynamic skill availability', () => {
       {
         id: 920002,
         name: 'Aegis Strike',
+        type: 'Utility',
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1 }]
       }
@@ -682,6 +676,7 @@ test('declarative ammo consumes and recharges shared charges', () => {
       {
         id: 930001,
         name: 'Fixture Ammo',
+        type: 'Utility',
         castTimeMs: 0,
         cooldown: 0.25,
         recharge: 0.25,
@@ -720,6 +715,7 @@ test("shared scheduler waits until a skill's exact cooldown expiry", () => {
       {
         id: 930002,
         name: 'Fixture Cooldown',
+        type: 'Utility',
         castTimeMs: 0,
         cooldown: 0.3,
         effects: [{ type: 'strike', coefficient: 1 }]
@@ -885,6 +881,7 @@ test('declarative strike timelines preserve per-hit coefficients and shared time
       {
         id: 930023,
         name: 'Fixture Variable Hits',
+        type: 'Utility',
         castTimeMs: 4000,
         effects: [
           strikeTimeline(ticks, {
@@ -1185,6 +1182,7 @@ test('GW2 Quickness uses stored effect timing and slower casts scale it upward',
       {
         id: 930020,
         name: 'Fixture Timeline',
+        type: 'Utility',
         castTimeMs: 2200,
         effects: [
           {
@@ -1203,6 +1201,7 @@ test('GW2 Quickness uses stored effect timing and slower casts scale it upward',
       {
         id: 930021,
         name: 'Fixture Channel',
+        type: 'Utility',
         castTimeMs: 600,
         effects: [
           {
@@ -1219,6 +1218,7 @@ test('GW2 Quickness uses stored effect timing and slower casts scale it upward',
       {
         id: 930022,
         name: 'Fixture Field',
+        type: 'Utility',
         castTimeMs: 600,
         effects: [
           {
@@ -1235,6 +1235,7 @@ test('GW2 Quickness uses stored effect timing and slower casts scale it upward',
       {
         id: 930023,
         name: 'Fixture Quickness Immune',
+        type: 'Utility',
         castTimeMs: 600,
         unaffectedByQuickness: true,
         effects: [
@@ -1451,6 +1452,7 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
       {
         id: 930002,
         name: 'Context Strike',
+        type: 'Utility',
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1 }]
       }
@@ -1732,6 +1734,7 @@ test('canonical augmenting skill handlers observe declarative effects', () => {
       {
         id: 930003,
         name: 'Handled Skill',
+        type: 'Utility',
         handlerId: 'fixture.handled',
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 10 }]
@@ -1841,12 +1844,14 @@ test('target-health coefficient modifiers are shared and resolve per hit', () =>
       {
         id: 930034,
         name: 'Opening Strike',
+        type: 'Utility',
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1 }]
       },
       {
         id: 930035,
         name: 'Threshold Strike',
+        type: 'Utility',
         castTimeMs: 0,
         effects: [
           {
@@ -1922,6 +1927,7 @@ test('shared relic behavior resolves triggering skills by stable id', () => {
         id: 930004,
         name: 'Duplicate Name',
         type: 'Weapon',
+        weapon: 'Sword',
         cooldown: 20,
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1 }]
@@ -1930,6 +1936,7 @@ test('shared relic behavior resolves triggering skills by stable id', () => {
         id: 930005,
         name: 'Duplicate Name',
         type: 'Weapon',
+        weapon: 'Sword',
         cooldown: 0,
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1 }]
@@ -2087,6 +2094,7 @@ test('Relic of the Brawler grants four seconds of strike damage with a strict ei
         id: 930008,
         name: 'Brawler Fixture Strike',
         type: 'Weapon',
+        weapon: 'Sword',
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
       }
@@ -2150,6 +2158,7 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
         id: 930010,
         name: 'Mistburn Fixture Strike',
         type: 'Weapon',
+        weapon: 'Sword',
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
       }
@@ -2235,6 +2244,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
         id: 930100,
         name: 'Bloodstone Fixture Strike',
         type: 'Weapon',
+        weapon: 'Sword',
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
       },
@@ -2341,7 +2351,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
   assert.equal(bleeding.duration, 6);
 });
 
-test('Bloodstone Fervor follows player modifier ownership', () => {
+test('Bloodstone Fervor preserves its established effect exceptions after ownership migration', () => {
   const relic = createRelicRuntime('Bloodstone');
   const context = { relic };
 
@@ -2359,9 +2369,18 @@ test('Bloodstone Fervor follows player modifier ownership', () => {
       ...effect,
       ownerActorType: 'player'
     }),
-    1.07
+    1
   );
   assert.equal(relicStrikeMultiplier(context, effect), 1);
+  assert.equal(relicStrikeMultiplier(context, { ...effect, actorType: 'player' }), 1.07);
+  assert.equal(
+    relicStrikeMultiplier(context, {
+      ...effect,
+      ownerActorType: 'player',
+      sourceId: 'engineer.rapacious-strain'
+    }),
+    1.07
+  );
   assert.equal(
     relicStrikeMultiplier(context, {
       ...effect,
@@ -2369,6 +2388,32 @@ test('Bloodstone Fervor follows player modifier ownership', () => {
     }),
     1.07
   );
+});
+
+test('Claw and Peitha do not broaden their strike buffs to newly owned effect packets', () => {
+  const player = { type: 'damage', at: 1, actorType: 'player', skillName: 'Player Strike' };
+  const ownedEffect = {
+    type: 'damage',
+    at: 1,
+    actorType: 'effect',
+    ownerActorType: 'player',
+    skillName: 'Owned Effect'
+  };
+  const claw = createRelicRuntime('Claw');
+
+  claw.state.buffFrom = 0;
+  claw.state.buffUntil = 8;
+  assert.equal(relicStrikeMultiplier({ relic: claw }, player), 1.07);
+  assert.equal(relicStrikeMultiplier({ relic: claw }, ownedEffect), 1);
+  assert.equal(relicStrikeMultiplier({ relic: claw }, { ...ownedEffect, sourceId: 'sigil.air' }), 1.07);
+  assert.equal(relicStrikeMultiplier({ relic: claw }, { ...ownedEffect, sourceId: 77164 }), 1.07);
+
+  const peitha = createRelicRuntime('Peitha');
+
+  peitha.state.buffFrom = 0;
+  peitha.state.buffUntil = 8;
+  assert.equal(relicStrikeMultiplier({ relic: peitha }, player), 1.1);
+  assert.equal(relicStrikeMultiplier({ relic: peitha }, ownedEffect), 1);
 });
 
 test('Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD', () => {
@@ -2587,6 +2632,13 @@ test('Mesmer conforms to native handler and state contracts', () => {
 async function relativeModuleGraph(entryFiles) {
   const visited = new Set();
   const pending = [...entryFiles];
+  const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
+  const aliasedSourceRoots = [
+    ['#gw2/', path.join(sourceRoot, 'games', 'gw2')],
+    ['#kernel/', path.join(sourceRoot, 'kernel')],
+    ['#ui/', path.join(sourceRoot, 'ui')],
+    ['#app/', path.join(sourceRoot, 'app')]
+  ];
 
   while (pending.length) {
     const file = await sourceModulePath(path.resolve(pending.pop()));
@@ -2619,7 +2671,12 @@ async function relativeModuleGraph(entryFiles) {
 
     visit(syntax);
     for (const specifier of specifiers) {
-      const dependency = path.resolve(path.dirname(file), specifier);
+      // Package aliases resolve through dist at runtime; architecture crawling resolves the same path against source.
+      const alias = aliasedSourceRoots.find(([prefix]) => specifier.startsWith(prefix));
+      if (!specifier.startsWith('.') && !alias) continue;
+      const dependency = alias
+        ? path.resolve(alias[1], specifier.slice(alias[0].length))
+        : path.resolve(path.dirname(file), specifier);
 
       if (dependency.endsWith('.js') || dependency.endsWith('.mjs')) {
         pending.push(dependency);

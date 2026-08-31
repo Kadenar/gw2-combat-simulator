@@ -5,17 +5,17 @@ import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild
-} from '../../../js/games/gw2/content/professions/elementalist/build.js';
+} from '#gw2/content/professions/elementalist/build/build.js';
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
   validateGuardianBuild
-} from '../../../js/games/gw2/content/professions/guardian/build.js';
+} from '#gw2/content/professions/guardian/build/build.js';
 import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
   validateWarriorBuild
-} from '../../../js/games/gw2/content/professions/warrior/build.js';
+} from '#gw2/content/professions/warrior/build/build.js';
 
 // These focused cases prove profession descriptors own normalization and validation together.
 test('bounded-number build fields use canonical defaults and inclusive bounds', () => {

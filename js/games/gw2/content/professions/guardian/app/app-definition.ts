@@ -2,11 +2,11 @@
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import { defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyGuardianBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
-import { guardianProfession } from '../definition.js';
-import type { GuardianApplicationBuild } from '../types.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { applyGuardianBuildAttributeRules } from '#gw2/content/professions/guardian/build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/guardian/build/build.js';
+import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
+import type { GuardianApplicationBuild } from '#gw2/content/professions/guardian/types.js';
 
 // Exposes Guardian only through the shared browser application contract.
 export const guardianAppAdapter = defineProfessionApp({

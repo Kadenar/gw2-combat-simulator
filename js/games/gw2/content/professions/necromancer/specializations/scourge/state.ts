@@ -1,7 +1,8 @@
-import type { ScourgeState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { registerNecromancerStatePreserver } from '../../core/state-reconciliation.js';
+import type { ScourgeState } from '#gw2/content/professions/necromancer/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { registerNecromancerStatePreserver } from '#gw2/content/professions/necromancer/core/mechanics/state-reconciliation.js';
 
+/** Creates Scourge's timed shade and trait-cooldown runtime state. */
 export function createScourgeState(): ScourgeState {
   const state: ScourgeState = {
     // Each entry is an absolute expiry timestamp; the array length is the active shade count

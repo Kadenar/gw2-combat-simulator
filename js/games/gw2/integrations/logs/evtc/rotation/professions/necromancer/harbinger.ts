@@ -1,7 +1,15 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcRotationBuffTransition } from '../../profiles.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { effectAction, hasRecordedAction, initialSelfBuffCount, INSTANT_SIGNAL_WINDOW_MS } from './shared.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  effectAction,
+  hasRecordedAction,
+  initialSelfBuffCount,
+  INSTANT_SIGNAL_WINDOW_MS
+} from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/shared.js';
 
 const PLAGUE_SIGNET = Object.freeze({ name: 'Plague Signet', skillId: 10562 });
 const PLAGUE_SIGNET_PASSIVE_BUFF = 72368;

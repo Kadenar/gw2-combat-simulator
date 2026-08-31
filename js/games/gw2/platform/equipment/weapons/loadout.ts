@@ -1,4 +1,4 @@
-import type { Gw2Config } from '../../simulation/config.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export type Gw2ConfiguredWeaponSet = readonly [string | undefined, string | undefined];
 

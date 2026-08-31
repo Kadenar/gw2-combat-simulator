@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { displayedSkillTiles } from '../../js/games/gw2/app/rotation/palette/model.js';
-import { engineerCatalog } from '../../js/games/gw2/content/professions/engineer/catalog.js';
-import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
-import { necromancerCatalog } from '../../js/games/gw2/content/professions/necromancer/catalog.js';
-import { rangerCatalog } from '../../js/games/gw2/content/professions/ranger/catalog.js';
-import { revenantCatalog } from '../../js/games/gw2/content/professions/revenant/catalog.js';
-import { thiefCatalog } from '../../js/games/gw2/content/professions/thief/catalog.js';
+import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
+import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
+import { rangerCatalog } from '#gw2/content/professions/ranger/catalog.js';
+import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
+import { thiefCatalog } from '#gw2/content/professions/thief/catalog.js';
 
 const AUDITED_WEAPON_FLIPS = Object.freeze([
   [thiefCatalog, "Infiltrator's Strike", "Infiltrator's Return"],

@@ -1,6 +1,12 @@
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { committedActionsFromStrikePackets, skillForAction } from '../../effect-packets.js';
-import { reconstructCommonRevenantActions } from './common.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  committedActionsFromStrikePackets,
+  skillForAction
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { reconstructCommonRevenantActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
 
 const DEATH_DROP_IDS = new Set([62693, 62730]);
 

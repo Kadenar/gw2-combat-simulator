@@ -11,9 +11,9 @@ import type {
   SchedulerRecord,
   Skill,
   SkillId
-} from '../types.js';
-import { createCanonicalCatalog } from '../skills/catalog.js';
-import { toEntries } from '../../../../../kernel/core/collections.js';
+} from '#gw2/platform/engine/types.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { toEntries } from '#kernel/core/collections.js';
 
 export interface NamedModule<TModuleState extends object = SchedulerRecord> {
   readonly name: string;

@@ -4,15 +4,9 @@ import test from 'node:test';
 import {
   assembleNativeApplicationCatalog,
   nativeSkillRuntimeOwner
-} from '../../../js/games/gw2/integrations/patches/authoring/catalog.js';
-import {
-  onResolvedCriticalHit,
-  onResolvedDamage
-} from '../../../js/games/gw2/integrations/patches/authoring/mechanics.js';
-import {
-  defineNativeModule,
-  defineNativeProfession
-} from '../../../js/games/gw2/integrations/patches/authoring/profession.js';
+} from '#gw2/integrations/patches/authoring/catalog.js';
+import { onResolvedCriticalHit, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
 
 const replaceHandler = Object.freeze({
   mode: 'replace',
@@ -34,11 +28,11 @@ const coreModule = () =>
       generatedSkills: [skill(1, 'Core Skill', { handlerId: 'test.core' })],
       traits: [{ id: 10, name: 'Core Trait', specialization: 'Core Line' }],
       specializations: [{ id: 20, name: 'Core Line', elite: false }],
-      handlers: { 'test.core': replaceHandler },
       weapons: ['Sword'],
       weaponHands: { Sword: 'mh' }
     },
-    state: { scheduler: () => ({ coreValue: 1 }) }
+    state: { scheduler: () => ({ coreValue: 1 }) },
+    mechanics: { execution: { skillHandlers: { 'test.core': replaceHandler } } }
   });
 const eliteModule = () =>
   defineNativeModule({
@@ -55,10 +49,10 @@ const eliteModule = () =>
         })
       ],
       traits: [{ id: 11, name: 'Elite Trait', specialization: 'Elite' }],
-      specializations: [{ id: 21, name: 'Elite', elite: true }],
-      handlers: { 'test.elite': replaceHandler }
+      specializations: [{ id: 21, name: 'Elite', elite: true }]
     },
-    state: { scheduler: () => ({ eliteValue: 2 }) }
+    state: { scheduler: () => ({ eliteValue: 2 }) },
+    mechanics: { execution: { skillHandlers: { 'test.elite': replaceHandler } } }
   });
 
 test('module-first assembly derives application and active runtime catalogs', () => {
@@ -122,8 +116,9 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
         core,
         defineNativeModule({
           id: 'UnusedHandler',
-          data: { handlers: { 'test.unused': replaceHandler } },
-          state: { scheduler: () => ({}) }
+          data: {},
+          state: { scheduler: () => ({}) },
+          mechanics: { execution: { skillHandlers: { 'test.unused': replaceHandler } } }
         })
       ]),
     /Skill handler test\.unused is unused/
@@ -141,23 +136,25 @@ test('phase-explicit reactions retain stable order', () => {
     data: {},
     state: { scheduler: () => ({}) },
     mechanics: {
-      reactions: [
-        onResolvedDamage({
-          id: 'later',
-          order: 20,
-          handler: () => calls.push('later')
-        }),
-        onResolvedDamage({
-          id: 'first',
-          order: -10,
-          handler: () => calls.push('first')
-        }),
-        onResolvedDamage({
-          id: 'middle',
-          order: 0,
-          handler: () => calls.push('middle')
-        })
-      ]
+      resolution: {
+        reactions: [
+          onResolvedDamage({
+            id: 'later',
+            order: 20,
+            handler: () => calls.push('later')
+          }),
+          onResolvedDamage({
+            id: 'first',
+            order: -10,
+            handler: () => calls.push('first')
+          }),
+          onResolvedDamage({
+            id: 'middle',
+            order: 0,
+            handler: () => calls.push('middle')
+          })
+        ]
+      }
     }
   });
   const runtime = defineNativeProfession({
@@ -168,6 +165,72 @@ test('phase-explicit reactions retain stable order', () => {
 
   runtime.eventReactions['damage.resolved']({}, { type: 'damage', at: 0 }, {});
   assert.deepEqual(calls, ['first', 'middle', 'later']);
+});
+
+test('phase-scoped module sections compile without duplicating their canonical content definition', () => {
+  const calls = [];
+  const handlers = Object.freeze({ 'test.phase-scoped': replaceHandler });
+  const phaseScopedSkill = skill(101, 'Phase-scoped Skill', { handlerId: 'test.phase-scoped' });
+  const core = defineNativeModule({
+    id: 'Core',
+    data: { generatedSkills: [phaseScopedSkill] },
+    state: { scheduler: () => ({}) },
+    mechanics: {
+      execution: {
+        skillHandlers: handlers,
+        availability: {
+          phase: 'scheduler',
+          hook: 'availability',
+          id: 'test.phase-scoped-availability',
+          order: 0,
+          handler: () => ({ ready: true })
+        }
+      },
+      resolution: {
+        reactions: [
+          onResolvedDamage({
+            id: 'test.phase-scoped-damage',
+            handler: () => calls.push('resolved')
+          })
+        ]
+      }
+    }
+  });
+  const runtime = defineNativeProfession({
+    id: 'phase-scoped',
+    name: 'Phase scoped',
+    modules: [core]
+  }).resolveRuntime({ specialization: 'Core' });
+
+  assert.equal(core.data.handlers, undefined);
+  assert.equal(core.mechanics.execution.skillHandlers, handlers);
+  assert.deepEqual(runtime.skillHandlerFor(runtime.catalog.skillsById.get(101)), replaceHandler);
+  assert.equal(typeof runtime.availability, 'function');
+  runtime.eventReactions['damage.resolved']({}, { type: 'damage', at: 0 }, {});
+  assert.deepEqual(calls, ['resolved']);
+});
+
+test('native modules reject retired registration fields with their replacement paths', () => {
+  assert.throws(
+    () =>
+      defineNativeModule({
+        id: 'DuplicateHandlers',
+        data: { handlers: { legacy: replaceHandler } },
+        state: { scheduler: () => ({}) },
+        mechanics: {}
+      }),
+    /DuplicateHandlers\.data\.handlers is no longer supported; use mechanics\.execution\.skillHandlers/
+  );
+  assert.throws(
+    () =>
+      defineNativeModule({
+        id: 'DuplicateReactions',
+        data: {},
+        state: { scheduler: () => ({}) },
+        mechanics: { reactions: [] }
+      }),
+    /DuplicateReactions\.mechanics\.reactions is no longer supported; use mechanics\.resolution\.reactions/
+  );
 });
 
 test('resolved critical-hit helper preserves threshold and stochastic semantics', () => {
@@ -262,14 +325,16 @@ test('critical-hit declarations automatically request canonical scheduler facts'
     data: {},
     state: { scheduler: () => ({}) },
     mechanics: {
-      reactions: [
-        onResolvedCriticalHit({
-          id: 'fixture.critical-facts',
-          expectedProgress: { get: () => 0, set: () => undefined },
-          attribution: { kind: 'trait', id: 99 },
-          handler: () => undefined
-        })
-      ]
+      resolution: {
+        reactions: [
+          onResolvedCriticalHit({
+            id: 'fixture.critical-facts',
+            expectedProgress: { get: () => 0, set: () => undefined },
+            attribution: { kind: 'trait', id: 99 },
+            handler: () => undefined
+          })
+        ]
+      }
     }
   });
   const runtime = defineNativeProfession({

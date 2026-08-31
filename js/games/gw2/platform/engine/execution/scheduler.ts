@@ -5,20 +5,26 @@
  * customize behavior through the profession contract and injected scheduler
  * policy rather than forking this state machine.
  */
-import { ACTION_SAFETY_LIMIT, EPSILON } from '../../../../../kernel/core/clock.js';
-import { assertAvailabilityResult, CAST_READY, denyCast, foldAvailability, retryCast } from '../skills/availability.js';
-import { createEvent } from '../events/events.js';
-import { effectFirstAt, materializeSkillEffectApplications } from '../effects/materializer.js';
-import { createCooldownController } from './cooldowns.js';
-import { normalizeObservationPolicy, observationEndTime } from '../../../../../kernel/execution/observation.js';
-import { normalizeRotation } from './rotation.js';
-import { createSchedulerState } from './state.js';
-import { buildScheduledEventStream } from '../events/scheduled-stream.js';
-import { sortQueuedEvents } from '../../../../../kernel/events/queue.js';
-import { createTaskQueue } from './tasks.js';
-import { cloneProfessionState } from '../profession/state.js';
-import { resolveProfessionRuntime } from '../profession/family.js';
-import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '../skills/handlers.js';
+import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
+import {
+  assertAvailabilityResult,
+  CAST_READY,
+  denyCast,
+  foldAvailability,
+  retryCast
+} from '#gw2/platform/engine/skills/availability.js';
+import { createEvent } from '#gw2/platform/engine/events/events.js';
+import { effectFirstAt, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
+import { normalizeObservationPolicy, observationEndTime } from '#kernel/execution/observation.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
+import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { sortQueuedEvents } from '#kernel/events/queue.js';
+import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
+import { cloneProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import type {
   AmmoState,
   AvailabilityResult,
@@ -47,7 +53,7 @@ import type {
   Skill,
   SkillId,
   TaskQueue
-} from '../types.js';
+} from '#gw2/platform/engine/types.js';
 
 interface CastReservation<TProfessionState extends object> {
   id: string;
@@ -286,7 +292,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     const bucket = eventTypeIndex.get(type);
     if (bucket) bucket.push(event);
     else eventTypeIndex.set(type, [event]);
-    const order = Number(event.__order);
+    const order = Number(event.eventOrder);
     if (Number.isFinite(order)) eventOrderIndex.set(order, event);
   };
 
@@ -310,7 +316,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       );
     }
 
-    const order = Number(event.__order);
+    const order = Number(event.eventOrder);
     if (Number.isFinite(order)) eventOrderIndex.set(order, replacement);
   };
 
@@ -395,7 +401,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
       const normalized = createEvent({
         ...prepared,
-        __order: eventOrder++
+        eventOrder: eventOrder++
       });
       events.push(normalized);
       indexEvent(normalized);
@@ -440,7 +446,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       return replacement;
     },
     emitDerived(/** @type {SimulationEvent} */ cause, /** @type {SimulationEventInput} */ event) {
-      const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.__order));
+      const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.eventOrder));
       if (!Number.isFinite(rootOrder)) {
         throw new TypeError('Derived events require a scheduled cause.');
       }

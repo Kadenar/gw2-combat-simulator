@@ -1,7 +1,7 @@
 /** Public scheduling and rotation-execution entrypoint. */
-export * from './cooldowns.js';
-export * from '../../../../../kernel/execution/observation.js';
-export * from './rotation.js';
-export * from './scheduler.js';
-export * from './state.js';
-export * from './tasks.js';
+export * from '#gw2/platform/engine/execution/cooldowns.js';
+export * from '#kernel/execution/observation.js';
+export * from '#gw2/platform/engine/execution/rotation.js';
+export * from '#gw2/platform/engine/execution/scheduler.js';
+export * from '#gw2/platform/engine/execution/state.js';
+export * from '#gw2/platform/engine/execution/tasks.js';

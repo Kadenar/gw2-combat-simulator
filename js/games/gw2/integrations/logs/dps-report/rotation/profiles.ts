@@ -1,4 +1,4 @@
-import { ROTATION_PROFILES, type RotationProfessionProfile } from '../../lib/rotation/profiles.js';
+import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 
 function normalized(value: unknown): string {
   return String(value || '')

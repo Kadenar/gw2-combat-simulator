@@ -7,13 +7,13 @@ import {
   rotationDeadTimeVisibility,
   setRotationDeadTimeVisibility,
   ROTATION_TIMELINE_SIZE_OPTIONS
-} from '../../js/games/gw2/app/rotation/timeline/size.js';
+} from '#gw2/app/rotation/timeline/size.js';
 import {
   normalizeRotationProcOverlayVisibility,
   readStoredRotationProcOverlayVisibility,
   ROTATION_PROC_OVERLAY_STORAGE_KEYS,
   storeRotationProcOverlayVisibility
-} from '../../js/games/gw2/app/rotation/timeline/proc-overlays.js';
+} from '#gw2/app/rotation/timeline/proc-overlays.js';
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   isSimulationConfigVisible,
@@ -21,8 +21,8 @@ import {
   mountRotationDpsSummary,
   reduceRotationWorkspaceState,
   updateFloatingDps
-} from '../../js/app/shell/workspace.js';
-import { currentTimelineResults, reconcileTimelineRows } from '../../js/games/gw2/app/rotation/timeline/view.js';
+} from '#app/shell/workspace.js';
+import { currentTimelineResults, reconcileTimelineRows } from '#gw2/app/rotation/timeline/view.js';
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));

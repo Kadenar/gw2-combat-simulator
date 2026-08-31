@@ -3,7 +3,7 @@
  * (`rotation`, `tail`, or `absolute`) and, once the rotation timeline is known,
  * resolves the concrete end time over which damage and effects are measured.
  */
-import { EPSILON } from '../core/clock.js';
+import { EPSILON } from '#kernel/core/clock.js';
 
 export type ObservationPolicy =
   | { readonly kind: 'rotation' }

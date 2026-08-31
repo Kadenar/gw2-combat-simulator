@@ -1,9 +1,9 @@
-import { createGw2ConditionResolution } from '../../js/games/gw2/platform/resolver/condition-resolution.js';
-import { createGw2ResolverEventHandlers } from '../../js/games/gw2/platform/resolver/event-handlers.js';
-import { createGw2HitResolution } from '../../js/games/gw2/platform/resolver/hit-resolution.js';
-import { createGw2ResolverExtensions } from '../../js/games/gw2/platform/resolver/extensions.js';
-import { resolveGw2Timeline } from '../../js/games/gw2/platform/resolver/resolve-timeline.js';
-import { createGw2ResolverRuntimeState } from '../../js/games/gw2/platform/resolver/runtime-state.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
+import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
+import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 /**
  * Resolves a hand-built canonical stream in architecture tests without a

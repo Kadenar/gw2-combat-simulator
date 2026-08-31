@@ -1,18 +1,18 @@
-import type { Gw2SimulationResult } from '../../../platform/simulation/types.js';
-import { durationStackingBoonCapSeconds, isStandardBoon } from '../../../platform/combat/state/boons.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { durationStackingBoonCapSeconds, isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt
-} from '../../presentation/results/charts/time-series.js';
-import { formatTimelineDuration, timelineDeadTimeMarkers } from '../../presentation/rotation/timeline.js';
+} from '#gw2/app/presentation/results/charts/time-series.js';
+import { formatTimelineDuration, timelineDeadTimeMarkers } from '#gw2/app/presentation/rotation/timeline.js';
 import {
   skillBreakdownRows as transformSkillBreakdownRows,
   skillDamageIdentityKey,
   skillDamageKeyByIdentity
-} from '../../presentation/results/result-tables.js';
-import { resultSummaryMetrics as transformResultSummaryMetrics } from '../../presentation/results/result-transform.js';
-import type { ResultSummaryMetricDetail } from '../../presentation/results/result-transform.js';
-import { shatterResourceSpends, timelineStepsWithChargeFills } from '../timeline/model.js';
+} from '#gw2/app/presentation/results/result-tables.js';
+import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/presentation/results/result-transform.js';
+import type { ResultSummaryMetricDetail } from '#gw2/app/presentation/results/result-transform.js';
+import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
 
 const EFFECT_NAMES: Readonly<Record<string, string>> = {
   compounding: 'Compounding Power',

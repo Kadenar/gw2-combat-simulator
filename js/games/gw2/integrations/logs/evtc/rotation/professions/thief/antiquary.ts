@@ -1,6 +1,9 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { canonicalAction, SIGNAL_WINDOW_MS } from './shared.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { canonicalAction, SIGNAL_WINDOW_MS } from '#gw2/integrations/logs/evtc/rotation/professions/thief/shared.js';
 
 const STONE_SUMMIT_CANNON = Object.freeze({
   name: 'Stone Summit Cannon',

@@ -1,5 +1,5 @@
-import type { RevenantConfig, VindicatorState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
+import type { RevenantConfig, VindicatorState } from '#gw2/content/professions/revenant/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
 export const VINDICATOR_PUBLIC_END_STATE_KEYS: readonly (keyof VindicatorState)[] = Object.freeze([
   'allianceSide',

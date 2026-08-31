@@ -1,7 +1,10 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import { firstStrikePacketOffsetMs } from '../../effect-packets.js';
-import { findRotationSkill } from '../../catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   MESMER_EFFECT_GUIDS,
   buffGainSignals,
@@ -16,7 +19,7 @@ import {
   playerInstance,
   selectedSkill,
   type MesmerSignal
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/shared.js';
 
 const UNSTABLE_BLADESTORM = Object.freeze({
   name: 'Unstable Bladestorm',

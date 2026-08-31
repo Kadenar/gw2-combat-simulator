@@ -1,17 +1,28 @@
-import { professionCoreState, projectPublicProfessionState } from '../../../platform/engine/profession/state.js';
-import { snapshotThiefState, THIEF_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
-export { snapshotThiefState } from './core/state.js';
+import { professionCoreState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotThiefState, THIEF_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/thief/core/state.js';
+export { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import {
   ANTIQUARY_INACTIVE_STATE_DEFAULTS,
   ANTIQUARY_PUBLIC_END_STATE_KEYS
-} from './specializations/antiquary/state.js';
+} from '#gw2/content/professions/thief/specializations/antiquary/state.js';
 import {
   DAREDEVIL_INACTIVE_STATE_DEFAULTS,
   DAREDEVIL_PUBLIC_END_STATE_KEYS
-} from './specializations/daredevil/state.js';
-import { DEADEYE_INACTIVE_STATE_DEFAULTS, DEADEYE_PUBLIC_END_STATE_KEYS } from './specializations/deadeye/state.js';
-import { SPECTER_INACTIVE_STATE_DEFAULTS, SPECTER_PUBLIC_END_STATE_KEYS } from './specializations/specter/state.js';
-import type { ThiefEndStateProjectionOptions, ThiefResolverContext, ThiefResolverEvent, ThiefState } from './types.js';
+} from '#gw2/content/professions/thief/specializations/daredevil/state.js';
+import {
+  DEADEYE_INACTIVE_STATE_DEFAULTS,
+  DEADEYE_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/thief/specializations/deadeye/state.js';
+import {
+  SPECTER_INACTIVE_STATE_DEFAULTS,
+  SPECTER_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/thief/specializations/specter/state.js';
+import type {
+  ThiefEndStateProjectionOptions,
+  ThiefResolverContext,
+  ThiefResolverEvent,
+  ThiefState
+} from '#gw2/content/professions/thief/types.js';
 
 // The family projector composes each independently owned state slice into the stable public end-state contract.
 export const THIEF_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefState)[] = Object.freeze([

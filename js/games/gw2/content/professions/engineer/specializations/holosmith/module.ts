@@ -1,19 +1,19 @@
-import { afterSkillEffects } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createEngineerModuleData } from '../../catalog-data.js';
-import { holosmithSkillHandlers } from './handlers.js';
-import { holosmithResolverEventHandlers } from './resolver.js';
+import { afterSkillEffects } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
+import { holosmithSkillHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/skills/execution.js';
+import { holosmithResolverEventHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
 import {
   holosmithAdvancedSchedulerHooks,
   holosmithAfterCast,
   holosmithAttributeRules,
   holosmithCastRules
-} from './rules.js';
-import { HOLOSMITH_SKILL_MECHANICS } from './skills.js';
-import { holosmithState } from './state.js';
-import { HOLOSMITH_BALANCE_PROFILES } from './profiles.js';
-import { bindHolosmithUi } from './ui.js';
-import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
+} from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/holosmith/skills/index.js';
+import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
+import { HOLOSMITH_BALANCE_PROFILES } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
+import { bindHolosmithUi } from '#gw2/content/professions/engineer/specializations/holosmith/presentation.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
 
 // Declare both Photon Forge autoattack variants through the catalog contract so
 // scheduling and the shared palette projector advance the same chain state.
@@ -27,7 +27,6 @@ export const holosmithModule = defineNativeModule({
   data: createEngineerModuleData('Holosmith', {
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
     balanceProfiles: HOLOSMITH_BALANCE_PROFILES,
-    handlers: holosmithSkillHandlers,
     // Runtime name lookup must select the heat-aware identities over Core's non-Holosmith variants.
     skillNameOverrides: {
       'Radiant Arc': ID.RADIANT_ARC,
@@ -43,10 +42,15 @@ export const holosmithModule = defineNativeModule({
   state: { scheduler: holosmithState.create, resolver: holosmithState.create },
   mechanics: {
     modifiers: holosmithAttributeRules,
-    castRules: holosmithCastRules,
-    castLifecycle: [afterSkillEffects(holosmithAfterCast)],
-    schedulerHooks: holosmithAdvancedSchedulerHooks,
-    resolverHooks: { eventHandlers: holosmithResolverEventHandlers }
+    execution: {
+      skillHandlers: holosmithSkillHandlers,
+      castRules: holosmithCastRules,
+      castLifecycle: [afterSkillEffects(holosmithAfterCast)],
+      hooks: holosmithAdvancedSchedulerHooks
+    },
+    resolution: {
+      hooks: { eventHandlers: holosmithResolverEventHandlers }
+    }
   },
   presentation: bindHolosmithUi
 });

@@ -1,8 +1,12 @@
 /** Owns the combat/query/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord, SimulationEvent } from '../../engine/types.js';
-import type { Gw2BuffAudience, Gw2RuntimeStateLike, Gw2TimedBuffApplication } from '../state/types.js';
-import type { Gw2RelicRuntime } from '../../equipment/relics/types.js';
-import type { Gw2SigilSet } from '../../equipment/types.js';
+import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type {
+  Gw2BuffAudience,
+  Gw2RuntimeStateLike,
+  Gw2TimedBuffApplication
+} from '#gw2/platform/combat/state/types.js';
+import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
@@ -90,5 +94,5 @@ export interface Gw2TimelineIndex {
   vigorActiveAt(time: number): boolean;
   activeWeaponSetAt(time: number): number;
   activeSigilSetAt(time: number): Gw2SigilSet;
-  skillOnCooldownAt(skillId: import('../../engine/types.js').SkillId, time: number): boolean;
+  skillOnCooldownAt(skillId: import('#gw2/platform/engine/types.js').SkillId, time: number): boolean;
 }

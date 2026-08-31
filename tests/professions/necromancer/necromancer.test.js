@@ -7,45 +7,39 @@ import {
   loadProfessionAppAdapter,
   professionOptions,
   professionRoute
-} from '../../../js/games/gw2/app/profession/registry.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import {
-  applyBalanceProfilePatch,
-  applySkillPatch
-} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
-import { skillBreakdownRows } from '../../../js/games/gw2/app/presentation/results/result-tables.js';
-import { buildChartSeries } from '../../../js/games/gw2/app/rotation/result/model.js';
-import { formatResourceValue } from '../../../js/games/gw2/app/rotation/palette/resource-view.js';
-import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
-import { weaponSkills } from '../../../js/games/gw2/app/rotation/palette/model.js';
-import { renderPalette } from '../../../js/games/gw2/app/rotation/palette/view.js';
+} from '#gw2/app/profession/registry.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
+import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
+import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
+import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
+import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild
-} from '../../../js/games/gw2/content/professions/necromancer/build.js';
-import {
-  necromancerCatalog,
-  NECROMANCER_NON_DPS_SKILL_NAMES
-} from '../../../js/games/gw2/content/professions/necromancer/catalog.js';
-import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/necromancer/data/necromancer-api-metadata.js';
-import { necromancerProfession } from '../../../js/games/gw2/content/professions/necromancer/definition.js';
+} from '#gw2/content/professions/necromancer/build/build.js';
+import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '#gw2/content/professions/necromancer/catalog.js';
+import { DATA_SNAPSHOT } from '#gw2/content/professions/necromancer/data/necromancer-api-metadata.js';
+import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT
-} from '../../../js/games/gw2/content/professions/necromancer/data/ids.js';
+} from '#gw2/content/professions/necromancer/data/ids.js';
 import {
   actualNecromancerLifeForceCost,
   createNecromancerCoreState,
   normalizedNecromancerLifeForceCost
-} from '../../../js/games/gw2/content/professions/necromancer/core/state.js';
-import { addSoulShards, purgeTimedState } from '../../../js/games/gw2/content/professions/necromancer/core/shared.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/core/profiles.js';
-import { REAPER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/specializations/reaper/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/specializations/scourge/profiles.js';
-import { HARBINGER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
-import { necromancerAppAdapter } from '../../../js/games/gw2/content/professions/necromancer/app/app-definition.js';
+} from '#gw2/content/professions/necromancer/core/state.js';
+import { addSoulShards, purgeTimedState } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/reaper/profiles.js';
+import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/scourge/profiles.js';
+import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
+import { necromancerAppAdapter } from '#gw2/content/professions/necromancer/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -112,8 +106,12 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) =>
-    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  const profile = (moduleId, profileId) => {
+    const module = modules.get(moduleId);
+
+    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
+  };
+
   const bloodFiend = profile('Core', NECROMANCER_CORE_BALANCE_PROFILE_IDS.bloodFiendAttack);
   const shade = profile('Scourge', SCOURGE_BALANCE_PROFILE_IDS.shade);
   const blight = profile('Harbinger', HARBINGER_BALANCE_PROFILE_IDS.resources);
