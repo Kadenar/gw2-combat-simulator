@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -325,4 +326,22 @@ test('explicit fixed strength remains exempt from stochastic sampling', () => {
   assert.equal(hit.weaponStrengthProfileId, 'fixed');
   assert.equal(hit.resolvedWeaponStrength, 777);
   assert.equal(hit.weaponStrengthSampled, false);
+});
+
+test('unprofiled coefficient packets are rejected instead of receiving legacy fixed strength', () => {
+  assert.throws(
+    () =>
+      resolvedWeaponStrength(
+        { helpers: {} },
+        {
+          type: 'damage',
+          at: 0,
+          source: 'player',
+          sourceId: 990003,
+          actorType: 'player',
+          coefficient: 1
+        }
+      ),
+    /requires a resolvable weapon-strength profile or explicit weaponStrength/
+  );
 });

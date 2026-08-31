@@ -45,13 +45,11 @@ export function resolvedWeaponStrength(
   const skill = skillForEvent(context.helpers, event) ?? null;
   const profileId = weaponStrengthProfileIdForEvent(event, { skill });
   if (!profileId) {
-    const fallback = Number(context.helpers.weaponStrength(event, context.config));
-    return {
-      activationId: typeof event.activationId === 'string' ? event.activationId : null,
-      profileId: 'fixed-legacy',
-      value: fallback,
-      sampled: false
-    };
+    // Scaling strikes must resolve through a canonical profile or explicit override so malformed packets fail loudly.
+    throw new TypeError(
+      `Coefficient damage event ${String(event.skillId ?? event.sourceId ?? event.skillName ?? event.source ?? 'unknown')} ` +
+        'requires a resolvable weapon-strength profile or explicit weaponStrength.'
+    );
   }
 
   const profile = weaponStrengthProfile(profileId);

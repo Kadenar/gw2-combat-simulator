@@ -338,6 +338,7 @@ test('reconstructs casts, inferred instants, serial weapon swaps, dodges, and 40
   const result = reconstructEvtcRotation(fixture, catalog);
 
   assert.equal(result.parserId, 'mesmer:chronomancer');
+  assert.equal(Object.hasOwn(result, 'logStartTime'), false);
   assert.equal(result.combatStartTimestampMs, 0);
   assert.deepEqual(
     result.actions.map((action) => [action.name, action.timestampMs, action.durationMs, action.kind, action.evidence]),

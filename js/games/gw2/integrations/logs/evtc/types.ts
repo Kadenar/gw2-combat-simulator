@@ -268,7 +268,4 @@ export interface EvtcRotationPlayer extends RotationPlayerIdentity {
   readonly address: string;
 }
 
-export interface EvtcRotationReconstruction extends RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
-  /** @deprecated Use timelineOriginMs. */
-  readonly logStartTime: number;
-}
+export type EvtcRotationReconstruction = RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction>;

@@ -8,7 +8,6 @@ import type { QueuedEvent, SimulationActorType, SimulationEvent } from '#gw2/pla
 export const EVENT_SCHEMA_VERSION = 1 as const;
 
 const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'environment', 'unknown']);
-const LEGACY_EVENT_TYPES = new Set(['boon', 'cooldown_snapshot', 'self_condition']);
 
 /**
  * @param {unknown} value
@@ -50,6 +49,8 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'marker',
   'resource',
   'buff',
+  'cooldown_snapshot',
+  'self_condition',
   'weakness_vulnerability',
   'peitha'
 ]);
@@ -71,7 +72,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     throw new Error('Event type is required.');
   }
 
-  if (!COMMON_EVENT_TYPE_SET.has(event.type) && !LEGACY_EVENT_TYPES.has(event.type) && !event.type.includes('.')) {
+  if (!COMMON_EVENT_TYPE_SET.has(event.type) && !event.type.includes('.')) {
     throw new Error(`Unsupported simulation event type: ${event.type}.`);
   }
 

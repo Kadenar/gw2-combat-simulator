@@ -178,7 +178,6 @@ export interface Gw2ProcStep {
 
 export interface Gw2ResolverHelpers extends SchedulerRecord {
   conditionName(value: unknown): string;
-  weaponStrength(event: Gw2ResolverEvent, config: Gw2Config): number;
   readonly skillsById?: ReadonlyMap<import('#gw2/platform/engine/types.js').SkillId, Skill>;
   readonly skillsByName?: ReadonlyMap<string, Skill>;
   readonly balanceProfilesById?: ReadonlyMap<

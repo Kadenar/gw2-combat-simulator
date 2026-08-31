@@ -685,6 +685,14 @@ test('Amalgam protocol IDs survive application build conversion', () => {
   });
 
   assert.deepEqual(legacyApplication.rotation, application.rotation);
+
+  const malformedPrefix = toApplicationBuild({
+    ...defaults,
+    selectedMorphSkillIds: [77103, 77104, 76705],
+    rotation: [null, 'Offensive Protocol: Shred']
+  });
+
+  assert.deepEqual(malformedPrefix.rotation, [{ type: 'cast', skillId: 77103 }]);
 });
 
 test('kits replace the weapon bar and trigger swap procs', () => {

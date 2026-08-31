@@ -31,12 +31,12 @@ export type CommonSimulationEventType =
   | 'marker'
   | 'resource'
   | 'buff'
+  | 'cooldown_snapshot'
+  | 'self_condition'
   | 'weakness_vulnerability'
   | 'peitha';
 
 export type CustomSimulationEventType = `${string}.${string}`;
-
-export type LegacySimulationEventType = 'boon' | 'cooldown_snapshot' | 'self_condition';
 
 export interface SimulationEventBase<TType extends string = string> {
   readonly schemaVersion?: 1;
@@ -109,10 +109,7 @@ export type CommonSimulationEvent = SimulationEventBase<CommonSimulationEventTyp
 
 export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;
 
-export type LegacySimulationEvent = SimulationEventBase<LegacySimulationEventType>;
-
-export type SimulationEvent =
-  DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent | LegacySimulationEvent;
+export type SimulationEvent = DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent;
 
 export interface SimulationEventInput {
   readonly type: string;

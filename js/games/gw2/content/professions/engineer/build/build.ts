@@ -4,6 +4,7 @@ import { createDefaultTargetConditions } from '#gw2/platform/builds/default-targ
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import type { RotationCommand, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/content/professions/engineer/types.js';
 
@@ -113,12 +114,8 @@ function normalizeMorphs(value: unknown): number[] {
   return [2, 3, 4].map((slot) => selected.get(slot)) as number[];
 }
 
-/** Rebinds legacy name-based morph casts to the IDs selected by the normalized build. */
-function normalizeMorphRotation(
-  rotation: readonly RotationCommand[],
-  savedRotation: unknown,
-  morphIds: readonly number[]
-): RotationCommand[] {
+/** Normalizes each raw command before rebinding legacy morph names to the selected IDs. */
+function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly number[]): RotationCommand[] {
   const selectedByName = new Map<string, Skill>(
     morphIds
       .map((skillId) => {
@@ -128,9 +125,10 @@ function normalizeMorphRotation(
       .filter(([name, skill]) => name && skill) as [string, Skill][]
   );
   const rawRotation = Array.isArray(savedRotation) ? savedRotation : [];
-  return rotation.map((command, index) => {
-    // Only legacy casts without an ID need name-based rebinding; canonical commands pass through unchanged.
-    const raw = rawRotation[index];
+  return rawRotation.flatMap((raw) => {
+    // Normalize one raw entry at a time so dropping a malformed command cannot shift later name-based casts.
+    const [command] = normalizeRotation([raw], engineerCatalog);
+    if (!command) return [];
     const rawCommand = raw && typeof raw === 'object' ? (raw as SchedulerRecord) : null;
     const legacyName =
       typeof raw === 'string'
@@ -139,7 +137,7 @@ function normalizeMorphRotation(
           ? rawCommand.name
           : null;
     const selected = legacyName == null ? undefined : selectedByName.get(legacyName);
-    return command.type === 'cast' && selected ? { ...command, skillId: selected.id } : command;
+    return [command.type === 'cast' && selected ? { ...command, skillId: selected.id } : command];
   });
 }
 
@@ -162,7 +160,7 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
     return {
       ...build,
       selectedMorphSkillIds,
-      rotation: normalizeMorphRotation(build.rotation, saved.rotation, selectedMorphSkillIds)
+      rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds)
     };
   },
   validateExtra(build) {
