@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * @fileoverview Implements Guardian spear's Illuminated state machine and
@@ -6,11 +7,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   GuardianCastContext,
@@ -80,7 +77,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
   const bonusFraction = multiplier - 1;
   let emittedAt: number | null = null;
   if (skill.id === ID.SOLAR_STORM) {
-    const profile = guardianBalanceProfile(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id]);
+    const profile = balanceProfileFromContext(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id]);
     const extraProjectiles = (profile?.effects || [])
       .filter((effect) => effect.type === 'strike')
       .map((effect, index) => ({ ...effect, hitIndex: index + 4 }));
@@ -230,7 +227,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   state.spearIlluminatedArmed = illuminatedArmed;
   const illuminated = luminanceActive || illuminatedArmed;
   const multiplier = Number(
-    guardianBalanceProfile(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])?.damageMultiplier || 1
+    balanceProfileFromContext(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])?.damageMultiplier || 1
   );
 
   if (illuminated && multiplier > 1) {
@@ -249,7 +246,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
 
   if (skill.id === ID.SYMBOL_OF_LUMINANCE) {
     const duration = Number(
-      guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.spearLuminance), 'buff')?.duration || 5
+      balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration || 5
     );
     state.spearLuminanceUntil = context.effectiveEnd + duration;
     emitProc(
@@ -269,9 +266,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
     state.spearIlluminatedArmed = true;
     state.spearIlluminatedUntil =
       firstStrikeAt +
-      Number(
-        guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.spearLuminance), 'buff')?.duration || 5
-      );
+      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration || 5);
   }
 }
 

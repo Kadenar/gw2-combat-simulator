@@ -3,6 +3,12 @@ import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffectFromContext as profileEffect,
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/integrations/patches/authoring/module-types.js';
@@ -15,22 +21,13 @@ import type {
   RangerSchedulerContext,
   RangerSkill
 } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
   RangerResolverContext,
   RangerResolverEvent,
   NativeResolvedDamageDetails
 >;
-
-function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
-  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
-}
 
 export function applyRangerDodgeTraits(context: RangerCastContext): void {
   if (!hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) return;
@@ -62,8 +59,8 @@ export function applyRangerWeaponSwapTraits(
     hasTrait({ config: context.config }, TRAIT.TAIL_WIND) &&
     isInternalCooldownReady(at, state.tailWindReadyAt)
   ) {
-    const profile = rangerBalanceProfile(context, PROFILE.tailWind);
-    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    const profile = balanceProfileFromContext(context, PROFILE.tailWind);
+    const effect = balanceProfileEffect(profile, 'boon');
     state.tailWindReadyAt = at + Number(profile?.internalCooldown ?? 9);
     emitSkillBuff(context, {
       at,
@@ -88,8 +85,8 @@ export function applyRangerWeaponSwapTraits(
     hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
     isInternalCooldownReady(at, state.quickDrawReadyAt)
   ) {
-    const profile = rangerBalanceProfile(context, PROFILE.quickDraw);
-    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    const profile = balanceProfileFromContext(context, PROFILE.quickDraw);
+    const effect = balanceProfileEffect(profile, 'boon');
     state.quickDrawReadyAt = at + Number(profile?.internalCooldown ?? 9);
     state.quickDrawUntil = at + Number(profile?.durationMultiplier ?? 5);
     emitSkillBuff(context, {
@@ -115,8 +112,8 @@ export function applyRangerWeaponSwapTraits(
     hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) &&
     isInternalCooldownReady(at, state.furiousGripReadyAt)
   ) {
-    const profile = rangerBalanceProfile(context, PROFILE.furiousGrip);
-    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    const profile = balanceProfileFromContext(context, PROFILE.furiousGrip);
+    const effect = balanceProfileEffect(profile, 'boon');
     state.furiousGripReadyAt = at + Number(profile?.internalCooldown ?? 9);
     emitSkillBuff(context, {
       at,
@@ -172,5 +169,5 @@ export const rangerCoreCriticalReactions = Object.freeze({
 export const rangerCoreProfiledCriticalReaction = Object.freeze({
   ...rangerCoreCriticalReactions,
   chanceOnCriticalHit: (context: RangerResolverContext) =>
-    rangerBalanceValue(context, PROFILE.sharpenedEdges, 'criticalChance', 0.33)
+    balanceProfileValueFromContext(context, PROFILE.sharpenedEdges, 'criticalChance', 0.33)
 } satisfies RangerCriticalHitDefinition);

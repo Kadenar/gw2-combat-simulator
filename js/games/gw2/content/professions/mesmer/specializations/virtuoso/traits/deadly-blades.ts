@@ -1,12 +1,13 @@
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import {
-  mesmerBalanceProfile,
-  mesmerBalanceProfileEffect,
-  mesmerBalanceValue
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerCastContext,
@@ -26,7 +27,7 @@ export function resolveDeadlyBlades(context: MesmerCastContext, resolution: Mesm
     at,
     kind: 'deadly-blades',
     stacks: 1,
-    duration: mesmerBalanceValue(context, TRAIT.DEADLY_BLADES, 'durationMultiplier', 7)
+    duration: balanceProfileValueFromContext(context, TRAIT.DEADLY_BLADES, 'durationMultiplier', 7)
   });
   runtime.addTraitProc('Deadly Blades', at, resolution.skill.name);
 }
@@ -58,7 +59,7 @@ export function handleDeadlyBladesCriticalTask(
   const payloadEvent = task.payload.event;
   const canonicalEvent = context.eventByOrder(Number(payloadEvent.eventOrder));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
-  const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'condition');
+  const deadlyBlades = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.DEADLY_BLADES), 'condition');
   // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
   // Mind, but remains a separate trait-owned condition application.
   const application = advanceScheduledCriticalProc(context, event, {

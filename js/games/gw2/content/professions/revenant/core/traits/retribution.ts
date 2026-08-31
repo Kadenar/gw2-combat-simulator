@@ -6,26 +6,15 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import {
+  requireRevenantBalanceProfile as balanceProfile,
+  requireRevenantEffect as profileEffect
+} from '#gw2/content/professions/revenant/core/traits/profile-access.js';
 import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/content/professions/revenant/types.js';
-
-function balanceProfile(context: RevenantSchedulerContext, id: SkillId): BalanceProfile {
-  const profile = context.catalog.balanceProfilesById.get(id);
-  if (!profile) throw new Error(`Missing Revenant balance profile ${String(id)}.`);
-  return profile;
-}
-
-function profileEffect(profile: BalanceProfile, type: SkillEffect['type']): SkillEffect {
-  const effect = profile.effects?.find(
-    (candidate) => candidate.type === type && String(candidate.metadata?.trigger || '') === ''
-  );
-  if (!effect) throw new Error(`${profile.name} is missing its ${type} effect.`);
-  return effect;
-}
 
 /** Applies Dwarven Battle Training Weakness to each observed control event. */
 export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {

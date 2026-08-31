@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * @fileoverview Implements shared Guardian virtue validation, activation and
@@ -8,10 +9,7 @@ import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platf
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { emitGuardianEvent } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   GuardianCastContext,
@@ -138,7 +136,7 @@ function applyJusticeBurn(
     readonly passiveBurnDuration?: number;
   }
 ): void {
-  const justice = guardianBalanceProfile(context, PROFILE.justice);
+  const justice = balanceProfileFromContext(context, PROFILE.justice);
   const burn = justice?.effects?.find(
     (effect) => effect.type === 'condition' && effect.packetLabel === (active ? 'active' : 'passive')
   );
@@ -215,8 +213,8 @@ export function reactToJusticeHitWithOptions(
   state.justiceHitCount += 1;
   const triggerHits = Number(
     hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-      ? guardianBalanceProfile(context, PROFILE.permeatingWrath)?.threshold || 3
-      : guardianBalanceProfile(context, PROFILE.justice)?.threshold || 5
+      ? balanceProfileFromContext(context, PROFILE.permeatingWrath)?.threshold || 3
+      : balanceProfileFromContext(context, PROFILE.justice)?.threshold || 5
   );
   if (state.justiceHitCount < triggerHits) return;
   state.justiceHitCount = 0;

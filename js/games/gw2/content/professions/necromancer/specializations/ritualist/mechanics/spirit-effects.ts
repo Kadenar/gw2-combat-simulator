@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -13,7 +14,7 @@ import type {
   NecromancerResolverEvent
 } from '#gw2/content/professions/necromancer/types.js';
 import type { BalanceProfile } from '#gw2/platform/engine/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
 // Weapon-spell stacks follow the creature that owns an attack before its stat
@@ -130,7 +131,7 @@ export function handleNecromancerWeaponSpellAllyTrigger(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  const definition = necromancerBalanceProfile(
+  const definition = balanceProfileFromContext(
     context,
     event.spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
   );
@@ -151,7 +152,7 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   for (const spell of ['nightmare', 'splinter']) {
     const active = ritualistState.from(context).weaponSpells?.[spell];
     if (!active || Number(active.expiresAt || 0) <= event.at) continue;
-    const definition = necromancerBalanceProfile(
+    const definition = balanceProfileFromContext(
       context,
       spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
     );

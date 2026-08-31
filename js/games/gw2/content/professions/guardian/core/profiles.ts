@@ -1,6 +1,5 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/content/professions/guardian/data/ids.js';
 
 export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -319,15 +318,3 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     resourceGain: 1
   })
 ]);
-
-export function guardianBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  return balanceProfileFromContext(context, id);
-}
-
-export function guardianBalanceProfileEffect(
-  profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
-  type: string,
-  index = 0
-): SkillEffect | undefined {
-  return balanceProfileEffect(profile, type, index);
-}

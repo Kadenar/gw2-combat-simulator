@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   emitSkillBuff,
@@ -40,11 +41,7 @@ import type {
   NecromancerSkill,
   RitualistState
 } from '#gw2/content/professions/necromancer/types.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import {
   RITUALIST_BALANCE_PROFILE_IDS as PROFILE,
   RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID
@@ -96,14 +93,14 @@ function applyRitualistCreatureSummonTraits(
   if (hasTrait(context, TRAIT.BOON_OF_CREATION)) {
     gainNecromancerLifeForce(
       context,
-      Number(necromancerBalanceProfile(context, PROFILE.boonOfCreation)?.lifeForceGain || 10) * count,
+      Number(balanceProfileFromContext(context, PROFILE.boonOfCreation)?.lifeForceGain || 10) * count,
       at
     );
   }
 
   // Explosive Growth combines simultaneous summons into one coefficient-scaled trait packet.
   if (!hasTrait(context, TRAIT.EXPLOSIVE_GROWTH)) return;
-  const explosive = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.explosiveGrowth), 'strike');
+  const explosive = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.explosiveGrowth), 'strike');
   emitSkillDamage(context, skill, {
     at,
     name: 'Explosive Growth',
@@ -149,7 +146,7 @@ function initializeRitualistRuntime(context: NecromancerSchedulerContext): void 
       return;
     }
 
-    const drainPercent = Number(necromancerBalanceProfile(runtime, PROFILE.resources)?.lifeForceDrain || 3);
+    const drainPercent = Number(balanceProfileFromContext(runtime, PROFILE.resources)?.lifeForceDrain || 3);
     core.lifeForce = Math.max(0, core.lifeForce - core.maximumLifeForce * (drainPercent / 100) * (end - start));
     if (core.lifeForce <= runtime.epsilon) {
       core.lifeForce = 0;
@@ -195,7 +192,7 @@ function spiritDefinition(
 ): SpiritDefinition | undefined {
   // Resolve the profile and stable spirit key before interpreting positional effects.
   const profileId = RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(skillId)];
-  const profile = necromancerBalanceProfile(context, profileId);
+  const profile = balanceProfileFromContext(context, profileId);
   if (!profile) return undefined;
   const key =
     skillId === ID.ANGUISH
@@ -262,7 +259,7 @@ function spiritMetadata(
     summonOwner: `spirit:${key}`,
     spirit: key,
     spiritAttackType: attackType,
-    weaponStrength: Number(necromancerBalanceProfile(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048),
+    weaponStrength: Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048),
     ...extra
   };
 }
@@ -271,7 +268,7 @@ function spiritMetadata(
 // Re-summoning a spirit does NOT restart the cycle; it snaps the next attack to
 // the nearest future grid point so spirits never drift out of phase with each other.
 function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState, at: number): number {
-  const resources = necromancerBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
     // First summon in the rotation picks the delay (shorter after a re-summon due to in-game animation timing)
     const delay = state.resummonedSpiritAutoCycle
@@ -339,7 +336,7 @@ function handleSpiritAutoattack(
     coefficient: spirit.attackCoefficient,
     weaponStrength:
       spirit.attackWeaponStrength ??
-      Number(necromancerBalanceProfile(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048),
+      Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048),
     requiresSpirit: spirit.key,
     requiresSpiritGeneration: payload.generation,
     summonKind: 'spirit',
@@ -350,7 +347,7 @@ function handleSpiritAutoattack(
     anguishConditionalDamage: spirit.key === 'anguish'
   });
 
-  const nextAt = task.at + Number(necromancerBalanceProfile(context, PROFILE.resources)?.pulseInterval || 4);
+  const nextAt = task.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval || 4);
   if (context.observationEndTime == null || nextAt <= context.observationEndTime + context.epsilon) {
     context.tasks.schedule({
       type: SPIRIT_ATTACK_TASK,
@@ -373,7 +370,7 @@ function handleSpiritAutoattackStop(
 // party boon from the same profile-driven application.
 function emitEmpoweringSpirits(context: NecromancerCastContext, skill: NecromancerSkill, key: string): void {
   if (!hasTrait(context, TRAIT.EMPOWERING_SPIRITS)) return;
-  const profile = necromancerBalanceProfile(context, PROFILE.empoweringSpirits);
+  const profile = balanceProfileFromContext(context, PROFILE.empoweringSpirits);
   const quickness = balanceProfileEffect(profile, 'boon');
   const boonOptions = {
     metadata: { recipients: 'party', maximumRecipients: 5 }
@@ -420,7 +417,7 @@ function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkil
   // Painful Bond is a profession status rather than a standard boon, so its
   // authored duration remains fixed even when the build has Concentration.
   const duration = Number(
-    balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.painfulBond), 'buff')?.duration || 10
+    balanceProfileEffect(balanceProfileFromContext(context, PROFILE.painfulBond), 'buff')?.duration || 10
   );
   emitSkillBuff(context, {
     at,
@@ -443,7 +440,7 @@ function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkil
     actorType: 'effect',
     skillName: 'Painful Bond',
     name: 'Painful Bond',
-    icon: String(necromancerBalanceProfile(context, PROFILE.painfulBond)?.icon || ''),
+    icon: String(balanceProfileFromContext(context, PROFILE.painfulBond)?.icon || ''),
     duration,
     triggeredBy: skill.name
   });
@@ -605,7 +602,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         skillWeapon: 'Unequipped',
         metadata: spiritMetadata(context, spirit.key, 'summon-spirits', {
           anguishConditionalDamage: spirit.key === 'anguish',
-          weaponStrength: Number(necromancerBalanceProfile(context, PROFILE.resources)?.weaponStrength || 1056)
+          weaponStrength: Number(balanceProfileFromContext(context, PROFILE.resources)?.weaponStrength || 1056)
         })
       });
     }

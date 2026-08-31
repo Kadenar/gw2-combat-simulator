@@ -6,6 +6,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffect as effectByType,
+  balanceProfileFromContext as balanceProfileById
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import { renegadeState } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
@@ -29,17 +33,6 @@ export interface BandTogetherState {
 
 function skillById(context: RevenantSchedulerContext, skillId: SkillId): RevenantSkill | undefined {
   return context.catalog.skillsById.get(skillId);
-}
-
-function balanceProfileById(context: RevenantSchedulerContext, profileId: SkillId): BalanceProfile | undefined {
-  return context.catalog.balanceProfilesById.get(profileId);
-}
-
-function effectByType(
-  skill: RevenantSkill | BalanceProfile | undefined,
-  type: SkillEffect['type']
-): SkillEffect | undefined {
-  return skill?.effects?.find((effect) => effect.type === type);
 }
 
 function kallasFervorProfile(context: RevenantSchedulerContext): BalanceProfile | undefined {

@@ -6,6 +6,7 @@
  * combo-finisher traits (Elemental Epitome, Elemental Synergy), pay out Vicious
  * Empowerment, and queue the Shattering Ice packet.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -27,8 +28,7 @@ import {
 } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect,
-  elementalistBalanceValue
+  elementalistBalanceEffect
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
 
@@ -42,8 +42,8 @@ import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/profession
  */
 export function applyCatalystResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Empowering Auras')) {
-    const maximumStacks = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'maximumStacks', 5);
-    const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
+    const maximumStacks = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'maximumStacks', 5);
+    const duration = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
     const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
     const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
@@ -86,7 +86,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   const epitomeReadyAt = Number(state.elementalEpitomeReadyAt[attunement] || 0);
   if (hasTrait(context, 'Elemental Epitome') && isInternalCooldownReady(event.at, epitomeReadyAt)) {
     state.elementalEpitomeReadyAt[attunement] =
-      event.at + elementalistBalanceValue(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
+      event.at + balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
     const aura =
       attunement === 'Fire'
         ? (['Fire Aura', 4] as const)
@@ -108,7 +108,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   const synergyReadyAt = Number(state.elementalSynergyReadyAt[attunement] || 0);
   if (hasTrait(context, 'Elemental Synergy') && isInternalCooldownReady(event.at, synergyReadyAt)) {
     state.elementalSynergyReadyAt[attunement] =
-      event.at + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
+      event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
     if (attunement === 'Fire') {
       const might = elementalistBalanceEffect(context, PROFILE.elementalSynergy, 'boon', 'Fire');
       queueElementalistBuff(
@@ -134,9 +134,9 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
         core,
         grantEndurance(
           core,
-          elementalistBalanceValue(context, PROFILE.elementalSynergy, 'resourceGain', 50),
+          balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'resourceGain', 50),
           event.at,
-          elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100)
+          balanceProfileValueFromContext(context, CORE_PROFILE.resources, 'maximumStacks', 100)
         )
       );
     }
@@ -177,7 +177,7 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
   const state = catalystState.from(context);
   if (!isInternalCooldownReady(event.at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
-    event.at + elementalistBalanceValue(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
+    event.at + balanceProfileValueFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
   const empowerment = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'buff', 'Empowerment');
   const might = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'boon', 'Might');
   queueCatalystBuff(
@@ -225,7 +225,7 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
     Number(event.duration || 0),
     Number(event.stacks || 1),
     EPSILON,
-    elementalistBalanceValue(context, PROFILE.elementalEmpowerment, 'maximumStacks', 10)
+    balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks', 10)
   );
 }
 
@@ -249,7 +249,7 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
   }
 
   state.shatteringIceReadyAt =
-    event.at + elementalistBalanceValue(context, PROFILE.shatteringIce, 'internalCooldown', 1);
+    event.at + balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'internalCooldown', 1);
   const strike = elementalistBalanceEffect(context, PROFILE.shatteringIce, 'strike');
   const chilled = elementalistBalanceEffect(context, PROFILE.shatteringIce, 'condition');
   enqueueOrdered(context.queue, {

@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -10,7 +11,7 @@ import {
   eventSkill
 } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '#gw2/content/professions/engineer/core/traits/modifiers.js';
-import { engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamCastAvailability } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
@@ -101,8 +102,8 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
   const modified = cloneEngineerAttributes(attributes);
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
-      ? engineerBalanceValue(context, PROFILE.evolve, 'coefficientMultiplier', 1.2)
-      : engineerBalanceValue(context, PROFILE.evolve, 'damageMultiplier', 1.1);
+      ? balanceProfileValueFromContext(context, PROFILE.evolve, 'coefficientMultiplier', 1.2)
+      : balanceProfileValueFromContext(context, PROFILE.evolve, 'damageMultiplier', 1.1);
     const pool = context.config?.amalgamEvolveAttributePool as EngineerEvolveAttributePool | undefined;
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
       const eligible = Number(pool?.[poolAttribute] ?? modified[attribute] ?? 0);
@@ -117,7 +118,8 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
     // Titanic Strain adds 5 power + 5 condition damage per might stack on top
     // of the standard 30 power per stack that's already in the base attributes.
     const improvedMight =
-      activeBoonStacks(context, 'might') * engineerBalanceValue(context, PROFILE.strains, 'attributePerStack', 5);
+      activeBoonStacks(context, 'might') *
+      balanceProfileValueFromContext(context, PROFILE.strains, 'attributePerStack', 5);
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
   }
@@ -131,7 +133,7 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
 /** Upgrades Evolve to two ammo with Double Helix without reducing a larger authored maximum. */
 function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
   return context.skill?.name === 'Evolve' && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(engineerBalanceValue(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
+    ? Math.max(balanceProfileValueFromContext(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
     : maximum;
 }
 

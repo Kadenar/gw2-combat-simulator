@@ -1,15 +1,12 @@
 /** Owns imperative Tactics trait effects while the public dispatcher preserves cross-line ordering. */
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
-import {
-  warriorBalanceProfile,
-  warriorBalanceProfileEffect,
-  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/warrior/core/profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
@@ -24,7 +21,7 @@ export function applyMartialCadenceWeaponSwap(context: WarriorCastContext, at: n
 // Convert Crippled into Immobilized after the ordered control reactions.
 export function applyLegSpecialist(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type !== 'condition' || event.condition !== 'Crippled' || !hasTrait(context, TRAIT.LEG_SPECIALIST)) return;
-  const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.legSpecialist), 'condition');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.legSpecialist), 'condition');
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -80,8 +77,8 @@ export function applyMarchingOrders(context: WarriorSchedulerContext, event: War
     return false;
   }
 
-  const marchingOrders = warriorBalanceProfile(context, PROFILE.marchingOrders);
-  const might = warriorBalanceProfileEffect(marchingOrders, 'boon');
+  const marchingOrders = balanceProfileFromContext(context, PROFILE.marchingOrders);
+  const might = balanceProfileEffect(marchingOrders, 'boon');
   state.soldierFocusReadyAt = event.at + Number(marchingOrders?.internalCooldown || 10);
   emitSkillBuff(context, {
     skill:
@@ -106,7 +103,7 @@ export function applyMarchingOrders(context: WarriorSchedulerContext, event: War
 
 export function applySoldiersComfort(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.SOLDIERS_COMFORT)) return;
-  const protection = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.soldiersComfort), 'boon');
+  const protection = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.soldiersComfort), 'boon');
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||
@@ -129,7 +126,7 @@ export function applySoldiersComfort(context: WarriorSchedulerContext, event: Wa
 
 export function applyMartialCadence(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.MARTIAL_CADENCE)) return;
-  const stability = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.martialCadence), 'boon');
+  const stability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.martialCadence), 'boon');
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||
@@ -154,8 +151,8 @@ export function applyMartialCadence(context: WarriorSchedulerContext, event: War
 export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: number): void {
   if (!hasTrait(context, TRAIT.EMPOWER_ALLIES)) return;
   const state = professionCoreState(context);
-  const empowerAllies = warriorBalanceProfile(context, PROFILE.empowerAllies);
-  const might = warriorBalanceProfileEffect(empowerAllies, 'boon');
+  const empowerAllies = balanceProfileFromContext(context, PROFILE.empowerAllies);
+  const might = balanceProfileEffect(empowerAllies, 'boon');
   const sourceSkill = { id: TRAIT.EMPOWER_ALLIES, name: 'Empower Allies' } as WarriorSkill;
   const interval = Number(empowerAllies?.pulseInterval || 10);
   while (state.empowerAlliesNextAt <= target + context.epsilon) {

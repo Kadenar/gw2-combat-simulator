@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -16,10 +17,7 @@ import {
   buildGuardianStrike,
   emitGuardianEvent
 } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
@@ -162,7 +160,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
   state.radiantForge = entering;
   state.radiantForgeEndsAt = entering
     ? context.effectiveEnd +
-      Number(guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.forge), 'buff')?.duration || 20)
+      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration || 20)
     : 0;
   state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
   // Reset active weapon so traits don't carry stale weapon state across entries.
@@ -204,9 +202,9 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER && luminaryState.from(context).radiantJusticeArmed) {
-    const profile = guardianBalanceProfile(context, PROFILE.radiantJusticeImpact);
-    const strike = guardianBalanceProfileEffect(profile, 'strike');
-    const vulnerability = guardianBalanceProfileEffect(profile, 'condition');
+    const profile = balanceProfileFromContext(context, PROFILE.radiantJusticeImpact);
+    const strike = balanceProfileEffect(profile, 'strike');
+    const vulnerability = balanceProfileEffect(profile, 'condition');
     const delay = Number(strike?.atMs || 750) / 1000;
     const impactAt = radiantWeaponImpactAt(context, skill) + delay;
     luminaryState.from(context).radiantJusticeArmed = false;
@@ -277,7 +275,7 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
         ? PROFILE.glaringBurstBlade
         : null;
   const coefficient = Number(
-    guardianBalanceProfileEffect(profileId ? guardianBalanceProfile(context, profileId) : undefined, 'strike')
+    balanceProfileEffect(profileId ? balanceProfileFromContext(context, profileId) : undefined, 'strike')
       ?.coefficient || 0
   );
   if (coefficient <= 0) return;
@@ -311,7 +309,7 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
     ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
   ).length;
-  const forge = guardianBalanceProfile(context, PROFILE.forge);
+  const forge = balanceProfileFromContext(context, PROFILE.forge);
   // Each unused weapon slot adds 5 s to the recharge (capped at 5 s minimum).
   const unused = Math.max(0, Number(forge?.maximumStacks || 4) - used);
   const baseRecharge = Math.max(0, Number(enter.cooldown ?? enter.recharge ?? 10));

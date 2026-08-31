@@ -20,6 +20,10 @@ import {
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/content/professions/revenant/data/legends.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
+  balanceProfileEffect as effectByType,
+  balanceProfileFromContext as balanceProfileById
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
@@ -49,17 +53,6 @@ interface ConduitAffinityTaskPayload extends SchedulerRecord {
 
 function hasLegend(context: RevenantSchedulerContext, legendId: string): boolean {
   return professionCoreState(context).selectedLegendIds.includes(legendId);
-}
-
-function balanceProfileById(context: RevenantSchedulerContext, profileId: SkillId): BalanceProfile | undefined {
-  return context.catalog.balanceProfilesById.get(profileId);
-}
-
-function effectByType(
-  skill: RevenantSkill | BalanceProfile | undefined,
-  type: SkillEffect['type']
-): SkillEffect | undefined {
-  return skill?.effects?.find((effect) => effect.type === type);
 }
 
 function effectAt(context: RevenantCastContext, effect: SkillEffect | undefined): number {

@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import {
   professionCoreState,
@@ -11,10 +12,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import { setRangerPetActive } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
-import {
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 import { rangerPetByName, selectedRangerPet } from '#gw2/content/professions/ranger/core/state.js';
 import { applyRangerBeastSkillTraits } from '#gw2/content/professions/ranger/core/traits/index.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
@@ -83,26 +81,26 @@ function soulbeastArchetypeAttributes(
   switch (archetype) {
     case 'Stout':
       return {
-        toughness: rangerBalanceValue(context, PROFILE.stoutArchetype, 'attributeBonus', 200),
-        vitality: rangerBalanceValue(context, PROFILE.stoutArchetype, 'weaponAttributeBonus', 100)
+        toughness: balanceProfileValueFromContext(context, PROFILE.stoutArchetype, 'attributeBonus', 200),
+        vitality: balanceProfileValueFromContext(context, PROFILE.stoutArchetype, 'weaponAttributeBonus', 100)
       };
     case 'Deadly':
       return {
-        conditionDamage: rangerBalanceValue(context, PROFILE.deadlyArchetype, 'attributeBonus', 150),
-        precision: rangerBalanceValue(context, PROFILE.deadlyArchetype, 'weaponAttributeBonus', 100)
+        conditionDamage: balanceProfileValueFromContext(context, PROFILE.deadlyArchetype, 'attributeBonus', 150),
+        precision: balanceProfileValueFromContext(context, PROFILE.deadlyArchetype, 'weaponAttributeBonus', 100)
       };
     case 'Versatile':
       return {
-        vitality: rangerBalanceValue(context, PROFILE.versatileArchetype, 'attributeBonus', 200),
-        concentration: rangerBalanceValue(context, PROFILE.versatileArchetype, 'weaponAttributeBonus', 225)
+        vitality: balanceProfileValueFromContext(context, PROFILE.versatileArchetype, 'attributeBonus', 200),
+        concentration: balanceProfileValueFromContext(context, PROFILE.versatileArchetype, 'weaponAttributeBonus', 225)
       };
     case 'Ferocious':
       return {
-        power: rangerBalanceValue(context, PROFILE.ferociousArchetype, 'attributeBonus', 150),
-        ferocity: rangerBalanceValue(context, PROFILE.ferociousArchetype, 'weaponAttributeBonus', 100)
+        power: balanceProfileValueFromContext(context, PROFILE.ferociousArchetype, 'attributeBonus', 150),
+        ferocity: balanceProfileValueFromContext(context, PROFILE.ferociousArchetype, 'weaponAttributeBonus', 100)
       };
     case 'Supportive':
-      return { vitality: rangerBalanceValue(context, PROFILE.supportiveArchetype, 'attributeBonus', 100) };
+      return { vitality: balanceProfileValueFromContext(context, PROFILE.supportiveArchetype, 'attributeBonus', 100) };
     default:
       return {};
   }
@@ -128,12 +126,12 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
   if (!staticRulesApplied && merged) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
       for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
-        adjust(attribute, rangerBalanceValue(context, CORE_PROFILE.packAlpha, 'attributeBonus', 150));
+        adjust(attribute, balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'attributeBonus', 150));
       }
     }
 
     if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      adjust('ferocity', rangerBalanceValue(context, CORE_PROFILE.petsProwess, 'attributeBonus', 300));
+      adjust('ferocity', balanceProfileValueFromContext(context, CORE_PROFILE.petsProwess, 'attributeBonus', 300));
     }
 
     for (const [attribute, amount] of Object.entries(
@@ -168,12 +166,15 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
     }
 
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      const bonus = rangerBalanceValue(context, CORE_PROFILE.packAlpha, 'attributeBonus', 150);
+      const bonus = balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'attributeBonus', 150);
       for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) adjust(attribute, bonus - 150);
     }
 
     if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      adjust('ferocity', rangerBalanceValue(context, CORE_PROFILE.petsProwess, 'attributeBonus', 300) - 300);
+      adjust(
+        'ferocity',
+        balanceProfileValueFromContext(context, CORE_PROFILE.petsProwess, 'attributeBonus', 300) - 300
+      );
     }
   }
 
@@ -284,7 +285,10 @@ export const soulbeastCastRules = Object.freeze({
 
     return (
       duration /
-      Math.max(Number.EPSILON, rangerBalanceValue(context, CORE_PROFILE.packAlpha, 'rechargeMultiplier', 0.8))
+      Math.max(
+        Number.EPSILON,
+        balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'rechargeMultiplier', 0.8)
+      )
     );
   }
 });
@@ -304,7 +308,7 @@ function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill
       skillId: skill.id,
       skillName: skill.name,
       kind: 'sic-em',
-      duration: rangerBalanceValue(context, CORE_PROFILE.sicEm, 'durationMultiplier', 10),
+      duration: balanceProfileValueFromContext(context, CORE_PROFILE.sicEm, 'durationMultiplier', 10),
       stacks: 1
     });
   }
@@ -318,7 +322,7 @@ function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill
       actorType: 'effect',
       skillId: skill.id,
       skillName: 'Resounding Timbre',
-      duration: rangerBalanceValue(context, CORE_PROFILE.resoundingTimbre, 'durationMultiplier', 2)
+      duration: balanceProfileValueFromContext(context, CORE_PROFILE.resoundingTimbre, 'durationMultiplier', 2)
     });
   }
 }

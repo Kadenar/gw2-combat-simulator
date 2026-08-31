@@ -5,6 +5,7 @@
  * payload that spends them, plus the queries availability uses to gate both.
  * Hammer skill data itself lives in `weapons/hammer.ts`.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -24,10 +25,7 @@ import {
   profiledEffect,
   skillWeapon
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /**
  * Replace Grand Finale with one projectile per active orb, preserving each orb's
@@ -49,7 +47,7 @@ export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext
     Air: ['Weakness', 1, 5],
     Earth: ['Bleeding', 4, 5]
   };
-  const at = context.effectiveEnd + elementalistBalanceValue(context, PROFILE.grandFinale, 'initialDelay', 0.68);
+  const at = context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.grandFinale, 'initialDelay', 0.68);
   for (let index = 0; index < active.length; index += 1) {
     const element = active[index];
     const strike = profiledEffect(context, PROFILE.grandFinale, 'strike', element);
@@ -109,7 +107,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
   const at = context.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[Number(skill.id)];
   if (single) {
-    const orbDuration = elementalistBalanceValue(context, PROFILE.hammerOrbs, 'durationMultiplier', 15);
+    const orbDuration = balanceProfileValueFromContext(context, PROFILE.hammerOrbs, 'durationMultiplier', 15);
     const previouslyActive = new Set(activeHammerOrbElements(state, at));
     // Refresh every live orb's window and stretch the buff event already on the timeline.
     for (const [element, expiresAt] of Object.entries(state.hammerOrbs)) {

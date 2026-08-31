@@ -1,4 +1,5 @@
 /** Owns imperative Core Necromancer Spite trait behavior for ordered dispatcher calls. */
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -8,11 +9,7 @@ import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
 import { queueTraitCoefficientDamage } from '#gw2/content/professions/necromancer/core/mechanics/trait-effects.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import type {
   NecromancerCastContext,
   NecromancerResolverContext,
@@ -34,7 +31,7 @@ export function applyReapersMight(
   shroudSkillOne: boolean
 ): void {
   if (!hasTrait(context, TRAIT.REAPERS_MIGHT) || !firstHit || !shroudSkillOne) return;
-  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.reapersMight), 'boon');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.reapersMight), 'boon');
   enqueueOrdered(context.queue, {
     type: 'buff',
     at: event.at,
@@ -58,7 +55,7 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
     !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt.siphonedPower || 0))
   )
     return;
-  const profile = necromancerBalanceProfile(context, PROFILE.siphonedPower);
+  const profile = balanceProfileFromContext(context, PROFILE.siphonedPower);
   const effect = balanceProfileEffect(profile, 'boon');
   professionCoreState(context).traitProcReadyAt.siphonedPower = event.at + Number(profile?.cooldown || 1);
   enqueueOrdered(context.queue, {
@@ -88,7 +85,7 @@ export function applySpitefulFortitude(
 
   professionCoreState(context).spitefulFortitudeLifeForce =
     Number(professionCoreState(context).spitefulFortitudeLifeForce || 0) +
-    Number(necromancerBalanceProfile(context, PROFILE.spitefulFortitude)?.lifeForceGain || 1) * lifeForceMultiplier;
+    Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain || 1) * lifeForceMultiplier;
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -98,7 +95,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
     !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt.chillOfDeath || 0))
   )
     return;
-  const profile = necromancerBalanceProfile(context, PROFILE.chillOfDeath);
+  const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
   professionCoreState(context).traitProcReadyAt.chillOfDeath = event.at + Number(profile?.cooldown || 16);
   const boons = context.config.target?.boonless
     ? 0

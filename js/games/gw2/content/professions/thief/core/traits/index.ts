@@ -3,14 +3,14 @@ import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.j
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffectFromContext as traitEffect,
+  balanceProfileFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { gainThiefEndurance } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import { applyFluidStrikes, applyHardToCatch } from '#gw2/content/professions/thief/core/traits/acrobatics.js';
 import {
   applyAssassinsFury,
@@ -40,17 +40,12 @@ import {
   applySleightOfHand,
   applyThrillOfTheCrime
 } from '#gw2/content/professions/thief/core/traits/trickery.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   ThiefCastContext,
   ThiefResolverContext,
   ThiefResolverEvent,
   ThiefSkill
 } from '#gw2/content/professions/thief/types.js';
-
-function traitEffect(context: unknown, profileId: SkillId, type: string, index = 0) {
-  return thiefBalanceProfileEffect(thiefBalanceProfile(context, profileId), type, index);
-}
 
 /** Dispatches selected on-steal traits in the cross-line order shared by every steal variant. */
 export function emitStealTraitEffects(context: ThiefCastContext): void {
@@ -71,7 +66,7 @@ export function applyStealCompletionTraits(context: ThiefCastContext, at: number
   if (hasTrait(context.config, TRAIT.ENDURANCE_THIEF)) {
     gainThiefEndurance(
       context,
-      Number(thiefBalanceProfile(context, PROFILE.enduranceThief)?.resourceGain || 50),
+      Number(balanceProfileFromContext(context, PROFILE.enduranceThief)?.resourceGain || 50),
       at,
       'endurance-thief'
     );

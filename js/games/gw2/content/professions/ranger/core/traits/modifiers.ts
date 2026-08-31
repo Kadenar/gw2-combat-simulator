@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -19,10 +20,7 @@ import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 function petEvent(context: Gw2ModifierContext): boolean {
@@ -129,26 +127,26 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   if (petEvent(context) && hasTrait(context, TRAIT.FANG_AND_CLAW)) {
     const family = activePetFamily(context);
     if (['feline', 'avian', 'drake'].includes(family)) {
-      adjust('precision', rangerBalanceValue(context, PROFILE.fangAndClaw, 'attributeBonus', 420));
-      adjust('ferocity', rangerBalanceValue(context, PROFILE.fangAndClaw, 'weaponAttributeBonus', 450));
+      adjust('precision', balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'attributeBonus', 420));
+      adjust('ferocity', balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'weaponAttributeBonus', 450));
     }
   }
 
   if (petEvent(context) && hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
     const family = activePetFamily(context);
     if (['spider', 'devourer'].includes(family)) {
-      adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'weaponAttributeBonus', 225));
+      adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'weaponAttributeBonus', 225));
     }
   }
 
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-      const bonus = rangerBalanceValue(context, PROFILE.stridersStrength, 'attributeBonus', 120);
+      const bonus = balanceProfileValueFromContext(context, PROFILE.stridersStrength, 'attributeBonus', 120);
       adjust('power', bonus + (activePrimaryWeapon(context) === 'Sword' ? bonus : 0));
     }
 
     if (hasTrait(context, TRAIT.HONED_AXES)) {
-      const bonus = rangerBalanceValue(context, PROFILE.honedAxes, 'attributeBonus', 120);
+      const bonus = balanceProfileValueFromContext(context, PROFILE.honedAxes, 'attributeBonus', 120);
       adjust(
         'ferocity',
         bonus + (weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Axe']) ? bonus : 0)
@@ -156,19 +154,19 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     }
 
     if (hasTrait(context, TRAIT.VICIOUS_QUARRY) && boonActive(context, 'fury')) {
-      adjust('ferocity', rangerBalanceValue(context, PROFILE.viciousQuarry, 'attributeBonus', 250));
+      adjust('ferocity', balanceProfileValueFromContext(context, PROFILE.viciousQuarry, 'attributeBonus', 250));
     }
 
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-      adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'attributeBonus', 150));
+      adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'attributeBonus', 150));
     }
 
     if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
-      adjust('concentration', rangerBalanceValue(context, PROFILE.lingeringMagic, 'attributeBonus', 240));
+      adjust('concentration', balanceProfileValueFromContext(context, PROFILE.lingeringMagic, 'attributeBonus', 240));
     }
 
     if (hasTrait(context, TRAIT.AMBIDEXTERITY)) {
-      const bonus = rangerBalanceValue(context, PROFILE.ambidexterity, 'attributeBonus', 120);
+      const bonus = balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'attributeBonus', 120);
       adjust(
         'conditionDamage',
         weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Dagger', 'Mace', 'Torch'])
@@ -183,20 +181,20 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       adjust(
         'healingPower',
         Number(context.config?.stats?.power || 0) *
-          rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07)
+          balanceProfileValueFromContext(context, PROFILE.wellspring, 'attributeConversion', 0.07)
       );
     }
   }
 
   if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.HONED_AXES)) {
-    const bonus = rangerBalanceValue(context, PROFILE.honedAxes, 'attributeBonus', 120);
+    const bonus = balanceProfileValueFromContext(context, PROFILE.honedAxes, 'attributeBonus', 120);
     const activeHasAxe = weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Axe']);
     const calculatedHasAxe = weaponSetIncludes(context, calculatedWeaponSet, ['Axe']);
     adjust('ferocity', bonus * (1 + Number(activeHasAxe)) - 120 * (1 + Number(calculatedHasAxe)));
   }
 
   if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-    const bonus = rangerBalanceValue(context, PROFILE.stridersStrength, 'attributeBonus', 120);
+    const bonus = balanceProfileValueFromContext(context, PROFILE.stridersStrength, 'attributeBonus', 120);
     adjust(
       'power',
       bonus * (1 + Number(activePrimaryWeapon(context) === 'Sword')) - 120 * (1 + Number(calculatedWeapon === 'Sword'))
@@ -204,7 +202,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   }
 
   if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
-    const bonus = rangerBalanceValue(context, PROFILE.ambidexterity, 'attributeBonus', 120);
+    const bonus = balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'attributeBonus', 120);
     const favored = ['Dagger', 'Mace', 'Torch'];
     const active = weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), favored);
     const calculated = weaponSetIncludes(context, calculatedWeaponSet, favored);
@@ -213,18 +211,21 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
   if (staticRulesApplied && !petEvent(context)) {
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-      adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'attributeBonus', 150) - 150);
+      adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'attributeBonus', 150) - 150);
     }
 
     if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
-      adjust('concentration', rangerBalanceValue(context, PROFILE.lingeringMagic, 'attributeBonus', 240) - 240);
+      adjust(
+        'concentration',
+        balanceProfileValueFromContext(context, PROFILE.lingeringMagic, 'attributeBonus', 240) - 240
+      );
     }
 
     if (hasTrait(context, TRAIT.WELLSPRING)) {
       adjust(
         'healingPower',
         Number(context.config?.stats?.power || 0) *
-          (rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07) - 0.07)
+          (balanceProfileValueFromContext(context, PROFILE.wellspring, 'attributeConversion', 0.07) - 0.07)
       );
     }
 
@@ -233,14 +234,14 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       const activeFury = boonActive(context, 'fury');
       adjust(
         'ferocity',
-        Number(activeFury) * rangerBalanceValue(context, PROFILE.viciousQuarry, 'attributeBonus', 250) -
+        Number(activeFury) * balanceProfileValueFromContext(context, PROFILE.viciousQuarry, 'attributeBonus', 250) -
           Number(configuredFury) * 250
       );
     }
   }
 
   if (petEvent(context) && hasTrait(context, TRAIT.WELLSPRING)) {
-    const conversion = rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07);
+    const conversion = balanceProfileValueFromContext(context, PROFILE.wellspring, 'attributeConversion', 0.07);
     if (staticRulesApplied) {
       adjust('healingPower', -Number(context.config?.stats?.power || 0) * 0.07);
     }
@@ -257,7 +258,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
   if (hasSelectedSkill(context, 'Signet of the Wild')) {
     const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
-    const bonus = rangerBalanceValue(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
+    const bonus = balanceProfileValueFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
     if (staticRulesApplied) adjust('ferocity', active ? bonus - 180 : -180);
     if (!staticRulesApplied && active) adjust('ferocity', bonus);
   }
@@ -273,7 +274,7 @@ function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, duration
   if (skill?.categories?.includes('Trap') && hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)) {
     return (
       duration *
-      rangerBalanceValue(
+      balanceProfileValueFromContext(
         context,
         PROFILE.trappersExpertise,
         skill.id === ID.FLAME_TRAP ? 'coefficientMultiplier' : 'durationMultiplier',
@@ -284,15 +285,15 @@ function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, duration
 
   if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && positional(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') {
-      return result + rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
+      return result + balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
     }
 
     if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') {
-      return result + rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
+      return result + balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
     }
 
     if (skill?.id === ID.CRIPPLING_SHOT && context.condition === 'Immobilized') {
-      return result + rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'minimumStacks', 1);
+      return result + balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'minimumStacks', 1);
     }
   }
 
@@ -551,23 +552,23 @@ export const rangerCoreCastRules = Object.freeze({
       state.quickDrawUntil > context.state.time &&
       hasTrait(context, TRAIT.QUICK_DRAW)
     ) {
-      result *= rangerBalanceValue(context, PROFILE.quickDraw, 'rechargeMultiplier', 0.34);
+      result *= balanceProfileValueFromContext(context, PROFILE.quickDraw, 'rechargeMultiplier', 0.34);
     }
 
     if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.HONED_AXES)) {
-      result *= rangerBalanceValue(context, PROFILE.honedAxes, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileValueFromContext(context, PROFILE.honedAxes, 'rechargeMultiplier', 0.8);
     }
 
     if (skill?.weapon === 'Shortbow' && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
-      result *= rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'rechargeMultiplier', 0.8);
     }
 
     if (['Dagger', 'Torch'].includes(String(skill?.weapon || '')) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
-      result *= rangerBalanceValue(context, PROFILE.ambidexterity, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'rechargeMultiplier', 0.8);
     }
 
     if (skill?.petSkill && hasTrait(context, TRAIT.PACK_ALPHA)) {
-      result *= rangerBalanceValue(context, PROFILE.packAlpha, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileValueFromContext(context, PROFILE.packAlpha, 'rechargeMultiplier', 0.8);
     }
 
     return result;

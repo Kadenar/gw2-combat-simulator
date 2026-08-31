@@ -4,7 +4,7 @@
  * Every retunable number the mechanics read (charge caps, ICDs, familiar delays
  * and interrupt windows, trait boons, recharge multipliers) lives here as a
  * balance profile, so patch adjustments are data edits rather than code edits.
- * Code looks values up through `elementalistBalanceValue`/`Effect`, with the
+ * Code looks values up through `balanceProfileValueFromContext`/`Effect`, with the
  * literal at the call site acting only as a fallback.
  */
 import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';

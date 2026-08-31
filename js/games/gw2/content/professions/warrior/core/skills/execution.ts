@@ -1,4 +1,5 @@
 /** Registers scheduler-phase skill activations for this module. */
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
@@ -17,14 +18,10 @@ import type {
   WarriorSimulationEvent,
   WarriorSkill
 } from '#gw2/content/professions/warrior/types.js';
-import {
-  warriorBalanceProfile,
-  warriorBalanceProfileEffect,
-  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/warrior/core/profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 
 function burstTier(context: WarriorCastContext, spent: number): number {
-  const tiers = warriorBalanceProfile(context, PROFILE.burstTiers);
+  const tiers = balanceProfileFromContext(context, PROFILE.burstTiers);
   return spent >= Number(tiers?.maximumStacks || 30) ? 3 : spent >= Number(tiers?.threshold || 20) ? 2 : 1;
 }
 
@@ -56,8 +53,8 @@ function adjustResourceSkillEffect(
 
   if (skill.id === ID.BLOODTHIRSTER && event.type === 'condition' && event.condition === 'Bleeding') {
     const tier = burstTier(context, spent);
-    const bleeding = warriorBalanceProfileEffect(
-      warriorBalanceProfile(context, PROFILE.bloodthirsterTiers),
+    const bleeding = balanceProfileEffect(
+      balanceProfileFromContext(context, PROFILE.bloodthirsterTiers),
       'condition',
       tier - 1
     );
@@ -82,7 +79,7 @@ function adjustResourceSkillEffect(
 
   if (skill.id !== ID.EVISCERATE) return;
   const variantId = [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3][tier - 1];
-  const strike = warriorBalanceProfileEffect(warriorBalanceProfile(context, variantId), 'strike');
+  const strike = balanceProfileEffect(balanceProfileFromContext(context, variantId), 'strike');
   context.replaceEvent(event, {
     coefficient: Number(strike?.coefficient || [2, 2.5, 3][tier - 1]),
     name: `Eviscerate — Level ${tier} Damage`
@@ -95,9 +92,9 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
   const resource = afterResourceSkill(context, skill);
   const tier = burstTier(context, resource.spent);
   const pulses = tier + 1;
-  const profile = warriorBalanceProfile(context, PROFILE.combustiveShot);
-  const strike = warriorBalanceProfileEffect(profile, 'strike');
-  const burning = warriorBalanceProfileEffect(profile, 'condition');
+  const profile = balanceProfileFromContext(context, PROFILE.combustiveShot);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const burning = balanceProfileEffect(profile, 'condition');
   const interval = Number(profile?.pulseInterval || 3);
   const durationPerTier = Number(profile?.durationPerTier || 3);
   const ownedField = skill.comboFields?.find((field) => field.ownerId === 'warrior');
@@ -187,8 +184,8 @@ function adjustFierceBlowDamage(
 // count without disturbing count-recharge progress.
 function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill): void {
   const bullets = Math.max(1, Number(context.ammo?.charges || 1));
-  const profile = warriorBalanceProfile(context, PROFILE.dragonsRoar);
-  const strike = warriorBalanceProfileEffect(profile, 'strike');
+  const profile = balanceProfileFromContext(context, PROFILE.dragonsRoar);
+  const strike = balanceProfileEffect(profile, 'strike');
   const castDuration = Math.max(0, context.effectiveEnd - context.start);
   const firstBulletAt = context.start + castDuration * Number(profile?.firstPacketRatio || 6 / 7);
   const bulletInterval = castDuration * Number(profile?.packetIntervalRatio || 2 / 7);
@@ -219,7 +216,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
 
 function performWarriorDodge(context: WarriorCastContext, skill: WarriorSkill): boolean {
   const state = professionCoreState(context);
-  const cost = Number(warriorBalanceProfile(context, PROFILE.resources)?.resourceCost || 50);
+  const cost = Number(balanceProfileFromContext(context, PROFILE.resources)?.resourceCost || 50);
   Object.assign(state, spendEndurance(state, cost, context.start, state.maximumEndurance));
   applyRecklessDodge(context, skill);
   return true;

@@ -1,3 +1,8 @@
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -11,11 +16,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
 import { galeshotState } from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue
-} from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
 
 const MISSILE_SKILL_IDS = new Set<number>([
@@ -41,13 +42,14 @@ const MISSILE_SKILL_IDS = new Set<number>([
 export function advanceGaleshotArrows(context: RangerSchedulerContext, target: number): void {
   const state = galeshotState.from(context);
   if (target <= state.arrowsUpdatedAt) return;
-  state.maximumArrows = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 8);
+  state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows);
   const rechargeRate = gw2BuffActiveForAudience(context, 'alacrity', target, 'self')
     ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
     : 1;
   const interval =
-    rangerBalanceValue(context, PROFILE.resources, 'pulseInterval', 5) / Math.max(Number.EPSILON, rechargeRate);
+    balanceProfileValueFromContext(context, PROFILE.resources, 'pulseInterval', 5) /
+    Math.max(Number.EPSILON, rechargeRate);
   const generated = Math.floor((target - state.arrowsUpdatedAt) / interval);
   if (generated <= 0) return;
   state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
@@ -58,7 +60,7 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
 
 function restoreArrow(context: RangerSchedulerContext, amount = 1): void {
   const state = galeshotState.from(context);
-  state.maximumArrows = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 8);
+  state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows + amount);
 }
 
@@ -120,9 +122,9 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
     readonly activationId?: string;
   } | null;
   if (task.at <= state.mistralUntil + context.epsilon) {
-    const profile = rangerBalanceProfile(context, PROFILE.mistral);
-    const strike = rangerBalanceProfileEffect(profile, 'strike');
-    const chilled = rangerBalanceProfileEffect(profile, 'condition');
+    const profile = balanceProfileFromContext(context, PROFILE.mistral);
+    const strike = balanceProfileEffect(profile, 'strike');
+    const chilled = balanceProfileEffect(profile, 'condition');
     // Each missile-triggered Mistral is its own effect activation while its
     // strike and condition packets remain grouped under one identity.
     const activationId = context.createActivationId('effect');
@@ -158,9 +160,9 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
   }
 
   if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
-  const profile = rangerBalanceProfile(context, PROFILE.shrike);
+  const profile = balanceProfileFromContext(context, PROFILE.shrike);
   const threshold = Number(profile?.threshold ?? 12);
-  const strike = rangerBalanceProfileEffect(profile, 'strike');
+  const strike = balanceProfileEffect(profile, 'strike');
   state.missileHits += 1;
   if (state.missileHits < threshold) return;
   // Subtract rather than reset so any overshoot from burst windows is preserved.
@@ -206,7 +208,7 @@ export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: 
 
   state.wutheringWindReady = false;
   if (activationId) state.wutheringWindActivationIds[activationId] = true;
-  const strike = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.wutheringWind), 'strike');
+  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.wutheringWind), 'strike');
   context.emit({
     type: 'proc',
     at: task.at,
@@ -255,7 +257,7 @@ export function handleGaleshotDisableTask(context: RangerSchedulerContext, _task
   }
 
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
-  const profile = rangerBalanceProfile(context, PROFILE.thrillOfTheCatch);
+  const profile = balanceProfileFromContext(context, PROFILE.thrillOfTheCatch);
   state.thrillOfTheCatchReadyAt = context.state.time + Number(profile?.internalCooldown ?? 0.25);
   restoreArrow(context, Number(profile?.resourceGain ?? 1));
 }
@@ -282,8 +284,8 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
     return;
   }
 
-  const profile = rangerBalanceProfile(context, PROFILE.flockTogether);
-  const quickness = rangerBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.flockTogether);
+  const quickness = balanceProfileEffect(profile, 'boon');
   state.flockTogetherReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 20);
   emitSkillBuff(context, {
     at: context.effectiveEnd,

@@ -5,6 +5,7 @@
  * the capture point for the pre-swap attunement recharge snapshot that
  * `attunements.ts` later consumes.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult, Skill } from '#gw2/platform/engine/types.js';
@@ -20,7 +21,6 @@ import {
 } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
-import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 // derives the destination element from an attunement swap skill's name, or null for any other skill
 function targetAttunement(skill: Skill): ElementalistAttunement | null {
@@ -83,7 +83,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
 
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
   if (BASIC_FAMILIARS.has(skill.name)) {
-    const requiredEmpowered = elementalistBalanceValue(context, PROFILE.resources, 'minimumStacks', 3);
+    const requiredEmpowered = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3);
     return state.empowered < requiredEmpowered && state.charges >= state.maximumCharges
       ? { ready: true }
       : {
@@ -95,7 +95,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
   }
 
   // empowered familiar requires 3 empowered stacks built up from basic familiar casts
-  const requiredEmpowered = elementalistBalanceValue(context, PROFILE.resources, 'minimumStacks', 3);
+  const requiredEmpowered = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3);
   return state.empowered >= requiredEmpowered
     ? { ready: true }
     : {

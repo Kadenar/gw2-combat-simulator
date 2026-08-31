@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
@@ -10,8 +11,7 @@ import {
 } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  engineerBalanceEffectValue,
-  engineerBalanceValue
+  engineerBalanceEffectValue
 } from '#gw2/content/professions/engineer/core/profiles.js';
 import type {
   EngineerResolverContext,
@@ -46,7 +46,8 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => engineerBalanceValue(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown', 10),
+      duration: (context) =>
+        balanceProfileValueFromContext(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown', 10),
       readyAt: (context) => Number(procState(context)['incendiaryPowder.mech'] || 0),
       setReadyAt: (context, readyAt) => {
         procState(context)['incendiaryPowder.mech'] = readyAt;

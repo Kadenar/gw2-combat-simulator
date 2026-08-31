@@ -1,9 +1,5 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
 import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import {
-  balanceProfileEffect as selectBalanceProfileEffect,
-  balanceProfileFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT
@@ -575,17 +571,3 @@ export const NECROMANCER_MINION_PROFILE_BY_SKILL_ID: Readonly<Record<number, str
   [ID.SUMMON_SHADOW_FIEND]: NECROMANCER_CORE_BALANCE_PROFILE_IDS.shadowFiendAttack,
   [ID.SUMMON_FLESH_GOLEM]: NECROMANCER_CORE_BALANCE_PROFILE_IDS.fleshGolemAttack
 });
-
-/** Resolves a Necromancer balance profile from the simulation context's active patch data. */
-export function necromancerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  return balanceProfileFromContext(context, id);
-}
-
-/** Selects the indexed effect of a requested type from a resolved balance profile. */
-export function balanceProfileEffect(
-  profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
-  type: string,
-  index = 0
-): SkillEffect | undefined {
-  return selectBalanceProfileEffect(profile, type, index);
-}

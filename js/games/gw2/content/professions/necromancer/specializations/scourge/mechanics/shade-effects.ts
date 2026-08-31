@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
@@ -6,7 +7,7 @@ import type {
   NecromancerResolverContext,
   NecromancerResolverEvent
 } from '#gw2/content/professions/necromancer/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/scourge/profiles.js';
 import { scourgeState } from '#gw2/content/professions/necromancer/specializations/scourge/state.js';
 
@@ -21,7 +22,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
     return;
   }
 
-  const profile = necromancerBalanceProfile(context, PROFILE.demonicLore);
+  const profile = balanceProfileFromContext(context, PROFILE.demonicLore);
   const effect = balanceProfileEffect(profile, 'condition');
   // Advance the ICD before applying the condition so re-entrant Torment events
   // within the same tick cannot double-proc

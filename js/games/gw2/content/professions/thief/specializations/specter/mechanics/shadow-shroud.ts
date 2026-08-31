@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
@@ -5,7 +6,7 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/id
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitThiefShroudSwap } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { completeStealWithStoredSkills } from '#gw2/content/professions/thief/core/mechanics/steal.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
@@ -14,12 +15,12 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
 export function completeSiphon(context: ThiefCastContext): void {
   const state = specterState.from(context);
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.shadowForce = Math.min(
     state.maximumShadowForce,
     state.shadowForce +
       (hasTrait(context.config, TRAIT.AMPLIFIED_SIPHONING)
-        ? Number(thiefBalanceProfile(context, PROFILE.amplifiedSiphoning)?.resourceGain || 27.5)
+        ? Number(balanceProfileFromContext(context, PROFILE.amplifiedSiphoning)?.resourceGain || 27.5)
         : Number(resources?.lifeForceGain || 25))
   );
   // Siphon is a profession skill, not a steal; null clears any stored stolen skill.
@@ -29,8 +30,8 @@ export function completeSiphon(context: ThiefCastContext): void {
 export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = specterState.from(context);
   const at = context.effectiveEnd;
-  const profile = thiefBalanceProfile(context, PROFILE.enterShadowShroud);
-  const barrier = thiefBalanceProfileEffect(profile, 'buff');
+  const profile = balanceProfileFromContext(context, PROFILE.enterShadowShroud);
+  const barrier = balanceProfileEffect(profile, 'buff');
   state.shadowShroudActive = true;
   state.shadowForceUpdatedAt = at;
   // Enter Shadow Shroud only barriers one ally (tethered target), not the whole party.
@@ -79,7 +80,7 @@ export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSki
   const cost = Number(skill.initiativeCost || 0);
   if (!(cost > 0)) return;
   const state = specterState.from(context);
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.shadowForce = Math.min(
     state.maximumShadowForce,
     state.shadowForce + cost * Number(resources?.resourceGain || 1)
@@ -90,7 +91,7 @@ export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSki
 
 export function advanceSpecterResources(context: ThiefSchedulerContext, target: number): void {
   const state = specterState.from(context);
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.maximumShadowForce = Number(resources?.maximumStacks || 100);
   state.shadowForcePoolCapacity =
     Number(professionCoreState(context).maximumHealth || 0) * Number(resources?.attributeConversion || 0.69);

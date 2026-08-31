@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
@@ -7,7 +8,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import type { ThiefCastContext, ThiefDodge, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 import { daredevilState } from '#gw2/content/professions/thief/specializations/daredevil/state.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/daredevil/profiles.js';
 
 interface DaredevilDodgeEffectBase {
@@ -99,11 +100,11 @@ const BRAWLERS_TENACITY_PHYSICAL_SKILLS: ReadonlySet<SkillId> = new Set([
 
 function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: DaredevilDodgeEffect): void {
   const state = daredevilState.from(context);
-  const profile = thiefBalanceProfile(context, effect.sourceId);
+  const profile = balanceProfileFromContext(context, effect.sourceId);
   const authoredEffect =
     effect.type === 'condition'
       ? profile?.effects?.find((entry) => entry.type === 'condition' && entry.condition === effect.condition)
-      : thiefBalanceProfileEffect(profile, effect.type);
+      : balanceProfileEffect(profile, effect.type);
   // Remap trait names to the in-game skill names that appear in logs/UI
   const dodgeSkillName =
     state.selectedDodge === 'Bounding Dodger'
@@ -165,13 +166,14 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
   if (state.selectedDodge === 'Bounding Dodger') {
     // +6 s pads the 5 s in-game bonus window to absorb quickness-compressed cast times
     state.boundingDamageUntil =
-      context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.boundingDodger)?.durationMultiplier || 6);
+      context.effectiveEnd +
+      Number(balanceProfileFromContext(context, PROFILE.boundingDodger)?.durationMultiplier || 6);
   }
 
   if (state.selectedDodge === 'Lotus Training') {
     // Same padding as Bounding Dodger — resolver checks > context.time so equality is not enough
     state.lotusConditionDamageUntil =
-      context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.lotusTraining)?.durationMultiplier || 6);
+      context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.lotusTraining)?.durationMultiplier || 6);
   }
 
   if (hasTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
@@ -197,7 +199,7 @@ function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSki
     // Staff Master refunds 2 endurance per initiative spent, not per cast
     gainThiefEndurance(
       context,
-      cost * Number(thiefBalanceProfile(context, PROFILE.staffMaster)?.resourceGain || 2),
+      cost * Number(balanceProfileFromContext(context, PROFILE.staffMaster)?.resourceGain || 2),
       context.start,
       'staff-master'
     );
@@ -206,7 +208,7 @@ function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSki
   if (BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) && hasTrait(context.config, TRAIT.BRAWLERS_TENACITY)) {
     gainThiefEndurance(
       context,
-      Number(thiefBalanceProfile(context, PROFILE.brawlersTenacity)?.resourceGain || 15),
+      Number(balanceProfileFromContext(context, PROFILE.brawlersTenacity)?.resourceGain || 15),
       context.start,
       'brawlers-tenacity'
     );
@@ -225,7 +227,7 @@ function applyWeakeningStrike(context: ThiefCastContext, skill: ThiefSkill): voi
   const state = daredevilState.from(context);
   if (!state.weakeningStrikeReady || !skillAttacks(skill)) return;
   state.weakeningStrikeReady = false;
-  const weakness = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.weakeningStrikes), 'condition');
+  const weakness = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.weakeningStrikes), 'condition');
   emitSkillCondition(context, {
     at: context.start,
     source: 'Trait',

@@ -1,20 +1,18 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/content/professions/guardian/data/ids.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import type { GuardianCastContext, GuardianSkill } from '#gw2/content/professions/guardian/types.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
 
 export function applySoaringDevastation(context: GuardianCastContext, skill: GuardianSkill, skillWeapon: string): void {
   if (!hasTrait(context, TRAIT.SOARING_DEVASTATION)) return;
   const at = context.effectiveEnd;
-  const profile = guardianBalanceProfile(context, PROFILE.soaringDevastation);
-  const strike = guardianBalanceProfileEffect(profile, 'strike');
-  const immobilized = guardianBalanceProfileEffect(profile, 'condition');
+  const profile = balanceProfileFromContext(context, PROFILE.soaringDevastation);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const immobilized = balanceProfileEffect(profile, 'condition');
   // skillWeapon must come from the caller (resolved to the active weapon set)
   // because traits.ts has no direct access to config at emit time.
   context.emit(
@@ -46,6 +44,6 @@ export function bigGameHunterTetherDuration(context: GuardianCastContext): numbe
   // Big Game Hunter doubles tether duration (6 → 12s) and is also what
   // unlocks the Vulnerability condition and passive Crippled in the resolver.
   return hasTrait(context, TRAIT.BIG_GAME_HUNTER)
-    ? Number(guardianBalanceProfile(context, PROFILE.bigGameHunter)?.pulseInterval || 12)
+    ? Number(balanceProfileFromContext(context, PROFILE.bigGameHunter)?.pulseInterval || 12)
     : 6;
 }

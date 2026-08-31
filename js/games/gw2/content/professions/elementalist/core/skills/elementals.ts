@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 /**
@@ -46,10 +47,7 @@ import {
   ELEMENTAL_LIGHTNING_JOLT_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 export {
   EARTH_ELEMENTAL_EVTC_PROFILE,
@@ -697,7 +695,7 @@ function handleElementalExpireTask(
     context.state.cooldowns.set(
       glyph.id,
       task.at +
-        elementalistBalanceValue(
+        balanceProfileValueFromContext(
           context,
           PROFILE.summonedElemental,
           'recharge',
@@ -726,7 +724,7 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
     return;
   }
 
-  const delay = elementalistBalanceValue(
+  const delay = balanceProfileValueFromContext(
     context,
     PROFILE.summonedElemental,
     'initialDelay',
@@ -766,7 +764,7 @@ function summonElemental(
     summonGeneration,
     actionGeneration: 0,
     activeUntil:
-      at + elementalistBalanceValue(context, PROFILE.summonedElemental, 'durationMultiplier', profile.lifetime),
+      at + balanceProfileValueFromContext(context, PROFILE.summonedElemental, 'durationMultiplier', profile.lifetime),
     busyUntil: at,
     nextActionAt: 0,
     secondaryAttackReadyAt: at,

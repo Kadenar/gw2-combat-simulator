@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
@@ -16,8 +17,7 @@ import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/s
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  NECROMANCER_MINION_PROFILE_BY_SKILL_ID,
-  necromancerBalanceProfile
+  NECROMANCER_MINION_PROFILE_BY_SKILL_ID
 } from '#gw2/content/professions/necromancer/core/profiles.js';
 import {
   runCreatureSummonReactions,
@@ -130,7 +130,7 @@ function minionAttackFromEffect(effect: SkillEffect, fallbackName: string): Mini
 // alternating packets and any condition carried by the alternate attack.
 function minionDefinitionForSkill(context: NecromancerCastContext, skillId: SkillId): MinionDefinition | undefined {
   const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
-  const profile = necromancerBalanceProfile(context, profileId);
+  const profile = balanceProfileFromContext(context, profileId);
   if (!profile) return undefined;
   // Separate the ordinary cadence from profile packets reserved for alternating cycles.
   const strikes = (profile.effects || []).filter((effect) => effect.type === 'strike');
@@ -182,7 +182,7 @@ function minionDefinitionFor(context: NecromancerCastContext, key: string): Mini
 }
 
 function summonWeaponStrength(context: NecromancerCastContext): number {
-  return Number(necromancerBalanceProfile(context, PROFILE.summonAttributes)?.weaponStrength || 1048);
+  return Number(balanceProfileFromContext(context, PROFILE.summonAttributes)?.weaponStrength || 1048);
 }
 
 // Compile a command skill's declarative strikes, ticks, conditions, control, and

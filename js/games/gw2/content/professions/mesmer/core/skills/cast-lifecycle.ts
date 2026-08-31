@@ -1,13 +1,11 @@
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { MesmerCastContext, MesmerShatterResolution, MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
-import {
-  MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  mesmerBalanceValue
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/core/profiles.js';
 
 /**
  * Commits all completion-time Mesmer mechanics for a skill.
@@ -141,7 +139,8 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
     const core = professionCoreState(state);
     const mimicUntil = Number(core.traitReadyAt.mimicUntil || 0);
     if (skill.id === ID.MIMIC) {
-      core.traitReadyAt.mimicUntil = at + mesmerBalanceValue(context, PROFILE.mimic, 'durationMultiplier', 10);
+      core.traitReadyAt.mimicUntil =
+        at + balanceProfileValueFromContext(context, PROFILE.mimic, 'durationMultiplier', 10);
     } else if (
       skill.type === 'Utility' &&
       !skill.mesmerMechanic?.flipParentId &&

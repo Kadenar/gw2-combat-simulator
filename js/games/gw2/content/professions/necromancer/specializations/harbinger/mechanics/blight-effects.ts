@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   NECROMANCER_SKILL_IDS as ID,
@@ -11,7 +12,7 @@ import type {
   NecromancerResolverContext,
   NecromancerResolverEvent
 } from '#gw2/content/professions/necromancer/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
 
 /** Applies Harbinger traits triggered by eligible resolved player or summon strikes. */
@@ -22,7 +23,7 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   // Doom Approaches Vulnerability applies only on the first hit of Tainted Bolts, not each chain projectile.
   const firstHit = Number(event.hitIndex || 1) === 1;
   if (hasTrait(context, TRAIT.DOOM_APPROACHES) && firstHit && skill?.id === ID.TAINTED_BOLTS) {
-    const vulnerability = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.doomApproaches), 'condition');
+    const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.doomApproaches), 'condition');
     applyTraitVulnerability(context, event, {
       name: 'Doom Approaches',
       traitId: TRAIT.DOOM_APPROACHES,
@@ -33,7 +34,7 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
 
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION) && skill?.shroudSlot === 2) {
-    const condition = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.septicCorruption), 'condition');
+    const condition = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.septicCorruption), 'condition');
     applyTraitCondition(context, event, {
       name: 'Septic Corruption',
       traitId: TRAIT.SEPTIC_CORRUPTION,

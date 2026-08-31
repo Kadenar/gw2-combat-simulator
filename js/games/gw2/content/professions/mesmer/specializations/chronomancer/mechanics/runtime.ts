@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
@@ -24,11 +25,7 @@ import {
   CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE,
   CHRONOMANCER_SHATTER_PROFILE_IDS
 } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
-import {
-  mesmerBalanceValue,
-  mesmerProfiledShatters,
-  mesmerProfiledTraitDamage
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerProfiledShatters, mesmerProfiledTraitDamage } from '#gw2/content/professions/mesmer/core/profiles.js';
 
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([ID.SWAP_WEAPONS]);
 
@@ -53,7 +50,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
           repeat: {
             label: 'Chronophantasma',
             traitName: 'Chronophantasma',
-            damageMultiplier: mesmerBalanceValue(context, PROFILE.chronophantasma, 'damageMultiplier', 1.05)
+            damageMultiplier: balanceProfileValueFromContext(context, PROFILE.chronophantasma, 'damageMultiplier', 1.05)
           }
         }
       : undefined,
@@ -74,7 +71,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
     consumeResources: runtime.actions.consumeResources,
     triggerShatterTraits: runtime.actions.triggerShatterTraits,
     addEvent: runtime.addEvent,
-    durationPerSource: mesmerBalanceValue(context, PROFILE.continuumSplit, 'durationPerTier', 1.5),
+    durationPerSource: balanceProfileValueFromContext(context, PROFILE.continuumSplit, 'durationPerTier', 1.5),
     scheduleExpiry: (at) =>
       context.tasks.schedule({
         type: 'mesmer.continuum-expire',

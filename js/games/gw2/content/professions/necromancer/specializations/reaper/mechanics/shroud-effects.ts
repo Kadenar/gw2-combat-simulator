@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
@@ -13,7 +14,7 @@ import type {
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails
 } from '#gw2/content/professions/necromancer/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/reaper/profiles.js';
 import { reaperState } from '#gw2/content/professions/necromancer/specializations/reaper/state.js';
 
@@ -26,7 +27,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
   id: 'necromancer.chilling-nova',
   materialization: 'threshold',
   chanceOnCriticalHit: (context) =>
-    Number(necromancerBalanceProfile(context, PROFILE.chillingNova)?.criticalChance || 1),
+    Number(balanceProfileFromContext(context, PROFILE.chillingNova)?.criticalChance || 1),
   when: (context, event) =>
     Number(event.coefficient) > 0 && hasTrait(context, TRAIT.CHILLING_NOVA) && targetIsChilled(context, event.at),
   expectedProgress: {
@@ -36,7 +37,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
     }
   },
   internalCooldown: {
-    duration: (context) => Number(necromancerBalanceProfile(context, PROFILE.chillingNova)?.cooldown || 3),
+    duration: (context) => Number(balanceProfileFromContext(context, PROFILE.chillingNova)?.cooldown || 3),
     readyAt: (context) => Number(reaperState.from(context).chillingNovaReadyAt || 0),
     setReadyAt: (context, readyAt) => {
       reaperState.from(context).chillingNovaReadyAt = readyAt;
@@ -46,7 +47,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
   handler: (context, event, _details, application) => {
     // Chilling Nova is a discrete strike-and-chill package for each materialized proc.
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const profile = necromancerBalanceProfile(context, PROFILE.chillingNova);
+      const profile = balanceProfileFromContext(context, PROFILE.chillingNova);
       const strike = balanceProfileEffect(profile, 'strike');
       const chill = balanceProfileEffect(profile, 'condition');
       queueTraitCoefficientDamage(context, event, {
@@ -80,7 +81,7 @@ function reactToDamage(
 /** Converts Chilled applications into Deathly Chill's configured condition packet. */
 function reactToCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition === 'Chilled' && hasTrait(context, TRAIT.DEATHLY_CHILL)) {
-    const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.deathlyChill), 'condition');
+    const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.deathlyChill), 'condition');
     applyTraitCondition(context, event, {
       name: 'Deathly Chill',
       traitId: TRAIT.DEATHLY_CHILL,
@@ -98,7 +99,7 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
     return;
   }
 
-  const chill = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.shiversOfDread), 'condition');
+  const chill = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.shiversOfDread), 'condition');
   enqueueOrdered(context.queue, {
     type: 'necromancer.chill',
     at: event.at,

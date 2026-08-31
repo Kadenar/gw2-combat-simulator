@@ -3,6 +3,11 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffect,
+  balanceProfileEffectFromContext as profileEffect,
+  balanceProfileFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import {
@@ -12,15 +17,7 @@ import {
   targetHealthFraction
 } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
-
-function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
-  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
-}
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 // Spend the player or pet Opening Strike independently on its first qualifying
 // hit and attach Vulnerability plus Alpha Focus when selected.
@@ -70,7 +67,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Ranger
   const state = professionCoreState(context);
   if (!isInternalCooldownReady(event.at, state.huntersGazeReadyAt)) return;
   const health = targetHealthFraction(context);
-  const profile = rangerBalanceProfile(context, PROFILE.huntersGaze);
+  const profile = balanceProfileFromContext(context, PROFILE.huntersGaze);
   const maximumStacks = Number(profile?.maximumStacks ?? 3);
   const stacks =
     health < 0.25
@@ -82,7 +79,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Ranger
           : 0;
   if (!stacks) return;
   state.huntersGazeReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
-  const might = rangerBalanceProfileEffect(profile, 'boon');
+  const might = balanceProfileEffect(profile, 'boon');
   context.recordProc(
     'trait',
     "Hunter's Gaze",

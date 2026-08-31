@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 import { PIERCING_STANCE_IMPACT_MS } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
@@ -15,10 +16,7 @@ import {
   isGuardianSymbolSkill
 } from '#gw2/content/professions/guardian/core/traits/index.js';
 import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
@@ -64,7 +62,7 @@ function addLightField(state: GuardianLuminaryState, startsAt: number, duration:
 function detonateLightAura(context: GuardianCastContext, skill: GuardianSkill, at: number): boolean {
   const state = luminaryState.from(context);
   if (!lightAuraActive(state, at, context.epsilon)) return false;
-  const strike = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.sovereignOfLight), 'strike');
+  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sovereignOfLight), 'strike');
   state.lightAuraUntil = 0;
   context.emit(
     buildGuardianStrike({
@@ -99,8 +97,7 @@ function grantLightAura(context: GuardianCastContext, skill: GuardianSkill, at: 
   }
 
   luminaryState.from(context).lightAuraUntil =
-    at +
-    Number(guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.lightAura), 'buff')?.duration || 4);
+    at + Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration || 4);
 }
 
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
@@ -146,14 +143,14 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
       // existing aura must be refreshed rather than consumed.
       state.lightAuraUntil =
         activationAt +
-        Number(guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.lightAura), 'buff')?.duration || 4);
+        Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration || 4);
     } else {
       grantLightAura(context, skill, activationAt);
     }
   }
 
   if (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)) {
-    const blind = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.justiceIsBlind), 'blind');
+    const blind = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.justiceIsBlind), 'blind');
     context.emit({
       type: 'blind',
       at: activationAt,
@@ -258,7 +255,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
-    const armaments = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.radiantArmaments), 'buff');
+    const armaments = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.radiantArmaments), 'buff');
     emitSkillBuff(context, skill, {
       at,
       source: 'guardian',
@@ -279,7 +276,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
-    const profile = guardianBalanceProfile(context, PROFILE.empoweredArmaments);
+    const profile = balanceProfileFromContext(context, PROFILE.empoweredArmaments);
     const duration = Number(profile?.resourceGain || 6);
     const maximumDuration = Number(profile?.maximumStacks || 20);
     const wasActive = Number(state.empoweredArmamentsUntil || 0) > at + context.epsilon;
@@ -307,7 +304,9 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
-    const reduction = Number(guardianBalanceProfile(context, PROFILE.illuminatingInspiration)?.rechargeReduction || 4);
+    const reduction = Number(
+      balanceProfileFromContext(context, PROFILE.illuminatingInspiration)?.rechargeReduction || 4
+    );
     reduceVirtueCooldowns(context, at, reduction);
     emitGuardianProc(context, {
       name: 'Illuminating Inspiration',
@@ -443,7 +442,7 @@ export function reactToLuminaryJusticeHit(
 
 export function reactToEffulgentStrike(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
-  const maximumStacks = Number(guardianBalanceProfile(context, PROFILE.effulgentStance)?.maximumStacks || 10);
+  const maximumStacks = Number(balanceProfileFromContext(context, PROFILE.effulgentStance)?.maximumStacks || 10);
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && event.actorType === 'effect');
   if (
@@ -467,9 +466,9 @@ export function handleEffulgentActivated(context: GuardianResolverContext, event
 
 export function handleEffulgentDetonate(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
-  const profile = guardianBalanceProfile(context, PROFILE.effulgentStance);
-  const strike = guardianBalanceProfileEffect(profile, 'strike');
-  const control = guardianBalanceProfileEffect(profile, 'control');
+  const profile = balanceProfileFromContext(context, PROFILE.effulgentStance);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const control = balanceProfileEffect(profile, 'control');
   const maximumStacks = Number(profile?.maximumStacks || 10);
   const stacks = Math.max(0, Math.min(maximumStacks, Number(state.effulgentStacks || 0)));
   state.effulgentActiveUntil = 0;

@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { firebrandState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -10,10 +11,7 @@ import { emitGuardianEvent } from '#gw2/content/professions/guardian/core/mechan
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
 import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 import type {
   GuardianCastContext,
@@ -66,7 +64,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     const passiveReadyAt = passiveWasReady
       ? at +
         Number(
-          guardianBalanceProfile(context, DORMANT_PROFILE_BY_VIRTUE[virtue])?.cooldown ||
+          balanceProfileFromContext(context, DORMANT_PROFILE_BY_VIRTUE[virtue])?.cooldown ||
             (virtue === 'justice' ? 20 : virtue === 'resolve' ? 30 : 45)
         )
       : state.tomeDormantReadyAt[virtue];
@@ -84,7 +82,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       weaponLine: skill.name
     });
     if (passiveWasReady) {
-      const quickness = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.swiftScholar), 'boon');
+      const quickness = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.swiftScholar), 'boon');
       emitSkillBuff(context, skill, {
         at,
         source: 'guardian',
@@ -109,8 +107,8 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     hasTrait(context, GUARDIAN_TRAIT_IDS.LIBERATORS_VOW) &&
     isInternalCooldownReady(at, state.liberatorsVowReadyAt)
   ) {
-    const profile = guardianBalanceProfile(context, PROFILE.liberatorsVow);
-    const quickness = guardianBalanceProfileEffect(profile, 'boon');
+    const profile = balanceProfileFromContext(context, PROFILE.liberatorsVow);
+    const quickness = balanceProfileEffect(profile, 'boon');
     state.liberatorsVowReadyAt = at + Number(profile?.internalCooldown || 7);
     emitSkillBuff(context, skill, {
       at,
@@ -132,8 +130,8 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS) && isFinalMantraCharge(context, skill)) {
-    const profile = guardianBalanceProfile(context, PROFILE.weightyTerms);
-    const slow = guardianBalanceProfileEffect(profile, 'condition');
+    const profile = balanceProfileFromContext(context, PROFILE.weightyTerms);
+    const slow = balanceProfileEffect(profile, 'condition');
     const pageGain = Number(profile?.resourceGain || 2);
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
     if (state.tomePages >= state.maximumTomePages) {
@@ -171,8 +169,8 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     hasTrait(context, GUARDIAN_TRAIT_IDS.STALWART_SPEED) &&
     isInternalCooldownReady(event.at, state.stalwartSpeedReadyAt)
   ) {
-    const profile = guardianBalanceProfile(context, PROFILE.stalwartSpeed);
-    const quickness = guardianBalanceProfileEffect(profile, 'boon');
+    const profile = balanceProfileFromContext(context, PROFILE.stalwartSpeed);
+    const quickness = balanceProfileEffect(profile, 'boon');
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STALWART_SPEED, name: 'Stalwart Speed' } as GuardianSkill;
     state.stalwartSpeedReadyAt = event.at + Number(profile?.internalCooldown || 7);
     emitSkillBuff(context, {
@@ -205,7 +203,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     event.type === 'condition' &&
     ['immobilized', 'slow', 'slowed'].includes(String(event.condition || '').toLowerCase());
   if ((event.type === 'control' || qualifyingStoicCondition) && hasTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)) {
-    const profile = guardianBalanceProfile(context, PROFILE.stoicDemeanor);
+    const profile = balanceProfileFromContext(context, PROFILE.stoicDemeanor);
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR, name: 'Stoic Demeanor' } as GuardianSkill;
     for (const buff of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
       emitSkillBuff(context, {
@@ -239,8 +237,8 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     event.actorType === 'player' &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM)
   ) {
-    const bleeding = guardianBalanceProfileEffect(
-      guardianBalanceProfile(context, PROFILE.unrelentingCriticism),
+    const bleeding = balanceProfileEffect(
+      balanceProfileFromContext(context, PROFILE.unrelentingCriticism),
       'condition'
     );
     emitSkillCondition(context, {
@@ -295,10 +293,10 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
     return;
   }
 
-  const quickfire = guardianBalanceProfile(context, PROFILE.quickfire);
-  const ashes = guardianBalanceProfile(context, PROFILE.ashes);
-  const ashesBuff = guardianBalanceProfileEffect(quickfire, 'buff');
-  const burn = guardianBalanceProfileEffect(ashes, 'condition');
+  const quickfire = balanceProfileFromContext(context, PROFILE.quickfire);
+  const ashes = balanceProfileFromContext(context, PROFILE.ashes);
+  const ashesBuff = balanceProfileEffect(quickfire, 'buff');
+  const burn = balanceProfileEffect(ashes, 'condition');
   const duration = Number(ashesBuff?.duration || 10);
   state.quickfireReadyAt = event.at + Number(quickfire?.internalCooldown || 7);
   if (event.affectsSelf !== false) {

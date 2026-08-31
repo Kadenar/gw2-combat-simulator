@@ -1,4 +1,5 @@
 /** Registers scheduler-phase skill activations for this module. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { soulbeastState } from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
@@ -6,7 +7,7 @@ import {
   applyUnstoppableUnion,
   soulbeastStanceDuration
 } from '#gw2/content/professions/ranger/specializations/soulbeast/traits/index.js';
-import { rangerBalanceValue } from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/soulbeast/profiles.js';
 import { setRangerPetActive } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
 
@@ -45,7 +46,7 @@ export const soulbeastSkillHandlers = Object.freeze({
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const duration = soulbeastStanceDuration(
         context,
-        rangerBalanceValue(context, PROFILE.oneWolfPack, 'durationMultiplier', 6)
+        balanceProfileValueFromContext(context, PROFILE.oneWolfPack, 'durationMultiplier', 6)
       );
       // oneWolfPackUntil is written here so the resolver's per-hit ICD guard can cheaply
       // skip the active-buff lookup when the stance has clearly expired.
@@ -76,7 +77,7 @@ export const soulbeastSkillHandlers = Object.freeze({
         kind: 'vulture-stance',
         duration: soulbeastStanceDuration(
           context,
-          rangerBalanceValue(context, PROFILE.vultureStance, 'durationMultiplier', 6)
+          balanceProfileValueFromContext(context, PROFILE.vultureStance, 'durationMultiplier', 6)
         ),
         stacks: 1
       });

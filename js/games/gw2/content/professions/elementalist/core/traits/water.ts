@@ -1,4 +1,5 @@
 /** Imperative Water trait behavior; post-cast ordering stays in the trait dispatcher. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -8,7 +9,6 @@ import type { ElementalistAuraApplier } from '#gw2/content/professions/elemental
 import { emitProfiledBuff } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue,
   elementalistEffectValue
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 
@@ -24,7 +24,8 @@ export function applySoothingIce(
     return;
   }
 
-  state.procReadyAt.soothingIce = at + elementalistBalanceValue(context, PROFILE.soothingIce, 'internalCooldown', 15);
+  state.procReadyAt.soothingIce =
+    at + balanceProfileValueFromContext(context, PROFILE.soothingIce, 'internalCooldown', 15);
   applyAura(context, {
     at,
     aura: 'Frost Aura',

@@ -1,4 +1,5 @@
 /** Owns imperative Defense trait effects while the public dispatcher preserves cross-line ordering. */
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -6,11 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
-import {
-  warriorBalanceProfile,
-  warriorBalanceProfileEffect,
-  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/warrior/core/profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
@@ -39,7 +36,10 @@ export function applyThickSkinCastStart(context: WarriorCastContext, skill: Warr
 // Grant Merciless Hammer adrenaline after target-control state is updated.
 export function applyMercilessHammer(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player' || !hasTrait(context, TRAIT.MERCILESS_HAMMER)) return;
-  gainWarriorAdrenaline(context, Number(warriorBalanceProfile(context, PROFILE.mercilessHammer)?.resourceGain || 7));
+  gainWarriorAdrenaline(
+    context,
+    Number(balanceProfileFromContext(context, PROFILE.mercilessHammer)?.resourceGain || 7)
+  );
 }
 
 // Grant Stalwart Strength stability once per internal-cooldown window.
@@ -47,8 +47,8 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
   if (event.type !== 'control' || event.actorType !== 'player' || !hasTrait(context, TRAIT.STALWART_STRENGTH)) return;
   const state = professionCoreState(context);
   if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.stalwartStrength || 0))) return;
-  const profile = warriorBalanceProfile(context, PROFILE.stalwartStrength);
-  const stability = warriorBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.stalwartStrength);
+  const stability = balanceProfileEffect(profile, 'boon');
   state.traitProcReadyAt.stalwartStrength = event.at + Number(profile?.internalCooldown || 0.25);
   emitSkillBuff(context, {
     skill:

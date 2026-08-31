@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
@@ -17,11 +18,7 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/necromancer/data/ids.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import {
   advanceNecromancerState,
   leaveShroud
@@ -131,7 +128,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   }
 
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
-    const strike = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.spitefulSpirit), 'strike');
+    const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spitefulSpirit), 'strike');
     emitSkillDamage(context, skill, {
       at,
       name: 'Spiteful Spirit',

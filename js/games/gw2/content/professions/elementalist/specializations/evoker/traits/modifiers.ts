@@ -5,6 +5,7 @@
  * bonuses that must land on ferocity and condition damage before those
  * attributes feed into scaling.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,7 +15,7 @@ import {
   elementalistMightStacks,
   elementalistTimedBuffStacks
 } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
-import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
+
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
 /**
@@ -83,7 +84,8 @@ export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: 
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
   ) {
     modified.ferocity =
-      Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.enhancedPotency, 'attributeBonus', 75);
+      Number(modified.ferocity || 0) +
+      balanceProfileValueFromContext(context, PROFILE.enhancedPotency, 'attributeBonus', 75);
   }
 
   if (context.config?.evokerElement === 'Fire' && hasTrait(context, 'Enhanced Potency')) {
@@ -91,7 +93,7 @@ export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: 
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) +
       elementalistMightStacks(context) *
-        elementalistBalanceValue(context, PROFILE.enhancedPotency, 'attributePerStack', 5);
+        balanceProfileValueFromContext(context, PROFILE.enhancedPotency, 'attributePerStack', 5);
   }
 
   return modified;

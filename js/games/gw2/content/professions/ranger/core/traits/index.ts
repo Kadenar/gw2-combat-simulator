@@ -3,6 +3,11 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffectFromContext as profileEffect,
+  balanceProfileFromContext,
+  balanceProfileEffect
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import { eventSkill, queueBleeding } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
 import type {
@@ -12,11 +17,7 @@ import type {
   RangerSkill
 } from '#gw2/content/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 import {
   applyRangerDodgeTraits,
@@ -53,10 +54,6 @@ export {
   reactToRangerCoreBuff,
   reactToRangerCoreControl
 };
-
-function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
-  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
-}
 
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(skill.petSkill && !skill.petFamilySkill);
@@ -140,8 +137,8 @@ export function applyRangerBeastSkillTraits(
 ): void {
   const state = professionCoreState(context);
   if (hasTrait(context, TRAIT.REJUVENATION) && isInternalCooldownReady(context.start, state.rejuvenationReadyAt)) {
-    const profile = rangerBalanceProfile(context, PROFILE.rejuvenation);
-    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    const profile = balanceProfileFromContext(context, PROFILE.rejuvenation);
+    const effect = balanceProfileEffect(profile, 'boon');
     state.rejuvenationReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
     const kind = String(effect?.boon || 'regeneration');
     emitSkillBuff(context, skill, {
@@ -212,9 +209,9 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
   }> = [];
   const inCombat = context.combatStartTime != null && context.start >= context.combatStartTime;
   if (inCombat && hasTrait(context, TRAIT.SPIRITED_ARRIVAL)) {
-    const profile = rangerBalanceProfile(context, PROFILE.spiritedArrival);
-    const might = rangerBalanceProfileEffect(profile, 'boon', 0);
-    const fury = rangerBalanceProfileEffect(profile, 'boon', 1);
+    const profile = balanceProfileFromContext(context, PROFILE.spiritedArrival);
+    const might = balanceProfileEffect(profile, 'boon', 0);
+    const fury = balanceProfileEffect(profile, 'boon', 1);
     partyBoons.push(
       {
         sourceId: TRAIT.SPIRITED_ARRIVAL,
@@ -255,10 +252,10 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
   }
 
   if (hasTrait(context, TRAIT.CLARION_BOND) && isInternalCooldownReady(context.start, state.clarionBondReadyAt)) {
-    const profile = rangerBalanceProfile(context, PROFILE.clarionBond);
+    const profile = balanceProfileFromContext(context, PROFILE.clarionBond);
     state.clarionBondReadyAt = context.start + Number(profile?.internalCooldown ?? 15);
     for (let index = 0; index < 3; index += 1) {
-      const effect = rangerBalanceProfileEffect(profile, 'boon', index);
+      const effect = balanceProfileEffect(profile, 'boon', index);
       const kind = String(effect?.boon || ['fury', 'might', 'swiftness'][index]);
       partyBoons.push({
         sourceId: TRAIT.CLARION_BOND,
@@ -290,7 +287,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
       });
     }
 
-    const weakness = rangerBalanceProfileEffect(profile, 'condition');
+    const weakness = balanceProfileEffect(profile, 'condition');
     emitSkillCondition(context, {
       at,
       source: 'Trait',
@@ -382,8 +379,8 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
     hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
     context.config?.target?.defiant
   ) {
-    const vulnerability = rangerBalanceProfileEffect(
-      rangerBalanceProfile(context, PROFILE.lightOnYourFeet),
+    const vulnerability = balanceProfileEffect(
+      balanceProfileFromContext(context, PROFILE.lightOnYourFeet),
       'condition'
     );
     enqueueOrdered(context.queue, {

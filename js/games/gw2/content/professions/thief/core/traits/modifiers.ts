@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -30,10 +31,7 @@ import type {
   ThiefPrecastContext,
   ThiefSchedulerContext
 } from '#gw2/content/professions/thief/types.js';
-import {
-  thiefBalanceProfile,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 
 export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined {
   return eventSkill(context);
@@ -237,7 +235,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   const state = thiefRuntimeState(context);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, "Assassin's Signet")) {
-    const profile = thiefBalanceProfile(context, PROFILE.assassinsSignet);
+    const profile = balanceProfileFromContext(context, PROFILE.assassinsSignet);
     const passive = Number(profile?.attributeBonus || 180);
     const passiveDisabled = Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
     if (staticRulesApplied && passiveDisabled) result.power -= passive;
@@ -248,7 +246,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   }
 
   if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
-    const profile = thiefBalanceProfile(context, PROFILE.revealedTraining);
+    const profile = balanceProfileFromContext(context, PROFILE.revealedTraining);
     if (!staticRulesApplied) {
       result.power += Number(profile?.attributeBonus || 80);
     }
@@ -263,7 +261,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
     context.query?.furyActiveAt(context.time, context.runtime, context.event) &&
     !(staticRulesApplied && Boolean((context.config?.boons as Record<string, unknown>)?.fury))
   ) {
-    result.ferocity += Number(thiefBalanceProfile(context, PROFILE.noQuarter)?.attributeBonus || 250);
+    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.attributeBonus || 250);
   }
 
   return result;
@@ -290,8 +288,10 @@ function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration:
   if (skill.stealTraitSkill) {
     const leadAttacks = hasTrait(context.config, TRAIT.LEAD_ATTACKS);
     const sleightOfHand = hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
-    const leadMultiplier = Number(thiefBalanceProfile(context, PROFILE.leadAttacks)?.rechargeMultiplier ?? 0.85);
-    const sleightMultiplier = Number(thiefBalanceProfile(context, PROFILE.sleightOfHand)?.rechargeMultiplier ?? 0.8);
+    const leadMultiplier = Number(balanceProfileFromContext(context, PROFILE.leadAttacks)?.rechargeMultiplier ?? 0.85);
+    const sleightMultiplier = Number(
+      balanceProfileFromContext(context, PROFILE.sleightOfHand)?.rechargeMultiplier ?? 0.8
+    );
     if (skill.stealRechargeMode === 'additive') {
       // Skills can own an additive exception while the base traits remain shared.
       result *= 1 - Number(leadAttacks) * (1 - leadMultiplier) - Number(sleightOfHand) * (1 - sleightMultiplier);

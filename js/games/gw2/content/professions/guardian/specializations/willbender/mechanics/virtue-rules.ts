@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -19,10 +20,7 @@ import {
   gainLethalTempo
 } from '#gw2/content/professions/guardian/specializations/willbender/mechanics/virtues.js';
 import { willbenderState } from '#gw2/content/professions/guardian/specializations/willbender/state.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
@@ -90,20 +88,16 @@ export function applyWillbenderVirtueActivationTraits(
 ): number {
   const state = willbenderState.from(context);
   const tyrantsMomentum = hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
-  const virtueWindows = guardianBalanceProfile(context, PROFILE.virtueWindows);
-  const window = guardianBalanceProfileEffect(
-    virtueWindows,
-    'buff',
-    virtue === 'justice' ? 0 : virtue === 'resolve' ? 1 : 2
-  );
-  const tyrants = guardianBalanceProfile(context, PROFILE.tyrantsMomentum);
+  const virtueWindows = balanceProfileFromContext(context, PROFILE.virtueWindows);
+  const window = balanceProfileEffect(virtueWindows, 'buff', virtue === 'justice' ? 0 : virtue === 'resolve' ? 1 : 2);
+  const tyrants = balanceProfileFromContext(context, PROFILE.tyrantsMomentum);
   const duration =
     virtue === 'justice' && tyrantsMomentum
-      ? Number(guardianBalanceProfileEffect(tyrants, 'buff', 1)?.duration || 10)
+      ? Number(balanceProfileEffect(tyrants, 'buff', 1)?.duration || 10)
       : Number(window?.duration || (virtue === 'justice' ? 8 : 6));
-  const lethalTempo = guardianBalanceProfile(context, PROFILE.lethalTempo);
+  const lethalTempo = balanceProfileFromContext(context, PROFILE.lethalTempo);
   const tempoDuration = Number(
-    guardianBalanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration || (tyrantsMomentum ? 4 : 6)
+    balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration || (tyrantsMomentum ? 4 : 6)
   );
   state[`${virtue}Until`] = at + duration;
   gainLethalTempo(state, at, tyrantsMomentum, Number(lethalTempo?.maximumStacks || 5), tempoDuration);
@@ -120,7 +114,7 @@ export function applyWillbenderVirtueActivationTraits(
     duration: state.lethalTempoUntil - at
   });
   if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
-    const vigor = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.restorativeVirtues), 'boon');
+    const vigor = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.restorativeVirtues), 'boon');
     emitSkillBuff(context, {
       at,
       source: 'guardian',
@@ -136,7 +130,7 @@ export function applyWillbenderVirtueActivationTraits(
   }
 
   if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
-    const alacrity = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.phoenixProtocol), 'boon');
+    const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.phoenixProtocol), 'boon');
     emitSkillBuff(context, {
       at,
       source: 'guardian',
@@ -196,7 +190,7 @@ function queueInFlightWeaponCooldownReduction(
     // recharge so that multiple virtue triggers during the same cast don't over-reduce.
     const available = Math.max(0, Number(event.rechargeReadyAt) - at - pending);
     const reduction = Math.min(
-      Number(guardianBalanceProfile(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25),
+      Number(balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25),
       available
     );
     if (reduction <= context.epsilon) continue;
@@ -211,7 +205,7 @@ function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: numb
   const weaponNames = activeWeaponNames(context);
   const activeIds = new Set<SkillId>([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   const rechargeReduction = Number(
-    guardianBalanceProfile(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25
+    balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25
   );
   let reducedBy = 0;
   for (const skillId of activeIds) {
@@ -242,17 +236,14 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
 function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSkill: string): void {
   const state = willbenderState.from(context);
   const tyrantsMomentum = hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
-  const lethalTempo = guardianBalanceProfile(context, PROFILE.lethalTempo);
-  const tyrants = guardianBalanceProfile(context, PROFILE.tyrantsMomentum);
+  const lethalTempo = balanceProfileFromContext(context, PROFILE.lethalTempo);
+  const tyrants = balanceProfileFromContext(context, PROFILE.tyrantsMomentum);
   gainLethalTempo(
     state,
     at,
     tyrantsMomentum,
     Number(lethalTempo?.maximumStacks || 5),
-    Number(
-      guardianBalanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration ||
-        (tyrantsMomentum ? 4 : 6)
-    )
+    Number(balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration || (tyrantsMomentum ? 4 : 6))
   );
   emitSkillBuff(context, {
     at,
@@ -278,7 +269,7 @@ function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task
   state.flameVirtue = virtue;
   const flameGeneration = state.flameGeneration;
   const flameId = Number(payload.flameId);
-  const flames = guardianBalanceProfile(context, PROFILE.flames);
+  const flames = balanceProfileFromContext(context, PROFILE.flames);
   const pulses = Math.max(1, Math.trunc(Number(flames?.maximumStacks || 5)));
   const interval = Number(flames?.pulseInterval || 1);
   // A flame field is a separate activation from the virtue that created it, so its unequipped weapon-strength
@@ -306,8 +297,8 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
   const at = Number(task.at);
   const flameId = Number(payload.flameId);
   const pulse = Number(payload.pulse);
-  const flames = guardianBalanceProfile(context, PROFILE.flames);
-  const strike = guardianBalanceProfileEffect(flames, 'strike');
+  const flames = balanceProfileFromContext(context, PROFILE.flames);
+  const strike = balanceProfileEffect(flames, 'strike');
   const totalHits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
   context.emit(
     buildGuardianStrike({
@@ -324,7 +315,7 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
     })
   );
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
-    const burning = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.searingPact), 'condition');
+    const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.searingPact), 'condition');
     emitSkillCondition(context, {
       at,
       source: 'guardian',
@@ -384,7 +375,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
       ...(justiceActive == null ? {} : { justiceActive })
     });
     if (virtue === 'courage') {
-      const courage = guardianBalanceProfile(context, PROFILE.courageTrigger);
+      const courage = balanceProfileFromContext(context, PROFILE.courageTrigger);
       for (const boon of (courage?.effects || []).filter((effect) => effect.type === 'boon')) {
         const kind = String(boon.boon || '');
         emitSkillBuff(context, {
@@ -404,11 +395,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
     }
 
     if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
-      const alacrity = guardianBalanceProfileEffect(
-        guardianBalanceProfile(context, PROFILE.phoenixProtocol),
-        'boon',
-        1
-      );
+      const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.phoenixProtocol), 'boon', 1);
       emitSkillBuff(context, {
         at,
         source: 'guardian',
@@ -432,8 +419,8 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
     // only for justice; resolve and courage always require 5 hits.
     const triggerHits =
       virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-        ? Number(guardianBalanceProfile(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold || 3)
-        : Number(guardianBalanceProfile(context, PROFILE.virtueWindows)?.threshold || 5);
+        ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold || 3)
+        : Number(balanceProfileFromContext(context, PROFILE.virtueWindows)?.threshold || 5);
     if (state.virtueHitCounts[virtue] < triggerHits) continue;
     state.virtueHitCounts[virtue] = 0;
     triggerVirtue(virtue, virtue === 'justice' ? 2 : undefined, virtue === 'justice' ? true : undefined);

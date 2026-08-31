@@ -1,13 +1,14 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect } from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
 
 function triggerBloodMoon(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!hasTrait(context, TRAIT.BLOOD_MOON)) return;
-  const bleeding = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.bloodMoon), 'condition');
+  const bleeding = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bloodMoon), 'condition');
   enqueueOrdered(context.queue, {
     type: 'condition',
     at: event.at,

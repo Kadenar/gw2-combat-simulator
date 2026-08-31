@@ -1,14 +1,11 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
 } from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import {
-  mesmerBalanceProfile,
-  mesmerBalanceProfileEffect,
-  mesmerTraitDamageProfile
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerTraitDamageProfile } from '#gw2/content/professions/mesmer/core/profiles.js';
 import {
   MESMER_TROUBADOUR_INSTRUMENTS,
   MESMER_TROUBADOUR_TRAIT_DAMAGE
@@ -90,8 +87,8 @@ export function mesmerProfiledInstrument(
   instrument: MesmerInstrument,
   balanceProfileId: string
 ): MesmerInstrument {
-  const profile = mesmerBalanceProfile(context, balanceProfileId);
-  const strike = mesmerBalanceProfileEffect(profile, 'strike');
+  const profile = balanceProfileFromContext(context, balanceProfileId);
+  const strike = balanceProfileEffect(profile, 'strike');
   const conditions = (profile?.effects || [])
     .filter((effect) => effect.type === 'condition')
     .map((effect) => ({

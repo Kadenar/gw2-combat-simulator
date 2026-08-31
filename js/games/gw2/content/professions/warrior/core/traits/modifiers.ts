@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -11,10 +12,7 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { warriorCastAvailability } from '#gw2/content/professions/warrior/core/mechanics/availability.js';
-import {
-  warriorBalanceProfile,
-  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/warrior/core/profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import {
   advanceWarriorTraits,
   applyWarriorWeaponSwapTraits,
@@ -119,8 +117,8 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
     concentration: number;
   };
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  const signetMastery = warriorBalanceProfile(context, PROFILE.signetMastery);
-  const furious = warriorBalanceProfile(context, PROFILE.furious);
+  const signetMastery = balanceProfileFromContext(context, PROFILE.signetMastery);
+  const furious = balanceProfileFromContext(context, PROFILE.furious);
   const signetStacks = activeBuffStacks(context, 'signet-mastery', Number(signetMastery?.maximumStacks ?? 5));
   result.power = Number(result.power || 0);
   result.precision = Number(result.precision || 0);
@@ -135,21 +133,21 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
   // live trait bonuses accrue on `result`), so this converts gear power only.
   const gearPower = Number(context.config?.stats?.power || 0);
   if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
-    const profile = warriorBalanceProfile(context, PROFILE.pinnacleOfStrength);
+    const profile = balanceProfileFromContext(context, PROFILE.pinnacleOfStrength);
     result.power +=
       Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
       Number(profile?.attributeBonus ?? 10);
   }
 
   if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
-    const profile = warriorBalanceProfile(context, PROFILE.forcefulGreatsword);
+    const profile = balanceProfileFromContext(context, PROFILE.forcefulGreatsword);
     result.power +=
       Number(profile?.attributeBonus ?? 120) +
       Number(wieldingWeapon(context, 'Greatsword')) * Number(profile?.weaponAttributeBonus ?? 120);
   }
 
   if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
-    result.concentration += Number(warriorBalanceProfile(context, PROFILE.roaringReveille)?.attributeBonus ?? 120);
+    result.concentration += Number(balanceProfileFromContext(context, PROFILE.roaringReveille)?.attributeBonus ?? 120);
   }
 
   if (hasTrait(context, TRAIT.SIGNET_MASTERY))
@@ -157,14 +155,14 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
   if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
     // Static path bakes this from conversionPool in build-attributes; add no
     // dynamic delta so might/signets never leak into the conversion.
-    const conversion = Number(warriorBalanceProfile(context, PROFILE.greatFortitude)?.attributeConversion ?? 0.1);
+    const conversion = Number(balanceProfileFromContext(context, PROFILE.greatFortitude)?.attributeConversion ?? 0.1);
     result.vitality += gearPower * conversion;
     result.ferocity += gearPower * conversion;
   }
 
   if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
     result.healingPower +=
-      gearPower * Number(warriorBalanceProfile(context, PROFILE.vigorousShouts)?.attributeConversion ?? 0.13);
+      gearPower * Number(balanceProfileFromContext(context, PROFILE.vigorousShouts)?.attributeConversion ?? 0.13);
   }
 
   if (
@@ -172,22 +170,22 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
     boonActive(context, 'fury') &&
     !(staticRulesApplied && Boolean(context.config?.boons?.fury))
   ) {
-    result.conditionDamage += Number(warriorBalanceProfile(context, PROFILE.deepStrikes)?.attributeBonus ?? 180);
+    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.deepStrikes)?.attributeBonus ?? 180);
   }
 
   if (hasTrait(context, TRAIT.BLADEMASTER) && wieldingWeapon(context, 'Sword')) {
-    result.conditionDamage += Number(warriorBalanceProfile(context, PROFILE.blademaster)?.attributeBonus ?? 120);
+    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.blademaster)?.attributeBonus ?? 120);
   }
 
   result.conditionDamage +=
     activeBuffStacks(context, 'furious-surge', Number(furious?.maximumStacks ?? 25)) *
     Number(furious?.attributeBonus ?? 15);
   if (hasTrait(context, TRAIT.BURST_PRECISION) && activeBuffStacks(context, 'burst-precision', 1) > 0) {
-    result.ferocity += Number(warriorBalanceProfile(context, PROFILE.burstPrecision)?.attributeBonus ?? 250);
+    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.burstPrecision)?.attributeBonus ?? 250);
   }
 
   if (activeBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const bonus = Number(warriorBalanceProfile(context, PROFILE.signetOfFuryActive)?.attributeBonus ?? 360);
+    const bonus = Number(balanceProfileFromContext(context, PROFILE.signetOfFuryActive)?.attributeBonus ?? 360);
     result.precision += bonus;
     result.ferocity += bonus;
   }
@@ -199,7 +197,7 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
     if (!hasSelectedSkill(context, name)) continue;
     const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
     if (staticRulesApplied ? onCooldown : !onCooldown) {
-      const passiveBonus = Number(warriorBalanceProfile(context, PROFILE.signetPassives)?.attributeBonus ?? 180);
+      const passiveBonus = Number(balanceProfileFromContext(context, PROFILE.signetPassives)?.attributeBonus ?? 180);
       const delta = staticRulesApplied ? -passiveBonus : passiveBonus;
       // Signet power/precision toggles are real stat changes, but they are not
       // part of the gear pool, so they no longer feed Great Fortitude /

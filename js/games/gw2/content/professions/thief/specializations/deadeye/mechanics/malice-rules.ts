@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -19,7 +20,7 @@ import { deadeyeTaskHandlers } from '#gw2/content/professions/thief/specializati
 import type { ThiefSimulationEvent } from '#gw2/content/professions/thief/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
-import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
 
 export const deadeyeSchedulerHooks = Object.freeze({
@@ -63,16 +64,16 @@ function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   // These stat bonuses come from the GW2 build panel (professionStaticRules); skip them if the build already includes them to avoid double-counting
   if (!professionStaticRulesApplied(context.config)) {
     if (hasTrait(context, TRAIT.SILENT_SCOPE)) {
-      result.precision += Number(thiefBalanceProfile(context, PROFILE.silentScope)?.attributeBonus || 120);
+      result.precision += Number(balanceProfileFromContext(context, PROFILE.silentScope)?.attributeBonus || 120);
     }
 
     if (hasTrait(context, TRAIT.PREMEDITATION)) {
-      result.concentration += Number(thiefBalanceProfile(context, PROFILE.premeditation)?.attributeBonus || 180);
+      result.concentration += Number(balanceProfileFromContext(context, PROFILE.premeditation)?.attributeBonus || 180);
     }
   }
 
   if (hasTrait(context, TRAIT.BE_QUICK_OR_BE_KILLED) && boonActive(context, 'quickness')) {
-    const bonus = Number(thiefBalanceProfile(context, PROFILE.beQuickOrBeKilled)?.attributeBonus || 200);
+    const bonus = Number(balanceProfileFromContext(context, PROFILE.beQuickOrBeKilled)?.attributeBonus || 200);
     result.power += bonus;
     result.precision += bonus;
   }

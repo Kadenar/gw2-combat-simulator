@@ -1,13 +1,8 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
 } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import {
-  balanceProfileEffect,
-  balanceProfileFromContext,
-  balanceProfileValue
-} from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 
 export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -270,19 +265,3 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     rechargeMultiplier: 0.8
   })
 ]);
-
-export function rangerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  return balanceProfileFromContext(context, id);
-}
-
-export function rangerBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
-  return balanceProfileValue(rangerBalanceProfile(context, id), field, fallback);
-}
-
-export function rangerBalanceProfileEffect(
-  profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
-  type: string,
-  index = 0
-): SkillEffect | undefined {
-  return balanceProfileEffect(profile, type, index);
-}

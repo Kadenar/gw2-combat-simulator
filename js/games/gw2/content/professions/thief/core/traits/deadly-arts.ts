@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
@@ -5,11 +6,7 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import type {
   ThiefCastContext,
   ThiefResolverContext,
@@ -20,8 +17,8 @@ import type {
 /** Applies Deadly Arts effects at their existing steal, cast, and resolver boundaries. */
 export function applySerpentsTouch(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.SERPENTS_TOUCH)) return;
-  const profile = thiefBalanceProfile(context, PROFILE.serpentsTouch);
-  const poison = thiefBalanceProfileEffect(profile, 'condition');
+  const profile = balanceProfileFromContext(context, PROFILE.serpentsTouch);
+  const poison = balanceProfileEffect(profile, 'condition');
   emitSkillCondition(context, {
     at,
     source: 'Trait',
@@ -40,7 +37,7 @@ export function applySerpentsTouch(context: ThiefCastContext, at: number): void 
 
 export function applyMug(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.MUG)) return;
-  const strike = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.mug), 'strike');
+  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.mug), 'strike');
   emitSkillDamage(context, {
     at,
     source: 'Trait',
@@ -57,7 +54,7 @@ export function applyMug(context: ThiefCastContext, at: number): void {
 
 export function applyEvenTheOdds(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.EVEN_THE_ODDS)) return;
-  const vulnerability = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.evenTheOdds), 'condition');
+  const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.evenTheOdds), 'condition');
   emitSkillCondition(context, {
     at,
     source: 'Trait',
@@ -77,8 +74,8 @@ export function applyDeadlyAmbition(context: ThiefCastContext, skill: ThiefSkill
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
   if (!isDualWieldAttack || !hasTrait(context.config, TRAIT.DEADLY_AMBITION)) return;
-  const profile = thiefBalanceProfile(context, PROFILE.deadlyAmbition);
-  const poison = thiefBalanceProfileEffect(profile, 'condition');
+  const profile = balanceProfileFromContext(context, PROFILE.deadlyAmbition);
+  const poison = balanceProfileEffect(profile, 'condition');
   emitSkillCondition(context, {
     at,
     source: 'Trait',
@@ -105,12 +102,13 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
     !hasTrait(context.config, TRAIT.PANIC_STRIKE) ||
-    targetConditionCount(context, event.at) < Number(thiefBalanceProfile(context, PROFILE.panicStrike)?.threshold || 3)
+    targetConditionCount(context, event.at) <
+      Number(balanceProfileFromContext(context, PROFILE.panicStrike)?.threshold || 3)
   )
     return;
   const state = professionCoreState(context);
-  const profile = thiefBalanceProfile(context, PROFILE.panicStrike);
-  const immobilized = thiefBalanceProfileEffect(profile, 'condition', 0);
+  const profile = balanceProfileFromContext(context, PROFILE.panicStrike);
+  const immobilized = balanceProfileEffect(profile, 'condition', 0);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
   if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + Number(profile?.internalCooldown || 20);
@@ -138,8 +136,8 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
     !hasTrait(context.config, TRAIT.PANIC_STRIKE)
   )
     return;
-  const profile = thiefBalanceProfile(context, PROFILE.panicStrike);
-  const poison = thiefBalanceProfileEffect(profile, 'condition', 1);
+  const profile = balanceProfileFromContext(context, PROFILE.panicStrike);
+  const poison = balanceProfileEffect(profile, 'condition', 1);
   enqueueOrdered(context.queue, {
     type: 'condition',
     at: application.at,

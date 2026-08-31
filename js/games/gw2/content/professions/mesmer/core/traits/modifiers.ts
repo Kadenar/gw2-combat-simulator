@@ -1,4 +1,5 @@
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -7,10 +8,7 @@ import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import {
-  MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  mesmerBalanceValue
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 
@@ -37,14 +35,19 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
   const selectedSkills = selectedSkillNameSet(context.config?.selectedSkills);
   const thorns = context.config?.relic === 'Thorns' ? thornsStacksAt(context.time) * 30 : 0;
   const midnightSelected = selectedSkills.has('Signet of Midnight');
-  const midnightBonus = mesmerBalanceValue(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180);
+  const midnightBonus = balanceProfileValueFromContext(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180);
   const midnight = midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time) ? midnightBonus : 0;
   const dominationSelected = selectedSkills.has('Signet of Domination');
-  const dominationBonus = mesmerBalanceValue(context, PROFILE.signetOfDomination, 'conditionDamageBonus', 180);
+  const dominationBonus = balanceProfileValueFromContext(
+    context,
+    PROFILE.signetOfDomination,
+    'conditionDamageBonus',
+    180
+  );
   const domination =
     dominationSelected && context.timeline?.skillOnCooldownAt(10232, context.time) ? dominationBonus : 0;
   const chaoticExpertiseDelta = hasTrait(context, PROFILE.chaoticPersistence)
-    ? mesmerBalanceValue(context, PROFILE.chaoticPersistence, 'expertiseBonus', 100) - 100
+    ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'expertiseBonus', 100) - 100
     : 0;
   return {
     ...attributes,
@@ -55,10 +58,10 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
       timedStacks(
         context,
         'fencer',
-        mesmerBalanceValue(context, PROFILE.fencersFinesse, 'durationMultiplier', 6),
-        mesmerBalanceValue(context, PROFILE.fencersFinesse, 'maximumStacks', 10)
+        balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'durationMultiplier', 6),
+        balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'maximumStacks', 10)
       ) *
-        mesmerBalanceValue(context, PROFILE.fencersFinesse, 'attributePerStack', 15),
+        balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'attributePerStack', 15),
     conditionDamage:
       Number(attributes.conditionDamage || 0) + thorns + (dominationSelected ? dominationBonus - 180 : 0) - domination,
     expertise:
@@ -69,7 +72,7 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
     concentration:
       Number(attributes.concentration || 0) +
       (hasTrait(context, PROFILE.chaoticPersistence)
-        ? mesmerBalanceValue(context, PROFILE.chaoticPersistence, 'concentrationBonus', 250) - 250
+        ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'concentrationBonus', 250) - 250
         : 0)
   };
 }

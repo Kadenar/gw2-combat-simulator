@@ -1,10 +1,11 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import { warriorBalanceProfile } from '#gw2/content/professions/warrior/core/profiles.js';
+
 import { syncWarriorAdrenaline } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import type { WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
 import { observeSpellbreakerEvent } from '#gw2/content/professions/warrior/specializations/spellbreaker/traits/index.js';
@@ -14,7 +15,7 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 export const spellbreakerSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
     professionCoreState(context).maximumAdrenaline = Number(
-      warriorBalanceProfile(context, PROFILE.resources)?.maximumStacks ?? 20
+      balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 20
     );
     syncWarriorAdrenaline(context);
   },
@@ -56,7 +57,8 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
     ferocity: number;
   };
   const bonus =
-    insightStacks(context) * Number(warriorBalanceProfile(context, PROFILE.attackersInsight)?.attributePerStack ?? 50);
+    insightStacks(context) *
+    Number(balanceProfileFromContext(context, PROFILE.attackersInsight)?.attributePerStack ?? 50);
   result.power += bonus;
   result.precision += bonus;
   result.ferocity += bonus;

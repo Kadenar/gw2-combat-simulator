@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -29,14 +30,14 @@ import {
 import { removeNecromancerSelfCondition } from '#gw2/content/professions/necromancer/core/mechanics/conditions.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/scourge/profiles.js';
 
 // Default `at` is effectiveEnd because barrier traits fire on cast completion; callers that
 // need a different timing (e.g. Sandstorm pulse) pass their own timestamp explicitly
 function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerSkill, at = context.effectiveEnd): void {
   if (hasTrait(context, TRAIT.ABRASIVE_GRIT)) {
-    const might = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.abrasiveGrit), 'boon');
+    const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.abrasiveGrit), 'boon');
     emitSkillBuff(context, skill, {
       at,
       kind: String(might?.boon || 'might'),
@@ -47,7 +48,7 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
   }
 
   if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
-    const alacrity = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.desertEmpowerment), 'boon');
+    const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.desertEmpowerment), 'boon');
     emitSkillBuff(context, skill, {
       at,
       kind: String(alacrity?.boon || 'alacrity'),
@@ -72,10 +73,10 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   // matching the in-game timing; all other shade skills strike at cast completion
   const impactAt =
     skill.id === ID.MANIFEST_SAND_SHADE ? context.start + (context.fullEnd - context.start) * (11 / 12) : at;
-  const shadeProfile = necromancerBalanceProfile(context, PROFILE.shade);
+  const shadeProfile = balanceProfileFromContext(context, PROFILE.shade);
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const profile = hasTrait(context, TRAIT.SAND_SAVANT)
-      ? necromancerBalanceProfile(context, PROFILE.sandSavant)
+      ? balanceProfileFromContext(context, PROFILE.sandSavant)
       : shadeProfile;
     const maximum = Number(profile?.maximumStacks || 3);
     const duration = Number(balanceProfileEffect(profile, 'buff')?.duration || 15);
@@ -146,7 +147,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   });
 
   if (skill.id === ID.NEFARIOUS_FAVOR && hasTrait(context, TRAIT.SADISTIC_SEARING)) {
-    const condition = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.sadisticSearing), 'condition');
+    const condition = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sadisticSearing), 'condition');
     emitSkillCondition(context, skill, {
       at,
       source: 'Trait',
@@ -163,7 +164,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       at,
       controlKind: 'fear',
       duration: Number(
-        balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.garishPillar), 'control')?.duration || 1
+        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.garishPillar), 'control')?.duration || 1
       )
     });
   } else if (skill.id === ID.DESERT_SHROUD) {
@@ -172,7 +173,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     }
 
     applyBarrierTraits(context, skill, at);
-    const desert = necromancerBalanceProfile(context, PROFILE.desertShroud);
+    const desert = balanceProfileFromContext(context, PROFILE.desertShroud);
     const strike = balanceProfileEffect(desert, 'strike');
     const torment = balanceProfileEffect(desert, 'condition');
     const hits = Number(strike?.hits || 7);
@@ -192,7 +193,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       });
     }
   } else if (skill.id === ID.SANDSTORM_SHROUD) {
-    const sandstorm = necromancerBalanceProfile(context, PROFILE.sandstormShroud);
+    const sandstorm = balanceProfileFromContext(context, PROFILE.sandstormShroud);
     const strike = balanceProfileEffect(sandstorm, 'strike');
     const torment = balanceProfileEffect(sandstorm, 'condition');
     const pulseProtection = balanceProfileEffect(sandstorm, 'boon');

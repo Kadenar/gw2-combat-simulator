@@ -1,12 +1,9 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import type {
   GuardianCastContext,
   GuardianResolverEvent,
@@ -22,8 +19,8 @@ export function applyInspiredVirtue(
   at: number
 ): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)) return;
-  const inspired = guardianBalanceProfileEffect(
-    guardianBalanceProfile(context, PROFILE.inspiredVirtue),
+  const inspired = balanceProfileEffect(
+    balanceProfileFromContext(context, PROFILE.inspiredVirtue),
     'boon',
     virtueSlot === 'Profession_1' ? 0 : virtueSlot === 'Profession_2' ? 1 : 2
   );
@@ -42,7 +39,7 @@ export function applyInspiredVirtue(
 
 export function applyVirtueOfResolution(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)) return;
-  const resolution = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.virtueOfResolution), 'boon');
+  const resolution = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.virtueOfResolution), 'boon');
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
@@ -57,7 +54,7 @@ export function applyVirtueOfResolution(context: GuardianCastContext, skill: Gua
 
 export function applyInspiringVirtue(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE)) return;
-  const inspiring = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.inspiringVirtue), 'buff');
+  const inspiring = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.inspiringVirtue), 'buff');
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
@@ -77,7 +74,7 @@ export function applyIndomitableCourage(
   at: number
 ): void {
   if (virtueSlot !== 'Profession_3' || !hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)) return;
-  const stability = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.indomitableCourage), 'boon');
+  const stability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.indomitableCourage), 'boon');
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
@@ -107,7 +104,7 @@ export function replaceVirtueOfResolutionDuration(
   context.replaceEvent(event, {
     duration:
       Number(event.duration) *
-      Number(guardianBalanceProfile(context, PROFILE.virtueOfResolution)?.durationMultiplier || 1.25)
+      Number(balanceProfileFromContext(context, PROFILE.virtueOfResolution)?.durationMultiplier || 1.25)
   });
   return true;
 }
@@ -120,9 +117,9 @@ export function applyMasterOfConsecrations(context: GuardianCastContext, skill: 
     return;
   }
 
-  const profile = guardianBalanceProfile(context, PROFILE.masterOfConsecrations);
-  const strike = guardianBalanceProfileEffect(profile, 'strike');
-  const burning = guardianBalanceProfileEffect(profile, 'condition');
+  const profile = balanceProfileFromContext(context, PROFILE.masterOfConsecrations);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const burning = balanceProfileEffect(profile, 'condition');
   const hits = Math.max(1, Math.trunc(Number(strike?.hits || 2)));
   const interval = Number(strike?.intervalMs || 1000) / 1000;
   for (let index = 0; index < hits; index += 1) {

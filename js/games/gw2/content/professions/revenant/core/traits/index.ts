@@ -29,13 +29,11 @@ import {
   applyDwarvenBattleTraining,
   applyViciousReprisal
 } from '#gw2/content/professions/revenant/core/traits/retribution.js';
-import type {
-  BalanceProfile,
-  SchedulerRecord,
-  SimulationEvent,
-  SkillEffect,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+import {
+  requireRevenantBalanceProfile as balanceProfileById,
+  requireRevenantEffect as effectByType
+} from '#gw2/content/professions/revenant/core/traits/profile-access.js';
+import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,
@@ -47,20 +45,6 @@ import type {
 } from '#gw2/content/professions/revenant/types.js';
 
 export { emitLegendInvocationProfile, emitLegendInvocationSkill };
-
-function balanceProfileById(context: RevenantSchedulerContext, id: SkillId): BalanceProfile {
-  const profile = context.catalog.balanceProfilesById.get(id);
-  if (!profile) throw new Error(`Missing Revenant balance profile ${String(id)}.`);
-  return profile;
-}
-
-function effectByType(profile: BalanceProfile | RevenantSkill, type: SkillEffect['type']): SkillEffect {
-  const effect = profile.effects?.find(
-    (candidate) => candidate.type === type && String(candidate.metadata?.trigger || '') === ''
-  );
-  if (!effect) throw new Error(`${profile.name} is missing its ${type} effect.`);
-  return effect;
-}
 
 interface ImpossibleOddsTaskPayload extends SchedulerRecord {
   readonly event: SimulationEvent;

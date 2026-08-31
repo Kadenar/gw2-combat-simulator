@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,7 +17,7 @@ import type {
   WarriorSchedulerContext,
   WarriorSkill
 } from '#gw2/content/professions/warrior/types.js';
-import { warriorBalanceProfile } from '#gw2/content/professions/warrior/core/profiles.js';
+
 import { syncWarriorAdrenaline } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 import {
@@ -36,7 +37,7 @@ export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using th
 export const bladeswornSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
     const state = bladeswornState.from(context);
-    state.maximumFlow = Number(warriorBalanceProfile(context, PROFILE.resources)?.maximumStacks ?? 100);
+    state.maximumFlow = Number(balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 100);
     state.flow = Math.min(state.maximumFlow, state.flow);
     professionCoreState(context).maximumAdrenaline = 0;
     syncWarriorAdrenaline(context);
@@ -62,7 +63,7 @@ export const bladeswornSchedulerHooks = Object.freeze({
 function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = { ...attributes } as SchedulerRecord & { ferocity: number };
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY) && runtimeBuffActive(context, 'guns-and-glory')) {
-    result.ferocity += Number(warriorBalanceProfile(context, PROFILE.gunsAndGlory)?.attributeBonus ?? 250);
+    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.gunsAndGlory)?.attributeBonus ?? 250);
   }
 
   return result;
@@ -183,7 +184,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
           ? state.nextDragonChargeAt
           : context.start +
             Number(
-              warriorBalanceProfile(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
+              balanceProfileFromContext(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
             );
       // Even the next possible tick would land after the deadline — stop waiting.
       if (nextChargeAt > state.dragonTriggerChargeDeadline + context.epsilon) {
@@ -236,10 +237,10 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
   if (
     skill.id === ID.DRAGON_TRIGGER &&
     state.flow + context.epsilon <
-      Number(warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST)
+      Number(balanceProfileFromContext(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST)
   ) {
     const flowCost = Number(
-      warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST
+      balanceProfileFromContext(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST
     );
     return {
       ready: false,

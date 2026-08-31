@@ -1,12 +1,9 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import type { GuardianCastContext, GuardianSkill } from '#gw2/content/professions/guardian/types.js';
 
 /** Extends Symbol of Punishment with Writ of Persistence's field, strikes, and party Might. */
@@ -18,8 +15,8 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
     return;
   }
 
-  const profile = guardianBalanceProfile(context, PROFILE.writOfPersistence);
-  const extension = Number(guardianBalanceProfileEffect(profile, 'buff')?.duration || 2);
+  const profile = balanceProfileFromContext(context, PROFILE.writOfPersistence);
+  const extension = Number(balanceProfileEffect(profile, 'buff')?.duration || 2);
   const field = skill.comboFields?.[0];
   const fieldStart = context.start + Number(field?.startMs || 0) / 1000;
   const fieldEnd = fieldStart + Number(field?.duration || 0);
@@ -31,7 +28,7 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
         coefficient: Number(tick.coefficient)
       }))
     );
-  const might = guardianBalanceProfileEffect(profile, 'boon');
+  const might = balanceProfileEffect(profile, 'boon');
 
   // Writ adds a contiguous field segment because the original field is already active when cast-state hooks run.
   context.emit({

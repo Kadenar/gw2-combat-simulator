@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { firebrandState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
@@ -14,10 +15,7 @@ import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/pl
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { selectedGuardianSpecialization } from '#gw2/content/professions/guardian/core/mechanics/availability.js';
 import { emitGuardianEvent } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
@@ -155,7 +153,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
   }
 
   state.swiftScholarCount += 1;
-  const swiftScholar = guardianBalanceProfile(context, PROFILE.swiftScholar);
+  const swiftScholar = balanceProfileFromContext(context, PROFILE.swiftScholar);
   if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks || 3)) {
     state.swiftScholarCount = 0;
     const pageGain = Number(swiftScholar?.resourceGain || 1);
@@ -178,8 +176,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.LEGENDARY_LORE)) {
-    const boon = guardianBalanceProfileEffect(
-      guardianBalanceProfile(context, PROFILE.legendaryLore),
+    const boon = balanceProfileEffect(
+      balanceProfileFromContext(context, PROFILE.legendaryLore),
       'boon',
       skill.tome === 'justice' ? 0 : skill.tome === 'resolve' ? 1 : 2
     );
@@ -202,10 +200,10 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
     const at = context.effectiveEnd;
     const party = gw2AlliedPlayerAssumptions(context.config);
-    const ashes = guardianBalanceProfile(context, PROFILE.ashes);
-    const burn = guardianBalanceProfileEffect(ashes, 'condition');
-    const ashesBuff = guardianBalanceProfileEffect(ashes, 'buff');
-    const might = guardianBalanceProfileEffect(ashes, 'boon');
+    const ashes = balanceProfileFromContext(context, PROFILE.ashes);
+    const burn = balanceProfileEffect(ashes, 'condition');
+    const ashesBuff = balanceProfileEffect(ashes, 'buff');
+    const might = balanceProfileEffect(ashes, 'boon');
     const ashesDuration = Number(ashesBuff?.duration || 10);
     state.ashesCharges = Number(ashes?.maximumStacks || ashesBuff?.stacks || 2);
     state.ashesBurnDuration = Number(burn?.duration || 2);
@@ -400,8 +398,8 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
   // avoid emitting aegis that shouldn't exist on dragonhunter/core guardian.
   if (selectedGuardianSpecialization({ config: context.config }) !== 'Firebrand') return;
   const courage = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.TOME_OF_COURAGE);
-  const passiveCourage = guardianBalanceProfile(context, PROFILE.passiveCourage);
-  const aegis = guardianBalanceProfileEffect(passiveCourage, 'boon');
+  const passiveCourage = balanceProfileFromContext(context, PROFILE.passiveCourage);
+  const aegis = balanceProfileEffect(passiveCourage, 'boon');
   while (courage && state.nextCourageAegisAt <= target + context.epsilon) {
     const at = state.nextCourageAegisAt;
     // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
@@ -443,8 +441,8 @@ export function reactToAshesHit(
   event: GuardianResolverEvent,
   { hitContext }: AshesHitDependencies = {}
 ): void {
-  const ashes = guardianBalanceProfile(context, PROFILE.ashes);
-  const burn = guardianBalanceProfileEffect(ashes, 'condition');
+  const ashes = balanceProfileFromContext(context, PROFILE.ashes);
+  const burn = balanceProfileEffect(ashes, 'condition');
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = firebrandState.from(context);

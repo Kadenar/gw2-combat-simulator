@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   emitSkillBuff,
@@ -27,11 +28,7 @@ import {
   resetAutoattackChains,
   type AutoattackChainTransitionContext
 } from '#gw2/platform/skills/autoattack-chains.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import {
   addSoulShards,
   consumeSoulShards,
@@ -160,7 +157,7 @@ function soulShardDamage(
   total: number
 ): void {
   // Resolve profile values at emission time so configured balance patches and traits affect every packet.
-  const profile = necromancerBalanceProfile(context, PROFILE.soulShards);
+  const profile = balanceProfileFromContext(context, PROFILE.soulShards);
   const strike = balanceProfileEffect(profile, 'strike');
   const metadata = strike?.metadata || {};
   // Emit shards as their own effect actor while retaining the triggering skill as parent attribution.

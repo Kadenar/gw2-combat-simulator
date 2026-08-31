@@ -4,26 +4,15 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/d
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import { emitLegendInvocationProfile } from '#gw2/content/professions/revenant/core/traits/invocation-effects.js';
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
+import {
+  requireRevenantBalanceProfile as balanceProfile,
+  requireRevenantEffect as profileEffect
+} from '#gw2/content/professions/revenant/core/traits/profile-access.js';
 import type {
   RevenantCastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent
 } from '#gw2/content/professions/revenant/types.js';
-
-function balanceProfile(context: RevenantSchedulerContext, id: string | number): BalanceProfile {
-  const profile = context.catalog.balanceProfilesById.get(id);
-  if (!profile) throw new Error(`Missing Revenant balance profile ${String(id)}.`);
-  return profile;
-}
-
-function profileEffect(profile: BalanceProfile, type: SkillEffect['type']): SkillEffect {
-  const effect = profile.effects?.find(
-    (candidate) => candidate.type === type && String(candidate.metadata?.trigger || '') === ''
-  );
-  if (!effect) throw new Error(`${profile.name} is missing its ${type} effect.`);
-  return effect;
-}
 
 /** Applies Invoking Torment and its nested Diabolic Inferno packet at invocation time. */
 export function applyInvokingTorment(context: RevenantCastContext, at: number): void {

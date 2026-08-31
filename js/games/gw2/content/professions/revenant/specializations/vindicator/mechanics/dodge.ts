@@ -11,11 +11,11 @@ import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.j
  */
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
-import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantSchedulerContext,
@@ -24,10 +24,6 @@ import type {
 
 function skillById(context: RevenantSchedulerContext, id: string | number): RevenantSkill | undefined {
   return context.catalog.skillsById.get(id);
-}
-
-function balanceProfileById(context: RevenantSchedulerContext, id: string | number): BalanceProfile | undefined {
-  return context.catalog.balanceProfilesById.get(id);
 }
 
 function selectedDodgeSkill(context: RevenantSchedulerContext): RevenantSkill | undefined {

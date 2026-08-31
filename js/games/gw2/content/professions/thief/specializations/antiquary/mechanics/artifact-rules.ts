@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -15,7 +16,7 @@ import {
 } from '#gw2/content/professions/thief/specializations/antiquary/mechanics/resources.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { ThiefPrecastContext } from '#gw2/content/professions/thief/types.js';
-import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 export const antiquaryTaskHandlers = Object.freeze({
@@ -168,7 +169,7 @@ export const antiquaryAttributeRules = Object.freeze({
 
 function modifyAntiquaryRechargeDuration(context: ThiefPrecastContext, duration: number): number {
   const state = antiquaryState.from(context);
-  const multiplier = Number(thiefBalanceProfile(context, PROFILE.artifactWindows)?.rechargeMultiplier ?? 0.2);
+  const multiplier = Number(balanceProfileFromContext(context, PROFILE.artifactWindows)?.rechargeMultiplier ?? 0.2);
   const expirations = (state.holoUtilityCooldownReductionExpirations || []).filter(
     (expiresAt) => Number(expiresAt) > context.start
   );

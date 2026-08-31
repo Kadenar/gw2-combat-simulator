@@ -6,6 +6,7 @@
  * consumption, and the Elemental Balance / Elemental Dynamo attunement-entry
  * traits.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -15,10 +16,7 @@ import {
   elementalistEventSkill,
   emitElementalistProc
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
-  elementalistBalanceEffect,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { emitElectricEnchantment } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
@@ -40,7 +38,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     state.element === 'Fire' &&
     isInternalCooldownReady(event.at, state.ignitePassiveReadyAt)
   ) {
-    state.ignitePassiveReadyAt = event.at + elementalistBalanceValue(context, PROFILE.ignite, 'pulseInterval', 1);
+    state.ignitePassiveReadyAt = event.at + balanceProfileValueFromContext(context, PROFILE.ignite, 'pulseInterval', 1);
     const might = elementalistBalanceEffect(context, PROFILE.evocation, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
     emitSkillBuff(context, elementalistEventSkill(context, 'Fire Familiar', sourceId), {
@@ -73,12 +71,12 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
   if (event.to !== state.element) return;
   if (hasTrait(context, 'Elemental Balance')) {
     state.elementalBalanceProgress += 1;
-    const threshold = elementalistBalanceValue(context, PROFILE.elementalBalance, 'threshold', 2);
+    const threshold = balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'threshold', 2);
     if (state.elementalBalanceProgress >= threshold) {
       // subtract rather than reset so any overflow from simultaneous gains isn't lost
       state.elementalBalanceProgress -= threshold;
       state.elementalBalanceUntil =
-        event.at + elementalistBalanceValue(context, PROFILE.elementalBalance, 'durationMultiplier', 5);
+        event.at + balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'durationMultiplier', 5);
       emitElementalistProc(context as never, {
         at: event.at,
         name: 'Elemental Balance',
@@ -95,7 +93,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
   if (!hasTrait(context, 'Elemental Dynamo')) return;
   state.charges = Math.min(
     state.maximumCharges,
-    state.charges + elementalistBalanceValue(context, PROFILE.elementalDynamo, 'resourceGain', 1)
+    state.charges + balanceProfileValueFromContext(context, PROFILE.elementalDynamo, 'resourceGain', 1)
   );
   context.emitDerived(event, {
     type: 'resource',

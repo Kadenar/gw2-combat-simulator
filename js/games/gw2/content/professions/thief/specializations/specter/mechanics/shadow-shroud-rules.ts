@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -18,7 +19,7 @@ import {
 } from '#gw2/content/professions/thief/specializations/specter/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
-import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/specter/profiles.js';
 import type { ThiefSchedulerContext } from '#gw2/content/professions/thief/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -69,7 +70,7 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
   const gearVitality = Number(context.config?.stats?.vitality || 0);
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
-    const profile = thiefBalanceProfile(context, PROFILE.secondOpinion);
+    const profile = balanceProfileFromContext(context, PROFILE.secondOpinion);
     result.healingPower =
       Number(result.healingPower || 0) + gearConditionDamage * Number(profile?.attributeConversion || 0.07);
     result.conditionDamage =
@@ -81,7 +82,7 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
     result.expertise =
       Number(result.expertise || 0) +
-      gearVitality * Number(thiefBalanceProfile(context, PROFILE.strengthOfShadows)?.attributeConversion || 0.13);
+      gearVitality * Number(balanceProfileFromContext(context, PROFILE.strengthOfShadows)?.attributeConversion || 0.13);
   }
 
   return result;

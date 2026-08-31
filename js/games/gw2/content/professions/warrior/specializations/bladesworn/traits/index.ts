@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -29,7 +30,7 @@ import {
   applyWarriorBurstSpendTraits,
   grantBerserkersPower
 } from '#gw2/content/professions/warrior/core/traits/index.js';
-import { warriorBalanceProfile, warriorBalanceProfileEffect } from '#gw2/content/professions/warrior/core/profiles.js';
+
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 import { bladeswornState } from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
 import type {
@@ -58,8 +59,8 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   let profile;
   if (hasTrait(context, TRAIT.UNSEEN_SWORD)) {
     traitId = TRAIT.UNSEEN_SWORD;
-    profile = warriorBalanceProfile(context, PROFILE.unseenSword);
-    const strike = warriorBalanceProfileEffect(profile, 'strike');
+    profile = balanceProfileFromContext(context, PROFILE.unseenSword);
+    const strike = balanceProfileEffect(profile, 'strike');
     emitSkillDamage(context, {
       at,
       source: 'Trait',
@@ -73,8 +74,8 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
     });
   } else if (hasTrait(context, TRAIT.SHARP_AS_THE_WIND)) {
     traitId = TRAIT.SHARP_AS_THE_WIND;
-    profile = warriorBalanceProfile(context, PROFILE.sharpAsTheWind);
-    const burning = warriorBalanceProfileEffect(profile, 'condition');
+    profile = balanceProfileFromContext(context, PROFILE.sharpAsTheWind);
+    const burning = balanceProfileEffect(profile, 'condition');
     emitSkillCondition(context, {
       at,
       source: 'Trait',
@@ -89,8 +90,8 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
     });
   } else if (hasTrait(context, TRAIT.RIVERS_FLOW)) {
     traitId = TRAIT.RIVERS_FLOW;
-    profile = warriorBalanceProfile(context, PROFILE.riversFlow);
-    const might = warriorBalanceProfileEffect(profile, 'boon');
+    profile = balanceProfileFromContext(context, PROFILE.riversFlow);
+    const might = balanceProfileEffect(profile, 'boon');
     emitSkillBuff(context, {
       at,
       source: 'Trait',
@@ -109,7 +110,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
 
   if (!traitId) return;
   state.gunsaberSwapTraitReadyAt = at + Number(profile?.internalCooldown ?? 4);
-  const positiveFlow = warriorBalanceProfileEffect(profile, 'buff');
+  const positiveFlow = balanceProfileEffect(profile, 'buff');
   const positiveFlowDuration = Number(positiveFlow?.duration ?? 5);
   if (state.traitPositiveFlowUntil <= at + context.epsilon) {
     state.traitPositiveFlowStartedAt = at;
@@ -178,7 +179,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.flowUpdatedAt = context.effectiveEnd;
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
-  const dragonTrigger = warriorBalanceProfile(context, PROFILE.dragonTrigger);
+  const dragonTrigger = balanceProfileFromContext(context, PROFILE.dragonTrigger);
   const chargeInterval = Number(dragonTrigger?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS);
   state.dragonTriggerChargeDeadline =
     context.effectiveEnd + Number(dragonTrigger?.cooldown ?? DRAGON_TRIGGER_DURATION_SECONDS);
@@ -194,7 +195,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.dragonTriggerEventActivationId = context.reservationId;
   emitDragonTriggerEntry(context, skill);
   if (hasTrait(context, TRAIT.DRAGONSCALE_DEFENSE)) {
-    const stability = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.dragonscaleDefense), 'boon');
+    const stability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.dragonscaleDefense), 'boon');
     emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -228,7 +229,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
   applyWarriorBurstSpendTraits(context, skill, adrenalineSpent, {
     resourceSpent: state.dragonTriggerFlowSpent,
-    resourceRefundRate: Number(warriorBalanceProfile(context, PROFILE.burstMastery)?.resourceGain ?? 0.2)
+    resourceRefundRate: Number(balanceProfileFromContext(context, PROFILE.burstMastery)?.resourceGain ?? 0.2)
   });
   state.dragonAdrenalineSpentByActivation[context.reservationId] = adrenalineSpent;
   context.emit({
@@ -309,9 +310,9 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   context.replaceEvent(context.action, {
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
   });
-  const profile = warriorBalanceProfile(context, PROFILE.artillerySlash);
-  const strike = warriorBalanceProfileEffect(profile, 'strike', charges >= 2 ? 1 : 0);
-  const control = warriorBalanceProfileEffect(profile, 'control');
+  const profile = balanceProfileFromContext(context, PROFILE.artillerySlash);
+  const strike = balanceProfileEffect(profile, 'strike', charges >= 2 ? 1 : 0);
+  const control = balanceProfileEffect(profile, 'control');
   emitSkillDamage(context, {
     at: context.effectiveEnd,
     skillId: skill.id,
@@ -359,7 +360,7 @@ function dragonFlowRateSegments(
     .sort((left, right) => left - right);
   const uniqueBoundaries = [...new Set(boundaries)];
   const segments: DragonFlowRateSegment[] = [];
-  const resources = warriorBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const baseFlow = Number(resources?.energyRegenerationPerSecond ?? 2);
   const stabilizerBonus = Number(resources?.resourceGain ?? 4);
   const positiveFlowBonus = Number(resources?.attributePerStack ?? 2);
@@ -467,7 +468,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
   const chargeThrough = Math.min(target, state.dragonTriggerChargeDeadline);
   const flowPerInterval = dragonFlowPerInterval(context);
   const chargeInterval = Number(
-    warriorBalanceProfile(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
+    balanceProfileFromContext(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
   );
   const ticks = projectDragonCharges({
     startTime: state.flowUpdatedAt,
@@ -570,9 +571,9 @@ function activateOverchargedCartridges(context: WarriorCastContext, at: number):
   if (active?.supercharged) return;
   if (active) active.expiresAt = at;
   const supercharged = Boolean(active);
-  const profile = warriorBalanceProfile(context, PROFILE.overchargedCartridges);
-  const buff = warriorBalanceProfileEffect(profile, 'buff', supercharged ? 1 : 0);
-  const burning = warriorBalanceProfileEffect(profile, 'condition', supercharged ? 1 : 0);
+  const profile = balanceProfileFromContext(context, PROFILE.overchargedCartridges);
+  const buff = balanceProfileEffect(profile, 'buff', supercharged ? 1 : 0);
+  const burning = balanceProfileEffect(profile, 'condition', supercharged ? 1 : 0);
   const duration = Number(buff?.duration ?? 8);
   state.overchargedCartridgeWindows.push({
     startedAt: at,
@@ -654,7 +655,7 @@ function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): b
 
 function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSkill, at: number): void {
   let cooldownReduction = 0;
-  const rechargeReduction = Number(warriorBalanceProfile(context, PROFILE.lushForest)?.rechargeReduction ?? 0.75);
+  const rechargeReduction = Number(balanceProfileFromContext(context, PROFILE.lushForest)?.rechargeReduction ?? 0.75);
   const skillIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   for (const skillId of skillIds) {
     const skill = context.catalog.skillsById.get(skillId);
@@ -691,8 +692,8 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
   }
 
   if (roundsSpent > 0 && hasTrait(context, TRAIT.FIERCE_AS_FIRE)) {
-    const profile = warriorBalanceProfile(context, PROFILE.fierceAsFire);
-    const effect = warriorBalanceProfileEffect(profile, 'buff');
+    const profile = balanceProfileFromContext(context, PROFILE.fierceAsFire);
+    const effect = balanceProfileEffect(profile, 'buff');
     const duration = Number(effect?.duration ?? 15);
     state.fierceAsFireExpiries = state.fierceAsFireExpiries.filter((expiresAt) => expiresAt > at);
     state.fierceAsFireExpiries.push(...Array(roundsSpent).fill(at + duration));
@@ -806,7 +807,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
 
   const state = bladeswornState.from(context);
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY)) {
-    const profile = warriorBalanceProfile(context, PROFILE.gunsAndGlory);
+    const profile = balanceProfileFromContext(context, PROFILE.gunsAndGlory);
     const remaining = Math.max(0, state.gunsAndGloryUntil - event.at);
     const duration = Math.min(Number(profile?.maximumStacks ?? 12), remaining + Number(profile?.resourceGain ?? 3));
     state.gunsAndGloryUntil = event.at + duration;
@@ -828,8 +829,8 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
 
   const cartridges = activeCartridgeWindow(state, event.at);
   if (cartridges) {
-    const burning = warriorBalanceProfileEffect(
-      warriorBalanceProfile(context, PROFILE.overchargedCartridges),
+    const burning = balanceProfileEffect(
+      balanceProfileFromContext(context, PROFILE.overchargedCartridges),
       'condition',
       cartridges.supercharged ? 1 : 0
     );

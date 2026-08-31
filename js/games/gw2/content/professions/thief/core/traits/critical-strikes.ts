@@ -1,14 +1,11 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type {
@@ -116,7 +113,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      Number(thiefBalanceProfile(context, PROFILE.unrelentingStrikes)?.internalCooldown || 8),
+      Number(balanceProfileFromContext(context, PROFILE.unrelentingStrikes)?.internalCooldown || 8),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.UNRELENTING_STRIKES] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -129,7 +126,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   handler: (context, event, _details, application) => {
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const fury = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.unrelentingStrikes), 'boon');
+      const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.unrelentingStrikes), 'boon');
       queueThiefBoon(context, event, {
         traitId: TRAIT.UNRELENTING_STRIKES,
         traitName: 'Unrelenting Strikes',
@@ -158,7 +155,7 @@ export const noQuarterCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      Number(thiefBalanceProfile(context, PROFILE.noQuarter)?.internalCooldown || 2),
+      Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.internalCooldown || 2),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -168,7 +165,7 @@ export const noQuarterCriticalReaction = Object.freeze({
   attribution: { kind: 'trait' as const, id: TRAIT.NO_QUARTER },
   handler: (context, event, _details, application) => {
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const fury = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.noQuarter), 'boon');
+      const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.noQuarter), 'boon');
       extendActiveFury(context, event, Number(fury?.duration || 2));
     }
   }
@@ -182,8 +179,8 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
   )
     return;
   const state = professionCoreState(context);
-  const profile = thiefBalanceProfile(context, PROFILE.assassinsFury);
-  const might = thiefBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.assassinsFury);
+  const might = balanceProfileEffect(profile, 'boon');
   const readyAt = Number(state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] || 0);
   if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] = event.at + Number(profile?.internalCooldown || 2);

@@ -1,4 +1,5 @@
 /** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -8,8 +9,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/cont
 import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  engineerBalanceEffectValue,
-  engineerBalanceValue
+  engineerBalanceEffectValue
 } from '#gw2/content/professions/engineer/core/profiles.js';
 import { resolverSkill } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import type {
@@ -35,7 +35,7 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
   )
     return;
   state.traitProcReadyAt.streamlinedKits =
-    at + engineerBalanceValue(context, PROFILE.streamlinedKits, 'internalCooldown', 20);
+    at + balanceProfileValueFromContext(context, PROFILE.streamlinedKits, 'internalCooldown', 20);
   // Every eligible kit entry grants the shared swiftness effect.
   emitSkillBuff(context, skill, {
     at,
@@ -114,7 +114,7 @@ export function applyStaticDischarge(context: EngineerSchedulerContext, skill: E
 export function applyKineticBattery(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.KINETIC_BATTERY)) return;
   const state = professionCoreState(context);
-  const maximumCharges = engineerBalanceValue(context, PROFILE.kineticBattery, 'maximumStacks', 5);
+  const maximumCharges = balanceProfileValueFromContext(context, PROFILE.kineticBattery, 'maximumStacks', 5);
   state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
   // Proc quickness and reset charges every fifth toolbelt cast.
   if (state.kineticCharges >= maximumCharges) {

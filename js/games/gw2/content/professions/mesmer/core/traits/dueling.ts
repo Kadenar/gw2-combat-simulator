@@ -1,15 +1,16 @@
 /** Owns imperative Core Mesmer Dueling trait effects. */
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerState, SimulationEvent } from '#gw2/platform/engine/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import {
-  mesmerBalanceProfile,
-  mesmerBalanceProfileEffect,
-  mesmerBalanceValue
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
@@ -45,7 +46,7 @@ type BlindingDissipationContext = Pick<MesmerRuntime, 'traits' | 'addEvent' | 'a
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
   if (!context.traits.has(TRAIT.INEPTITUDE)) return;
   const count = Math.max(1, Math.trunc(Number(event.count || 1)));
-  const effect = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.INEPTITUDE), 'condition');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.INEPTITUDE), 'condition');
   context.recordProc(
     'trait',
     'Ineptitude',
@@ -74,7 +75,7 @@ export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, e
   if (defiant && !isInternalCooldownReady(event.at, context.profession.ineptitudeReadyAt)) return;
   if (defiant) {
     context.profession.ineptitudeReadyAt =
-      event.at + mesmerBalanceValue(context, TRAIT.INEPTITUDE, 'internalCooldown', 3);
+      event.at + balanceProfileValueFromContext(context, TRAIT.INEPTITUDE, 'internalCooldown', 3);
   }
 
   applyIneptitudeConfusion(context, { ...event, count: defiant ? 1 : event.count }, 'interrupt → blind → confusion');

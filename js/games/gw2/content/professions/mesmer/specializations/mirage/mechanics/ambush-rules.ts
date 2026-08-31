@@ -1,10 +1,11 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { mirageState } from '#gw2/content/professions/mesmer/specializations/mirage/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { illusionSource, timedStacks } from '#gw2/content/professions/mesmer/core/traits/modifiers.js';
-import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import {
   initializeMirageRuntime,
   mirageControllerFor
@@ -62,7 +63,7 @@ function completeMirageSkill(context: MesmerCastContext, skill: MesmerSkill): vo
   ) {
     runtime.resources.queueResources(
       context.fullEnd + EPSILON,
-      mesmerBalanceValue(context, TRAIT.SELF_DECEPTION, 'resourceGain', 1),
+      balanceProfileValueFromContext(context, TRAIT.SELF_DECEPTION, 'resourceGain', 1),
       runtime.activePrimaryWeapon(),
       `Self-Deception: ${skill.name}`,
       {

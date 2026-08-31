@@ -8,6 +8,7 @@
  *
  * The resolver counterparts live in `mechanics/reactions.ts`.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type {
@@ -40,8 +41,7 @@ import {
 import { catalystModifierRules } from '#gw2/content/professions/elementalist/specializations/catalyst/traits/modifiers.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect,
-  elementalistBalanceValue
+  elementalistBalanceEffect
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
 
@@ -56,11 +56,11 @@ const CATALYST_BASE_EMPOWERMENT_STACKS = 3;
 const CATALYST_BASE_EMPOWERMENT_DURATION = 15;
 
 function maximumEnergy(context: unknown): number {
-  return elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', CATALYST_MAXIMUM_ENERGY);
+  return balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', CATALYST_MAXIMUM_ENERGY);
 }
 
 function maximumEmpowerment(context: unknown): number {
-  return elementalistBalanceValue(
+  return balanceProfileValueFromContext(
     context,
     PROFILE.elementalEmpowerment,
     'maximumStacks',
@@ -91,7 +91,7 @@ function modifyCatalystAttributes(context: Gw2ModifierContext, attributes: Sched
   const timedStacks = (catalystModifierState(context).elementalEmpowermentExpiries || []).filter(
     (expiresAt) => expiresAt > context.time
   ).length;
-  const maximumStacks = elementalistBalanceValue(
+  const maximumStacks = balanceProfileValueFromContext(
     context,
     PROFILE.elementalEmpowerment,
     'maximumStacks',
@@ -102,9 +102,9 @@ function modifyCatalystAttributes(context: Gw2ModifierContext, attributes: Sched
   // paying the full conversion only once every stack is up.
   const multiplier = hasTrait(context, 'Empowered Empowerment')
     ? stacks === maximumStacks
-      ? elementalistBalanceValue(context, PROFILE.elementalEmpowerment, 'attributeConversion', 0.2)
-      : stacks * elementalistBalanceValue(context, PROFILE.elementalEmpowerment, 'coefficientMultiplier', 0.015)
-    : stacks * elementalistBalanceValue(context, PROFILE.elementalEmpowerment, 'attributePerStack', 0.01);
+      ? balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'attributeConversion', 0.2)
+      : stacks * balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'coefficientMultiplier', 0.015)
+    : stacks * balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'attributePerStack', 0.01);
   // The build may pin the attribute pool the bonus is computed from; otherwise the
   // incoming resolved attributes are used.
   const pool = context.config?.catalystEmpowermentPool as Partial<CatalystEmpowermentPool> | undefined;
@@ -135,7 +135,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
     };
   }
 
-  const sphereCost = elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', SPHERE_COST);
+  const sphereCost = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', SPHERE_COST);
   return state.energy >= sphereCost
     ? { ready: true }
     : {
@@ -151,7 +151,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (skill.skillFamily !== 'Jade Sphere') return;
   const state = catalystState.from(context);
-  const sphereCost = elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', SPHERE_COST);
+  const sphereCost = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', SPHERE_COST);
   state.energy = Math.max(0, state.energy - sphereCost);
   const duration = Math.max(
     0,
@@ -176,7 +176,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   // scale them a second time.
   if (hasTrait(context, 'Spectacular Sphere')) {
     const durationMultiplier = hasTrait(context, 'Sphere Specialist')
-      ? elementalistBalanceValue(
+      ? balanceProfileValueFromContext(
           context,
           PROFILE.sphereSpecialist,
           'durationMultiplier',
@@ -250,7 +250,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
       context.replaceEvent(event, {
         duration:
           Number(event.duration || 0) *
-          elementalistBalanceValue(
+          balanceProfileValueFromContext(
             context,
             PROFILE.sphereSpecialist,
             'durationMultiplier',
@@ -275,8 +275,8 @@ function activateRelentlessFire(context: ElementalistSchedulerContext, skill: Sk
     stacks: 1,
     duration:
       state.sphereExpiry.Fire > at
-        ? elementalistBalanceValue(context, PROFILE.relentlessFire, 'durationPerTier', 8)
-        : elementalistBalanceValue(context, PROFILE.relentlessFire, 'durationMultiplier', 5)
+        ? balanceProfileValueFromContext(context, PROFILE.relentlessFire, 'durationPerTier', 8)
+        : balanceProfileValueFromContext(context, PROFILE.relentlessFire, 'durationMultiplier', 5)
   });
 }
 
@@ -285,8 +285,8 @@ function activateShatteringIce(context: ElementalistSchedulerContext, skill: Ski
   const state = catalystState.from(context);
   const duration =
     state.sphereExpiry.Water > at
-      ? elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationPerTier', 8)
-      : elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationMultiplier', 5);
+      ? balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'durationPerTier', 8)
+      : balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'durationMultiplier', 5);
   state.shatteringIceUntil = at + duration;
   // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
   state.shatteringIceReadyAt = 0;
@@ -380,7 +380,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   const core = professionCoreState(context);
   // Every aura gained adds an Empowering Auras stack buff.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
-    const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
+    const duration = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
     const source = String(event.skillName || event.source || 'Aura');
     const sourceId = event.skillId ?? event.sourceId;
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
@@ -452,7 +452,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   // Energized Elements refunds energy and grants fury on every attunement swap.
   if (event.type === 'elementalist.attunement' && hasTrait(context, 'Energized Elements')) {
     const before = state.energy;
-    const energyGain = elementalistBalanceValue(context, PROFILE.energizedElements, 'resourceGain', 2);
+    const energyGain = balanceProfileValueFromContext(context, PROFILE.energizedElements, 'resourceGain', 2);
     state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
     const fury = elementalistBalanceEffect(context, PROFILE.energizedElements, 'boon', 'Fury');
     emitSkillBuff(context, elementalistEventSkill(context, 'Energized Elements', event.sourceId), {
@@ -492,7 +492,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       isInternalCooldownReady(event.at, Number(state.elementalEpitomeReadyAt[attunement] || 0))
     ) {
       state.elementalEpitomeReadyAt[attunement] =
-        event.at + elementalistBalanceValue(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
+        event.at + balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
       const aura =
         attunement === 'Fire'
           ? (['Fire Aura', 4] as const)
@@ -516,7 +516,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       isInternalCooldownReady(event.at, Number(state.elementalSynergyReadyAt[attunement] || 0))
     ) {
       state.elementalSynergyReadyAt[attunement] =
-        event.at + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
+        event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
       if (attunement === 'Fire' || attunement === 'Earth') {
         const effect = elementalistBalanceEffect(context, PROFILE.elementalSynergy, 'boon', attunement);
         emitSkillBuff(context, elementalistEventSkill(context, 'Elemental Synergy', event.sourceId), {
@@ -534,9 +534,9 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
           core,
           grantEndurance(
             core,
-            elementalistBalanceValue(context, PROFILE.elementalSynergy, 'resourceGain', 50),
+            balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'resourceGain', 50),
             event.at,
-            elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100)
+            balanceProfileValueFromContext(context, CORE_PROFILE.resources, 'maximumStacks', 100)
           )
         );
       }
@@ -587,7 +587,7 @@ function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: Sc
   }
 
   const before = state.energy;
-  const energyGain = elementalistBalanceValue(context, PROFILE.resources, 'resourceGain', 1);
+  const energyGain = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceGain', 1);
   state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
   if (state.energy === before) return;
   context.emit({
@@ -621,13 +621,13 @@ function handleCatalystEmpowerment(context: ElementalistSchedulerContext, task: 
 // application timestamp and profile duration.
 function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const at = Number(task.payload?.applicationAt ?? task.at);
-  const duration = elementalistBalanceValue(
+  const duration = balanceProfileValueFromContext(
     context,
     PROFILE.elementalEmpowerment,
     'durationMultiplier',
     CATALYST_BASE_EMPOWERMENT_DURATION
   );
-  const stacks = elementalistBalanceValue(
+  const stacks = balanceProfileValueFromContext(
     context,
     PROFILE.elementalEmpowerment,
     'playerStacks',
@@ -670,7 +670,7 @@ function handleViciousEmpowerment(context: ElementalistSchedulerContext, task: S
   const state = catalystState.from(context);
   if (!isInternalCooldownReady(at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
-    at + elementalistBalanceValue(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
+    at + balanceProfileValueFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
   const empowerment = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'buff', 'Empowerment');
   grantCatalystElementalEmpowerment(
     state,
@@ -694,7 +694,8 @@ export const catalystCastRules = Object.freeze({
   },
   modifyRechargeDuration: (context: ElementalistPrecastContext, duration: number): number =>
     context.skill.skillFamily === 'Jade Sphere' && hasTrait(context, 'Elemental Enchantment')
-      ? duration * elementalistBalanceValue(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
+      ? duration *
+        balanceProfileValueFromContext(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
       : duration
 });
 

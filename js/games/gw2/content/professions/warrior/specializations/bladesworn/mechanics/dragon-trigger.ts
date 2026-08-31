@@ -1,7 +1,8 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import type { WarriorCastContext, WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
-import { warriorBalanceProfile } from '#gw2/content/professions/warrior/core/profiles.js';
+
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 
 // Dragon Trigger ticks every 250 ms to potentially grant one charge.
@@ -103,14 +104,16 @@ export function dragonChargesToAdrenalineSpent(charges: number): number {
 type DragonTriggerContext = WarriorCastContext | WarriorSchedulerContext;
 
 export function maximumDragonCharges(context: DragonTriggerContext): number {
-  const profile = warriorBalanceProfile(context, PROFILE.dragonTrigger);
+  const profile = balanceProfileFromContext(context, PROFILE.dragonTrigger);
   return hasTrait(context, TRAIT.DARING_DRAGON)
     ? Number(profile?.minimumStacks ?? 5)
     : Number(profile?.maximumStacks ?? 10);
 }
 
 export function dragonFlowPerInterval(context: DragonTriggerContext): number {
-  const cost = Number(warriorBalanceProfile(context, PROFILE.dragonTrigger)?.resourceCost ?? DRAGON_FLOW_PER_INTERVAL);
+  const cost = Number(
+    balanceProfileFromContext(context, PROFILE.dragonTrigger)?.resourceCost ?? DRAGON_FLOW_PER_INTERVAL
+  );
   return hasTrait(context, TRAIT.DARING_DRAGON) ? cost * 2 : cost;
 }
 

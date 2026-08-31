@@ -1,10 +1,11 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2RechargeRate } from '#gw2/platform/combat/query/runtime-rules.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { warriorBoonRemovalCounts } from '#gw2/content/professions/warrior/core/mechanics/reactions.js';
-import { warriorBalanceProfile, warriorBalanceProfileEffect } from '#gw2/content/professions/warrior/core/profiles.js';
+
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
 import { spellbreakerState } from '#gw2/content/professions/warrior/specializations/spellbreaker/state.js';
 import type {
@@ -23,8 +24,8 @@ function gainAttackersInsight(
   at: number,
   applications = 1
 ): void {
-  const profile = warriorBalanceProfile(context, PROFILE.attackersInsight);
-  const effect = warriorBalanceProfileEffect(profile, 'buff');
+  const profile = balanceProfileFromContext(context, PROFILE.attackersInsight);
+  const effect = balanceProfileEffect(profile, 'buff');
   const expiries = Array.from(
     { length: Math.max(1, Math.trunc(applications)) },
     () => at + Number(effect?.duration ?? 15)
@@ -62,8 +63,8 @@ function triggerMagebaneTether(
   at: number
 ): boolean {
   if (!isInternalCooldownReady(at, state.magebaneTetherReadyAt)) return false;
-  const profile = warriorBalanceProfile(context, PROFILE.magebaneTether);
-  const effect = warriorBalanceProfileEffect(profile, 'buff');
+  const profile = balanceProfileFromContext(context, PROFILE.magebaneTether);
+  const effect = balanceProfileEffect(profile, 'buff');
   state.magebaneTetherUntil = at + Number(effect?.duration ?? 8);
   // Divide by recharge rate so alacrity reduces the internal cooldown.
   state.magebaneTetherReadyAt = at + Number(profile?.cooldown ?? 12) / gw2RechargeRate(context.config);
@@ -97,7 +98,7 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
       hasTrait(context, TRAIT.NO_ESCAPE) &&
       ['daze', 'stun'].includes(String(event.controlKind || '').toLowerCase())
     ) {
-      const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.noEscape), 'condition');
+      const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.noEscape), 'condition');
       emitSkillCondition(context, {
         cause: event,
 

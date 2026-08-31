@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast } from '#gw2/content/professions/lib/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
@@ -8,10 +9,7 @@ import {
   normalizeRangerHammerSkillIds
 } from '#gw2/content/professions/ranger/core/skills/hammer.js';
 import { rangerEnduranceReadyAt } from '#gw2/content/professions/ranger/core/mechanics/resources.js';
-import {
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/content/professions/ranger/core/mechanics/weapon-state.js';
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
@@ -19,7 +17,7 @@ import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/content/professions/ra
 export function rangerCoreCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
-    const cost = rangerBalanceValue(context, PROFILE.resources, 'resourceCost', 50);
+    const cost = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', 50);
     return state.endurance + context.epsilon >= cost
       ? { ready: true }
       : {

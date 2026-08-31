@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
@@ -6,7 +7,7 @@ import type {
   NecromancerResolverEvent,
   NecromancerWeaponSpellRecipient
 } from '#gw2/content/professions/necromancer/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
 /** Applies duration-stacking Painful Bond and advances its fixed-cadence damage pulses. */
@@ -14,7 +15,7 @@ export function handleNecromancerPainfulBond(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  const definition = necromancerBalanceProfile(context, PROFILE.painfulBond);
+  const definition = balanceProfileFromContext(context, PROFILE.painfulBond);
   const buff = balanceProfileEffect(definition, 'buff');
   const strike = balanceProfileEffect(definition, 'strike');
   const state = ritualistState.from(context);

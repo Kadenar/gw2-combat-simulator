@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -7,7 +8,7 @@ import { initializeVirtuosoRuntime } from '#gw2/content/professions/mesmer/speci
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { MesmerSchedulerContext, MesmerSchedulerTask } from '#gw2/content/professions/mesmer/types.js';
-import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import {
   handleDeadlyBladesCriticalTask,
   observeDeadlyBladesEvent
@@ -46,10 +47,10 @@ export const virtuosoCastRules = Object.freeze({
 function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const quietIntensityDelta = hasTrait(context, TRAIT.QUIET_INTENSITY)
     ? Number(attributes.vitality || 0) *
-      (mesmerBalanceValue(context, PROFILE.quietIntensity, 'vitalityConversion', 0.1) - 0.1)
+      (balanceProfileValueFromContext(context, PROFILE.quietIntensity, 'vitalityConversion', 0.1) - 0.1)
     : 0;
   const sharpeningSorrowDelta = hasTrait(context, PROFILE.sharpeningSorrow)
-    ? mesmerBalanceValue(context, PROFILE.sharpeningSorrow, 'expertiseBonus', 150) - 150
+    ? balanceProfileValueFromContext(context, PROFILE.sharpeningSorrow, 'expertiseBonus', 150) - 150
     : 0;
   if (quietIntensityDelta === 0 && sharpeningSorrowDelta === 0) return attributes;
   return {
@@ -133,7 +134,7 @@ export function handleInfiniteForgeTask(
   const runtime = mesmerRuntimeFor(context);
   runtime.resources.gainResources(
     task.at,
-    mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'playerStacks', 1),
+    balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'playerStacks', 1),
     runtime.activePrimaryWeapon(),
     'Infinite Forge',
     {
@@ -143,7 +144,7 @@ export function handleInfiniteForgeTask(
   );
   context.tasks.schedule({
     type: 'mesmer.infinite-forge',
-    at: task.at + mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
+    at: task.at + balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
     priority: -20,
     ownerId: 'mesmer.infinite-forge',
     payload: {}

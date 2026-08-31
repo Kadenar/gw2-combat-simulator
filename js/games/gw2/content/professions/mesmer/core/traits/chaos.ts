@@ -1,10 +1,11 @@
 /** Owns imperative Core Mesmer Chaos trait effects. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerState, SimulationEvent } from '#gw2/platform/engine/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import type {
   MesmerAddDamage,
   MesmerAddEvent,
@@ -67,7 +68,7 @@ export function triggerChaoticInterruption(
   // Only affects weapon skills that are recharging.
   const readyAt = Number(context.state.cooldowns.get(targetId) || 0);
   if (!(readyAt > event.at + EPSILON)) return;
-  const reduction = mesmerBalanceValue(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge', 5);
+  const reduction = balanceProfileValueFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge', 5);
 
   const reduced = Math.max(event.at, readyAt - reduction);
   if (reduced > event.at + EPSILON) {
@@ -78,7 +79,7 @@ export function triggerChaoticInterruption(
 
   if (defiant) {
     core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =
-      event.at + mesmerBalanceValue(context, TRAIT.CHAOTIC_INTERRUPTION, 'internalCooldown', 1);
+      event.at + balanceProfileValueFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'internalCooldown', 1);
   }
 
   runtime.addTraitProc(

@@ -1,4 +1,5 @@
 /** Imperative Earth trait behavior; dispatch and event classification remain outside this line module. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -25,7 +26,6 @@ import {
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
-  elementalistBalanceValue,
   elementalistEffectValue
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 
@@ -76,7 +76,7 @@ export function applyEarthsEmbrace(context: ElementalistLifecycleContext, skill:
   )
     return;
   state.procReadyAt.earthsEmbrace =
-    at + elementalistBalanceValue(context, PROFILE.earthsEmbrace, 'internalCooldown', 15);
+    at + balanceProfileValueFromContext(context, PROFILE.earthsEmbrace, 'internalCooldown', 15);
   emitProfiledBuff(context, at, PROFILE.earthsEmbrace, 'Resistance', 'Resistance', 1, 4, "Earth's Embrace", skill.id);
 }
 
@@ -112,7 +112,7 @@ export function applyStrengthOfStone(context: Gw2ResolverRuntime, event: Gw2Reso
   const state = elementalistResolverCoreState(context);
   if (!isInternalCooldownReady(event.at, Number(state.procReadyAt.strengthOfStone || 0))) return;
   state.procReadyAt.strengthOfStone =
-    event.at + elementalistBalanceValue(context, PROFILE.strengthOfStone, 'internalCooldown', 3);
+    event.at + balanceProfileValueFromContext(context, PROFILE.strengthOfStone, 'internalCooldown', 3);
   const bleeding = elementalistBalanceEffect(context, PROFILE.strengthOfStone, 'condition', 'Strength of Stone');
   applyElementalistDerivedCondition(context, event, {
     source: 'Strength of Stone',

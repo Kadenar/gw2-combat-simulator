@@ -1,7 +1,8 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/engine/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerCastContext, MesmerShatterResolution } from '#gw2/content/professions/mesmer/types.js';
 
@@ -27,7 +28,8 @@ const triggerShatterBoon = (
   };
   const kind = String(effect.boon || fallbackBoon);
   const baseDuration =
-    Number(effect.duration ?? 3) + (resolution.spent + 1) * mesmerBalanceValue(context, traitId, 'durationPerTier', 1);
+    Number(effect.duration ?? 3) +
+    (resolution.spent + 1) * balanceProfileValueFromContext(context, traitId, 'durationPerTier', 1);
   const duration = gw2SchedulerBoonDuration(context, { id: traitId, name: traitName }, kind, baseDuration);
   runtime.addEvent({
     type: 'buff',
@@ -54,14 +56,14 @@ export function resolveIllusionaryReversion(context: MesmerCastContext, resoluti
   const runtime = mesmerRuntimeFor(context);
   if (
     !runtime.traits.has(TRAIT.ILLUSIONARY_REVERSION) ||
-    resolution.spent !== mesmerBalanceValue(context, TRAIT.ILLUSIONARY_REVERSION, 'threshold', 3)
+    resolution.spent !== balanceProfileValueFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'threshold', 3)
   ) {
     return;
   }
 
   runtime.resources.queueResources(
     resolution.at + context.epsilon,
-    mesmerBalanceValue(context, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain', 1),
+    balanceProfileValueFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain', 1),
     runtime.activePrimaryWeapon(),
     'Illusionary Reversion',
     {

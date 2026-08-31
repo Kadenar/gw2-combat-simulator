@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
@@ -15,7 +16,7 @@ import { deadeyeState } from '#gw2/content/professions/thief/specializations/dea
 import { applyMaleficentSeven } from '#gw2/content/professions/thief/specializations/deadeye/traits/index.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
-import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
 
 export const DEADEYE_STOLEN_SKILL_IDS: readonly number[] = Object.freeze([
@@ -55,7 +56,7 @@ function markedAt(context: ThiefSchedulerContext, at: number): boolean {
 }
 
 export function initializeDeadeyeMalice(context: ThiefSchedulerContext): void {
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const state = deadeyeState.from(context);
   state.maximumMalice = hasTrait(context.config, TRAIT.MALEFICENT_SEVEN)
     ? Number(resources?.minimumStacks || 7)
@@ -89,7 +90,7 @@ export function observeDeadeyeScheduledEvent(context: ThiefSchedulerContext, eve
 
 function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const tracker = { progress: state.maliceCriticalProgress, readyAt: 0 };
   const criticalApplication = advanceScheduledCriticalProc(context, event, { id: 'thief.deadeye.malice' }, tracker);
   state.maliceCriticalProgress = tracker.progress;
@@ -109,7 +110,7 @@ function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: Thi
     // Malicious Intent grants 2 malice on consumption before zeroing it out, allowing Maleficent Seven to trigger one final time
     state.malice = Math.min(
       state.maximumMalice,
-      state.malice + Number(thiefBalanceProfile(context, PROFILE.maliciousIntent)?.resourceGain || 2)
+      state.malice + Number(balanceProfileFromContext(context, PROFILE.maliciousIntent)?.resourceGain || 2)
     );
     applyMaleficentSeven(context, event.at);
     emitStateSnapshot(context, 'thief', event.at, 'malicious-intent', snapshotThiefState(context.state.profession));
@@ -148,7 +149,7 @@ function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   if (
     skill.id !== ID.DODGE ||
     !hasTrait(context.config, TRAIT.SILENT_SCOPE) ||
-    state.malice <= Number(thiefBalanceProfile(context, PROFILE.silentScope)?.threshold || 3)
+    state.malice <= Number(balanceProfileFromContext(context, PROFILE.silentScope)?.threshold || 3)
   ) {
     return;
   }
@@ -156,7 +157,7 @@ function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   // Silent Scope grants one out-of-stealth stealth-attack charge, expiring 3s after the dodge ends
   state.stealthAttackCharges = 1;
   state.stealthAttackExpiresAt =
-    context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.silentScope)?.durationMultiplier || 3);
+    context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.silentScope)?.durationMultiplier || 3);
   emitStateSnapshot(
     context,
     'thief',

@@ -1,21 +1,19 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 function rangerEnduranceRegenerationRate(context: RangerSchedulerContext, at: number): number {
   const vigor = Boolean(context.config.boons?.vigor || context.hasBuff?.('vigor', at));
   return (
-    rangerBalanceValue(context, PROFILE.resources, 'enduranceRegenerationPerSecond', 5) *
+    balanceProfileValueFromContext(context, PROFILE.resources, 'enduranceRegenerationPerSecond', 5) *
     (1 +
-      (vigor ? rangerBalanceValue(context, PROFILE.resources, 'vigorRegenerationMultiplier', 1.5) - 1 : 0) +
+      (vigor ? balanceProfileValueFromContext(context, PROFILE.resources, 'vigorRegenerationMultiplier', 1.5) - 1 : 0) +
       (hasTrait({ config: context.config }, TRAIT.NATURAL_VIGOR)
-        ? rangerBalanceValue(context, PROFILE.naturalVigor, 'vigorRegenerationMultiplier', 0.25)
+        ? balanceProfileValueFromContext(context, PROFILE.naturalVigor, 'vigorRegenerationMultiplier', 0.25)
         : 0))
   );
 }

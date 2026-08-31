@@ -1,4 +1,5 @@
 /** Imperative Fire trait behavior; dispatch order remains centralized in the trait index. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -27,7 +28,6 @@ import {
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
-  elementalistBalanceValue,
   elementalistEffectValue
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 
@@ -81,7 +81,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) return;
 
   const cappedMight = Math.min(
-    elementalistBalanceValue(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10),
+    balanceProfileValueFromContext(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10),
     context.buffStacks('might', at)
   );
   const baseCoefficient = elementalistEffectValue(
@@ -92,7 +92,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     1,
     'Flame Expulsion'
   );
-  const coefficientPerMight = elementalistBalanceValue(
+  const coefficientPerMight = balanceProfileValueFromContext(
     context,
     PROFILE.pyromancersPuissance,
     'damageIncreasePerStack',
@@ -106,7 +106,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     2,
     'Flame Expulsion'
   );
-  const burningDurationPerMight = elementalistBalanceValue(
+  const burningDurationPerMight = balanceProfileValueFromContext(
     context,
     PROFILE.pyromancersPuissance,
     'durationPerTier',
@@ -133,7 +133,8 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     duration: Math.min(
       baseBurningDuration + burningDurationPerMight * cappedMight,
       baseBurningDuration +
-        burningDurationPerMight * elementalistBalanceValue(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10)
+        burningDurationPerMight *
+          balanceProfileValueFromContext(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10)
     ),
     skillName: 'Flame Expulsion'
   });
@@ -162,7 +163,7 @@ export function applyPyromancersPuissance(context: ElementalistLifecycleContext,
 /** Applies Smothering Auras' profile-driven duration multiplier once. */
 export function elementalistAuraDuration(context: unknown, duration: number): number {
   return hasTrait(context, 'Smothering Auras')
-    ? duration * elementalistBalanceValue(context, PROFILE.smotheringAuras, 'durationMultiplier', 1.33)
+    ? duration * balanceProfileValueFromContext(context, PROFILE.smotheringAuras, 'durationMultiplier', 1.33)
     : duration;
 }
 
@@ -190,7 +191,7 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
   );
   const extraPackets = Math.max(
     0,
-    Math.trunc(elementalistBalanceValue(context, PROFILE.persistingFlames, 'summons', 2))
+    Math.trunc(balanceProfileValueFromContext(context, PROFILE.persistingFlames, 'summons', 2))
   );
   for (let index = 1; index <= extraPackets; index += 1) {
     const at = template.at + interval * index;
@@ -216,7 +217,7 @@ export function extendPersistingFlamesField(context: ElementalistSchedulerContex
   if (!field) return;
   context.replaceEvent(field, {
     expiresAt:
-      Number(field.expiresAt) + elementalistBalanceValue(context, PROFILE.persistingFlames, 'durationPerTier', 2)
+      Number(field.expiresAt) + balanceProfileValueFromContext(context, PROFILE.persistingFlames, 'durationPerTier', 2)
   });
 }
 
@@ -241,7 +242,7 @@ export function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2Res
     event,
     'Persisting Flames',
     1,
-    elementalistBalanceValue(context, PROFILE.persistingFlames, 'durationMultiplier', 15),
+    balanceProfileValueFromContext(context, PROFILE.persistingFlames, 'durationMultiplier', 15),
     elementalistSourceSkill(event)
   );
 }

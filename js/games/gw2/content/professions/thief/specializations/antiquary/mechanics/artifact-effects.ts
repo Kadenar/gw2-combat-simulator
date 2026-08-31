@@ -1,8 +1,9 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/content/professions/thief/types.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 // Spend one unexpired Mistburn charge on a qualifying player strike and attach
@@ -21,7 +22,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   )
     return;
   state.mistburnCharges -= 1;
-  const burning = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.mistburnProc), 'condition');
+  const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.mistburnProc), 'condition');
   context.applyCondition({
     type: 'condition',
     at: event.at,
@@ -48,7 +49,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
     !hasTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
   )
     return;
-  const burning = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sunCrystalMeticulous), 'condition');
+  const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunCrystalMeticulous), 'condition');
   context.applyCondition({
     type: 'condition',
     at: event.at,

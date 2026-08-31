@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -10,10 +11,7 @@ import type {
   WarriorSchedulerContext,
   WarriorSkill
 } from '#gw2/content/professions/warrior/types.js';
-import {
-  warriorBalanceProfile,
-  WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
-} from '#gw2/content/professions/warrior/core/profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import { advanceBerserker } from '#gw2/content/professions/warrior/specializations/berserker/mechanics/berserk.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/berserker/profiles.js';
 import {
@@ -81,13 +79,13 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
     conditionDamage: number;
   };
   if (active(context)) {
-    const resources = warriorBalanceProfile(context, PROFILE.resources);
+    const resources = balanceProfileFromContext(context, PROFILE.resources);
     const powerBonus = Number(resources?.attributeBonus ?? 300);
     result.power += powerBonus;
     result.conditionDamage += Number(resources?.attributePerStack ?? 150);
     if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
       const conversion = Number(
-        warriorBalanceProfile(context, CORE_PROFILE.greatFortitude)?.attributeConversion ?? 0.1
+        balanceProfileFromContext(context, CORE_PROFILE.greatFortitude)?.attributeConversion ?? 0.1
       );
       result.vitality = Number(result.vitality || 0) + powerBonus * conversion;
       result.ferocity += powerBonus * conversion;
@@ -95,7 +93,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
   }
 
   if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
-    const profile = warriorBalanceProfile(context, PROFILE.bloodReaction);
+    const profile = balanceProfileFromContext(context, PROFILE.bloodReaction);
     const conversion = active(context)
       ? Number(profile?.coefficientMultiplier ?? 0.24)
       : Number(profile?.attributeConversion ?? 0.12);
@@ -129,7 +127,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 // two are not additive in the game's speed model.
 function modifyCastDuration(context: WarriorCastContext, duration: number): number {
   return berserkerState.from(context).berserkActive && !context.hasBuff('quickness', context.start)
-    ? duration / Number(warriorBalanceProfile(context, PROFILE.resources)?.quicknessCastMultiplier ?? 1.15)
+    ? duration / Number(balanceProfileFromContext(context, PROFILE.resources)?.quicknessCastMultiplier ?? 1.15)
     : duration;
 }
 

@@ -6,6 +6,7 @@
  * the resource events the charge dial renders. Spending charges belongs to the
  * familiar handlers; this module only accrues and reports them.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -20,7 +21,6 @@ import {
 } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
-import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /**
  * Seeds charge capacity from the active balance profile before the first cast,
@@ -32,7 +32,7 @@ export function initialize(context: ElementalistSchedulerContext): void {
   const core = professionCoreState(context);
   // Specialized Elements keeps the six-charge capacity but accelerates each
   // matching weapon skill to three charges.
-  state.maximumCharges = elementalistBalanceValue(
+  state.maximumCharges = balanceProfileValueFromContext(
     context,
     hasTrait(context, 'Specialized Elements') ? PROFILE.specializedElements : PROFILE.resources,
     'maximumStacks',
@@ -88,8 +88,8 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
   return String(skill.attunement || '')
     .split('+')
     .includes(state.element)
-    ? elementalistBalanceValue(context, profile, 'playerStacks', specialized ? 3 : 2)
-    : elementalistBalanceValue(context, PROFILE.resources, 'allyStacks', 1);
+    ? balanceProfileValueFromContext(context, profile, 'playerStacks', specialized ? 3 : 2)
+    : balanceProfileValueFromContext(context, PROFILE.resources, 'allyStacks', 1);
 }
 
 // commits one grant, clamped to capacity, and reports it with a delta so the log shows the change

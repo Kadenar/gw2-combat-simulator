@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
@@ -9,7 +10,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitEngineerBarSwap } from '#gw2/content/professions/engineer/core/mechanics/event-handlers.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
 import {
   HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS,
@@ -61,9 +62,14 @@ const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penal
 /** Converts the profiled passive heat rate, including Light Density Amplifier, to one cadence tick. */
 function passiveHeatPerTick(context: EngineerSchedulerContext): number {
   const heatPerSecond =
-    engineerBalanceValue(context, PROFILE.heat, 'energyRegenerationPerSecond', HOLOSMITH_HEAT.basePassivePerSecond) +
+    balanceProfileValueFromContext(
+      context,
+      PROFILE.heat,
+      'energyRegenerationPerSecond',
+      HOLOSMITH_HEAT.basePassivePerSecond
+    ) +
     (hasTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
-      ? engineerBalanceValue(context, PROFILE.heat, 'resourceGain', HOLOSMITH_HEAT.lightDensityBonusPerSecond)
+      ? balanceProfileValueFromContext(context, PROFILE.heat, 'resourceGain', HOLOSMITH_HEAT.lightDensityBonusPerSecond)
       : 0);
 
   // Scale profile rates to the resource cadence so 2%/s becomes 0.2% per 100 ms.
@@ -196,7 +202,7 @@ function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, seg
     // Emit every due pulse inside the interval, then carry the next boundary into later calls.
     while (Number(readyAt) <= interval.end + context.epsilon) {
       emitEnhancedCapacityMight(context, Number(readyAt));
-      readyAt = Number(readyAt) + engineerBalanceValue(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
+      readyAt = Number(readyAt) + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
     }
 
     if (!interval.endsAbove) readyAt = null;
@@ -219,7 +225,8 @@ function triggerInstantEnhancedCapacityMight(
   )
     return;
   emitEnhancedCapacityMight(context, at);
-  state.enhancedCapacityMightReadyAt = at + engineerBalanceValue(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
+  state.enhancedCapacityMightReadyAt =
+    at + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
 }
 
 /** Replaces Solar Focusing Lens charges and opens their profiled activation window. */
@@ -230,7 +237,7 @@ export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: nu
   state.solarFocusingLensReadyAt = at;
   state.solarFocusingLensUntil =
     at +
-    engineerBalanceValue(
+    balanceProfileValueFromContext(
       context,
       PROFILE.solarFocusingLens,
       'durationMultiplier',
@@ -306,7 +313,12 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
   const photonicBlastingModule = hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
   const effectDelay = photonicBlastingModule
-    ? engineerBalanceValue(context, PROFILE.photonicBlastingModule, 'initialDelay', HOLOSMITH_HEAT.overheatEffectDelay)
+    ? balanceProfileValueFromContext(
+        context,
+        PROFILE.photonicBlastingModule,
+        'initialDelay',
+        HOLOSMITH_HEAT.overheatEffectDelay
+      )
     : HOLOSMITH_HEAT.overheatEffectDelay;
   const effectAt = at + effectDelay;
   state.heat = state.maximumHeat;
@@ -319,8 +331,8 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
     context,
     effectAt,
     photonicBlastingModule
-      ? engineerBalanceValue(context, PROFILE.photonicBlastingModule, 'cooldown', 5)
-      : engineerBalanceValue(context, PROFILE.overheat, 'maximumStacks', 15)
+      ? balanceProfileValueFromContext(context, PROFILE.photonicBlastingModule, 'cooldown', 5)
+      : balanceProfileValueFromContext(context, PROFILE.overheat, 'maximumStacks', 15)
   );
 
   // Publish maximum heat at the overheat timestamp. The module blast and its
@@ -329,7 +341,7 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   grantSolarFocusingLens(
     context,
     photonicBlastingModule ? effectAt : at,
-    engineerBalanceValue(context, PROFILE.solarFocusingLens, 'maximumStacks', 6)
+    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'maximumStacks', 6)
   );
   if (photonicBlastingModule) emitPhotonicBlastingModuleEffects(context, effectAt);
 }
@@ -441,7 +453,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   const state = holosmithState.from(context);
   const coreState = professionCoreState(context);
   const at = context.effectiveEnd;
-  const baseKitLockout = engineerBalanceValue(context, PROFILE.heat, 'cooldown', 6);
+  const baseKitLockout = balanceProfileValueFromContext(context, PROFILE.heat, 'cooldown', 6);
   coreState.activeKit = '';
   state.photonForgeActive = true;
   state.forgeExitedAt = null;
@@ -449,7 +461,11 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   // Photon Forge's kit lockout behaves as recharge, so route its six-second
   // base duration through the shared recharge rules that apply Alacrity.
   state.kitLockoutUntil = at + context.rechargeDurationFor({ ...skill, cooldown: baseKitLockout }, at);
-  grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
+  grantSolarFocusingLens(
+    context,
+    at,
+    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+  );
   emitEngineerBarSwap(context, skill, at);
   emitStateSnapshot(context, 'engineer', at, 'enter-forge', snapshotEngineerState(context.state.profession));
 }
@@ -461,7 +477,11 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
   state.photonForgeActive = false;
   state.forgeExitedAt = at;
   startPassiveHeatCadence(context, at);
-  grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
+  grantSolarFocusingLens(
+    context,
+    at,
+    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+  );
   emitEngineerBarSwap(context, skill, at);
   emitStateSnapshot(context, 'engineer', at, 'exit-forge', snapshotEngineerState(context.state.profession));
 }
@@ -621,7 +641,11 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
   holosmithState.from(context).photonForgeActive = false;
   holosmithState.from(context).forgeExitedAt = at;
   startPassiveHeatCadence(context, at);
-  grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
+  grantSolarFocusingLens(
+    context,
+    at,
+    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+  );
 }
 
 /** Decorates every Holosmith event with heat metadata, then consumes Solar Focusing Lens on eligible strikes. */

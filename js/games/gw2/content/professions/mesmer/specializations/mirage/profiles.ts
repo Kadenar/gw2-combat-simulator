@@ -1,10 +1,11 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
 } from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import { mesmerBalanceProfile } from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import { MESMER_MIRAGE_AMBUSH_ATTACKS } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
 import type { MesmerAmbushAttack, MesmerAttackStatus } from '#gw2/content/professions/mesmer/types.js';
 
@@ -124,7 +125,7 @@ export function mesmerProfiledAmbush(
   attack: MesmerAmbushAttack,
   balanceProfileId: string
 ): MesmerAmbushAttack {
-  const profile = mesmerBalanceProfile(context, balanceProfileId);
+  const profile = balanceProfileFromContext(context, balanceProfileId);
   const strikes = (profile?.effects || []).filter((effect) => effect.type === 'strike');
   const playerStrike = strikes.find((effect) => effect.source === 'Player');
   const cloneStrike = strikes.find((effect) => effect.source === 'Clone');

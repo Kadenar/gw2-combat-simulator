@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   applyMesmerRuntimeManifest,
   mesmerRuntimeFor
@@ -13,15 +14,11 @@ import {
   TROUBADOUR_INSTRUMENT_PROFILE_IDS,
   mesmerProfiledInstrument
 } from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
-import {
-  mesmerBalanceProfile,
-  mesmerBalanceProfileEffect,
-  mesmerProfiledTraitDamage
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerProfiledTraitDamage } from '#gw2/content/professions/mesmer/core/profiles.js';
 
 export function initializeTroubadourRuntime(context: MesmerSchedulerContext): void {
-  const syncopateProfile = mesmerBalanceProfile(context, PROFILE.syncopate);
-  const delayedWave = mesmerBalanceProfileEffect(syncopateProfile, 'strike', 1);
+  const syncopateProfile = balanceProfileFromContext(context, PROFILE.syncopate);
+  const delayedWave = balanceProfileEffect(syncopateProfile, 'strike', 1);
   const runtime = mesmerRuntimeFor(context);
   applyMesmerRuntimeManifest(runtime, {
     instruments: Object.fromEntries(

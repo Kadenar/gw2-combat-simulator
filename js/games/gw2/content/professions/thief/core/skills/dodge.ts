@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -8,26 +9,22 @@ import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import type { ThiefCastContext } from '#gw2/content/professions/thief/types.js';
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 
 // Spend endurance at dodge start and materialize Uncatchable's delayed Lesser
 // Caltrops pulses from the selected balance profile.
 export function performThiefDodge(context: ThiefCastContext): void {
   const state = professionCoreState(context);
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   Object.assign(
     state,
     spendEndurance(state, Number(resources?.resourceCost || 50), context.start, state.maximumEndurance)
   );
   emitStateSnapshot(context, 'thief', context.start, 'dodge', snapshotThiefState(context.state.profession));
   if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
-    const profile = thiefBalanceProfile(context, PROFILE.uncatchable);
-    const bleeding = thiefBalanceProfileEffect(profile, 'condition', 0);
-    const crippled = thiefBalanceProfileEffect(profile, 'condition', 1);
+    const profile = balanceProfileFromContext(context, PROFILE.uncatchable);
+    const bleeding = balanceProfileEffect(profile, 'condition', 0);
+    const crippled = balanceProfileEffect(profile, 'condition', 1);
     const applications = Math.max(0, Number(bleeding?.applications || 3));
     for (let pulse = 0; pulse < applications; pulse += 1) {
       const at = context.start + Number(profile?.initialDelay || 0.8) + pulse * Number(profile?.pulseInterval || 1);
@@ -65,7 +62,7 @@ export function completeThiefDodge(context: ThiefCastContext): void {
   if (!hasTrait(context.config, TRAIT.UPPER_HAND)) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const profile = thiefBalanceProfile(context, PROFILE.upperHand);
+  const profile = balanceProfileFromContext(context, PROFILE.upperHand);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.UPPER_HAND] || 0);
   if (!isInternalCooldownReady(at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.UPPER_HAND] = at + Number(profile?.internalCooldown || 2);

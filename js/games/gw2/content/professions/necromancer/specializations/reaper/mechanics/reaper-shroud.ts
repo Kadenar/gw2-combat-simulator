@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
@@ -18,7 +19,7 @@ import {
   necromancerTargetChilled
 } from '#gw2/content/professions/necromancer/core/traits/modifiers.js';
 import { ensurePermanentIceFieldAssumption } from '#gw2/content/professions/necromancer/specializations/reaper/mechanics/combos.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/reaper/profiles.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
@@ -33,7 +34,7 @@ import { reaperState } from '#gw2/content/professions/necromancer/specialization
 
 /** Reduces every active Reaper Shroud cooldown when Reaper's Onslaught sees Life Reap land. */
 function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number): void {
-  const reduction = Number(necromancerBalanceProfile(context, PROFILE.reapersOnslaught)?.rechargeReduction || 1);
+  const reduction = Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.rechargeReduction || 1);
   for (const candidate of context.catalog.skills || []) {
     if (candidate.shroud !== 'reaper') continue;
     const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
@@ -59,7 +60,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 
   if (skill.categories?.includes('Shout') && hasTrait(context, TRAIT.AUGURY_OF_DEATH)) {
-    const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.auguryOfDeath), 'strike');
+    const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.auguryOfDeath), 'strike');
     emitSkillDamage(context, skill, {
       at: context.effectiveEnd,
       name: 'Augury of Death',
@@ -87,7 +88,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     // Configured Chilled on target stands in for "target is chilled" since scheduler has no live condition state.
     context.config?.target?.conditions?.Chilled
   ) {
-    const profile = necromancerBalanceProfile(context, PROFILE.chillingVictory);
+    const profile = balanceProfileFromContext(context, PROFILE.chillingVictory);
     gainNecromancerLifeForce(context, Number(profile?.lifeForceGain || 1), context.effectiveEnd, 'chilling-victory');
     state.chillingVictoryReadyAt = context.effectiveEnd + Number(profile?.cooldown || 1);
   }
@@ -99,7 +100,7 @@ function onEventScheduled(context: NecromancerSchedulerContext, event: Necromanc
   if (event.type === 'buff' && event.actorType === 'player' && hasTrait(context, TRAIT.BLIGHTERS_BOON)) {
     gainNecromancerLifeForce(
       context,
-      Number(necromancerBalanceProfile(context, PROFILE.blightersBoon)?.lifeForceGain || 1),
+      Number(balanceProfileFromContext(context, PROFILE.blightersBoon)?.lifeForceGain || 1),
       event.at,
       'blighters-boon'
     );
@@ -115,7 +116,7 @@ export const reaperSchedulerHooks = Object.freeze({
 function modifyReaperAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
   if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
-    result.ferocity += Number(necromancerBalanceProfile(context, PROFILE.reapersOnslaught)?.attributeBonus || 300);
+    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.attributeBonus || 300);
   }
 
   return result;
@@ -127,7 +128,7 @@ function modifyReaperCastDuration(context: NecromancerCastModifierContext, durat
   return hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
     professionCoreState(context).activeShroud === 'reaper' &&
     !context.hasBuff?.('quickness', context.start)
-    ? duration / Number(necromancerBalanceProfile(context, PROFILE.reapersOnslaught)?.quicknessCastMultiplier || 1.5)
+    ? duration / Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.quicknessCastMultiplier || 1.5)
     : duration;
 }
 

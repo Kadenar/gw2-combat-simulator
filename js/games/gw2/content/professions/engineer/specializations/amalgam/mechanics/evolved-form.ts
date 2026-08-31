@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -6,7 +7,7 @@ import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.j
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
 import { AMALGAM_NEW_GENES_BOONS } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
 import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
@@ -46,7 +47,7 @@ function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
  */
 function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string, at: number): void {
   const state = amalgamState.from(context);
-  const strainDuration = engineerBalanceValue(context, PROFILE.strains, 'durationMultiplier', 8);
+  const strainDuration = balanceProfileValueFromContext(context, PROFILE.strains, 'durationMultiplier', 8);
   const buffs: AmalgamBuff[] = [];
   if (morphName === 'Defensive Protocol: Protect') {
     buffs.push({
@@ -80,7 +81,7 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string
     buffs.push({
       kind: 'might',
       duration: strainDuration,
-      stacks: engineerBalanceValue(context, PROFILE.strains, 'maximumStacks', 10),
+      stacks: balanceProfileValueFromContext(context, PROFILE.strains, 'maximumStacks', 10),
       sourceId: 'engineer.titanic-strain',
       name: 'Titanic Strain'
     });
@@ -143,8 +144,8 @@ function assumesDamagingField(context: EngineerSchedulerContext): boolean {
 /** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
 function scheduleThornsRetaliation(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!assumesDamagingField(context)) return;
-  const hits = engineerBalanceValue(context, PROFILE.morphs, 'maximumStacks', 6);
-  const interval = engineerBalanceValue(context, PROFILE.morphs, 'pulseInterval', 1);
+  const hits = balanceProfileValueFromContext(context, PROFILE.morphs, 'maximumStacks', 6);
+  const interval = balanceProfileValueFromContext(context, PROFILE.morphs, 'pulseInterval', 1);
   for (let index = 0; index < hits; index += 1) {
     emitSkillDamage(context, {
       at: at + index * interval,
@@ -171,7 +172,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
   if (skill.name === 'Defensive Protocol: Thorns') {
     state.thornsUntil = Math.max(
       state.thornsUntil,
-      at + engineerBalanceValue(context, PROFILE.morphs, 'durationMultiplier', 6)
+      at + balanceProfileValueFromContext(context, PROFILE.morphs, 'durationMultiplier', 6)
     );
     scheduleThornsRetaliation(context, skill, at);
   }
@@ -180,7 +181,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
   if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
-      at + engineerBalanceValue(context, PROFILE.willingHost, 'durationMultiplier', 10)
+      at + balanceProfileValueFromContext(context, PROFILE.willingHost, 'durationMultiplier', 10)
     );
   }
 
@@ -197,7 +198,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
       kind: 'protection',
-      duration: engineerBalanceValue(context, PROFILE.hardenedChrome, 'minimumStacks', 2.5),
+      duration: balanceProfileValueFromContext(context, PROFILE.hardenedChrome, 'minimumStacks', 2.5),
       stacks: 1
     });
   }
@@ -261,7 +262,7 @@ export function activatePlasmaticState(context: EngineerCastContext, _skill: Eng
   const at = context.start + castDuration * (640 / 1440);
   amalgamState.from(context).plasmaticStateUntil = Math.max(
     amalgamState.from(context).plasmaticStateUntil,
-    at + engineerBalanceValue(context, PROFILE.plasmaticState, 'durationMultiplier', 6)
+    at + balanceProfileValueFromContext(context, PROFILE.plasmaticState, 'durationMultiplier', 6)
   );
   emitStateSnapshot(context, 'engineer', at, 'plasmatic-state', snapshotEngineerState(context.state.profession));
 }
@@ -274,7 +275,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   const at = context.start + castDuration * (520 / 640);
   const state = amalgamState.from(context);
   const selected = selectedMorphNames(context);
-  state.evolvedUntil = at + engineerBalanceValue(context, PROFILE.evolve, 'durationMultiplier', 8);
+  state.evolvedUntil = at + balanceProfileValueFromContext(context, PROFILE.evolve, 'durationMultiplier', 8);
 
   if (!hasTrait(context.config, TRAIT.SILVER_LINING)) {
     for (const morphName of selected) {
@@ -305,7 +306,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
       kind: 'protection',
-      duration: engineerBalanceValue(context, PROFILE.hardenedChrome, 'maximumStacks', 4),
+      duration: balanceProfileValueFromContext(context, PROFILE.hardenedChrome, 'maximumStacks', 4),
       stacks: 1
     });
   }
@@ -344,7 +345,12 @@ export function handleMercurialTendencies(
 
   // Find every live Evolve timer because the skill may use either cooldown or ammo recharge tracking.
   let reducedBy = 0;
-  const rechargeReduction = engineerBalanceValue(context, PROFILE.mercurialTendencies, 'rechargeReduction', 2.5);
+  const rechargeReduction = balanceProfileValueFromContext(
+    context,
+    PROFILE.mercurialTendencies,
+    'rechargeReduction',
+    2.5
+  );
   const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   for (const skillId of trackedIds) {
     const skill = context.catalog.skillsById.get(skillId);
@@ -356,7 +362,7 @@ export function handleMercurialTendencies(
 
   // Consume the internal cooldown only when a recharge was actually reduced, then expose the aggregate payoff.
   coreState.traitProcReadyAt.mercurialTendencies =
-    at + engineerBalanceValue(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.25);
+    at + balanceProfileValueFromContext(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.25);
   context.emit({
     type: 'proc',
     at,

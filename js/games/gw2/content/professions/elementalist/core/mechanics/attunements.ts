@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -23,10 +24,7 @@ import {
   inFlightAutoattackCarryover,
   progressedAutoattackCarryover
 } from '#gw2/content/professions/elementalist/core/mechanics/weapon-state.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /** Identifies one shared attunement-entry trait effect so a specialization can veto it. */
 export interface ElementalistAttunementTraitTrigger {
@@ -61,7 +59,7 @@ export function elementalistAlacrityAdjustedDuration(context: ElementalistLifecy
 export function elementalistAttunementRechargeDuration(context: ElementalistLifecycleContext, seconds: number): number {
   let adjusted = seconds;
   if (hasTrait(context, 'Elemental Enchantment')) {
-    adjusted *= elementalistBalanceValue(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85);
+    adjusted *= balanceProfileValueFromContext(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85);
   }
 
   return elementalistAlacrityAdjustedDuration(context, adjusted);
@@ -106,7 +104,7 @@ export function onAttunementComplete(
         at +
           elementalistAttunementRechargeDuration(
             context,
-            elementalistBalanceValue(context, PROFILE.resources, 'recharge', ATTUNEMENT_RECHARGE_SECONDS)
+            balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', ATTUNEMENT_RECHARGE_SECONDS)
           )
       )
     );
@@ -117,7 +115,7 @@ export function onAttunementComplete(
         at +
         elementalistAttunementRechargeDuration(
           context,
-          elementalistBalanceValue(context, PROFILE.resources, 'initialDelay', OFF_ATTUNEMENT_RECHARGE_SECONDS)
+          balanceProfileValueFromContext(context, PROFILE.resources, 'initialDelay', OFF_ATTUNEMENT_RECHARGE_SECONDS)
         );
       let nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       // Fresh Air can pull Air's ready time in ahead of its scheduled recharge.

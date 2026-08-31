@@ -1,3 +1,8 @@
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
@@ -7,18 +12,14 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/
 import { applyRangerWeaponSwapTraits } from '#gw2/content/professions/ranger/core/traits/index.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
 import { druidState } from '#gw2/content/professions/ranger/specializations/druid/state.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue
-} from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
 
 export const DRUID_ASTRAL_FORCE_DAMAGE_TASK = 'ranger.druid-astral-force-damage';
 
 function applyNaturalBalance(context: RangerCastContext | RangerSchedulerContext, duration: number, at: number): void {
   if (!hasTrait(context, TRAIT.NATURAL_BALANCE)) return;
-  const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.naturalBalance), 'buff');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.naturalBalance), 'buff');
   emitSkillBuff(context, {
     at,
     source: 'Trait',
@@ -58,7 +59,7 @@ function emitAvatarWeaponSwap(
 
 export function enterAvatar(context: RangerCastContext, skill: RangerSkill): void {
   const state = druidState.from(context);
-  const avatarDuration = rangerBalanceValue(context, PROFILE.resources, 'durationMultiplier', 15);
+  const avatarDuration = balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 15);
   state.celestialAvatarActive = true;
   state.celestialAvatarEndsAt = context.start + avatarDuration;
   // Reset so advance() doesn't count force drained before CA activated
@@ -81,7 +82,8 @@ export function leaveAvatar(
   // Exhausted (timer or force depleted) zeroes force; manual exit retains half
   state.astralForce = exhausted
     ? 0
-    : state.astralForce * rangerBalanceValue(context, PROFILE.resources, 'astralForceRetentionMultiplier', 0.5);
+    : state.astralForce *
+      balanceProfileValueFromContext(context, PROFILE.resources, 'astralForceRetentionMultiplier', 0.5);
   state.celestialAvatarActive = false;
   state.celestialAvatarEndsAt = 0;
   state.astralForceUpdatedAt = at;
@@ -96,10 +98,10 @@ export function leaveAvatar(
 
 export function advanceDruidState(context: RangerSchedulerContext, target: number): void {
   const state = druidState.from(context);
-  const maximum = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 100);
-  const avatarDuration = rangerBalanceValue(context, PROFILE.resources, 'durationMultiplier', 15);
-  const naturalMenderInterval = rangerBalanceValue(context, PROFILE.naturalMender, 'pulseInterval', 3);
-  const naturalMenderForce = rangerBalanceValue(context, PROFILE.naturalMender, 'resourceGain', 8);
+  const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
+  const avatarDuration = balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 15);
+  const naturalMenderInterval = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'pulseInterval', 3);
+  const naturalMenderForce = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'resourceGain', 8);
   state.maximumAstralForce = maximum;
   state.astralForce = Math.min(maximum, state.astralForce);
   if (state.astralForceUpdatedAt === 0 && state.naturalMenderReadyAt === 3) {
@@ -143,11 +145,11 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
 
 export function astralForceReadyAt(context: RangerCastContext): number | null {
   const state = druidState.from(context);
-  const maximum = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 100);
+  const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
   state.maximumAstralForce = maximum;
   state.astralForce = Math.min(maximum, state.astralForce);
-  const naturalMenderForce = rangerBalanceValue(context, PROFILE.naturalMender, 'resourceGain', 8);
-  const naturalMenderInterval = rangerBalanceValue(context, PROFILE.naturalMender, 'pulseInterval', 3);
+  const naturalMenderForce = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'resourceGain', 8);
+  const naturalMenderInterval = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'pulseInterval', 3);
   const naturalMender = hasTrait(context, TRAIT.NATURAL_MENDER);
   if (state.astralForce >= maximum - context.epsilon) return context.start;
   // Without Natural Mender, force only accumulates from damage events; no predictable ready time
@@ -183,9 +185,9 @@ export function handleDruidAstralForceDamageTask(context: RangerSchedulerContext
   // Force doesn't accumulate while CA is active (it's draining instead)
   if (state.celestialAvatarActive) return;
   // Eclipse doubles the astral force gained per hit
-  const directDamageForce = rangerBalanceValue(context, PROFILE.resources, 'resourceGain', 0.75);
-  const eclipseMultiplier = rangerBalanceValue(context, PROFILE.resources, 'coefficientMultiplier', 2);
-  state.maximumAstralForce = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 100);
+  const directDamageForce = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceGain', 0.75);
+  const eclipseMultiplier = balanceProfileValueFromContext(context, PROFILE.resources, 'coefficientMultiplier', 2);
+  state.maximumAstralForce = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
   state.astralForce = Math.min(
     state.maximumAstralForce,
     state.astralForce + directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)

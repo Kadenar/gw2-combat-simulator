@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -33,7 +34,7 @@ import type {
   NecromancerSkill
 } from '#gw2/content/professions/necromancer/types.js';
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import {
   HARBINGER_BALANCE_PROFILE_IDS as PROFILE,
   HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID
@@ -62,7 +63,7 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
   const start = Number(coreState.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   // Life force drains at 5% of maximum per second inside Harbinger Shroud.
-  const resources = necromancerBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const drainRate = (Number(coreState.maximumLifeForce || 100) * Number(resources?.lifeForceDrain || 5)) / 100;
   // exitAt is the moment life force would hit 0 — Blight stops accruing if shroud exits before `end`.
   const exitAt =
@@ -70,7 +71,7 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
   // Doom Approaches doubles the passive Blight gain rate (2 → 4 stacks/s).
   const stacksPerSecond = Number(
     hasTrait(context, TRAIT.DOOM_APPROACHES)
-      ? necromancerBalanceProfile(context, PROFILE.doomApproaches)?.blightGain || 4
+      ? balanceProfileFromContext(context, PROFILE.doomApproaches)?.blightGain || 4
       : resources?.blightGain || 2
   );
   // nextBlightAt is a whole-second cursor; each tick adds stacksPerSecond stacks and advances the cursor by 1 s.
@@ -96,7 +97,7 @@ function applyCascadingCorruption(
   )
     return;
   const state = harbingerState.from(context);
-  const profile = necromancerBalanceProfile(context, PROFILE.cascadingCorruption);
+  const profile = balanceProfileFromContext(context, PROFILE.cascadingCorruption);
   const threshold = Number(profile?.minimumStacks || 20);
   state.cascadingCorruptionStacks += consumed;
   // Every 20 accumulated stacks triggers exactly one Meltdown; remainder carries over to the next threshold.
@@ -210,7 +211,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   if (Math.round((at - context.start) * 1000) < Math.round((commitAt - context.start) * 1000)) return true;
   const state = harbingerState.from(context);
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
-  const empoweredProfile = necromancerBalanceProfile(
+  const empoweredProfile = balanceProfileFromContext(
     context,
     HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)]
   );
@@ -225,7 +226,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     ? { metadata: { recipients: 'party', maximumRecipients: 5 } }
     : undefined;
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
-    const protection = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.bolsteringBrew), 'boon');
+    const protection = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bolsteringBrew), 'boon');
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       kind: String(protection?.boon || 'protection'),
@@ -263,7 +264,7 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   const impactProgress = skill.id === ID.DEVOURING_CUT ? 0.75 : skill.id === ID.VORACIOUS_ARC ? 20 / 21 : 1;
   const impactAt = context.start + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
-  const empoweredProfile = necromancerBalanceProfile(
+  const empoweredProfile = balanceProfileFromContext(
     context,
     HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)]
   );

@@ -6,6 +6,7 @@
  * a real heal-slot application even though healing and incoming-damage
  * reduction are outside the damage simulator.
  */
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT
@@ -13,7 +14,7 @@ import {
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
-import { necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 
@@ -60,7 +61,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
     alliesReceiveFullBenefit: fullAlliedBenefit
   });
   if (spell === 'nightmare' || spell === 'splinter') {
-    const proc = necromancerBalanceProfile(
+    const proc = balanceProfileFromContext(
       context,
       spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
     );

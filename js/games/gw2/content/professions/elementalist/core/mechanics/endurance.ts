@@ -1,21 +1,24 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 import type { ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
 import { ENDURANCE_PER_SECOND } from '#gw2/content/professions/elementalist/core/constants.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { advanceEndurance } from '#gw2/platform/combat/resources/endurance.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
 export function elementalistEnduranceRegenerationRate(context: ElementalistSchedulerContext, vigor: boolean): number {
-  const regeneration = elementalistBalanceValue(
+  const regeneration = balanceProfileValueFromContext(
     context,
     PROFILE.resources,
     'enduranceRegenerationPerSecond',
     ENDURANCE_PER_SECOND
   );
-  const vigorMultiplier = elementalistBalanceValue(context, PROFILE.resources, 'vigorRegenerationMultiplier', 1.5);
+  const vigorMultiplier = balanceProfileValueFromContext(
+    context,
+    PROFILE.resources,
+    'vigorRegenerationMultiplier',
+    1.5
+  );
   return regeneration * (vigor ? vigorMultiplier : 1);
 }
 
@@ -26,6 +29,6 @@ export function updateEndurance(
   at: number,
   vigor: boolean
 ): void {
-  const maximum = elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', 100);
+  const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
   Object.assign(state, advanceEndurance(state, at, elementalistEnduranceRegenerationRate(context, vigor), maximum));
 }

@@ -1,3 +1,8 @@
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -19,11 +24,7 @@ import {
   handleGaleshotPetHitTask,
   observeGaleshotEvent
 } from '#gw2/content/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue
-} from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
 
 // Grant Cloudburst's profile-defined party boons from the qualifying reset skill
@@ -31,9 +32,9 @@ import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/profession
 function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): void {
   if (!hasTrait(context, TRAIT.CLOUDBURST)) return;
   const hawkeye = skill.id === ID.HAWKEYE;
-  const profile = rangerBalanceProfile(context, PROFILE.cloudburst);
+  const profile = balanceProfileFromContext(context, PROFILE.cloudburst);
   for (let boonIndex = 0; boonIndex < 2; boonIndex += 1) {
-    const effect = rangerBalanceProfileEffect(profile, 'boon', (hawkeye ? 2 : 0) + boonIndex);
+    const effect = balanceProfileEffect(profile, 'boon', (hawkeye ? 2 : 0) + boonIndex);
     const kind = String(effect?.boon || ['quickness', 'might'][boonIndex]);
     emitSkillBuff(context, {
       at: context.effectiveEnd,
@@ -63,7 +64,7 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
   const state = galeshotState.from(context);
   if (skill.id === ID.HAWKEYE) {
     if (hasTrait(context, TRAIT.GALE_FORCE)) {
-      const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.galeForce), 'buff');
+      const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.galeForce), 'buff');
       const duration = Number(effect?.duration ?? 10);
       // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
       state.galeForceUntil = context.effectiveEnd + duration;
@@ -145,7 +146,7 @@ export function galeshotCastAvailability(context: RangerPrecastContext, skill: R
     return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
   }
 
-  const maximumWindForce = rangerBalanceValue(context, PROFILE.resources, 'minimumStacks', 5);
+  const maximumWindForce = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 5);
   if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
     return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
   }

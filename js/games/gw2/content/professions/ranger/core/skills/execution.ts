@@ -1,4 +1,9 @@
 /** Registers scheduler-phase skill activations for this module. */
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
@@ -8,12 +13,7 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
 import { applyRangerDodgeTraits, applyRangerPetSwapTraits } from '#gw2/content/professions/ranger/core/traits/index.js';
 import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 function performRangerDodge(context: RangerCastContext): boolean {
   const state = professionCoreState(context);
@@ -21,7 +21,7 @@ function performRangerDodge(context: RangerCastContext): boolean {
     state,
     spendEndurance(
       state,
-      rangerBalanceValue(context, PROFILE.resources, 'resourceCost', 50),
+      balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', 50),
       context.start,
       state.maximumEndurance
     )
@@ -79,7 +79,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
   'ranger.poisonous-strikes': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const profile = rangerBalanceProfile(context, PROFILE.poisonousStrikes);
+      const profile = balanceProfileFromContext(context, PROFILE.poisonousStrikes);
       context.emit({
         type: 'ranger.poisonous-strikes',
         at: context.effectiveEnd,
@@ -96,7 +96,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
   'ranger.sharpening-stone': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const profile = rangerBalanceProfile(context, PROFILE.sharpeningStone);
+      const profile = balanceProfileFromContext(context, PROFILE.sharpeningStone);
       context.emit({
         type: 'ranger.sharpening-stone',
         at: context.start,
@@ -113,7 +113,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
   'ranger.sun-spirit': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const burning = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.sunSpirit), 'condition');
+      const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunSpirit), 'condition');
       emitSkillCondition(context, {
         at: context.effectiveEnd,
         source: 'ranger',
@@ -141,7 +141,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
         skillId: skill.id,
         skillName: skill.name,
         kind: 'sic-em-pet',
-        duration: rangerBalanceValue(context, PROFILE.sicEm, 'durationMultiplier', 10),
+        duration: balanceProfileValueFromContext(context, PROFILE.sicEm, 'durationMultiplier', 10),
         stacks: 1
       });
     }
@@ -157,7 +157,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: 'player',
         skillId: skill.id,
         skillName: skill.name,
-        charges: rangerBalanceValue(context, PROFILE.bloodThirst, 'playerStacks', 3)
+        charges: balanceProfileValueFromContext(context, PROFILE.bloodThirst, 'playerStacks', 3)
       });
     }
   }

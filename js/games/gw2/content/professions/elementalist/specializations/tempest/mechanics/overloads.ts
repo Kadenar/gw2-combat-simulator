@@ -6,6 +6,7 @@
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type {
@@ -41,7 +42,6 @@ import { tempestModifierRules } from '#gw2/content/professions/elementalist/spec
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   elementalistBalanceEffect,
-  elementalistBalanceValue,
   elementalistEffectValue
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
@@ -143,8 +143,8 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   // Transcendent Tempest shortens the dwell, and alacrity speeds the singularity's formation.
   const dwell =
     (hasTrait(context, 'Transcendent Tempest')
-      ? elementalistBalanceValue(context, PROFILE.overloads, 'durationMultiplier', 4)
-      : elementalistBalanceValue(context, PROFILE.overloads, 'initialDelay', 6)) /
+      ? balanceProfileValueFromContext(context, PROFILE.overloads, 'durationMultiplier', 4)
+      : balanceProfileValueFromContext(context, PROFILE.overloads, 'initialDelay', 6)) /
     (context.config.boons?.alacrity ? 1.25 : 1);
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
@@ -169,7 +169,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
         event.activationId === context.reservationId && event.type === 'damage' && Number(event.coefficient || 0) > 0
     )
     .sort((left: SimulationEvent, right: SimulationEvent) => left.at - right.at)
-    .slice(0, elementalistBalanceValue(context, PROFILE.lucidSingularity, 'maximumStacks', 5));
+    .slice(0, balanceProfileValueFromContext(context, PROFILE.lucidSingularity, 'maximumStacks', 5));
   hits.forEach((event: SimulationEvent, index: number) => {
     const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
     const alacrity = elementalistBalanceEffect(context, PROFILE.lucidSingularity, 'boon', effectName);
@@ -259,7 +259,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       skillName: 'Transcendent Tempest',
       kind: 'transcendent-tempest',
       stacks: 1,
-      duration: elementalistBalanceValue(context, PROFILE.transcendentTempest, 'durationMultiplier', 7)
+      duration: balanceProfileValueFromContext(context, PROFILE.transcendentTempest, 'durationMultiplier', 7)
     });
   }
 
@@ -302,7 +302,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
 // Elemental Enchantment shortens overload recharges only.
 function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
   return context.skill.overload && hasTrait(context, 'Elemental Enchantment')
-    ? duration * elementalistBalanceValue(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
+    ? duration * balanceProfileValueFromContext(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
     : duration;
 }
 
@@ -327,7 +327,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
     const state = tempestState.from(context);
     if (isInternalCooldownReady(event.at, state.latentStaminaReadyAt)) {
       state.latentStaminaReadyAt =
-        event.at + elementalistBalanceValue(context, PROFILE.latentStamina, 'internalCooldown', 10);
+        event.at + balanceProfileValueFromContext(context, PROFILE.latentStamina, 'internalCooldown', 10);
       const vigor = elementalistBalanceEffect(context, PROFILE.latentStamina, 'boon', 'Vigor');
       const sourceId = event.skillId ?? event.sourceId;
       emitSkillBuff(context, elementalistEventSkill(context, 'Latent Stamina', sourceId), {

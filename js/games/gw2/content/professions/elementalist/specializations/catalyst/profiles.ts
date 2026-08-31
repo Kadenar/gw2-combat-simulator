@@ -1,7 +1,7 @@
 /**
  * Balance-profile data for Catalyst: the energy resource, the three augment skill
  * variants, and every Catalyst trait. Mechanics read these through
- * `elementalistBalanceValue`/`elementalistBalanceEffect`, so patch data can retune
+ * `balanceProfileValueFromContext`/`elementalistBalanceEffect`, so patch data can retune
  * Catalyst numbers without touching handler code.
  */
 import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';

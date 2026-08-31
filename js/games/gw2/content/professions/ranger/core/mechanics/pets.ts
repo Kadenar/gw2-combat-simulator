@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import {
@@ -22,10 +23,7 @@ import type {
   RangerSchedulerContext,
   RangerSkill
 } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 const PET_AUTO_TASK = 'ranger.pet-autonomous-skill';
 const PET_COMMAND_START_TASK = 'ranger.pet-command-start';
@@ -73,7 +71,7 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
 
   if (context) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      const bonus = rangerBalanceValue(context, PROFILE.packAlpha, 'weaponAttributeBonus', 300);
+      const bonus = balanceProfileValueFromContext(context, PROFILE.packAlpha, 'weaponAttributeBonus', 300);
       power += bonus;
       precision += bonus;
       toughness += bonus;
@@ -82,22 +80,22 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
     }
 
     if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-      power += rangerBalanceValue(context, PROFILE.stridersStrength, 'attributeBonus', 120);
+      power += balanceProfileValueFromContext(context, PROFILE.stridersStrength, 'attributeBonus', 120);
     }
 
     if (hasTrait(context, TRAIT.HONED_AXES)) {
-      ferocity += rangerBalanceValue(context, PROFILE.honedAxes, 'attributeBonus', 120);
+      ferocity += balanceProfileValueFromContext(context, PROFILE.honedAxes, 'attributeBonus', 120);
     }
 
     if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      ferocity += rangerBalanceValue(context, PROFILE.petsProwess, 'attributeBonus', 300);
+      ferocity += balanceProfileValueFromContext(context, PROFILE.petsProwess, 'attributeBonus', 300);
     }
 
     if (
       petHasSelectedSkill(context, 'Signet of the Wild') &&
       Number(context.state.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= context.state.time
     ) {
-      ferocity += rangerBalanceValue(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
+      ferocity += balanceProfileValueFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
     }
   }
 

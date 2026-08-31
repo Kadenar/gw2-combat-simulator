@@ -1,4 +1,5 @@
 /** Owns Core Elementalist cast effects shared by weapon and slot skill families. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -21,10 +22,7 @@ import {
 } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { updateEndurance } from '#gw2/content/professions/elementalist/core/mechanics/endurance.js';
 import { shareAttunementVariantRecharge } from '#gw2/content/professions/elementalist/core/mechanics/weapon-state.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement
@@ -166,7 +164,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
         ? {
             coefficient:
               Number(event.coefficient || 0) *
-              elementalistBalanceValue(context, PROFILE.spearEmpowerments, 'damageMultiplier', 1.2)
+              balanceProfileValueFromContext(context, PROFILE.spearEmpowerments, 'damageMultiplier', 1.2)
           }
         : {}),
       ...(followup.critical ? { forceCrit: true } : {})
@@ -213,7 +211,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
       const otherCasts = progress.otherCasts + 1;
       state.etchings[candidate.etching] = {
         stage:
-          otherCasts >= elementalistBalanceValue(context, PROFILE.spearEmpowerments, 'maximumStacks', 3)
+          otherCasts >= balanceProfileValueFromContext(context, PROFILE.spearEmpowerments, 'maximumStacks', 3)
             ? 'full'
             : 'lesser',
         otherCasts
@@ -234,7 +232,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
         state,
         Number(skill.resourceGain),
         at,
-        elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', 100)
+        balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100)
       )
     );
   }
@@ -255,7 +253,7 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     professionCoreState(context).rockBarrierExpiresAt =
-      at + elementalistBalanceValue(context, PROFILE.rockBarrier, 'durationMultiplier', 30);
+      at + balanceProfileValueFromContext(context, PROFILE.rockBarrier, 'durationMultiplier', 30);
   },
   'elementalist.core.release-rock-barrier': ({
     context,
@@ -373,9 +371,9 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
       state,
       spendEndurance(
         state,
-        elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', DODGE_ENDURANCE_COST),
+        balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', DODGE_ENDURANCE_COST),
         context.effectiveEnd,
-        elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', 100)
+        balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100)
       )
     );
     triggerEvasiveArcana(context, skill);
@@ -385,7 +383,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   // pushing its own cooldown out by that skill's full recharge.
   if (skill.name === 'Arcane Echo') {
     state.arcaneEchoUntil =
-      context.effectiveEnd + elementalistBalanceValue(context, PROFILE.arcaneEcho, 'durationMultiplier', 10);
+      context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.arcaneEcho, 'durationMultiplier', 10);
   } else if (
     state.arcaneEchoUntil >= context.effectiveEnd &&
     skill.type === 'Weapon' &&
@@ -394,7 +392,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     state.arcaneEchoUntil = 0;
     context.state.cooldowns.set(
       skill.id,
-      context.effectiveEnd + elementalistBalanceValue(context, PROFILE.arcaneEcho, 'recharge', 1)
+      context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.arcaneEcho, 'recharge', 1)
     );
     const arcaneEcho = context.catalog.skillsByName.get('Arcane Echo');
     if (arcaneEcho) {
@@ -406,8 +404,8 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   if (skill.name === 'Fulgor') {
     const pulse = profiledEffect(context, PROFILE.fulgor, 'strike');
     const hits = Math.max(0, Math.trunc(Number(pulse?.hits ?? 6)));
-    const delay = elementalistBalanceValue(context, PROFILE.fulgor, 'initialDelay', 0.32);
-    const interval = elementalistBalanceValue(context, PROFILE.fulgor, 'pulseInterval', 1);
+    const delay = balanceProfileValueFromContext(context, PROFILE.fulgor, 'initialDelay', 0.32);
+    const interval = balanceProfileValueFromContext(context, PROFILE.fulgor, 'pulseInterval', 1);
     // Fulgor owns one secondary action at a time, so a recast replaces only
     // the prior action's pulses that had not occurred when the recast began.
     for (const event of [...context.events]) {

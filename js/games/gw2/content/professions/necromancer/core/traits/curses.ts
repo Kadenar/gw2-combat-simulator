@@ -1,4 +1,5 @@
 /** Owns imperative Core Necromancer Curses trait behavior for ordered dispatcher calls. */
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
@@ -6,11 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
 import { applyTraitCondition } from '#gw2/content/professions/necromancer/core/mechanics/trait-effects.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -28,7 +25,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   materialization: 'threshold',
   actorTypes: ['player', 'summon', 'unknown'],
   chanceOnCriticalHit: (context) =>
-    Number(necromancerBalanceProfile(context, PROFILE.barbedPrecision)?.criticalChance || 0.33),
+    Number(balanceProfileFromContext(context, PROFILE.barbedPrecision)?.criticalChance || 0.33),
   randomStream: 'necromancer.barbed-precision',
   when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.BARBED_PRECISION),
   expectedProgress: {
@@ -41,7 +38,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   handler: (context, event, _details, application) => {
     // Barbed Precision emits one condition application per threshold proc.
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.barbedPrecision), 'condition');
+      const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.barbedPrecision), 'condition');
       applyTraitCondition(context, event, {
         name: 'Barbed Precision',
         traitId: TRAIT.BARBED_PRECISION,
@@ -77,7 +74,7 @@ export function applyChillingDarkness(context: NecromancerResolverContext, event
     !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt.chillingDarkness || 0))
   )
     return;
-  const profile = necromancerBalanceProfile(context, PROFILE.chillingDarkness);
+  const profile = balanceProfileFromContext(context, PROFILE.chillingDarkness);
   const effect = balanceProfileEffect(profile, 'condition');
   professionCoreState(context).traitProcReadyAt.chillingDarkness = event.at + Number(profile?.cooldown || 3);
   applyTraitCondition(context, event, {
@@ -101,7 +98,7 @@ export function applyTerror(context: NecromancerResolverContext, event: Necroman
 
 export function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) return;
-  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.insidiousDisruption), 'condition');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.insidiousDisruption), 'condition');
   applyTraitCondition(context, event, {
     name: 'Insidious Disruption',
     traitId: TRAIT.INSIDIOUS_DISRUPTION,

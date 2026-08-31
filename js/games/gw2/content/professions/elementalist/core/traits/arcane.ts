@@ -1,4 +1,5 @@
 /** Imperative Arcane trait behavior; callers preserve cross-line ordering through the trait index. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -27,7 +28,6 @@ import {
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
-  elementalistBalanceValue,
   elementalistEffectValue
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 
@@ -76,7 +76,7 @@ export function triggerBountifulPower(
   if (!hasTrait(context, 'Bountiful Power')) return;
   const state = professionCoreState(context);
   state.bountifulPowerProgress += stacks;
-  const threshold = elementalistBalanceValue(context, PROFILE.bountifulPower, 'threshold', 5);
+  const threshold = balanceProfileValueFromContext(context, PROFILE.bountifulPower, 'threshold', 5);
   while (state.bountifulPowerProgress >= threshold) {
     state.bountifulPowerProgress -= threshold;
     emitProfiledBuff(context, at, PROFILE.bountifulPower, 'Quickness', 'Quickness', 1, 5, 'Bountiful Power', sourceId);
@@ -102,7 +102,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
   const attunement = state.primaryAttunement;
   const key = `evasiveArcana${attunement}`;
   if (!isInternalCooldownReady(at, Number(state.procReadyAt[key] || 0))) return;
-  state.procReadyAt[key] = at + elementalistBalanceValue(context, PROFILE.evasiveArcana, 'internalCooldown', 10);
+  state.procReadyAt[key] = at + balanceProfileValueFromContext(context, PROFILE.evasiveArcana, 'internalCooldown', 10);
   const source =
     attunement === 'Fire'
       ? 'Flame Burst (trait)'
@@ -231,7 +231,7 @@ export function applyElementalLockdown(context: ElementalistSchedulerContext, ev
   )
     return;
   state.procReadyAt.elementalLockdown =
-    event.at + elementalistBalanceValue(context, PROFILE.elementalLockdown, 'internalCooldown', 1);
+    event.at + balanceProfileValueFromContext(context, PROFILE.elementalLockdown, 'internalCooldown', 1);
   const fallback: Readonly<Record<ElementalistAttunement, readonly [string, number, number]>> = {
     Fire: ['Might', 5, 5],
     Water: ['Regeneration', 1, 10],

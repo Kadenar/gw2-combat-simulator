@@ -6,7 +6,7 @@ import {
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
-  balanceProfileValue
+  balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
@@ -245,22 +245,6 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   })
 ]);
 
-export function mesmerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  return balanceProfileFromContext(context, id);
-}
-
-export function mesmerBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
-  return balanceProfileValue(mesmerBalanceProfile(context, id), field, fallback);
-}
-
-export function mesmerBalanceProfileEffect(
-  profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
-  type: string,
-  index = 0
-): SkillEffect | undefined {
-  return balanceProfileEffect(profile, type, index);
-}
-
 // Overlay balance-profile values onto declarative shatter definitions while
 // retaining their mechanic-specific defaults and metadata.
 export function mesmerProfiledShatters(
@@ -271,7 +255,7 @@ export function mesmerProfiledShatters(
   return Object.fromEntries(
     Object.entries(shatters).map(([skillId, shatter]) => {
       const balanceProfileId = profileIds[Number(skillId)];
-      const profile = mesmerBalanceProfile(context, balanceProfileId);
+      const profile = balanceProfileFromContext(context, balanceProfileId);
       const coefficients = (profile?.effects || [])
         .filter((effect) => effect.type === 'strike')
         .map((effect) => Number(effect.coefficient));
@@ -287,7 +271,7 @@ export function mesmerProfiledShatters(
           ...(shatter.rechargeReductionPerSource == null
             ? {}
             : {
-                rechargeReductionPerSource: mesmerBalanceValue(
+                rechargeReductionPerSource: balanceProfileValueFromContext(
                   context,
                   balanceProfileId,
                   'rechargeReduction',
@@ -305,17 +289,32 @@ export function mesmerProfiledTraitDamage(
   damage: MesmerTraitDamage,
   balanceProfileId: SkillId
 ): MesmerTraitDamage {
-  const profile = mesmerBalanceProfile(context, balanceProfileId);
-  const strike = mesmerBalanceProfileEffect(profile, 'strike');
+  const profile = balanceProfileFromContext(context, balanceProfileId);
+  const strike = balanceProfileEffect(profile, 'strike');
   return {
     ...damage,
     balanceProfileId,
     coefficient: Number(strike?.coefficient ?? damage.coefficient),
     hits: Number(strike?.hits ?? damage.hits),
     intervalMs: Number(strike?.intervalMs ?? (damage.intervalMs || 0)),
-    cooldown: mesmerBalanceValue(context, balanceProfileId, 'internalCooldown', Number(damage.cooldown || 0)),
-    duration: mesmerBalanceValue(context, balanceProfileId, 'durationMultiplier', Number(damage.duration || 0)),
-    damageIncrease: mesmerBalanceValue(context, balanceProfileId, 'damageIncrease', Number(damage.damageIncrease || 0))
+    cooldown: balanceProfileValueFromContext(
+      context,
+      balanceProfileId,
+      'internalCooldown',
+      Number(damage.cooldown || 0)
+    ),
+    duration: balanceProfileValueFromContext(
+      context,
+      balanceProfileId,
+      'durationMultiplier',
+      Number(damage.duration || 0)
+    ),
+    damageIncrease: balanceProfileValueFromContext(
+      context,
+      balanceProfileId,
+      'damageIncrease',
+      Number(damage.damageIncrease || 0)
+    )
   };
 }
 

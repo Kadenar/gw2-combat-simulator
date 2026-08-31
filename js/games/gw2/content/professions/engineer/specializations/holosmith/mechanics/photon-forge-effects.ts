@@ -1,6 +1,7 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { queueBuff } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import {
   holosmithEventMetadata,
@@ -24,12 +25,20 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   const enhancedCapacityTier = tier === 'enhanced';
   const packets = Math.max(
     0,
-    Math.trunc(engineerBalanceValue(context, PROFILE.primeLightBeamHeatTier, 'packetCount', 10))
+    Math.trunc(balanceProfileValueFromContext(context, PROFILE.primeLightBeamHeatTier, 'packetCount', 10))
   );
-  const interval = Math.max(0, engineerBalanceValue(context, PROFILE.primeLightBeamHeatTier, 'packetInterval', 1));
+  const interval = Math.max(
+    0,
+    balanceProfileValueFromContext(context, PROFILE.primeLightBeamHeatTier, 'packetInterval', 1)
+  );
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.primeLightBeamHeatTier, snapshot);
   const conditionBaseDurationFactor = enhancedCapacityTier
-    ? engineerBalanceValue(context, PROFILE.primeLightBeamHeatTier, 'enhancedConditionBaseDurationFactor', 1.5)
+    ? balanceProfileValueFromContext(
+        context,
+        PROFILE.primeLightBeamHeatTier,
+        'enhancedConditionBaseDurationFactor',
+        1.5
+      )
     : 1;
   // Each field pulse emits a paired explosion and burning application at the same timestamp.
   for (let pulse = 0; pulse < packets; pulse += 1) {
@@ -81,7 +90,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   const pulses = Math.max(
     0,
     Math.trunc(
-      engineerBalanceValue(
+      balanceProfileValueFromContext(
         context,
         PROFILE.laserDiskHeatTier,
         tier === 'base' ? 'basePacketCount' : 'highPacketCount',
@@ -89,7 +98,10 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
       )
     )
   );
-  const interval = Math.max(0, engineerBalanceValue(context, PROFILE.laserDiskHeatTier, 'packetInterval', 0.52));
+  const interval = Math.max(
+    0,
+    balanceProfileValueFromContext(context, PROFILE.laserDiskHeatTier, 'packetInterval', 0.52)
+  );
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.laserDiskHeatTier, snapshot);
   // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
@@ -138,7 +150,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   const walls = Math.max(
     0,
     Math.trunc(
-      engineerBalanceValue(
+      balanceProfileValueFromContext(
         context,
         PROFILE.launchWallHeatTier,
         tier === 'base' ? 'basePacketCount' : 'highPacketCount',
@@ -146,7 +158,8 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
       )
     )
   );
-  const at = event.at + Math.max(0, engineerBalanceValue(context, PROFILE.launchWallHeatTier, 'initialDelay', 0.48));
+  const at =
+    event.at + Math.max(0, balanceProfileValueFromContext(context, PROFILE.launchWallHeatTier, 'initialDelay', 0.48));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.launchWallHeatTier, snapshot);
   // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
@@ -199,7 +212,10 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
 /** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const extraBlades = Math.max(0, Math.trunc(Number(holosmithEventMetadata(event).extraBlades || 0)));
-  const delay = Math.max(0, engineerBalanceValue(context, PROFILE.refractionCutterHeatTier, 'initialDelay', 0.36));
+  const delay = Math.max(
+    0,
+    balanceProfileValueFromContext(context, PROFILE.refractionCutterHeatTier, 'initialDelay', 0.36)
+  );
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;

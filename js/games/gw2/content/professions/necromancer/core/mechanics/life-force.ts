@@ -1,3 +1,4 @@
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
@@ -19,11 +20,7 @@ import {
   NECROMANCER_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/necromancer/data/ids.js';
 import { syncNecromancerResources } from '#gw2/content/professions/necromancer/core/state.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import {
   gainNecromancerLifeForce,
   purgeTimedState
@@ -133,7 +130,7 @@ function emitAlliedVampiricPresenceHits(context: NecromancerSchedulerContext, st
   // Respect both the trait cooldown and the configured aggregate ally strike rate.
   const state = professionCoreState(context);
   const interval = Math.max(
-    Number(necromancerBalanceProfile(context, PROFILE.vampiricPresence)?.cooldown ?? 0.5),
+    Number(balanceProfileFromContext(context, PROFILE.vampiricPresence)?.cooldown ?? 0.5),
     1 / allies.strikesPerSecond
   );
   const windowStart = Math.max(start, combatStart);
@@ -203,7 +200,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 
   // Resolve passive signet pulses over the elapsed interval without duplicating the starting boundary.
   if (activeSignetOfUndeath(context)) {
-    const passive = necromancerBalanceProfile(context, PROFILE.signetOfUndeathPassive);
+    const passive = balanceProfileFromContext(context, PROFILE.signetOfUndeathPassive);
     const interval = Number(passive?.pulseInterval || 3);
     while (state.signetNextLifeForceAt <= end + context.epsilon) {
       if (state.signetNextLifeForceAt > start + context.epsilon) {
@@ -215,7 +212,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   }
 
   if (activeSignetOfVampirism(context)) {
-    const passive = necromancerBalanceProfile(context, PROFILE.signetOfVampirismPassive);
+    const passive = balanceProfileFromContext(context, PROFILE.signetOfVampirismPassive);
     const strike = balanceProfileEffect(passive, 'strike');
     const strikeMetadata = strike?.metadata || {};
     const interval = Number(passive?.pulseInterval || 3);
@@ -256,7 +253,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   runNecromancerResourceAdvance(context, start, end);
 
   if (state.activeShroud && state.activeShroud !== 'lich') {
-    const shroudProfile = necromancerBalanceProfile(context, state.activeShroudProfileId || PROFILE.shroud);
+    const shroudProfile = balanceProfileFromContext(context, state.activeShroudProfileId || PROFILE.shroud);
     const rate = (Number(state.maximumLifeForce || 100) * Number(shroudProfile?.lifeForceDrain || 0)) / 100;
     const elapsed = end - start;
     const potentialDrain = rate * elapsed;

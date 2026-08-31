@@ -1,14 +1,11 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   ThiefCastContext,
@@ -20,9 +17,9 @@ import type {
 export function applyHiddenThief(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.HIDDEN_THIEF)) return;
   const state = professionCoreState(context);
-  const profile = thiefBalanceProfile(context, PROFILE.hiddenThief);
-  const blindness = thiefBalanceProfileEffect(profile, 'condition', 0);
-  const weakness = thiefBalanceProfileEffect(profile, 'condition', 1);
+  const profile = balanceProfileFromContext(context, PROFILE.hiddenThief);
+  const blindness = balanceProfileEffect(profile, 'condition', 0);
+  const weakness = balanceProfileEffect(profile, 'condition', 1);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] ?? 0);
   if (!isInternalCooldownReady(at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + Number(profile?.internalCooldown || 2);
@@ -79,7 +76,7 @@ function enqueueSiphon(
 
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (!hasTrait(context.config, TRAIT.LEECHING_VENOMS)) return;
-  const strike = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.leechingVenoms), 'strike');
+  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.leechingVenoms), 'strike');
   enqueueSiphon(context, event, TRAIT.LEECHING_VENOMS, 'Leeching Venoms', Number(strike?.coefficient || 0.033));
 }
 
@@ -100,7 +97,7 @@ export function applyShadowSiphoning(context: ThiefResolverContext, event: Thief
   const namedSkill = event.skillName == null ? undefined : context.helpers.skillsByName?.get(event.skillName);
   if (!(skill || namedSkill)?.stealthAttack) return;
   const state = professionCoreState(context);
-  const profile = thiefBalanceProfile(context, PROFILE.shadowSiphoning);
+  const profile = balanceProfileFromContext(context, PROFILE.shadowSiphoning);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0);
   if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = event.at + Number(profile?.internalCooldown || 1);
@@ -109,13 +106,13 @@ export function applyShadowSiphoning(context: ThiefResolverContext, event: Thief
     event,
     TRAIT.SHADOW_SIPHONING,
     'Shadow Siphoning',
-    Number(thiefBalanceProfileEffect(profile, 'strike')?.coefficient || 0.1)
+    Number(balanceProfileEffect(profile, 'strike')?.coefficient || 0.1)
   );
 }
 
 export function applyCloakedInShadow(context: ThiefResolverContext, application: ThiefResolverEvent): void {
   if (application.condition !== 'Blindness' || !hasTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) return;
-  const strike = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.cloakedInShadow), 'strike');
+  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.cloakedInShadow), 'strike');
   enqueueSiphon(
     context,
     application,

@@ -5,9 +5,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
 import { activeKallasFervorStacks } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
-import type { BalanceProfile, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   RevenantResolverContext,
   RevenantResolverEvent,
@@ -20,10 +21,6 @@ function activeSkillIds(context: RevenantResolverContext): Set<SkillId> {
 
 function skillById(context: RevenantResolverContext, id: SkillId): RevenantSkill | undefined {
   return context.helpers.skillsById?.get(id) as RevenantSkill | undefined;
-}
-
-function balanceProfileById(context: RevenantResolverContext, id: SkillId): BalanceProfile | undefined {
-  return context.helpers.balanceProfilesById?.get(id);
 }
 
 function kallasFervorLifeSiphonMultiplier(context: RevenantResolverContext, at: number): number {

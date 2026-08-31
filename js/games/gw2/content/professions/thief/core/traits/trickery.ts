@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
@@ -6,17 +7,13 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import type { ThiefCastContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 /** Applies Trickery's steal, initiative, and initiative-spend effects in dispatcher order. */
 export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.DEADLY_AMBUSH)) return;
-  const bleeding = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.deadlyAmbush), 'condition');
+  const bleeding = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.deadlyAmbush), 'condition');
   emitSkillCondition(context, {
     at,
     source: 'Trait',
@@ -33,7 +30,7 @@ export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
 
 export function applyThrillOfTheCrime(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.THRILL_OF_THE_CRIME)) return;
-  for (const effect of (thiefBalanceProfile(context, PROFILE.thrillOfTheCrime)?.effects || []).filter(
+  for (const effect of (balanceProfileFromContext(context, PROFILE.thrillOfTheCrime)?.effects || []).filter(
     (entry) => entry.type === 'boon'
   )) {
     const boon = String(effect.boon || effect.kind || '');
@@ -55,9 +52,9 @@ export function applyThrillOfTheCrime(context: ThiefCastContext, at: number): vo
 
 export function applyBountifulTheft(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.BOUNTIFUL_THEFT)) return;
-  const profile = thiefBalanceProfile(context, PROFILE.bountifulTheft);
-  const vigor = thiefBalanceProfileEffect(profile, 'boon', 0);
-  const might = thiefBalanceProfileEffect(profile, 'boon', 1);
+  const profile = balanceProfileFromContext(context, PROFILE.bountifulTheft);
+  const vigor = balanceProfileEffect(profile, 'boon', 0);
+  const might = balanceProfileEffect(profile, 'boon', 1);
   const vigorName = String(vigor?.boon || 'Vigor');
   emitSkillBuff(context, {
     at,
@@ -91,7 +88,7 @@ export function applyBountifulTheft(context: ThiefCastContext, at: number): void
 
 export function applySleightOfHand(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) return;
-  const control = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sleightOfHand), 'control');
+  const control = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sleightOfHand), 'control');
   emitSkillControl(context, {
     at,
     source: 'Trait',
@@ -109,7 +106,7 @@ export function applyKleptomaniac(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.KLEPTOMANIAC)) return;
   gainThiefInitiative(
     context,
-    Number(thiefBalanceProfile(context, PROFILE.kleptomaniac)?.resourceGain || 2),
+    Number(balanceProfileFromContext(context, PROFILE.kleptomaniac)?.resourceGain || 2),
     at,
     'kleptomaniac'
   );
@@ -119,7 +116,7 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
   const initiativeCost = Math.max(0, Number(skill.initiativeCost || 0));
   if (initiativeCost <= 0 || !hasTrait(context.config, TRAIT.LEAD_ATTACKS)) return;
   const state = professionCoreState(context);
-  const profile = thiefBalanceProfile(context, PROFILE.leadAttacks);
+  const profile = balanceProfileFromContext(context, PROFILE.leadAttacks);
   const expirations = state.leadAttackExpirations || [];
   for (let stack = 0; stack < initiativeCost && expirations.length < Number(profile?.maximumStacks || 15); stack += 1) {
     expirations.push(at + Number(profile?.durationMultiplier || 10));

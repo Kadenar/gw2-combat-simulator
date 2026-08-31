@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -12,7 +13,7 @@ import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.j
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/mechanist/profiles.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/content/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
@@ -73,8 +74,8 @@ function mechWeaponScaling(
   const midpoint = weaponStrengthMidpoint(weaponStrengthProfile(profileId));
   return {
     damagePerCoefficient:
-      (midpoint * engineerBalanceValue(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER)) /
-      engineerBalanceValue(context, PROFILE.attackTiming, 'weaponStrength', STANDARD_TARGET_ARMOR),
+      (midpoint * balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER)) /
+      balanceProfileValueFromContext(context, PROFILE.attackTiming, 'weaponStrength', STANDARD_TARGET_ARMOR),
     profileId
   };
 }
@@ -97,7 +98,7 @@ interface MechStrikeOptions {
 /** Applies Shift Signet's quickness inheritance to the mech's autonomous attack rate. */
 function mechAttackRate(context: EngineerSchedulerContext): number {
   return context.config.boons?.quickness && selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet')
-    ? engineerBalanceValue(context, PROFILE.attackTiming, 'quicknessCastMultiplier', 1.5)
+    ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'quicknessCastMultiplier', 1.5)
     : 1;
 }
 
@@ -125,7 +126,7 @@ function emitMechStrike(
     independentSummonStrike: true,
     summonInheritsAttributes: true,
     summonUsesProfessionModifiers: true,
-    summonBasePower: engineerBalanceValue(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId,
     engineerMech: true,
@@ -157,7 +158,7 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
       independentSummonStrike: true,
       summonInheritsAttributes: true,
       summonUsesProfessionModifiers: true,
-      summonBasePower: engineerBalanceValue(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+      summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
       summonDamagePerCoefficient: scaling.damagePerCoefficient,
       weaponStrengthProfileId: scaling.profileId,
       mechBasicAttack: basicAttack
@@ -219,7 +220,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     independentSummonStrike: true,
     summonInheritsAttributes: true,
     summonUsesProfessionModifiers: true,
-    summonBasePower: engineerBalanceValue(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId,
     engineerMech: true,
@@ -269,7 +270,10 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
     // only its recovery extends the pause before the basic attack chain resumes.
     const hasCommandAnimation = Number(skill.castTimeMs || 0) > 0;
     const busyUntil =
-      at + (hasCommandAnimation ? engineerBalanceValue(context, PROFILE.attackTiming, 'durationMultiplier', 0.35) : 0);
+      at +
+      (hasCommandAnimation
+        ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'durationMultiplier', 0.35)
+        : 0);
     state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), busyUntil);
   }
 
@@ -281,7 +285,7 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
     isInternalCooldownReady(at, Number(professionCoreState(context).traitProcReadyAt.rocketPunch || 0))
   ) {
     professionCoreState(context).traitProcReadyAt.rocketPunch =
-      at + engineerBalanceValue(context, PROFILE.rocketPunch, 'internalCooldown', 5);
+      at + balanceProfileValueFromContext(context, PROFILE.rocketPunch, 'internalCooldown', 5);
     emitRocketPunch(context, skill, at);
   }
 
@@ -310,7 +314,9 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
 export function initializeEngineerMech(context: EngineerSchedulerContext): void {
   const state = mechanistState.from(context);
   if (!state.mech.enabled || !state.mech.active) return;
-  scheduleMechAttack(context, engineerBalanceValue(context, PROFILE.attackTiming, 'initialDelay', 1), { phase: 0 });
+  scheduleMechAttack(context, balanceProfileValueFromContext(context, PROFILE.attackTiming, 'initialDelay', 1), {
+    phase: 0
+  });
 }
 
 /** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
@@ -348,13 +354,13 @@ export function handleEngineerMechAttack(
       context,
       task.at +
         (firstArm
-          ? engineerBalanceValue(
+          ? balanceProfileValueFromContext(
               context,
               PROFILE.attackTiming,
               'minimumStacks',
               MECHANIST_ATTACK_TIMING.jadeCannonArmGap
             )
-          : engineerBalanceValue(
+          : balanceProfileValueFromContext(
               context,
               PROFILE.attackTiming,
               'threshold',
@@ -419,8 +425,8 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
   const state = mechanistState.from(context);
   if (!state.mech?.active) return;
   const at = context.effectiveEnd;
-  const interval = engineerBalanceValue(context, PROFILE.overclock, 'pulseInterval', 0.65);
-  const hits = engineerBalanceValue(context, PROFILE.overclock, 'maximumStacks', 5);
+  const interval = balanceProfileValueFromContext(context, PROFILE.overclock, 'pulseInterval', 0.65);
+  const hits = balanceProfileValueFromContext(context, PROFILE.overclock, 'maximumStacks', 5);
   // Block the basic attack loop for the full cannon burst so hits don't overlap.
   state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), at + interval * hits);
   for (let hit = 1; hit <= hits; hit += 1) {

@@ -1,4 +1,5 @@
 /** Owns imperative Core Necromancer Blood Magic trait behavior for ordered dispatcher calls. */
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -12,11 +13,7 @@ import {
 } from '#gw2/content/professions/necromancer/data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '#gw2/content/professions/necromancer/data/traits-data.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import type {
   NecromancerCastContext,
   NecromancerResolverContext,
@@ -74,7 +71,7 @@ export function applyVampiric(context: NecromancerResolverContext, event: Necrom
   const minionHit = summonHit && event.summonKind !== 'spirit';
   if (event.actorType !== 'player' && !summonHit) return;
 
-  const profile = necromancerBalanceProfile(context, PROFILE.vampiric);
+  const profile = balanceProfileFromContext(context, PROFILE.vampiric);
   const packetLabel = minionHit ? 'minion' : 'player';
   const effect = profile?.effects?.find(
     (candidate) => candidate.type === 'strike' && candidate.packetLabel === packetLabel
@@ -116,7 +113,7 @@ function queueVampiricPresence(
   intervalAlreadyApplied = false
 ): void {
   // Select the live shroud packet and recipient-owned cooldown before materializing the life steal.
-  const profile = necromancerBalanceProfile(context, PROFILE.vampiricPresence);
+  const profile = balanceProfileFromContext(context, PROFILE.vampiricPresence);
   const state = professionCoreState(context);
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
   const packetLabel = inShroud ? 'shroud' : 'base';
@@ -214,7 +211,7 @@ const OVERFLOWING_THIRST_ICON = String(
 
 /** Consumes a recipient charge as Taste for Blood's power-only life-steal packet. */
 function queueTasteForBlood(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'strike');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.overflowingThirst), 'strike');
   // Taste for Blood is a power-only life siphon, so armor and weapon strength
   // must not enter its 375 + 0.05 * Power damage formula.
   queueBloodMagicLifeSteal(context, event, {
@@ -283,7 +280,7 @@ export function applyOverflowingThirst(context: NecromancerCastContext, skill: N
   const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(skill.id));
   if (!stacks) return;
 
-  const buff = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'buff');
+  const buff = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.overflowingThirst), 'buff');
   const duration = Number(buff?.duration || 10);
   // Resolve the exact self, allied-player, and active-minion recipients for this grant.
   const selected = gw2AlliedEffectRecipients(context.config, {

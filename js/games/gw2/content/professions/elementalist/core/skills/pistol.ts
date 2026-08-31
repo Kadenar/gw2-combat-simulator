@@ -5,6 +5,7 @@
  * already loaded one for an enhanced payload; this module owns that flip at
  * cast completion. Pistol skill data lives in `weapons/pistol.ts`.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -23,7 +24,6 @@ import {
 import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue,
   elementalistEffectValue
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 
@@ -57,7 +57,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
     } else if (skill.name === 'Frozen Fusillade') {
       // The enhanced hit lands well after the cast, so it is scheduled as a
       // delayed strike plus its Bleeding rather than emitted at cast end.
-      const delay = elementalistBalanceValue(context, PROFILE.frozenFusillade, 'initialDelay', 4);
+      const delay = balanceProfileValueFromContext(context, PROFILE.frozenFusillade, 'initialDelay', 4);
       emitSkillDamage(context, {
         at: at + delay,
         source: skill.name,
@@ -83,18 +83,18 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       // Arms a window that shortens the next pistol skill's recharge; the
       // reduction is consumed in `recharge.ts`.
       state.dazingDischargeUntil =
-        at + elementalistBalanceValue(context, PROFILE.dazingDischarge, 'durationMultiplier', 5);
+        at + balanceProfileValueFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier', 5);
     } else if (skill.name === 'Shattering Stone') {
       // Arms a limited number of player strikes inside a window; each armed hit
       // is converted to Bleeding by the event observer in `transient-state.ts`.
-      state.shatteringStoneHitsRemaining = elementalistBalanceValue(
+      state.shatteringStoneHitsRemaining = balanceProfileValueFromContext(
         context,
         PROFILE.shatteringStone,
         'maximumStacks',
         3
       );
       state.shatteringStoneUntil =
-        at + elementalistBalanceValue(context, PROFILE.shatteringStone, 'durationMultiplier', 10);
+        at + balanceProfileValueFromContext(context, PROFILE.shatteringStone, 'durationMultiplier', 10);
     } else if (skill.name === 'Boulder Blast') {
       // The projectile finisher is a separate non-weapon activation from the
       // pistol strike, so downstream combo damage must not reuse its roll.

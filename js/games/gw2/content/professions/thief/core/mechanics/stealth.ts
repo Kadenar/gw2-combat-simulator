@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
@@ -11,11 +12,7 @@ import type {
   ThiefSkill,
   ThiefStealthAttackChargeState
 } from '#gw2/content/professions/thief/types.js';
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 
 // Consume either active stealth or a specialization-granted attack charge, then
 // apply leave-stealth traits and Revealed from one cast-start transition.
@@ -41,14 +38,14 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
   if (stealthed && hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(
       context,
-      Number(thiefBalanceProfile(context, PROFILE.shadowsRejuvenation)?.resourceGain || 1),
+      Number(balanceProfileFromContext(context, PROFILE.shadowsRejuvenation)?.resourceGain || 1),
       context.start,
       'leave-stealth'
     );
   }
 
   if (stealthed && hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
-    const profile = thiefBalanceProfile(context, PROFILE.leechingVenoms);
+    const profile = balanceProfileFromContext(context, PROFILE.leechingVenoms);
     state.spiderVenomCharges = Math.min(
       Number(profile?.maximumStacks || 6),
       Number(state.spiderVenomCharges || 0) + Number(profile?.resourceGain || 3)
@@ -68,7 +65,7 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
 export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSkill): void {
   const at = context.effectiveEnd;
   if (hasTrait(context.config, TRAIT.SUNDERING_SHADE)) {
-    const vulnerability = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sunderingShade), 'condition');
+    const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunderingShade), 'condition');
     emitSkillCondition(context, {
       at,
       source: 'Trait',

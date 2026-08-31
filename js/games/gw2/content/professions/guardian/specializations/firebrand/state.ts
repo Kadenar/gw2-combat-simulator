@@ -1,10 +1,8 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 import type {
   GuardianConfig,
@@ -97,14 +95,14 @@ export const FIREBRAND_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianFireb
 export function initializeFirebrandBalanceState(context: GuardianSchedulerContext): void {
   const state = firebrandState.from(context);
   const archivistOfWhispers = hasTrait(context, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
-  const resources = guardianBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const defaultMaximum = Number(resources?.maximumStacks || 5);
   const traitMaximum = archivistOfWhispers
-    ? Number(guardianBalanceProfile(context, PROFILE.archivistOfWhispers)?.maximumStacks || 8)
+    ? Number(balanceProfileFromContext(context, PROFILE.archivistOfWhispers)?.maximumStacks || 8)
     : defaultMaximum;
   state.maximumTomePages = Math.max(traitMaximum, Number(context.config.maximumTomePages || traitMaximum));
   state.tomePageInterval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
-    ? Number(guardianBalanceProfile(context, PROFILE.loremaster)?.pulseInterval || 5)
+    ? Number(balanceProfileFromContext(context, PROFILE.loremaster)?.pulseInterval || 5)
     : Number(resources?.pulseInterval || 8);
   const configuredInitialPages = Number(context.config.initialTomePages ?? traitMaximum);
   const initialPages =
@@ -112,7 +110,7 @@ export function initializeFirebrandBalanceState(context: GuardianSchedulerContex
   state.tomePages = Math.max(0, Math.min(state.maximumTomePages, initialPages));
   state.nextTomePageAt = state.tomePages < state.maximumTomePages ? state.tomePageInterval : Number.POSITIVE_INFINITY;
   state.ashesBurnDuration = Number(
-    guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.ashes), 'condition')?.duration || 2
+    balanceProfileEffect(balanceProfileFromContext(context, PROFILE.ashes), 'condition')?.duration || 2
   );
 }
 

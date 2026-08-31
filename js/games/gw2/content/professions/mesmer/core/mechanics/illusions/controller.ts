@@ -1,4 +1,8 @@
 /** Connects Core Mesmer illusion, resource, shatter, and effect controllers for one simulation. */
+import {
+  balanceProfileFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -35,8 +39,6 @@ import { resolveCloneShatter } from '#gw2/content/professions/mesmer/core/mechan
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   MESMER_CORE_SHATTER_PROFILE_IDS,
-  mesmerBalanceProfile,
-  mesmerBalanceValue,
   mesmerProfiledShatters,
   mesmerProfiledTraitDamage
 } from '#gw2/content/professions/mesmer/core/profiles.js';
@@ -53,8 +55,8 @@ function runtimeTraitsPhantasmSpawnModifiers(
   if (!traits.has(TRAIT.BOUNTIFUL_BLADES)) return {};
   return {
     [ID.PHANTASMAL_BERSERKER]: {
-      countMultiplier: mesmerBalanceValue(context, PROFILE.bountifulBlades, 'summons', 2),
-      damageMultiplier: mesmerBalanceValue(context, PROFILE.bountifulBlades, 'damageMultiplier', 0.66)
+      countMultiplier: balanceProfileValueFromContext(context, PROFILE.bountifulBlades, 'summons', 2),
+      damageMultiplier: balanceProfileValueFromContext(context, PROFILE.bountifulBlades, 'damageMultiplier', 0.66)
     }
   };
 }
@@ -76,7 +78,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   const baseResourceDefinition = mesmerResourceDefinition(config.specialization);
   const resourceDefinition = {
     ...baseResourceDefinition,
-    maximum: mesmerBalanceValue(
+    maximum: balanceProfileValueFromContext(
       context,
       mesmerResourceProfileId(config.specialization),
       'maximumStacks',
@@ -124,7 +126,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     shatterResolvedHandlers: [],
     skillCompletionHandlers: [],
     instruments: {},
-    balanceProfile: (id: SkillId) => mesmerBalanceProfile(context, id),
+    balanceProfile: (id: SkillId) => balanceProfileFromContext(context, id),
     controlSkills: new Set(MESMER_CORE_CONTROL_SKILLS),
     blindSkills: new Set(MESMER_CORE_BLIND_SKILLS),
     aristocracySkills: new Set(MESMER_CORE_ARISTOCRACY_SKILLS),

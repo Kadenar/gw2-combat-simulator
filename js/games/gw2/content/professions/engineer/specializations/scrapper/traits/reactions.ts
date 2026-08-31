@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -8,7 +9,7 @@ import {
   queueBuff,
   recordTrait
 } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
 import { scrapperState } from '#gw2/content/professions/engineer/specializations/scrapper/state.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/content/professions/engineer/types.js';
@@ -34,7 +35,7 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0) return;
   const state = procState(context);
   if (Number(state.massMomentum || 0) <= event.at) {
-    state.massMomentum = event.at + engineerBalanceValue(context, PROFILE.massMomentum, 'pulseInterval', 1);
+    state.massMomentum = event.at + balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1);
     queueBuff(context, event, {
       name: 'Mass Momentum',
       kind: 'might',
@@ -49,7 +50,7 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
   scheduleMassMomentumPulse(
     context,
     Math.max(
-      event.at + engineerBalanceValue(context, PROFILE.massMomentum, 'pulseInterval', 1),
+      event.at + balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1),
       Number(state.massMomentum || 0)
     )
   );
@@ -80,13 +81,14 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
     activeBoonStacks(
       context,
       'might',
-      engineerBalanceValue(context, PROFILE.appliedForce, 'maximumStacks', 25),
+      balanceProfileValueFromContext(context, PROFILE.appliedForce, 'maximumStacks', 25),
       event.at
-    ) >= engineerBalanceValue(context, PROFILE.appliedForce, 'threshold', 10)
+    ) >= balanceProfileValueFromContext(context, PROFILE.appliedForce, 'threshold', 10)
   ) {
     const state = procState(context);
     if (isInternalCooldownReady(event.at, Number(state.appliedForce || 0))) {
-      state.appliedForce = event.at + engineerBalanceValue(context, PROFILE.appliedForce, 'internalCooldown', 10);
+      state.appliedForce =
+        event.at + balanceProfileValueFromContext(context, PROFILE.appliedForce, 'internalCooldown', 10);
       queueBuff(context, event, {
         name: 'Applied Force',
         kind: 'stability',
@@ -116,7 +118,7 @@ function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerR
   if (event.finisherType === 'Whirl') {
     if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) return;
     state.kineticAcceleratorsWhirlReadyAt =
-      event.at + engineerBalanceValue(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
+      event.at + balanceProfileValueFromContext(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
   }
 
   // Boons are emitted by the scheduler's resolved-combo prediction so they

@@ -1,7 +1,8 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
-import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
+
 import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
@@ -31,5 +32,5 @@ export function modifyRechargeDuration(
   }
 
   state.elementalBalanceUntil = 0; // single-use window; next arm cycle starts fresh
-  return duration * elementalistBalanceValue(context, PROFILE.elementalBalance, 'rechargeMultiplier', 0.34);
+  return duration * balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'rechargeMultiplier', 0.34);
 }

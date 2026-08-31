@@ -4,6 +4,11 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffectFromContext as profileEffect,
+  balanceProfileFromContext,
+  balanceProfileEffect
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import {
   isPetStrike,
@@ -16,28 +21,20 @@ import type {
   RangerResolverEvent,
   RangerSkill
 } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
-
-function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
-  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
-}
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 // On an eligible heal, consume Child of Earth's ICD and emit the initial
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
 export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
-  const profile = rangerBalanceProfile(context, PROFILE.childOfEarth);
+  const profile = balanceProfileFromContext(context, PROFILE.childOfEarth);
   if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.start, state.childOfEarthReadyAt)) {
     return;
   }
 
   state.childOfEarthReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
   const at = context.effectiveEnd;
-  const immobilized = rangerBalanceProfileEffect(profile, 'condition', 0);
+  const immobilized = balanceProfileEffect(profile, 'condition', 0);
   emitSkillCondition(context, {
     at,
     source: 'Trait',
@@ -55,8 +52,8 @@ export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill)
   const interval = Number(profile?.pulseInterval ?? 2);
   for (let application = 0; application < applications; application += 1) {
     for (const effect of [
-      rangerBalanceProfileEffect(profile, 'condition', 1),
-      rangerBalanceProfileEffect(profile, 'condition', 2)
+      balanceProfileEffect(profile, 'condition', 1),
+      balanceProfileEffect(profile, 'condition', 2)
     ]) {
       const condition = String(effect?.condition || '');
       if (!condition) continue;
@@ -135,8 +132,8 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
     return;
   }
 
-  const profile = rangerBalanceProfile(context, PROFILE.carnivore);
-  const strike = rangerBalanceProfileEffect(profile, 'strike');
+  const profile = balanceProfileFromContext(context, PROFILE.carnivore);
+  const strike = balanceProfileEffect(profile, 'strike');
   state.carnivoreReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
   enqueueOrdered(context.queue, {
     type: 'damage',

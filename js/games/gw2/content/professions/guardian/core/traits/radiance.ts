@@ -1,11 +1,8 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import {
   guardianResolverEpsilon,
   guardianResolverState,
@@ -16,7 +13,7 @@ import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/conten
 
 /** Owns Righteous Instincts' Resolution window and recurring Might tick behavior. */
 function queueRighteousMight(context: GuardianResolverContext, at: number, detail: string): void {
-  const might = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.righteousInstincts), 'boon');
+  const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.righteousInstincts), 'boon');
   queueGuardianResolverBuff(context, {
     at,
     sourceId: GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS,
@@ -52,7 +49,7 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
   if (!wasActive) {
     queueRighteousMight(context, event.at, 'Resolution applied');
     state.righteousNextMightAt =
-      event.at + Number(guardianBalanceProfile(context, PROFILE.righteousInstincts)?.pulseInterval || 1);
+      event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval || 1);
     enqueueOrdered(context.queue, {
       type: 'guardian.righteous-instincts-tick',
       at: state.righteousNextMightAt,
@@ -78,7 +75,7 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
 
   queueRighteousMight(context, event.at, 'Resolution interval');
   state.righteousNextMightAt =
-    event.at + Number(guardianBalanceProfile(context, PROFILE.righteousInstincts)?.pulseInterval || 1);
+    event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval || 1);
   if (state.righteousNextMightAt <= Number(state.resolutionUntil || 0) + guardianResolverEpsilon(context)) {
     enqueueOrdered(context.queue, {
       ...event,

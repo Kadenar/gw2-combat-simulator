@@ -7,6 +7,7 @@
  * is disabled - fire the entry effects from empowered familiar casts without any
  * attunement actually changing.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -35,8 +36,7 @@ import {
 } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceEffect,
-  elementalistBalanceValue
+  elementalistBalanceEffect
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { OFF_ATTUNEMENT_RECHARGE_SECONDS } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
@@ -62,7 +62,7 @@ function consumeEvokerAttunementTraitCooldown(
 
   // Evoker owns the shared per-trait timer used by both real and familiar-triggered attunement entries.
   state.attunementTraitProcReadyAt[key] =
-    at + elementalistBalanceValue(context, PROFILE.evocation, 'internalCooldown', 5);
+    at + balanceProfileValueFromContext(context, PROFILE.evocation, 'internalCooldown', 5);
   return true;
 }
 
@@ -127,7 +127,7 @@ export function applyEvokerAttunementRechargePolicy(
         event.at +
           elementalistAttunementRechargeDuration(
             context as never,
-            elementalistBalanceValue(context, PROFILE.resources, 'recharge', OFF_ATTUNEMENT_RECHARGE_SECONDS)
+            balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', OFF_ATTUNEMENT_RECHARGE_SECONDS)
           )
       )
     );
@@ -139,7 +139,7 @@ export function applyEvokerAttunementRechargePolicy(
       event.at +
       elementalistAttunementRechargeDuration(
         context as never,
-        elementalistBalanceValue(context, PROFILE.resources, 'recharge', OFF_ATTUNEMENT_RECHARGE_SECONDS)
+        balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', OFF_ATTUNEMENT_RECHARGE_SECONDS)
       );
     const existingReadyAt = Number(readyAtBefore[attunement] || 0);
     const preservedRemaining = Number(preserved[attunement] || 0);

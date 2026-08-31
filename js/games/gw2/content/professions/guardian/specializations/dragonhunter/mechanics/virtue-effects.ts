@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
@@ -9,10 +10,7 @@ import { guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits
 import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/content/professions/guardian/types.js';
 import { dragonhunterState } from '#gw2/content/professions/guardian/specializations/dragonhunter/state.js';
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
 
 function handleTetherApplied(context: GuardianResolverContext, event: GuardianResolverEvent): void {
@@ -28,7 +26,7 @@ function handleTetherBroken(context: GuardianResolverContext, event: GuardianRes
 }
 
 function handleJusticePulse(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const burning = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.tether), 'condition');
+  const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.tether), 'condition');
   // Justice pulses are pre-emitted for the full tether window at cast time, so
   // each must be re-validated at resolve time in case Hunter's Verdict broke the
   // tether early. Epsilon tolerance avoids rejecting a pulse on the exact break timestamp.
@@ -69,7 +67,7 @@ export function reactToDragonhunterJusticeHit(
   // Passive Crippled only fires when the passive burn counter actually incremented,
   // i.e. a new passive Justice proc occurred on this hit (not an active proc).
   if (Number(core.justicePassiveBurns || 0) > passiveBefore) {
-    const crippled = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.tether), 'condition', 1);
+    const crippled = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.tether), 'condition', 1);
     context.applyCondition({
       type: 'condition',
       at: event.at,
@@ -96,10 +94,7 @@ export function reactToDragonhunterJusticeHit(
 
   // priority: 5 ensures this Vulnerability condition sorts after zero-priority damage
   // events at the same timestamp so modifiers can pick it up on the next resolve tick.
-  const vulnerability = guardianBalanceProfileEffect(
-    guardianBalanceProfile(context, PROFILE.bigGameHunter),
-    'condition'
-  );
+  const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bigGameHunter), 'condition');
   enqueueOrdered(context.queue, {
     type: 'condition',
     at: event.at,
@@ -119,7 +114,7 @@ export function reactToDragonhunterJusticeHit(
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = dragonhunterState.from(context);
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
-    const crippled = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.dulledSenses), 'condition');
+    const crippled = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.dulledSenses), 'condition');
     // Control-triggered conditions resolve immediately so their reactions
     // share the originating control timestamp.
     context.applyCondition({
@@ -145,8 +140,8 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
   }
 
   // 1-second internal cooldown on Heavy Light stability; not exposed by the trait's game tooltip.
-  const heavyLight = guardianBalanceProfile(context, PROFILE.heavyLight);
-  const stability = guardianBalanceProfileEffect(heavyLight, 'boon');
+  const heavyLight = balanceProfileFromContext(context, PROFILE.heavyLight);
+  const stability = balanceProfileEffect(heavyLight, 'boon');
   state.heavyLightReadyAt = event.at + Number(heavyLight?.internalCooldown || 1);
   enqueueOrdered(context.queue, {
     type: 'buff',

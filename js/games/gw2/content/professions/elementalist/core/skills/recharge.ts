@@ -1,14 +1,12 @@
 /** Applies Core Elementalist one-shot, weapon, and attunement recharge policy. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 import { elementalistCoreAvailability } from '#gw2/content/professions/elementalist/core/mechanics/availability.js';
 import { skillWeapon } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 /**
  * Consume one-shot weapon recharge modifiers before applying persistent
@@ -44,7 +42,7 @@ export function modifyElementalistRechargeDuration(
   // Armed spear and pistol empowerments are one-shot: they are cleared as they
   // are spent, so each applies to exactly one non-autoattack weapon skill.
   if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear' && String(skill.slot || '') !== 'Weapon_1') {
-    weaponRechargeMultiplier *= elementalistBalanceValue(
+    weaponRechargeMultiplier *= balanceProfileValueFromContext(
       context,
       PROFILE.spearEmpowerments,
       'rechargeMultiplier',
@@ -54,13 +52,18 @@ export function modifyElementalistRechargeDuration(
   }
 
   if (state.dazingDischargeUntil > at && skillWeapon(skill) === 'Pistol' && String(skill.slot || '') !== 'Weapon_1') {
-    weaponRechargeMultiplier *= elementalistBalanceValue(context, PROFILE.dazingDischarge, 'rechargeMultiplier', 0.67);
+    weaponRechargeMultiplier *= balanceProfileValueFromContext(
+      context,
+      PROFILE.dazingDischarge,
+      'rechargeMultiplier',
+      0.67
+    );
     state.dazingDischargeUntil = 0;
   }
 
   adjustedDuration *= Math.max(0, weaponRechargeMultiplier);
   if (skill.name === 'Ride the Lightning') {
-    adjustedDuration *= elementalistBalanceValue(context, PROFILE.rideTheLightning, 'rechargeMultiplier', 0.5);
+    adjustedDuration *= balanceProfileValueFromContext(context, PROFILE.rideTheLightning, 'rechargeMultiplier', 0.5);
   }
 
   // The four *mancer's Training traits shorten weapon recharges, each only for
@@ -80,7 +83,7 @@ export function modifyElementalistRechargeDuration(
           : attunement === 'Earth'
             ? PROFILE.geomancersTraining
             : PROFILE.aquamancersTraining;
-    adjustedDuration *= elementalistBalanceValue(context, profileId, 'rechargeMultiplier', 0.8);
+    adjustedDuration *= balanceProfileValueFromContext(context, profileId, 'rechargeMultiplier', 0.8);
   }
 
   return adjustedDuration;

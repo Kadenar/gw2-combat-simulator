@@ -4,7 +4,10 @@ interface BalanceProfileCatalogLike {
   readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
 }
 
+type BalanceProfileLookup = (id: SkillId) => BalanceProfile | undefined;
+
 export interface BalanceProfileLookupContext {
+  readonly balanceProfile?: BalanceProfileLookup;
   readonly catalog?: BalanceProfileCatalogLike;
   readonly helpers?: BalanceProfileCatalogLike;
   readonly profession?: {
@@ -19,6 +22,7 @@ export interface BalanceProfileLookupContext {
 
 /** Resolves patched balance data across scheduler, resolver, profession, and application context shapes. */
 export function balanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile | undefined {
+  if (typeof context === 'function') return (context as BalanceProfileLookup)(id);
   if (!context || typeof context !== 'object') return undefined;
 
   const source = context as BalanceProfileLookupContext;
@@ -26,7 +30,8 @@ export function balanceProfileFromContext(context: unknown, id: SkillId): Balanc
     source.catalog?.balanceProfilesById?.get(id) ||
     source.helpers?.balanceProfilesById?.get(id) ||
     source.profession?.catalog?.balanceProfilesById?.get(id) ||
-    source.runtime?.profession?.catalog?.balanceProfilesById?.get(id)
+    source.runtime?.profession?.catalog?.balanceProfilesById?.get(id) ||
+    source.balanceProfile?.(id)
   );
 }
 
@@ -40,6 +45,17 @@ export function balanceProfileEffect(
   return profile?.effects?.filter((effect) => effect.type === type && (name == null || effect.name === name))[index];
 }
 
+/** Resolves a profile and selects one authored effect without profession-local lookup wrappers. */
+export function balanceProfileEffectFromContext(
+  context: unknown,
+  id: SkillId,
+  type: string,
+  index = 0,
+  name?: string
+): SkillEffect | undefined {
+  return balanceProfileEffect(balanceProfileFromContext(context, id), type, index, name);
+}
+
 /** Reads a finite numeric profile field and otherwise returns the caller's domain-specific fallback. */
 export function balanceProfileValue(
   profile: Readonly<Record<string, unknown>> | null | undefined,
@@ -48,4 +64,9 @@ export function balanceProfileValue(
 ): number {
   const value = profile?.[field];
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
+}
+
+/** Resolves a profile and reads one numeric field without profession-local lookup wrappers. */
+export function balanceProfileValueFromContext(context: unknown, id: SkillId, field: string, fallback: number): number {
+  return balanceProfileValue(balanceProfileFromContext(context, id), field, fallback);
 }

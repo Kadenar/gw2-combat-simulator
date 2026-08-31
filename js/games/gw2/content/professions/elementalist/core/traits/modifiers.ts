@@ -7,6 +7,7 @@
  * on the attunement, timed buffs, or wielded bundle in force at that instant.
  * The shared query helpers are also re-used by the specialization modifier files.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -18,10 +19,7 @@ import type {
   ElementalistAttunement,
   ElementalistCoreState
 } from '#gw2/content/professions/elementalist/core/state.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 // Modifier contexts reach core state through the runtime profession snapshot.
 function coreState(context: Gw2ModifierContext): Partial<ElementalistCoreState> {
@@ -221,7 +219,8 @@ export function modifyElementalistAttributes(
   const primary = primaryAttunement(context);
   if (hasTrait(context, 'Empowering Flame') && primary === 'Fire') {
     modified.power =
-      Number(modified.power || 0) + elementalistBalanceValue(context, PROFILE.empoweringFlame, 'attributeBonus', 150);
+      Number(modified.power || 0) +
+      balanceProfileValueFromContext(context, PROFILE.empoweringFlame, 'attributeBonus', 150);
   }
 
   // Power Overwhelming needs a might threshold, and pays the larger bonus while
@@ -229,24 +228,24 @@ export function modifyElementalistAttributes(
   if (
     hasTrait(context, 'Power Overwhelming') &&
     elementalistMightStacks(context) >=
-      elementalistBalanceValue(context, PROFILE.powerOverwhelming, 'minimumStacks', 10)
+      balanceProfileValueFromContext(context, PROFILE.powerOverwhelming, 'minimumStacks', 10)
   ) {
     modified.power =
       Number(modified.power || 0) +
       (primary === 'Fire'
-        ? elementalistBalanceValue(context, PROFILE.powerOverwhelming, 'weaponAttributeBonus', 300)
-        : elementalistBalanceValue(context, PROFILE.powerOverwhelming, 'attributeBonus', 150));
+        ? balanceProfileValueFromContext(context, PROFILE.powerOverwhelming, 'weaponAttributeBonus', 300)
+        : balanceProfileValueFromContext(context, PROFILE.powerOverwhelming, 'attributeBonus', 150));
   }
 
   if (hasTrait(context, 'Fresh Air') && elementalistTimedBuffStacks(context, 'fresh air', 1) > 0) {
     modified.ferocity =
-      Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.freshAir, 'attributeBonus', 250);
+      Number(modified.ferocity || 0) + balanceProfileValueFromContext(context, PROFILE.freshAir, 'attributeBonus', 250);
   }
 
   if (hasTrait(context, "Aeromancer's Training") && primary === 'Air') {
     modified.ferocity =
       Number(modified.ferocity || 0) +
-      elementalistBalanceValue(context, PROFILE.aeromancersTraining, 'attributeBonus', 150);
+      balanceProfileValueFromContext(context, PROFILE.aeromancersTraining, 'attributeBonus', 150);
   }
 
   if (
@@ -254,13 +253,14 @@ export function modifyElementalistAttributes(
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
   ) {
     modified.ferocity =
-      Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.ragingStorm, 'attributeBonus', 180);
+      Number(modified.ferocity || 0) +
+      balanceProfileValueFromContext(context, PROFILE.ragingStorm, 'attributeBonus', 180);
   }
 
   if (hasTrait(context, 'Arcane Lightning') && elementalistTimedBuffStacks(context, 'arcane lightning', 1) > 0) {
     modified.ferocity =
       Number(modified.ferocity || 0) +
-      elementalistBalanceValue(context, PROFILE.arcaneLightning, 'attributeBonus', 150);
+      balanceProfileValueFromContext(context, PROFILE.arcaneLightning, 'attributeBonus', 150);
   }
 
   // Conjured bundles carry their own attribute bonuses only while wielded, so
@@ -269,23 +269,25 @@ export function modifyElementalistAttributes(
   if (weapon === 'Fiery Greatsword') {
     modified.power =
       Number(modified.power || 0) +
-      elementalistBalanceValue(context, PROFILE.fieryGreatsword, 'weaponAttributeBonus', 260);
+      balanceProfileValueFromContext(context, PROFILE.fieryGreatsword, 'weaponAttributeBonus', 260);
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) +
-      elementalistBalanceValue(context, PROFILE.fieryGreatsword, 'attributeBonus', 180);
+      balanceProfileValueFromContext(context, PROFILE.fieryGreatsword, 'attributeBonus', 180);
   } else if (weapon === 'Lightning Hammer') {
     modified.precision =
       Number(modified.precision || 0) +
-      elementalistBalanceValue(context, PROFILE.lightningHammer, 'weaponAttributeBonus', 180);
+      balanceProfileValueFromContext(context, PROFILE.lightningHammer, 'weaponAttributeBonus', 180);
     modified.ferocity =
-      Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.lightningHammer, 'attributeBonus', 75);
+      Number(modified.ferocity || 0) +
+      balanceProfileValueFromContext(context, PROFILE.lightningHammer, 'attributeBonus', 75);
   }
 
   // Signet of Fire's passive precision is part of the build's baseline stats, so
   // activating the signet is modeled by subtracting it for the recharge window.
   if (Number(coreState(context).signetOfFireDisabledUntil || 0) > context.time) {
     modified.precision =
-      Number(modified.precision || 0) - elementalistBalanceValue(context, PROFILE.signetOfFire, 'attributeBonus', 180);
+      Number(modified.precision || 0) -
+      balanceProfileValueFromContext(context, PROFILE.signetOfFire, 'attributeBonus', 180);
   }
 
   return modified;

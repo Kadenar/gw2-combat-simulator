@@ -1,8 +1,9 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import { mesmerBalanceProfile, mesmerBalanceProfileEffect } from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerSchedulerContext,
@@ -49,7 +50,7 @@ export function handleVirtuosoExpectedProcTask(
   if (task.payload.type === 'bleeding') {
     const state = virtuosoState.from(context);
     state.bloodsongProgress += Number(task.payload.stacks || 0);
-    const profile = mesmerBalanceProfile(context, TRAIT.BLOODSONG);
+    const profile = balanceProfileFromContext(context, TRAIT.BLOODSONG);
     const threshold = Number(profile?.threshold || 5);
     while (state.bloodsongProgress >= threshold - PROC_PROGRESS_TOLERANCE) {
       state.bloodsongProgress -= threshold;
@@ -75,7 +76,7 @@ export function handleVirtuosoExpectedProcTask(
     materialization: 'weighted'
   });
   if (!application) return;
-  const effect = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.JAGGED_MIND), 'condition');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.JAGGED_MIND), 'condition');
   emitSkillCondition(context, {
     cause: event,
 

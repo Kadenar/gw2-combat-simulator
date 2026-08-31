@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -15,7 +16,7 @@ import {
 } from '#gw2/content/professions/necromancer/core/traits/modifiers.js';
 import type { AvailabilityResult, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import { necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 import type { NecromancerPrecastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
@@ -50,7 +51,7 @@ function ritualistAvailability(
 function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.BOON_OF_CREATION)) {
-    result.concentration += Number(necromancerBalanceProfile(context, PROFILE.boonOfCreation)?.attributeBonus || 180);
+    result.concentration += Number(balanceProfileFromContext(context, PROFILE.boonOfCreation)?.attributeBonus || 180);
   }
 
   return result;

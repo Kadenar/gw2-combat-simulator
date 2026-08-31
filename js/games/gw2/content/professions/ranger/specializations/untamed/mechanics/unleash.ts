@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -14,10 +15,7 @@ import type {
   RangerSkill
 } from '#gw2/content/professions/ranger/types.js';
 import { untamedState } from '#gw2/content/professions/ranger/specializations/untamed/state.js';
-import {
-  rangerBalanceValue,
-  RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
@@ -133,7 +131,10 @@ export const untamedCastRules = Object.freeze({
 
     return (
       duration /
-      Math.max(Number.EPSILON, rangerBalanceValue(context, CORE_PROFILE.packAlpha, 'rechargeMultiplier', 0.8))
+      Math.max(
+        Number.EPSILON,
+        balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'rechargeMultiplier', 0.8)
+      )
     );
   }
 });
@@ -150,7 +151,7 @@ export const untamedSkillMechanicHandlers = Object.freeze({
     activationId: string;
   }): void => {
     // This shared F5 recharge is fixed and therefore intentionally ignores Alacrity.
-    const readyAt = castStart + rangerBalanceValue(context, PROFILE.resources, 'recharge', 1);
+    const readyAt = castStart + balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', 1);
     context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
     context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
     const action = context.events.find(
@@ -175,13 +176,13 @@ export const untamedSchedulerHooks = Object.freeze({
     const state = untamedState.from(context);
     if (!isInternalCooldownReady(context.start, state.letLooseReadyAt)) return;
     const profileId = PROFILE.letLoose;
-    state.letLooseReadyAt = context.start + rangerBalanceValue(context, profileId, 'internalCooldown', 9);
+    state.letLooseReadyAt = context.start + balanceProfileValueFromContext(context, profileId, 'internalCooldown', 9);
     // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.
     state.unleashedPowerReadyAt = 0;
     if (state.rangerUnleashed) {
       // Weapon-swap ambush window is counted from effectiveEnd (post-cast), not cast start.
       state.ambushReadyUntil =
-        context.effectiveEnd + rangerBalanceValue(context, PROFILE.resources, 'durationMultiplier', 4);
+        context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4);
     }
   }
 });

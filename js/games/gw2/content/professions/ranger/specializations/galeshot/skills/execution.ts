@@ -1,11 +1,12 @@
 /** Registers scheduler-phase skill activations for this module. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/content/professions/ranger/core/traits/index.js';
 import { applyGaleshotCycloneBowTraits } from '#gw2/content/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
 import { galeshotState } from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
-import { rangerBalanceValue } from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
 
 function emitGaleshotState(context: RangerCastContext, skill: RangerSkill, at = context.effectiveEnd) {
@@ -46,7 +47,7 @@ function countAsWeaponSwap(context: RangerCastContext, skill: RangerSkill): void
 
 function restoreArrows(context: RangerCastContext, skill: RangerSkill): void {
   const state = galeshotState.from(context);
-  state.maximumArrows = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 8);
+  state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows + Number(skill.arrowsRestored || 0));
 }
 
@@ -81,7 +82,7 @@ export const galeshotSkillHandlers = Object.freeze({
         state.windForce = 0;
       } else {
         state.windForce = Math.min(
-          rangerBalanceValue(context, PROFILE.resources, 'minimumStacks', 5),
+          balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 5),
           state.windForce + Number(skill.windForceGain || 0)
         );
       }
@@ -110,7 +111,8 @@ export const galeshotSkillHandlers = Object.freeze({
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const state = galeshotState.from(context);
       restoreArrows(context, skill);
-      state.mistralUntil = context.start + rangerBalanceValue(context, PROFILE.mistral, 'durationMultiplier', 6);
+      state.mistralUntil =
+        context.start + balanceProfileValueFromContext(context, PROFILE.mistral, 'durationMultiplier', 6);
       emitGaleshotState(context, skill);
     }
   }

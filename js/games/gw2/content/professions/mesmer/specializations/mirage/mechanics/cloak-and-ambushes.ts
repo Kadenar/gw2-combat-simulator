@@ -3,6 +3,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { BalanceProfile, SchedulerState, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
 import type {
   MesmerActivePrimaryWeapon,
@@ -60,15 +64,8 @@ export function createMirageActionController({
   balanceProfile,
   boonDuration
 }: MirageActionControllerOptions): MesmerMirageController {
-  // Returns the numeric value of a given field from a balance profile, or a fallback if not found.
-  const profileValue = (id: SkillId, field: string, fallback: number) => {
-    const value = balanceProfile(id)?.[field];
-    return Number.isFinite(Number(value)) ? Number(value) : fallback;
-  };
-
-  // Returns the first effect of a given type from a balance profile, or undefined if not found.
-  const profileEffect = (id: SkillId, type: string, index = 0): SkillEffect | undefined =>
-    balanceProfile(id)?.effects?.filter((effect) => effect.type === type)[index];
+  const profileValue = balanceProfileValueFromContext.bind(null, balanceProfile);
+  const profileEffect = balanceProfileEffectFromContext.bind(null, balanceProfile);
 
   const statusFromEffect = (effect: SkillEffect | undefined, fallback: MesmerAttackStatus): MesmerAttackStatus => ({
     name: String(effect?.condition || effect?.boon || fallback.name),

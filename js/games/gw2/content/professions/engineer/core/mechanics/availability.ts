@@ -1,10 +1,8 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
-import {
-  ENGINEER_CORE_BALANCE_PROFILE_IDS,
-  engineerBalanceValue
-} from '#gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/core/profiles.js';
 import { engineerEnduranceReadyAt } from '#gw2/content/professions/engineer/core/mechanics/resources.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/content/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
@@ -23,7 +21,7 @@ export function engineerCoreCastAvailability(
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || 'Core');
   if (skill.id === ID.DODGE) {
-    const enduranceCost = engineerBalanceValue(
+    const enduranceCost = balanceProfileValueFromContext(
       context,
       ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
       'resourceCost',

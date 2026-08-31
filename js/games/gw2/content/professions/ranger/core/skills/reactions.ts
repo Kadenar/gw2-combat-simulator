@@ -2,6 +2,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
 import {
@@ -10,15 +11,7 @@ import {
   petDerivedConditionMetadata
 } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
-
-function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
-  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
-}
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 export function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);

@@ -3,6 +3,7 @@
  * Grand Finale consumes; the cataloged hammer skill data lives in
  * `skills/weapons/hammer.ts`.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -16,10 +17,7 @@ import {
 } from '#gw2/content/professions/elementalist/core/state.js';
 import { activeHammerOrbElements } from '#gw2/content/professions/elementalist/core/skills/hammer.js';
 import { activeBuffEvents, skillWeapon } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
 import { weaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
 
@@ -30,7 +28,7 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
   if (!elements) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const orbDuration = elementalistBalanceValue(context, CORE_PROFILE.hammerOrbs, 'durationMultiplier', 15);
+  const orbDuration = balanceProfileValueFromContext(context, CORE_PROFILE.hammerOrbs, 'durationMultiplier', 15);
   // Any orb still alive is extended to the new full duration, including the
   // buff events already placed on the timeline.
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
@@ -78,7 +76,7 @@ export function weaverHammerAvailability(
   const state = professionCoreState(context);
   // Every dual hammer skill shares one short lockout after the last orb cast.
   const retryAt =
-    state.hammerOrbLastCastAt + elementalistBalanceValue(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
+    state.hammerOrbLastCastAt + balanceProfileValueFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
   if (retryAt > context.start + context.epsilon) {
     return {
       ready: false,

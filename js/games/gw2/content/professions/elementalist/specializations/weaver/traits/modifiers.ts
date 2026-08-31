@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -9,7 +10,7 @@ import {
   elementalistAttunements,
   elementalistTimedBuffStacks
 } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
-import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
+
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
 
 /**
@@ -72,7 +73,7 @@ function modifyWeaverAttributes(context: Gw2ModifierContext, attributes: Schedul
       ?.secondaryAttunement ?? context.config?.secondaryAttunement;
   if (typeof secondary === 'string') active.add(secondary);
 
-  const attributeBonus = elementalistBalanceValue(context, PROFILE.elementalPolyphony, 'attributeBonus', 200);
+  const attributeBonus = balanceProfileValueFromContext(context, PROFILE.elementalPolyphony, 'attributeBonus', 200);
   if (active.has('Fire')) {
     modified.power = Number(modified.power || 0) + attributeBonus;
   }

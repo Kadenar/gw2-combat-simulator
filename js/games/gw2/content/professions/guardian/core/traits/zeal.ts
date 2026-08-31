@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
@@ -7,11 +8,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import {
   emitGuardianProc,
   guardianResolverEpsilon,
@@ -31,8 +28,8 @@ import type {
 
 /** Owns Core Guardian Zeal's imperative symbol procs while leaving their sequence in the public dispatcher. */
 function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: GuardianSkill, at: number): void {
-  const profile = guardianBalanceProfile(context, PROFILE.furiousFocus);
-  const strike = guardianBalanceProfileEffect(profile, 'strike');
+  const profile = balanceProfileFromContext(context, PROFILE.furiousFocus);
+  const strike = balanceProfileEffect(profile, 'strike');
   const hits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
   const interval = Number(strike?.intervalMs || 1000) / 1000;
   // The triggered symbol is one distinct activation so its unequipped weapon-strength roll is shared by its
@@ -86,7 +83,7 @@ export function applyFuriousFocus(
     ({
       id: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
       name: 'Lesser Symbol of Blades',
-      cooldown: Number(guardianBalanceProfile(context, PROFILE.furiousFocus)?.cooldown || 10)
+      cooldown: Number(balanceProfileFromContext(context, PROFILE.furiousFocus)?.cooldown || 10)
     } as GuardianSkill);
   professionCoreState(context).furiousFocusReadyAt = at + context.rechargeDurationFor(lesserSymbol, at);
   emitLesserSymbolOfBlades(context, skill, at);
@@ -94,7 +91,7 @@ export function applyFuriousFocus(
 
 export function applySymbolicExposure(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)) return;
-  const exposure = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.symbolicExposure), 'condition');
+  const exposure = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.symbolicExposure), 'condition');
   emitSkillCondition(context, {
     at: event.at,
     source: 'guardian',
@@ -116,9 +113,9 @@ function queueLesserSymbolOfResolution(
   at: number,
   sourceSkill: string | undefined
 ): void {
-  const profile = guardianBalanceProfile(context, PROFILE.zealotsResolution);
-  const strike = guardianBalanceProfileEffect(profile, 'strike');
-  const resolution = guardianBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.zealotsResolution);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const resolution = balanceProfileEffect(profile, 'boon');
   const hits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
   const interval = Number(strike?.intervalMs || 1000) / 1000;
   for (let index = 0; index < hits; index += 1) {
@@ -157,7 +154,7 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
 
   const state = guardianResolverState(context);
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
-    const profile = guardianBalanceProfile(context, PROFILE.symbolicAvenger);
+    const profile = balanceProfileFromContext(context, PROFILE.symbolicAvenger);
     if (event.at >= state.symbolicAvengerUntil - guardianResolverEpsilon(context)) {
       state.symbolicAvengerStacks = 0;
     }
@@ -210,7 +207,7 @@ export function reactToZealotsResolution(context: GuardianResolverContext, event
     !(targetHealth > 0) ||
     !(
       damageDone >
-      targetHealth * Number(guardianBalanceProfile(context, PROFILE.zealotsResolution)?.threshold || 0.25)
+      targetHealth * Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.threshold || 0.25)
     ) ||
     !isInternalCooldownReady(event.at, Number(state.zealotsResolutionReadyAt || 0)) ||
     !hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION) ||
@@ -220,7 +217,7 @@ export function reactToZealotsResolution(context: GuardianResolverContext, event
   }
 
   state.zealotsResolutionReadyAt =
-    event.at + Number(guardianBalanceProfile(context, PROFILE.zealotsResolution)?.cooldown || 30);
+    event.at + Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.cooldown || 30);
   queueLesserSymbolOfResolution(context, event.at, event.skillName);
   recordGuardianTraitProc(
     context,

@@ -6,6 +6,7 @@
  * A denial without a retry timestamp rejects the rotation command outright; a
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult, Skill } from '#gw2/platform/engine/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -42,10 +43,7 @@ import {
   isSelectedSlotSkill,
   weaponAttunementAvailable
 } from '#gw2/content/professions/elementalist/core/mechanics/weapon-state.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -94,7 +92,12 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
       context.start,
       Boolean(context.config.boons?.vigor)
     );
-    const enduranceCost = elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', DODGE_ENDURANCE_COST);
+    const enduranceCost = balanceProfileValueFromContext(
+      context,
+      PROFILE.resources,
+      'resourceCost',
+      DODGE_ENDURANCE_COST
+    );
     return state.endurance + context.epsilon >= enduranceCost
       ? ready()
       : unavailable(
@@ -186,7 +189,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
   if (hammerElements) {
     const retryAt =
-      state.hammerOrbLastCastAt + elementalistBalanceValue(context, PROFILE.hammerOrbs, 'initialDelay', 0.48);
+      state.hammerOrbLastCastAt + balanceProfileValueFromContext(context, PROFILE.hammerOrbs, 'initialDelay', 0.48);
     if (retryAt > context.start + context.epsilon) {
       return unavailable(
         skill,

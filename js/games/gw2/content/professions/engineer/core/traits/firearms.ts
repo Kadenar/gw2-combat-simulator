@@ -1,12 +1,12 @@
 /** Owns imperative Core Engineer Firearms critical-hit and condition reactions. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  engineerBalanceEffectValue,
-  engineerBalanceValue
+  engineerBalanceEffectValue
 } from '#gw2/content/professions/engineer/core/profiles.js';
 import {
   applyEngineerDerivedCondition,
@@ -33,7 +33,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     id: 'engineer.core.serrated-steel',
     actorTypes: ['player', 'effect', 'unknown'],
     when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.SERRATED_STEEL),
-    chanceOnCriticalHit: (context) => engineerBalanceValue(context, PROFILE.serratedSteel, 'procChance', 0.33),
+    chanceOnCriticalHit: (context) =>
+      balanceProfileValueFromContext(context, PROFILE.serratedSteel, 'procChance', 0.33),
     expectedProgress: {
       get: (context) => Number(procState(context).serratedSteelProgress || 0),
       set: (context, progress) => {
@@ -67,7 +68,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => engineerBalanceValue(context, PROFILE.noScope, 'internalCooldown', 8),
+      duration: (context) => balanceProfileValueFromContext(context, PROFILE.noScope, 'internalCooldown', 8),
       readyAt: (context) => Number(procState(context).noScope || 0),
       setReadyAt: (context, readyAt) => {
         procState(context).noScope = readyAt;
@@ -97,7 +98,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => engineerBalanceValue(context, PROFILE.incendiaryPowder, 'internalCooldown', 10),
+      duration: (context) => balanceProfileValueFromContext(context, PROFILE.incendiaryPowder, 'internalCooldown', 10),
       readyAt: (context) => Number(procState(context)['incendiaryPowder.player'] || 0),
       setReadyAt: (context, readyAt) => {
         procState(context)['incendiaryPowder.player'] = readyAt;
@@ -160,7 +161,7 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
 
   const state = procState(context);
   if (!isInternalCooldownReady(event.at, Number(state.hematicFocus || 0))) return;
-  state.hematicFocus = event.at + engineerBalanceValue(context, PROFILE.hematicFocus, 'internalCooldown', 8);
+  state.hematicFocus = event.at + balanceProfileValueFromContext(context, PROFILE.hematicFocus, 'internalCooldown', 8);
   queueBuff(context, event, {
     name: 'Hematic Focus',
     kind: 'fury',

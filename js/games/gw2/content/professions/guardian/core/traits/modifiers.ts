@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
@@ -17,10 +18,7 @@ import {
   guardianBuildAvailability,
   guardianCastAvailability
 } from '#gw2/content/professions/guardian/core/mechanics/availability.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 type GuardianRechargeModifierContext = GuardianSchedulerContext &
@@ -322,15 +320,15 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
   const skill = context.skill;
   let result = duration;
   if (skill?.weapon === 'Greatsword' && hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
-    result *= Number(guardianBalanceProfile(context, PROFILE.zealousBlade)?.rechargeMultiplier || 0.8);
+    result *= Number(balanceProfileFromContext(context, PROFILE.zealousBlade)?.rechargeMultiplier || 0.8);
   }
 
   if (skill?.weapon === 'Torch' && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
-    result *= Number(guardianBalanceProfile(context, PROFILE.radiantFire)?.rechargeMultiplier || 0.8);
+    result *= Number(balanceProfileFromContext(context, PROFILE.radiantFire)?.rechargeMultiplier || 0.8);
   }
 
   if (skill?.weapon === 'Focus' && hasTrait(context, GUARDIAN_TRAIT_IDS.FOCUS_MASTERY)) {
-    result *= Number(guardianBalanceProfile(context, PROFILE.focusMastery)?.rechargeMultiplier || 0.8);
+    result *= Number(balanceProfileFromContext(context, PROFILE.focusMastery)?.rechargeMultiplier || 0.8);
   }
 
   if (
@@ -338,7 +336,7 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
     /^Profession_[1-3]$/.test(String(skill.slot || '')) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   ) {
-    result *= Number(guardianBalanceProfile(context, PROFILE.powerOfTheVirtuous)?.rechargeMultiplier || 0.85);
+    result *= Number(balanceProfileFromContext(context, PROFILE.powerOfTheVirtuous)?.rechargeMultiplier || 0.85);
   }
 
   return result;
@@ -351,11 +349,11 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
 function modifyGuardianMaximumAmmo(context: GuardianAmmoModifierContext, maximum: number): number {
   let result = maximum;
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
-    result = Math.max(result, Number(guardianBalanceProfile(context, PROFILE.radiantFire)?.maximumStacks || 2));
+    result = Math.max(result, Number(balanceProfileFromContext(context, PROFILE.radiantFire)?.maximumStacks || 2));
   }
 
   if (context.skill?.categories?.includes('SpiritWeapon') && hasTrait(context, GUARDIAN_TRAIT_IDS.ETERNAL_ARMORY)) {
-    result += Number(guardianBalanceProfile(context, PROFILE.eternalArmory)?.resourceGain || 1);
+    result += Number(balanceProfileFromContext(context, PROFILE.eternalArmory)?.resourceGain || 1);
   }
 
   return result;
@@ -371,14 +369,14 @@ function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, durati
       context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
   ) {
-    result *= Number(guardianBalanceProfile(context, PROFILE.radiantFire)?.durationMultiplier || 1.5);
+    result *= Number(balanceProfileFromContext(context, PROFILE.radiantFire)?.durationMultiplier || 1.5);
   }
 
   if (
     (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive') &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
   ) {
-    result *= Number(guardianBalanceProfile(context, PROFILE.amplifiedWrath)?.durationMultiplier || 1.2);
+    result *= Number(balanceProfileFromContext(context, PROFILE.amplifiedWrath)?.durationMultiplier || 1.2);
   }
 
   return result;

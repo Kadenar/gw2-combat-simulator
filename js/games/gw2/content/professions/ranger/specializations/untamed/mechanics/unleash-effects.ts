@@ -1,15 +1,16 @@
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffectFromContext as profileEffect,
+  balanceProfileFromContext,
+  balanceProfileEffect
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
 import { untamedState } from '#gw2/content/professions/ranger/specializations/untamed/state.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect } from '#gw2/content/professions/ranger/core/profiles.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 
-function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
-  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
-}
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 
 const AMBUSH_SKILL_IDS = new Set<number>([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 
@@ -90,7 +91,7 @@ function queueTraitCondition(
 function triggerFerociousSymbiosis(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!hasTrait(context, TRAIT.FEROCIOUS_SYMBIOSIS)) return;
   const state = untamedState.from(context);
-  const profile = rangerBalanceProfile(context, PROFILE.ferociousSymbiosis);
+  const profile = balanceProfileFromContext(context, PROFILE.ferociousSymbiosis);
   const maximumStacks = Number(profile?.maximumStacks ?? 5);
   const duration = Number(profile?.durationMultiplier ?? 5);
   const internalCooldown = Number(profile?.internalCooldown ?? 0.5);
@@ -191,11 +192,11 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Ran
     hasTrait(context, TRAIT.DEBILITATING_BLOWS) &&
     isInternalCooldownReady(event.at, state.debilitatingBlowsReadyAt)
   ) {
-    const profile = rangerBalanceProfile(context, PROFILE.debilitatingBlows);
+    const profile = balanceProfileFromContext(context, PROFILE.debilitatingBlows);
     state.debilitatingBlowsReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
     // Unleash state determines which condition is applied: Poisoned when Ranger unleashed, Slow otherwise.
     if (state.rangerUnleashed) {
-      const poison = rangerBalanceProfileEffect(profile, 'condition', 0);
+      const poison = balanceProfileEffect(profile, 'condition', 0);
       queueTraitCondition(
         context,
         event,
@@ -206,7 +207,7 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Ran
         'Debilitating Blows'
       );
     } else {
-      const slow = rangerBalanceProfileEffect(profile, 'condition', 1);
+      const slow = balanceProfileEffect(profile, 'condition', 1);
       queueTraitCondition(
         context,
         event,
@@ -220,8 +221,8 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Ran
   }
 
   if (hasTrait(context, TRAIT.ENHANCING_IMPACT) && isInternalCooldownReady(event.at, state.enhancingImpactReadyAt)) {
-    const profile = rangerBalanceProfile(context, PROFILE.enhancingImpact);
-    const effect = rangerBalanceProfileEffect(profile, 'boon', state.rangerUnleashed ? 0 : 1);
+    const profile = balanceProfileFromContext(context, PROFILE.enhancingImpact);
+    const effect = balanceProfileEffect(profile, 'boon', state.rangerUnleashed ? 0 : 1);
     state.enhancingImpactReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
     // Unleash state determines the boon: Quickness when Ranger unleashed, Stability otherwise.
     queueTraitBuff(

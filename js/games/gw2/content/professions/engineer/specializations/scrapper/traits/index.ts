@@ -1,7 +1,8 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
@@ -38,8 +39,8 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       kind: 'superspeed',
       duration:
         skill.toolbeltParentName === 'Med Kit'
-          ? engineerBalanceValue(context, PROFILE.speedOfSynergy, 'maximumStacks', 12)
-          : engineerBalanceValue(context, PROFILE.speedOfSynergy, 'minimumStacks', 5),
+          ? balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'maximumStacks', 12)
+          : balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'minimumStacks', 5),
       stacks: 1,
       maximumDuration: 10
     });
@@ -55,7 +56,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       actorType: 'player',
       name: 'Speed of Synergy — superspeed',
       kind: 'superspeed',
-      duration: engineerBalanceValue(context, PROFILE.speedOfSynergy, 'threshold', 7),
+      duration: balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'threshold', 7),
       stacks: 1,
       maximumDuration: 10
     });

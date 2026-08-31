@@ -1,4 +1,5 @@
 /** Owns imperative Core Necromancer Soul Reaping trait behavior for ordered dispatcher calls. */
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -8,11 +9,7 @@ import {
   applyTraitCondition,
   applyTraitVulnerability
 } from '#gw2/content/professions/necromancer/core/mechanics/trait-effects.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  balanceProfileEffect,
-  necromancerBalanceProfile
-} from '#gw2/content/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/core/profiles.js';
 import type {
   NecromancerCastContext,
   NecromancerResolverContext,
@@ -32,7 +29,7 @@ export function applyDhuumfire(
   shroudSkillOne: boolean
 ): void {
   if (!hasTrait(context, TRAIT.DHUUMFIRE) || !shroudSkillOne) return;
-  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.dhuumfire), 'condition');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.dhuumfire), 'condition');
   const interval = Number(event.dhuumfireInterval || 0);
   if (
     interval > 0 &&
@@ -61,7 +58,7 @@ export function applyUnyieldingBlast(
   shroudSkillOne: boolean
 ): void {
   if (!hasTrait(context, TRAIT.UNYIELDING_BLAST) || !firstHit || !shroudSkillOne) return;
-  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.unyieldingBlast), 'condition');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.unyieldingBlast), 'condition');
   applyTraitVulnerability(context, event, {
     name: 'Unyielding Blast',
     traitId: TRAIT.UNYIELDING_BLAST,

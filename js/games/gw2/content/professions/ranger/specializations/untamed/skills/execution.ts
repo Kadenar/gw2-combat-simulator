@@ -1,14 +1,15 @@
 /** Registers scheduler-phase skill activations for this module. */
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { untamedState } from '#gw2/content/professions/ranger/specializations/untamed/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue
-} from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 
 function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
@@ -33,8 +34,10 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
   }
 
   // 4-second window from the cast start, not effectiveEnd, matching the in-game timing.
-  state.ambushReadyUntil = context.start + rangerBalanceValue(context, PROFILE.resources, 'durationMultiplier', 4);
-  state.unleashedPowerReadyAt = context.start + rangerBalanceValue(context, PROFILE.resources, 'internalCooldown', 9);
+  state.ambushReadyUntil =
+    context.start + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4);
+  state.unleashedPowerReadyAt =
+    context.start + balanceProfileValueFromContext(context, PROFILE.resources, 'internalCooldown', 9);
 }
 
 export const untamedSkillHandlers = Object.freeze({
@@ -66,7 +69,7 @@ export const untamedSkillHandlers = Object.freeze({
     afterEffects(context: RangerCastContext, skill: RangerSkill, rangerWasUnleashed: unknown) {
       // Boon and duration differ depending on which side was unleashed when the skill was cast.
       const profileId = rangerWasUnleashed ? PROFILE.explodingSporesRanger : PROFILE.explodingSporesPet;
-      const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, profileId), 'boon');
+      const effect = balanceProfileEffect(balanceProfileFromContext(context, profileId), 'boon');
       const boon = String(effect?.boon || (rangerWasUnleashed ? 'might' : 'protection'));
       emitSkillBuff(context, {
         at: context.effectiveEnd,

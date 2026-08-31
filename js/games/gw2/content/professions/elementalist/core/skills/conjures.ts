@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -6,7 +7,6 @@ import { CONJURE_SKILLS } from '#gw2/content/professions/elementalist/core/const
 import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue,
   elementalistEffectValue
 } from '#gw2/content/professions/elementalist/core/profiles.js';
 
@@ -26,7 +26,7 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   if (conjuredWeapon) {
     state.conjureEquipped = conjuredWeapon;
     state.conjurePickups[conjuredWeapon] =
-      at + elementalistBalanceValue(context, PROFILE.conjurePickups, 'durationMultiplier', 35);
+      at + balanceProfileValueFromContext(context, PROFILE.conjurePickups, 'durationMultiplier', 35);
     swapped = true;
     if (hasTrait(context, 'Conjurer')) {
       applyElementalistAura(context, {

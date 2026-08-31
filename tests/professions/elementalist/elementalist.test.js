@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -27,10 +28,7 @@ import {
 } from '#gw2/content/professions/elementalist/data/ids.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/core/skills/index.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
@@ -188,7 +186,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(CATALYST_BALANCE_PROFILE_IDS.resources).maximumStacks, 40);
   assert.equal(preview.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.resources).maximumStacks, 8);
   assert.equal(
-    elementalistBalanceValue(
+    balanceProfileValueFromContext(
       { catalog: preview },
       ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental,
       'durationMultiplier',

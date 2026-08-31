@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
@@ -6,7 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { pilferArtifacts } from '#gw2/content/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
-import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 export function advanceAntiquaryResources(context: ThiefSchedulerContext, target: number): void {
@@ -15,7 +16,7 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
     (summon) => Number(summon.expiresAt || 0) > target
   );
   const combatHighRemaining = Math.max(0, Number(state.combatHighExpiresAt || 0) - target);
-  const combatHigh = thiefBalanceProfile(context, PROFILE.combatHigh);
+  const combatHigh = balanceProfileFromContext(context, PROFILE.combatHigh);
   state.combatHighStacks = Math.min(
     Number(combatHigh?.maximumStacks || 10),
     Math.ceil(combatHighRemaining / Number(combatHigh?.pulseInterval || 2))
@@ -60,7 +61,8 @@ export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefS
   if (
     inCombat &&
     hasTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&
-    state.initiativeSpentSincePilfer >= Number(thiefBalanceProfile(context, PROFILE.prodigiousPincher)?.threshold || 15)
+    state.initiativeSpentSincePilfer >=
+      Number(balanceProfileFromContext(context, PROFILE.prodigiousPincher)?.threshold || 15)
   ) {
     pilferArtifacts(context, context.start, 'prodigious-pincher', 'initiative');
   }

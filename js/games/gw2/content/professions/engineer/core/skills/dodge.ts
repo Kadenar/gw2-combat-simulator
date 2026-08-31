@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
@@ -5,10 +6,7 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/d
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { isEngineerToolbeltSkill } from '#gw2/content/professions/engineer/core/traits/index.js';
-import {
-  ENGINEER_CORE_BALANCE_PROFILE_IDS,
-  engineerBalanceValue
-} from '#gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/core/profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
 /** Reduces recharge for every active cooldown or ammo skill accepted by the predicate. */
@@ -34,7 +32,12 @@ function reduceMatchingCooldowns(
 export function performEngineerDodge(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
   const at = context.start;
-  const enduranceCost = engineerBalanceValue(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'resourceCost', 50);
+  const enduranceCost = balanceProfileValueFromContext(
+    context,
+    ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+    'resourceCost',
+    50
+  );
   Object.assign(state, spendEndurance(state, enduranceCost, at, state.maximumEndurance));
 
   context.emit({

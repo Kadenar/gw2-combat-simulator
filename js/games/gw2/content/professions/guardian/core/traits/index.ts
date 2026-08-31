@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
@@ -5,11 +6,7 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import {
-  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect
-} from '#gw2/content/professions/guardian/core/profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
 import { applyWritOfPersistence } from '#gw2/content/professions/guardian/core/traits/honor.js';
 import {
   applyFuriousFocus,
@@ -52,7 +49,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
   applyWritOfPersistence(context, skill);
 
   if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {
-    const field = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.symbolOfIgnition), 'buff');
+    const field = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.symbolOfIgnition), 'buff');
     const duration = Number(field?.duration || 4);
     context.replaceEvent(context.action, {
       comboFields: [
@@ -78,7 +75,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES) {
     const durationMultiplier = Number(
-      guardianBalanceProfile(context, PROFILE.masterOfConsecrations)?.durationMultiplier || 1.4
+      balanceProfileFromContext(context, PROFILE.masterOfConsecrations)?.durationMultiplier || 1.4
     );
     context.replaceEvent(context.action, {
       comboFields: [
@@ -113,8 +110,8 @@ export function handleSymbolOfIgnitionField(context: GuardianResolverContext, ev
 // While the symbol window is active, attach its burning to other player hits;
 // the symbol's own packets are excluded to prevent self-recursion.
 function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const profile = guardianBalanceProfile(context, PROFILE.symbolOfIgnition);
-  const burning = guardianBalanceProfileEffect(profile, 'condition');
+  const profile = balanceProfileFromContext(context, PROFILE.symbolOfIgnition);
+  const burning = balanceProfileEffect(profile, 'condition');
   if (
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||

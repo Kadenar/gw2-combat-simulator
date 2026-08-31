@@ -1,4 +1,5 @@
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -6,8 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  engineerBalanceEffectValue,
-  engineerBalanceValue
+  engineerBalanceEffectValue
 } from '#gw2/content/professions/engineer/core/profiles.js';
 import {
   applyEngineerDerivedCondition,
@@ -32,7 +32,8 @@ export function applyGrenadier(context: EngineerCastContext, skill: EngineerSkil
     !isInternalCooldownReady(at, Number(state.traitProcReadyAt.grenadier || 0))
   )
     return;
-  state.traitProcReadyAt.grenadier = at + engineerBalanceValue(context, PROFILE.grenadier, 'internalCooldown', 20);
+  state.traitProcReadyAt.grenadier =
+    at + balanceProfileValueFromContext(context, PROFILE.grenadier, 'internalCooldown', 20);
   const hits = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'hits', 6);
   const coefficient = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'coefficient', 0.5);
   // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
@@ -115,7 +116,7 @@ export function applyShortFuse(
     return;
   }
 
-  state.shortFuse = event.at + engineerBalanceValue(context, PROFILE.shortFuse, 'internalCooldown', 3);
+  state.shortFuse = event.at + balanceProfileValueFromContext(context, PROFILE.shortFuse, 'internalCooldown', 3);
   queueBuff(context, event, {
     name: 'Short Fuse',
     kind: 'fury',
@@ -178,13 +179,14 @@ export function applyShrapnel(
   let triggered = false;
   if (context.random?.stochastic === true) {
     triggered = context.random.roll(
-      engineerBalanceValue(context, PROFILE.shrapnel, 'procChance', 0.33),
+      balanceProfileValueFromContext(context, PROFILE.shrapnel, 'procChance', 0.33),
       'engineer.shrapnel'
     );
   } else {
     // Deterministic mode accumulates proc chance and spends one full proc at the threshold.
     state.shrapnelProgress =
-      Number(state.shrapnelProgress || 0) + engineerBalanceValue(context, PROFILE.shrapnel, 'procChance', 0.33);
+      Number(state.shrapnelProgress || 0) +
+      balanceProfileValueFromContext(context, PROFILE.shrapnel, 'procChance', 0.33);
     triggered = state.shrapnelProgress >= 1;
   }
 
@@ -235,10 +237,11 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
     return;
   }
 
-  state.aimAssistedRocket = event.at + engineerBalanceValue(context, PROFILE.aimAssistedRocket, 'internalCooldown', 3);
+  state.aimAssistedRocket =
+    event.at + balanceProfileValueFromContext(context, PROFILE.aimAssistedRocket, 'internalCooldown', 3);
   state.aimAssistedRocketCount = Number(state.aimAssistedRocketCount || 0) + 1;
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
-  const alternateEvery = engineerBalanceValue(context, PROFILE.aimAssistedRocket, 'maximumStacks', 5);
+  const alternateEvery = balanceProfileValueFromContext(context, PROFILE.aimAssistedRocket, 'maximumStacks', 5);
   const orbital = state.aimAssistedRocketCount % alternateEvery === 0;
   queueDamage(context, event, {
     name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',

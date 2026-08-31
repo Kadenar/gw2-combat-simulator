@@ -1,4 +1,5 @@
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
@@ -15,10 +16,7 @@ import {
   isElementalistAttunement,
   type ElementalistAuraState
 } from '#gw2/content/professions/elementalist/core/state.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import {
   applyArcanePrecision,
   applyBurningPrecision,
@@ -131,7 +129,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => elementalistBalanceValue(context, PROFILE.ragingStorm, 'internalCooldown', 8),
+      duration: (context) => balanceProfileValueFromContext(context, PROFILE.ragingStorm, 'internalCooldown', 8),
       readyAt: (context) => Number(elementalistResolverCoreState(context).procReadyAt.ragingStorm || 0),
       setReadyAt: (context, readyAt) => {
         elementalistResolverCoreState(context).procReadyAt.ragingStorm = readyAt;
@@ -143,7 +141,8 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   }),
   onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.arcane-precision',
-    chanceOnCriticalHit: (context) => elementalistBalanceValue(context, PROFILE.arcanePrecision, 'procChance', 0.33),
+    chanceOnCriticalHit: (context) =>
+      balanceProfileValueFromContext(context, PROFILE.arcanePrecision, 'procChance', 0.33),
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Arcane Precision'),
     expectedProgress: {
       get: (context) => Number(elementalistResolverCoreState(context).criticalProcProgress.arcanePrecision || 0),
@@ -152,7 +151,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => elementalistBalanceValue(context, PROFILE.arcanePrecision, 'internalCooldown', 3),
+      duration: (context) => balanceProfileValueFromContext(context, PROFILE.arcanePrecision, 'internalCooldown', 3),
       readyAt: (context) => Number(elementalistResolverCoreState(context).procReadyAt.arcanePrecision || 0),
       setReadyAt: (context, readyAt) => {
         elementalistResolverCoreState(context).procReadyAt.arcanePrecision = readyAt;
@@ -173,7 +172,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => elementalistBalanceValue(context, PROFILE.renewingStamina, 'internalCooldown', 10),
+      duration: (context) => balanceProfileValueFromContext(context, PROFILE.renewingStamina, 'internalCooldown', 10),
       readyAt: (context) => Number(elementalistResolverCoreState(context).procReadyAt.renewingStamina || 0),
       setReadyAt: (context, readyAt) => {
         elementalistResolverCoreState(context).procReadyAt.renewingStamina = readyAt;
@@ -185,7 +184,8 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   }),
   onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.burning-precision',
-    chanceOnCriticalHit: (context) => elementalistBalanceValue(context, PROFILE.burningPrecision, 'procChance', 0.33),
+    chanceOnCriticalHit: (context) =>
+      balanceProfileValueFromContext(context, PROFILE.burningPrecision, 'procChance', 0.33),
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Burning Precision'),
     expectedProgress: {
       get: (context) => elementalistResolverCoreState(context).burningPrecisionProgress,
@@ -194,7 +194,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => elementalistBalanceValue(context, PROFILE.burningPrecision, 'internalCooldown', 5),
+      duration: (context) => balanceProfileValueFromContext(context, PROFILE.burningPrecision, 'internalCooldown', 5),
       readyAt: (context) => Number(elementalistResolverCoreState(context).procReadyAt.burningPrecision || 0),
       setReadyAt: (context, readyAt) => {
         elementalistResolverCoreState(context).procReadyAt.burningPrecision = readyAt;

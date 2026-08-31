@@ -5,8 +5,10 @@ import { defineSkillVariantProfile, defineTraitProfile } from '#gw2/integrations
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   balanceProfileEffect,
+  balanceProfileEffectFromContext,
   balanceProfileFromContext,
-  balanceProfileValue
+  balanceProfileValue,
+  balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 
 test('balance-profile authoring helpers attach canonical trait and variant metadata', () => {
@@ -69,6 +71,11 @@ test('balance-profile lookup supports every runtime context shape and preserves 
   );
   assert.equal(balanceProfileFromContext(null, 101), undefined);
   assert.equal(balanceProfileFromContext({}, 101), undefined);
+  assert.equal(
+    balanceProfileFromContext((id) => map(helper).get(id), 101),
+    helper
+  );
+  assert.equal(balanceProfileFromContext({ balanceProfile: (id) => map(runtime).get(id) }, 101), runtime);
 });
 
 test('balance-profile effect lookup preserves order and supports optional name filtering', () => {
@@ -84,6 +91,11 @@ test('balance-profile effect lookup preserves order and supports optional name f
   assert.equal(balanceProfileEffect(profile, 'strike', 1)?.name, 'Second');
   assert.equal(balanceProfileEffect(profile, 'strike', 0, 'Second')?.coefficient, 2);
   assert.equal(balanceProfileEffect(profile, 'condition'), undefined);
+  assert.equal(
+    balanceProfileEffectFromContext({ catalog: { balanceProfilesById: new Map([[101, profile]]) } }, 101, 'strike', 1)
+      ?.name,
+    'Second'
+  );
 });
 
 test('balance-profile numeric lookup returns patched values and explicit fallbacks', () => {
@@ -102,4 +114,5 @@ test('balance-profile numeric lookup returns patched values and explicit fallbac
   assert.equal(balanceProfileValue(resolved, 'numericText', 0), 4);
   assert.equal(balanceProfileValue(resolved, 'missing', 9), 9);
   assert.equal(balanceProfileValue({ invalid: Number.NaN }, 'invalid', 8), 8);
+  assert.equal(balanceProfileValueFromContext({ catalog: patched }, 101, 'threshold', 0), 7);
 });

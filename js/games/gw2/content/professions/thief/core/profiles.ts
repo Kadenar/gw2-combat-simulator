@@ -1,6 +1,5 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 
 export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -292,15 +291,3 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceGain: 1
   })
 ]);
-
-export function thiefBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  return balanceProfileFromContext(context, id);
-}
-
-export function thiefBalanceProfileEffect(
-  profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
-  type: string,
-  index = 0
-): SkillEffect | undefined {
-  return balanceProfileEffect(profile, type, index);
-}

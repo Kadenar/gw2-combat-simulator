@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
   applyMesmerRuntimeManifest,
@@ -18,11 +19,7 @@ import {
   VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE,
   VIRTUOSO_SHATTER_PROFILE_IDS
 } from '#gw2/content/professions/mesmer/specializations/virtuoso/profiles.js';
-import {
-  mesmerBalanceValue,
-  mesmerProfiledShatters,
-  mesmerProfiledTraitDamage
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerProfiledShatters, mesmerProfiledTraitDamage } from '#gw2/content/professions/mesmer/core/profiles.js';
 
 export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void {
   const runtime = mesmerRuntimeFor(context);
@@ -68,7 +65,7 @@ export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void
   if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
     context.tasks.schedule({
       type: 'mesmer.infinite-forge',
-      at: mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
+      at: balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
       priority: -20,
       ownerId: 'mesmer.infinite-forge',
       payload: {}

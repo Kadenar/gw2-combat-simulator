@@ -3,6 +3,10 @@ import type { AvailabilityResult, SimulationEvent } from '#gw2/platform/engine/t
 import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
@@ -21,22 +25,18 @@ import {
   handleDruidAstralForceDamageTask,
   observeDruidAstralForceEvent
 } from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue
-} from '#gw2/content/professions/ranger/core/profiles.js';
+
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
 
 function eclipseEffect(context: RangerCastContext, index: number) {
-  return rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.eclipse), 'condition', index);
+  return balanceProfileEffectFromContext(context, PROFILE.eclipse, 'condition', index);
 }
 
 export function applyCelestialAvatarTraits(context: RangerCastContext, skill: RangerSkill): void {
   // Natural Convergence has 4 distinct pulses; all other CA skills emit once at cast start
   const pulses = skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
-    const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.graceOfTheLand), 'boon');
+    const effect = balanceProfileEffectFromContext(context, PROFILE.graceOfTheLand, 'boon');
     const boon = String(effect?.boon || 'alacrity');
     for (const atMs of pulses) {
       emitSkillBuff(context, skill, {
@@ -174,7 +174,7 @@ function modifyDruidAttributes(context: Gw2ModifierContext, attributes: Gw2Resol
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (staticRulesApplied && context.event?.actorType === 'summon') return attributes;
   const result = { ...attributes };
-  const vitality = rangerBalanceValue(context, PROFILE.naturalFortitude, 'attributeBonus', 240);
+  const vitality = balanceProfileValueFromContext(context, PROFILE.naturalFortitude, 'attributeBonus', 240);
   result.vitality = Number(result.vitality || 0) + vitality - (staticRulesApplied ? 240 : 0);
   return result;
 }

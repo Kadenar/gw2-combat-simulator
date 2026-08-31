@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -5,7 +6,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { activeBoonStacks } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerBalanceEffectValue } from '#gw2/content/professions/engineer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
@@ -35,7 +36,7 @@ function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, ev
   }
 
   state.kineticAcceleratorsWhirlReadyAt =
-    event.at + engineerBalanceValue(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
+    event.at + balanceProfileValueFromContext(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
   return true;
 }
 
@@ -118,8 +119,12 @@ function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Sched
     ...attributes,
     power:
       Number(attributes.power || 0) +
-      activeBoonStacks(context, 'might', engineerBalanceValue(context, PROFILE.appliedForce, 'maximumStacks', 25)) *
-        engineerBalanceValue(context, PROFILE.appliedForce, 'attributePerStack', 30)
+      activeBoonStacks(
+        context,
+        'might',
+        balanceProfileValueFromContext(context, PROFILE.appliedForce, 'maximumStacks', 25)
+      ) *
+        balanceProfileValueFromContext(context, PROFILE.appliedForce, 'attributePerStack', 30)
   };
 }
 

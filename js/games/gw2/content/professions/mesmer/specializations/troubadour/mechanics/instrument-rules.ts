@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -7,7 +8,7 @@ import { initializeTroubadourRuntime } from '#gw2/content/professions/mesmer/spe
 import { completeTroubadourPerformance } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { resolveTroubadourTale } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/tales.js';
 import { troubadourState } from '#gw2/content/professions/mesmer/specializations/troubadour/state.js';
-import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerCastContext,
@@ -66,7 +67,7 @@ function hasLute(context: Gw2ModifierContext): boolean {
 export function applyTroubadourAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const instrumentCount = hasTrait(context, TRAIT.FORTISSIMO) ? activeInstrumentCount(context) : 0;
   const fortissimo = instrumentCount
-    ? 1 + instrumentCount * mesmerBalanceValue(context, TRAIT.FORTISSIMO, 'attributeConversion', 0.04)
+    ? 1 + instrumentCount * balanceProfileValueFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion', 0.04)
     : 1;
   if (fortissimo === 1) return attributes;
   return {
@@ -126,7 +127,7 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
   const runtime = mesmerRuntimeFor(context);
   runtime.resources.queueResources(
     context.fullEnd + context.epsilon,
-    mesmerBalanceValue(context, TRAIT.HARMONIZE, 'resourceGain', 1),
+    balanceProfileValueFromContext(context, TRAIT.HARMONIZE, 'resourceGain', 1),
     runtime.activePrimaryWeapon(),
     'Harmonize',
     { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
@@ -235,7 +236,7 @@ export const troubadourSkillMechanicHandlers = Object.freeze({
     if (!flute || readyAt == null) return;
     context.state.cooldowns.set(
       flute.id,
-      Math.max(at, readyAt - mesmerBalanceValue(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5))
+      Math.max(at, readyAt - balanceProfileValueFromContext(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5))
     );
     runtime.addTraitProc('Mayhem', at, skill.name);
   }

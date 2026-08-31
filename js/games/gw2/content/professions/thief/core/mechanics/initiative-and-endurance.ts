@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
@@ -6,10 +7,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/pr
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
-import {
-  thiefBalanceProfile,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/thief/core/profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import type {
   ThiefPrecastContext,
   ThiefCastContext,
@@ -20,7 +18,7 @@ import type {
 } from '#gw2/content/professions/thief/types.js';
 
 export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kneeling'>, context?: unknown): number {
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   return (
     Number(resources?.resourceGain || 1) +
     (state.kneeling ? Number(resources?.kneelingInitiativeRegenerationBonus ?? 1 / 3) : 0)
@@ -32,7 +30,7 @@ export function thiefEnduranceRegenerationRate(
   at = Number(context.start ?? context.state?.time ?? 0)
 ): number {
   const vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at));
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const base = Number(resources?.enduranceRegenerationPerSecond || 5);
   const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier || 1.5);
   return Math.min(Number(resources?.threshold || 10), base * (vigorActive ? vigorMultiplier : 1));
@@ -48,7 +46,7 @@ export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number
 // Attacks, venom, guild summon, and flip state at the same target timestamp.
 export function advanceThiefCoreResources(context: ThiefSchedulerContext, target: number): void {
   const state = professionCoreState(context);
-  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.maximumInitiative = hasTrait(context.config, TRAIT.PREPAREDNESS)
     ? Number(resources?.minimumStacks || 15)
     : Number(resources?.maximumStacks || 12);
@@ -114,7 +112,7 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
   ) {
     gainThiefInitiative(
       context,
-      Number(thiefBalanceProfile(context, PROFILE.signetsOfPower)?.resourceGain || 3),
+      Number(balanceProfileFromContext(context, PROFILE.signetsOfPower)?.resourceGain || 3),
       context.start,
       'signets-of-power'
     );
@@ -135,7 +133,7 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
   if (context.effectiveEnd + context.epsilon < finalBulletAt) return;
   gainThiefInitiative(
     context,
-    Number(thiefBalanceProfile(context, PROFILE.unloadRefund)?.resourceGain || 2),
+    Number(balanceProfileFromContext(context, PROFILE.unloadRefund)?.resourceGain || 2),
     context.effectiveEnd,
     'unload-refund'
   );

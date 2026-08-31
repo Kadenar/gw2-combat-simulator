@@ -1,4 +1,5 @@
 /** Owns Core Ranger Beastmastery command and companion-attack trait behavior. */
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
@@ -14,11 +15,7 @@ import type {
   RangerResolverEvent,
   RangerSkill
 } from '#gw2/content/professions/ranger/types.js';
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.
@@ -92,8 +89,8 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Ran
     return;
   }
 
-  const profile = rangerBalanceProfile(context, PROFILE.goForTheThroat);
-  const lesserSicEm = rangerBalanceProfileEffect(profile, 'buff', 0);
+  const profile = balanceProfileFromContext(context, PROFILE.goForTheThroat);
+  const lesserSicEm = balanceProfileEffect(profile, 'buff', 0);
   state.goForTheThroatPetReadyAt = event.at + Number(profile?.internalCooldown ?? 10);
   const duration = Number(lesserSicEm?.duration ?? 8);
   context.recordProc(

@@ -1,4 +1,5 @@
 /** Owns imperative Strength trait effects while the public dispatcher preserves cross-line ordering. */
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -8,11 +9,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { gainWarriorEndurance } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
-import {
-  warriorBalanceProfile,
-  warriorBalanceProfileEffect,
-  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/warrior/core/profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import type {
   WarriorCastContext,
   WarriorResolverContext,
@@ -51,7 +48,7 @@ export function reactToWarriorBuff(context: WarriorResolverContext, event: Warri
 // Convert a qualifying burst's adrenaline spend into the visible Berserker's Power stack tier.
 function berserkersPowerStacks(context: WarriorCastContext, skill: WarriorSkill, spent: number): number {
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BERSERKERS_POWER)) return 0;
-  const tiers = warriorBalanceProfile(context, PROFILE.burstTiers);
+  const tiers = balanceProfileFromContext(context, PROFILE.burstTiers);
   const tierTwo = Number(tiers?.threshold || 20);
   const tierThree = Number(tiers?.maximumStacks || 30);
   return spent >= tierThree ? 4 : spent >= tierTwo ? 3 : 2;
@@ -73,9 +70,9 @@ export function grantBerserkersPowerOnFirstHit(
 // Materialize Reckless Dodge's strike and Might together at dodge completion.
 export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!hasTrait(context, TRAIT.RECKLESS_DODGE)) return;
-  const profile = warriorBalanceProfile(context, PROFILE.recklessDodge);
-  const strike = warriorBalanceProfileEffect(profile, 'strike');
-  const might = warriorBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.recklessDodge);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const might = balanceProfileEffect(profile, 'boon');
   emitSkillDamage(context, {
     at: context.effectiveEnd,
     source: 'Warrior',
@@ -111,7 +108,7 @@ export function grantBerserkersPower(
   const state = professionCoreState(context);
   const granted = Math.max(0, requestedStacks);
   if (!granted) return;
-  const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.berserkersPower), 'buff');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.berserkersPower), 'buff');
   const duration = Number(effect?.duration || 15);
   // Keep overflow applications queued so older visible stacks can expire independently.
   state.burstPowerExpiries.push(...Array(granted).fill(at + duration));
@@ -132,7 +129,7 @@ export function grantBerserkersPower(
 // Apply Peak Performance at cast start so Kick retains its packet-relative timing.
 export function applyPeakPerformanceCastStart(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!skill.categories?.includes('Physical') || !hasTrait(context, TRAIT.PEAK_PERFORMANCE)) return;
-  const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.peakPerformance), 'buff');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.peakPerformance), 'buff');
   let at = context.effectiveEnd;
   if (skill.id === ID.KICK) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
@@ -165,8 +162,8 @@ export function applyBraveStrideCastComplete(context: WarriorCastContext, skill:
     return;
   }
 
-  const profile = warriorBalanceProfile(context, PROFILE.braveStride);
-  const stability = warriorBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.braveStride);
+  const stability = balanceProfileEffect(profile, 'boon');
   gainWarriorAdrenaline(context, Number(profile?.resourceGain || 5));
   emitSkillBuff(context, {
     at: context.effectiveEnd,
@@ -194,7 +191,7 @@ export function applyBodyBlow(context: WarriorSchedulerContext, event: WarriorSi
     return;
   }
 
-  const profile = warriorBalanceProfile(context, PROFILE.bodyBlow);
+  const profile = balanceProfileFromContext(context, PROFILE.bodyBlow);
   for (const [condition, duration, stacks] of (profile?.effects || [])
     .filter((effect) => effect.type === 'condition')
     .map(
@@ -224,8 +221,8 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
 
   const state = professionCoreState(context);
   if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.aggressiveOnslaught || 0))) return;
-  const profile = warriorBalanceProfile(context, PROFILE.aggressiveOnslaught);
-  const quickness = warriorBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.aggressiveOnslaught);
+  const quickness = balanceProfileEffect(profile, 'boon');
   state.traitProcReadyAt.aggressiveOnslaught = event.at + Number(profile?.internalCooldown || 0.25);
   emitSkillBuff(context, {
     skill:
@@ -252,7 +249,7 @@ export function applyBuildingMomentum(context: WarriorSchedulerContext, event: W
   if (!hasTrait(context, TRAIT.BUILDING_MOMENTUM)) return;
   gainWarriorEndurance(
     context,
-    Number(warriorBalanceProfile(context, PROFILE.buildingMomentum)?.resourceGain || 15),
+    Number(balanceProfileFromContext(context, PROFILE.buildingMomentum)?.resourceGain || 15),
     event.at
   );
 }

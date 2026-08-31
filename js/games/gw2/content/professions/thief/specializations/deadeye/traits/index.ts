@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -5,13 +6,13 @@ import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechani
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type { ThiefCastContext, ThiefEmissionContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 import { deadeyeState } from '#gw2/content/professions/thief/specializations/deadeye/state.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
 
 // Starting malice when Deadeye's Mark is applied to a fresh target (Malicious Intent: 2, otherwise: 0)
 export function initialDeadeyeMalice(context: ThiefCastContext): number {
   return hasTrait(context.config, TRAIT.MALICIOUS_INTENT)
-    ? Number(thiefBalanceProfile(context, PROFILE.maliciousIntent)?.resourceGain || 2)
+    ? Number(balanceProfileFromContext(context, PROFILE.maliciousIntent)?.resourceGain || 2)
     : 0;
 }
 
@@ -28,8 +29,8 @@ export function applyMaliciousAshenAssaultCondition(
   malice: number
 ): void {
   if (malice <= 0) return;
-  const profile = thiefBalanceProfile(context, PROFILE.maliciousAshenAssault);
-  const torment = thiefBalanceProfileEffect(profile, 'condition');
+  const profile = balanceProfileFromContext(context, PROFILE.maliciousAshenAssault);
+  const torment = balanceProfileEffect(profile, 'condition');
   emitSkillCondition(context, {
     at,
     source: 'Trait',
@@ -46,7 +47,7 @@ export function applyMaliciousAshenAssaultCondition(
 
 export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) return;
-  const quickness = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.beQuickOrBeKilled), 'boon');
+  const quickness = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.beQuickOrBeKilled), 'boon');
   const boon = String(quickness?.boon || 'Quickness');
   const source = 'Be Quick or Be Killed';
   const sourceId = `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`;
@@ -70,7 +71,7 @@ export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): 
 // timestamp, including resource and boon effects.
 export function applyDeadeyeStolenSkillTraits(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) return;
-  const profile = thiefBalanceProfile(context, PROFILE.fireForEffect);
+  const profile = balanceProfileFromContext(context, PROFILE.fireForEffect);
   for (const effect of (profile?.effects || []).filter((entry) => entry.type === 'boon')) {
     const boon = String(effect.boon || effect.kind || '');
     const source = 'Fire for Effect';
@@ -106,7 +107,7 @@ export function applyMaleficentSeven(context: ThiefEmissionContext, at: number):
   }
 
   state.maleficentSevenTriggered = true;
-  const profile = thiefBalanceProfile(context, PROFILE.maleficentSeven);
+  const profile = balanceProfileFromContext(context, PROFILE.maleficentSeven);
   gainThiefInitiative(context, Number(profile?.resourceGain || 7), at, 'maleficent-seven');
   for (const effect of (profile?.effects || []).filter((entry) => entry.type === 'boon')) {
     const boon = String(effect.boon || effect.kind || '');

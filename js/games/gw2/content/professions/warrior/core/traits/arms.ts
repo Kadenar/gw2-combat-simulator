@@ -1,4 +1,5 @@
 /** Owns imperative Arms trait effects while the public dispatcher preserves base-effect ordering. */
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
@@ -10,11 +11,7 @@ import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-f
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
-import {
-  warriorBalanceProfile,
-  warriorBalanceProfileEffect,
-  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/content/professions/warrior/core/profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import type {
   WarriorCastContext,
   WarriorResolverContext,
@@ -40,7 +37,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
     return;
   }
 
-  const signetMastery = warriorBalanceProfile(context, PROFILE.signetMastery);
+  const signetMastery = balanceProfileFromContext(context, PROFILE.signetMastery);
   state.traitProcReadyAt.lesserSignetMight = event.at + Number(signetMastery?.internalCooldown || 20);
   for (const effect of signetMastery?.effects || []) {
     const kind = String(effect.boon || effect.kind || '');
@@ -73,7 +70,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
 // Snapshot Burst Precision's duration by activation so the first delayed hit consumes the correct tier.
 export function armBurstPrecision(context: WarriorCastContext, skill: WarriorSkill, spent: number): void {
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BURST_PRECISION)) return;
-  const profile = warriorBalanceProfile(context, PROFILE.burstPrecision);
+  const profile = balanceProfileFromContext(context, PROFILE.burstPrecision);
   professionCoreState(context).burstPrecisionDurations[context.reservationId] =
     spent >= 30 ? Number(profile?.maximumStacks || 4) : Number(profile?.minimumStacks || 2);
 }
@@ -81,7 +78,7 @@ export function armBurstPrecision(context: WarriorCastContext, skill: WarriorSki
 // Materialize Signet Mastery before relic and Strength cast-completion effects.
 export function applySignetMasteryCastComplete(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!skill.categories?.includes('Signet') || !hasTrait(context, TRAIT.SIGNET_MASTERY)) return;
-  const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.signetMastery), 'buff');
+  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.signetMastery), 'buff');
   emitSkillBuff(context, {
     at: context.effectiveEnd + context.epsilon,
     source: 'Trait',
@@ -104,8 +101,8 @@ export function applyOpportunist(context: WarriorSchedulerContext, event: Warrio
   if (!trigger || !hasTrait(context, TRAIT.OPPORTUNIST)) return;
   const state = professionCoreState(context);
   if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.opportunist || 0))) return;
-  const profile = warriorBalanceProfile(context, PROFILE.opportunist);
-  const fury = warriorBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.opportunist);
+  const fury = balanceProfileEffect(profile, 'boon');
   state.traitProcReadyAt.opportunist = event.at + Number(profile?.internalCooldown || 1);
   gainWarriorAdrenaline(context, Number(profile?.resourceGain || 5));
   emitSkillBuff(context, {
@@ -167,7 +164,7 @@ export function warriorArmsCriticalCount(context: WarriorSchedulerContext, event
 // Apply Bloodlust's own per-critical proc chance without sharing Furious progress.
 export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.BLOODLUST)) return;
-  const profile = warriorBalanceProfile(context, PROFILE.bloodlust);
+  const profile = balanceProfileFromContext(context, PROFILE.bloodlust);
   const state = professionCoreState(context);
   const hits = Math.max(1, Number(event.hits || 1));
   const tracker = { progress: state.bloodlustProgress, readyAt: 0 };
@@ -185,7 +182,7 @@ export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorS
   state.bloodlustProgress = tracker.progress;
   const bleeding = application?.quantity || 0;
   if (bleeding <= 0) return;
-  const effect = warriorBalanceProfileEffect(profile, 'condition');
+  const effect = balanceProfileEffect(profile, 'condition');
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -204,8 +201,8 @@ export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorS
 // Turn each materialized critical into adrenaline and Furious Surge stacks.
 export function applyFurious(context: WarriorSchedulerContext, event: WarriorSimulationEvent, criticals: number): void {
   if (!hasTrait(context, TRAIT.FURIOUS) || criticals <= 0) return;
-  const profile = warriorBalanceProfile(context, PROFILE.furious);
-  const effect = warriorBalanceProfileEffect(profile, 'buff');
+  const profile = balanceProfileFromContext(context, PROFILE.furious);
+  const effect = balanceProfileEffect(profile, 'buff');
   gainWarriorAdrenaline(context, criticals * Number(profile?.resourceGain || 1));
   emitSkillBuff(context, {
     cause: event,
@@ -238,8 +235,8 @@ export function applySunderingBurst(
     return;
   }
 
-  const profile = warriorBalanceProfile(context, PROFILE.sunderingBurst);
-  const effect = warriorBalanceProfileEffect(profile, 'condition', criticals > 0 ? 1 : 0);
+  const profile = balanceProfileFromContext(context, PROFILE.sunderingBurst);
+  const effect = balanceProfileEffect(profile, 'condition', criticals > 0 ? 1 : 0);
   state.traitProcReadyAt.sunderingBurst = event.at + Number(profile?.internalCooldown || 5);
   emitSkillCondition(context, {
     cause: event,
@@ -266,8 +263,8 @@ export function applyFuriousBurst(context: WarriorCastContext, skill: WarriorSki
     return;
   }
 
-  const profile = warriorBalanceProfile(context, PROFILE.furiousBurst);
-  const fury = warriorBalanceProfileEffect(profile, 'boon');
+  const profile = balanceProfileFromContext(context, PROFILE.furiousBurst);
+  const fury = balanceProfileEffect(profile, 'boon');
   state.traitProcReadyAt.furiousBurst = context.effectiveEnd + Number(profile?.internalCooldown || 4);
   emitSkillBuff(context, {
     at: context.effectiveEnd,

@@ -1,5 +1,6 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
-import { engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
@@ -86,10 +87,10 @@ export function holosmithProfileStrikeFactor(
 ): number {
   const tier = holosmithHeatTier(snapshot);
   if (tier === 'enhanced') {
-    return engineerBalanceValue(context, profileId, 'enhancedStrikeFactor', 1);
+    return balanceProfileValueFromContext(context, profileId, 'enhancedStrikeFactor', 1);
   }
 
-  return tier === 'high' ? engineerBalanceValue(context, profileId, 'highStrikeFactor', 1) : 1;
+  return tier === 'high' ? balanceProfileValueFromContext(context, profileId, 'highStrikeFactor', 1) : 1;
 }
 
 /** Reads an event's captured strike factor or evaluates its profile against current heat as a fallback. */
@@ -128,7 +129,7 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
     const fallback = tier === 'enhanced' ? 6 : tier === 'high' ? 4 : 2;
     context.replaceEvent(event, {
       ...activation,
-      duration: engineerBalanceValue(context, PROFILE.radiantArcHeatTier, field, fallback)
+      duration: balanceProfileValueFromContext(context, PROFILE.radiantArcHeatTier, field, fallback)
     });
     return;
   }
@@ -139,7 +140,7 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
     const fallback = tier === 'enhanced' ? 4 : tier === 'high' ? 2 : 0;
     context.replaceEvent(event, {
       ...activation,
-      extraBlades: engineerBalanceValue(context, PROFILE.refractionCutterHeatTier, field, fallback)
+      extraBlades: balanceProfileValueFromContext(context, PROFILE.refractionCutterHeatTier, field, fallback)
     });
     return;
   }

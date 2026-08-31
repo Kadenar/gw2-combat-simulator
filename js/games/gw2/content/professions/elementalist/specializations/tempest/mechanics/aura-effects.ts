@@ -1,3 +1,4 @@
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ElementalistResolverContext } from '#gw2/content/professions/elementalist/types.js';
@@ -8,10 +9,7 @@ import {
   recordElementalistTraitProc,
   refreshElementalistBuffs
 } from '#gw2/content/professions/elementalist/core/mechanics/reactions.js';
-import {
-  elementalistBalanceEffect,
-  elementalistBalanceValue
-} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
 
 /**
@@ -21,8 +19,8 @@ import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions
  */
 export function applyTempestResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Tempestuous Aria')) {
-    const extension = elementalistBalanceValue(context, PROFILE.tempestuousAria, 'durationMultiplier', 5);
-    const maximum = elementalistBalanceValue(context, PROFILE.tempestuousAria, 'maximumStacks', 10);
+    const extension = balanceProfileValueFromContext(context, PROFILE.tempestuousAria, 'durationMultiplier', 5);
+    const maximum = balanceProfileValueFromContext(context, PROFILE.tempestuousAria, 'maximumStacks', 10);
     // Extend the newest live application instead of stacking a second one, clamping the new expiry
     // to the maximum window measured from this aura; with none live, start a fresh application.
     const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);

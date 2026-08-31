@@ -1,4 +1,5 @@
 /** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
@@ -8,10 +9,7 @@ import type {
   MesmerSkill
 } from '#gw2/content/professions/mesmer/types.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
-import {
-  MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  mesmerBalanceValue
-} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/core/profiles.js';
 
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
@@ -63,7 +61,8 @@ export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, a
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   scheduleSignetIllusionsPassive(
     context,
-    Math.max(Number(activeAt), readyAt) + mesmerBalanceValue(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
+    Math.max(Number(activeAt), readyAt) +
+      balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
   );
 }
 
@@ -91,14 +90,14 @@ export function handleSignetIllusionsPassiveTask(
 
   runtime.resources.gainResources(
     task.at,
-    mesmerBalanceValue(context, PROFILE.signetOfIllusions, 'resourceGain', 1),
+    balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'resourceGain', 1),
     runtime.activePrimaryWeapon(),
     skill.name,
     { sourceSkillId: skill.id }
   );
   scheduleSignetIllusionsPassive(
     context,
-    task.at + mesmerBalanceValue(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
+    task.at + balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
   );
 }
 

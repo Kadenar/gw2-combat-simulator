@@ -12,11 +12,7 @@ import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
 } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import {
-  balanceProfileEffect,
-  balanceProfileFromContext,
-  balanceProfileValue
-} from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -473,16 +469,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   })
 ]);
 
-/** Resolves a profile from the live patch data reachable through any context. */
-export function elementalistBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  return balanceProfileFromContext(context, id);
-}
-
-/** Reads one top-level profile field, falling back to the authored default. */
-export function elementalistBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
-  return balanceProfileValue(elementalistBalanceProfile(context, id), field, fallback);
-}
-
 /** Selects one authored effect from a profile by type, and optionally by name/index. */
 export function elementalistBalanceEffect(
   context: unknown,
@@ -491,7 +477,7 @@ export function elementalistBalanceEffect(
   name?: string,
   index = 0
 ): SkillEffect | undefined {
-  return balanceProfileEffect(elementalistBalanceProfile(context, id), type, index, name);
+  return balanceProfileEffectFromContext(context, id, type, index, name);
 }
 
 /** Reads one field off a profile effect (stacks, duration, coefficient) with a fallback. */
