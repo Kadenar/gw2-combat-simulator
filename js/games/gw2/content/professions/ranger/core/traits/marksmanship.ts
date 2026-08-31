@@ -1,37 +1,20 @@
 /** Owns Core Ranger Marksmanship opening-strike and target-health trait behavior. */
-import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
-import type { NativeResolvedDamageDetails } from '#gw2/integrations/patches/authoring/module-types.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
-import { rangerPetCompanionId } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import {
-  eventSkill,
   isPetStrike,
   isPlayerStrike,
-  petDerivedConditionMetadata,
-  queueBleeding,
   queueCondition,
   targetHealthFraction
 } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
-import type {
-  RangerCastContext,
-  RangerResolverContext,
-  RangerResolverEvent,
-  RangerSchedulerContext,
-  RangerSkill
-} from '#gw2/content/professions/ranger/types.js';
-import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
+import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
 import {
   rangerBalanceProfile,
   rangerBalanceProfileEffect,
-  rangerBalanceValue,
   RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/content/professions/ranger/core/profiles.js';
 

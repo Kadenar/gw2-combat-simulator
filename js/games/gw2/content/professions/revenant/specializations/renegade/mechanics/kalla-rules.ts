@@ -2,7 +2,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import {
@@ -62,7 +62,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.15,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.HEARTPIERCER) &&
       targetConditionActive(context, 'Bleeding')
   },
@@ -72,7 +72,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.25,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       context.condition === 'Bleeding' &&
       hasTrait(context, TRAIT.HEARTPIERCER)
   },
@@ -90,7 +90,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         : parameters.damagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && kallasFervorStacks(context) > 0
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
   },
   {
     id: 'revenant.kallas-fervor-condition',
@@ -106,7 +106,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         : parameters.damagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && kallasFervorStacks(context) > 0
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
   },
   {
     id: 'revenant.blood-fury-bleeding-duration',

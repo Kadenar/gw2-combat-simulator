@@ -1,7 +1,7 @@
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
@@ -201,7 +201,7 @@ function eventSkillId(context: Gw2ModifierContext): number {
   return Number(context.event?.skillId ?? context.skillId);
 }
 
-// Galeshot player modifiers retain legacy effect eligibility without changing explicit pet-only branches.
+// Galeshot player modifiers follow outgoing ownership without changing explicit pet-only branches.
 export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'ranger.bird-of-prey',
@@ -209,7 +209,7 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.BIRD_OF_PREY) &&
       Boolean(context.config?.boons?.swiftness)
   },
@@ -223,7 +223,7 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) => galeForceAmount(context, parameters),
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.GALE_FORCE) &&
       (Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
   },

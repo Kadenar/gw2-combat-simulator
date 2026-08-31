@@ -69,6 +69,7 @@ export function triggerSunspot(context: ElementalistSchedulerContext, at: number
     source: 'Sunspot',
     sourceId,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillName: 'Sunspot',
     icon: SUNSPOT_ICON,
     coefficient: elementalistEffectValue(context, PROFILE.sunspot, 'strike', 'coefficient', 0.6, 'Sunspot'),
@@ -133,6 +134,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     source: 'Flame Expulsion',
     sourceId,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillName: 'Flame Expulsion',
     icon: FLAME_EXPULSION_ICON,
     coefficient: baseCoefficient + coefficientPerMight * cappedMight,
@@ -175,6 +177,7 @@ export function triggerElectricDischarge(
     source: 'Electric Discharge',
     sourceId,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillName: 'Electric Discharge',
     coefficient: elementalistEffectValue(
       context,
@@ -219,6 +222,7 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
     source: 'Earthen Blast',
     sourceId,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillName: 'Earthen Blast',
     icon: EARTHEN_BLAST_ICON,
     coefficient: elementalistEffectValue(context, PROFILE.earthenBlast, 'strike', 'coefficient', 0.36),
@@ -337,6 +341,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
       source,
       sourceId: skill.id,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillName: source,
       coefficient: elementalistEffectValue(context, PROFILE.evasiveArcana, 'strike', 'coefficient', 1, 'Fire'),
       skillWeapon: 'Unequipped'
@@ -349,6 +354,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
       source,
       sourceId: skill.id,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillName: source,
       controlKind: 'blind'
     });
@@ -708,6 +714,7 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
       source: 'Lightning Rod',
       sourceId,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillName: 'Lightning Rod',
       coefficient: elementalistEffectValue(context, PROFILE.lightningRod, 'strike', 'coefficient', 1.5),
       skillWeapon: 'Unequipped'

@@ -1,5 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { engineerSpecializationState } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
@@ -91,7 +91,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) => {
       const state = engineerSpecializationState(context, 'Holosmith');
       return (
-        isGw2PlayerModifierEligibleEvent(context.event) &&
+        isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.LASERS_EDGE) &&
         (Boolean(state.photonForgeActive) ||
           (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) &&
@@ -106,7 +106,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.SOLAR_FOCUSING_LENS) &&
       holosmithEventMetadata(context.event).solarFocusingLens === true
   },
@@ -120,7 +120,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: (context, _target, parameters) =>
       holosmithEventStrikeFactor(context, context.event || {}, parameters.defaultFactor),
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) && holosmithEventStrikeFactor(context, context.event || {}) > 1
+      isGw2PlayerModifierOwnedEvent(context.event) && holosmithEventStrikeFactor(context, context.event || {}) > 1
   }
 ]);
 

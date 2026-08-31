@@ -39,7 +39,8 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
       stacks: 1,
       duration: 3,
       sourceId: TRAIT.CARBOLIC_COMPOSITION,
-      actorType: 'effect'
+      actorType: 'effect',
+      ownerActorType: 'player'
     });
   }
 

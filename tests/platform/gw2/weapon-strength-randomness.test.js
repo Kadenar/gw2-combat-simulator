@@ -101,6 +101,12 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
+      skill: { id: 1, name: 'Dodge', type: 'Action' }
+    }),
+    'nonweapon.unequipped'
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(event, {
       skill: { id: 1, name: 'Forge', forgeSkill: true }
     }),
     'transform.photon-forge'

@@ -14,6 +14,7 @@ function triggerBloodMoon(context: RangerResolverContext, event: RangerResolverE
     source: 'Trait',
     sourceId: TRAIT.BLOOD_MOON,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillId: TRAIT.BLOOD_MOON,
     skillName: 'Blood Moon',
     name: 'Blood Moon - Bleeding',

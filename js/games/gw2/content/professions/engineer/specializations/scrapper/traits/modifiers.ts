@@ -1,7 +1,7 @@
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { activeBoonStacks } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
@@ -107,7 +107,7 @@ export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       ).length;
       return parameters.damageFactorPerBoon ** count;
     },
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.OBJECT_IN_MOTION)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.OBJECT_IN_MOTION)
   }
 ]);
 

@@ -2,7 +2,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import {
@@ -87,7 +87,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.IRON_SIGHT) && markedTarget(context)
+      isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.IRON_SIGHT) && markedTarget(context)
   },
   {
     id: 'thief.premeditation',
@@ -95,7 +95,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     parameters: { damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => 1 + activeBoonCount(context) * parameters.damagePerBoon,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.PREMEDITATION)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.PREMEDITATION)
   },
   {
     id: 'thief.one-in-the-chamber',
@@ -103,7 +103,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.25,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.ONE_IN_THE_CHAMBER) &&
       Boolean(thiefEventSkill(context)?.categories?.includes('stolen skill'))
   },
@@ -113,7 +113,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       markedTarget(context) &&
       SHADOW_FLARE_SKILL_IDS.has(Number(thiefEventSkill(context)?.id))
   },
@@ -124,7 +124,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 2,
     // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       thiefEventSkill(context)?.id === ID.MALICIOUS_BACKSTAB &&
       Boolean(context.config?.target?.defiant)
   },
@@ -134,7 +134,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       context.config?.relic === 'Deadeye' &&
       Number(thiefRuntimeSpecializationState(context, 'Deadeye').deadeyeRelicUntil || 0) > context.time
   },
@@ -148,7 +148,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       Math.max(0, Number((context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0)) *
       parameters.damagePerMalice,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       markedTarget(context) &&
       MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(Number(thiefEventSkill(context)?.id))
   }

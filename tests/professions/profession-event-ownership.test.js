@@ -25,7 +25,7 @@ const OWNERSHIP_CASES = Object.freeze([
   ['legacy player source', { source: 'Player' }, true],
   ['player-owned effect', { actorType: 'effect', ownerActorType: 'player' }, true],
   ['explicitly player-owned summon', { actorType: 'summon', ownerActorType: 'player' }, true],
-  ['legacy unowned effect', { actorType: 'effect' }, true],
+  ['unowned effect', { actorType: 'effect' }, false],
   ['summon-owned effect', { actorType: 'effect', ownerActorType: 'summon' }, false],
   ['environment actor', { actorType: 'environment' }, false],
   ['unknown actor', { actorType: 'unknown' }, false],
@@ -154,7 +154,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
 
 // Each selected rule has only its non-ownership prerequisites enabled so these cases isolate attribution behavior.
 for (const [profession, predicate] of PLAYER_MODIFIER_PREDICATES) {
-  test(`${profession} player modifiers use compatible event ownership`, () => {
+  test(`${profession} player modifiers use explicit event ownership`, () => {
     for (const [label, event, expected] of OWNERSHIP_CASES) {
       assert.equal(Boolean(predicate(event)), expected, label);
     }

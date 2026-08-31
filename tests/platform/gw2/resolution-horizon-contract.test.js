@@ -63,6 +63,7 @@ function contractProfession() {
       {
         id: 990003,
         name: 'Committed Channel',
+        type: 'Utility',
         castTimeMs: 1000,
         interruptCommitMs: 300,
         effects: [

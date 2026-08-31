@@ -1,6 +1,6 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
@@ -52,7 +52,7 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
 
 /** Limits Morph-only modifiers to eligible player strike packets from Morph skills. */
 function morphStrike(context: Gw2ModifierContext): boolean {
-  return Boolean(isGw2PlayerModifierEligibleEvent(context.event) && eventSkill(context)?.categories?.includes('Morph'));
+  return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.categories?.includes('Morph'));
 }
 
 /** Defines Amalgam's event-level strike, condition, and duration modifiers. */
@@ -63,7 +63,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.WILLING_HOST) &&
       activeEngineerSpecializationState(context, 'Amalgam', 'willingHostUntil')
   },
@@ -80,7 +80,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.07,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
   },
   {

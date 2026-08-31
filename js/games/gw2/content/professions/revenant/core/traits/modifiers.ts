@@ -140,7 +140,7 @@ export const revenantSchedulerHooks = Object.freeze({
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -233,7 +233,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.FEROCIOUS_AGGRESSION) &&
       Boolean(context.config?.boons?.fury)
   },
@@ -243,7 +243,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.RISING_TIDE) &&
       playerHealthFraction(context) > 0.75
   },
@@ -253,7 +253,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       context.condition === 'Torment' &&
       hasTrait(context, TRAIT.ACOLYTE_OF_TORMENT)
   },
@@ -263,7 +263,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.DWARVEN_BATTLE_TRAINING) &&
       targetConditionActive(context, 'Weakness')
   },
@@ -273,7 +273,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.VICIOUS_REPRISAL) &&
       revenantTimedBuff(context, 'resolution')
   },
@@ -282,7 +282,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     amount: (context) => (activeOffhand(context) ? 0.075 : 0.05),
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.DESTRUCTIVE_IMPULSES)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.DESTRUCTIVE_IMPULSES)
   },
   {
     id: 'revenant.unsuspecting-strikes',
@@ -290,7 +290,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.2,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.UNSUSPECTING_STRIKES) &&
       targetHealthFraction(context) > 0.8
   },
@@ -299,7 +299,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: (context) => 1 + vulnerabilityStacks(context) * 0.005,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
   },
   {
     id: 'revenant.brutality',
@@ -307,7 +307,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.15,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.BRUTALITY) &&
       targetHasDefensiveBoon(context)
   },
@@ -317,7 +317,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.2,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.SWIFT_TERMINATION) &&
       targetHealthFraction(context) < 0.5
   }

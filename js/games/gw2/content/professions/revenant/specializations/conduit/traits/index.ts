@@ -157,6 +157,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
     source: 'revenant',
     sourceId: TRAIT.MISTFIRE,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillId: TRAIT.MISTFIRE,
     skillName: 'Mistfire',
     name: 'Mistfire — Burning',

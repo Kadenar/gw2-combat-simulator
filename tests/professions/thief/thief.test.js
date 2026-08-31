@@ -894,7 +894,7 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
   const expectations = new Map([
     ['Lotus Training', 'condition'],
     ['Bounding Dodger', 'damage'],
-    ['Unhindered Combatant', 'boon']
+    ['Unhindered Combatant', 'buff']
   ]);
 
   for (const [selectedDodge, eventType] of expectations) {

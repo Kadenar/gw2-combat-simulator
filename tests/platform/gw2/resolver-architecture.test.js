@@ -659,6 +659,7 @@ test('target-health coefficient thresholds include environment damage', () => {
       actorType: 'player',
       name: 'Threshold Opening',
       coefficient: 0.04,
+      weaponStrengthProfileId: 'weapon.sword',
       noCrit: true
     },
     {
@@ -669,6 +670,7 @@ test('target-health coefficient thresholds include environment damage', () => {
       actorType: 'player',
       name: 'Threshold Finisher',
       coefficient: 0.04,
+      weaponStrengthProfileId: 'weapon.sword',
       coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 2 }],
       noCrit: true
     }

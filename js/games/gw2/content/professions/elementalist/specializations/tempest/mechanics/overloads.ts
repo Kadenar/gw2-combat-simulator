@@ -274,6 +274,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       source: 'Lightning Jolt',
       sourceId: ID.LIGHTNING_JOLT,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: ID.LIGHTNING_JOLT,
       skillName: 'Lightning Jolt',
       coefficient,

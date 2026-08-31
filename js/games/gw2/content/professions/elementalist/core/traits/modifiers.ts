@@ -8,7 +8,7 @@
  * The shared query helpers are also re-used by the specialization modifier files.
  */
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -119,7 +119,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'multiply',
     factor: 1.07,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, "Pyromancer's Training") &&
       targetConditionActive(context, 'Burning')
   },
@@ -129,7 +129,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'multiply',
     factor: 1.05,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, 'Serrated Stones') &&
       targetConditionActive(context, 'Bleeding')
   },
@@ -138,14 +138,14 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.07,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, 'Stormsoul')
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, 'Stormsoul')
   },
   {
     id: 'elementalist.flow-like-water',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.1,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, 'Flow like Water')
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, 'Flow like Water')
   },
   {
     id: 'elementalist.bolt-to-the-heart',
@@ -153,7 +153,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'multiply',
     factor: 1.2,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, 'Bolt to the Heart') &&
       targetHealthFraction(context) <= 0.5
   },
@@ -165,7 +165,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     factor: (context, _target, parameters) =>
       primaryAttunement(context) === 'Water' ? parameters.waterFactor : parameters.otherFactor,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, 'Piercing Shards') &&
       targetConditionActive(context, 'Vulnerability')
   },
@@ -174,7 +174,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.05,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, "Zephyr's Speed")
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, "Zephyr's Speed")
   },
   {
     id: 'elementalist.electric-discharge-critical-damage',

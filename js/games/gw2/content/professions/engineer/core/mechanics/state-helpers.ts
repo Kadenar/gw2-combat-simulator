@@ -44,6 +44,7 @@ interface ApplyConditionOptions {
   readonly duration: number;
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
   readonly metadata?: SchedulerRecord;
 }
 
@@ -155,6 +156,7 @@ export function applyEngineerDerivedCondition(
     duration,
     sourceId = event.skillId,
     actorType = 'player',
+    ownerActorType,
     metadata = {}
   }: ApplyConditionOptions
 ): void {
@@ -169,6 +171,8 @@ export function applyEngineerDerivedCondition(
     source: actorType === 'effect' ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
+    // Effect-owned conditions can inherit player modifiers without becoming player actors for proc eligibility.
+    ...(ownerActorType == null ? {} : { ownerActorType }),
     triggeredBy: event.skillName,
     ...metadata
   };

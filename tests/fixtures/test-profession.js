@@ -7,7 +7,8 @@ const catalog = createCanonicalCatalog({
       id: 900001,
       name: 'Fixture Slash',
       type: 'Weapon',
-      weapon: 'Fixture Blade',
+      // Use a canonical profile so the fixture exercises the production strength contract.
+      weapon: 'Sword',
       slot: 1,
       castTimeMs: 1000,
       effects: [{ type: 'strike', coefficient: 1, hits: 1 }, { type: 'control' }]
@@ -27,7 +28,7 @@ const catalog = createCanonicalCatalog({
       ]
     }
   ],
-  weapons: ['Fixture Blade']
+  weapons: ['Sword']
 });
 
 export const testProfession = defineProfession({

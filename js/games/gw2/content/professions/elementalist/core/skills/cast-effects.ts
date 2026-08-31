@@ -433,6 +433,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
         source: skill.name,
         sourceId: skill.id,
         actorType: 'effect',
+        ownerActorType: 'player',
         skillName: skill.name,
         skillId: skill.id,
         coefficient: Number(pulse?.coefficient ?? 0),

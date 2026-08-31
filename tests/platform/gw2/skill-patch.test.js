@@ -452,6 +452,7 @@ test('native professions keep live and lazy preview catalogs side by side', () =
           id: 1,
           name: 'Previewed Skill',
           implemented: true,
+          type: 'Utility',
           castTimeMs: 0,
           effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
         }
@@ -613,6 +614,7 @@ test('native professions compile preview modifier rules in isolated runtimes', (
           id: 10,
           name: 'Modifier Strike',
           implemented: true,
+          type: 'Utility',
           castTimeMs: 0,
           cooldown: 10,
           effects: [{ type: 'strike', coefficient: 1, hits: 1 }]

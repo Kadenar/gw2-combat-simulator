@@ -1,4 +1,4 @@
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
@@ -147,11 +147,12 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
       duration: Number(authoredEffect?.duration || effect.duration || 0)
     });
   } else {
-    context.emit({
+    // Dodge boons use the canonical scheduled buff event consumed by the resolver.
+    emitSkillBuff(context, skill, {
       ...common,
-      type: 'boon',
       name: `${dodgeSkillName} — ${effect.boon}`,
       boon: effect.boon,
+      kind: effect.boon.toLowerCase(),
       stacks: Number(authoredEffect?.stacks || effect.stacks || 1),
       duration: Number(authoredEffect?.duration || effect.duration || 0)
     });

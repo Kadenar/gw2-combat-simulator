@@ -484,6 +484,7 @@ test('interrupted casts retain their original lane lockout only for cast-time sk
 
 test('scheduler policies preserve event identity, task isolation, and causal derivatives', () => {
   const taskIds = [];
+  const handledTaskIds = [];
   let replacementLookupMatched = false;
   const profession = defineProfession({
     id: 'temporal-policy',
@@ -527,6 +528,7 @@ test('scheduler policies preserve event identity, task isolation, and causal der
     },
     taskHandlers: {
       'fixture.policy-observation': (context, task) => {
+        handledTaskIds.push(task.id);
         if (!task.payload.derive) return;
         for (const name of ['derived-one', 'derived-two']) {
           context.emitDerived(task.payload.event, {
@@ -556,6 +558,7 @@ test('scheduler policies preserve event identity, task isolation, and causal der
   assert.equal(replacementLookupMatched, true);
   assert.equal(taskIds.length, 2);
   assert.equal(new Set(taskIds).size, taskIds.length);
+  assert.deepEqual(handledTaskIds.sort(), taskIds.sort());
   assert.ok(cause.eventOrder < unrelated.eventOrder);
   assert.ok(derivedOne.causalOrder > cause.eventOrder && derivedOne.causalOrder < unrelated.eventOrder);
   assert.ok(derivedTwo.causalOrder > derivedOne.causalOrder && derivedTwo.causalOrder < unrelated.eventOrder);

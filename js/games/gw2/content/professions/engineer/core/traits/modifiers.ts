@@ -1,6 +1,6 @@
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
@@ -65,7 +65,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.07,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.GLASS_CANNON) &&
       playerHealthFraction(context) > 0.75
   },
@@ -75,7 +75,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.15,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.BIG_BOOMER) &&
       playerHealthFraction(context) > targetHealthFraction(context)
   },
@@ -90,7 +90,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) =>
       1 + Math.min(parameters.maximumStacks, vulnerabilityStacks(context)) * parameters.damagePerStack,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.SHAPED_CHARGE)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.SHAPED_CHARGE)
   },
   {
     id: 'engineer.modified-ammunition',
@@ -100,7 +100,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       damagePerCondition: 0.01
     } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.MODIFIED_AMMUNITION)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.MODIFIED_AMMUNITION)
   },
   {
     id: 'engineer.excessive-energy',
@@ -108,7 +108,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.EXCESSIVE_ENERGY) &&
       activeBoonStacks(context, 'vigor', 1) > 0
   },
@@ -122,7 +122,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       const state =
         context.runtime?.profession != null ? engineerRuntimeState(context) : engineerSchedulerState(context);
       return (
-        isGw2PlayerModifierEligibleEvent(context.event) &&
+        isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
         // 1e-9 tolerance prevents floating-point rounding from falsely reading "full endurance"
         Number(state.endurance || 0) < Number(state.maximumEndurance || 100) - 1e-9
@@ -135,7 +135,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'damage-additive',
     amount: 0.15,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.KINETIC_BATTERY) &&
       activeBoonStacks(context, 'kinetic-battery', 1) > 0
   },
@@ -151,7 +151,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.15,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.HIGH_CALIBER)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.HIGH_CALIBER)
   },
   {
     id: 'engineer.grand-entrance',
@@ -159,7 +159,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'add',
     amount: 0.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.GRAND_ENTRANCE) &&
       activeBoonStacks(context, 'grand-entrance', 1) > 0
   },
@@ -176,7 +176,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       upperBonus: 0.05
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) => heavyMetalBonus(context, parameters),
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.HEAVY_METAL)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.HEAVY_METAL)
   },
   {
     id: 'engineer.heavy-metal-critical-damage',
@@ -191,7 +191,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       upperBonus: 0.05
     } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => 1 + heavyMetalBonus(context, parameters),
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.HEAVY_METAL)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.HEAVY_METAL)
   },
   {
     // Static Discharge doubles its completed critical multiplier without affecting other strikes.
@@ -246,7 +246,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'add',
     amount: 0.15,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.HEMATIC_FOCUS) &&
       activeBoonStacks(context, 'fury', 1) > 0
   }
@@ -319,7 +319,7 @@ export function applyEngineerSharpshooterConditionDamage(
   if (
     !hasTrait(context, TRAIT.SHARPSHOOTER) ||
     context.event?.condition !== 'Bleeding' ||
-    !isGw2PlayerModifierEligibleEvent(context.event)
+    !isGw2PlayerModifierOwnedEvent(context.event)
   ) {
     return;
   }

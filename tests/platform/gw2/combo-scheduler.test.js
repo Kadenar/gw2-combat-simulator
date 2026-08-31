@@ -307,6 +307,7 @@ test('cancelled summon attacks do not create resolver combo outcomes', () => {
       actorType: 'summon',
       activationId: 'summon:replaced',
       coefficient: 1,
+      weaponStrengthProfileId: 'summon.weapon-type-1',
       cancelled: true,
       comboFinishers: [
         {

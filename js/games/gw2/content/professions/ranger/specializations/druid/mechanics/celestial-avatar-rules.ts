@@ -129,6 +129,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
       source: 'Trait',
       sourceId: TRAIT.ECLIPSE,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: TRAIT.ECLIPSE,
       skillName: 'Eclipse',
       name: `Eclipse - ${application.condition}`,

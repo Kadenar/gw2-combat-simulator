@@ -104,6 +104,7 @@ export function handleImpossibleOddsStrike(
     source: 'revenant',
     sourceId: impossible.id,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillId: impossible.id,
     skillWeapon: 'Unequipped',
     canTriggerCriticalSigils: true
@@ -538,6 +539,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         source: 'revenant',
         sourceId: ID.ENCHANTED_DAGGERS,
         actorType: 'effect',
+        ownerActorType: 'player',
         skillId: ID.ENCHANTED_DAGGERS,
         skillName: 'Enchanted Daggers',
         name: 'Enchanted Daggers — Siphon Damage',

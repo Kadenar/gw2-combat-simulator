@@ -2,7 +2,7 @@ import { vindicatorState } from '#gw2/content/professions/revenant/specializatio
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
@@ -12,12 +12,21 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/revenant/data/ids.js';
 import { denySkillCast as denyRevenantSkill } from '#gw2/content/professions/lib/availability.js';
-import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import {
+  emitLegendInvocationProfile,
+  emitLegendInvocationSkill
+} from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
-import { revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '#gw2/content/professions/revenant/core/traits/modifiers.js';
+import {
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/content/professions/revenant/core/traits/modifiers.js';
 import { completeVindicatorDodge } from '#gw2/content/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
-import { modifyVindicatorCastDuration, modifyVindicatorRechargeDuration } from '#gw2/content/professions/revenant/specializations/vindicator/traits/index.js';
+import {
+  modifyVindicatorCastDuration,
+  modifyVindicatorRechargeDuration
+} from '#gw2/content/professions/revenant/specializations/vindicator/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
@@ -43,7 +52,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LEVIATHAN_STRENGTH) &&
       enduranceNotFull(context)
   },
@@ -54,7 +63,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'damage-additive',
     amount: 0.25,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
       // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
       (context.event?.forerunnerOfDeathActive != null

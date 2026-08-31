@@ -193,6 +193,7 @@ export function weaponStrengthProfileIdForEvent(
     return SHROUD_PROFILE_IDS[skillShroud];
   }
 
+  // Only explicit kits use bundle strength; other Bundle-tagged profession skills retain their weapon fallback.
   if (skill?.kit) return 'bundle.ascended';
 
   for (const candidate of [event.weapon, event.skillWeapon]) {
@@ -230,7 +231,8 @@ export function weaponStrengthProfileIdForEvent(
     if (profile) return profile.id;
   }
 
-  if (['Heal', 'Utility', 'Elite'].includes(String(skill?.type || ''))) {
+  // Slot skills and system actions are explicitly independent of equipped weapons.
+  if (['Action', 'Heal', 'Utility', 'Elite'].includes(String(skill?.type || ''))) {
     return 'nonweapon.unequipped';
   }
 

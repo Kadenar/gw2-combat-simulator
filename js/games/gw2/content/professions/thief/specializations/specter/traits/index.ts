@@ -232,6 +232,7 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
       source: 'Trait',
       sourceId: TRAIT.LARCENOUS_TORMENT,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: TRAIT.LARCENOUS_TORMENT,
       skillName: 'Larcenous Torment',
       name: 'Larcenous Torment - Life Siphon',

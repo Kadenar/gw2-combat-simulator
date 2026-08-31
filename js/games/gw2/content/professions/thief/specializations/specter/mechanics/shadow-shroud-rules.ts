@@ -1,14 +1,21 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { specterCastAvailability } from '#gw2/content/professions/thief/specializations/specter/mechanics/availability.js';
-import { advanceSpecterResources, spendSpecterResources } from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
+import {
+  advanceSpecterResources,
+  spendSpecterResources
+} from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
-import { handleDarkSentry, handleLarcenousTorment, observeSpecterEvent } from '#gw2/content/professions/thief/specializations/specter/traits/index.js';
+import {
+  handleDarkSentry,
+  handleLarcenousTorment,
+  observeSpecterEvent
+} from '#gw2/content/professions/thief/specializations/specter/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
@@ -87,7 +94,7 @@ export const specterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.2,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS) &&
       context.event?.condition === 'Torment'
   }

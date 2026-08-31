@@ -117,6 +117,7 @@ function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: 
       source: 'Trait',
       sourceId: TRAIT.GRENADIER,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: skill.id,
       skillName: 'Lesser Grenade Barrage',
       parentSkillName: skill.name,
@@ -161,6 +162,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
       source: 'Trait',
       sourceId: TRAIT.STREAMLINED_KITS,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: skill.id,
       skillName: 'Drop Mine',
       parentSkillName: skill.name,
@@ -200,6 +202,7 @@ export function applyEngineerToolbeltTraits(context: EngineerSchedulerContext, s
       source: 'Trait',
       sourceId: TRAIT.STATIC_DISCHARGE,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: ID.STATIC_DISCHARGE_TRAIT_SKILL,
       skillName: 'Static Discharge',
       parentSkillName: skill.name,
@@ -319,7 +322,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
           engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'stacks', 1) * application.quantity,
         duration: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'duration', 3),
         sourceId: TRAIT.SERRATED_STEEL,
-        actorType: 'effect'
+        actorType: 'effect',
+        ownerActorType: 'player'
       });
       recordTrait(context, 'Serrated Steel', event);
     }
@@ -382,7 +386,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
         stacks: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
         duration: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'duration', 8),
         sourceId: TRAIT.INCENDIARY_POWDER,
-        actorType: 'effect'
+        actorType: 'effect',
+        ownerActorType: 'player'
       });
       recordTrait(context, 'Incendiary Powder', event);
     }
@@ -417,6 +422,7 @@ export function reactToEngineerDamage(
       coefficient: engineerBalanceEffectValue(context, PROFILE.explosiveEntrance, 'strike', 'coefficient', 1.25),
       sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
       actorType: 'effect',
+      ownerActorType: 'player',
       explosion: true
     });
     recordTrait(context, 'Explosive Entrance', event);
@@ -509,7 +515,8 @@ export function reactToEngineerDamage(
         stacks: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'stacks', 1),
         duration: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'duration', 6),
         sourceId: TRAIT.SHRAPNEL,
-        actorType: 'effect'
+        actorType: 'effect',
+        ownerActorType: 'player'
       });
       queueBuff(context, event, {
         name: 'Shrapnel',
@@ -547,6 +554,7 @@ export function reactToEngineerDamage(
       ),
       sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
       actorType: 'effect',
+      ownerActorType: 'player',
       at:
         event.at +
         engineerBalanceEffectValue(

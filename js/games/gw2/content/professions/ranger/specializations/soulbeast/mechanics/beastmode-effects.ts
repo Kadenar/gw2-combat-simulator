@@ -167,6 +167,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
       source: 'ranger',
       sourceId: ID.ONE_WOLF_PACK_STRIKE,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: ID.ONE_WOLF_PACK,
       skillName: 'One Wolf Pack',
       name: 'One Wolf Pack',

@@ -139,6 +139,7 @@ function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, e
     source: 'Food',
     sourceId: `food.${String(proc.name || 'proc').toLowerCase()}`,
     actorType: 'effect',
+    ownerActorType: 'player',
     triggeredBy: event.skillName
   } as const;
   let foodEvent: Gw2ResolverEvent;

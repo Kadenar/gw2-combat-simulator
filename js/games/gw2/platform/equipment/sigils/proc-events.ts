@@ -24,7 +24,7 @@ export function isSchedulerSigilPrediction(event: SimulationEvent): boolean {
 function commonSigilEvent(
   name: string,
   sourceSkill: string
-): Pick<SimulationEventInput, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType'> & {
+): Pick<SimulationEventInput, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType' | 'ownerActorType'> & {
   readonly triggeredBy: string;
 } {
   return {
@@ -33,6 +33,7 @@ function commonSigilEvent(
     source: 'Sigil',
     sourceId: `sigil.${name.toLowerCase()}`,
     actorType: 'effect',
+    ownerActorType: 'player',
     triggeredBy: sourceSkill
   };
 }
@@ -41,7 +42,6 @@ function commonSigilEvent(
 export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
   return {
     ...commonSigilEvent(name, sourceSkill),
-    ...(name === 'Air' ? { ownerActorType: 'player' as const } : {}),
     type: 'damage',
     at: 0,
     coefficient: proc.coefficient,

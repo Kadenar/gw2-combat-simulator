@@ -42,6 +42,7 @@ export function queueBleeding(
   stacks = 1
 ): void {
   const petSource = isPetStrike(event);
+  // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
   enqueueOrdered(context.queue, {
     ...petDerivedConditionMetadata(context, event),
     type: 'condition',
@@ -49,6 +50,7 @@ export function queueBleeding(
     source: petSource ? 'ranger-pet' : 'Trait',
     sourceId,
     actorType: petSource ? 'summon' : 'effect',
+    ownerActorType: petSource ? undefined : 'player',
     skillId: sourceId,
     skillName: name,
     name: `${name} — Bleeding`,
@@ -69,6 +71,7 @@ export function queueCondition(
   name: string
 ): void {
   const petSource = isPetStrike(event);
+  // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
   enqueueOrdered(context.queue, {
     ...petDerivedConditionMetadata(context, event),
     type: 'condition',
@@ -76,6 +79,7 @@ export function queueCondition(
     source: petSource ? 'ranger-pet' : 'Trait',
     sourceId,
     actorType: petSource ? 'summon' : 'effect',
+    ownerActorType: petSource ? undefined : 'player',
     skillId: sourceId,
     skillName: name,
     name: `${name} - ${condition}`,

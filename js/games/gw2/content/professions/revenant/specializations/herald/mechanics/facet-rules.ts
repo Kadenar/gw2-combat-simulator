@@ -3,7 +3,7 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
@@ -64,7 +64,7 @@ export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     // +1% per unique active boon; capped at 12 boon types so the theoretical maximum is +12%.
     amount: (context) => revenantActiveBoonCount(context) * 0.01,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.REINFORCED_POTENCY)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.REINFORCED_POTENCY)
   }
 ]);
 

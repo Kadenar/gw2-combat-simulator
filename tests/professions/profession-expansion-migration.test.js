@@ -779,6 +779,7 @@ test('resolver profession state changes are chronological and preserve counters'
       {
         id: 980001,
         name: 'Chronology Fixture',
+        type: 'Utility',
         castTimeMs: 0,
         effects: [
           strikeTimeline(

@@ -2,7 +2,7 @@ import { conduitState } from '#gw2/content/professions/revenant/specializations/
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
@@ -77,7 +77,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       return (base + parameters.bonus) / base;
     },
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.TARGETED_DESTRUCTION) &&
       hasTrait(context, TRAIT.NUMINOUS_GIFT)
   },

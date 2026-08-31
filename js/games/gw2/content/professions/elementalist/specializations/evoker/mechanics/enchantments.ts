@@ -30,6 +30,7 @@ export function emitElectricEnchantment(context: ElementalistSchedulerContext, e
     source: 'Electric Enchantment',
     sourceId: event.skillId ?? event.sourceId,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillName: 'Electric Enchantment',
     coefficient: Number(strike?.coefficient ?? 0.4),
     skillWeapon: 'Unequipped'
@@ -41,6 +42,7 @@ export function emitElectricEnchantment(context: ElementalistSchedulerContext, e
     source: 'Electric Enchantment',
     sourceId: event.skillId ?? event.sourceId,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillName: 'Electric Enchantment',
     condition: String(burning?.condition || 'Burning'),
     stacks: Number(burning?.stacks ?? 1),

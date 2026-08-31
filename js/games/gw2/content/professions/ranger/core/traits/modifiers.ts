@@ -6,7 +6,7 @@ import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
-  isGw2PlayerModifierEligibleEvent
+  isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
 import {
   eventSkill as gw2EventSkill,
@@ -19,7 +19,6 @@ import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
-import type { RangerCastContext } from '#gw2/content/professions/ranger/types.js';
 import {
   rangerBalanceValue,
   RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
@@ -110,7 +109,7 @@ function openingStrikeReady(context: Gw2ModifierContext): boolean {
   }>(context.runtime?.profession);
   return petEvent(context)
     ? core?.petOpeningStrikeReady === true
-    : isGw2PlayerModifierEligibleEvent(context.event) && core?.playerOpeningStrikeReady === true;
+    : isGw2PlayerModifierOwnedEvent(context.event) && core?.playerOpeningStrikeReady === true;
 }
 
 function activePetFamily(context: Gw2ModifierContext): string {
@@ -341,7 +340,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
+      isGw2PlayerModifierOwnedEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
   },
   {
     id: 'ranger.hunters-tactics-critical-chance',
@@ -349,7 +348,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'add',
     amount: 0.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
+      isGw2PlayerModifierOwnedEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
   },
   {
     id: 'ranger.light-on-your-feet',
@@ -357,7 +356,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
       boonActive(context, 'light-on-your-feet')
   },
@@ -367,7 +366,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'add',
     amount: 0.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
       boonActive(context, 'light-on-your-feet')
   },
@@ -384,7 +383,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       eventSkill(context)?.type === 'Weapon' &&
       hasTrait(context, TRAIT.FARSIGHTED)
   },
@@ -395,7 +394,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     parameters: { baseFactor: 1, damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) =>
       parameters.baseFactor + activeBoonCount(context, 'player') * parameters.damagePerBoon,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)
   },
   {
     id: 'ranger.bountiful-hunter-pet',
@@ -412,7 +411,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) && targetVulnerable(context) && hasTrait(context, TRAIT.WOLFSONG)
+      isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context) && hasTrait(context, TRAIT.WOLFSONG)
   },
   {
     id: 'ranger.remorseless',
@@ -434,7 +433,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       targetImpaired(context) &&
       hasTrait(context, TRAIT.PREDATORS_ONSLAUGHT)
   },
@@ -459,7 +458,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     factor: 1.25,
     when: (context) =>
       context.condition === 'Poisoned' &&
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.POISON_MASTER)
   },
   {
@@ -467,7 +466,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.15,
-    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS)
   },
   {
     id: 'ranger.loud-whistle-pet',

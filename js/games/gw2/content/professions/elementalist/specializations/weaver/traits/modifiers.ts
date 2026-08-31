@@ -1,7 +1,7 @@
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
@@ -55,7 +55,7 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'add',
     amount: 0.2,
     when: (context) =>
-      isGw2PlayerModifierEligibleEvent(context.event) &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, 'Superior Elements') &&
       targetConditionActive(context, 'Weakness')
   }
