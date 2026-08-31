@@ -6,4 +6,5 @@ export * from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-ob
 export * from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 export * from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 export { initialHarbingerBlight } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/harbinger.js';
+export * from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 export * from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';

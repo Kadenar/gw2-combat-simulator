@@ -5,6 +5,7 @@ import type {
 } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
 import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 import type { NecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
+import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 import type { WarriorBloodlustObservation } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '#gw2/platform/engine/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -116,6 +117,19 @@ function barbedPrecisionImportObservation(
   );
 }
 
+/** Shows the independently duration-matched player and pet contributions to Sharpened Edges evidence. */
+function sharpenedEdgesImportObservation(result: RangerSharpenedEdgesObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Sharpened Edges proc rate',
+    result?.criticalHits || 0,
+    'player or owned-pet critical hits',
+    result
+      ? `ArcDPS marked ${result.playerCriticalHits} player and ${result.petCriticalHits} owned-pet strike packets as critical. Player applications match the active build's ${durationList(result.playerMatchedDurationsMs)} duration; pet applications use independent pet expertise (${result.pets.map((pet) => `${pet.name}: ${pet.matchedApplications}/${pet.criticalHits} at ${pet.matchedDurationMs.toLocaleString()} ms`).join('; ') || 'no pet criticals'}).`
+      : ''
+  );
+}
+
 /** True when a selected rotation file should use the existing JSON importer. */
 export function isJsonRotationFile(file: Pick<File, 'name' | 'type'>): boolean {
   return file.type.toLowerCase() === 'application/json' || file.name.toLowerCase().endsWith('.json');
@@ -203,6 +217,19 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     observations.push(
       ...barbedPrecisionImportObservation(
         rotationModule.analyzeNecromancerBarbedPrecisionObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
+  if (selected.professionId === 'ranger') {
+    observations.push(
+      ...sharpenedEdgesImportObservation(
+        rotationModule.analyzeRangerSharpenedEdgesObservation(
           log,
           playerAddress,
           app.activeCatalog,

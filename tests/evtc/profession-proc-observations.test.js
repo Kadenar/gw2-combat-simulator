@@ -7,14 +7,18 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
 import { analyzeMesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 import { analyzeNecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
+import { analyzeRangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
+import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
 const CLONE = 0x3000n;
 const OTHER_CLONE = 0x4000n;
+const TIGER = 0x5000n;
+const SPIDER = 0x6000n;
 const EXPLOSION_SKILL_ID = 1_000;
 const STRIKE_SKILL_ID = 2_000;
 
@@ -134,6 +138,22 @@ const sharperImagesProfile = {
   name: 'Sharper Images',
   profileKind: 'trait',
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 5 }]
+};
+
+const sharpenedEdgesProfile = {
+  id: RANGER_TRAIT.SHARPENED_EDGES,
+  name: 'Sharpened Edges',
+  profileKind: 'trait',
+  criticalChance: 0.33,
+  effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
+};
+
+const arachnophobiaProfile = {
+  id: RANGER_TRAIT.ARACHNOPHOBIA,
+  name: 'Arachnophobia',
+  profileKind: 'trait',
+  attributeBonus: 150,
+  weaponAttributeBonus: 225
 };
 
 test('matches Shrapnel only when expertise-scaled Bleeding and Crippled applications are paired', () => {
@@ -290,10 +310,70 @@ test('pairs owned clone criticals with same-clone expertise-scaled Sharper Image
   });
 });
 
+test('matches Sharpened Edges with separate player and equipped-pet expertise', () => {
+  const result = analyzeRangerSharpenedEdgesObservation(
+    fixture(
+      [
+        event({ time: 900, sourceInstance: 7, result: 0 }),
+        event({ time: 1_000, sourceInstance: 7 }),
+        event({ time: 1_001, sourceInstance: 7 }),
+        condition(1_100, 736, 4_500, { sourceInstance: 7 }),
+        event({ time: 1_200, source: TIGER, sourceInstance: 8, sourceMasterInstance: 7 }),
+        condition(1_300, 736, 3_300, { source: TIGER, sourceInstance: 8, sourceMasterInstance: 7 }),
+        event({ time: 1_400, source: SPIDER, sourceInstance: 9, sourceMasterInstance: 7 }),
+        condition(1_500, 736, 3_750, { source: SPIDER, sourceInstance: 9, sourceMasterInstance: 7 }),
+        condition(1_600, 736, 4_500, { source: SPIDER, sourceInstance: 9, sourceMasterInstance: 7 })
+      ],
+      undefined,
+      [
+        { address: TIGER, profession: 1, character: 'Juvenile Tiger' },
+        { address: SPIDER, profession: 2, character: 'Juvenile Forest Spider' }
+      ]
+    ),
+    PLAYER,
+    catalog([sharpenedEdgesProfile, arachnophobiaProfile]),
+    {
+      selectedTraitIds: [RANGER_TRAIT.SHARPENED_EDGES, RANGER_TRAIT.ARACHNOPHOBIA],
+      stats: { expertise: 750 }
+    }
+  );
+
+  assert.deepEqual(result, {
+    targetAddress: TARGET,
+    criticalHits: 4,
+    playerCriticalHits: 2,
+    petCriticalHits: 2,
+    matchedApplications: 3,
+    playerMatchedApplications: 1,
+    petMatchedApplications: 2,
+    observedProcRate: 0.75,
+    expectedProcChance: 0.33,
+    expectedApplications: 1.32,
+    playerMatchedDurationsMs: [4_500],
+    pets: [
+      {
+        address: TIGER,
+        name: 'Tiger',
+        criticalHits: 1,
+        matchedApplications: 1,
+        matchedDurationMs: 3_300
+      },
+      {
+        address: SPIDER,
+        name: 'Forest Spider',
+        criticalHits: 1,
+        matchedApplications: 1,
+        matchedDurationMs: 3_750
+      }
+    ]
+  });
+});
+
 test('does not infer profession trait procs when the active build omits each trait', () => {
   const log = fixture([event({ skillId: EXPLOSION_SKILL_ID })]);
   assert.equal(analyzeEngineerShrapnelObservation(log, PLAYER, catalog([shrapnelProfile]), {}), null);
   assert.equal(analyzeEngineerSerratedSteelObservation(log, PLAYER, catalog([serratedSteelProfile]), {}), null);
   assert.equal(analyzeMesmerSharperImagesObservation(log, PLAYER, catalog([sharperImagesProfile]), {}), null);
   assert.equal(analyzeNecromancerBarbedPrecisionObservation(log, PLAYER, catalog([barbedPrecisionProfile]), {}), null);
+  assert.equal(analyzeRangerSharpenedEdgesObservation(log, PLAYER, catalog([sharpenedEdgesProfile]), {}), null);
 });

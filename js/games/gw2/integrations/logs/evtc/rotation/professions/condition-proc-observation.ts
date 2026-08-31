@@ -27,9 +27,9 @@ export function traitBalanceProfile(
   return catalog.balanceProfilesById?.get(traitId) || catalog.balanceProfilesByName?.get(traitName) || null;
 }
 
-export function isOutgoingStrike(event: ParsedEvtcEvent, playerAddress: bigint): boolean {
+export function isOutgoingStrike(event: ParsedEvtcEvent, sourceAddress: bigint): boolean {
   return (
-    event.source === playerAddress &&
+    event.source === sourceAddress &&
     event.target !== 0n &&
     event.stateChange === EVTC_STATE_CHANGE.NONE &&
     event.activation === EVTC_ACTIVATION.NONE &&
@@ -38,11 +38,11 @@ export function isOutgoingStrike(event: ParsedEvtcEvent, playerAddress: bigint):
   );
 }
 
-/** Chooses the foe receiving the most direct strike damage so multi-agent metadata cannot pollute proc ratios. */
-export function primaryStrikeTarget(log: ParsedEvtc, playerAddress: bigint): bigint | null {
+/** Chooses the foe receiving the most direct strike damage from the supplied actors. */
+export function primaryStrikeTargetForSources(log: ParsedEvtc, sourceAddresses: ReadonlySet<bigint>): bigint | null {
   const damageByTarget = new Map<bigint, number>();
   for (const event of log.events) {
-    if (!isOutgoingStrike(event, playerAddress)) continue;
+    if (!sourceAddresses.has(event.source) || !isOutgoingStrike(event, event.source)) continue;
     damageByTarget.set(event.target, (damageByTarget.get(event.target) || 0) + event.value);
   }
 
@@ -52,6 +52,11 @@ export function primaryStrikeTarget(log: ParsedEvtc, playerAddress: bigint): big
         rightDamage - leftDamage || (leftTarget < rightTarget ? -1 : leftTarget > rightTarget ? 1 : 0)
     )[0]?.[0] ?? null
   );
+}
+
+/** Keeps existing player-only proc analyzers on the shared target-selection path. */
+export function primaryStrikeTarget(log: ParsedEvtc, playerAddress: bigint): bigint | null {
+  return primaryStrikeTargetForSources(log, new Set([playerAddress]));
 }
 
 function namedDurationBonus(bonuses: Readonly<Record<string, number>> | undefined, condition: string): number {
@@ -96,17 +101,17 @@ export function expectedConditionDurationsMs(
   ].sort((left, right) => left - right);
 }
 
-/** Finds player-to-target condition applications whose ArcDPS duration matches the active build. */
+/** Finds source-to-target condition applications whose ArcDPS duration matches the supplied actor stats. */
 export function matchingConditionApplications(
   log: ParsedEvtc,
-  playerAddress: bigint,
+  sourceAddress: bigint,
   targetAddress: bigint,
   conditionSkillId: number,
   durationsMs: readonly number[]
 ): readonly ParsedEvtcEvent[] {
   return log.events.filter(
     (event) =>
-      event.source === playerAddress &&
+      event.source === sourceAddress &&
       event.target === targetAddress &&
       event.skillId === conditionSkillId &&
       event.buff !== 0 &&
