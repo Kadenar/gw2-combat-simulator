@@ -14,7 +14,8 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
   gunsaber and Dragon Slash skills are checked in as supplemental identities.
 - Refresh: `npm run update:warrior-data`. The updater drops invalid API skill
   `62857`, repairs Dragon Trigger's dangling flip reference, and regenerates
-  Warrior IDs, supplemental skills, and module-owned skill mechanics.
+  Warrior IDs and supplemental skills. Its skill generator currently writes
+  retired flat `skills.ts` outputs that the runtime does not import.
 - Public API data omits some activation times and mode-specific facts; the
   generator uses current Wiki activation data where available and deterministic
   fallbacks elsewhere.

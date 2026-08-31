@@ -9,8 +9,8 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 - API identity snapshot: 2026-08-08 (official GW2 API) for skill IDs and presentation metadata. Pet identity lives in
   `data/ranger-pet-data.ts` and API-omitted actions in `data/ranger-supplemental-skills.ts`.
-- Refresh: `npm run update:ranger-data`, which refreshes API metadata and regenerates Ranger IDs, pet data, and generated
-  skill-mechanics sources.
+- Refresh: `npm run update:ranger-data`, which refreshes API metadata and regenerates Ranger IDs and pet data. Its skill
+  generator currently writes retired flat `skills.ts` outputs that the runtime does not import.
 - Authoritative checked-in combat fields live in owner-local `skills/` fragments, and the application catalog is assembled from
   those module contributions.
 
