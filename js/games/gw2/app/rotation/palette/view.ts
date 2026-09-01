@@ -226,6 +226,8 @@ export function paletteSkillView(
   const recharge =
     maximumAmmo && Number(skill.ammoRecharge || 0) > 0 ? Number(skill.ammoRecharge) : Number(skill.cooldown || 0);
   const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
+  // Keep the next ammo recharge visible even while another charge leaves the skill usable.
+  const cooldownLabel = ammo?.remaining ? seconds(Number(ammo.remaining)) : remaining ? seconds(remaining) : '';
   const unavailable = remaining > 0 || !contextAvailable;
   const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
@@ -265,7 +267,7 @@ export function paletteSkillView(
     concealed: Boolean(skill.concealed),
     highlighted,
     draggable: contextAvailable,
-    cooldownLabel: remaining ? seconds(remaining) : '',
+    cooldownLabel,
     ammo: ammoDisplay,
     resource: paletteSkillResourceView(app, skill.id)
   };

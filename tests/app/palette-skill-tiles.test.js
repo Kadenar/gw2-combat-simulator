@@ -7,7 +7,14 @@ import { paletteSkillView } from '#gw2/app/rotation/palette/view.js';
 
 function projectionApp(
   profession,
-  { specialization = 'Core', professionState = {}, time = 0, cooldowns = {}, useProfessionUi = true } = {}
+  {
+    specialization = 'Core',
+    professionState = {},
+    time = 0,
+    cooldowns = {},
+    ammoBySkillId = {},
+    useProfessionUi = true
+  } = {}
 ) {
   const build = profession.createBuildDefaults?.() || {};
   return {
@@ -27,6 +34,7 @@ function projectionApp(
         time: time * 1000,
         activeWeaponSet: 1,
         cooldowns,
+        ammoBySkillId,
         profession: professionState
       }
     }
@@ -323,6 +331,23 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
   assert.equal(skill.name, 'Rock Barrier');
   assert.equal(view.cooldownLabel, '8.0s');
   assert.equal(view.disabled, true);
+});
+
+test('ammo tile cooldown tracks the next charge while another charge remains', async () => {
+  const profession = await loadProfession('mesmer');
+  const skill = profession.catalog.skillsByName.get('Split Second');
+  const app = projectionApp(profession, {
+    specialization: 'Chronomancer',
+    time: 5,
+    ammoBySkillId: {
+      [skill.id]: { charges: 1, maximum: 2, rechargeDuration: 8, nextRechargeAt: 8 }
+    }
+  });
+  const view = paletteSkillView(app, skill, true);
+
+  assert.equal(view.cooldownLabel, '3.0s');
+  assert.equal(view.disabled, false);
+  assert.match(view.title, /next charge in 3\.0s/);
 });
 
 test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {
