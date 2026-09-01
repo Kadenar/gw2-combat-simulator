@@ -8,6 +8,8 @@ import { isFirebrandTomeActionId } from '#gw2/integrations/logs/evtc/rotation/pr
 import { SWAP_WEAPONS } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 
 const MAX_AUTOATTACK_IMPACT_MS = 1500;
+const DAYBREAKING_SLASH_ID = 73055;
+const DAYBREAKING_SLASH_ALTERNATE_ANIMATION_ID = 72923;
 const AUTOATTACK_CHAINS = Object.freeze([
   Object.freeze([
     Object.freeze({ name: 'Strike', skillId: 9137 }),
@@ -20,6 +22,18 @@ const AUTOATTACK_CHAINS = Object.freeze([
     Object.freeze({ name: 'Searing Slash', skillId: 43826 })
   ])
 ]);
+
+/** Collapses the two simultaneous EVTC animation records emitted by one spear autoattack. */
+function removePairedDaybreakingSlashAnimations(
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const alternateStarts = new Set(
+    actions
+      .filter((action) => action.rawSkillId === DAYBREAKING_SLASH_ALTERNATE_ANIMATION_ID)
+      .map((action) => action.start)
+  );
+  return actions.filter((action) => action.rawSkillId !== DAYBREAKING_SLASH_ID || !alternateStarts.has(action.start));
+}
 
 function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
   const skill = findRotationSkill(
@@ -110,5 +124,6 @@ export function normalizeGuardianAutoattacks(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  return normalizeAutoattackChains(context, removeUncommittedAutoattacks(context, actions));
+  const deduplicated = removePairedDaybreakingSlashAnimations(actions);
+  return normalizeAutoattackChains(context, removeUncommittedAutoattacks(context, deduplicated));
 }

@@ -352,6 +352,39 @@ test('coalesces Willbender animations and ignores passive flame packets', () => 
   );
 });
 
+test('deduplicates paired Guardian spear autoattack animations', () => {
+  const daybreaking = skill(73_055, 'Daybreaking Slash', {
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    castTimeMs: 520,
+    quicknessCastTimeMs: 520,
+    effects: [{ type: 'strike', ticks: [{ atMs: 400, coefficient: 0.7 }] }]
+  });
+  const root = animation(73_055, 'Daybreaking Slash', 2_000, 475);
+  const paired = animation(72_923, 'Daybreaking Slash', 2_000, 558);
+  const next = animation(73_055, 'Daybreaking Slash', 2_558, 439);
+  const fixture = guardianLog(
+    81,
+    [daybreaking],
+    [
+      ...root.events,
+      ...paired.events,
+      event({ time: 2_400, target: ALLY, skillId: 73_055, value: 100 }),
+      ...next.events,
+      event({ time: 2_958, target: ALLY, skillId: 73_055, value: 100 })
+    ]
+  );
+  fixture.skills.push({ id: 72_923, name: 'Daybreaking Slash' });
+  fixture.header.skillCount += 1;
+
+  const result = reconstructEvtcRotation(fixture, { skills: [daybreaking] });
+
+  assert.deepEqual(
+    result.actions.filter((action) => action.name === 'Daybreaking Slash').map((action) => action.rawSkillId),
+    [72_923, 73_055]
+  );
+});
+
 test('recovers legacy Willbender precasts and committed zero-duration casts', () => {
   const skills = [
     skill(62_603, 'Flowing Resolve', {
