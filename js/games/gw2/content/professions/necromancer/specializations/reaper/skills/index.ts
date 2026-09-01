@@ -21,9 +21,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -83,9 +81,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'fear'
-        }
+        controlKind: 'fear'
       }
     ],
     type: 'Profession',
@@ -117,9 +113,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       },
       {
         type: 'custom',
@@ -250,9 +244,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'stun'
-        }
+        controlKind: 'stun'
       },
       {
         type: 'condition',

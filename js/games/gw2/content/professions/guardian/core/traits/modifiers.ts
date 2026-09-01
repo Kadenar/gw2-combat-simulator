@@ -1,6 +1,6 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -9,7 +9,6 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions
 import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
-  GuardianCastContext,
   GuardianSchedulerContext,
   GuardianSkill,
   GuardianState
@@ -382,15 +381,6 @@ function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, durati
   return result;
 }
 
-/** Alternates Daybreaking Slash's measured Quickness animation variants. */
-function modifyGuardianCastDuration(context: GuardianCastContext, duration: number): number {
-  if (context.skill?.id !== GUARDIAN_SKILL_IDS.DAYBREAKING_SLASH || !context.hasBuff?.('quickness', context.start)) {
-    return duration;
-  }
-
-  return Number(professionCoreState(context).daybreakingSlashChainStep || 0) === 0 ? 0.52 : 0.44;
-}
-
 export const guardianCoreAttributeRules = Object.freeze({
   modifyConditionBaseDuration: modifyGuardianConditionBaseDuration,
   modifierRules: guardianCoreModifierRules,
@@ -410,7 +400,6 @@ export const guardianCoreCastRules = Object.freeze({
       handler: guardianBuildAvailability
     }
   ]),
-  modifyCastDuration: modifyGuardianCastDuration,
   modifyRechargeDuration: modifyGuardianRechargeDuration,
   modifyMaximumAmmo: modifyGuardianMaximumAmmo
 });

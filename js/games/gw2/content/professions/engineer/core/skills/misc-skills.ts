@@ -181,10 +181,8 @@ export const ENGINEER_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'pull',
-          duration: 300
-        }
+        controlKind: 'pull',
+        duration: 300
       }
     ]
   },

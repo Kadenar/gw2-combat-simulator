@@ -60,7 +60,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'control',
-        metadata: { controlKind: 'daze' },
+        controlKind: 'daze',
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -80,8 +80,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     implemented: true,
     effects: [
       {
-        // Rejuvenating Tides applies one party-wide Might stack on each of its
-        // five delayed pulses so the active pet can receive the boon.
         type: 'boon',
         boon: 'might',
         duration: 10,
@@ -91,8 +89,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         intervalMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ],
     quicknessCastTimeMs: 480,
@@ -149,17 +146,15 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         // This child effect has no catalog entry, so carry its dedicated icon into damage breakdown rows.
         icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Black_Hole.png',
         sourceId: ID.BLACK_HOLE,
+        skillName: 'Black Hole',
         actorType: 'effect',
         ownerActorType: 'player',
         canCrit: false,
         ticks: [2640, 4160, 5680, 7200].map((atMs) => ({
           atMs,
           coefficient: 0,
-          metadata: {
-            flatDamage: 158,
-            noCrit: true,
-            skillName: 'Black Hole'
-          }
+          flatDamage: 158,
+          noCrit: true
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -175,10 +170,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         intervalMs: 1520,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'pull',
-          skillName: 'Black Hole'
-        }
+        controlKind: 'pull',
+        skillName: 'Black Hole'
       },
       ...[520, 1160, 1640, 2040].map((atMs) => ({
         type: 'boon' as const,
@@ -188,9 +181,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         atMs,
         timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const,
-        // Natural Convergence grants every pulse to nearby allies, including pets.
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }))
     ],
     recharge: 10,

@@ -24,6 +24,7 @@ export interface ComboFinisherEvent extends SimulationEventBase<'combo_finisher'
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldBinding: ComboFieldBinding;
+  readonly companionCandidates?: readonly string[];
   readonly effectAt: number;
   readonly chance: number;
   readonly applications: number;
@@ -34,6 +35,7 @@ export interface ComboFinisherEvent extends SimulationEventBase<'combo_finisher'
 export interface ComboEvent extends SimulationEventBase<'combo'> {
   readonly comboId: string;
   readonly attemptId: string;
+  readonly companionCandidates?: readonly string[];
   readonly fieldId: string;
   readonly fieldType: ComboFieldType;
   readonly finisherType: ComboFinisherType;

@@ -297,9 +297,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     specialization: 'Weaver'
@@ -691,9 +689,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     specialization: 'Weaver'

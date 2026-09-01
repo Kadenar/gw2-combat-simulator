@@ -1,8 +1,8 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 
 /**
- * Positive-ID terrestrial Mesmer skills absent from the checked-in API
- * snapshot. This module owns identity and presentation only.
+ * Positive-ID Mesmer skills absent from the checked-in API snapshot. This
+ * module owns identity and presentation only.
  */
 export interface MesmerSupplementalSkill {
   readonly id: number;
@@ -13,7 +13,6 @@ export interface MesmerSupplementalSkill {
   readonly weapon: string;
   readonly slot: string;
   readonly specialization?: string;
-  readonly environment: string;
   readonly ambush?: boolean;
   readonly flipParentId?: number;
 }
@@ -28,7 +27,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Axe',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -40,7 +38,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Dagger',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -52,7 +49,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Greatsword',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -64,7 +60,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Rifle',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -76,7 +71,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Scepter',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -88,7 +82,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Spear',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -101,7 +94,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Staff',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -113,7 +105,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Sword',
     slot: 'Weapon_1',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     ambush: true
   },
   {
@@ -125,7 +116,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_2',
-    environment: 'Terrestrial',
     flipParentId: ID.ILLUSIONARY_COUNTER
   },
   {
@@ -137,7 +127,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: '',
     slot: 'Utility',
     specialization: '',
-    environment: 'Terrestrial',
     flipParentId: ID.MANTRA_OF_PAIN
   },
   {
@@ -149,7 +138,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Rifle',
     slot: 'Weapon_5',
     specialization: '',
-    environment: 'Terrestrial',
     flipParentId: ID.SINGULARITY_SHOT
   },
   {
@@ -161,7 +149,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Rifle',
     slot: 'Weapon_3',
     specialization: '',
-    environment: 'Terrestrial',
     flipParentId: ID.INSPIRING_IMAGERY
   },
   {
@@ -173,7 +160,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Focus',
     slot: 'Weapon_4',
     specialization: '',
-    environment: 'Terrestrial',
     flipParentId: ID.TEMPORAL_CURTAIN
   },
   {
@@ -185,7 +171,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Sword',
     slot: 'Weapon_4',
     specialization: '',
-    environment: 'Terrestrial',
     flipParentId: ID.ILLUSIONARY_RIPOSTE
   },
   {
@@ -197,7 +182,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     weapon: 'Sword',
     slot: 'Weapon_3',
     specialization: '',
-    environment: 'Terrestrial',
     flipParentId: ID.ILLUSIONARY_LEAP
   }
 ];

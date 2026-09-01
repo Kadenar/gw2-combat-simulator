@@ -458,10 +458,8 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockback',
-          duration: 400
-        }
+        controlKind: 'knockback',
+        duration: 400
       }
     ]
   },

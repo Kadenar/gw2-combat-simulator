@@ -88,7 +88,7 @@ function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event:
       kind: boon.kind,
       duration: boon.duration,
       stacks: boon.stacks,
-      recipients: 'party'
+      audience: { recipients: 'party' as const }
     });
   }
 }

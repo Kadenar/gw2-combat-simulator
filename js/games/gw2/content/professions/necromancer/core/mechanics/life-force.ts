@@ -213,7 +213,6 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   if (activeSignetOfVampirism(context)) {
     const passive = balanceProfileFromContext(context, PROFILE.signetOfVampirismPassive);
     const strike = balanceProfileEffect(passive, 'strike');
-    const strikeMetadata = strike?.metadata || {};
     const interval = Number(passive?.pulseInterval || 3);
     const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_VAMPIRISM) || 0);
     const passiveWhileRecharging = hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING) && Boolean(state.activeShroud);
@@ -229,12 +228,10 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
             name: 'Signet of Vampirism - Passive Life Siphon',
             coefficient: 0,
             skillWeapon: 'Unequipped',
-            metadata: {
-              flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-              flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
-              noCrit: strikeMetadata.noCrit === true,
-              damageKind: String(strikeMetadata.damageKind || '')
-            }
+            flatStrikeBase: Number(strike?.flatStrikeBase || 0),
+            flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
+            noCrit: strike?.noCrit === true,
+            damageKind: String(strike?.damageKind || '')
           });
       }
 

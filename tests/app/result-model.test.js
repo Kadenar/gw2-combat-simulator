@@ -9,6 +9,17 @@ import {
   resultSummaryMetrics
 } from '#gw2/app/rotation/result/model.js';
 
+const PLAYER_AUDIENCE = Object.freeze({
+  includesSelf: true,
+  includesSummons: false,
+  alliedPlayerCount: 0,
+  companionIds: [],
+  recipientCount: 1
+});
+
+/** Builds a resolved player buff so chart fixtures use the runtime audience contract. */
+const playerBuff = (fields) => ({ type: 'buff', resolvedAudience: PLAYER_AUDIENCE, ...fields });
+
 test('timeline times can reuse a precomputed combat reference', () => {
   const result = {
     events: [
@@ -51,18 +62,16 @@ test('Empowered Armaments chart series remains capped at one stack', () => {
     {
       duration: 8,
       events: [
-        {
-          type: 'buff',
+        playerBuff({
           at: 0,
           kind: 'guardian-empowered-armaments',
           duration: 6
-        },
-        {
-          type: 'buff',
+        }),
+        playerBuff({
           at: 1,
           kind: 'guardian-empowered-armaments',
           duration: 7
-        }
+        })
       ]
     },
     1000
@@ -79,20 +88,18 @@ test('Elemental Empowerment chart series includes emitted stacks and caps at ten
     {
       duration: 3,
       events: [
-        {
-          type: 'buff',
+        playerBuff({
           at: 0,
           kind: 'elemental empowerment',
           stacks: 3,
           duration: 15
-        },
-        {
-          type: 'buff',
+        }),
+        playerBuff({
           at: 1,
           kind: 'elemental empowerment',
           stacks: 8,
           duration: 15
-        }
+        })
       ]
     },
     1000
@@ -108,7 +115,7 @@ test('generic buffs remain visible on the timed-effects chart', () => {
   const series = buildChartSeries(
     {
       duration: 3,
-      events: [{ type: 'buff', at: 0, kind: 'taste-for-blood', stacks: 3, duration: 2 }]
+      events: [playerBuff({ at: 0, kind: 'taste-for-blood', stacks: 3, duration: 2 })]
     },
     1000
   );
@@ -181,13 +188,12 @@ test('chart series classify boons, conditions, and profession buffs', () => {
         }
       ],
       events: [
-        { type: 'buff', at: 0, kind: 'might', duration: 2 },
-        {
-          type: 'buff',
+        playerBuff({ at: 0, kind: 'might', duration: 2 }),
+        playerBuff({
           at: 0,
           kind: 'guardian-empowered-armaments',
           duration: 2
-        }
+        })
       ]
     },
     1000
@@ -205,18 +211,18 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
     {
       duration: 7,
       events: [
-        { type: 'buff', at: 0, kind: 'quickness', duration: 3 },
-        { type: 'buff', at: 1, kind: 'quickness', duration: 3 },
-        { type: 'buff', at: 0, kind: 'alacrity', duration: 2 },
-        { type: 'buff', at: 3, kind: 'alacrity', duration: 2 },
-        { type: 'buff', at: 0, kind: 'fury', duration: 3 },
-        { type: 'buff', at: 1, kind: 'fury', duration: 3 },
-        { type: 'buff', at: 0, kind: 'protection', duration: 3 },
-        { type: 'buff', at: 1, kind: 'protection', duration: 3 },
-        { type: 'buff', at: 0, kind: 'vigor', duration: 3 },
-        { type: 'buff', at: 1, kind: 'vigor', duration: 3 },
-        { type: 'buff', at: 0, kind: 'swiftness', duration: 3 },
-        { type: 'buff', at: 1, kind: 'swiftness', duration: 3 }
+        playerBuff({ at: 0, kind: 'quickness', duration: 3 }),
+        playerBuff({ at: 1, kind: 'quickness', duration: 3 }),
+        playerBuff({ at: 0, kind: 'alacrity', duration: 2 }),
+        playerBuff({ at: 3, kind: 'alacrity', duration: 2 }),
+        playerBuff({ at: 0, kind: 'fury', duration: 3 }),
+        playerBuff({ at: 1, kind: 'fury', duration: 3 }),
+        playerBuff({ at: 0, kind: 'protection', duration: 3 }),
+        playerBuff({ at: 1, kind: 'protection', duration: 3 }),
+        playerBuff({ at: 0, kind: 'vigor', duration: 3 }),
+        playerBuff({ at: 1, kind: 'vigor', duration: 3 }),
+        playerBuff({ at: 0, kind: 'swiftness', duration: 3 }),
+        playerBuff({ at: 1, kind: 'swiftness', duration: 3 })
       ]
     },
     1000
@@ -253,8 +259,8 @@ test('duration-stacking boon charts discard grants above the 30-second cap', () 
     {
       duration: 32,
       events: [
-        { type: 'buff', at: 0, kind: 'quickness', duration: 29 },
-        { type: 'buff', at: 1, kind: 'quickness', duration: 5 }
+        playerBuff({ at: 0, kind: 'quickness', duration: 29 }),
+        playerBuff({ at: 1, kind: 'quickness', duration: 5 })
       ]
     },
     1000
@@ -270,8 +276,8 @@ test('Swiftness duration stacking caps at 60 seconds', () => {
     {
       duration: 62,
       events: [
-        { type: 'buff', at: 0, kind: 'swiftness', duration: 59 },
-        { type: 'buff', at: 1, kind: 'swiftness', duration: 5 }
+        playerBuff({ at: 0, kind: 'swiftness', duration: 59 }),
+        playerBuff({ at: 1, kind: 'swiftness', duration: 5 })
       ]
     },
     1000
@@ -283,13 +289,13 @@ test('Swiftness duration stacking caps at 60 seconds', () => {
 });
 
 test('Radiant Armaments chart series identifies the active radiant weapon', () => {
-  const radiantBuff = (at, radiantWeapon) => ({
-    type: 'buff',
-    at,
-    kind: 'guardian-radiant-armaments',
-    radiantWeapon,
-    duration: 10
-  });
+  const radiantBuff = (at, radiantWeapon) =>
+    playerBuff({
+      at,
+      kind: 'guardian-radiant-armaments',
+      metadata: { radiantWeapon },
+      duration: 10
+    });
   const series = buildChartSeries(
     {
       duration: 8,
@@ -314,4 +320,27 @@ test('Radiant Armaments chart series identifies the active radiant weapon', () =
     series.effects['Radiant Armaments (Shield)'].map((point) => point.v),
     [0, 0, 0, 0, 0, 0, 1, 1, 1]
   );
+});
+
+test('chart series excludes buffs that do not affect the simulated player', () => {
+  const series = buildChartSeries({
+    duration: 2,
+    events: [
+      {
+        type: 'buff',
+        at: 0,
+        kind: 'pet-only-quickness',
+        duration: 2,
+        resolvedAudience: {
+          includesSelf: false,
+          includesSummons: true,
+          alliedPlayerCount: 0,
+          companionIds: ['ranger-pet:1'],
+          recipientCount: 1
+        }
+      }
+    ]
+  });
+
+  assert.equal(series.effects['Pet Only Quickness'], undefined);
 });

@@ -93,10 +93,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 2
-        }
+        controlKind: 'knockdown',
+        duration: 2
       }
     ]
   },

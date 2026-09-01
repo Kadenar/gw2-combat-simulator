@@ -44,9 +44,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -101,9 +99,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -158,9 +154,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -215,9 +209,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -272,9 +264,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -329,9 +319,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',

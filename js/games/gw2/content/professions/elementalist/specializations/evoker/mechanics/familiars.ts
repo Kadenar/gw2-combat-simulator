@@ -61,7 +61,6 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
       for (const rawTick of ticks) {
         const tick = rawTick as SchedulerRecord;
         const at = context.effectiveEnd + (Number(tick.atMs ?? effect.atMs ?? 0) * timingScale) / 1_000;
-        const metadata = (tick.metadata || effect.metadata || {}) as SchedulerRecord;
         const comboFinishers = tick.comboFinishers || effect.comboFinishers;
         if (effect.type === 'strike') {
           emitSkillDamage(context, {
@@ -99,7 +98,7 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
             actorType: 'player',
             skillName: familiar.name,
             skillId: familiar.id,
-            controlKind: metadata.controlKind,
+            controlKind: tick.controlKind ?? effect.controlKind,
             comboFinishers,
             triggeredBy: sourceSkill.name
           });
@@ -508,8 +507,7 @@ function applyMeditationEffects(context: ElementalistCastContext, skill: Skill):
         sourceId: skill.id,
         actorType: 'player',
         skillName: skill.name,
-        recipients: 'party',
-        maximumRecipients: 5,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         ...boon
       });
     }

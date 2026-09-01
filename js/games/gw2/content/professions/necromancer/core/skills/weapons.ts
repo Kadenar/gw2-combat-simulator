@@ -152,7 +152,6 @@ function soulShardDamage(
   // Resolve profile values at emission time so configured balance patches and traits affect every packet.
   const profile = balanceProfileFromContext(context, PROFILE.soulShards);
   const strike = balanceProfileEffect(profile, 'strike');
-  const metadata = strike?.metadata || {};
   // Emit shards as their own effect actor while retaining the triggering skill as parent attribution.
   emitSkillDamage(context, {
     at,
@@ -175,8 +174,8 @@ function soulShardDamage(
       hasTrait(context, TRAIT.SOUL_BARBS) && context.hasBuff('necromancer-soul-barbs', at) ? 1.1 : 1,
     flatStrikeHealthThreshold: Number(profile?.threshold || 0),
     flatStrikeThresholdMultiplier: Number(profile?.damageMultiplier || 1),
-    noCrit: metadata.noCrit === true,
-    damageKind: String(metadata.damageKind || '')
+    noCrit: strike?.noCrit === true,
+    damageKind: String(strike?.damageKind || '')
   });
 }
 
@@ -248,8 +247,7 @@ function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerS
     kind: 'might',
     duration: 8,
     stacks: conditionCount * 2,
-    recipients: 'party',
-    maximumRecipients: 5
+    audience: { recipients: 'party' as const, maximumRecipients: 5 }
   });
 }
 

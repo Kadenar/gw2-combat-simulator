@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 20,
     comboFields: [
       {
@@ -48,7 +47,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 12,
     phantasm: true,
     resource: {
@@ -86,7 +84,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 0,
     interruptCommitMs: 560,
     effects: [
@@ -125,7 +122,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 8,
@@ -140,7 +136,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 16,

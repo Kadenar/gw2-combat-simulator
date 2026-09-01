@@ -187,16 +187,12 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
           {
             atMs: 1600,
             coefficient: 0.5,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 2600,
             coefficient: 0.5,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -585,9 +581,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },

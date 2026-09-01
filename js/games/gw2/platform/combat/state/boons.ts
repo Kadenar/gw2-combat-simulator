@@ -1,12 +1,11 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
 
 import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
+import type { ResolvedEffectAudience } from '#gw2/platform/engine/types.js';
 
 interface BuffAudienceMetadata {
   readonly source?: unknown;
-  readonly affectsSelf?: unknown;
-  readonly affectsSummons?: unknown;
-  readonly companionIds?: readonly unknown[];
+  readonly resolvedAudience?: ResolvedEffectAudience;
 }
 
 interface DurationStackApplication {
@@ -98,15 +97,15 @@ export function buffMatchesAudience(
   audience: Gw2BuffAudience,
   companionId?: string | null
 ): boolean {
-  if (audience === 'all') return application.affectsSelf !== false;
-  if (application.affectsSummons !== true) return false;
+  const resolvedAudience = application.resolvedAudience;
+  if (!resolvedAudience) return false;
+  if (audience === 'all') return resolvedAudience.includesSelf;
+  if (!resolvedAudience.includesSummons) return false;
   if (audience === 'summon-trait' && application.source !== 'Trait') {
     return false;
   }
 
-  const companionIds = Array.isArray(application.companionIds)
-    ? application.companionIds.map(String).filter(Boolean)
-    : [];
+  const companionIds = resolvedAudience.companionIds;
   return (
     companionIds.length === 0 ||
     companionId === undefined ||

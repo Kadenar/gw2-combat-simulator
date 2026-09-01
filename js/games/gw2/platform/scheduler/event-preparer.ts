@@ -34,21 +34,16 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
 
   const prepare = (context: SchedulerContext, event: SimulationEventInput): SimulationEventInput => {
     event = prepareGw2ComboEvent(event);
-    if (event.type === 'buff') {
-      const boon = isStandardBoon(event.kind || event.boon);
-      // Generic buffs use allied-effect targeting and remain independent from
-      // the configuration that controls player-boon sharing with summons.
-      const recipients = boon
-        ? gw2BoonApplicationRecipients(context.config as Gw2Config, event)
-        : gw2BuffApplicationRecipients(context.config as Gw2Config, event);
+    if (event.type === 'buff' || event.audience) {
+      // Resolve the request once so every later consumer reads the same selected audience.
+      const resolver =
+        event.type === 'buff' && !isStandardBoon(event.kind || event.boon)
+          ? gw2BuffApplicationRecipients
+          : gw2BoonApplicationRecipients;
+      const resolvedAudience = resolver(context.config as Gw2Config, event);
       return {
         ...event,
-        affectsSelf: recipients.affectsSelf,
-        affectsSummons: recipients.affectsSummons,
-        alliedPlayerCount: recipients.alliedPlayerCount,
-        companionIds: recipients.companionIds,
-        recipientCount: recipients.recipientCount,
-        ...(boon ? { boonAudienceResolved: true } : { buffAudienceResolved: true })
+        resolvedAudience
       };
     }
 

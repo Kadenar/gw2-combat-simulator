@@ -157,7 +157,7 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
           {
             effectIndex: 0,
             allyStacks: { from: 3, to: 4 },
-            maximumRecipients: { from: 5, to: 6 }
+            audience: { maximumRecipients: { from: 5, to: 6 } }
           }
         ]
       },
@@ -190,7 +190,7 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
   });
 
   assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks, 4);
-  assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].maximumRecipients, 6);
+  assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].audience.maximumRecipients, 6);
   assert.equal(preview.skillsById.get(ID.RIGOR_MORTIS).effects[0].ticks[0].coefficient, 0.3);
   assert.equal(preview.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade).effects[0].coefficient, 0.7);
   assert.equal(preview.balanceProfilesById.get(HARBINGER_BALANCE_PROFILE_IDS.resources).maximumStacks, 30);
@@ -1258,14 +1258,20 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
   assert.equal(
     buffs(barrier, 'might').every(
       (event) =>
-        event.stacks === 2 && event.duration === 6 && event.recipients === 'party' && event.affectsSummons === false
+        event.stacks === 2 &&
+        event.duration === 6 &&
+        event.audience?.recipients === 'party' &&
+        event.resolvedAudience.includesSummons === false
     ),
     true
   );
   assert.equal(buffs(barrier, 'alacrity').length, 3);
   assert.equal(
     buffs(barrier, 'alacrity').every(
-      (event) => event.duration === 1.5 && event.recipients === 'party' && event.affectsSummons === false
+      (event) =>
+        event.duration === 1.5 &&
+        event.audience?.recipients === 'party' &&
+        event.resolvedAudience.includesSummons === false
     ),
     true
   );
@@ -1288,7 +1294,11 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
       [3.5, 3]
     ]
   );
-  assert.ok(buffs(sandstorm, 'protection').every((event) => event.recipients === 'party' && !event.affectsSummons));
+  assert.ok(
+    buffs(sandstorm, 'protection').every(
+      (event) => event.audience?.recipients === 'party' && !event.resolvedAudience.includesSummons
+    )
+  );
   assert.deepEqual(
     buffs(sandstorm, 'necromancer-soul-barbs').map((event) => event.duration),
     [15]
@@ -1487,7 +1497,7 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
       result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
     const wickedStrike = skillDamage(wicked);
 
-    assert.equal(wickedStrike.necromancerBlight, 20, skill);
+    assert.equal(wickedStrike.metadata.necromancerBlight, 20, skill);
     assert.ok(Math.abs(wickedStrike.damage / skillDamage(baseline).damage - 1.2) < 1e-12, skill);
     assert.equal(
       wicked.events.find((event) => event.type === 'necromancer.state' && event.reason === 'blight-skill')?.state
@@ -1876,9 +1886,8 @@ test('Overflowing Thirst grants the documented Taste for Blood stacks to five pa
     );
 
     assert.equal(application?.stacks, stacks, name);
-    assert.equal(application?.affectsSelf, true, name);
-    assert.equal(application?.alliedPlayerCount, 4, name);
-    assert.equal(application?.recipientCount, 5, name);
+    assert.equal(application?.resolvedAudience.alliedPlayerCount, 4, name);
+    assert.equal(application?.resolvedAudience.recipientCount, 5, name);
   }
 
   const chain = simulate('Core', ['Necrotic Slash', 'Necrotic Stab', 'Necrotic Bite'], {
@@ -2049,7 +2058,7 @@ test('Taste for Blood excludes active Ritualist spirits from its shared stack po
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(application.companionIds, []);
+  assert.deepEqual(application.resolvedAudience.companionIds, []);
   assert.equal(spiritPackets.length, 0);
 });
 
@@ -2704,8 +2713,8 @@ test('Blood Magic siphons preserve independent pools and intervals across four o
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(new Set(application.companionIds), new Set(owners));
-  assert.equal(application.recipientCount, 5);
+  assert.deepEqual(new Set(application.resolvedAudience.companionIds), new Set(owners));
+  assert.equal(application.resolvedAudience.recipientCount, 5);
   assert.equal(minionHits.length > 0, true);
   assert.equal(vampiric.length, minionHits.length);
   assert.equal(presence.length, minionHits.length);
@@ -2727,7 +2736,8 @@ test("Ritualist spirit attacks proc Vampiric and share the owner's Vampiric Pres
     }
   );
   const spiritAutos = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.summonKind === 'spirit' && event.spiritAttackType === 'autoattack'
+    (event) =>
+      event.type === 'damage' && event.summonKind === 'spirit' && event.metadata?.spiritAttackType === 'autoattack'
   );
   const spiritAutoTimes = new Set(spiritAutos.map((event) => event.at));
   const spiritVampiric = result.resolvedEvents.filter(
@@ -3023,10 +3033,10 @@ test('player boon sharing can be disabled for Necromancer minions', () => {
     (event) => event.type === 'buff' && event.skillId === ID.BLOOD_IS_POWER && event.kind === 'might'
   );
 
-  assert.equal(sharedMight.recipients, 'party');
-  assert.deepEqual(sharedMight.companionIds, ['minion:bone-fiend:0']);
-  assert.equal(sharedMight.affectsSummons, true);
-  assert.equal(cappedMight.affectsSummons, false);
+  assert.equal(sharedMight.audience.recipients, 'party');
+  assert.deepEqual(sharedMight.resolvedAudience.companionIds, ['minion:bone-fiend:0']);
+  assert.equal(sharedMight.resolvedAudience.includesSummons, true);
+  assert.equal(cappedMight.resolvedAudience.includesSummons, false);
 
   const partiallyCapped = simulate(
     'Core',
@@ -3258,10 +3268,10 @@ test('independent minions inherit dynamically shared Fury', () => {
   assert.ok(
     spiritBoons.every(
       (event) =>
-        event.recipients === 'party' &&
-        event.affectsSummons === true &&
-        event.companionIds.length === 1 &&
-        event.companionIds[0] === 'spirit:wanderlust'
+        event.audience?.recipients === 'party' &&
+        event.resolvedAudience.includesSummons === true &&
+        event.resolvedAudience.companionIds.length === 1 &&
+        event.resolvedAudience.companionIds[0] === 'spirit:wanderlust'
     )
   );
 });
@@ -3510,8 +3520,8 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
     true
   );
   assert.equal(essence.coefficient, 0.75);
-  assert.equal(essence.activeSpirits, 3);
-  assert.equal(essence.essenceBlastDamagePerSpirit, 0.15);
+  assert.equal(essence.metadata.activeSpirits, 3);
+  assert.equal(essence.metadata.essenceBlastDamagePerSpirit, 0.15);
   assert.equal(growth.length, 3);
   assert.equal(growthRow.hits, 3);
   assert.equal(growthRow.parentSkill, 'Anguish');
@@ -3677,7 +3687,10 @@ test('Ritualist weapon spells scale with allied players', () => {
   assert.deepEqual([...new Set(allyProcs.map((event) => event.triggeredByAlly))], [1, 2, 3, 4]);
   assert.equal(
     applicationEvents.every(
-      (event) => event.alliedPlayerCount === 4 && event.recipientCount === 5 && event.recipients.length === 0
+      (event) =>
+        event.resolvedAudience.alliedPlayerCount === 4 &&
+        event.resolvedAudience.recipientCount === 5 &&
+        event.resolvedAudience.companionIds.length === 0
     ),
     true
   );
@@ -3731,10 +3744,10 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
   assert.equal(
     applications.every(
       (event) =>
-        event.alliedPlayerCount === 2 &&
-        event.recipientCount === 5 &&
-        event.recipients.join(',') === 'minion:bone-minion:0,minion:bone-minion:1' &&
-        event.recipients.every((recipient) => !recipient.startsWith('spirit:'))
+        event.resolvedAudience.alliedPlayerCount === 2 &&
+        event.resolvedAudience.recipientCount === 5 &&
+        event.resolvedAudience.companionIds.join(',') === 'minion:bone-minion:0,minion:bone-minion:1' &&
+        event.resolvedAudience.companionIds.every((recipient) => !recipient.startsWith('spirit:'))
     ),
     true
   );
@@ -4210,14 +4223,18 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
         (event) =>
           event.type === 'buff' && ['quickness', 'fury'].includes(event.kind) && event.sourceId !== TRAIT.SOUL_BARBS
       )
-      .every((event) => event.recipients === 'party' && event.affectsSummons === false)
+      .every((event) => event.audience?.recipients === 'party' && event.resolvedAudience.includesSummons === false)
   );
   const twistedMedicineBoons = twistedMedicine.events.filter(
     (event) => event.type === 'buff' && ['might', 'fury'].includes(event.kind)
   );
 
   assert.equal(twistedMedicineBoons.length, 2);
-  assert.ok(twistedMedicineBoons.every((event) => event.recipients === 'party' && event.affectsSummons === false));
+  assert.ok(
+    twistedMedicineBoons.every(
+      (event) => event.audience?.recipients === 'party' && event.resolvedAudience.includesSummons === false
+    )
+  );
   assert.equal(doom.events.filter((event) => event.type === 'damage' && event.skillId === ID.DARK_BARRAGE).length, 8);
   assert.equal(
     doom.procSteps.some((step) => step.skill === 'Doom Approaches'),
@@ -5146,8 +5163,8 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
     (event) => event.type === 'buff' && event.skillId === ID.OPPRESSIVE_COLLAPSE && event.kind === 'might'
   );
 
-  assert.equal(oppressiveMight.recipients, 'party');
-  assert.equal(oppressiveMight.affectsSummons, false);
+  assert.equal(oppressiveMight.audience.recipients, 'party');
+  assert.equal(oppressiveMight.resolvedAudience.includesSummons, false);
 });
 
 test('Necromancer builds migrate and validate against canonical metadata', () => {

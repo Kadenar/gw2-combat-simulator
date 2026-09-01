@@ -168,7 +168,18 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
   core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
   const config = { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] };
   const { context } = professionContext({ id: 'thief', catalog: thiefCatalog, core, config });
-  const event = { type: 'buff', kind: 'fury', affectsSelf: true, at: READY_AT };
+  const event = {
+    type: 'buff',
+    kind: 'fury',
+    at: READY_AT,
+    resolvedAudience: {
+      includesSelf: true,
+      includesSummons: false,
+      alliedPlayerCount: 0,
+      companionIds: [],
+      recipientCount: 1
+    }
+  };
 
   reactToThiefCoreBuff(context, event);
   assert.equal(core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY], READY_AT);

@@ -30,7 +30,7 @@ export function applyDhuumfire(
 ): void {
   if (!hasTrait(context, TRAIT.DHUUMFIRE) || !shroudSkillOne) return;
   const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.dhuumfire), 'condition');
-  const interval = Number(event.dhuumfireInterval || 0);
+  const interval = Number(event.metadata?.dhuumfireInterval || 0);
   if (
     interval > 0 &&
     !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt?.dhuumfire || 0))
@@ -47,7 +47,7 @@ export function applyDhuumfire(
     traitId: TRAIT.DHUUMFIRE,
     condition: String(effect?.condition || 'Burning'),
     stacks: Number(effect?.stacks || 1),
-    duration: Number(event.dhuumfireDuration ?? skillDuration ?? effect?.duration ?? 3)
+    duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect?.duration ?? 3)
   });
 }
 
@@ -72,7 +72,7 @@ export function applyFearOfDeath(context: NecromancerCastContext, skill: Necroma
   const state = professionCoreState(context);
   const control = (skill.effects || []).find((effect) => effect.type === 'control');
   if (
-    control?.metadata?.controlKind !== 'fear' ||
+    control?.controlKind !== 'fear' ||
     !hasTrait(context, TRAIT.FEAR_OF_DEATH) ||
     !isInternalCooldownReady(context.effectiveEnd, Number(state.fearOfDeathReadyAt || 0))
   )

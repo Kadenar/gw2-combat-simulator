@@ -22,9 +22,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'knockback'
-        }
+        controlKind: 'knockback'
       }
     ]
   },
@@ -82,9 +80,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',

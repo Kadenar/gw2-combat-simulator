@@ -30,7 +30,7 @@ export function handleRangerBoonExtension(context: RangerResolverContext, event:
   for (const [kind, applications] of context.boons) {
     if (!isStandardBoon(kind) || kind === excluded) continue;
     for (const application of applications) {
-      if (application.affectsSelf !== false && application.at <= event.at && application.expiresAt > event.at) {
+      if (application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at) {
         // Cast needed because the runtime type treats expiresAt as readonly after resolution.
         (application as { expiresAt: number }).expiresAt += extension;
       }

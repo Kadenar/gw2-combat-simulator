@@ -125,9 +125,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',

@@ -46,9 +46,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'pull'
-        }
+        controlKind: 'pull'
       }
     ],
     handlerId: 'necromancer.grasping-darkness'
@@ -180,14 +178,12 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         coefficient: 0,
         hits: 1,
         name: 'Death Spiral — Life Siphon',
-        metadata: {
-          skillName: 'Death Spiral — Life Siphon',
-          parentSkillName: 'Death Spiral',
-          flatStrikeBase: 3517,
-          flatStrikePowerCoeff: 0.01,
-          noCrit: true,
-          damageKind: 'life-steal'
-        }
+        skillName: 'Death Spiral — Life Siphon',
+        parentSkillName: 'Death Spiral',
+        flatStrikeBase: 3517,
+        flatStrikePowerCoeff: 0.01,
+        noCrit: true,
+        damageKind: 'life-steal'
       },
       {
         type: 'condition',

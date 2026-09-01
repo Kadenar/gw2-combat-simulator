@@ -35,7 +35,9 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       // exclusive to the hammer (Dazzling Hammer). The manual expiry check is
       // necessary because latestGuardianTimedBuff returns the most-recently
       // applied record regardless of whether it has expired.
-      return armament?.radiantWeapon === 'hammer' && armament.at + Number(armament.duration || 0) > context.time;
+      return (
+        armament?.metadata?.radiantWeapon === 'hammer' && armament.at + Number(armament.duration || 0) > context.time
+      );
     }
   },
   {
@@ -74,7 +76,7 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.25,
     order: 100,
     when: (context) =>
-      context.event?.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST && context.event?.radiantWeapon === 'hammer'
+      context.event?.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST && context.event?.metadata?.radiantWeapon === 'hammer'
   },
   {
     id: 'guardian.gleaming-blade',

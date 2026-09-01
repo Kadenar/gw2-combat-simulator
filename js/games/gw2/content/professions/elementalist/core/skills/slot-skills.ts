@@ -177,9 +177,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -292,9 +290,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -330,9 +326,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
           atMs,
           coefficient: 0.5,
-          metadata: {
-            damageKind: 'field-tick'
-          }
+          damageKind: 'field-tick'
         })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -417,9 +411,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
           atMs,
           coefficient: 0.045454545454545456,
-          metadata: {
-            damageKind: 'field-tick'
-          }
+          damageKind: 'field-tick'
         })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -443,9 +435,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       }
     ]
   },

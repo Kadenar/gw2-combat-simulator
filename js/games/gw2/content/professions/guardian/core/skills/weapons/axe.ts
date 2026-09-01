@@ -68,9 +68,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze'
-        }
+        controlKind: 'daze'
       }
     ]
   },
@@ -155,9 +153,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'pull'
-        }
+        controlKind: 'pull'
       }
     ]
   }

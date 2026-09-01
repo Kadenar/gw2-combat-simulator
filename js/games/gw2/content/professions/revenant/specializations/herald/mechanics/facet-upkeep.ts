@@ -57,7 +57,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
     kind: String(effect.boon || 'quickness'),
     duration,
     stacks: Math.max(1, Number(effect.stacks || 1)),
-    recipients: String(effect.recipients || 'party')
+    audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 
   const cooldown = Math.max(context.epsilon, Number(profile.cooldown || 0));
@@ -168,7 +168,7 @@ export function handleHeraldFacetPulse(
     kind: pulse.kind,
     duration: pulse.duration,
     stacks: pulse.stacks,
-    recipients: 'party'
+    audience: { recipients: 'party' as const }
   });
   context.tasks.schedule({
     type: 'revenant.herald-facet-pulse',

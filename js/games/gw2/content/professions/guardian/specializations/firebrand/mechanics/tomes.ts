@@ -11,7 +11,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
  */
 
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { selectedGuardianSpecialization } from '#gw2/content/professions/guardian/core/mechanics/availability.js';
 import { emitGuardianEvent } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
@@ -199,7 +199,6 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
 
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
     const at = context.effectiveEnd;
-    const party = gw2AlliedPlayerAssumptions(context.config);
     const ashes = balanceProfileFromContext(context, PROFILE.ashes);
     const burn = balanceProfileEffect(ashes, 'condition');
     const ashesBuff = balanceProfileEffect(ashes, 'buff');
@@ -221,8 +220,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       kind: 'ashes-of-the-just',
       stacks: state.ashesCharges,
       duration: ashesDuration,
-      recipients: 'party',
-      recipientCount: party.count + 1
+      audience: { recipients: 'party' as const }
     });
     emitSkillBuff(context, {
       at,
@@ -235,8 +233,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       kind: 'might',
       stacks: Number(might?.stacks || 8),
       duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration || 10)),
-      recipients: 'party',
-      recipientCount: party.count + 1
+      audience: { recipients: 'party' as const }
     });
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: at,

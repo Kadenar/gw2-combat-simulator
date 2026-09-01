@@ -224,7 +224,10 @@ export function buildChartSeries(
 
   for (const event of result.events || []) {
     // Generic buffs and materialized boons share timed-effect visualization.
-    if (event.type !== 'buff' || event.affectsSelf === false || !Number(event.duration || 0)) continue;
+    if (event.type !== 'buff' || event.resolvedAudience?.includesSelf !== true || !Number(event.duration || 0)) {
+      continue;
+    }
+
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
     applications.push({
       name: effectName(event.kind, event),

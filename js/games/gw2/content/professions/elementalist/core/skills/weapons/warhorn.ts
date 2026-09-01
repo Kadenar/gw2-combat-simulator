@@ -109,9 +109,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         ticks: WILDFIRE_TICK_OFFSETS_MS.map((atMs) => ({
           atMs,
           coefficient: 0.44,
-          metadata: {
-            damageKind: 'field-tick'
-          }
+          damageKind: 'field-tick'
         })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -168,9 +166,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -246,9 +242,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -344,9 +338,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         applications: 1,
         timingAnchor: 'castStart' as const,
         timingScale: 'cast' as const,
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       })),
       {
         type: 'boon',

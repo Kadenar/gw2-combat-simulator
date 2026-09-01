@@ -76,8 +76,7 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
         boon: 'alacrity',
         duration: 3,
         stacks: 1,
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ]
   }),
@@ -89,8 +88,7 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
         boon: 'quickness',
         duration: 3,
         stacks: 1,
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ]
   }),

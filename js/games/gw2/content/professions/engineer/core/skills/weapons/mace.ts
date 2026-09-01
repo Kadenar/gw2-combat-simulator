@@ -84,9 +84,7 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
         hits: 1,
         name: 'Mace Blast',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -138,10 +136,8 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
+        damageKind: 'explosion',
+        projectile: true
       },
       {
         type: 'condition',
@@ -153,10 +149,8 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 1
-        }
+        controlKind: 'stun',
+        duration: 1
       }
     ]
   }

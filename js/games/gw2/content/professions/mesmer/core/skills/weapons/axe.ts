@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     castTimeMs: 1080,
     cooldown: 0,
     nextChainId: null,
@@ -41,7 +40,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     cooldown: 8,
     effects: [
       {
@@ -68,7 +66,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     cooldown: 0,
     nextChainId: ID.ETHEREAL_CHOP,
     effects: [
@@ -94,7 +91,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 530,
     cooldown: 0,
     nextChainId: ID.MIRROR_STRIKES,
@@ -120,7 +116,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     cooldown: 0.25,
     ammo: 2,
     ammoRecharge: 6,
@@ -169,7 +164,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     cooldown: 0.25,
     ammo: 2,
     ammoRecharge: 6,
@@ -216,7 +210,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     cooldown: 8,
     comboFinishers: [
       {

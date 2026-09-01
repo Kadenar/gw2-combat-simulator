@@ -86,7 +86,7 @@ export function handleNecromancerWeaponSpell(
       nextAt: 0
     }
   };
-  for (const recipient of event.recipients || []) {
+  for (const recipient of event.resolvedAudience?.companionIds || []) {
     recipients[recipient] = {
       stacks: Number(event.allyStacks || 0),
       nextAt: 0

@@ -81,7 +81,6 @@ export interface GuardianCoreState {
   spearIlluminatedArmed: boolean;
   spearIlluminatedUntil: number;
   spearLuminanceUntil: number;
-  daybreakingSlashChainStep: number;
 }
 
 export interface GuardianFirebrandState {

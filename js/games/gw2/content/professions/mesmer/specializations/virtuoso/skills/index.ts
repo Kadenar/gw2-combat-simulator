@@ -11,7 +11,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Elite',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     cooldown: 60,
     blade: true,
@@ -73,7 +72,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 25,
     blade: true,
@@ -93,7 +91,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 1333.333333333,
     cooldown: 35,
     resource: {
@@ -108,7 +105,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     castTimeMs: 1020,
     cooldown: 25,
     blade: true,
@@ -144,7 +140,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Heal',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 20,
     blade: true,
@@ -165,7 +160,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
@@ -182,7 +176,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     castTimeMs: 720,
     lockouts: [
       {
@@ -199,7 +192,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     castTimeMs: 720,
     lockouts: [
       {
@@ -216,7 +208,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     castTimeMs: 960,
     lockouts: [
       {
@@ -233,7 +224,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {

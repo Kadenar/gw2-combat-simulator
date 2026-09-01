@@ -135,11 +135,12 @@ export function prepareRangerPetEvent(
   context: RangerSchedulerContext,
   event: SimulationEventInput
 ): SimulationEventInput {
-  return event.source === 'ranger-pet' &&
-    event.actorType === 'summon' &&
-    (event.type === 'damage' || event.type === 'condition')
+  if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return event;
+  // Every pet-owned event needs concrete caster identity for audience resolution;
+  // damaging packets additionally receive the pet's independent combat stats.
+  return event.type === 'damage' || event.type === 'condition'
     ? { ...event, ...rangerPetCombatMetadata(context) }
-    : event;
+    : { ...event, summonOwner: rangerPetCompanionId(context) };
 }
 
 interface PetAutoTaskPayload extends SchedulerRecord {

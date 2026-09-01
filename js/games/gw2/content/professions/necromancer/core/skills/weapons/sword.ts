@@ -182,10 +182,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'fear',
-          duration: 1.5
-        }
+        controlKind: 'fear',
+        duration: 1.5
       }
     ],
     lifeForceGain: 10

@@ -13,9 +13,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       },
       {
         type: 'blind'
@@ -70,9 +68,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -88,9 +84,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'knockback'
-        }
+        controlKind: 'knockback'
       }
     ]
   },

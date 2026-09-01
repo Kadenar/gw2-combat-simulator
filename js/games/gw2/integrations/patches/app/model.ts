@@ -329,6 +329,11 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
         changes.add(`${effectTarget(effect)} ${describeNumEdit(field, numericEdit)}`);
       }
     }
+
+    const maximumRecipients = effect.audience?.maximumRecipients;
+    if (maximumRecipients != null) {
+      changes.add(`${effectTarget(effect)} ${describeNumEdit('maximumRecipients', maximumRecipients)}`);
+    }
   }
 
   for (const effect of edit.addEffects || []) {

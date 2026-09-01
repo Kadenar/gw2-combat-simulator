@@ -27,7 +27,14 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
       at: index,
       kind: 'elemental empowerment',
       stacks: 1,
-      duration: 20
+      duration: 20,
+      resolvedAudience: {
+        includesSelf: true,
+        includesSummons: false,
+        alliedPlayerCount: 0,
+        companionIds: [],
+        recipientCount: 1
+      }
     });
   }
 

@@ -17,9 +17,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         atMs: 0,
         name: 'Damage per Mine',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -48,10 +46,8 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         hits: 1,
         name: 'Damage per Mine',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          skillName: 'Mine Field'
-        }
+        damageKind: 'explosion',
+        skillName: 'Mine Field'
       },
       {
         type: 'condition',
@@ -138,10 +134,8 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 2
-        }
+        controlKind: 'knockdown',
+        duration: 2
       }
     ],
     toolbeltParentName: 'Seed Turret'
@@ -167,10 +161,8 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 2
-        }
+        controlKind: 'daze',
+        duration: 2
       }
     ],
     toolbeltParentName: 'A.E.D.',

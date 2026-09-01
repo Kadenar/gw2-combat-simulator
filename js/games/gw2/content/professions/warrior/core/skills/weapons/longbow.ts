@@ -20,9 +20,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -105,22 +103,16 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         coefficient: 0.2,
         hits: 1,
         // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'blind',
-        metadata: {
-          duration: 5
-        }
+        duration: 5
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze',
-          duration: 1
-        }
+        controlKind: 'daze',
+        duration: 1
       }
     ]
   },

@@ -54,7 +54,7 @@ export const { afterCast: mechanistAfterCast, ...mechanistAdvancedSchedulerHooks
 /** Recognizes native and replayed events that belong to the jade mech. */
 function engineerMechEvent(context: Gw2ModifierContext): boolean {
   const event = engineerEvent(context);
-  if (event?.engineerMech === true || event?.application?.engineerMech === true) {
+  if (event?.metadata?.engineerMech === true || event?.application?.metadata?.engineerMech === true) {
     return true;
   }
 

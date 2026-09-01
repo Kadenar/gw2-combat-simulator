@@ -13,7 +13,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 60,
     effects: []
@@ -23,7 +22,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
@@ -40,7 +38,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     castTimeMs: 1140,
     cooldown: 20,
     effects: [
@@ -60,7 +57,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Heal',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 400,
     cooldown: 30,
     effects: []
@@ -70,7 +66,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Elite',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 1080,
     cooldown: 60,
     effects: [
@@ -102,7 +97,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        metadata: { controlKind: 'knockdown' }
+        controlKind: 'knockdown'
       },
       {
         type: 'control',
@@ -110,7 +105,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
         atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        metadata: { controlKind: 'pull' }
+        controlKind: 'pull'
       },
       {
         type: 'control',
@@ -118,7 +113,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
         atMs: 2000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        metadata: { controlKind: 'float' }
+        controlKind: 'float'
       }
     ]
   },
@@ -127,7 +122,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 800,
     cooldown: 20,
     // The well is created on its first observed pulse, so later pulses survive an interrupted cast after that point.
@@ -197,7 +191,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     // Store the measured Quickness duration so the catalog derives the corresponding base cast consistently.
     quicknessCastTimeMs: 800,
     cooldown: 20,
@@ -234,7 +227,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
@@ -251,7 +243,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
@@ -268,7 +259,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {

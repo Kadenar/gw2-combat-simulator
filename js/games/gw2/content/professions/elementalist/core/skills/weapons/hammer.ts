@@ -117,9 +117,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -475,9 +473,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -642,9 +638,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -708,9 +702,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -764,9 +756,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -955,9 +945,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
           {
             atMs: 1000,
             coefficient: 0.001,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',

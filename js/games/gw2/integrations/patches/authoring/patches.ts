@@ -85,7 +85,9 @@ export interface EffectPatch extends EffectSelector {
   readonly durationReductionPerAffinity?: NumEdit;
   readonly damageIncreasePerStack?: NumEdit;
   readonly damagePerCoefficient?: NumEdit;
-  readonly maximumRecipients?: NumEdit;
+  readonly audience?: {
+    readonly maximumRecipients?: NumEdit;
+  };
 }
 
 export interface SkillPatchEdit {
@@ -279,8 +281,7 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   'durationPerAffinity',
   'durationReductionPerAffinity',
   'damageIncreasePerStack',
-  'damagePerCoefficient',
-  'maximumRecipients'
+  'damagePerCoefficient'
 ] as const);
 
 export const PATCHABLE_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
@@ -292,8 +293,7 @@ const ADVANCED_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS = new Set([
   'flatDamage',
   'flatStrikeBase',
   'flatStrikePowerCoeff',
-  'intervalMs',
-  'maximumRecipients'
+  'intervalMs'
 ]);
 
 export type BalanceProfileAuthoringTier = 'primary' | 'advanced';
@@ -667,6 +667,23 @@ function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: st
 function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): SkillEffect {
   const mutable = effect as unknown as MutableRecord;
   const sourceTicks = effectTicks(effect);
+  const maximumRecipients = patch.audience?.maximumRecipients;
+  if (maximumRecipients != null) {
+    if (patch.tickIndex != null) throw new TypeError(`${label}.audience cannot target a tick.`);
+    if (effect.audience?.maximumRecipients == null) {
+      throw new TypeError(`${label} does not expose audience.maximumRecipients.`);
+    }
+
+    mutable.audience = {
+      ...effect.audience,
+      maximumRecipients: applyNumEdit(
+        effect.audience.maximumRecipients,
+        maximumRecipients,
+        `${label}.audience.maximumRecipients`
+      )
+    };
+  }
+
   if (patch.tickIndex == null) {
     if (sourceTicks && EFFECT_NUMERIC_FIELDS.some((field) => patch[field] != null && mutable[field] == null)) {
       if (patch.all === true) {

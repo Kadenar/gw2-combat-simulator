@@ -96,13 +96,12 @@ export const heraldCastRules = Object.freeze({
 const HERALD_SHARED_EMPOWERMENT_TASK = 'revenant.herald-shared-empowerment';
 
 function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  const appliedToAlly =
-    event.affectsSelf === true || Number(event.alliedPlayerCount || 0) > 0 || event.affectsSummons === true;
+  const hasRecipient = Number(event.resolvedAudience?.recipientCount) > 0;
   if (
     event.type !== 'buff' ||
     event.sourceId === TRAIT.SHARED_EMPOWERMENT ||
     !isStandardBoon(event.kind) ||
-    !appliedToAlly ||
+    !hasRecipient ||
     !hasTrait(context.config, TRAIT.SHARED_EMPOWERMENT) ||
     !Number.isFinite(event.eventOrder)
   ) {
@@ -143,8 +142,7 @@ function handleSharedEmpowerment(context: RevenantSchedulerContext, task: Revena
     kind: String(effect.boon || 'might'),
     duration,
     stacks: Math.max(1, Number(effect.stacks || 1)),
-    recipients: String(effect.recipients || 'party'),
-    maximumRecipients: Number(effect.maximumRecipients || 5)
+    audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 }
 
@@ -155,8 +153,7 @@ function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSi
     const extension = Math.max(0, Number(event.duration || 0));
     // Extend only boon applications active when Dragon True Nature resolves; future boons and generic buffs stay unchanged.
     for (const boon of [...context.eventsOfType('buff')]) {
-      const hasRecipient =
-        boon.affectsSelf !== false || Number(boon.alliedPlayerCount || 0) > 0 || boon.affectsSummons === true;
+      const hasRecipient = Number(boon.resolvedAudience?.recipientCount) > 0;
       const active =
         boon.at <= event.at + context.epsilon &&
         boon.at + Math.max(0, Number(boon.duration || 0)) > event.at + context.epsilon;

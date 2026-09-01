@@ -486,8 +486,8 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
         skillWeapon: conduitSkillWeapon(context, skill),
         canCrit: null
       });
-      const torment = conditions.find((effect) => effect.metadata?.target !== 'self');
-      const selfTorment = conditions.find((effect) => effect.metadata?.target === 'self');
+      const torment = conditions.find((effect) => effect.target !== 'self');
+      const selfTorment = conditions.find((effect) => effect.target === 'self');
       const tormentTick = firstConditionTick(torment, 'Torment');
       const selfTormentTick = firstConditionTick(selfTorment, 'Torment');
       emitSkillCondition(context, skill, {
@@ -516,7 +516,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       const control = (skill.effects || []).find((effect) => effect.type === 'control');
       emitSkillControl(context, skill, {
         at: effectAt(context, control),
-        controlKind: String(control?.metadata?.controlKind || 'daze'),
+        controlKind: String(control?.controlKind || 'daze'),
         duration: Number(control?.duration || 0)
       });
       break;

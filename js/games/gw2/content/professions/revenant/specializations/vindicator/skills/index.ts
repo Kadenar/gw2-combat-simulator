@@ -281,10 +281,8 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 1.5
-        }
+        controlKind: 'daze',
+        duration: 1.5
       }
     ],
     legendId: 'LegendaryAlliance',

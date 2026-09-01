@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 660,
     interruptCommitMs: 380,
     cooldown: 0,
@@ -52,7 +51,6 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 440,
     cooldown: 12,
     blade: true,
@@ -94,7 +92,6 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 5,
     resource: {
       mode: 'add',

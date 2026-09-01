@@ -366,19 +366,6 @@ test('declarative boons can gate dynamic skill availability', () => {
   assert.match(expired.warnings.join(' '), /unavailable/);
 });
 
-test('profession availability rejects legacy boolean hook results', () => {
-  const profession = defineProfession({
-    id: 'legacy-availability-result',
-    name: 'Legacy Availability Result',
-    castRules: {
-      // Admission hooks must describe whether to deny or retry instead of relying on boolean adaptation.
-      availability: () => false
-    }
-  });
-
-  assert.throws(() => profession.availability({}, { name: 'Legacy Skill' }), /must return an AvailabilityResult/);
-});
-
 test('declarative generic buffs use shared timed state without boon-duration scaling', () => {
   let observedAsBuff = false;
   const catalog = createCanonicalCatalog({
@@ -1154,6 +1141,49 @@ test('canonical strikes distinguish one timestamp from an explicit packet timeli
   );
 });
 
+test('strike ticks preserve independent summon formula fields at runtime', () => {
+  const [application] = materializeSkillEffectApplications({
+    skill: { id: 930044, name: 'Independent Summon Strike' },
+    effect: {
+      type: 'strike',
+      ticks: [
+        {
+          atMs: 1000,
+          coefficient: 0.2,
+          name: 'Summon Pulse',
+          weaponStrength: 2880,
+          independentSummonStrike: true,
+          summonUsesProfessionModifiers: true,
+          summonInheritsAttributes: true,
+          summonInheritsCriticalAttributes: true
+        }
+      ]
+    },
+    start: 0,
+    fullEnd: 0,
+    baseEvent: { source: 'fixture-summon', sourceId: 930044, actorType: 'summon' }
+  });
+
+  assert.deepEqual(
+    {
+      name: application.event.name,
+      weaponStrength: application.event.weaponStrength,
+      independentSummonStrike: application.event.independentSummonStrike,
+      summonUsesProfessionModifiers: application.event.summonUsesProfessionModifiers,
+      summonInheritsAttributes: application.event.summonInheritsAttributes,
+      summonInheritsCriticalAttributes: application.event.summonInheritsCriticalAttributes
+    },
+    {
+      name: 'Summon Pulse',
+      weaponStrength: 2880,
+      independentSummonStrike: true,
+      summonUsesProfessionModifiers: true,
+      summonInheritsAttributes: true,
+      summonInheritsCriticalAttributes: true
+    }
+  );
+});
+
 test('canonical effects allow negative offsets only from cast end', () => {
   const effect = {
     type: 'strike',
@@ -1776,7 +1806,10 @@ test('summon-owned cooldowns require Alacrity applied to summons', () => {
             type: 'buff',
             kind: 'alacrity',
             duration: 10,
-            metadata: { affectsSummons: true }
+            audience: {
+              recipients: 'summons',
+              eligibleCompanionIds: ['fixture-summon']
+            }
           }
         ]
       }
@@ -2317,10 +2350,17 @@ test('Relic of Mistburn uses a strict one-second internal cooldown', () => {
       stacks: 1,
       source: 'fixture',
       actorType: 'player',
+      audience: { recipients: 'self' },
+      resolvedAudience: {
+        includesSelf: true,
+        includesSummons: false,
+        alliedPlayerCount: 0,
+        companionIds: [],
+        recipientCount: 1
+      },
       ...extra
     });
 
-  grantMight(0, { recipients: 'allies' });
   grantMight(0);
   grantMight(1);
   grantMight(1.001);

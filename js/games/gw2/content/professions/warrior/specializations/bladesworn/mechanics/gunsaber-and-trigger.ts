@@ -295,7 +295,7 @@ function furyActiveBeforeCurrentCast(
     (event) =>
       event.type === 'buff' &&
       event.kind === 'fury' &&
-      event.affectsSelf !== false &&
+      event.resolvedAudience?.includesSelf &&
       event.activationId !== activationId &&
       event.at <= castStart + context.epsilon &&
       event.at + Number(event.duration || 0) > castStart + context.epsilon

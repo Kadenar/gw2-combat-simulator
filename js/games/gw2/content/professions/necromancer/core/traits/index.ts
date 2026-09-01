@@ -112,7 +112,7 @@ export function reactToNecromancerCoreDamage(
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   const firstHit = Number(event.hitIndex || 1) === 1;
-  const shroudSkillOne = skill?.shroudSlot === 1 || event.necromancerShroudSkillOne === true;
+  const shroudSkillOne = skill?.shroudSlot === 1 || event.metadata?.necromancerShroudSkillOne === true;
   applyVampiric(context, event);
   applyReapersMight(context, event, firstHit, shroudSkillOne);
   applySiphonedPower(context, event);

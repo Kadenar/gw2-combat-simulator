@@ -157,7 +157,6 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     handlerId: 'guardian.glaring-burst',
     // The replacement strike lands at 480 ms and remains committed when the
     // action lane is released at the observed 520 ms cancel point.
-    paletteInterruptMs: 520,
     interruptCommitMs: 520,
     effects: []
   },
@@ -189,10 +188,8 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         atMs: PIERCING_STANCE_IMPACT_MS,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'daze',
-          duration: 0.5
-        }
+        controlKind: 'daze',
+        duration: 0.5
       }
     ]
   },
@@ -219,9 +216,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -241,10 +236,8 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'daze',
-          duration: 2
-        }
+        controlKind: 'daze',
+        duration: 2
       }
     ]
   },
@@ -271,9 +264,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       },
       { type: 'blind', atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }
     ]

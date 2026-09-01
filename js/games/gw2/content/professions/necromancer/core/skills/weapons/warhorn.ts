@@ -9,9 +9,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'fear'
-        }
+        controlKind: 'fear'
       }
     ]
   },
@@ -23,12 +21,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -36,12 +32,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -49,12 +43,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -62,12 +54,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 1500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -75,12 +65,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 2000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -88,12 +76,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 2500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -101,12 +87,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 3000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -114,12 +98,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 3500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -127,12 +109,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 4000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -140,12 +120,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         ticks: [{ atMs: 4500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
-        metadata: {
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 37,
+        flatStrikePowerCoeff: 0.012,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

@@ -137,9 +137,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       },
       {
         type: 'strike',
@@ -235,9 +233,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       },
       {
         type: 'strike',
@@ -257,9 +253,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     specialization: 'Weaver'
@@ -296,9 +290,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     specialization: 'Weaver'

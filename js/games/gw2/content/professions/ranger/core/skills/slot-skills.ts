@@ -216,8 +216,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     implemented: true,
     effects: [
       {
-        // Sun Spirit shakes four times after landing, matching the delayed
-        // two-stack Might packets emitted by the game rather than front-loading eight.
         type: 'boon',
         boon: 'might',
         duration: 15,
@@ -227,8 +225,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       },
       {
         type: 'blind',
@@ -291,24 +288,21 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         boon: 'fury',
         duration: 12,
         stacks: 1,
-        affectsSummons: true,
-        maximumRecipients: 2
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'stability',
         duration: 8,
         stacks: 10,
-        affectsSummons: true,
-        maximumRecipients: 2
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'swiftness',
         duration: 12,
         stacks: 1,
-        affectsSummons: true,
-        maximumRecipients: 2
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       }
     ],
     quicknessCastTimeMs: 667
@@ -488,112 +482,98 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         boon: 'aegis',
         duration: 5,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'alacrity',
         duration: 3,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'fury',
         duration: 3,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 10,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 5,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'protection',
         duration: 2,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'quickness',
         duration: 2,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'regeneration',
         duration: 5,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'regeneration',
         duration: 3,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'resistance',
         duration: 2,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'resolution',
         duration: 5,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'stability',
         duration: 3,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'swiftness',
         duration: 3,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       },
       {
         type: 'boon',
         boon: 'vigor',
         duration: 3,
         stacks: 1,
-        maximumRecipients: 2,
-        metadata: { affectsSummons: true }
+        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       }
     ],
     quicknessCastTimeMs: 667

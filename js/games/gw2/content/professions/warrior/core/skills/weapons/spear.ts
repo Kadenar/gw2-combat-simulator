@@ -83,10 +83,8 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze',
-          duration: 3
-        }
+        controlKind: 'daze',
+        duration: 3
       }
     ]
   },
@@ -116,9 +114,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'launch'
-        }
+        controlKind: 'launch'
       },
       {
         type: 'strike',

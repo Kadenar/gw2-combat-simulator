@@ -62,9 +62,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -148,18 +146,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         name: 'Swift Cut — Blade',
         coefficient: 0.9,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'strike',
         name: 'Swift Cut — Shot',
         coefficient: 0.75 * 0.34,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ],
     quicknessCastTimeMs: 639,
@@ -174,18 +168,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         name: 'Steel Divide — Blade',
         coefficient: 1.1,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'strike',
         name: 'Steel Divide — Shot',
         coefficient: 0.75 * 0.34,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ],
     quicknessCastTimeMs: 602,
@@ -200,18 +190,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         name: 'Explosive Thrust — Blade',
         coefficient: 1.35,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'strike',
         name: 'Explosive Thrust — Explosion',
         coefficient: 1.2 * 0.34,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ],
     quicknessCastTimeMs: 439,
@@ -230,9 +216,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         name: 'Blooming Fire — Blade',
         coefficient: 0.8,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'strike',
@@ -240,9 +224,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         coefficient: 1.2,
         hits: 3,
         atMs: 0,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ],
     quicknessCastTimeMs: 602,
@@ -272,9 +254,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'boon',
@@ -299,9 +279,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'boon',

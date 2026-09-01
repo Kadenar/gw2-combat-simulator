@@ -9,7 +9,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 9,
     effects: [
       {
@@ -44,7 +43,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 1200,
     cooldown: 6,
     effects: [],
@@ -56,7 +54,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 0,
     nextChainId: ID.ETHER_BLAST,
     effects: [
@@ -83,7 +80,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 780,
     cooldown: 0,
     nextChainId: ID.ETHER_CLONE,
@@ -110,7 +106,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 840,
     cooldown: 0,
     // Ether Clone creates its clone with the projectile hit; interruptions before that packet grant no clone.

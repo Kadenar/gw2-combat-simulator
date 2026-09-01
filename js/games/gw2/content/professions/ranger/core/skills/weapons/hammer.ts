@@ -29,9 +29,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'ranger-unleashed-disabled-condition-count'
-        }
+        damageKind: 'ranger-unleashed-disabled-condition-count'
       }
     ],
     quicknessCastTimeMs: 560
@@ -115,7 +113,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         ticks: [{ atMs: 400, coefficient: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { damageKind: 'ranger-unleashed-disabled' }
+        damageKind: 'ranger-unleashed-disabled'
       }
     ],
     quicknessCastTimeMs: 480
@@ -165,7 +163,8 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { controlKind: 'knockdown', duration: 2 }
+        controlKind: 'knockdown',
+        duration: 2
       }
     ],
     quicknessCastTimeMs: 960
@@ -185,7 +184,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { controlKind: 'daze' }
+        controlKind: 'daze'
       },
       {
         type: 'strike',
@@ -200,7 +199,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { controlKind: 'daze' }
+        controlKind: 'daze'
       }
     ],
     quicknessCastTimeMs: 960

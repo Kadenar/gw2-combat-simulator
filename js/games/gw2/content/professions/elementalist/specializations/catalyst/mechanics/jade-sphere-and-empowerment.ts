@@ -199,8 +199,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
         'quickness',
         Number(quickness?.duration ?? SPECTACULAR_SPHERE_QUICKNESS_DURATION) * durationMultiplier
       ),
-      recipients: 'party',
-      maximumRecipients: 5,
+      audience: { recipients: 'party' as const, maximumRecipients: 5 },
       sphereSpecialistScaled: true
     });
     const boon =
@@ -226,8 +225,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
         String(profiledBoon?.boon || boon[1]),
         Number(profiledBoon?.duration ?? boon[3]) * durationMultiplier
       ),
-      recipients: 'party',
-      maximumRecipients: 5,
+      audience: { recipients: 'party' as const, maximumRecipients: 5 },
       sphereSpecialistScaled: true
     });
   }
@@ -420,7 +418,7 @@ function scheduleExternalElementalEmpowerment(context: ElementalistSchedulerCont
   if (
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'elemental empowerment' &&
-    event.affectsSelf !== false &&
+    event.resolvedAudience?.includesSelf &&
     event.elementalEmpowermentTracked !== true
   ) {
     context.tasks.schedule({

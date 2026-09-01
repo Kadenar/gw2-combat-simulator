@@ -58,12 +58,7 @@ function isExplosionSkill(skill: Skill): boolean {
     normalized(skill.kit) === 'grenade kit' ||
     normalized(skill.name) === 'devastator' ||
     skill.categories?.some((category) => normalized(category) === 'explosion') ||
-    skill.effects?.some(
-      (effect) =>
-        normalized(effect.damageKind) === 'explosion' ||
-        effect.explosion === true ||
-        normalized(effect.metadata?.damageKind) === 'explosion'
-    )
+    skill.effects?.some((effect) => normalized(effect.damageKind) === 'explosion' || effect.explosion === true)
   );
 }
 

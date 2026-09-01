@@ -56,7 +56,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         duration: 10,
         stacks: 5,
         allyStacks: 3,
-        maximumRecipients: 5
+        audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
     handlerId: 'necromancer.weapon-spell'
@@ -67,9 +67,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -99,9 +97,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -126,7 +122,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         duration: 10,
         stacks: 5,
         allyStacks: 3,
-        maximumRecipients: 5
+        audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
     handlerId: 'necromancer.weapon-spell'
@@ -186,7 +182,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         duration: 10,
         stacks: 5,
         allyStacks: 3,
-        maximumRecipients: 5
+        audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
     handlerId: 'necromancer.weapon-spell'

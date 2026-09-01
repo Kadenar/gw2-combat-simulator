@@ -86,7 +86,7 @@ export function emitProfiledBuff(
     duration: Number(effect?.duration ?? fallbackDuration),
     skillName: source,
     priority,
-    ...(recipients === 'party' ? { recipients: 'party', maximumRecipients: 5 } : {})
+    ...(recipients === 'party' ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {})
   });
 }
 

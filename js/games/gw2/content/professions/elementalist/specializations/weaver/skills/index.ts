@@ -68,44 +68,32 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
           {
             atMs: 0,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 1000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 2000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 3000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 4000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 5000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -177,44 +165,32 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
           {
             atMs: 0,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 1000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 2000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 3000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 4000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 5000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -286,44 +262,32 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
           {
             atMs: 0,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 1000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 2000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 3000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 4000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 5000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -395,44 +359,32 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
           {
             atMs: 0,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 1000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 2000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 3000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 4000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 5000,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -537,9 +489,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },

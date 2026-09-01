@@ -5,12 +5,11 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HELIO_RUSH]: {
     implemented: true,
-    quicknessCastTimeMs: 320,
+    quicknessCastTimeMs: 440,
     cooldown: 6.4,
     ammo: 2,
-    // Helio commits its packet at 240 ms and can release the action lane at
-    // the observed 280 ms cancel point.
-    paletteInterruptMs: 280,
+    // Helio occupies the action lane for at most 440 ms, but collision or a
+    // queued cancel can release it on any action tick from 280 ms onward.
     interruptCommitMs: 280,
     effects: [
       {
@@ -45,12 +44,9 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.DAYBREAKING_SLASH]: {
     implemented: true,
-    castTimeMs: 520,
-    // Damage arrives around 400 ms; a committed cancel preserves the
-    // remainder of the current animation variant's action lane.
-    paletteInterruptMs: 400,
+    quicknessCastTimeMs: 560,
+    // Damage commits at 400 ms, allowing a queued cancel to release the action lane early.
     interruptCommitMs: 400,
-    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',

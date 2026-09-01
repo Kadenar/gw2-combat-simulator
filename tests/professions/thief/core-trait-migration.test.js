@@ -166,12 +166,22 @@ test('Unrelenting Strikes retains its critical threshold reaction', () => {
   assert.equal(reaction.when(context, event, { hitContext: { critEligible: true } }), true);
   reaction.handler(context, event, {}, { quantity: 1 });
   assert.equal(context.queue[0].kind, 'fury');
-  assert.equal(context.queue[0].recipients, 'party');
+  assert.equal(context.queue[0].audience.recipients, 'party');
 });
 
 test('No Quarter extends active self Fury for each threshold proc', () => {
   const { context } = traitContext([TRAIT.NO_QUARTER]);
-  const fury = { at: 0, expiresAt: 5, affectsSelf: true };
+  const fury = {
+    at: 0,
+    expiresAt: 5,
+    resolvedAudience: {
+      includesSelf: true,
+      includesSummons: false,
+      alliedPlayerCount: 0,
+      companionIds: [],
+      recipientCount: 1
+    }
+  };
   context.boons.set('fury', [fury]);
   thiefCoreCriticalReactions.noQuarter.handler(
     context,
@@ -185,7 +195,19 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
 
 test('No Quarter uses the shared timeline epsilon at Fury expiration', () => {
   const { context } = traitContext([TRAIT.NO_QUARTER]);
-  context.boons.set('fury', [{ at: 0, expiresAt: 1, affectsSelf: true }]);
+  context.boons.set('fury', [
+    {
+      at: 0,
+      expiresAt: 1,
+      resolvedAudience: {
+        includesSelf: true,
+        includesSummons: false,
+        alliedPlayerCount: 0,
+        companionIds: [],
+        recipientCount: 1
+      }
+    }
+  ]);
   thiefCoreCriticalReactions.noQuarter.handler(
     context,
     { type: 'damage', at: 0.99995, actorType: 'player', coefficient: 1, skillName: 'Boundary Test' },
@@ -198,7 +220,19 @@ test('No Quarter uses the shared timeline epsilon at Fury expiration', () => {
 
 test("Assassin's Fury queues Might from self Fury", () => {
   const { context } = traitContext([TRAIT.ASSASSINS_FURY]);
-  reactToThiefCoreBuff(context, { type: 'buff', at: 1, kind: 'fury', affectsSelf: true, skillName: 'Fury Test' });
+  reactToThiefCoreBuff(context, {
+    type: 'buff',
+    at: 1,
+    kind: 'fury',
+    skillName: 'Fury Test',
+    resolvedAudience: {
+      includesSelf: true,
+      includesSummons: false,
+      alliedPlayerCount: 0,
+      companionIds: [],
+      recipientCount: 1
+    }
+  });
   assert.equal(context.queue[0].kind, 'might');
   assert.equal(context.queue[0].stacks, 3);
 });

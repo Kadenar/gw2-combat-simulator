@@ -39,6 +39,14 @@ import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/mesme
 import { toApplicationBuild } from '#gw2/content/professions/mesmer/build/build.js';
 import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
 
+const PLAYER_RESOLVED_AUDIENCE = Object.freeze({
+  includesSelf: true,
+  includesSummons: false,
+  alliedPlayerCount: 0,
+  companionIds: [],
+  recipientCount: 1
+});
+
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
   assert.equal(
     RELIC_DATA.Claw.icon,
@@ -293,9 +301,9 @@ test('Chronomancer shatter-boon traits count the mesmer and scale per shattered 
 
     assert.ok(boon);
     assert.equal(boon.stacks, 1);
-    assert.equal(boon.recipients, 'party');
-    assert.equal(boon.maximumRecipients, 5);
-    assert.equal(boon.recipientCount, 5);
+    assert.equal(boon.audience.recipients, 'party');
+    assert.equal(boon.audience.maximumRecipients, 5);
+    assert.equal(boon.resolvedAudience.recipientCount, 5);
     assert.ok(result.procSteps.some((step) => step.skill === traitName && step.sourceSkill === 'Split Second'));
 
     return boon.duration;
@@ -346,7 +354,7 @@ test('Chronomancer shatter boons consume patched balance-profile values', () => 
                 {
                   effectIndex: 0,
                   duration: { from: 3, to: 4 },
-                  maximumRecipients: { from: 5, to: 10 }
+                  audience: { maximumRecipients: { from: 5, to: 10 } }
                 }
               ]
             }
@@ -374,7 +382,7 @@ test('Chronomancer shatter boons consume patched balance-profile values', () => 
 
   assert.ok(quickness);
   assert.equal(quickness.duration, 10);
-  assert.equal(quickness.maximumRecipients, 10);
+  assert.equal(quickness.audience.maximumRecipients, 10);
 });
 
 test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
@@ -3184,13 +3192,13 @@ test('Mesmer allied boons prioritize players before active clones', () => {
     })
   );
   const alliedFury = result.events.find(
-    (event) => event.type === 'buff' && event.skillName === 'Master Fencer' && event.recipients === 'allies'
+    (event) => event.type === 'buff' && event.skillName === 'Master Fencer' && event.audience?.recipients === 'party'
   );
 
   assert.ok(alliedFury);
-  assert.equal(alliedFury.alliedPlayerCount, 2);
-  assert.deepEqual(alliedFury.companionIds, ['mesmer.clone:1', 'mesmer.clone:2']);
-  assert.equal(alliedFury.recipientCount, 4);
+  assert.equal(alliedFury.resolvedAudience.alliedPlayerCount, 2);
+  assert.deepEqual(alliedFury.resolvedAudience.companionIds, ['mesmer.clone:1']);
+  assert.equal(alliedFury.resolvedAudience.recipientCount, 4);
 });
 
 test('Illusionary Counter arms one Counterspell without generating clones itself', () => {
@@ -4271,9 +4279,9 @@ test('Mirage support and cloak traits emit their current effects', () => {
   assert.ok(!result.events.some((event) => event.type === 'buff' && event.kind === 'vigor' && event.duration === 3));
   const alacrity = result.events.find((event) => event.type === 'buff' && event.kind === 'alacrity');
 
-  assert.equal(alacrity.recipients, 'party');
-  assert.equal(alacrity.recipientCount, 5);
-  assert.equal(alacrity.affectsSummons, false);
+  assert.equal(alacrity.audience.recipients, 'party');
+  assert.equal(alacrity.resolvedAudience.recipientCount, 5);
+  assert.equal(alacrity.resolvedAudience.includesSummons, false);
   assert.ok(result.procSteps.some((proc) => proc.skill === 'Elusive Mind'));
 });
 
@@ -5654,7 +5662,12 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
     assert.ok(
       result.events
         .filter((event) => event.type === 'buff' && event.skillName === tale)
-        .every((event) => event.recipients === 'party' && event.recipientCount === 5 && event.affectsSummons === false),
+        .every(
+          (event) =>
+            event.audience?.recipients === 'party' &&
+            event.resolvedAudience.recipientCount === 5 &&
+            event.resolvedAudience.includesSummons === false
+        ),
       tale
     );
 
@@ -5833,8 +5846,8 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
         event.type === 'buff' &&
         event.kind === 'protection' &&
         event.duration === 3 &&
-        event.recipients === 'party' &&
-        event.affectsSummons === false
+        event.audience?.recipients === 'party' &&
+        event.resolvedAudience.includesSummons === false
     )
   );
 
@@ -5854,7 +5867,10 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
 
   assert.ok(
     partyBoons.every(
-      (event) => event.recipients === 'party' && event.recipientCount === 5 && event.affectsSummons === false
+      (event) =>
+        event.audience?.recipients === 'party' &&
+        event.resolvedAudience.recipientCount === 5 &&
+        event.resolvedAudience.includesSummons === false
     )
   );
   assert.ok(partyBoons.some((event) => event.kind === 'quickness' && event.duration === 6));
@@ -6729,7 +6745,8 @@ test('Compounding Power chart series caps at five stacks', () => {
         at: index * 0.1,
         kind: 'compounding',
         duration: 8,
-        stacks: 1
+        stacks: 1,
+        resolvedAudience: PLAYER_RESOLVED_AUDIENCE
       }))
     },
     100
@@ -6767,7 +6784,8 @@ test('Might chart series caps at 25 stacks', () => {
         at: index * 0.01,
         kind: 'might',
         duration: 8,
-        stacks: 1
+        stacks: 1,
+        resolvedAudience: PLAYER_RESOLVED_AUDIENCE
       }))
     },
     100
@@ -6786,7 +6804,8 @@ test("Kalla's Fervor chart series caps at five stacks", () => {
         at: index * 0.01,
         kind: 'kallas-fervor',
         duration: 8,
-        stacks: 1
+        stacks: 1,
+        resolvedAudience: PLAYER_RESOLVED_AUDIENCE
       }))
     },
     100

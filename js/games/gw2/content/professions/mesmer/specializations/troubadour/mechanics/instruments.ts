@@ -155,8 +155,7 @@ function instrumentAttack(
       ),
       skillName: skill.name,
       sourceSkill: skill.name,
-      recipients: 'party',
-      maximumRecipients: 5
+      audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
     runtime.addEvent({
       type: 'buff',
@@ -166,8 +165,7 @@ function instrumentAttack(
       duration: gw2SchedulerBoonDuration(context, skill, String(might?.boon || 'might'), Number(might?.duration || 8)),
       skillName: skill.name,
       sourceSkill: skill.name,
-      recipients: 'party',
-      maximumRecipients: 5
+      audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
 }
@@ -275,8 +273,7 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
         ),
         skillName: skill.name,
         sourceSkill: skill.name,
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
   }

@@ -145,17 +145,16 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
       (effect) => [String(effect.condition || ''), Number(effect.stacks || 1), Number(effect.duration || 0)] as const
     );
   const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
-  const controlMetadata = controlEffect?.metadata || {};
   return {
     minion: String(skill.minionKey || ''),
     coefficient: Number(strike?.coefficient || 0),
     conditions,
     control: String(
-      controlEffect?.type === 'blind' ? 'blind' : controlMetadata.controlKind || attacks[0]?.controlKind || ''
+      controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || ''
     ),
-    controlDuration: Number(controlMetadata.duration || attacks[0]?.controlDuration || 0),
+    controlDuration: Number(controlEffect?.duration || attacks[0]?.controlDuration || 0),
     controlWindow: Number(skill.controlWindow || 0),
-    blindDuration: Number(controlMetadata.duration || 0),
+    blindDuration: Number(controlEffect?.duration || 0),
     impactDelay: Number(skill.impactDelay || 0),
     consumes: Number(skill.consumes || 0),
     lifeForceGain: Number(skill.lifeForceOnHit || 0),

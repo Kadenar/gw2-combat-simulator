@@ -6,7 +6,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { EffectAudience, SkillId } from '#gw2/platform/engine/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type {
   ThiefResolverContext,
@@ -30,14 +30,14 @@ function queueThiefBoon(
     boon,
     duration,
     stacks = 1,
-    recipients = 'self'
+    audience = { recipients: 'self' }
   }: {
     readonly traitId: SkillId;
     readonly traitName: string;
     readonly boon: string;
     readonly duration: number;
     readonly stacks?: number;
-    readonly recipients?: 'self' | 'party';
+    readonly audience?: EffectAudience;
   }
 ): void {
   enqueueOrdered(context.queue, {
@@ -52,8 +52,7 @@ function queueThiefBoon(
     kind: boon.toLowerCase(),
     duration: gw2ResolverBoonDuration(context, event, boon, duration),
     stacks,
-    recipients,
-    maximumRecipients: recipients === 'party' ? 5 : 1,
+    audience,
     triggeredBy: event.skillName
   });
 }
@@ -61,7 +60,9 @@ function queueThiefBoon(
 function activeSelfFuryApplications(context: ThiefResolverContext, at: number) {
   return (context.boons.get('fury') || []).filter(
     (application) =>
-      application.affectsSelf !== false && application.at <= at + EPSILON && application.expiresAt > at + EPSILON
+      application.resolvedAudience.includesSelf &&
+      application.at <= at + EPSILON &&
+      application.expiresAt > at + EPSILON
   );
 }
 
@@ -133,7 +134,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
         boon: String(fury?.boon || 'Fury'),
         duration: Number(fury?.duration || 4),
         stacks: Number(fury?.stacks || 1),
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       });
     }
   }
@@ -174,7 +175,7 @@ export const noQuarterCriticalReaction = Object.freeze({
 export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     String(event.kind || '').toLowerCase() !== 'fury' ||
-    event.affectsSelf === false ||
+    !event.resolvedAudience?.includesSelf ||
     !hasTrait(context.config, TRAIT.ASSASSINS_FURY)
   )
     return;

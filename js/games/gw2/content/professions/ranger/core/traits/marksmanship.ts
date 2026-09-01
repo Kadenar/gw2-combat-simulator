@@ -106,8 +106,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Ranger
 
 export function reactToRangerCoreBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
-  const affectsSelf = event.affectsSelf !== false;
-  if (kind === 'fury' && affectsSelf && hasTrait(context, TRAIT.REMORSELESS)) {
+  if (kind === 'fury' && event.resolvedAudience?.includesSelf && hasTrait(context, TRAIT.REMORSELESS)) {
     const state = professionCoreState(context);
     state.playerOpeningStrikeReady = true;
     state.petOpeningStrikeReady = true;

@@ -25,7 +25,8 @@ export function renderRotationEditor(app: ProfessionAppState): void {
 
 /** Refreshes views whose data is produced by the baseline simulation. */
 export function renderSimulationOutput(app: ProfessionAppState): void {
-  // Cooldowns, ammo, autoattack chains, and state-gated skills all come from the newly committed end state.
+  // Resource limits and skill availability all come from the newly committed end state.
+  renderStartResource(app);
   renderPalette(app);
   mountRotationHotkeys(document.getElementById('rotation-palette'), app.adapter.capabilities.keybindImport);
   renderTimeline(app);

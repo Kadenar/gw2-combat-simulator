@@ -142,8 +142,7 @@ export function applyWillbenderVirtueActivationTraits(
       kind: 'alacrity',
       stacks: Number(alacrity?.stacks || 1),
       duration: gw2SchedulerBoonDuration(context, context.skill, 'alacrity', Number(alacrity?.duration || 5)),
-      recipients: 'self',
-      affectsSelf: true
+      audience: { recipients: 'self' as const }
     });
   }
 

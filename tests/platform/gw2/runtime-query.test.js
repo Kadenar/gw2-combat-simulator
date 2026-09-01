@@ -83,7 +83,29 @@ test('boon queries retain configured stacks and prefer live applications over sc
   assert.equal(boonActive(modifierContext, 'might'), true);
   assert.equal(
     boonActive(
-      context({ runtime: { boons: new Map([['fury', [{ at: 0, expiresAt: 10, stacks: 1, affectsSelf: false }]]]) } }),
+      context({
+        runtime: {
+          boons: new Map([
+            [
+              'fury',
+              [
+                {
+                  at: 0,
+                  expiresAt: 10,
+                  stacks: 1,
+                  resolvedAudience: {
+                    includesSelf: false,
+                    includesSummons: true,
+                    alliedPlayerCount: 0,
+                    companionIds: ['summon:one'],
+                    recipientCount: 1
+                  }
+                }
+              ]
+            ]
+          ])
+        }
+      }),
       'fury'
     ),
     false

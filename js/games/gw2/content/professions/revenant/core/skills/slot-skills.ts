@@ -46,10 +46,8 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'taunt',
-          duration: 4
-        }
+        controlKind: 'taunt',
+        duration: 4
       }
     ],
     legendId: 'LegendaryDwarf'
@@ -180,10 +178,8 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
+        controlKind: 'knockdown',
+        duration: 3
       },
       {
         type: 'boon',
@@ -305,10 +301,8 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'pull',
-          duration: 360
-        }
+        controlKind: 'pull',
+        duration: 360
       }
     ],
     legendId: 'LegendaryDemon'
@@ -568,10 +562,8 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'taunt',
-          duration: 4
-        }
+        controlKind: 'taunt',
+        duration: 4
       }
     ],
     legendId: 'LegendaryDwarf'

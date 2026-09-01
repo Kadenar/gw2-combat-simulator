@@ -15,6 +15,49 @@ export type NormalizedObservationPolicy = ObservationPolicy;
 
 export type SimulationActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
 
+export type EffectRecipientScope = 'self' | 'party' | 'summons';
+
+/** Selects the canonical recipient group for one positive effect. */
+export interface EffectAudience {
+  readonly recipients: EffectRecipientScope;
+  readonly affectsSelf?: boolean;
+  readonly maximumRecipients?: number;
+  readonly eligibleCompanionIds?: readonly string[];
+}
+
+/** Records the recipients selected after player-first audience resolution. */
+export interface ResolvedEffectAudience {
+  readonly includesSelf: boolean;
+  readonly includesSummons: boolean;
+  readonly alliedPlayerCount: number;
+  readonly companionIds: readonly string[];
+  readonly recipientCount: number;
+}
+
+/** Closed vocabulary of subsystem-owned annotations preserved as one nested object. */
+export interface EffectMetadata {
+  readonly activeSpirits?: number;
+  readonly affinityOnHit?: boolean;
+  readonly anguishConditionalDamage?: boolean;
+  readonly blightEmpowered?: boolean;
+  readonly dhuumfireDuration?: number;
+  readonly dhuumfireInterval?: number;
+  readonly engineerMech?: boolean;
+  readonly essenceBlastDamagePerSpirit?: number;
+  readonly evtcSkillId?: SkillId;
+  readonly hitboxIndex?: number;
+  readonly largeHitboxOnly?: boolean;
+  readonly legendId?: string;
+  readonly necromancerBlight?: number;
+  readonly necromancerShroudSkillOne?: boolean;
+  readonly packetKind?: string;
+  readonly radiantWeapon?: string;
+  readonly smallHitboxCap?: number;
+  readonly spirit?: string;
+  readonly spiritAttackType?: string;
+  readonly trigger?: string;
+}
+
 export type CommonSimulationEventType =
   | 'action'
   | 'aura'
@@ -55,7 +98,6 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly kind?: string;
   readonly duration?: number;
   readonly stacks?: number;
-  readonly affectsSelf?: boolean;
   readonly weaponSet?: number;
   readonly procType?: string;
   readonly sourceSkill?: string;
@@ -69,6 +111,9 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
+  readonly audience?: EffectAudience;
+  readonly resolvedAudience?: ResolvedEffectAudience;
+  readonly metadata?: EffectMetadata;
   readonly [field: string]: unknown;
 }
 
@@ -142,6 +187,9 @@ export interface SimulationEventInput {
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
+  readonly audience?: EffectAudience;
+  readonly resolvedAudience?: ResolvedEffectAudience;
+  readonly metadata?: EffectMetadata;
   readonly [field: string]: unknown;
 }
 
@@ -169,7 +217,13 @@ export type SkillInterruptMode = 'commit' | 'per-packet';
 export interface StrikeTick {
   readonly atMs: number;
   readonly coefficient: number;
-  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly name?: string;
+  readonly weaponStrength?: number;
+  readonly independentSummonStrike?: boolean;
+  readonly summonUsesProfessionModifiers?: boolean;
+  readonly summonInheritsAttributes?: boolean;
+  readonly summonInheritsCriticalAttributes?: boolean;
+  readonly metadata?: EffectMetadata;
   readonly [field: string]: unknown;
 }
 
@@ -178,6 +232,9 @@ export interface ConditionTick {
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
+  readonly damageKind?: string;
+  readonly projectile?: boolean;
+  readonly metadata?: EffectMetadata;
   readonly [field: string]: unknown;
 }
 
@@ -197,11 +254,13 @@ export interface SkillEffectBase {
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
+  readonly summonOwner?: string;
   readonly name?: string;
-  readonly metadata?: Readonly<Record<string, unknown>> & {
-    readonly recipients?: never;
-    readonly maximumRecipients?: never;
-  };
+  readonly skillName?: string;
+  readonly parentSkillName?: string;
+  readonly icon?: string;
+  readonly audience?: EffectAudience;
+  readonly metadata?: EffectMetadata;
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
   readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
   readonly [field: string]: unknown;
@@ -222,6 +281,16 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrengthSource?: 'equipped';
+  readonly flatDamage?: number;
+  readonly flatStrikeBase?: number;
+  readonly flatStrikePowerCoeff?: number;
+  readonly flatStrikeMultiplier?: number;
+  readonly flatStrikeHealthThreshold?: number;
+  readonly flatStrikeThresholdMultiplier?: number;
+  readonly noCrit?: boolean;
+  readonly forceCrit?: boolean;
+  readonly damageKind?: string;
+  readonly projectile?: boolean;
 }
 
 export interface ConditionEffect extends SkillEffectBase {
@@ -230,10 +299,15 @@ export interface ConditionEffect extends SkillEffectBase {
   readonly stacks?: number;
   readonly duration?: number;
   readonly ticks?: readonly ConditionTick[];
+  readonly target?: string;
 }
 
 export interface ControlEffect extends SkillEffectBase {
   readonly type: 'control' | 'blind';
+  readonly controlKind?: string;
+  readonly duration?: number;
+  readonly breakbar?: number;
+  readonly bonusDefianceBreak?: number;
 }
 
 export interface StatusEffect extends SkillEffectBase {
@@ -242,8 +316,6 @@ export interface StatusEffect extends SkillEffectBase {
   readonly kind?: string;
   readonly duration: number;
   readonly stacks?: number;
-  readonly recipients?: string;
-  readonly maximumRecipients?: number;
 }
 
 export interface CustomEffect extends SkillEffectBase {
@@ -326,7 +398,6 @@ export interface Skill extends CatalogSkill {
   /** Minimum delay between consecutive casts of an ammo skill, in seconds. */
   readonly ammoCastLockout?: number;
   readonly defaultInterruptMs?: number;
-  readonly paletteInterruptMs?: number;
   /** Controls whether interruption preserves committed effects or only packets that have already occurred. */
   readonly interruptMode?: SkillInterruptMode;
   readonly interruptCommitMs?: number;

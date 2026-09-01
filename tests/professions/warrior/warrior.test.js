@@ -896,7 +896,7 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
         event.sourceId === TRAIT.HEAT_THE_SOUL &&
         event.kind === 'quickness' &&
         event.duration === 5 &&
-        event.recipients === 'party'
+        event.audience?.recipients === 'party'
     ),
     true
   );
@@ -1045,7 +1045,7 @@ test('Warrior execution follows stable skill and packet IDs after display labels
     type: 'damage',
     coefficient: 0.9,
     name: 'Renamed shard packet',
-    packetKind: 'warrior.mighty-throw-shard'
+    metadata: { packetKind: 'warrior.mighty-throw-shard' }
   });
   assert.equal(replacements.at(-1).coefficient, 0);
 });
@@ -1102,7 +1102,7 @@ test('Spellbreaker Winds and Kick use the supplied PvE mechanics', () => {
   assert.equal(kick.ammoCastLockout, 3);
   assert.equal(kick.ammoRecharge, 20);
   assert.equal(strikeCoefficient(kickStrike), 1);
-  assert.equal(kickControl.metadata.controlKind, 'knockback');
+  assert.equal(kickControl.controlKind, 'knockback');
 
   const result = simulate('Spellbreaker', ['Winds of Disenchantment'], {}, observationTail(5000));
   const pulses = result.events.filter(
@@ -1151,7 +1151,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
       hushblade.ammoCastLockout,
       hushblade.ammoRecharge,
       skillStrikeCoefficient(hushblade),
-      hushblade.effects.find((effect) => effect.type === 'control')?.metadata.controlKind
+      hushblade.effects.find((effect) => effect.type === 'control')?.controlKind
     ],
     [2, 1, 12, 1.5, 'daze']
   );
@@ -1276,17 +1276,14 @@ test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion
     ['Immobilized', 1, 1.5],
     ['Vulnerability', 8, 12]
   ]);
-  assert.equal(strike(ID.EXPLOSIVE_SHELL).metadata.damageKind, 'explosion');
+  assert.equal(strike(ID.EXPLOSIVE_SHELL).damageKind, 'explosion');
   assert.deepEqual(
     skill(ID.FIERCE_SHOT).effects.find((effect) => effect.type === 'boon'),
     { type: 'boon', boon: 'might', duration: 5, stacks: 1 }
   );
   assert.equal(skill(ID.KILL_SHOT).skillWeapon, 'Rifle');
   assert.equal(skill(ID.RIFLE_BUTT).cooldown, 12);
-  assert.equal(
-    skill(ID.RIFLE_BUTT).effects.find((effect) => effect.type === 'control').metadata.controlKind,
-    'knockback'
-  );
+  assert.equal(skill(ID.RIFLE_BUTT).effects.find((effect) => effect.type === 'control').controlKind, 'knockback');
 });
 
 test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gains its target bonus', () => {
@@ -2803,7 +2800,9 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
     true
   );
   assert.equal(
-    trigger.events.some((event) => event.kind === 'alacrity' && event.duration === 10 && event.recipients === 'party'),
+    trigger.events.some(
+      (event) => event.kind === 'alacrity' && event.duration === 10 && event.audience?.recipients === 'party'
+    ),
     true
   );
 });

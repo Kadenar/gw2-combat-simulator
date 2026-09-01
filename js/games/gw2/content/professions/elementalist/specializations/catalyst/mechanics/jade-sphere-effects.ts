@@ -17,7 +17,7 @@ function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect
       ticks: JADE_SPHERE_TICKS.map((atMs) => ({
         atMs,
         coefficient: 0.25,
-        metadata: { damageKind: 'field-tick' }
+        damageKind: 'field-tick'
       })),
       timingAnchor: 'castStart',
       timingScale: 'cast'
@@ -30,8 +30,7 @@ function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect
       atMs,
       timingAnchor: 'castStart' as const,
       timingScale: 'cast' as const,
-      recipients: 'party' as const,
-      maximumRecipients: 5,
+      audience: { recipients: 'party' as const, maximumRecipients: 5 },
       metadata: {}
     }))
   ];

@@ -121,11 +121,14 @@ test('activation editor suggests and validates manual interruption times', () =>
     valid: true,
     value: 640
   });
-  assert.match(validateActivationInterruptMs('640.4', 920).error, /divisible by 40 ms/);
-  assert.match(validateActivationInterruptMs('620', 920).error, /divisible by 40 ms/);
+  assert.match(validateActivationInterruptMs('640.4', 920).error, /whole-millisecond/);
+  assert.deepEqual(validateActivationInterruptMs('620', 920), { valid: true, value: 620 });
+  assert.match(validateActivationInterruptMs('630', 920).error, /divisible by 20 ms/);
   assert.equal(validateActivationInterruptMs('', 920).valid, false);
   assert.equal(validateActivationInterruptMs(0, 920).valid, false);
-  assert.equal(validateActivationInterruptMs(920, 920).valid, false);
+  assert.deepEqual(validateActivationInterruptMs(920, 920), { valid: true, value: 920 });
+  assert.deepEqual(validateActivationInterruptMs(657, 657), { valid: true, value: 657 });
+  assert.equal(validateActivationInterruptMs(921, 920).valid, false);
   assert.deepEqual(validateActivationConcurrentOffsetMs(0), { valid: true, value: 0 });
   assert.deepEqual(validateActivationConcurrentOffsetMs(120), { valid: true, value: 120 });
   assert.match(validateActivationConcurrentOffsetMs('100.4').error, /divisible by 40 ms/);
@@ -235,6 +238,16 @@ test('timeline dead time includes explicit waits and excludes concurrent casts a
   assert.equal(formatTimelineDuration(1250), '1.25s');
   assert.equal(formatTimelineDuration(12_500), '12.5s');
   assert.equal(formatTimelineDuration(100_000), '100s');
+});
+
+test('timeline dead time precedes simultaneous instant and non-instant casts', () => {
+  const markers = timelineDeadTimeMarkers([
+    { ri: 0, skill: 'Previous Cast', start: 0, end: 1000 },
+    { ri: 1, skill: 'Instant Cast', start: 1500, end: 1500 },
+    { ri: 2, skill: 'Following Cast', start: 1500, end: 1900 }
+  ]);
+
+  assert.deepEqual(markers, [{ insertionIndex: 1, start: 1000, end: 1500, durationMs: 500 }]);
 });
 
 test('timeline overlays suppress wait shapes and retain only excess dead time', () => {
@@ -418,7 +431,22 @@ test('shared chart lookup and series cover damage timing and configurable effect
           ]
         }
       ],
-      events: [{ type: 'buff', at: 0, kind: 'power', duration: 2, stacks: 2 }]
+      events: [
+        {
+          type: 'buff',
+          at: 0,
+          kind: 'power',
+          duration: 2,
+          stacks: 2,
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            alliedPlayerCount: 0,
+            companionIds: [],
+            recipientCount: 1
+          }
+        }
+      ]
     },
     1000,
     {

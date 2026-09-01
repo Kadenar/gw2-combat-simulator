@@ -247,7 +247,7 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
     boon: 'quickness',
     duration: Number(quickness?.duration || 3),
     stacks: Number(quickness?.stacks || 1),
-    recipients: 'self'
+    audience: { recipients: 'self' as const }
   });
 }
 

@@ -44,7 +44,7 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
       skillId: event.skillId,
       controlKind: event.controlKind,
       duration: event.duration,
-      spiritAttackType: event.spiritAttackType
+      spiritAttackType: event.metadata?.spiritAttackType
     })),
     [
       {
@@ -61,7 +61,7 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
       controlKind: event.controlKind,
       duration: event.duration,
       actorType: event.actorType,
-      spiritAttackType: event.spiritAttackType
+      spiritAttackType: event.metadata?.spiritAttackType
     })),
     [
       {

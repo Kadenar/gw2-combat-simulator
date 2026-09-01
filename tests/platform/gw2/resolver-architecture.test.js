@@ -426,18 +426,22 @@ test('shared buff handling prioritizes allied players over summon recipients', (
     kind: 'might',
     duration: 10,
     stacks: 1,
-    recipients: 'party',
-    maximumRecipients: 5,
-    companionIds: ['clone:one', 'clone:two']
+    audience: {
+      recipients: 'party',
+      maximumRecipients: 5,
+      eligibleCompanionIds: ['clone:one', 'clone:two']
+    }
   };
 
   handlers.buff(context, application);
 
-  assert.equal(application.affectsSelf, true);
-  assert.equal(application.alliedPlayerCount, 4);
-  assert.deepEqual(application.companionIds, []);
-  assert.equal(application.affectsSummons, false);
-  assert.equal(application.recipientCount, 5);
+  assert.deepEqual(application.resolvedAudience, {
+    includesSelf: true,
+    includesSummons: false,
+    alliedPlayerCount: 4,
+    companionIds: [],
+    recipientCount: 5
+  });
 });
 
 /** Resolves a minimal stream against permanent target conditions with player-neutral numeric facts. */
@@ -1592,20 +1596,20 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
   assert.ok(hits[2].at > hits[0].at + 8);
   assert.deepEqual(
     fury
-      .filter((event) => event.recipients === 'self')
-      .map((event) => [event.duration, event.affectsSelf, event.affectsSummons]),
+      .filter((event) => event.audience?.recipients === 'self')
+      .map((event) => [event.duration, event.resolvedAudience.includesSummons]),
     [
-      [8, true, false],
-      [8, true, false]
+      [8, false],
+      [8, false]
     ]
   );
   assert.deepEqual(
     fury
-      .filter((event) => event.recipients === 'allies')
-      .map((event) => [event.duration, event.affectsSelf, event.affectsSummons]),
+      .filter((event) => event.audience?.recipients === 'party')
+      .map((event) => [event.duration, event.resolvedAudience.includesSummons]),
     [
-      [4, false, false],
-      [4, false, false]
+      [4, false],
+      [4, false]
     ]
   );
 
@@ -1629,14 +1633,14 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
     })
   );
   const openPartyFury = openParty.events.find(
-    (event) => event.type === 'buff' && event.skillName === 'Master Fencer' && event.recipients === 'allies'
+    (event) => event.type === 'buff' && event.skillName === 'Master Fencer' && event.audience?.recipients === 'party'
   );
 
-  assert.equal(openPartyFury.affectsSummons, true);
-  assert.equal(openPartyFury.alliedPlayerCount, 2);
-  assert.equal(openPartyFury.recipientCount, 4);
-  assert.equal(openPartyFury.companionIds.length, 2);
-  assert.ok(openPartyFury.companionIds.every((id) => id.startsWith('mesmer.clone:')));
+  assert.equal(openPartyFury.resolvedAudience.includesSummons, true);
+  assert.equal(openPartyFury.resolvedAudience.alliedPlayerCount, 2);
+  assert.equal(openPartyFury.resolvedAudience.recipientCount, 4);
+  assert.equal(openPartyFury.resolvedAudience.companionIds.length, 1);
+  assert.ok(openPartyFury.resolvedAudience.companionIds.every((id) => id.startsWith('mesmer.clone:')));
 
   const isolated = simulateMesmer(
     ['Flying Cutter'],
@@ -1657,8 +1661,14 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
   const isolatedFury = isolated.events.filter((event) => event.type === 'buff' && event.skillName === 'Master Fencer');
 
   assert.equal(isolatedFury.length, 2);
-  assert.equal(isolatedFury.find((event) => event.recipients === 'self')?.affectsSummons, false);
-  assert.equal(isolatedFury.find((event) => event.recipients === 'allies')?.affectsSummons, false);
+  assert.equal(
+    isolatedFury.find((event) => event.audience?.recipients === 'self')?.resolvedAudience.includesSummons,
+    false
+  );
+  assert.equal(
+    isolatedFury.find((event) => event.audience?.recipients === 'party')?.resolvedAudience.includesSummons,
+    false
+  );
 });
 
 test('Sharper Images samples illusion criticals instead of accumulating expected procs', () => {

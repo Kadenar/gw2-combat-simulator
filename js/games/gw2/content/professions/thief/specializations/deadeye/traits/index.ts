@@ -89,8 +89,7 @@ export function applyDeadeyeStolenSkillTraits(context: ThiefCastContext, at: num
       boon,
       duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, Number(effect.duration || 12)),
       stacks: Number(effect.stacks || 1),
-      recipients: 'party',
-      maximumRecipients: 5
+      audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
 }

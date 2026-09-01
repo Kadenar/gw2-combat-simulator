@@ -27,6 +27,17 @@ const queryProfession = defineProfession({
   name: 'Query Fixture'
 });
 
+/** Builds the resolved recipient facts expected by low-level query fixtures. */
+function resolvedAudience({ includesSelf = true, alliedPlayerCount = 0, companionIds = [] } = {}) {
+  return {
+    includesSelf,
+    includesSummons: companionIds.length > 0,
+    alliedPlayerCount,
+    companionIds,
+    recipientCount: Number(includesSelf) + alliedPlayerCount + companionIds.length
+  };
+}
+
 test('profession composition validates UI callbacks and scheduler refiners', () => {
   assert.throws(
     () =>
@@ -176,7 +187,8 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
         sourceId: 'player-might',
         kind: 'MIGHT',
         duration: 2,
-        stacks: 3
+        stacks: 3,
+        resolvedAudience: resolvedAudience()
       },
       {
         type: 'buff',
@@ -186,8 +198,7 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
         kind: 'might',
         duration: 2,
         stacks: 4,
-        affectsSummons: true,
-        companionIds: ['minion:one']
+        resolvedAudience: resolvedAudience({ companionIds: ['minion:one'] })
       },
       {
         type: 'buff',
@@ -197,7 +208,7 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
         kind: 'might',
         duration: 2,
         stacks: 2,
-        affectsSummons: true
+        resolvedAudience: resolvedAudience({ companionIds: ['minion:one', 'minion:two'] })
       },
       {
         type: 'buff',
@@ -207,8 +218,7 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
         kind: 'might',
         duration: 2,
         stacks: 5,
-        affectsSelf: false,
-        affectsSummons: true
+        resolvedAudience: resolvedAudience({ includesSelf: false, companionIds: ['minion:one', 'minion:two'] })
       },
       {
         type: 'buff',
@@ -216,7 +226,8 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
         source: 'Player',
         sourceId: 'quickness-one',
         kind: 'quickness',
-        duration: 2
+        duration: 2,
+        resolvedAudience: resolvedAudience()
       },
       {
         type: 'buff',
@@ -224,7 +235,8 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
         source: 'Trait',
         sourceId: 'quickness-two',
         kind: 'quickness',
-        duration: 2
+        duration: 2,
+        resolvedAudience: resolvedAudience()
       }
     ]
   });
@@ -249,7 +261,8 @@ test('effective boon and Vulnerability queries use their canonical runtime state
       sourceId: 'might',
       kind: 'might',
       duration: 5,
-      stacks: 5
+      stacks: 5,
+      resolvedAudience: resolvedAudience()
     },
     {
       type: 'buff',
@@ -258,7 +271,8 @@ test('effective boon and Vulnerability queries use their canonical runtime state
       sourceId: 'fury',
       kind: 'fury',
       duration: 5,
-      stacks: 1
+      stacks: 1,
+      resolvedAudience: resolvedAudience()
     },
     {
       type: 'condition',
@@ -295,8 +309,8 @@ test('effective boon and Vulnerability queries use their canonical runtime state
   assert.equal(query.furyActiveAt(1, null, event), true);
   assert.equal(query.vulnerabilityStacksAt(1, null), 1);
 
-  runtime.boons.set('might', [{ at: 1, expiresAt: 6, stacks: 5 }]);
-  runtime.boons.set('fury', [{ at: 1, expiresAt: 6, stacks: 1 }]);
+  runtime.boons.set('might', [{ at: 1, expiresAt: 6, stacks: 5, resolvedAudience: resolvedAudience() }]);
+  runtime.boons.set('fury', [{ at: 1, expiresAt: 6, stacks: 1, resolvedAudience: resolvedAudience() }]);
   runtime.conditionState.set('Vulnerability', {
     stacks: [{ appliedAt: 1, expiresAt: 6, weight: 3 }]
   });
@@ -316,7 +330,8 @@ test('player boon sharing can exclude non-mech summons', () => {
       actorType: 'player',
       kind: 'might',
       duration: 10,
-      stacks: 5
+      stacks: 5,
+      resolvedAudience: resolvedAudience()
     },
     {
       type: 'buff',
@@ -326,13 +341,14 @@ test('player boon sharing can exclude non-mech summons', () => {
       actorType: 'player',
       kind: 'fury',
       duration: 10,
-      stacks: 1
+      stacks: 1,
+      resolvedAudience: resolvedAudience()
     }
   ];
   const runtime = {
     boons: new Map([
-      ['might', [{ at: 0, expiresAt: 10, stacks: 5 }]],
-      ['fury', [{ at: 0, expiresAt: 10, stacks: 1 }]]
+      ['might', [{ at: 0, expiresAt: 10, stacks: 5, resolvedAudience: resolvedAudience() }]],
+      ['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: resolvedAudience() }]]
     ])
   };
   const config = {
@@ -361,7 +377,7 @@ test('player boon sharing can exclude non-mech summons', () => {
   const mechEvent = {
     ...summonEvent,
     source: 'engineer',
-    engineerMech: true,
+    metadata: { engineerMech: true },
     summonInheritsAttributes: true
   };
   const phantasmEvent = {
@@ -421,7 +437,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
       kind: 'might',
       duration: 10,
       stacks: 2,
-      affectsSummons: true
+      resolvedAudience: resolvedAudience({ companionIds: ['fixture-minion'] })
     },
     {
       type: 'buff',
@@ -432,8 +448,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
       kind: 'fury',
       duration: 8,
       stacks: 1,
-      affectsSelf: true,
-      affectsSummons: false
+      resolvedAudience: resolvedAudience()
     },
     {
       type: 'buff',
@@ -444,8 +459,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
       kind: 'fury',
       duration: 4,
       stacks: 1,
-      affectsSelf: false,
-      affectsSummons: true
+      resolvedAudience: resolvedAudience({ includesSelf: false, companionIds: ['fixture-minion'] })
     }
   ];
   const query = createGw2CombatQuery({
@@ -468,6 +482,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
     source: 'Minion',
     sourceId: 'fixture-minion',
     actorType: 'summon',
+    summonOwner: 'fixture-minion',
     coefficient: 1
   };
   const independentSummonEvent = {
@@ -516,7 +531,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
       expiresAt: 10,
       stacks: 2,
       source: 'Trait',
-      affectsSummons: true
+      resolvedAudience: resolvedAudience({ companionIds: ['fixture-minion'] })
     }
   ]);
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1060);

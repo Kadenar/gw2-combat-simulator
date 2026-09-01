@@ -558,7 +558,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       if (
         kind !== 'might' ||
         !isGw2PlayerActorEvent(event) ||
-        event.recipients === 'allies' ||
+        !event.resolvedAudience?.includesSelf ||
         !(Number(event.duration) > 0) ||
         !(Number(event.stacks ?? 1) > 0) ||
         !isInternalCooldownReady(event.at, state.readyAt)

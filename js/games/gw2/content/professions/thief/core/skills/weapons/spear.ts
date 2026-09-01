@@ -2,11 +2,12 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+// EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENTANGLING_ASP]: {
     implemented: true,
     handlerId: 'thief.spear-chain',
-    castTimeMs: 650,
+    quicknessCastTimeMs: 520,
     cooldown: 0,
     initiativeCost: 2,
     effects: [
@@ -37,7 +38,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
   [ID.SHATTERING_ASSAULT]: {
     implemented: true,
     handlerId: 'thief.spear-chain',
-    castTimeMs: 800,
+    quicknessCastTimeMs: 640,
     cooldown: 0,
     initiativeCost: 1,
     effects: [
@@ -60,7 +61,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
   [ID.DISTRACTING_THROW]: {
     implemented: true,
     handlerId: 'thief.spear-chain',
-    castTimeMs: 450,
+    quicknessCastTimeMs: 360,
     cooldown: 0,
     initiativeCost: 2,
     effects: [
@@ -89,10 +90,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 1.5
-        }
+        controlKind: 'daze',
+        duration: 1.5
       }
     ]
   },
@@ -139,7 +138,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     preservesStealth: true,
     spearStealthAttack: true,
     handlerId: 'thief.spear-stealth-attack',
-    castTimeMs: 575,
+    quicknessCastTimeMs: 1200,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -190,7 +189,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
   [ID.MANTIS_STING]: {
     implemented: true,
     handlerId: 'thief.spear-chain',
-    castTimeMs: 500,
+    quicknessCastTimeMs: 400,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -256,7 +255,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
   [ID.FALLING_SPIDER]: {
     implemented: true,
     handlerId: 'thief.spear-chain',
-    castTimeMs: 750,
+    quicknessCastTimeMs: 600,
     cooldown: 0,
     initiativeCost: 1,
     effects: [

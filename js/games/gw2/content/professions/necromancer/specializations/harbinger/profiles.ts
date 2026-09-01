@@ -98,7 +98,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         stacks: 1,
         duration: 4,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       },
       {
         type: 'boon',
@@ -106,7 +106,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         stacks: 1,
         duration: 4,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       }
     ]
   }),

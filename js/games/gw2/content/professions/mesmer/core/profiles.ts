@@ -224,7 +224,7 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
         boon: 'fury',
         duration: 4,
         stacks: 1,
-        maximumRecipients: 4
+        audience: { recipients: 'party', maximumRecipients: 4 }
       }
     ]
   }),

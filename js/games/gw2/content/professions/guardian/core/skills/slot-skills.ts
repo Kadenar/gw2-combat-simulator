@@ -29,9 +29,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -51,9 +49,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -254,24 +250,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 400,
     cooldown: 30,
     effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 3,
-        recipients: 'allies'
-      },
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 6,
-        recipients: 'self'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 10,
-        recipients: 'party'
-      }
+      { type: 'boon', boon: 'quickness', duration: 3, audience: { recipients: 'party' as const } },
+      // The party application includes the caster, so this supplement doubles only the caster's duration to six seconds.
+      { type: 'boon', boon: 'quickness', duration: 3, audience: { recipients: 'self' as const } },
+      { type: 'boon', boon: 'fury', duration: 10, audience: { recipients: 'party' as const } }
     ]
   }
 });

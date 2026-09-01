@@ -49,9 +49,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       },
       {
         type: 'boon',
@@ -148,30 +146,22 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           {
             atMs: 1720,
             coefficient: 0.4,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 2720,
             coefficient: 0.4,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 3720,
             coefficient: 0.4,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 4720,
             coefficient: 0.4,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -273,9 +263,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       },
       {
         type: 'strike',
@@ -460,9 +448,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     specialization: 'Weaver'

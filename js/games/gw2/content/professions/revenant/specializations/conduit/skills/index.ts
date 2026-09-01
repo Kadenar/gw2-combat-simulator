@@ -344,7 +344,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { target: 'self' }
+        target: 'self'
       },
       {
         type: 'control',
@@ -353,7 +353,8 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { controlKind: 'daze', breakbar: 200 }
+        controlKind: 'daze',
+        breakbar: 200
       }
     ]
   },

@@ -105,10 +105,8 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
+        controlKind: 'knockdown',
+        duration: 3
       }
     ]
   },

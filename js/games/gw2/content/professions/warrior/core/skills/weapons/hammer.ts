@@ -39,9 +39,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
         atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'knockback'
-        }
+        controlKind: 'knockback'
       }
     ]
   },
@@ -133,10 +131,8 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
         atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
+        controlKind: 'knockdown',
+        duration: 3
       }
     ]
   }

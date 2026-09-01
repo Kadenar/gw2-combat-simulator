@@ -85,10 +85,8 @@ function duplicateGadgeteerMine(context: EngineerCastContext, skill: EngineerSki
     name: event.name,
     actorType: 'player',
     skillWeapon: String(event.skillWeapon || 'Unequipped'),
-    metadata: {
-      damageKind: event.damageKind,
-      comboFinishers
-    }
+    damageKind: event.damageKind,
+    comboFinishers
   });
 }
 

@@ -421,9 +421,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       },
       {
         type: 'condition',
@@ -826,9 +824,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       },
       {
         type: 'condition',

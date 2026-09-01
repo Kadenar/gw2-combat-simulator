@@ -33,7 +33,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   const barrier = balanceProfileEffect(profile, 'buff');
   state.shadowShroudActive = true;
   state.shadowForceUpdatedAt = at;
-  // Enter Shadow Shroud only barriers one ally (tethered target), not the whole party.
+  // Enter Shadow Shroud barriers one tethered ally, not the caster or whole party.
   const alliedRecipients = Math.min(
     Number(profile?.maximumTargets || 1),
     gw2AlliedPlayerAssumptions(context.config).count
@@ -50,10 +50,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
       kind: 'barrier',
       duration: Number(barrier?.duration || 5),
       stacks: Number(barrier?.stacks || 1),
-      affectsSelf: false,
-      recipients: 'allies',
-      recipientCount: alliedRecipients,
-      maximumRecipients: alliedRecipients
+      audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: alliedRecipients }
     });
     context.tasks.schedule({
       type: 'thief.specter-dark-sentry',

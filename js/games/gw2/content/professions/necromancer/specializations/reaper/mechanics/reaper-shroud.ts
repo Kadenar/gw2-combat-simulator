@@ -69,12 +69,10 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       actorType: 'effect',
       coefficient: 0,
       skillWeapon: 'Unequipped',
-      metadata: {
-        flatStrikeBase: Number(effect?.flatStrikeBase || 276),
-        flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || 0.02),
-        noCrit: true,
-        damageKind: 'life-steal'
-      }
+      flatStrikeBase: Number(effect?.flatStrikeBase || 276),
+      flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || 0.02),
+      noCrit: true,
+      damageKind: 'life-steal'
     });
   }
 

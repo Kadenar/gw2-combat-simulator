@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Focus',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 740,
     cooldown: 25,
     effects: []
@@ -18,7 +17,6 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Focus',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: true,
     resource: {

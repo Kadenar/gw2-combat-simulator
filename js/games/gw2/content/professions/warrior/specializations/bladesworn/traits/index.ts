@@ -99,7 +99,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
       boon: 'might',
       stacks: Number(might?.stacks ?? 2),
       duration: gw2SchedulerBoonDuration(context, context.skill, 'might', Number(might?.duration ?? 8)),
-      recipients: 'party'
+      audience: { recipients: 'party' as const }
     });
   }
 
@@ -173,7 +173,7 @@ export function applyDragonSlashTraits(context: WarriorCastContext, skill: Warri
       boon: 'alacrity',
       stacks: 1,
       duration: gw2SchedulerBoonDuration(context, skill, 'alacrity', 10),
-      recipients: 'party'
+      audience: { recipients: 'party' as const }
     });
   }
 }

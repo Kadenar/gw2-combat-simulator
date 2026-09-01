@@ -259,11 +259,11 @@ test('Tempest party boons affect the summoned elemental', () => {
   assert.ok(
     feelTheBurnBoons.every(
       (event) =>
-        event.recipients === 'party' &&
-        event.maximumRecipients === 5 &&
-        event.affectsSummons === true &&
-        event.companionIds.length === 1 &&
-        event.companionIds[0].startsWith('elementalist-elemental:')
+        event.audience?.recipients === 'party' &&
+        event.audience.maximumRecipients === 5 &&
+        event.resolvedAudience.includesSummons === true &&
+        event.resolvedAudience.companionIds.length === 1 &&
+        event.resolvedAudience.companionIds[0].startsWith('elementalist-elemental:')
     )
   );
   assert.ok(
@@ -274,7 +274,9 @@ test('Tempest party boons affect the summoned elemental', () => {
           event.skillName === 'Feel the Burn!' &&
           (event.kind === 'might' || (event.kind === 'fury' && event.duration > 10))
       )
-      .every((event) => event.affectsSummons === false && event.companionIds.length === 0)
+      .every(
+        (event) => event.resolvedAudience.includesSummons === false && event.resolvedAudience.companionIds.length === 0
+      )
   );
 
   const firstBarrage = (result) =>
@@ -313,13 +315,15 @@ test('overload boons are party-scoped', () => {
     fireMight.every(
       (event) =>
         event.stacks === 2 &&
-        event.recipients === 'party' &&
-        event.maximumRecipients === 5 &&
-        event.affectsSummons === true
+        event.audience?.recipients === 'party' &&
+        event.audience.maximumRecipients === 5 &&
+        event.resolvedAudience.includesSummons === true
     )
   );
   assert.equal(airFury.length, 14);
-  assert.ok(airFury.every((event) => event.recipients === 'party' && event.affectsSummons === true));
+  assert.ok(
+    airFury.every((event) => event.audience?.recipients === 'party' && event.resolvedAudience.includesSummons === true)
+  );
 });
 
 test("Fox's Fury and catalyst spheres grant their boons to the party", () => {
@@ -348,7 +352,10 @@ test("Fox's Fury and catalyst spheres grant their boons to the party", () => {
   );
   assert.ok(
     foxBoons.every(
-      (event) => event.recipients === 'party' && event.maximumRecipients === 5 && event.affectsSummons === true
+      (event) =>
+        event.audience?.recipients === 'party' &&
+        event.audience.maximumRecipients === 5 &&
+        event.resolvedAudience.includesSummons === true
     )
   );
 
@@ -365,7 +372,10 @@ test("Fox's Fury and catalyst spheres grant their boons to the party", () => {
   assert.equal(sphereBoons.filter((event) => event.kind === 'quickness').length, 1);
   assert.ok(
     sphereBoons.every(
-      (event) => event.recipients === 'party' && event.maximumRecipients === 5 && event.affectsSummons === true
+      (event) =>
+        event.audience?.recipients === 'party' &&
+        event.audience.maximumRecipients === 5 &&
+        event.resolvedAudience.includesSummons === true
     )
   );
 });
@@ -3217,8 +3227,8 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
   assert.equal(immobilize.actorType, 'player');
   assert.equal(immobilize.elementalOwnedCondition, true);
   assert.equal(protection.duration, 3);
-  assert.equal(protection.recipients, 'party');
-  assert.equal(protection.maximumRecipients, 5);
+  assert.equal(protection.audience.recipients, 'party');
+  assert.equal(protection.audience.maximumRecipients, 5);
   assert.equal(weakness.duration, 3);
   assert.equal(weakness.actorType, 'player');
   assert.equal(

@@ -19,10 +19,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 2
-        }
+        controlKind: 'daze',
+        duration: 2
       }
     ]
   },
@@ -59,10 +57,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 0
-        }
+        controlKind: 'launch',
+        duration: 0
       }
     ]
   },
@@ -132,10 +128,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 2
-        }
+        controlKind: 'knockdown',
+        duration: 2
       }
     ]
   },
@@ -157,10 +151,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 0.25
-        }
+        controlKind: 'daze',
+        duration: 0.25
       }
     ]
   },
@@ -199,10 +191,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },

@@ -34,7 +34,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
     const remaining = Number(event.at) + Number(event.duration || 0) - context.effectiveEnd;
     if (
       event.type !== 'buff' ||
-      event.affectsSelf === false ||
+      !event.resolvedAudience?.includesSelf ||
       !isStandardBoon(kind) ||
       Number(event.at) > context.effectiveEnd + context.epsilon ||
       !(remaining > 0)
@@ -64,10 +64,12 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
       kind,
       duration: application.duration,
       stacks: application.stacks,
-      affectsSelf: false,
-      affectsSummons: true,
-      maximumRecipients: 1,
-      companionIds: [rangerPetCompanionId(context)],
+      audience: {
+        recipients: 'summons' as const,
+        affectsSelf: false,
+        maximumRecipients: 1,
+        eligibleCompanionIds: [rangerPetCompanionId(context)]
+      },
       triggeredBy: skill.name
     });
   }
@@ -113,10 +115,12 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Ran
     kind: String(lesserSicEm?.kind || 'lesser-sic-em-pet'),
     duration,
     stacks: Number(lesserSicEm?.stacks ?? 1),
-    affectsSelf: false,
-    affectsSummons: true,
-    maximumRecipients: 1,
-    companionIds: [rangerPetCompanionId(context)],
+    audience: {
+      recipients: 'summons' as const,
+      affectsSelf: false,
+      maximumRecipients: 1,
+      eligibleCompanionIds: [rangerPetCompanionId(context)]
+    },
     triggeredBy: event.skillName
   });
 }

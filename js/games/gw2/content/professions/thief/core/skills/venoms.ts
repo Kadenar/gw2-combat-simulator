@@ -3,7 +3,7 @@ import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-pr
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import type { ConditionEffect, SkillId } from '#gw2/platform/engine/types.js';
 import type {
@@ -11,7 +11,6 @@ import type {
   ThiefCoreState,
   ThiefResolverContext,
   ThiefResolverEvent,
-  ThiefSimulationEvent,
   ThiefSkill
 } from '#gw2/content/professions/thief/types.js';
 
@@ -74,17 +73,6 @@ function conditionEffects(context: unknown, venom: VenomDefinition): readonly Co
   return (balanceProfileFromContext(context, venom.profileId)?.effects || []).filter(
     (effect): effect is ConditionEffect => effect.type === 'condition'
   );
-}
-
-/** Limits venom buffs to the caster and configured player allies before their independent charges are materialized. */
-export function observeVenomBuff(context: ThiefCastContext, skill: ThiefSkill, event: ThiefSimulationEvent): void {
-  const venom = venomForSkill(skill.id);
-  if (!venom || event.type !== 'buff' || event.kind !== venom.kind) return;
-  const party = gw2AlliedPlayerAssumptions(context.config);
-  context.replaceEvent(event, {
-    recipientCount: party.count + 1,
-    maximumRecipients: party.count + 1
-  });
 }
 
 /** Arms the caster's finite venom charges and schedules each assumed ally's same bounded proc sequence. */

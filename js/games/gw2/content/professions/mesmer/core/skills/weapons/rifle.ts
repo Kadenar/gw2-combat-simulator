@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 0,
     effects: [
@@ -27,7 +26,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 5,
     resource: {
@@ -50,7 +48,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 12,
     effects: []
@@ -60,7 +57,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 20,
     phantasm: true,
@@ -85,7 +81,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 20,
     effects: []

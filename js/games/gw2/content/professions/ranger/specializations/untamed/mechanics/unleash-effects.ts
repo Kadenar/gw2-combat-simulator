@@ -53,7 +53,7 @@ function queueTraitBuff(
     kind,
     duration,
     stacks,
-    ...(party ? { recipients: 'party', maximumRecipients: 5 } : {}),
+    ...(party ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {}),
     triggeredBy: event.skillName
   });
 }

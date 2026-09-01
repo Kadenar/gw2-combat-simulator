@@ -108,12 +108,10 @@ export function createMirageActionController({
       duration: boonDuration(sourceSkill, String(boon.name || ''), Number(boon.duration || 0)),
       skillName: sourceSkill,
       sourceSkill,
-      ...(boonRecipients === 'party'
-        ? {
-            recipients: boonRecipients,
-            maximumRecipients: 5
-          }
-        : {})
+      audience: {
+        recipients: boonRecipients,
+        ...(boonRecipients === 'party' ? { maximumRecipients: 5 } : {})
+      }
     });
   };
 

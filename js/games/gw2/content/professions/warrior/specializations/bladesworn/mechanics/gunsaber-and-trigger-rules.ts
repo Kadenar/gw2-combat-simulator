@@ -73,7 +73,9 @@ function runtimeBuffActive(context: Gw2ModifierContext, kind: string): boolean {
   const applications = context.runtime?.boons?.get(kind) || [];
   return applications.some(
     (application) =>
-      application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
+      application.resolvedAudience.includesSelf &&
+      application.at <= context.time &&
+      application.expiresAt > context.time
   );
 }
 
@@ -83,7 +85,9 @@ function runtimeBuffStacks(context: Gw2ModifierContext, kind: string, maximum: n
     (context.runtime?.boons?.get(kind) || [])
       .filter(
         (application) =>
-          application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
+          application.resolvedAudience.includesSelf &&
+          application.at <= context.time &&
+          application.expiresAt > context.time
       )
       .reduce((total, application) => total + application.stacks, 0)
   );

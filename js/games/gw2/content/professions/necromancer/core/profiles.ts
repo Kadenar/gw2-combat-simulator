@@ -78,7 +78,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.1,
         actorType: 'effect',
         name: 'Soul Shards',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       }
     ]
   },
@@ -104,7 +105,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.03,
         actorType: 'effect',
         name: 'Signet of Vampirism - Passive Life Siphon',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       }
     ]
   },
@@ -174,7 +176,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.003,
         actorType: 'effect',
         packetLabel: 'player',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       },
       {
         type: 'strike',
@@ -184,7 +187,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.0213,
         actorType: 'effect',
         packetLabel: 'minion',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       }
     ]
   }),
@@ -199,7 +203,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.0333,
         actorType: 'effect',
         packetLabel: 'base',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       },
       {
         type: 'strike',
@@ -209,7 +214,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.0666,
         actorType: 'effect',
         packetLabel: 'shroud',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       }
     ]
   }),
@@ -229,7 +235,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.05,
         hits: 1,
         actorType: 'effect',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       }
     ]
   }),

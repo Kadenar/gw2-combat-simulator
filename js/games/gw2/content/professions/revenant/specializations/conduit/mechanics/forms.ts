@@ -43,7 +43,7 @@ export function emitDervishFormAttack(
     skillWeapon: 'Unequipped',
     canCrit: null,
     triggeredBy: skill.name,
-    metadata: { icon: attack.icon || '' }
+    icon: attack.icon || ''
   });
 }
 
@@ -64,7 +64,7 @@ export function emitLesserEnchantedDaggers(
     skillWeapon: 'Unequipped',
     canCrit: null,
     triggeredBy: sourceSkill.name,
-    metadata: { icon: skill.icon || '' }
+    icon: skill.icon || ''
   });
 }
 

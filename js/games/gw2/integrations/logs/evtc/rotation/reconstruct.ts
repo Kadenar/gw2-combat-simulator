@@ -104,18 +104,8 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
   if (perPacketPartialCast && sourceObservedMs < runtimeMs) return sourceObservedMs;
   if (interruptedAutoattack && sourceObservedMs < runtimeMs) return quantizeEvtcTimingMs(sourceObservedMs);
 
-  const sourceDurationMs = action.replayInterruptMs ?? action.end - action.start;
-  const paletteInterruptMs = Number(skill?.paletteInterruptMs);
-  // ArcDPS may stop a completed animation near a measured replay point; snap only within two action ticks.
-  if (
-    action.status !== 'interrupted' &&
-    paletteInterruptMs > 0 &&
-    Math.abs(sourceDurationMs - paletteInterruptMs) <= 2 * EVTC_TIMING_QUANTUM_MS
-  ) {
-    return observedCommittedInterruptMs(skill, paletteInterruptMs);
-  }
-
-  return observedCommittedInterruptMs(skill, sourceDurationMs);
+  // The EVTC duration is authoritative once it falls within the skill's declared commit/full-cast bounds.
+  return observedCommittedInterruptMs(skill, action.replayInterruptMs ?? action.end - action.start);
 }
 
 /** Expands casts whose uncancellable aftercast keeps the simulator lane occupied through full completion. */

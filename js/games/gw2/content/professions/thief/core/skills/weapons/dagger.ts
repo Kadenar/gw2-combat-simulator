@@ -132,9 +132,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'blind',
         actorType: 'player',
-        metadata: {
-          duration: 5
-        }
+        duration: 5
       }
     ],
     requiredMainHand: 'Dagger',

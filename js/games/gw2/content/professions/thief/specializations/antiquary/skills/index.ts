@@ -42,10 +42,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ],
     artifactKind: 'offensive'
@@ -83,10 +81,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ],
     artifactKind: 'offensive'
@@ -147,10 +143,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'taunt',
-          duration: 3
-        }
+        controlKind: 'taunt',
+        duration: 3
       },
       {
         type: 'strike',
@@ -346,9 +340,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'blind',
         actorType: 'player',
-        metadata: {
-          duration: 5
-        }
+        duration: 5
       }
     ],
     artifactKind: 'defensive'
@@ -370,10 +362,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockback',
-          duration: 180
-        }
+        controlKind: 'knockback',
+        duration: 180
       }
     ],
     backfire: true
@@ -539,10 +529,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 0
-        }
+        controlKind: 'launch',
+        duration: 0
       }
     ],
     doubleEdge: true
@@ -550,7 +538,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.MISTBURN_MORTAR]: {
     implemented: true,
     handlerId: 'thief.artifact',
-    castTimeMs: 950,
+    // Measured Quickness timings make artifact use reserve the same cast-lane time seen in EVTC.
+    quicknessCastTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -582,7 +571,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     stealTraitSkill: true,
     movementSkill: true,
     handlerId: 'thief.skritt-swipe',
-    castTimeMs: 0,
+    quicknessCastTimeMs: 200,
     cooldown: 25,
     initiativeCost: 0,
     effects: []

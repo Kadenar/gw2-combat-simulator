@@ -92,7 +92,7 @@ export function emitNuminousGift(
 ): void {
   if (context.config.specialization !== 'Conduit') return;
   const profile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift);
-  const recipients = options.allies ? 'allies' : 'self';
+  const audience = { recipients: options.allies ? ('party' as const) : ('self' as const) };
   const selectedLegends = professionCoreState(context).selectedLegendIds;
   for (const effect of profile?.effects || []) {
     if (effect.type !== 'boon' || !effect.boon) continue;
@@ -104,7 +104,7 @@ export function emitNuminousGift(
       kind: effect.boon,
       duration: Number(effect.duration || 0),
       stacks: Number(effect.stacks || 1),
-      recipients
+      audience
     });
   }
 }

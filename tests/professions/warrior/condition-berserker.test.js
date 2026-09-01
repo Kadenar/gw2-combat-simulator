@@ -100,7 +100,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(smolderingArrow.ammoCastLockout, 0.5);
   assert.equal(smolderingArrow.effects[0].coefficient, 0.2);
   assert.equal(
-    smolderingArrow.effects.some((effect) => effect.type === 'blind' && effect.metadata.duration === 5),
+    smolderingArrow.effects.some((effect) => effect.type === 'blind' && effect.duration === 5),
     true
   );
   assert.equal(smolderingArrow.comboFinishers[0].finisherType, 'Projectile');

@@ -175,7 +175,8 @@ export function effectName(kind: unknown, event: Readonly<Record<string, unknown
   const key = String(kind || '');
   const name = EFFECT_NAMES[key];
   if (key === 'guardian-radiant-armaments') {
-    const weapon = RADIANT_ARMAMENT_NAMES[String(event.radiantWeapon || '')];
+    const metadata = event.metadata as Readonly<Record<string, unknown>> | undefined;
+    const weapon = RADIANT_ARMAMENT_NAMES[String(metadata?.radiantWeapon || '')];
     return weapon ? `${name} (${weapon})` : name;
   }
 

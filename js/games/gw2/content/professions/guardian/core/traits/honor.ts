@@ -107,7 +107,7 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
       kind: 'might',
       duration: Number(might?.duration || 5),
       stacks: Number(might?.stacks || 4),
-      recipients: 'party',
+      audience: { recipients: 'party' as const },
       triggeredBy: 'Writ of Persistence'
     });
   }

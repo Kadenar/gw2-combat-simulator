@@ -24,9 +24,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ],
     handlerId: 'necromancer.oppressive-collapse'

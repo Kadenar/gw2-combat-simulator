@@ -6,8 +6,8 @@ import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime } from '#gw2/con
 
 import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
-// Enforce terrestrial, specialization, and weaponmaster restrictions before a
-// skill enters either the build UI or runtime availability checks.
+// Enforce specialization and weaponmaster restrictions before a skill enters
+// either the build UI or runtime availability checks.
 export function isMesmerBuildSkillAvailable(
   skill: MesmerSkill,
   config: Pick<MesmerConfig, 'specialization' | 'weaponmasterTraining'>
@@ -16,7 +16,6 @@ export function isMesmerBuildSkillAvailable(
     return !skill.specialization || skill.specialization === config.specialization;
   }
 
-  if (skill.environment !== 'Terrestrial') return false;
   if (skill.specialization && skill.type !== 'Weapon' && skill.specialization !== config.specialization) return false;
   if (
     skill.specialization &&

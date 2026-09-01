@@ -128,7 +128,7 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
         includes: (event) =>
           event.type === 'buff' &&
           String(event.kind || '').toLowerCase() === normalized &&
-          event.affectsSummons === true &&
+          event.resolvedAudience?.includesSummons === true &&
           Number(event.stacks || 1) > 0,
         maximum: durationStackingBoonCapSeconds(normalized)
       }) > context.epsilon
@@ -139,7 +139,7 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
     (event) =>
       event.type === 'buff' &&
       String(event.kind || '').toLowerCase() === normalized &&
-      event.affectsSummons === true &&
+      event.resolvedAudience?.includesSummons === true &&
       Number(event.stacks || 1) > 0 &&
       event.at <= at + context.epsilon &&
       event.at + Math.max(0, Number(event.duration || 0)) > at + context.epsilon

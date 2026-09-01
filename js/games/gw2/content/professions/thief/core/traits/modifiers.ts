@@ -76,7 +76,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: 1.5,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      context.event?.packetKind === 'thief.vampiric-slash-life-siphon' &&
+      context.event?.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&
       targetConditionActive(context, 'Vulnerability')
   },
   {

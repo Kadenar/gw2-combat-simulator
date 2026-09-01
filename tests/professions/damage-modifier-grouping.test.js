@@ -106,7 +106,7 @@ test('Guardian additive and multiplicative modifiers use separate buckets', () =
         kind: 'guardian-radiant-armaments',
         at: 0,
         duration: 10,
-        radiantWeapon: 'hammer'
+        metadata: { radiantWeapon: 'hammer' }
       }
     ]
   });
@@ -121,7 +121,7 @@ test('Glaring Burst hammer damage multiplies shared additive modifiers', () => {
     event: {
       source: 'Player',
       skillId: GUARDIAN_SKILL_IDS.GLARING_BURST,
-      radiantWeapon: 'hammer'
+      metadata: { radiantWeapon: 'hammer' }
     },
     active: ['guardian-piercing-stance'],
     sigils: {

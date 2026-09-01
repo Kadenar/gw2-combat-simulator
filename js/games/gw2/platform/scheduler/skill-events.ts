@@ -4,8 +4,11 @@
  * leaving unusual profession metadata and ownership explicit at the call site.
  */
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 
 import type {
+  EffectAudience,
+  EffectMetadata,
   SchedulerContext,
   SchedulerRecord,
   SimulationActorType,
@@ -34,10 +37,7 @@ interface SkillEventOwnership extends SchedulerRecord {
 
 interface SkillEventMetadata {
   /** Profession-specific fields that are outside the canonical GW2 envelope. */
-  readonly metadata?: Readonly<SchedulerRecord> & {
-    readonly recipients?: never;
-    readonly maximumRecipients?: never;
-  };
+  readonly metadata?: EffectMetadata;
 }
 
 interface StandardSkillEventEnvelope extends SchedulerRecord {
@@ -75,12 +75,7 @@ export interface EmitSkillBuffOptions extends SkillEventOwnership, SkillEventMet
   readonly stacks?: number;
   readonly fixedDuration?: boolean;
   readonly maximumDuration?: number;
-  readonly recipients?: string;
-  readonly affectsSelf?: boolean;
-  readonly affectsSummons?: boolean;
-  readonly maximumRecipients?: number;
-  readonly targetCap?: number;
-  readonly companionIds?: readonly string[];
+  readonly audience?: EffectAudience;
 }
 
 export interface EmitSkillControlOptions extends SkillEventOwnership, SkillEventMetadata {
@@ -137,17 +132,10 @@ function supplementalEventFields(
   options: SkillEventOwnership & SkillEventMetadata,
   internalFields: readonly string[] = []
 ): SchedulerRecord {
-  // Recipient targeting belongs to the canonical event envelope, so nested copies are invalid.
-  for (const field of ['recipients', 'maximumRecipients']) {
-    if (Object.hasOwn(options.metadata || {}, field)) {
-      throw new TypeError(`Skill event metadata must not contain canonical field ${field}.`);
-    }
-  }
-
-  // Preserve explicit profession metadata while keeping helper-only controls out
-  // of the emitted event and allowing the canonical envelope to win conflicts.
-  const fields: SchedulerRecord = { ...options, ...(options.metadata || {}) };
-  for (const field of ['skill', 'cause', 'metadata', 'type', ...internalFields]) delete fields[field];
+  // Preserve nested metadata while keeping helper-only controls out of the emitted event.
+  const metadata = normalizeEffectMetadata(options.metadata);
+  const fields: SchedulerRecord = { ...options, ...(metadata ? { metadata } : {}) };
+  for (const field of ['skill', 'cause', 'type', ...internalFields]) delete fields[field];
   return fields;
 }
 
@@ -200,7 +188,7 @@ export function emitSkillDamage<TProfessionState extends object>(
           : (skill.skillWeapon ?? (skill.type === 'Weapon' ? String(skill.weapon || '') : 'Unequipped'))),
       ...(options.canCrit === null ? {} : { canCrit: options.canCrit !== false })
     };
-    emitted.push(emitProceduralEvent(context, Object.assign({}, options.metadata || {}, event), options.cause));
+    emitted.push(emitProceduralEvent(context, event, options.cause));
   }
 
   return emitted;
@@ -234,7 +222,7 @@ export function emitSkillCondition<TProfessionState extends object>(
     stacks: options.stacks,
     duration: options.duration
   };
-  return emitProceduralEvent(context, Object.assign({}, options.metadata || {}, event), options.cause);
+  return emitProceduralEvent(context, event, options.cause);
 }
 
 /** Emits one positive status, applying boon duration only to standard boons. */
@@ -260,6 +248,7 @@ export function emitSkillBuff<TProfessionState extends object>(
   });
   const duration =
     options.maximumDuration == null ? adjustedDuration : Math.min(options.maximumDuration, adjustedDuration);
+  const audience = normalizeEffectAudience(options.audience);
 
   const event: SimulationEventInput = {
     ...supplementalEventFields(options, ['fixedDuration', 'maximumDuration']),
@@ -270,14 +259,9 @@ export function emitSkillBuff<TProfessionState extends object>(
     kind: options.kind,
     duration,
     stacks: options.stacks ?? 1,
-    ...(options.recipients ? { recipients: options.recipients } : {}),
-    ...(options.affectsSelf == null ? {} : { affectsSelf: options.affectsSelf }),
-    ...(options.affectsSummons == null ? {} : { affectsSummons: options.affectsSummons }),
-    ...(options.maximumRecipients == null ? {} : { maximumRecipients: options.maximumRecipients }),
-    ...(options.targetCap == null ? {} : { targetCap: options.targetCap }),
-    ...(options.companionIds ? { companionIds: options.companionIds } : {})
+    ...(audience ? { audience } : {})
   };
-  return emitProceduralEvent(context, Object.assign({}, options.metadata || {}, event), options.cause);
+  return emitProceduralEvent(context, event, options.cause);
 }
 
 /** Emits one control packet with an explicit control kind and optional duration. */
@@ -305,5 +289,5 @@ export function emitSkillControl<TProfessionState extends object>(
     controlKind: options.controlKind ?? 'control',
     ...(options.duration == null ? {} : { duration: options.duration })
   };
-  return emitProceduralEvent(context, Object.assign({}, options.metadata || {}, event), options.cause);
+  return emitProceduralEvent(context, event, options.cause);
 }

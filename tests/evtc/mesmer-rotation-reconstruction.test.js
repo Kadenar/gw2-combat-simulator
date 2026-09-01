@@ -1260,8 +1260,7 @@ test('recovers the ordered Troubadour precast chain and committed short Harp cas
     }),
     skill(76960, 'Harmonious Harp', {
       quicknessCastTimeMs: 2000,
-      interruptCommitMs: 400,
-      paletteInterruptMs: 480
+      interruptCommitMs: 400
     }),
     skill(23285, 'Weapon Stow', { type: 'Action', slot: 'Action' })
   ];
@@ -1322,6 +1321,6 @@ test('recovers the ordered Troubadour precast chain and committed short Harp cas
   assert.equal(names(result, 'Mimic').length, 3);
   assert.equal(names(result, 'Mimic')[0].evidence, 'initial-state');
   assert.equal(names(result, 'Phantasmal Swordsman')[0].evidence, 'animation');
-  assert.equal(result.rotation.find((command) => command.name === 'Harmonious Harp')?.interruptMs, 480);
+  assert.equal(result.rotation.find((command) => command.name === 'Harmonious Harp')?.interruptMs, 440);
   assert.equal(names(result, 'Weapon Stow').length, 0);
 });

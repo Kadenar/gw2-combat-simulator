@@ -53,8 +53,7 @@ function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): vo
         Number(effect?.duration ?? (boonIndex === 0 ? (hawkeye ? 8 : 4) : 10))
       ),
       stacks: Number(effect?.stacks ?? (boonIndex === 0 ? 1 : hawkeye ? 8 : 4)),
-      recipients: 'party',
-      maximumRecipients: 5,
+      audience: { recipients: 'party' as const, maximumRecipients: 5 },
       triggeredBy: skill.name
     });
   }

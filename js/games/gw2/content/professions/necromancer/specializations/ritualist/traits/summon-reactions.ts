@@ -103,7 +103,7 @@ export function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Ne
   if (!hasTrait(context, TRAIT.EMPOWERING_SPIRITS)) return;
   const profile = balanceProfileFromContext(context, PROFILE.empoweringSpirits);
   const quickness = balanceProfileEffect(profile, 'boon');
-  const boonOptions = { recipients: 'party', maximumRecipients: 5 };
+  const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,
     kind: String(quickness?.boon || 'quickness'),

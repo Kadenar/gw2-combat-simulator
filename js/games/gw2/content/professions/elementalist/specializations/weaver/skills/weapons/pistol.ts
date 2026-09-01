@@ -152,9 +152,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       },
       {
         type: 'condition',

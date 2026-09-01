@@ -21,7 +21,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     cooldown: 5,
     resource: {
       mode: 'add',
@@ -80,7 +79,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 12,
     effects: []
@@ -90,7 +88,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 4,
@@ -105,7 +102,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 15,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
@@ -116,7 +112,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 20,
     effects: []
@@ -126,7 +121,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
@@ -138,7 +132,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 1000,
     cooldown: 35,
     damageAtMs: 850,
@@ -149,11 +142,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
-    // Harp Playing commits by 480ms; keep the measured 480ms replay point for its remaining animation.
+    // Harp Playing commits by 480 ms, so an observed cast at or beyond that point can be reconstructed safely.
     quicknessCastTimeMs: 2000,
     interruptCommitMs: 480,
-    paletteInterruptMs: 480,
     cooldown: 25,
     effects: []
   },
@@ -162,7 +153,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Elite',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 75,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
@@ -173,7 +163,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 400,
     cooldown: 20,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
@@ -228,11 +217,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     // Keep the duplicate Harp profile aligned with the same packet-backed interrupt contract.
     quicknessCastTimeMs: 2000,
     interruptCommitMs: 400,
-    paletteInterruptMs: 480,
     cooldown: 25,
     effects: []
   },
@@ -241,7 +228,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 680,
     cooldown: 25,
     effects: []
@@ -251,7 +237,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 30,
@@ -263,7 +248,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 12,
     effects: []
@@ -283,7 +267,6 @@ export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Action',
     slot: 'Action',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,

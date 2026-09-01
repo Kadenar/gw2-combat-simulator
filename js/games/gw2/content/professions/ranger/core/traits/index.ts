@@ -95,9 +95,7 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
         boon: kind,
         duration: Number(effect?.duration ?? 6),
         stacks: Number(effect?.stacks ?? 1),
-        recipients: 'party',
-        affectsSummons: true,
-        maximumRecipients: 5,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         triggeredBy: skill.name
       });
     }
@@ -120,9 +118,7 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
       boon: kind,
       duration: Number(effect?.duration ?? 6),
       stacks: Number(effect?.stacks ?? 1),
-      recipients: 'party',
-      affectsSummons: true,
-      maximumRecipients: 5,
+      audience: { recipients: 'party' as const, maximumRecipients: 5 },
       triggeredBy: skill.name
     });
   }
@@ -159,9 +155,7 @@ export function applyRangerBeastSkillTraits(
       boon: kind,
       duration: Number(effect?.duration ?? 10),
       stacks: Number(effect?.stacks ?? 1),
-      recipients: 'party',
-      affectsSummons: true,
-      maximumRecipients: 5,
+      audience: { recipients: 'party' as const, maximumRecipients: 5 },
       triggeredBy: skill.name
     });
   }
@@ -247,9 +241,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
         boon: boon.kind,
         duration: boon.duration,
         stacks: boon.stacks,
-        recipients: 'party',
-        affectsSummons: true,
-        maximumRecipients: 5,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         triggeredBy: skill.name
       });
     }
@@ -286,9 +278,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
         boon: boon.kind,
         duration: boon.duration,
         stacks: boon.stacks,
-        recipients: 'party',
-        affectsSummons: true,
-        maximumRecipients: 5,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
         triggeredBy: skill.name
       });
     }

@@ -634,7 +634,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       },
       {
         type: 'control',
-        metadata: { controlKind: 'knockdown' }
+        controlKind: 'knockdown'
       }
     ]
   },

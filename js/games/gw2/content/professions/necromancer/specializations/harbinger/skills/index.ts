@@ -79,10 +79,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'float',
-          duration: 1
-        }
+        controlKind: 'float',
+        duration: 1
       }
     ],
     // Aggregate the three 3% siphons because the simulator assumes every strike connects.
@@ -192,7 +190,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     blightGain: 10,
     effects: [
       { type: 'strike', coefficient: 0.8, hits: 1 },
-      { type: 'blind', metadata: { duration: 0 } }
+      { type: 'blind', duration: 0 }
     ],
     handlerId: 'necromancer.elixir'
   },

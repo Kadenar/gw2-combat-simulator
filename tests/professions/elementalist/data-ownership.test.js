@@ -245,7 +245,7 @@ test('Burning Speed shares its field tick timing across damage and burning', () 
       [160, 1160, 2160, 3160, 4160]
     ]
   );
-  assert.ok(fieldTicks[0].ticks.every((tick) => tick.coefficient === 0.2 && tick.metadata.damageKind === 'field-tick'));
+  assert.ok(fieldTicks[0].ticks.every((tick) => tick.coefficient === 0.2 && tick.damageKind === 'field-tick'));
   assert.ok(
     fieldTicks[1].ticks.every((tick) => tick.condition === 'Burning' && tick.stacks === 1 && tick.duration === 2)
   );
@@ -259,9 +259,7 @@ test('Flamewall shares its tick timing across damage and burning', () => {
     flamewall.effects.map((effect) => effect.ticks.map((tick) => tick.atMs)),
     [expectedOffsets, expectedOffsets]
   );
-  assert.ok(
-    flamewall.effects[0].ticks.every((tick) => tick.coefficient === 0.1 && tick.metadata.damageKind === 'field-tick')
-  );
+  assert.ok(flamewall.effects[0].ticks.every((tick) => tick.coefficient === 0.1 && tick.damageKind === 'field-tick'));
   assert.ok(
     flamewall.effects[1].ticks.every(
       (tick) => tick.condition === 'Burning' && tick.stacks === 1 && tick.duration === 2.5

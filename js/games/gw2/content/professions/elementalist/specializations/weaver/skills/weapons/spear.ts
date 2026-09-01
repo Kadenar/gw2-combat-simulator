@@ -279,9 +279,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       },
       {
         type: 'condition',

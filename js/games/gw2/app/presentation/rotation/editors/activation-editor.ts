@@ -2,6 +2,8 @@ import type { Skill } from '#gw2/platform/engine/types.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 import { mountFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
 
+const ACTIVATION_INTERRUPT_INTERVAL_MS = 20;
+
 export interface ActivationEditorOptions {
   readonly anchor: HTMLElement;
   readonly skillName: string;
@@ -79,32 +81,39 @@ export function activationDamageCommitWarning(
   return '';
 }
 
-/** Accepts only positive GW2 action ticks before the full cast completes. */
+/** Accepts 20 ms interruption intervals plus exact full completion so catalog cast times remain directly usable. */
 export function validateActivationInterruptMs(
   rawValue: string | number,
   fullCastMs: number | null | undefined = null
 ): ActivationInterruptValidation {
   const parsed = Number(rawValue);
-  if (!Number.isFinite(parsed) || parsed < GW2_ACTION_TICK_MS) {
+  if (!Number.isFinite(parsed) || parsed < ACTIVATION_INTERRUPT_INTERVAL_MS) {
     return {
       valid: false,
-      error: `Enter an interruption time of at least ${GW2_ACTION_TICK_MS} ms.`
+      error: `Enter an interruption time of at least ${ACTIVATION_INTERRUPT_INTERVAL_MS} ms.`
     };
   }
 
-  if (!Number.isInteger(parsed) || parsed % GW2_ACTION_TICK_MS !== 0) {
+  if (!Number.isInteger(parsed)) {
     return {
       valid: false,
-      error: `Enter an interruption time divisible by ${GW2_ACTION_TICK_MS} ms.`
+      error: 'Enter a whole-millisecond interruption time.'
     };
   }
 
   const value = parsed;
   const fullDuration = Math.round(Number(fullCastMs) || 0);
-  if (fullDuration > 0 && value >= fullDuration) {
+  if (value !== fullDuration && value % ACTIVATION_INTERRUPT_INTERVAL_MS !== 0) {
     return {
       valid: false,
-      error: `Enter a value below the full cast time of ${fullDuration} ms.`
+      error: `Enter an interruption time divisible by ${ACTIVATION_INTERRUPT_INTERVAL_MS} ms.`
+    };
+  }
+
+  if (fullDuration > 0 && value > fullDuration) {
+    return {
+      valid: false,
+      error: `Enter a value no greater than the full cast time of ${fullDuration} ms.`
     };
   }
 
@@ -157,19 +166,18 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     ? options.minimumConcurrentOffsetMs === null
       ? null
       : Math.round(Number(options.minimumConcurrentOffsetMs) || 0)
-    : GW2_ACTION_TICK_MS;
-  const inputStep = isConcurrentBehavior && minimumMs == null ? 1 : GW2_ACTION_TICK_MS;
+    : ACTIVATION_INTERRUPT_INTERVAL_MS;
+  const inputStep = isConcurrentBehavior
+    ? minimumMs == null
+      ? 1
+      : GW2_ACTION_TICK_MS
+    : ACTIVATION_INTERRUPT_INTERVAL_MS;
   const suggestedFloor = minimumMs ?? Number.NEGATIVE_INFINITY;
   const suggestedMs = Number.isFinite(rawSuggestedMs)
-    ? Math.max(
-        suggestedFloor,
-        isConcurrentBehavior
-          ? Math.round(rawSuggestedMs / inputStep) * inputStep
-          : Math.floor(rawSuggestedMs / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS
-      )
+    ? Math.max(suggestedFloor, Math.round(rawSuggestedMs / inputStep) * inputStep)
     : isConcurrentBehavior
       ? Math.max(suggestedFloor, 120)
-      : GW2_ACTION_TICK_MS;
+      : ACTIVATION_INTERRUPT_INTERVAL_MS;
   const inputMinimum = minimumMs == null ? '' : ` min="${minimumMs}"`;
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor';
@@ -256,7 +264,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   normalRadio.checked = !hasConfiguredTiming;
   configuredRadio.checked = hasConfiguredTiming;
   input.value = String(hasConfiguredTiming ? Math.round(currentConfiguredMs) : suggestedMs);
-  if (!isConcurrentBehavior && fullCastMs > 1) input.max = String(fullCastMs - 1);
+  if (!isConcurrentBehavior && fullCastMs > 0) input.max = String(fullCastMs);
   fullCast.textContent = !isConcurrentBehavior && fullCastMs > 0 ? `Full cast: ${fullCastMs} ms` : '';
   fullCast.hidden = isConcurrentBehavior || fullCastMs <= 0;
   damageCommit.textContent = isConcurrentBehavior ? '' : activationDamageCommitLabel(options.damageCommitMs);

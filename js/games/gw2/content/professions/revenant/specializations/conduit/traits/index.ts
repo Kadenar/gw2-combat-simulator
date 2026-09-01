@@ -107,7 +107,7 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
 }
 
 export function observeConduitTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  if (event.type === 'damage' && event.affinityOnHit === true) {
+  if (event.type === 'damage' && event.metadata?.affinityOnHit === true) {
     const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
     const cost = Number(skill?.energyCost || 0);
     // Affinity gain is deferred to a task so it resolves at the hit timestamp, not at cast start.

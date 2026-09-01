@@ -11,7 +11,7 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
     const buildKey = definition.buildKey || 'initialResource';
     const value = Number(app.build[buildKey]);
     if (Number.isFinite(value)) {
-      app.build[buildKey] = Math.min(value, definition.maximum);
+      app.build[buildKey] = Math.min(value, definition.startMaximum ?? definition.maximum);
     }
   }
 }

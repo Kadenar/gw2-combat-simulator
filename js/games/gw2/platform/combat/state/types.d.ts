@@ -1,5 +1,5 @@
 /** Owns the combat/state/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { ResolvedEffectAudience, SchedulerRecord } from '#gw2/platform/engine/types.js';
 
 export type Gw2BuffAudience = 'all' | 'summon' | 'summon-trait';
 
@@ -39,9 +39,5 @@ export interface Gw2TimedBuffApplication {
   readonly expiresAt: number;
   readonly stacks: number;
   readonly source?: string;
-  readonly affectsSelf?: boolean;
-  readonly affectsSummons?: boolean;
-  readonly alliedPlayerCount?: number;
-  readonly companionIds?: readonly string[];
-  readonly recipientCount?: number;
+  readonly resolvedAudience: ResolvedEffectAudience;
 }

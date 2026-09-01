@@ -89,9 +89,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',
@@ -132,9 +130,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',
@@ -254,10 +250,8 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         timingScale: 'cast',
         name: 'Flash Cutter—Storm',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
+        damageKind: 'explosion',
+        projectile: true
       }
     ],
     forgeSkill: true
@@ -273,9 +267,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         hits: 1,
         name: 'Prime Light Beam — Packet 1',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'custom',
@@ -291,10 +283,8 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 240
-        }
+        controlKind: 'launch',
+        duration: 240
       }
     ]
   },
@@ -323,10 +313,8 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         persistsAfterInterrupt: true,
         name: 'Bright Slash—Storm',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
+        damageKind: 'explosion',
+        projectile: true
       }
     ],
     forgeSkill: true
@@ -348,10 +336,8 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 0
-        }
+        controlKind: 'launch',
+        duration: 0
       }
     ],
     forgeSkill: true
@@ -422,9 +408,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         name: 'Vent Exhaust',
         actorType: 'player',
         canCrit: false,
-        metadata: {
-          noCrit: true
-        }
+        noCrit: true
       },
       {
         type: 'condition',
@@ -471,10 +455,8 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         hits: 1,
         name: 'Light Strike—Storm',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
+        damageKind: 'explosion',
+        projectile: true
       }
     ],
     forgeSkill: true
@@ -501,9 +483,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         name: 'Initial Damage',
         actorType: 'player',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'strike',
@@ -513,9 +493,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         name: 'Explosion Damage',
         actorType: 'player',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -669,9 +647,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
         timingScale: 'fixed',
         name: 'Photon Blitz',
         actorType: 'player',
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',

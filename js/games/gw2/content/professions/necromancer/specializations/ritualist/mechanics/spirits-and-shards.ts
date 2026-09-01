@@ -63,9 +63,13 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     parameters: { damagePerSpirit: 0.15 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => Number(context.event?.activeSpirits || 0) * parameters.damagePerSpirit,
+    amount: (context, _target, parameters) =>
+      Number(context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
     when: (context) =>
-      Boolean(necromancerEventSkill(context)?.id === ID.ESSENCE_BLAST && Number(context.event?.activeSpirits || 0) > 0)
+      Boolean(
+        necromancerEventSkill(context)?.id === ID.ESSENCE_BLAST &&
+        Number(context.event?.metadata?.activeSpirits || 0) > 0
+      )
   },
   {
     id: 'necromancer.lingering-spirits',
@@ -89,7 +93,7 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       targetConditionCount(context) * parameters.damagePerCondition +
       (necromancerTargetControlled(context) ? parameters.controlledBonus : 0),
     // Flag is set on Anguish autoattacks and summon barrage hits but NOT on innervate or Summon Spirits hits
-    when: (context) => Boolean(context.event?.anguishConditionalDamage)
+    when: (context) => Boolean(context.event?.metadata?.anguishConditionalDamage)
   },
   {
     id: 'necromancer.spirits-strength',
@@ -102,7 +106,7 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       Boolean(
         (context.event?.actorType === 'summon' || context.event?.summonKind === 'spirit') &&
         // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
-        context.event?.spiritAttackType !== 'innervate' &&
+        context.event?.metadata?.spiritAttackType !== 'innervate' &&
         hasTrait(context, TRAIT.SPIRITS_STRENGTH)
       )
   }

@@ -95,7 +95,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         atMs: 1640,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { controlKind: 'knockdown', duration: 2 }
+        controlKind: 'knockdown',
+        duration: 2
       }
     ],
     quicknessCastTimeMs: 480,
@@ -225,10 +226,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ticks: [{ atMs: 1720, coefficient: 0.583 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          skillName: 'Exploding Spore',
-          parentSkillName: 'Relentless Whirl'
-        }
+        skillName: 'Exploding Spore',
+        parentSkillName: 'Relentless Whirl'
       },
       {
         type: 'condition',
@@ -237,10 +236,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ticks: [{ atMs: 1720, condition: 'Poisoned', stacks: 2, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          skillName: 'Exploding Spore',
-          parentSkillName: 'Relentless Whirl'
-        }
+        skillName: 'Exploding Spore',
+        parentSkillName: 'Relentless Whirl'
       },
       {
         type: 'strike',
@@ -250,7 +247,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         canCrit: false,
-        metadata: { damageKind: 'life-steal' }
+        damageKind: 'life-steal'
       }
     ],
     quicknessCastTimeMs: 1560,
@@ -270,7 +267,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { controlKind: 'daze', duration: 1 }
+        controlKind: 'daze',
+        duration: 1
       },
       {
         type: 'strike',
@@ -279,10 +277,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ticks: [{ atMs: 2160, coefficient: 0.583 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          skillName: 'Exploding Spore',
-          parentSkillName: 'Deft Strike'
-        }
+        skillName: 'Exploding Spore',
+        parentSkillName: 'Deft Strike'
       },
       {
         type: 'condition',
@@ -291,10 +287,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ticks: [{ atMs: 2160, condition: 'Poisoned', stacks: 2, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          skillName: 'Exploding Spore',
-          parentSkillName: 'Deft Strike'
-        }
+        skillName: 'Exploding Spore',
+        parentSkillName: 'Deft Strike'
       },
       {
         type: 'strike',
@@ -304,7 +298,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         canCrit: false,
-        metadata: { damageKind: 'life-steal' }
+        damageKind: 'life-steal'
       }
     ],
     quicknessCastTimeMs: 960,

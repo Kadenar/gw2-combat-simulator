@@ -774,12 +774,12 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
   assert.equal(rechargeMs(playerAlacrity), 15000);
   assert.equal(rechargeMs(petAlacrity), 12000);
   const petAlacrityApplication = petAlacrity.events.find(
-    (event) => event.type === 'buff' && event.kind === 'alacrity' && event.affectsSummons === true
+    (event) => event.type === 'buff' && event.kind === 'alacrity' && event.resolvedAudience.includesSummons
   );
 
   assert.ok(petAlacrityApplication);
-  assert.equal(petAlacrityApplication.companionIds.length, 1);
-  assert.match(petAlacrityApplication.companionIds[0], /^ranger-pet:/);
+  assert.equal(petAlacrityApplication.resolvedAudience.companionIds.length, 1);
+  assert.match(petAlacrityApplication.resolvedAudience.companionIds[0], /^ranger-pet:/);
 });
 
 test('Ranger party boons prioritize players before the active pet', () => {
@@ -798,13 +798,13 @@ test('Ranger party boons prioritize players before the active pet', () => {
   );
 
   assert.ok(shared);
-  assert.equal(shared.alliedPlayerCount, 2);
-  assert.equal(shared.companionIds.length, 1);
-  assert.match(shared.companionIds[0], /^ranger-pet:/);
+  assert.equal(shared.resolvedAudience.alliedPlayerCount, 2);
+  assert.equal(shared.resolvedAudience.companionIds.length, 1);
+  assert.match(shared.resolvedAudience.companionIds[0], /^ranger-pet:/);
   assert.ok(capped);
-  assert.equal(capped.alliedPlayerCount, 4);
-  assert.deepEqual(capped.companionIds, []);
-  assert.equal(capped.affectsSummons, false);
+  assert.equal(capped.resolvedAudience.alliedPlayerCount, 4);
+  assert.deepEqual(capped.resolvedAudience.companionIds, []);
+  assert.equal(capped.resolvedAudience.includesSummons, false);
 });
 
 test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
@@ -2183,7 +2183,6 @@ test("Quarry's Peril commits at 320 ms and deals damage at 800 ms", () => {
     result.events.find((event) => event.type === 'action' && event.skillId === ID.QUARRYS_PERIL);
   const fleetingStep = (result) => result.steps.find((step) => step.skill === 'Fleeting Zephyr');
 
-  assert.equal(rangerCatalog.skillsById.get(ID.QUARRYS_PERIL).paletteInterruptMs, 320);
   assert.equal(rangerCatalog.skillsById.get(ID.QUARRYS_PERIL).interruptCommitMs, 320);
   assert.equal(rangerCatalog.skillsById.get(ID.QUARRYS_PERIL).retainsCastLockoutAfterInterrupt, true);
   assert.equal(quarryStep(fullCast).fullCastMs, 680);

@@ -210,10 +210,8 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
           ...[8560, 9560].map((atMs) => ({
             atMs,
             coefficient: 0.44,
-            metadata: {
-              damageKind: 'field-tick',
-              largeHitboxOnly: true
-            }
+            damageKind: 'field-tick',
+            metadata: { largeHitboxOnly: true }
           }))
         ]
       };

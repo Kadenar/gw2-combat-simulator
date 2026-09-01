@@ -8,7 +8,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Profession',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
@@ -25,7 +24,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Profession',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
@@ -42,7 +40,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Profession',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
@@ -59,7 +56,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Profession',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {

@@ -137,10 +137,8 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 2
-        }
+        controlKind: 'daze',
+        duration: 2
       },
       {
         type: 'condition',

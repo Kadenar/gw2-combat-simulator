@@ -22,7 +22,7 @@ export function darkBarrage(context: NecromancerCastContext, skill: NecromancerS
       coefficient: 0.6 * landedHits,
       hits: landedHits,
       interval,
-      metadata: { totalHits: hits }
+      totalHits: hits
     });
   }
 

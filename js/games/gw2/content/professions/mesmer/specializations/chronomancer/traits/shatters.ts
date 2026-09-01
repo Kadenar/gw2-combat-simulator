@@ -23,8 +23,7 @@ const triggerShatterBoon = (
     boon: fallbackBoon,
     duration: 3,
     stacks: 1,
-    recipients: 'party',
-    maximumRecipients: 5
+    audience: { recipients: 'party' as const, maximumRecipients: 5 }
   };
   const kind = String(effect.boon || fallbackBoon);
   const baseDuration =
@@ -39,8 +38,7 @@ const triggerShatterBoon = (
     duration,
     skillName: resolution.skill.name,
     sourceSkill: resolution.skill.name,
-    recipients: 'party',
-    maximumRecipients: Number(effect.maximumRecipients ?? 5)
+    audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
   runtime.addTraitProc(traitName, resolution.at, resolution.skill.name, `${duration}s ${kind}`);
 };

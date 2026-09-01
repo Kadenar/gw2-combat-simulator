@@ -69,7 +69,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       const profile = balanceProfileFromContext(context, PROFILE.deathlyHaste);
       const quickness = balanceProfileEffect(profile, 'boon');
       const fury = balanceProfileEffect(profile, 'boon', 1);
-      const recipients = { recipients: 'party' as const, maximumRecipients: 5 };
+      const recipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
       emitSkillBuff(context, skill, {
         at,
         kind: String(quickness?.boon || 'quickness'),
@@ -112,8 +112,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     const deathlyHaste = {
       source: 'Trait',
       sourceId: TRAIT.DEATHLY_HASTE,
-      recipients: 'party',
-      maximumRecipients: 5
+      audience: { recipients: 'party' as const, maximumRecipients: 5 }
     };
     emitSkillBuff(context, skill, {
       at,
@@ -191,7 +190,9 @@ function activeBlight(context: Gw2ModifierContext): number {
   // not the current (post-impact) blight count which may already be lower due to subsequent consumption.
   return Math.max(
     0,
-    Number(event?.necromancerBlight ?? necromancerRuntimeSpecializationState(context, 'Harbinger').blight ?? 0)
+    Number(
+      event?.metadata?.necromancerBlight ?? necromancerRuntimeSpecializationState(context, 'Harbinger').blight ?? 0
+    )
   );
 }
 

@@ -47,7 +47,7 @@ const BASE_RAZORCLAW_EFFECTS = Object.freeze([
     duration: 5,
     stacks: 4,
     actorType: 'player',
-    recipients: 'party'
+    audience: { recipients: 'party' as const }
   }
 ] as const);
 
@@ -133,19 +133,13 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 1,
-        stacks: 1,
-        recipients: 'self'
-      },
+      { type: 'boon', boon: 'stability', duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
       {
         type: 'boon',
         boon: 'stability',
         duration: 6,
         stacks: 3,
-        recipients: 'allies',
+        audience: { recipients: 'party' as const },
         atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -157,10 +151,8 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'daze',
-          breakbar: 200
-        }
+        controlKind: 'daze',
+        breakbar: 200
       }
     ],
     legendId: 'LegendaryRenegade'
@@ -381,33 +373,15 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 1,
-        stacks: 1,
-        recipients: 'self'
-      },
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 4,
-        stacks: 1,
-        recipients: 'allies'
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 4,
-        stacks: 1,
-        recipients: 'allies'
-      },
+      { type: 'boon', boon: 'stability', duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
+      { type: 'boon', boon: 'resistance', duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'protection', duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
       {
         type: 'boon',
         boon: 'stability',
         duration: 6,
         stacks: 3,
-        recipients: 'allies',
+        audience: { recipients: 'party' as const },
         atMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -419,11 +393,9 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         atMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'daze',
-          breakbar: 600,
-          bonusDefianceBreak: 400
-        }
+        controlKind: 'daze',
+        breakbar: 600,
+        bonusDefianceBreak: 400
       }
     ],
     legendId: 'LegendaryRenegade'
@@ -632,9 +604,7 @@ const RENEGADE_DECLARATIONS: readonly (Skill | BalanceProfile)[] = Object.freeze
         hits: 1,
         name: "Soulcleave's Summit — Life Siphon",
         actorType: 'effect',
-        metadata: {
-          noCrit: true
-        }
+        noCrit: true
       }
     ]
   }),
@@ -652,7 +622,7 @@ const RENEGADE_DECLARATIONS: readonly (Skill | BalanceProfile)[] = Object.freeze
         boon: 'fury',
         duration: 4,
         stacks: 1,
-        recipients: 'party',
+        audience: { recipients: 'party' as const },
         actorType: 'player'
       }
     ]
@@ -688,10 +658,8 @@ const RENEGADE_DECLARATIONS: readonly (Skill | BalanceProfile)[] = Object.freeze
         type: 'control',
         duration: 1,
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          breakbar: 100
-        }
+        controlKind: 'daze',
+        breakbar: 100
       }
     ]
   })

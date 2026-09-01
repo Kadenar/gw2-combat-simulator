@@ -34,9 +34,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         name: "Big Ol' Bomb",
         actorType: 'player',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'control',
@@ -45,10 +43,8 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
+        controlKind: 'knockdown',
+        duration: 3
       }
     ],
     kit: 'Bomb Kit'
@@ -74,9 +70,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         name: 'Galvanic Bomb',
         actorType: 'player',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -93,10 +87,8 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'daze',
-          duration: 1
-        }
+        controlKind: 'daze',
+        duration: 1
       }
     ],
     kit: 'Bomb Kit'
@@ -124,9 +116,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         name: 'Fire Bomb',
         actorType: 'player',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -178,9 +168,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         name: 'Bomb',
         actorType: 'player',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ],
     kit: 'Bomb Kit'
@@ -208,9 +196,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         name: 'Magnetic Bomb',
         actorType: 'player',
         persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'control',
@@ -219,10 +205,8 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'pull',
-          duration: 300
-        }
+        controlKind: 'pull',
+        duration: 300
       }
     ],
     kit: 'Bomb Kit'

@@ -135,7 +135,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       },
       {
         type: 'control',
-        metadata: { controlKind: 'daze' }
+        controlKind: 'daze'
       }
     ]
   },
@@ -219,7 +219,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: { controlKind: 'pull' }
+        controlKind: 'pull'
       }
     ]
   },

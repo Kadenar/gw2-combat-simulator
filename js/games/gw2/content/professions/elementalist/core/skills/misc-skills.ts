@@ -235,9 +235,7 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -331,9 +329,7 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       }
     ]
   },
@@ -418,9 +414,7 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -475,9 +469,7 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       },
       {
         type: 'strike',
@@ -497,9 +489,7 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -789,9 +779,7 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'blind'
-        }
+        controlKind: 'blind'
       }
     ]
   },

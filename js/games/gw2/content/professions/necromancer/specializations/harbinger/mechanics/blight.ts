@@ -122,9 +122,7 @@ function applyCascadingCorruption(
     sourceId: TRAIT.CASCADING_CORRUPTION,
     actorType: 'effect',
     coefficient: Number(balanceProfileEffect(profile, 'strike')?.coefficient || 4.5),
-    metadata: {
-      parentSkillName: skill.name
-    }
+    parentSkillName: skill.name
   });
   const torment = balanceProfileEffect(profile, 'condition');
   emitSkillCondition(context, CASCADING_CORRUPTION_EFFECT, {
@@ -135,9 +133,7 @@ function applyCascadingCorruption(
     condition: String(torment?.condition || 'Torment'),
     stacks: Number(torment?.stacks || 6),
     duration: Number(torment?.duration || 6),
-    metadata: {
-      parentSkillName: skill.name
-    }
+    parentSkillName: skill.name
   });
 }
 
@@ -147,7 +143,7 @@ function emitElixirEffects(
   skill: NecromancerSkill,
   source: NecromancerSkill | BalanceProfile,
   impactAt: number,
-  boonOptions: Pick<EmitSkillBuffOptions, 'recipients' | 'maximumRecipients'> | undefined,
+  boonOptions: Pick<EmitSkillBuffOptions, 'audience'> | undefined,
   blight: number
 ): void {
   // Translate each declarative profile effect through the scheduler emitter that owns its event type.
@@ -222,7 +218,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     dedupeAcrossSourceIds: true
   });
   const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
-    ? { recipients: 'party', maximumRecipients: 5 }
+    ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } }
     : undefined;
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
     const protection = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bolsteringBrew), 'boon');

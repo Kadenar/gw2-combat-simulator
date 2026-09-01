@@ -36,7 +36,9 @@ export function warriorBoonActive(context: Gw2ModifierContext, boon: string): bo
   if (context.config?.boons?.[boon]) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) =>
-      application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
+      application.resolvedAudience.includesSelf &&
+      application.at <= context.time &&
+      application.expiresAt > context.time
   );
 }
 
@@ -44,7 +46,9 @@ export function warriorActiveBuffStacks(context: Gw2ModifierContext, kind: strin
   const stacks = (context.runtime?.boons?.get(kind) || [])
     .filter(
       (application) =>
-        application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
+        application.resolvedAudience.includesSelf &&
+        application.at <= context.time &&
+        application.expiresAt > context.time
     )
     .reduce((total, application) => total + application.stacks, 0);
   return Math.min(maximum, stacks);

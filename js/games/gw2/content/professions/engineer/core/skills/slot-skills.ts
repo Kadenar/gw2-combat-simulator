@@ -34,10 +34,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'summon',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },
@@ -96,19 +94,15 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        metadata: {
-          damageKind: 'explosion'
-        },
+        damageKind: 'explosion',
         name: 'Detonate (engineer skill)',
         actorType: 'player'
       },
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },
@@ -127,10 +121,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },
@@ -202,10 +194,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },
@@ -224,10 +214,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   }

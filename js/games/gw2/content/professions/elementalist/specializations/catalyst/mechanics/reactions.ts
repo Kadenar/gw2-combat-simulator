@@ -208,7 +208,7 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
  */
 export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
-  if (kind === 'shattering ice' && event.affectsSelf !== false) {
+  if (kind === 'shattering ice' && event.resolvedAudience?.includesSelf) {
     const state = catalystState.from(context);
     state.shatteringIceUntil = event.at + Math.max(0, Number(event.duration || 0));
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
@@ -216,7 +216,7 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
     return;
   }
 
-  if (kind !== 'elemental empowerment' || event.affectsSelf === false) {
+  if (kind !== 'elemental empowerment' || !event.resolvedAudience?.includesSelf) {
     return;
   }
 

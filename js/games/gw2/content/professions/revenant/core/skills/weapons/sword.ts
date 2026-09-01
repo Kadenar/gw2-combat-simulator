@@ -172,7 +172,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     implemented: true,
     castTimeMs: 680,
     unaffectedByQuickness: true,
-    paletteInterruptMs: 480,
     interruptCommitMs: 420,
     cooldown: 5,
     energyCost: 5,

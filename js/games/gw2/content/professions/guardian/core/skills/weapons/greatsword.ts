@@ -69,7 +69,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     quicknessCastTimeMs: 600,
     // The packet commits at 400 ms, but cancelling there retains the full
     // 600 ms action lockout observed in the combat log.
-    paletteInterruptMs: 400,
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
     effects: [
@@ -86,7 +85,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     castTimeMs: 1000,
     // Damage lands at 440 ms; the 520 ms safe cancel still keeps the full
     // 680 ms Quickness action lane occupied.
-    paletteInterruptMs: 520,
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
     effects: [
@@ -142,16 +140,12 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         canCrit: false,
         sourceId: 9148,
         // Tether pulses are non-critical power strikes, so they remain in strike totals.
-        metadata: {
-          flatStrikeBase: 160,
-          flatStrikePowerCoeff: 0.3
-        }
+        flatStrikeBase: 160,
+        flatStrikePowerCoeff: 0.3
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -161,9 +155,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   }

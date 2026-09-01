@@ -222,12 +222,6 @@ function emitProc(
  */
 export function updateSpearIlluminationState(context: GuardianCastContext, skill: GuardianSkill): void {
   const state = professionCoreState(context);
-  if (skill.id === ID.DAYBREAKING_SLASH) {
-    state.daybreakingSlashChainStep = Number(state.daybreakingSlashChainStep || 0) === 0 ? 1 : 0;
-  } else {
-    state.daybreakingSlashChainStep = 0;
-  }
-
   if (skill.weapon !== 'Spear') return;
   const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start + context.epsilon;
   const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start + context.epsilon;

@@ -217,21 +217,8 @@ function resolveAction(
 
 /** Returns a safe, action-tick-aligned observed duration only when the skill declares its commit contract. */
 function observedInterruptMs(action: DpsReportResolvedAction): number | null {
-  const sourceDurationMs = action.end - action.start;
-  const paletteInterruptMs = Number(action.skill?.paletteInterruptMs);
-  const runtimeDurationMs = quicknessReferenceCastTimeMs(action.skill);
-  const paletteDistanceMs = Math.abs(sourceDurationMs - paletteInterruptMs);
-  // Snap reduced aftercasts to a measured replay point only when it is closer than normal completion.
-  if (
-    action.status !== 'interrupted' &&
-    paletteInterruptMs > 0 &&
-    paletteDistanceMs <= 2 * GW2_ACTION_TICK_MS &&
-    (!(runtimeDurationMs > 0) || paletteDistanceMs < Math.abs(sourceDurationMs - runtimeDurationMs))
-  ) {
-    return observedCommittedInterruptMs(action.skill, paletteInterruptMs);
-  }
-
-  return observedCommittedInterruptMs(action.skill, sourceDurationMs);
+  // The report duration is authoritative once it falls within the skill's declared commit/full-cast bounds.
+  return observedCommittedInterruptMs(action.skill, action.end - action.start);
 }
 
 function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCommand {
@@ -291,6 +278,26 @@ function replayActionEnd(action: DpsReportResolvedAction, completeReportedAfterc
 
 function instantReplayAction(action: DpsReportResolvedAction): boolean {
   return action.status === 'instant' || action.end <= action.start || Number(action.skill?.castTimeMs) === 0;
+}
+
+/** Uses an overlapping weapon swap as the safe cancellation boundary of the active reported cast. */
+function applyWeaponSwapInterrupts(actions: readonly DpsReportResolvedAction[]): DpsReportResolvedAction[] {
+  const replay = [...actions];
+  for (let swapIndex = 0; swapIndex < replay.length; swapIndex += 1) {
+    const swap = replay[swapIndex];
+    if (!swap.isSwap || normalized(swap.rawName) !== 'weapon swap') continue;
+
+    for (let castIndex = swapIndex - 1; castIndex >= 0; castIndex -= 1) {
+      const cast = replay[castIndex];
+      if (instantReplayAction(cast)) continue;
+      if (cast.end <= swap.start) break;
+      const interruptMs = observedCommittedInterruptMs(cast.skill, swap.start - cast.start);
+      if (interruptMs != null) replay[castIndex] = { ...cast, replayInterruptMs: interruptMs };
+      break;
+    }
+  }
+
+  return replay;
 }
 
 /** Runs simultaneous instant inputs before cast-time skills, preserving EI order within each class. */
@@ -485,13 +492,15 @@ export function reconstructDpsReportWithProfile(
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig
   });
-  const resolved = professionActions
-    .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
-    .map(applyRetainedCastLockout)
-    .sort(compareResolvedActions)
-    // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
-    .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
-    .filter((action) => autoattackCommitted(report, action));
+  const resolved = applyWeaponSwapInterrupts(
+    professionActions
+      .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
+      .map(applyRetainedCastLockout)
+      .sort(compareResolvedActions)
+      // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
+      .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
+      .filter((action) => autoattackCommitted(report, action))
+  );
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');
   }

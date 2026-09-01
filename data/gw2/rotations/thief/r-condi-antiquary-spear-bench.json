@@ -119,8 +119,11 @@
     "Entangling Asp",
     "Summon Kryptis Turret",
     "Skritt Swipe",
-    "Thousand Needles",
     "Falling Spider",
+    {
+      "name": "Thousand Needles",
+      "offset": 280
+    },
     "Summon Kryptis Turret",
     "Holo-Dancer Decoy",
     "Distracting Throw",
@@ -128,8 +131,11 @@
     "Falling Spider",
     "Distracting Throw",
     "Entangling Asp",
-    "Chak Shield",
     "Falling Spider",
+    {
+      "name": "Chak Shield",
+      "offset": 200
+    },
     "Distracting Throw",
     "Entangling Asp",
     "Falling Spider",
@@ -201,10 +207,6 @@
     "Distracting Throw",
     "Entangling Asp",
     "Falling Spider",
-    {
-      "name": "__wait",
-      "waitMs": 3310
-    },
     "Ashen Assault"
   ]
 }

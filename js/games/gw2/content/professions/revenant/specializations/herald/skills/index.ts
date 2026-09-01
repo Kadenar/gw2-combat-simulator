@@ -66,9 +66,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
       {
         type: 'blind',
         actorType: 'player',
-        metadata: {
-          duration: 5
-        }
+        duration: 5
       }
     ],
     legendId: 'LegendaryDragon',
@@ -89,17 +87,17 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
           {
             atMs: 280,
             coefficient: 1.5,
-            metadata: { name: 'Elemental Blast — Pulse 1' }
+            name: 'Elemental Blast — Pulse 1'
           },
           {
             atMs: 1280,
             coefficient: 1.5,
-            metadata: { name: 'Elemental Blast — Pulse 2' }
+            name: 'Elemental Blast — Pulse 2'
           },
           {
             atMs: 2280,
             coefficient: 1.5,
-            metadata: { name: 'Elemental Blast — Pulse 3' }
+            name: 'Elemental Blast — Pulse 3'
           }
         ],
         timingAnchor: 'castStart',
@@ -194,10 +192,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'knockback',
-          duration: 360
-        }
+        controlKind: 'knockback',
+        duration: 360
       },
       {
         type: 'buff',
@@ -328,8 +324,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
           procType: 'boon-extension',
           name: 'True Nature (dragon) — Boon Extension',
           duration: 2,
-          recipients: 'party',
-          maximumRecipients: 5
+          audience: { recipients: 'party' as const, maximumRecipients: 5 }
         }
       }
     ],
@@ -416,8 +411,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         duration: 8,
         stacks: 1,
         actorType: 'effect',
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ]
   },
@@ -435,7 +429,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         duration: 1.25,
         stacks: 1,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       }
     ]
   },

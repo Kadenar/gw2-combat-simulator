@@ -81,9 +81,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
         atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'daze'
-        }
+        controlKind: 'daze'
       }
     ]
   },
@@ -103,9 +101,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze'
-        }
+        controlKind: 'daze'
       }
     ]
   },

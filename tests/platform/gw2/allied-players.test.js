@@ -3,279 +3,206 @@ import test from 'node:test';
 
 import {
   gw2AlliedEffectRecipients,
-  gw2BoonApplicationRecipients,
   gw2AlliedPlayerProcTimeline,
+  gw2BoonApplicationRecipients,
   gw2BuffApplicationRecipients,
   prepareGw2BuffCompanionCandidates
 } from '#gw2/platform/combat/state/allied-players.js';
 
-test('boon companion candidates bind before canonical recipient selection', () => {
-  const event = { type: 'buff', at: 1, source: 'test', recipients: 'party', maximumRecipients: 5 };
+test('buff preparation binds unique companion candidates inside the audience request', () => {
+  const event = {
+    type: 'buff',
+    at: 1,
+    source: 'test',
+    audience: { recipients: 'party', maximumRecipients: 5 }
+  };
   const prepared = prepareGw2BuffCompanionCandidates(event, ['pet:one', 'pet:one', '', 'pet:two']);
 
   assert.deepEqual(prepared, {
     ...event,
-    companionIds: ['pet:one', 'pet:two']
+    audience: {
+      ...event.audience,
+      eligibleCompanionIds: ['pet:one', 'pet:two']
+    }
   });
-  assert.deepEqual(gw2BoonApplicationRecipients({ allies: { count: 3 } }, prepared), {
-    includesSelf: true,
-    affectsSelf: true,
-    alliedPlayerCount: 3,
-    companionIds: ['pet:one'],
-    affectsSummons: true,
-    recipientCount: 5
-  });
-  const selfOnly = { ...event, affectsSummons: false };
-  assert.equal(prepareGw2BuffCompanionCandidates(selfOnly, ['pet:one']), selfOnly);
-  assert.deepEqual(prepareGw2BuffCompanionCandidates({ ...event, companionIds: ['pet:explicit'] }, ['pet:one']), {
-    ...event,
-    companionIds: ['pet:explicit']
-  });
+  assert.equal(
+    prepareGw2BuffCompanionCandidates({ ...event, audience: { recipients: 'self' } }, ['pet:one']).audience.recipients,
+    'self'
+  );
+  assert.equal(
+    prepareGw2BuffCompanionCandidates(
+      { ...event, audience: { ...event.audience, eligibleCompanionIds: ['pet:explicit'] } },
+      ['pet:one']
+    ).audience.eligibleCompanionIds[0],
+    'pet:explicit'
+  );
 });
 
-test('allied effect recipients prioritize players before companions', () => {
-  const partialParty = gw2AlliedEffectRecipients(
-    { allies: { count: 2, strikesPerSecond: 1 } },
+test('party audiences prioritize players and use summons only as fallback', () => {
+  assert.deepEqual(
+    gw2AlliedEffectRecipients(
+      { allies: { count: 2 }, sharePlayerBoonsWithSummons: true },
+      {
+        recipients: 'party',
+        maximumRecipients: 5,
+        eligibleCompanionIds: ['minion:one', 'minion:two', 'minion:three']
+      }
+    ),
     {
-      maximumRecipients: 5,
-      companionIds: ['minion:one', 'minion:two', 'minion:three']
+      includesSelf: true,
+      includesSummons: true,
+      alliedPlayerCount: 2,
+      companionIds: ['minion:one', 'minion:two'],
+      recipientCount: 5
     }
   );
 
-  assert.deepEqual(partialParty, {
-    includesSelf: true,
-    alliedPlayerCount: 2,
-    companionIds: ['minion:one', 'minion:two'],
-    recipientCount: 5
-  });
-
-  const fullParty = gw2AlliedEffectRecipients(
-    { allies: { count: 4, strikesPerSecond: 1 } },
+  assert.deepEqual(
+    gw2AlliedEffectRecipients(
+      { allies: { count: 4 }, sharePlayerBoonsWithSummons: true },
+      {
+        recipients: 'party',
+        maximumRecipients: 5,
+        eligibleCompanionIds: ['minion:one']
+      }
+    ),
     {
-      maximumRecipients: 5,
-      companionIds: ['minion:one', 'minion:two']
+      includesSelf: true,
+      includesSummons: false,
+      alliedPlayerCount: 4,
+      companionIds: [],
+      recipientCount: 5
     }
   );
-
-  assert.deepEqual(fullParty, {
-    includesSelf: true,
-    alliedPlayerCount: 4,
-    companionIds: [],
-    recipientCount: 5
-  });
 });
 
-test('generic buff recipients ignore the boon-sharing configuration', () => {
-  const recipients = gw2BuffApplicationRecipients(
+test('party summon fallback respects the boon-sharing configuration', () => {
+  assert.deepEqual(
+    gw2AlliedEffectRecipients(
+      { allies: { count: 2 }, sharePlayerBoonsWithSummons: false },
+      {
+        recipients: 'party',
+        maximumRecipients: 5,
+        eligibleCompanionIds: ['minion:one', 'minion:two']
+      }
+    ),
     {
-      allies: { count: 2 },
-      sharePlayerBoonsWithSummons: false
-    },
-    {
-      recipients: 'party',
-      maximumRecipients: 5,
-      companionIds: ['minion:one', 'minion:two']
+      includesSelf: true,
+      includesSummons: false,
+      alliedPlayerCount: 2,
+      companionIds: [],
+      recipientCount: 3
     }
   );
-
-  assert.deepEqual(recipients, {
-    includesSelf: true,
-    affectsSelf: true,
-    alliedPlayerCount: 2,
-    companionIds: ['minion:one', 'minion:two'],
-    affectsSummons: true,
-    recipientCount: 5
-  });
 });
 
-test('boon applications resolve player recipients before summons', () => {
-  const fullParty = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    {
-      recipients: 'party',
-      maximumRecipients: 5,
-      companionIds: ['clone:one', 'clone:two']
-    }
+test('generic buffs keep summon fallback independent from boon sharing', () => {
+  assert.deepEqual(
+    gw2BuffApplicationRecipients(
+      { allies: { count: 2 }, sharePlayerBoonsWithSummons: false },
+      {
+        audience: {
+          recipients: 'party',
+          maximumRecipients: 5,
+          eligibleCompanionIds: ['minion:one', 'minion:two']
+        }
+      }
+    ).companionIds,
+    ['minion:one', 'minion:two']
   );
-
-  assert.deepEqual(fullParty, {
-    includesSelf: true,
-    affectsSelf: true,
-    alliedPlayerCount: 4,
-    companionIds: [],
-    affectsSummons: false,
-    recipientCount: 5
-  });
-
-  const partialParty = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 2, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    {
-      recipients: 'party',
-      maximumRecipients: 5,
-      companionIds: ['clone:one', 'clone:two', 'clone:three']
-    }
-  );
-
-  assert.deepEqual(partialParty, {
-    includesSelf: true,
-    affectsSelf: true,
-    alliedPlayerCount: 2,
-    companionIds: ['clone:one', 'clone:two'],
-    affectsSummons: true,
-    recipientCount: 5
-  });
-
-  const alliesOnly = gw2BoonApplicationRecipients(
-    { allies: { count: 4, strikesPerSecond: 1 } },
-    {
-      recipients: 'allies',
-      maximumRecipients: 5,
-      companionIds: ['clone:one', 'clone:two']
-    }
-  );
-
-  assert.deepEqual(alliesOnly, {
-    includesSelf: false,
-    affectsSelf: false,
-    alliedPlayerCount: 4,
-    companionIds: ['clone:one'],
-    affectsSummons: true,
-    recipientCount: 5
-  });
 });
 
-test('boon audiences distinguish self, capped sharing, and summon-only effects', () => {
-  const selfOnly = gw2BoonApplicationRecipients(
+test('summons means the caster plus eligible summons and counts the caster against the cap', () => {
+  assert.deepEqual(
+    gw2AlliedEffectRecipients(
+      { allies: { count: 4 }, sharePlayerBoonsWithSummons: false },
+      {
+        recipients: 'summons',
+        maximumRecipients: 2,
+        eligibleCompanionIds: ['ranger-pet', 'extra-pet']
+      }
+    ),
     {
-      allies: { count: 0, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    { recipients: 'self', maximumRecipients: 1 }
+      includesSelf: true,
+      includesSummons: true,
+      alliedPlayerCount: 0,
+      companionIds: ['ranger-pet'],
+      recipientCount: 2
+    }
+  );
+});
+
+test('affectsSelf false selects only allies or summons and leaves the player out of the result', () => {
+  assert.deepEqual(
+    gw2AlliedEffectRecipients(
+      { allies: { count: 2 }, sharePlayerBoonsWithSummons: true },
+      {
+        recipients: 'party',
+        affectsSelf: false,
+        maximumRecipients: 3,
+        eligibleCompanionIds: ['ranger-pet']
+      }
+    ),
+    {
+      includesSelf: false,
+      includesSummons: true,
+      alliedPlayerCount: 2,
+      companionIds: ['ranger-pet'],
+      recipientCount: 3
+    }
   );
 
-  assert.deepEqual(selfOnly, {
+  assert.deepEqual(
+    gw2AlliedEffectRecipients(
+      {},
+      {
+        recipients: 'summons',
+        affectsSelf: false,
+        maximumRecipients: 1,
+        eligibleCompanionIds: ['ranger-pet']
+      }
+    ),
+    {
+      includesSelf: false,
+      includesSummons: true,
+      alliedPlayerCount: 0,
+      companionIds: ['ranger-pet'],
+      recipientCount: 1
+    }
+  );
+});
+
+test('self audiences resolve only the caster and resolved audiences are reused', () => {
+  const self = gw2BoonApplicationRecipients({}, { audience: { recipients: 'self' } });
+
+  assert.deepEqual(self, {
     includesSelf: true,
-    affectsSelf: true,
+    includesSummons: false,
     alliedPlayerCount: 0,
     companionIds: [],
-    affectsSummons: false,
     recipientCount: 1
   });
+  assert.equal(gw2BoonApplicationRecipients({}, { resolvedAudience: self }), self);
+});
 
-  const sharingDisabled = gw2BoonApplicationRecipients(
+test('a summon self-buff includes its caster without affecting the simulated player', () => {
+  assert.deepEqual(
+    gw2BoonApplicationRecipients(
+      { allies: { count: 4 }, sharePlayerBoonsWithSummons: false },
+      {
+        actorType: 'summon',
+        summonOwner: 'ranger-pet:1',
+        audience: { recipients: 'self' }
+      }
+    ),
     {
-      allies: { count: 0, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: false
-    },
-    {
-      recipients: 'party',
-      affectsSummons: true,
-      maximumRecipients: 5
+      includesSelf: false,
+      includesSummons: true,
+      alliedPlayerCount: 0,
+      companionIds: ['ranger-pet:1'],
+      recipientCount: 1
     }
   );
-
-  assert.equal(sharingDisabled.affectsSummons, false);
-
-  const explicitSelfAndPet = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: false
-    },
-    { affectsSummons: true, maximumRecipients: 2 }
-  );
-
-  assert.deepEqual(explicitSelfAndPet, {
-    includesSelf: true,
-    affectsSelf: true,
-    alliedPlayerCount: 0,
-    companionIds: [],
-    affectsSummons: true,
-    recipientCount: 2
-  });
-
-  const implicitSharingDisabled = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 0, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: false
-    },
-    { recipients: 'party', maximumRecipients: 5 }
-  );
-
-  assert.equal(implicitSharingDisabled.affectsSummons, false);
-
-  const openPartySlot = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 0, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    { recipients: 'party', maximumRecipients: 5 }
-  );
-
-  assert.equal(openPartySlot.affectsSummons, true);
-
-  const resolvedOpenPartySlot = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 0, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    {
-      recipients: 'party',
-      maximumRecipients: 5,
-      ...openPartySlot,
-      boonAudienceResolved: true
-    }
-  );
-
-  assert.deepEqual(resolvedOpenPartySlot, openPartySlot);
-
-  const noEligibleCompanions = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 0, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    { recipients: 'party', maximumRecipients: 5, companionIds: [] }
-  );
-
-  assert.equal(noEligibleCompanions.affectsSummons, false);
-  assert.equal(noEligibleCompanions.recipientCount, 1);
-
-  const cappedParty = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    { recipients: 'party', maximumRecipients: 5 }
-  );
-
-  assert.equal(cappedParty.affectsSummons, false);
-  assert.equal(cappedParty.recipientCount, 5);
-
-  const summonOnly = gw2BoonApplicationRecipients(
-    {
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: false
-    },
-    {
-      recipients: 'summons',
-      maximumRecipients: 1,
-      companionIds: ['ranger-pet']
-    }
-  );
-
-  assert.deepEqual(summonOnly, {
-    includesSelf: false,
-    affectsSelf: false,
-    alliedPlayerCount: 0,
-    companionIds: ['ranger-pet'],
-    affectsSummons: true,
-    recipientCount: 1
-  });
 });
 
 test("allied proc timelines respect the effect's selected player count", () => {

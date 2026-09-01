@@ -107,7 +107,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   assert.deepEqual(
     naturalConvergence.effects
       .find(({ name }) => name === 'Black Hole')
-      .ticks.map(({ atMs, metadata }) => [atMs, metadata.flatDamage]),
+      .ticks.map(({ atMs, flatDamage }) => [atMs, flatDamage]),
     [
       [2640, 158],
       [4160, 158],
@@ -173,8 +173,8 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   assert.equal(sunSpirit.effects[0].applications, 4);
   assert.equal(sunSpirit.effects[0].atMs, 2840);
   assert.equal(sunSpirit.effects[0].intervalMs, 1000);
-  assert.equal(sunSpirit.effects[0].recipients, 'party');
-  assert.equal(sunSpirit.effects[0].maximumRecipients, 5);
+  assert.equal(sunSpirit.effects[0].audience.recipients, 'party');
+  assert.equal(sunSpirit.effects[0].audience.maximumRecipients, 5);
 
   const rejuvenatingTides = rangerCatalog.skillsById.get(ID.REJUVENATING_TIDES).effects[0];
 
@@ -184,8 +184,8 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
       rejuvenatingTides.applications,
       rejuvenatingTides.atMs,
       rejuvenatingTides.intervalMs,
-      rejuvenatingTides.recipients,
-      rejuvenatingTides.maximumRecipients
+      rejuvenatingTides.audience.recipients,
+      rejuvenatingTides.audience.maximumRecipients
     ],
     [1, 5, 960, 600, 'party', 5]
   );
@@ -193,7 +193,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
     rangerCatalog.skillsById
       .get(ID.NATURAL_CONVERGENCE)
       .effects.filter(({ type, boon }) => type === 'boon' && boon === 'might')
-      .every(({ recipients, maximumRecipients }) => recipients === 'party' && maximumRecipients === 5)
+      .every(({ audience }) => audience?.recipients === 'party' && audience.maximumRecipients === 5)
   );
 });
 
@@ -697,7 +697,7 @@ test("Sun Spirit emits Solar Flare's burning packet", () => {
       [5.84, 2]
     ]
   );
-  assert.ok(might.every(({ affectsSummons }) => affectsSummons));
+  assert.ok(might.every(({ resolvedAudience }) => resolvedAudience.includesSummons));
 });
 
 test('Ranger child damage rows resolve their dedicated icons', () => {
@@ -744,7 +744,7 @@ test('Celestial Avatar Might pulses reach the active pet', () => {
   );
 
   assert.equal(might.length, 9);
-  assert.ok(might.every(({ stacks, affectsSummons }) => stacks === 1 && affectsSummons));
+  assert.ok(might.every(({ stacks, resolvedAudience }) => stacks === 1 && resolvedAudience.includesSummons));
 });
 
 test('legacy healing-rate assumptions no longer generate Astral Force', () => {

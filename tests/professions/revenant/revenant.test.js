@@ -18,7 +18,7 @@ import {
   paletteSkillView,
   renderPalette,
   resolvePaletteDropItem,
-  suggestedPaletteInterruptMs
+  defaultPaletteInterruptMs
 } from '#gw2/app/rotation/palette/view.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
@@ -240,7 +240,7 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(dropTheHammer.energyCost, 10);
   assert.equal(strikeCoefficient(dropTheHammer.effects[0]), 3.2);
   assert.equal(dropTheHammer.effects[0].comboFinishers[0].finisherType, 'Blast');
-  assert.equal(dropTheHammer.effects[1].metadata.duration, 3);
+  assert.equal(dropTheHammer.effects[1].duration, 3);
   const manifestToxin = revenantCatalog.skillsById.get(SKILL.MANIFEST_TOXIN);
 
   assert.deepEqual(
@@ -628,7 +628,7 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
       duration: 5,
       stacks: 4,
       actorType: 'player',
-      recipients: 'party'
+      audience: { recipients: 'party' }
     }
   );
   assert.ok(
@@ -2958,7 +2958,7 @@ test('Shared Empowerment grants one stack of eight-second Might on a strict one-
       [result.steps.at(-1).end / 1000, 'might', 8, 1]
     ]
   );
-  assert.ok(applications.every((event) => event.alliedPlayerCount === 4));
+  assert.ok(applications.every((event) => event.resolvedAudience.alliedPlayerCount === 4));
 });
 
 test('Elevated Compassion grants 1.25 seconds of Quickness once per second at six upkeep', () => {
@@ -3889,12 +3889,12 @@ test('Band Together makes the next Renegade summon instant and enhanced', () => 
       .map((event) => [
         event.duration,
         event.stacks,
-        event.recipients,
+        event.audience?.recipients,
         Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000)
       ]),
     [
       [1, 1, 'self', 0],
-      [6, 3, 'allies', 1000]
+      [6, 3, 'party', 1000]
     ]
   );
 
@@ -4001,12 +4001,12 @@ test('Band Together makes the next Renegade summon instant and enhanced', () => 
   assert.deepEqual(
     enhancedDarkrazor.events
       .filter((event) => event.skillName === "Darkrazor's Daring" && event.type === 'buff')
-      .map((event) => [event.kind, event.duration, event.stacks, event.recipients]),
+      .map((event) => [event.kind, event.duration, event.stacks, event.audience?.recipients]),
     [
       ['stability', 1, 1, 'self'],
-      ['resistance', 4, 1, 'allies'],
-      ['protection', 4, 1, 'allies'],
-      ['stability', 6, 3, 'allies']
+      ['resistance', 4, 1, 'party'],
+      ['protection', 4, 1, 'party'],
+      ['stability', 6, 3, 'party']
     ]
   );
 
@@ -4129,10 +4129,10 @@ test("Razorclaw models party procs with the Revenant's condition stats", () => {
 
   assert.equal(partyBuff.stacks, 4);
   assert.equal(partyBuff.duration, 5);
-  assert.equal(partyBuff.recipientCount, 5);
-  assert.equal(partyBuff.alliedPlayerCount, 4);
-  assert.deepEqual(partyBuff.companionIds, []);
-  assert.equal(partyBuff.affectsSummons, false);
+  assert.equal(partyBuff.resolvedAudience.recipientCount, 5);
+  assert.equal(partyBuff.resolvedAudience.alliedPlayerCount, 4);
+  assert.deepEqual(partyBuff.resolvedAudience.companionIds, []);
+  assert.equal(partyBuff.resolvedAudience.includesSummons, false);
   const personalPackets = result.resolvedEvents.filter(
     (event) =>
       event.skillName === "Razorclaw's Rage" &&
@@ -4305,7 +4305,7 @@ test('Vindicator Luxon skills use supplied combat mechanics', () => {
       [1, 6]
     ]
   );
-  assert.equal(rage.effects.at(-1).metadata.controlKind, 'daze');
+  assert.equal(rage.effects.at(-1).controlKind, 'daze');
 
   const spear = skill('Spear of Archemorus');
 
@@ -4810,8 +4810,8 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
   assert.equal(skill('Chilling Isolation').quicknessCastTimeMs, undefined);
   assert.equal(skill('Chilling Isolation').unaffectedByQuickness, true);
   assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
-  assert.equal(skill('Chilling Isolation').paletteInterruptMs, 480);
-  assert.equal(suggestedPaletteInterruptMs(skill('Chilling Isolation')), 480);
+  assert.equal(defaultPaletteInterruptMs(skill('Chilling Isolation')), 420);
+  assert.equal(defaultPaletteInterruptMs({ castTimeMs: 657 }), 657);
   assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
   assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
   assert.equal(skill("Phantom's Onslaught").dashTimeMs, 38);
@@ -4900,14 +4900,14 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
     [
       {
         name: 'Chilling Isolation',
-        interruptMs: skill('Chilling Isolation').paletteInterruptMs
+        interruptMs: defaultPaletteInterruptMs(skill('Chilling Isolation'))
       }
     ],
     config,
     observationTail(1000)
   );
 
-  assert.equal(paletteChilling.steps[0].end, 480);
+  assert.equal(paletteChilling.steps[0].end, 420);
   assert.equal(paletteChilling.steps[0].interrupted, true);
   const interruptedChilling = simulate(
     'Conduit',
@@ -5824,7 +5824,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   );
   assert.equal(
     cosmic.events.filter(
-      (event) => event.type === 'buff' && event.skillName === 'Swap Legends' && event.recipients === 'allies'
+      (event) => event.type === 'buff' && event.skillName === 'Swap Legends' && event.audience?.recipients === 'party'
     ).length,
     3
   );

@@ -97,18 +97,14 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 2
-        }
+        controlKind: 'daze',
+        duration: 2
       },
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },

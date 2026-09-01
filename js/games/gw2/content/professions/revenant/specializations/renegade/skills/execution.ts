@@ -2,11 +2,7 @@
 import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { augmentSkill } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type { Skill, SkillHandlerPhase, SkillHandlerMode } from '#gw2/platform/engine/types.js';
-import type {
-  RevenantCastContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/content/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSkill } from '#gw2/content/professions/revenant/types.js';
 import { revenantAssassinRenegadeSkillHandlers } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import type { BandTogetherState } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 
@@ -35,8 +31,6 @@ const handlers = Object.freeze({
   'revenant.band-together': augmentSkill<RevenantCastContext>({
     beforeEffects: bandTogether.beforeEffects as SkillHandlerPhase<RevenantCastContext>,
     resolveMode: bandTogetherHandlerMode,
-    afterEffect: (context, skill, event) =>
-      bandTogether.afterEffect(context, skill as RevenantSkill, event as RevenantSimulationEvent),
     afterEffects: (context, skill, state) =>
       bandTogether.afterEffects(context, skill as RevenantSkill, state as BandTogetherState)
   })

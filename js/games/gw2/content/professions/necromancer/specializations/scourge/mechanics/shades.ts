@@ -42,8 +42,7 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
       kind: String(might?.boon || 'might'),
       duration: Number(might?.duration || 6),
       stacks: Number(might?.stacks || 2),
-      recipients: 'party',
-      maximumRecipients: 5
+      audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
 
@@ -54,8 +53,7 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
       kind: String(alacrity?.boon || 'alacrity'),
       duration: Number(alacrity?.duration || 1.5),
       stacks: Number(alacrity?.stacks || 1),
-      recipients: 'party',
-      maximumRecipients: 5
+      audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
 }
@@ -129,14 +127,9 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     sourceId: ID.MANIFEST_SAND_SHADE,
     coefficient: Number(shadeStrike?.coefficient || 0.666),
     skillWeapon: 'Unequipped',
-    metadata: {
-      skillName: shadeStrikeName,
-      parentSkillName: skill.name,
-      // flagged as shroud skill one so Dhuumfire and other "on shroud skill 1" traits proc correctly
-      necromancerShroudSkillOne: true,
-      dhuumfireDuration: 2,
-      dhuumfireInterval: 1
-    }
+    skillName: shadeStrikeName,
+    parentSkillName: skill.name,
+    metadata: { necromancerShroudSkillOne: true, dhuumfireDuration: 2, dhuumfireInterval: 1 }
   });
   const shadeCondition = balanceProfileEffect(shadeProfile, 'condition');
   emitSkillCondition(context, skill, {
@@ -211,8 +204,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
         kind: 'protection',
         duration: Number(pulseProtection?.duration || 1.5),
         stacks: Number(pulseProtection?.stacks || 1),
-        recipients: 'party',
-        maximumRecipients: 5
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
 
@@ -222,8 +214,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       kind: 'protection',
       duration: Number(detonationProtection?.duration || 3),
       stacks: Number(detonationProtection?.stacks || 1),
-      recipients: 'party',
-      maximumRecipients: 5
+      audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
     emitSkillDamage(context, skill, { at: at + delay, coefficient: Number(strike?.coefficient || 3) });
     emitSkillCondition(context, skill, {

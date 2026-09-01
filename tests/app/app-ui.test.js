@@ -31,6 +31,7 @@ import {
   weaponPaletteStackHtml,
   weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
+import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { dragonChargeReleaseProjection } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import {
   groupConsecutiveProcSteps,
@@ -65,11 +66,17 @@ test('starting resource clamps cover every active resource view', () => {
     build: {
       initialResource: 25,
       initialBlight: 15,
+      initialInitiative: 15,
       unchanged: 9
     },
     resourceDefinitions: (specialization) => {
       assert.equal(specialization, 'Multi Resource');
-      return [{ maximum: 10 }, { buildKey: 'initialBlight', maximum: 5 }, { buildKey: 'missingResource', maximum: 3 }];
+      return [
+        { maximum: 10 },
+        { buildKey: 'initialBlight', maximum: 5 },
+        { buildKey: 'initialInitiative', maximum: 12, startMaximum: 15 },
+        { buildKey: 'missingResource', maximum: 3 }
+      ];
     }
   };
 
@@ -78,8 +85,40 @@ test('starting resource clamps cover every active resource view', () => {
   assert.deepEqual(app.build, {
     initialResource: 10,
     initialBlight: 5,
+    initialInitiative: 15,
     unchanged: 9
   });
+});
+
+test('15-pip initiative uses a specialization-neutral dense layout', async () => {
+  const html = activeResourceGroup({
+    adapter: { eliteSpecialization: () => 'Core' },
+    build: { initialResource: 15 },
+    profession: {
+      ui: {
+        resourceViews: () => [
+          {
+            id: 'resource',
+            maximum: 15,
+            value: 9,
+            pipRows: 2,
+            pipStyle: 'thief-initiative'
+          }
+        ]
+      }
+    },
+    results: { endState: { time: 0, profession: {} } }
+  });
+
+  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
+  const rowPipCounts = [
+    ...html.matchAll(/<span class="resource-pip-row">((?:<span class="active-resource-pip[^"]*"><\/span>)+)<\/span>/g)
+  ].map(([, pips]) => [...pips.matchAll(/active-resource-pip/g)].length);
+
+  assert.match(html, /class="active-resource-pips thief-initiative pip-rows-2 pip-count-15"/);
+  assert.deepEqual(rowPipCounts, [7, 8]);
+  assert.match(css, /\.thief-initiative\.pip-count-15\.pip-rows-2/);
+  assert.doesNotMatch(css, /specter-f-skills[^}]*thief-initiative/);
 });
 
 test('specialization selection replaces another elite line and refreshes its resources', () => {
@@ -830,7 +869,9 @@ test('published simulation results refresh result-dependent palette state', asyn
   const source = await readFile(new URL('../../js/games/gw2/app/rotation/index.ts', import.meta.url), 'utf8');
   const outputRenderer = source.slice(source.indexOf('export function renderSimulationOutput'));
 
+  assert.match(outputRenderer, /renderStartResource\(app\);/);
   assert.match(outputRenderer, /renderPalette\(app\);/);
+  assert.ok(outputRenderer.indexOf('renderStartResource(app)') < outputRenderer.indexOf('renderPalette(app)'));
   assert.ok(outputRenderer.indexOf('renderPalette(app)') < outputRenderer.indexOf('renderTimeline(app)'));
 });
 

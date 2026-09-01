@@ -79,7 +79,7 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
       Number(effect.duration || 0)
     ),
     stacks: Number(effect.stacks || 1),
-    recipients: String(effect.recipients || 'party')
+    audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 }
 
@@ -96,7 +96,7 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.vindication);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'control');
   if (!profile || !effect) return;
-  const duration = Number(effect.duration || effect.metadata?.duration || 0);
+  const duration = Number(effect.duration || 0);
   emitSkillControl(context, {
     cause: event,
 
@@ -107,10 +107,10 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
     skillId: TRAIT.VINDICATION,
     skillName: 'Vindication',
     name: 'Vindication — Daze',
-    ...(effect.metadata || {}),
-    controlKind: String(effect.metadata?.controlKind || 'daze'),
+    metadata: effect.metadata,
+    controlKind: String(effect.controlKind || 'daze'),
     duration,
-    breakbar: Number(effect.metadata?.breakbar ?? duration * 100)
+    breakbar: Number(effect.breakbar ?? duration * 100)
   });
 }
 

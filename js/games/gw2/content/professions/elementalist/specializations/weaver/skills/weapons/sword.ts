@@ -327,37 +327,27 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           {
             atMs: 1240,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 2240,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 3240,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 4240,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           },
           {
             atMs: 5240,
             coefficient: 0.33,
-            metadata: {
-              damageKind: 'field-tick'
-            }
+            damageKind: 'field-tick'
           }
         ],
         timingAnchor: 'castStart',
@@ -843,9 +833,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       },
       {
         type: 'strike',
@@ -893,9 +881,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       },
       {
         type: 'strike',
@@ -943,9 +929,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       },
       {
         type: 'strike',
@@ -993,9 +977,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       },
       {
         type: 'strike',
@@ -1043,9 +1025,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     specialization: 'Weaver'

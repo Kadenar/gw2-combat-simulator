@@ -9002,6 +9002,20 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     inset 0 0 1px rgba(255, 255, 255, 0.95);
 }
 
+/* Keep Preparedness' 15-pip, two-row initiative meter dense for every Thief specialization. */
+.thief-initiative.pip-count-15.pip-rows-2 {
+  gap: 0;
+  padding: 2px 4px;
+}
+
+.thief-initiative.pip-count-15.pip-rows-2 .resource-pip-row {
+  gap: 5px;
+}
+
+.thief-initiative.pip-count-15.pip-rows-2 .resource-pip-row:first-child {
+  margin-left: 8px;
+}
+
 .active-resource-pips.thief-malice {
   align-items: center;
   gap: 5px;

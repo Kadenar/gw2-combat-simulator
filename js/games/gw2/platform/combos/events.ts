@@ -377,6 +377,7 @@ export function resolveComboAttempt(
       activationId: event.activationId,
       comboId: `${event.attemptId}:combo:${index + 1}`,
       attemptId: event.attemptId,
+      companionCandidates: event.companionCandidates,
       fieldId: field.fieldId,
       fieldType: field.fieldType,
       finisherType: event.finisherType,

@@ -34,10 +34,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
         persistsAfterInterrupt: true,
         name: 'Poison Grenade',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
+        damageKind: 'explosion',
+        projectile: true
       },
       {
         type: 'condition',
@@ -73,9 +71,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
         persistsAfterInterrupt: true,
         name: 'Shrapnel Grenade',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -109,16 +105,12 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
         timingScale: 'cast',
         name: 'Flash Grenade',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'blind',
         actorType: 'player',
-        metadata: {
-          duration: 5
-        }
+        duration: 5
       }
     ],
     kit: 'Grenade Kit'
@@ -142,9 +134,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
         persistsAfterInterrupt: true,
         name: 'Freeze Grenade',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -175,9 +165,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
         name: 'Grenade Barrage',
         weapon: 'Profession mechanic',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ],
     toolbeltParentName: 'Grenade Kit'
@@ -210,9 +198,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
         persistsAfterInterrupt: true,
         name: 'Grenade',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ],
     kit: 'Grenade Kit'

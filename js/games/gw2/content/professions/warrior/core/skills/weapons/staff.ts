@@ -105,9 +105,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'pull'
-        }
+        controlKind: 'pull'
       }
     ]
   },

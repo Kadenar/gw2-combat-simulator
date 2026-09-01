@@ -188,7 +188,6 @@ export type EngineerSimulationEvent = SimulationEvent & {
   readonly coefficient?: number;
   readonly condition?: string;
   readonly endsAt?: number;
-  readonly engineerMech?: boolean;
   readonly expiresAt?: number;
   readonly fieldType?: string;
   readonly mechBasicAttack?: boolean;
@@ -205,12 +204,9 @@ export type EngineerPlayerStats = Partial<Gw2Stats>;
 export type EngineerScheduledTask<TPayload extends SchedulerRecord> = ScheduledTask<TPayload>;
 
 export type EngineerResolverEvent = Gw2ResolverEvent & {
-  readonly application?: Gw2ResolverEvent & {
-    readonly engineerMech?: boolean;
-  };
+  readonly application?: Gw2ResolverEvent;
   readonly charges?: number;
   readonly damageKind?: string;
-  readonly engineerMech?: boolean;
   readonly explosion?: boolean;
   readonly expiresAt?: number;
   readonly fieldType?: string;

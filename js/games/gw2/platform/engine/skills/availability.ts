@@ -21,32 +21,6 @@ export function retryCast(retryAt: number, code: string, reason: string): Availa
   return { ready: false, retryAt, code, reason };
 }
 
-/** Enforces the single structured cast-admission protocol at untyped extension boundaries. */
-export function assertAvailabilityResult(result: unknown, owner: string): AvailabilityResult {
-  if (!result || typeof result !== 'object' || Array.isArray(result)) {
-    throw new TypeError(`${owner} must return an AvailabilityResult.`);
-  }
-
-  const candidate = result as Partial<AvailabilityResult> & Record<string, unknown>;
-  if (candidate.ready === true) return CAST_READY;
-  if (candidate.ready !== false) {
-    throw new TypeError(`${owner} must return an AvailabilityResult with a boolean ready field.`);
-  }
-
-  const code = typeof candidate.code === 'string' ? candidate.code.trim() : '';
-  const reason = typeof candidate.reason === 'string' ? candidate.reason.trim() : '';
-  if (!code || !reason) {
-    throw new TypeError(`${owner} denial must include a non-empty code and reason.`);
-  }
-
-  if (candidate.retryAt === null) return denyCast(code, reason);
-  if (typeof candidate.retryAt !== 'number' || !Number.isFinite(candidate.retryAt)) {
-    throw new TypeError(`${owner} denial retryAt must be a finite number or null.`);
-  }
-
-  return retryCast(candidate.retryAt, code, reason);
-}
-
 /**
  * Folds a sequence of normalized availability outcomes into one result. A
  * non-retryable denial (retryAt == null) is final; otherwise every constraint

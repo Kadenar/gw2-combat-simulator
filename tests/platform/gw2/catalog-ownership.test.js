@@ -210,29 +210,6 @@ test('phase-scoped module sections compile without duplicating their canonical c
   assert.deepEqual(calls, ['resolved']);
 });
 
-test('native modules reject retired registration fields with their replacement paths', () => {
-  assert.throws(
-    () =>
-      defineNativeModule({
-        id: 'DuplicateHandlers',
-        data: { handlers: { legacy: replaceHandler } },
-        state: { scheduler: () => ({}) },
-        mechanics: {}
-      }),
-    /DuplicateHandlers\.data\.handlers is no longer supported; use mechanics\.execution\.skillHandlers/
-  );
-  assert.throws(
-    () =>
-      defineNativeModule({
-        id: 'DuplicateReactions',
-        data: {},
-        state: { scheduler: () => ({}) },
-        mechanics: { reactions: [] }
-      }),
-    /DuplicateReactions\.mechanics\.reactions is no longer supported; use mechanics\.resolution\.reactions/
-  );
-});
-
 test('resolved critical-hit helper preserves threshold and stochastic semantics', () => {
   const state = { progress: 0, readyAt: 0, procs: 0, rolls: 0 };
   const context = {

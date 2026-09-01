@@ -100,8 +100,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
       boon: boon.kind,
       duration: boon.duration,
       stacks: boon.stacks,
-      recipients: 'party',
-      affectsSelf: true
+      audience: { recipients: 'party' as const, affectsSelf: false }
     });
   }
 
@@ -129,8 +128,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
       boon: 'alacrity',
       duration: Number(alacrity?.duration ?? 6),
       stacks: Number(alacrity?.stacks ?? 1),
-      recipients: 'allies',
-      affectsSelf: false
+      audience: { recipients: 'party' as const }
     });
   }
 
@@ -157,8 +155,7 @@ function executeCommandEcho(context: WarriorSchedulerContext, skillId: number, a
       boon: 'might',
       duration: 10,
       stacks: 7,
-      recipients: 'party',
-      affectsSelf: true
+      audience: { recipients: 'party' as const }
     });
     gainWarriorAdrenaline(context, 3);
   } else if (skillId === ID.ON_YOUR_KNEES) {
@@ -280,8 +277,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
       boon: boon.kind,
       duration: boon.duration,
       stacks: boon.stacks ?? 1,
-      recipients: 'party',
-      affectsSelf: true
+      audience: { recipients: 'party' as const }
     });
   }
 

@@ -42,7 +42,7 @@ function contractProfession() {
             atMs: 100,
             timingAnchor: 'castStart',
             timingScale: 'fixed',
-            metadata: { flatDamage: 1 }
+            flatDamage: 1
           },
           {
             type: 'strike',
@@ -50,7 +50,7 @@ function contractProfession() {
             atMs: 800,
             timingAnchor: 'castStart',
             timingScale: 'fixed',
-            metadata: { flatDamage: 100 }
+            flatDamage: 100
           }
         ]
       },
@@ -143,7 +143,7 @@ function contractProfession() {
             timingScale: 'fixed',
             persistsAfterInterrupt: true,
             interruptCommitMs: 50,
-            metadata: { flatDamage: 1 }
+            flatDamage: 1
           },
           {
             type: 'strike',
@@ -153,7 +153,7 @@ function contractProfession() {
             timingScale: 'fixed',
             persistsAfterInterrupt: true,
             interruptCommitMs: 400,
-            metadata: { flatDamage: 100 }
+            flatDamage: 100
           }
         ]
       },
@@ -207,7 +207,7 @@ function contractProfession() {
             timingAnchor: 'castStart',
             timingScale: 'fixed',
             persistsAfterInterrupt: true,
-            metadata: { flatDamage: 1 }
+            flatDamage: 1
           }
         ]
       }

@@ -99,10 +99,8 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockback',
-          duration: 400
-        }
+        controlKind: 'knockback',
+        duration: 400
       }
     ],
     kit: 'Flamethrower'
@@ -129,9 +127,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        metadata: {
-          damageKind: 'explosion'
-        },
+        damageKind: 'explosion',
         persistsAfterInterrupt: true
       },
       {

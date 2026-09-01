@@ -6,13 +6,7 @@
  * policy rather than forking this state machine.
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
-import {
-  assertAvailabilityResult,
-  CAST_READY,
-  denyCast,
-  foldAvailability,
-  retryCast
-} from '#gw2/platform/engine/skills/availability.js';
+import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { createEvent } from '#gw2/platform/engine/events/events.js';
 import { effectFirstAt, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
@@ -326,7 +320,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   // the relevant buffs instead of the entire event log on every query.
   const buffIndex = new Map<string, SimulationEvent[]>();
   const buffKindKey = (event: SimulationEvent): string | null =>
-    event.type === 'buff' && event.affectsSelf !== false ? String(event.kind || '').toLowerCase() : null;
+    event.type === 'buff' && event.resolvedAudience?.includesSelf ? String(event.kind || '').toLowerCase() : null;
   const indexBuffEvent = (event: SimulationEvent): void => {
     const key = buffKindKey(event);
     if (key == null) return;
@@ -872,10 +866,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ...preliminaryContext,
       ammo: shared.ammo
     };
-    const policyAvailability = assertAvailabilityResult(
-      schedulerPolicy.availability?.(castContext, skill) ?? CAST_READY,
-      'Scheduler policy availability'
-    );
+    const policyAvailability = schedulerPolicy.availability?.(castContext, skill) ?? CAST_READY;
     const result = combineAvailability([shared.result, policyAvailability, professionAvailability]);
     return { result, castContext };
   }

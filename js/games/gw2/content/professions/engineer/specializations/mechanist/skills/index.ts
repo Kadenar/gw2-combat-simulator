@@ -47,10 +47,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 200
-        }
+        controlKind: 'launch',
+        duration: 200
       }
     ],
     mechanicSlot: 4
@@ -150,10 +148,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
         actorType: 'summon',
-        metadata: {
-          controlKind: 'daze',
-          duration: 1
-        }
+        controlKind: 'daze',
+        duration: 1
       }
     ],
     mechanicSlot: 3
@@ -203,9 +199,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         hits: 1,
         name: 'Rocket Punch (Mech)',
         actorType: 'summon',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
@@ -217,10 +211,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       {
         type: 'control',
         actorType: 'summon',
-        metadata: {
-          controlKind: 'defiance',
-          duration: 100
-        }
+        controlKind: 'defiance',
+        duration: 100
       }
     ]
   },
@@ -286,10 +278,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       {
         type: 'control',
         actorType: 'summon',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 232
-        }
+        controlKind: 'knockdown',
+        duration: 232
       }
     ],
     mechanicSlot: 3
@@ -309,10 +299,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockback',
-          duration: 240
-        }
+        controlKind: 'knockback',
+        duration: 240
       }
     ]
   },
@@ -456,10 +444,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
         actorType: 'summon',
-        metadata: {
-          controlKind: 'launch',
-          duration: 232
-        }
+        controlKind: 'launch',
+        duration: 232
       }
     ],
     mechanicSlot: 2
@@ -481,9 +467,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         hits: 1,
         name: 'Explosive Knuckle',
         actorType: 'summon',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       },
       {
         type: 'condition',

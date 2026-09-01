@@ -185,8 +185,8 @@ export function triggerMasterFencer(
   context.addTraitProc('Master Fencer', event.at, event.skillName, '8s self fury, 4s allied fury');
   const furyEffects = (profile?.effects || []).filter((effect) => effect.type === 'boon');
   for (const [index, application] of [
-    { recipients: 'self' as const, duration: 8 },
-    { recipients: 'allies' as const, duration: 4 }
+    { audience: { recipients: 'self' as const }, duration: 8 },
+    { audience: { recipients: 'party' as const }, duration: 4 }
   ].entries()) {
     const effect = furyEffects[index];
     context.emitEvent(event, {
@@ -197,17 +197,11 @@ export function triggerMasterFencer(
       actorType: 'player',
       skillId: TRAIT.MASTER_FENCER,
       skillName: 'Master Fencer',
-      name: `Master Fencer — ${application.recipients} fury`,
+      name: `Master Fencer — ${application.audience.recipients} fury`,
       kind: 'fury',
       duration: context.boonDuration(String(effect?.boon || 'fury'), Number(effect?.duration ?? application.duration)),
       stacks: Number(effect?.stacks || 1),
-      recipients: application.recipients,
-      affectsSelf: application.recipients === 'self',
-      ...(application.recipients === 'allies'
-        ? {
-            maximumRecipients: Number(effect?.maximumRecipients || 4)
-          }
-        : {})
+      audience: effect?.audience ?? application.audience
     });
   }
 }

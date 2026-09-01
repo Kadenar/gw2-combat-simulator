@@ -37,10 +37,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },
@@ -123,10 +121,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 2
-        }
+        controlKind: 'knockdown',
+        duration: 2
       }
     ]
   },
@@ -313,10 +309,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },
@@ -406,10 +400,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 400
-        }
+        controlKind: 'launch',
+        duration: 400
       }
     ]
   },
@@ -430,10 +422,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 2
-        }
+        controlKind: 'knockdown',
+        duration: 2
       }
     ]
   },
@@ -543,10 +533,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },
@@ -603,10 +591,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 1
-        }
+        controlKind: 'stun',
+        duration: 1
       }
     ]
   },
@@ -706,10 +692,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'daze',
-          duration: 2
-        }
+        controlKind: 'daze',
+        duration: 2
       }
     ]
   },
@@ -930,10 +914,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'pull',
-          duration: 360
-        }
+        controlKind: 'pull',
+        duration: 360
       }
     ]
   },
@@ -983,10 +965,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 360
-        }
+        controlKind: 'launch',
+        duration: 360
       }
     ]
   },
@@ -1014,10 +994,8 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'pull',
-          duration: 360
-        }
+        controlKind: 'pull',
+        duration: 360
       }
     ]
   },

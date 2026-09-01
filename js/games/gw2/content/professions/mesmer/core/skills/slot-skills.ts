@@ -8,7 +8,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 20,
     effects: []
@@ -18,7 +17,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 833.333333333,
     cooldown: 12,
     effects: []
@@ -28,7 +26,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 25,
@@ -43,7 +40,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 1,
     effects: []
@@ -53,7 +49,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 10,
     effects: []
@@ -63,7 +58,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 166.666666667,
     cooldown: 25,
     effects: []
@@ -73,7 +67,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
@@ -84,7 +77,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Elite',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 833.333333333,
     cooldown: 35,
     effects: []
@@ -94,7 +86,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 1680,
     cooldown: 60,
     // Restart the passive clone interval only after the active cast completes.
@@ -111,7 +102,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: true,
     resource: {
@@ -136,7 +126,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 32,
@@ -147,7 +136,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Elite',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 960,
     cooldown: 120,
     effects: []
@@ -157,7 +145,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 40,
     phantasm: true,
     resource: {
@@ -182,7 +169,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 30,
     // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
     mechanicTriggers: [
@@ -201,7 +187,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Elite',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 45,
     effects: []
@@ -211,7 +196,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 640,
     cooldown: 20,
     effects: []

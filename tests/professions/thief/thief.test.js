@@ -1150,7 +1150,7 @@ test('Thief modifiers follow stable skill and packet IDs after display labels ch
         type: 'damage',
         actorType: 'player',
         name: 'Renamed life-siphon packet',
-        packetKind: 'thief.vampiric-slash-life-siphon'
+        metadata: { packetKind: 'thief.vampiric-slash-life-siphon' }
       },
       config: { target: { conditions: { Vulnerability: true } } },
       time: 0
@@ -1350,17 +1350,17 @@ test('Daredevil Staff skills use supplied coefficients and effects', () => {
   const hookControl = hook.effects.find((effect) => effect.type === 'control');
 
   assert.equal(hook.stealthAttack, true);
-  assert.equal(hookControl.metadata.controlKind, 'knockdown');
+  assert.equal(hookControl.controlKind, 'knockdown');
 
   const helmet = thiefCatalog.skillsByName.get('Helmet Breaker');
   const helmetControl = helmet.effects.find((effect) => effect.type === 'control');
 
-  assert.equal(helmetControl.metadata.controlKind, 'daze');
+  assert.equal(helmetControl.controlKind, 'daze');
 
   const dust = thiefCatalog.skillsByName.get('Dust Strike');
   const blind = dust.effects.find((effect) => effect.type === 'blind');
 
-  assert.equal(blind.metadata.duration, 1);
+  assert.equal(blind.duration, 1);
 });
 
 test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
@@ -2487,21 +2487,23 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
   );
 
   assert.equal(protection.duration, 5);
-  assert.equal(protection.recipientCount, 4);
+  assert.equal(protection.resolvedAudience.recipientCount, 3);
   const barrier = allies.events.find(
     (event) => event.type === 'buff' && event.skillName === 'Enter Shadow Shroud' && event.kind === 'barrier'
   );
 
-  assert.equal(barrier.recipientCount, 1);
+  assert.equal(barrier.resolvedAudience.includesSelf, false);
+  assert.equal(barrier.resolvedAudience.recipientCount, 1);
   const dawnBarrier = allies.events.find(
     (event) => event.type === 'buff' && event.skillName === "Dawn's Repose" && event.kind === 'barrier'
   );
 
-  assert.equal(dawnBarrier.recipientCount, 2);
+  assert.equal(dawnBarrier.resolvedAudience.includesSelf, false);
+  assert.equal(dawnBarrier.resolvedAudience.recipientCount, 2);
   assert.deepEqual(
     allies.events
       .filter((event) => event.type === 'buff' && event.kind === 'rot-wallow-venom')
-      .map((event) => [event.at, event.duration, event.recipientCount]),
+      .map((event) => [event.at, event.duration, event.resolvedAudience.recipientCount]),
     [
       [0, 10, 1],
       [0.52, 10, 1]
@@ -2521,6 +2523,28 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
   });
 
   assert.ok(peitha.events.some((event) => event.type === 'peitha' && event.skillName === 'Well of Tears'));
+});
+
+test('Condi spear Antiquary skills use EVTC-measured Quickness cast times', () => {
+  const expected = new Map([
+    [ID.ENTANGLING_ASP, 520],
+    [ID.SHATTERING_ASSAULT, 640],
+    [ID.DISTRACTING_THROW, 360],
+    [ID.ASHEN_ASSAULT, 1200],
+    [ID.MANTIS_STING, 400],
+    [ID.FALLING_SPIDER, 600],
+    [ID.PREPARE_THOUSAND_NEEDLES, 600],
+    [ID.CALTROPS, 920],
+    [ID.MISTBURN_MORTAR, 600],
+    [ID.SKRITT_SWIPE, 200]
+  ]);
+
+  for (const [skillId, duration] of expected) {
+    const skill = thiefCatalog.skillsById.get(skillId);
+
+    assert.equal(skill.quicknessCastTimeMs, duration, skill.name);
+    assert.equal(skill.castTimeMs, duration * 1.5, skill.name);
+  }
 });
 
 test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
@@ -2644,10 +2668,10 @@ test('Spider Venom grants six independent charges to the player and allies', () 
 
   assert.equal(partyBuff.stacks, 6);
   assert.equal(partyBuff.duration, 24);
-  assert.equal(partyBuff.recipientCount, 5);
-  assert.equal(partyBuff.alliedPlayerCount, 4);
-  assert.deepEqual(partyBuff.companionIds, []);
-  assert.equal(partyBuff.affectsSummons, false);
+  assert.equal(partyBuff.resolvedAudience.recipientCount, 5);
+  assert.equal(partyBuff.resolvedAudience.alliedPlayerCount, 4);
+  assert.deepEqual(partyBuff.resolvedAudience.companionIds, []);
+  assert.equal(partyBuff.resolvedAudience.includesSummons, false);
 
   const allyPoisons = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && event.triggeredByAlly
@@ -2684,7 +2708,11 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   const personalDevourer = venomConditions(ID.DEVOURER_VENOM, false);
 
   assert.deepEqual(
-    [buff('skale-venom'), buff('devourer-venom')].map((event) => [event.stacks, event.duration, event.recipientCount]),
+    [buff('skale-venom'), buff('devourer-venom')].map((event) => [
+      event.stacks,
+      event.duration,
+      event.resolvedAudience.recipientCount
+    ]),
     [
       [4, 24, 5],
       [2, 24, 5]
@@ -3137,8 +3165,8 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
   const chakShield = artifact('Chak Shield', true);
 
   assert.equal(chakShield.breakdown.find((entry) => entry.name === 'Chak Shield').hits, 6);
-  assert.equal(mortar.endState.profession.mistburnExpiresAt, 12.95);
-  assert.equal(turret.endState.profession.kryptisDamageUntil, 10.66);
+  assert.equal(mortar.endState.profession.mistburnExpiresAt, 13.2);
+  assert.equal(turret.endState.profession.kryptisDamageUntil, 10.96);
   assert.ok(sunCrystal.conditionDamage > artifact('Zephyrite Sun Crystal').conditionDamage * 1.8);
 });
 

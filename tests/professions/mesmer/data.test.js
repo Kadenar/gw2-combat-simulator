@@ -221,8 +221,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     boon: 'alacrity',
     duration: 3,
     stacks: 1,
-    recipients: 'party',
-    maximumRecipients: 5
+    audience: { recipients: 'party', maximumRecipients: 5 }
   });
   assert.equal(profile('Mirage', MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes).profile.effects[0].coefficient, 1);
   assert.equal(profile('Virtuoso', VIRTUOSO_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
@@ -272,7 +271,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
           {
             effectIndex: 0,
             duration: { from: 3, to: 4 },
-            maximumRecipients: { from: 5, to: 10 }
+            audience: { maximumRecipients: { from: 5, to: 10 } }
           }
         ]
       },
@@ -305,8 +304,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     boon: 'quickness',
     duration: 4,
     stacks: 1,
-    recipients: 'party',
-    maximumRecipients: 10
+    audience: { recipients: 'party', maximumRecipients: 10 }
   });
   assert.equal(preview.balanceProfilesById.get(VIRTUOSO_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
   assert.equal(preview.balanceProfilesById.get(TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).effects[0].coefficient, 2.5);
@@ -1029,17 +1027,7 @@ test('Mesmer supplemental identities, handler profiles, and trait coverage are e
   assert.equal(MESMER_SUPPLEMENTAL_SKILLS.length, 15);
   assert.ok(MESMER_SUPPLEMENTAL_SKILLS.every((skill) => skill.id > 0));
   assert.ok(PSEUDO_SKILLS.every((skill) => skill.id < 0));
-  const identityFields = [
-    'name',
-    'description',
-    'icon',
-    'type',
-    'slot',
-    'weapon',
-    'specialization',
-    'environment',
-    'flipParent'
-  ];
+  const identityFields = ['name', 'description', 'icon', 'type', 'slot', 'weapon', 'specialization', 'flipParent'];
 
   assert.ok(
     Object.values(MESMER_SUPPLEMENTAL_SKILL_MECHANICS).every((mechanics) =>

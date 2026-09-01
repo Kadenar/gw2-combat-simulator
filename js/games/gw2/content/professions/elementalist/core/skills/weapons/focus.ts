@@ -43,9 +43,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         ticks: FLAMEWALL_TICK_OFFSETS_MS.map((atMs) => ({
           atMs,
           coefficient: 0.1,
-          metadata: {
-            damageKind: 'field-tick'
-          }
+          damageKind: 'field-tick'
         })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -212,9 +210,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },
@@ -251,9 +247,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ]
   },

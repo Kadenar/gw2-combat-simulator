@@ -85,7 +85,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'control',
-        metadata: { controlKind: 'daze' }
+        controlKind: 'daze'
       }
     ],
     quicknessCastTimeMs: 167

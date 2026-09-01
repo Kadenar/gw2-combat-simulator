@@ -42,7 +42,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         boon: 'might',
         stacks: 4,
         duration: 5,
-        recipients: 'party',
+        audience: { recipients: 'party' as const },
         atMs,
         timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const
@@ -71,9 +71,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   }

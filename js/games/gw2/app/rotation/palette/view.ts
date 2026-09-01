@@ -13,9 +13,7 @@
 import { ammoDisplayView } from '#ui/rotation/ammo-display.js';
 import {
   activationDamageCommitMs,
-  openActivationEditor,
-  suggestedActivationInterruptMs,
-  validateActivationInterruptMs
+  openActivationEditor
 } from '#gw2/app/presentation/rotation/editors/activation-editor.js';
 import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
 import {
@@ -79,11 +77,9 @@ const CONCURRENT_OFFSET_MS = 120;
 
 type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
 
-/** Chooses a valid default interruption point just before a cast completes. */
-export function suggestedPaletteInterruptMs(skill: Skill | null | undefined): number {
-  const fullCastMs = Math.round(Number(skill?.castTimeMs || 0));
-  const configured = validateActivationInterruptMs(Number(skill?.paletteInterruptMs), fullCastMs);
-  return configured.valid ? configured.value : suggestedActivationInterruptMs(fullCastMs);
+/** Defaults palette interruption to the skill's commit point, or its normal cast time when none is declared. */
+export function defaultPaletteInterruptMs(skill: Skill | null | undefined): number {
+  return Math.round(Number(skill?.interruptCommitMs ?? skill?.castTimeMs ?? 0));
 }
 
 /**
@@ -801,7 +797,7 @@ export function renderPalette(app: ProfessionAppState): void {
           concurrentOffsetMs: CONCURRENT_OFFSET_MS
         });
       } else if (event.ctrlKey && !instant) {
-        const suggestedInterruptMs = suggestedPaletteInterruptMs(skill);
+        const suggestedInterruptMs = defaultPaletteInterruptMs(skill);
         openActivationEditor({
           anchor: icon,
           skillName: String(skill?.displayName || skill?.name || name),

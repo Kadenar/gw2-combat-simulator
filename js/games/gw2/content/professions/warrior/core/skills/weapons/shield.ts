@@ -14,10 +14,8 @@ export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },

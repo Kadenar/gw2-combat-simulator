@@ -50,9 +50,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'fear'
-        }
+        controlKind: 'fear'
       }
     ],
     type: 'Profession',
@@ -171,12 +169,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         type: 'strike',
         ticks: [{ atMs: 520, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
-        metadata: {
-          flatStrikeBase: 778,
-          flatStrikePowerCoeff: 0.2,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 778,
+        flatStrikePowerCoeff: 0.2,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -184,12 +180,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         type: 'strike',
         ticks: [{ atMs: 1750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
-        metadata: {
-          flatStrikeBase: 778,
-          flatStrikePowerCoeff: 0.2,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 778,
+        flatStrikePowerCoeff: 0.2,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -197,12 +191,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         type: 'strike',
         ticks: [{ atMs: 2750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
-        metadata: {
-          flatStrikeBase: 778,
-          flatStrikePowerCoeff: 0.2,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 778,
+        flatStrikePowerCoeff: 0.2,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -210,12 +202,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         type: 'strike',
         ticks: [{ atMs: 3750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
-        metadata: {
-          flatStrikeBase: 778,
-          flatStrikePowerCoeff: 0.2,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 778,
+        flatStrikePowerCoeff: 0.2,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -223,12 +213,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         type: 'strike',
         ticks: [{ atMs: 4750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
-        metadata: {
-          flatStrikeBase: 778,
-          flatStrikePowerCoeff: 0.2,
-          noCrit: true,
-          damageKind: 'life-steal'
-        },
+        flatStrikeBase: 778,
+        flatStrikePowerCoeff: 0.2,
+        noCrit: true,
+        damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -245,9 +233,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'fear'
-        }
+        controlKind: 'fear'
       }
     ],
     handlerId: 'necromancer.flip'

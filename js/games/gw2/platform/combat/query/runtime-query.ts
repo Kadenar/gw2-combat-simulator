@@ -61,7 +61,9 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.timeline?.timedActive(boon, context.time)) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) =>
-      application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
+      application.resolvedAudience.includesSelf &&
+      application.at <= context.time &&
+      application.expiresAt > context.time
   );
 }
 

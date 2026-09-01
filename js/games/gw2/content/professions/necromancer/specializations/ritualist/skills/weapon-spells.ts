@@ -31,15 +31,14 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
   if (!definition) return false;
   const playerStacks = Number(definition.stacks || 0);
   const defaultAllyStacks = Number(definition.allyStacks || 0);
-  const maximumAllies = Math.max(Number(definition.maximumRecipients || 1) - 1, 0);
+  const maximumAllies = Math.max(Number(definition.audience?.maximumRecipients || 1) - 1, 0);
   // Wielder's Boon grants allies the same stack count as the player instead of the reduced ally default
   const fullAlliedBenefit = hasTrait(context, TRAIT.WIELDERS_BOON);
   const allyStacks = fullAlliedBenefit ? playerStacks : defaultAllyStacks;
   const party = gw2AlliedEffectRecipients(context.config, {
+    recipients: 'party',
     maximumRecipients: maximumAllies + 1,
-    // Weapon spells can include ordinary minions after player-first targeting;
-    // Ritualist spirits do not receive weapon-spell stacks.
-    companionIds: necromancerActiveMinionCompanionIds(context)
+    eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
   });
   context.emit({
     type: 'necromancer.weapon-spell',
@@ -55,9 +54,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
     playerStacks,
     allyStacks,
     maxAllies: maximumAllies,
-    recipients: party.companionIds,
-    alliedPlayerCount: party.alliedPlayerCount,
-    recipientCount: party.recipientCount,
+    resolvedAudience: party,
     alliesReceiveFullBenefit: fullAlliedBenefit
   });
   if (spell === 'nightmare' || spell === 'splinter') {

@@ -37,29 +37,18 @@ const noop: Gw2ResolverReaction = () => {};
 
 function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions: Gw2ResolverReactionRegistry): void {
   const kind = String(event.kind || '').toLowerCase();
-  // Runtime buff events cover both standard boons and generic positive
-  // statuses; only standard boons use configured boon-sharing behavior.
-  const recipients = isStandardBoon(kind)
+  // Standard boons honor the summon-sharing setting; generic positive statuses do not.
+  const resolvedAudience = isStandardBoon(kind)
     ? gw2BoonApplicationRecipients(ctx.config, event)
     : gw2BuffApplicationRecipients(ctx.config, event);
-  Object.assign(event, {
-    affectsSelf: recipients.affectsSelf,
-    affectsSummons: recipients.affectsSummons,
-    alliedPlayerCount: recipients.alliedPlayerCount,
-    companionIds: recipients.companionIds,
-    recipientCount: recipients.recipientCount
-  });
+  Object.assign(event, { resolvedAudience });
   const applications = ctx.boons.get(kind) || [];
   applications.push({
     at: event.at,
     expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
     stacks: Math.max(1, Number(event.stacks || 1)),
     source: event.source,
-    affectsSelf: recipients.affectsSelf,
-    affectsSummons: recipients.affectsSummons,
-    alliedPlayerCount: recipients.alliedPlayerCount,
-    companionIds: recipients.companionIds,
-    recipientCount: recipients.recipientCount
+    resolvedAudience
   });
   ctx.boons.set(kind, applications);
   // Keep expired applications for historical timestamp queries, but report
@@ -67,12 +56,12 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   const activeStacks = isDurationStackingBoon(kind)
     ? Number(
         remainingDurationStackSeconds(applications, event.at, {
-          includes: (application) => application.affectsSelf !== false,
+          includes: (application) => application.resolvedAudience.includesSelf,
           maximum: durationStackingBoonCapSeconds(kind)
         }) > 0
       )
     : applications
-        .filter((application) => application.affectsSelf !== false && application.expiresAt > event.at)
+        .filter((application) => application.resolvedAudience.includesSelf && application.expiresAt > event.at)
         .reduce((sum, application) => sum + application.stacks, 0);
   reactions.dispatch('buff.applied', ctx, event, {
     activeStacks,

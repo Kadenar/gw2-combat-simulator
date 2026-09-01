@@ -8,7 +8,7 @@ import {
   prepareSpearChainSkill,
   prepareSpearStealthAttack
 } from '#gw2/content/professions/thief/core/skills/spear-chain.js';
-import { activateVenom, observeVenomBuff } from '#gw2/content/professions/thief/core/skills/venoms.js';
+import { activateVenom } from '#gw2/content/professions/thief/core/skills/venoms.js';
 import { activateTrap, prepareTrap } from '#gw2/content/professions/thief/core/skills/traps.js';
 import {
   activateAssassinsSignet,
@@ -44,7 +44,6 @@ export const thiefCoreSkillHandlers = Object.freeze({
     afterEffects: completeSpearStealthAttack
   }),
   'thief.venom': augmentSkillHandler(null, {
-    afterEffect: observeVenomBuff,
     afterEffects: activateVenom
   }),
   'thief.prepare-trap': augmentAfter(prepareTrap),

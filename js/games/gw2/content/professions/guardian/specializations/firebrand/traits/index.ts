@@ -122,7 +122,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       kind: 'quickness',
       duration: Number(quickness?.duration || 2),
       stacks: 1,
-      recipients: 'party'
+      audience: { recipients: 'party' as const }
     });
     emitGuardianProc(context, {
       name: "Liberator's Vow",
@@ -187,7 +187,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
       kind: 'quickness',
       stacks: Number(quickness?.stacks || 1),
       duration: gw2SchedulerBoonDuration(context, sourceSkill, 'quickness', Number(quickness?.duration || 2)),
-      recipients: 'party',
+      audience: { recipients: 'party' as const },
       triggeredBy: event.skillName
     });
     emitGuardianProc(context, {
@@ -286,11 +286,11 @@ export function reactToFirebrandJusticeHit(
 
 export function reactToFirebrandBuffTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = firebrandState.from(context);
+  const includesSelf = event.resolvedAudience?.includesSelf === true;
+  const alliedPlayerCount = Number(event.resolvedAudience?.alliedPlayerCount || 0);
   if (
     String(event.kind || '').toLowerCase() !== 'quickness' ||
-    // Skip if the event goes to allies only AND no allies are configured —
-    // there is nobody to trigger Quickfire from.
-    (event.affectsSelf === false && Number(event.alliedPlayerCount || 0) <= 0) ||
+    (!includesSelf && alliedPlayerCount <= 0) ||
     !hasTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE) ||
     !isInternalCooldownReady(event.at, state.quickfireReadyAt)
   ) {
@@ -303,7 +303,8 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
   const burn = balanceProfileEffect(ashes, 'condition');
   const duration = Number(ashesBuff?.duration || 10);
   state.quickfireReadyAt = event.at + Number(quickfire?.internalCooldown || 7);
-  if (event.affectsSelf !== false) {
+  // Prefer an allied Quickfire recipient when present; otherwise the simulated player receives the charge.
+  if (alliedPlayerCount <= 0 && includesSelf) {
     const hadAshes = state.ashesCharges > 0 && event.at < state.ashesExpiresAt - Number(context.epsilon || 0.0001);
     state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
     state.ashesBurnDuration = Number(burn?.duration || 2);

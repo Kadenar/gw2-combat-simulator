@@ -49,7 +49,7 @@ export function applyPhalanxStrength(context: WarriorSchedulerContext, event: Wa
   if (
     event.type !== 'buff' ||
     event.kind !== 'might' ||
-    event.affectsSelf === false ||
+    !event.resolvedAudience?.includesSelf ||
     event.sourceId === TRAIT.PHALANX_STRENGTH ||
     !hasTrait(context, TRAIT.PHALANX_STRENGTH)
   ) {
@@ -72,8 +72,7 @@ export function applyPhalanxStrength(context: WarriorSchedulerContext, event: Wa
     boon: 'might',
     duration: 5,
     stacks: 1,
-    recipients: 'allies',
-    affectsSelf: false
+    audience: { recipients: 'party' as const, affectsSelf: false }
   });
 }
 
@@ -103,7 +102,7 @@ export function applyMarchingOrders(context: WarriorSchedulerContext, event: War
     boon: 'might',
     duration: Number(might?.duration || 15),
     stacks: Number(might?.stacks || 3),
-    recipients: 'party'
+    audience: { recipients: 'party' as const }
   });
   return true;
 }
@@ -127,7 +126,7 @@ export function applySoldiersComfort(context: WarriorSchedulerContext, event: Wa
     boon: 'protection',
     duration: Number(protection?.duration || 4),
     stacks: Number(protection?.stacks || 1),
-    recipients: 'party'
+    audience: { recipients: 'party' as const }
   });
 }
 
@@ -150,7 +149,7 @@ export function applyMartialCadence(context: WarriorSchedulerContext, event: War
     boon: 'stability',
     duration: Number(stability?.duration || 3),
     stacks: Number(stability?.stacks || 1),
-    recipients: 'party'
+    audience: { recipients: 'party' as const }
   });
 }
 
@@ -174,7 +173,7 @@ export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: n
       boon: 'might',
       stacks: Number(might?.stacks || 5),
       duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', Number(might?.duration || 10)),
-      recipients: 'party'
+      audience: { recipients: 'party' as const }
     });
     state.empowerAlliesNextAt += interval;
   }

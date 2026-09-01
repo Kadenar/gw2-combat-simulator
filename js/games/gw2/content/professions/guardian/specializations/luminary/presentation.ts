@@ -98,7 +98,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   // (Dazzling Hammer) is the equipped armament; other radiant weapons still
   // emit the buff but strip the bonus, so mirror the modifier's hammer gate.
   const radiant = timedBuffAt(result, 'guardian-radiant-armaments', at);
-  if (radiant && radiant.event.radiantWeapon === 'hammer') {
+  if (radiant && radiant.event.metadata?.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
       label: 'Radiant Armaments',

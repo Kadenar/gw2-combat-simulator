@@ -254,10 +254,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ],
     mechanicSlot: 2
@@ -486,10 +484,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'pull',
-          duration: 360
-        }
+        controlKind: 'pull',
+        duration: 360
       }
     ]
   },
@@ -516,10 +512,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ],
     mechanicSlot: 3
@@ -547,10 +541,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       }
     ],
     mechanicSlot: 4
@@ -570,10 +562,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'stun',
-          duration: 2
-        }
+        controlKind: 'stun',
+        duration: 2
       },
       {
         type: 'boon',

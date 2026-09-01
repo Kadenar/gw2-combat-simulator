@@ -72,9 +72,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       },
       {
         type: 'blind',
-        metadata: {
-          duration: 6
-        }
+        duration: 6
       }
     ],
     handlerId: 'necromancer.condition-transfer'

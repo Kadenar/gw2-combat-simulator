@@ -114,10 +114,7 @@ function observeDeadeyeStolenEffect(
 
   if (event.type === 'buff' && event.boon) {
     // Stolen skill boons are applied to the party (up to 5 allies), not just self
-    context.replaceEvent(event, {
-      recipients: 'party',
-      maximumRecipients: 5
-    });
+    context.replaceEvent(event, { audience: { recipients: 'party' as const, maximumRecipients: 5 } });
   }
 }
 

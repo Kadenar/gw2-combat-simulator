@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 0,
     nextChainId: ID.MIND_GASH,
     effects: [
@@ -28,7 +27,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 780,
     cooldown: 0,
     nextChainId: ID.MIND_SPIKE,
@@ -48,7 +46,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 1260,
     cooldown: 0,
     boonlessCoefficient: 2,
@@ -69,7 +66,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 600,
     cooldown: 12,
     resource: {
@@ -92,7 +88,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 15,
     phantasm: true,
     resource: {
@@ -146,7 +141,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 12,
     resource: {
@@ -172,7 +166,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    environment: 'Terrestrial',
     castTimeMs: 1440,
     cooldown: 10,
     effects: [
@@ -192,7 +185,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: 'Troubadour',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 12,
     resource: {

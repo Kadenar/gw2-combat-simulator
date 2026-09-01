@@ -6,6 +6,7 @@ import {
 } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { observedCommittedInterruptMs } from '#gw2/platform/skills/timing.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -319,17 +320,15 @@ export function reconcileCastEffectPackets(
     let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
     const replayCastEnd = action.replayCastEnd;
     const suppressFollowingWait = action.suppressFollowingWait;
-    const paletteInterruptMs = Number(skill?.paletteInterruptMs);
-    const observedPaletteInterrupt =
-      paletteInterruptMs > 0 && Math.abs(actualDuration - paletteInterruptMs) <= EFFECT_PACKET_TOLERANCE_MS;
+    const observedCommittedInterrupt = observedCommittedInterruptMs(skill, actualDuration) != null;
     if (packets.allObserved) {
       if (
         runtimeDuration > 0 &&
         packets.allObservedTimingExplicit &&
         packets.lastObservedCancelableExpectedOffsetMs != null &&
-        !observedPaletteInterrupt
+        !observedCommittedInterrupt
       ) {
-        // Every cancelable timed packet proves completion unless the animation ended at the skill's known cancel point.
+        // Every cancelable timed packet proves completion unless the observed duration is a valid committed interrupt.
         replayDuration = runtimeDuration;
       }
     }

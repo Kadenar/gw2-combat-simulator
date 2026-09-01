@@ -2403,7 +2403,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   );
   assert.equal(mechanic('Flame Blast').cooldown, 6);
   assert.equal(mechanic('Flame Blast').quicknessCastTimeMs, 800);
-  assert.equal(mechanic('Flame Blast').effects[0].metadata.damageKind, 'explosion');
+  assert.equal(mechanic('Flame Blast').effects[0].damageKind, 'explosion');
   assert.deepEqual(
     [
       'Fragmentation Shot',
@@ -2442,7 +2442,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   assert.ok(
     mechanic('Corona Burst')
       .effects.filter((effect) => effect.type === 'strike')
-      .every((effect) => effect.metadata.damageKind === 'explosion')
+      .every((effect) => effect.damageKind === 'explosion')
   );
   assert.equal(
     mechanic('Photon Blitz').effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
@@ -2463,14 +2463,14 @@ test('Engineer packets use total coefficients and configured cadence', () => {
     ]
   );
   assert.equal(strikeEffectCoefficient(mechanic('Prime Light Beam').effects[0]), 3);
-  assert.equal(mechanic('Prime Light Beam').effects[0].metadata.damageKind, 'explosion');
-  assert.equal(mechanic('Prime Light Beam').effects[2].metadata.controlKind, 'launch');
+  assert.equal(mechanic('Prime Light Beam').effects[0].damageKind, 'explosion');
+  assert.equal(mechanic('Prime Light Beam').effects[2].controlKind, 'launch');
   assert.equal(mechanic('Grenade Barrage').effects[0].weapon, 'Profession mechanic');
   assert.equal(mechanic('Blade Burst').effects[0].weapon, 'Profession mechanic');
   assert.equal(mechanic('Particle Accelerator').effects[0].weapon, 'Profession mechanic');
   assert.equal(mechanic('Static Shock').effects[0].weapon, 'Profession mechanic');
   assert.equal(mechanic('Prime Light Beam').effects[1].eventType, 'engineer.prime-light-beam-field');
-  assert.equal(mechanic('Grenade Barrage').effects[0].metadata.damageKind, 'explosion');
+  assert.equal(mechanic('Grenade Barrage').effects[0].damageKind, 'explosion');
   assert.equal(mechanic('Air Blast').quicknessCastTimeMs, 360);
   assert.equal(mechanic('Puncturing Jab').quicknessCastTimeMs, 440);
   assert.equal(mechanic('Rending Strike').quicknessCastTimeMs, 520);
@@ -2780,7 +2780,7 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
     ]
   );
   assert.equal(burst.effects[0].comboFinishers[0].chance, 0.2);
-  assert.equal(burst.effects[1].metadata.damageKind, 'explosion');
+  assert.equal(burst.effects[1].damageKind, 'explosion');
 
   const blunderbuss = skill('Blunderbuss');
 
@@ -2819,7 +2819,7 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
 
   assert.equal(overcharged.cooldown, 14);
   assert.equal(strikeEffectCoefficient(overcharged.effects[0]), 1);
-  assert.equal(overcharged.effects[1].metadata.controlKind, 'launch');
+  assert.equal(overcharged.effects[1].controlKind, 'launch');
 
   const result = simulate('Mechanist', ['Rifle Burst'], {
     boons: { quickness: true }
@@ -2890,7 +2890,7 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
   assert.equal(electro.cooldown, 6);
   assert.equal(strikeEffectCoefficient(electro.effects[0]), 3);
   assert.equal(strikeEffectTicks(electro.effects[0]).length, 2);
-  assert.equal(electro.effects[0].metadata.damageKind, 'explosion');
+  assert.equal(electro.effects[0].damageKind, 'explosion');
   assert.equal(electro.comboFinishers[0].finisherType, 'Whirl');
 
   const rocket = skill('Rocket Charge');
@@ -2982,7 +2982,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
     bombSkills.every((candidate) =>
       candidate.effects
         .filter((effect) => effect.type === 'strike')
-        .every((effect) => effect.metadata?.damageKind === 'explosion')
+        .every((effect) => effect.damageKind === 'explosion')
     )
   );
 
@@ -3048,7 +3048,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   const magnetic = engineerCatalog.skillsByName.get('Magnetic Bomb');
 
   assert.equal(strikeEffectCoefficient(magnetic.effects[0]), 1.5);
-  assert.equal(magnetic.effects[1].metadata.controlKind, 'pull');
+  assert.equal(magnetic.effects[1].controlKind, 'pull');
   assert.equal(magnetic.quicknessCastTimeMs, 600);
   const magneticResult = simulate('Core', ['Bomb Kit', 'Magnetic Bomb', waitForBombPackets()], {
     selectedSkills,
@@ -3154,10 +3154,10 @@ test('Grenade Kit emits three explosive grenade packets', () => {
       packetCoefficients.every((packetCoefficient) => Math.abs(packetCoefficient - coefficient) < 1e-12),
       name
     );
-    assert.equal(strike.metadata.damageKind, 'explosion', name);
+    assert.equal(strike.damageKind, 'explosion', name);
 
     if (secondary === 'Blind') {
-      assert.equal(candidate.effects.find((effect) => effect.type === 'blind').metadata.duration, 5);
+      assert.equal(candidate.effects.find((effect) => effect.type === 'blind').duration, 5);
     } else if (secondary) {
       assert.ok(
         candidate.effects[1].ticks.every((packet) => packet.condition === secondary),
@@ -4714,9 +4714,9 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
   );
   const might = result.events.find((event) => event.type === 'buff' && event.name === 'Kinetic Accelerators — might');
 
-  assert.equal(quickness.recipients, 'party');
+  assert.equal(quickness.audience.recipients, 'party');
   assert.equal(quickness.duration, 3.52);
-  assert.equal(might.recipients, 'party');
+  assert.equal(might.audience.recipients, 'party');
   assert.equal(might.duration, 10 * (1 + 260 / 1500));
   assert.equal(might.stacks, 3);
   const chart = buildChartSeries(result, 40);
@@ -4801,7 +4801,7 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
       [4.001, 10, 3]
     ]
   );
-  assert.ok(boons.every((event) => event.recipients === 'party'));
+  assert.ok(boons.every((event) => event.audience?.recipients === 'party'));
   assert.ok(boons.every((event) => event.schedulerPrediction == null));
 });
 
@@ -4925,7 +4925,7 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
 
   assert.equal(staticShock.cooldown, 20);
   assert.equal(strikeEffectCoefficient(staticShock.effects[0]), 1);
-  assert.equal(staticShock.effects[1].metadata.controlKind, 'daze');
+  assert.equal(staticShock.effects[1].controlKind, 'daze');
 
   const result = simulate('Core', ['Grenade Barrage']);
   const grenades = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Grenade Barrage');
@@ -5123,7 +5123,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         },
         event: {
           actorType: 'summon',
-          engineerMech: true
+          metadata: { engineerMech: true }
         }
       },
       {

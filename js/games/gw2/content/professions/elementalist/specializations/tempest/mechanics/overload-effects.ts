@@ -37,8 +37,7 @@ function boon(atMs: number, name: string, stacks: number, duration: number): Ski
     atMs,
     timingAnchor: 'castStart',
     timingScale: 'cast',
-    recipients: 'party',
-    maximumRecipients: 5,
+    audience: { recipients: 'party' as const, maximumRecipients: 5 },
     metadata: {}
   };
 }

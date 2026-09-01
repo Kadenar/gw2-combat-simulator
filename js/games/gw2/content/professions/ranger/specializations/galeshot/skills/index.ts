@@ -54,7 +54,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { controlKind: 'launch' }
+        controlKind: 'launch'
       }
     ],
     quicknessCastTimeMs: 600,
@@ -209,7 +209,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     arrowCost: 2,
     handlerId: 'ranger.cyclone-bow-skill',
     quicknessCastTimeMs: 680,
-    paletteInterruptMs: 320,
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
     windForceGain: 1,
@@ -244,7 +243,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
       },
       {
         type: 'control',
-        metadata: { controlKind: 'daze' }
+        controlKind: 'daze'
       }
     ],
     arrowCost: 3,

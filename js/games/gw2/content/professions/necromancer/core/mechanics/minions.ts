@@ -310,10 +310,8 @@ function emitMinionCommandEffects(
       source: 'Minion',
       actorType: 'summon',
       coefficient: Number(definition.coefficient),
-      metadata: {
-        summonKind: 'minion',
-        ...summonStrikeMetadata(context, minion)
-      }
+      summonKind: 'minion',
+      ...summonStrikeMetadata(context, minion)
     });
   }
 
@@ -483,7 +481,7 @@ function summonMadness(context: NecromancerCastContext, skill: NecromancerSkill)
       sourceId: `unstable-horror.${index}`,
       actorType: 'summon',
       coefficient: Number(attack?.coefficient || 0),
-      metadata: { summonKind: 'minion' }
+      summonKind: 'minion'
     });
     emitSkillDamage(context, skill, {
       at: summonAt + Number(explosion?.atMs || 0) / 1000,
@@ -492,7 +490,7 @@ function summonMadness(context: NecromancerCastContext, skill: NecromancerSkill)
       sourceId: `unstable-horror.${index}`,
       actorType: 'summon',
       coefficient: Number(explosion?.coefficient || 0),
-      metadata: { summonKind: 'minion' }
+      summonKind: 'minion'
     });
   }
 

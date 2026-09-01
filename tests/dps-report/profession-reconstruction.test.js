@@ -734,6 +734,79 @@ test('keeps near-nominal Glaring Burst report casts at their 600 ms runtime', ()
   assert.equal('interruptMs' in glaringBurst, false);
 });
 
+test('reconstructs every observed Helio Rush action-lane duration', () => {
+  const report = reportFixture(
+    'Luminary',
+    [
+      { id: 72_940, skills: [{ castTime: 0, duration: 278, timeGained: 162 }] },
+      { id: 72_940, skills: [{ castTime: 280, duration: 321, timeGained: 119 }] },
+      { id: 72_940, skills: [{ castTime: 600, duration: 398, timeGained: 42 }] },
+      { id: 72_940, skills: [{ castTime: 1_000, duration: 438, timeGained: 2 }] }
+    ],
+    { s72940: { name: 'Helio Rush' } },
+    2_000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  const helioCommands = result.rotation.filter((command) => command.name === 'Helio Rush');
+
+  // EI measurements snap to GW2's 40 ms action ticks; 440 ms is ordinary completion.
+  assert.deepEqual(
+    helioCommands.map((command) => command.interruptMs ?? null),
+    [280, 320, 400, null]
+  );
+});
+
+test('uses an overlapping weapon swap as the Helio Rush cancel boundary', () => {
+  const report = reportFixture(
+    'Luminary',
+    [
+      { id: 72_940, skills: [{ castTime: 0, duration: 399, timeGained: 1_001 }] },
+      { id: -2, skills: [{ castTime: 321, duration: 0, timeGained: 0 }] },
+      { id: 9_146, skills: [{ castTime: 322, duration: 280, timeGained: 0 }] }
+    ],
+    {
+      s72940: { name: 'Helio Rush' },
+      's-2': { name: 'Weapon Swap', isSwap: true },
+      s9146: { name: 'Symbol of Resolution' }
+    },
+    1_000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+
+  assert.deepEqual(
+    result.rotation.find((command) => command.name === 'Helio Rush'),
+    {
+      name: 'Helio Rush',
+      skillId: 72_940,
+      interruptMs: 320
+    }
+  );
+});
+
+test('preserves observed Daybreaking Slash ticks between commit and full cast', () => {
+  const report = reportFixture(
+    'Luminary',
+    [
+      { id: 73_055, skills: [{ castTime: 0, duration: 402, timeGained: 158 }] },
+      { id: 73_055, skills: [{ castTime: 400, duration: 478, timeGained: 82 }] },
+      { id: 73_055, skills: [{ castTime: 880, duration: 518, timeGained: 42 }] },
+      { id: 73_055, skills: [{ castTime: 1_400, duration: 558, timeGained: 0 }] }
+    ],
+    { s73055: { name: 'Daybreaking Slash' } },
+    2_000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  const commands = result.rotation.filter((command) => command.name === 'Daybreaking Slash');
+
+  assert.deepEqual(
+    commands.map((command) => command.interruptMs ?? null),
+    [400, 480, 520, null]
+  );
+});
+
 test('recovers Renegade warband precasts and normalizes legend and enhanced summon signals', () => {
   const report = reportFixture(
     'Renegade',

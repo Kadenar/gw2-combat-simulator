@@ -27,8 +27,7 @@ function rangerPetBoonActive(context: Gw2ModifierContext, boon: string): boolean
 
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) =>
-      (application.affectsSummons === true ||
-        (context.config?.sharePlayerBoonsWithSummons !== false && application.affectsSelf !== false)) &&
+      application.resolvedAudience.includesSummons &&
       application.at <= context.time &&
       application.expiresAt > context.time
   );

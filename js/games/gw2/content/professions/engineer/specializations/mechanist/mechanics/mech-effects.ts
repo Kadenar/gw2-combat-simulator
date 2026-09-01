@@ -23,7 +23,7 @@ import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/autho
 
 /** Recognizes resolver events produced by the mech, including legacy summon packets inferred by mechanic slot. */
 function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
-  if (event.engineerMech === true || event.application?.engineerMech === true) return true;
+  if (event.metadata?.engineerMech === true || event.application?.metadata?.engineerMech === true) return true;
   if (event.actorType !== 'summon') return false;
   const skill = resolverSkill(context, event.skillId ?? event.application?.skillId);
   const slot = Number(skill?.mechanicSlot || 0);

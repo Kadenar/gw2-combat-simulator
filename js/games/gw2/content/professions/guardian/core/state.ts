@@ -33,8 +33,7 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
     furiousFocusReadyAt: 0,
     spearIlluminatedArmed: false,
     spearIlluminatedUntil: 0,
-    spearLuminanceUntil: 0,
-    daybreakingSlashChainStep: 0
+    spearLuminanceUntil: 0
   };
 }
 

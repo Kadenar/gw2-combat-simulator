@@ -79,7 +79,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         stacks: 2,
         duration: 6,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       }
     ]
   }),
@@ -91,7 +91,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         stacks: 1,
         duration: 1.5,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       }
     ]
   }),
@@ -171,7 +171,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       },
       {
         type: 'boon',
@@ -182,7 +182,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       }
     ]
   },

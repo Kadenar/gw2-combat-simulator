@@ -167,10 +167,8 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'pull',
-          duration: 180
-        }
+        controlKind: 'pull',
+        duration: 180
       }
     ]
   },

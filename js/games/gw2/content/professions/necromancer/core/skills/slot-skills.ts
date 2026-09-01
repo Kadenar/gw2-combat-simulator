@@ -234,9 +234,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {
-          duration: 3
-        }
+        duration: 3
       },
       {
         type: 'condition',
@@ -337,9 +335,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -358,7 +354,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceOnHit: 10,
     effects: [
       { type: 'strike', coefficient: 0.4, hits: 1, actorType: 'summon' },
-      { type: 'blind', actorType: 'summon', metadata: { duration: 5 } },
+      { type: 'blind', actorType: 'summon', duration: 5 },
       {
         type: 'condition',
         condition: 'Chilled',
@@ -398,9 +394,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true,
-        metadata: {
-          duration: 3
-        }
+        duration: 3
       },
       {
         type: 'condition',
@@ -423,9 +417,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ]
   },
@@ -488,9 +480,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          duration: 5
-        }
+        duration: 5
       },
       {
         type: 'condition',
@@ -528,7 +518,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'summon',
-        metadata: { controlKind: 'knockdown' }
+        controlKind: 'knockdown'
       }
     ],
     handlerId: 'necromancer.minion-command'
@@ -539,9 +529,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
+        controlKind: 'control'
       }
     ],
     lifeForceGain: 4
@@ -580,7 +568,8 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'fixed',
         actorType: 'effect',
         name: 'Signet of Vampirism - Vampiric Mark',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       }
     ]
   }

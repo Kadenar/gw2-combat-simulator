@@ -165,9 +165,7 @@ export function materializeNecromancerSummonAttack(
     summonInheritsCriticalAttributes: event.summonInheritsCriticalAttributes,
     summonStrikeMultiplier: event.summonStrikeMultiplier,
     independentSummonStrike: event.independentSummonStrike,
-    spirit: event.spirit,
-    spiritAttackType: event.spiritAttackType,
-    anguishConditionalDamage: event.anguishConditionalDamage
+    metadata: event.metadata
   });
   // Follow the strike with its optional condition and control payloads.
   if (Array.isArray(event.onHitCondition)) {

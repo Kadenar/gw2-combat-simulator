@@ -61,9 +61,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'launch'
-        }
+        controlKind: 'launch'
       }
     ]
   },
@@ -137,10 +135,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze',
-          duration: 2
-        }
+        controlKind: 'daze',
+        duration: 2
       }
     ]
   },
@@ -316,9 +312,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
         atMs: 441.047619047619,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'knockback'
-        }
+        controlKind: 'knockback'
       }
     ]
   },
@@ -343,10 +337,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
+        controlKind: 'knockdown',
+        duration: 3
       }
     ]
   },

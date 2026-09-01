@@ -2,7 +2,7 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedEffectRecipients, gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
@@ -92,8 +92,9 @@ function vampiricPresenceActorKey(context: NecromancerResolverContext, event: Ne
   if (event.actorType === 'player' || (event.actorType === 'summon' && event.summonKind === 'spirit')) return 'self';
   if (event.actorType !== 'summon') return null;
   const recipients = gw2AlliedEffectRecipients(context.config, {
+    recipients: 'party',
     maximumRecipients: 5,
-    companionIds: necromancerActiveMinionCompanionIds(context)
+    eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
   });
   const owner = String(event.summonOwner || '');
   if (owner && recipients.companionIds.includes(owner)) return owner;
@@ -226,12 +227,12 @@ function queueTasteForBlood(context: NecromancerResolverContext, event: Necroman
 /** Gives each selected player or minion its own expiring stack application. */
 export function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
-  if (event.affectsSelf !== false) addTasteForBloodApplication(context, event, 'self');
-  for (let allyIndex = 1; allyIndex <= Number(event.alliedPlayerCount || 0); allyIndex += 1) {
+  if (event.resolvedAudience?.includesSelf) addTasteForBloodApplication(context, event, 'self');
+  for (let allyIndex = 1; allyIndex <= Number(event.resolvedAudience?.alliedPlayerCount || 0); allyIndex += 1) {
     addTasteForBloodApplication(context, event, alliedTasteForBloodRecipient(allyIndex));
   }
 
-  for (const companionId of Array.isArray(event.companionIds) ? event.companionIds.map(String) : []) {
+  for (const companionId of event.resolvedAudience?.companionIds || []) {
     addTasteForBloodApplication(context, event, companionTasteForBloodRecipient(companionId));
   }
 }
@@ -283,18 +284,17 @@ export function applyOverflowingThirst(context: NecromancerCastContext, skill: N
   const buff = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.overflowingThirst), 'buff');
   const duration = Number(buff?.duration || 10);
   // Resolve the exact self, allied-player, and active-minion recipients for this grant.
-  const selected = gw2AlliedEffectRecipients(context.config, {
-    maximumRecipients: 5,
-    companionIds: necromancerActiveMinionCompanionIds(context)
+  const selected = gw2BuffApplicationRecipients(context.config, {
+    audience: {
+      recipients: 'party',
+      maximumRecipients: 5,
+      eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
+    }
   });
-  const recipients = {
+  const audience = {
     recipients: 'party' as const,
     maximumRecipients: 5,
-    affectsSelf: selected.includesSelf,
-    affectsSummons: selected.companionIds.length > 0,
-    alliedPlayerCount: selected.alliedPlayerCount,
-    companionIds: selected.companionIds,
-    recipientCount: selected.recipientCount
+    eligibleCompanionIds: selected.companionIds
   };
   // Emit both the visible buff and the profession event that seeds per-recipient charge pools.
   emitSkillBuff(context, skill, {
@@ -302,7 +302,7 @@ export function applyOverflowingThirst(context: NecromancerCastContext, skill: N
     kind: String(buff?.kind || 'taste-for-blood'),
     duration,
     stacks,
-    ...recipients
+    audience
   });
   context.emit({
     type: 'necromancer.taste-for-blood-grant',
@@ -314,7 +314,7 @@ export function applyOverflowingThirst(context: NecromancerCastContext, skill: N
     skillName: skill.name,
     duration,
     stacks,
-    ...recipients
+    resolvedAudience: selected
   });
 }
 
@@ -334,7 +334,7 @@ export function applyTransfusion(context: NecromancerCastContext, skill: Necroma
     triggeredBy: skill.name,
     coefficient: 1.8,
     skillWeapon: 'Unequipped',
-    metadata: { icon: lesserChilblainsIcon }
+    icon: lesserChilblainsIcon
   });
   emitSkillCondition(context, skill, {
     at: context.effectiveEnd,
@@ -349,7 +349,7 @@ export function applyTransfusion(context: NecromancerCastContext, skill: Necroma
     condition: 'Poisoned',
     stacks: 2,
     duration: 4,
-    metadata: { icon: lesserChilblainsIcon }
+    icon: lesserChilblainsIcon
   });
   context.emit({
     type: 'necromancer.chill',

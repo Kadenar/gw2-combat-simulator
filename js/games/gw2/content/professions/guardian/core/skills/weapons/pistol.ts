@@ -10,7 +10,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 3, metadata: { projectile: true } }],
+        ticks: [{ atMs: 640, coefficient: 3, projectile: true }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -25,9 +25,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'stun'
-        }
+        controlKind: 'stun'
       }
     ]
   },
@@ -44,7 +42,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
           coefficient: 0.3,
-          metadata: { projectile: true }
+          projectile: true
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -56,7 +54,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Bleeding',
           stacks: 1,
           duration: 8,
-          metadata: { projectile: true }
+          projectile: true
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -68,7 +66,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Crippled',
           stacks: 1,
           duration: 1,
-          metadata: { projectile: true }
+          projectile: true
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -148,7 +146,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         boon: 'might',
         stacks: 1,
         duration: 5,
-        recipients: 'party',
+        audience: { recipients: 'party' as const },
         atMs,
         timingAnchor: 'castStart' as const,
         timingScale: 'fixed' as const
@@ -161,7 +159,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.6, metadata: { projectile: true } }],
+        ticks: [{ atMs: 360, coefficient: 0.6, projectile: true }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -170,7 +168,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: { projectile: true }
+        projectile: true
       }
     ]
   }

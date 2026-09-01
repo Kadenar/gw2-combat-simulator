@@ -139,11 +139,9 @@ export function applySignetsOfSuffering(context: NecromancerCastContext, skill: 
     actorType: 'effect',
     coefficient: 0,
     skillWeapon: 'Unequipped',
-    metadata: {
-      flatStrikeBase: 1413,
-      noCrit: true,
-      damageKind: 'life-steal'
-    }
+    flatStrikeBase: 1413,
+    noCrit: true,
+    damageKind: 'life-steal'
   });
 }
 

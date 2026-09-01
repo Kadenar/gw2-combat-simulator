@@ -132,7 +132,7 @@ export function applyOpportunist(context: WarriorSchedulerContext, event: Warrio
     boon: 'fury',
     duration: Number(fury?.duration || 3),
     stacks: Number(fury?.stacks || 1),
-    recipients: 'self'
+    audience: { recipients: 'self' as const }
   });
 }
 

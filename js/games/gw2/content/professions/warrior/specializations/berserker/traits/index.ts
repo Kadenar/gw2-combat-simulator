@@ -192,7 +192,7 @@ function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill):
         boon: boon.kind,
         duration: gw2SchedulerBoonDuration(context, skill, boon.kind, boon.duration),
         stacks: boon.stacks,
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       });
     }
   }

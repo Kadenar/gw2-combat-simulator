@@ -27,9 +27,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'strike',
@@ -38,10 +36,8 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingScale: 'fixed',
         name: 'Rifle Burst Grenade',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
+        damageKind: 'explosion',
+        projectile: true
       }
     ]
   },
@@ -57,9 +53,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingScale: 'fixed',
         name: 'Net Shot',
         actorType: 'player',
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',
@@ -151,17 +145,13 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingScale: 'fixed',
         name: 'Overcharged Shot',
         actorType: 'player',
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 450
-        }
+        controlKind: 'launch',
+        duration: 450
       }
     ]
   },
@@ -177,10 +167,8 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         hits: 1,
         name: 'Rifle Burst Grenade',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
+        damageKind: 'explosion',
+        projectile: true
       }
     ]
   }

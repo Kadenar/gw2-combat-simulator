@@ -79,14 +79,14 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 42280
+        "benchmarkDps": 42264
       },
       {
         "label": "Power (Greatsword / Longbow)",
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
-        "benchmarkDps": 41663,
+        "benchmarkDps": 41623,
         "sourceBenchmarkDps": 40768,
         "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
         "upToDate": true
@@ -96,7 +96,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-luminary-spear-greatsword",
-        "benchmarkDps": 37905,
+        "benchmarkDps": 37926,
         "sourceBenchmarkDps": 37129,
         "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
         "upToDate": true

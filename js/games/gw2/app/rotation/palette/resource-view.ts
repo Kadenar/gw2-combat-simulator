@@ -9,7 +9,8 @@
  *
  * A resource's sanitized `pipStyle` becomes a CSS class on its pips, bars, or
  * counter. This is the supported hook for profession-specific visuals such as
- * Mesmer notes and Revenant affinity emblems.
+ * Mesmer notes and Revenant affinity emblems. Pip capacity is also exposed so
+ * density can follow the resource shape without specialization selectors.
  */
 import type { ProfessionResourceView, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
@@ -126,11 +127,12 @@ export function paletteSkillResourceView(app: ProfessionAppState, skillId: Skill
   };
 }
 
+/** Distributes uneven totals into lower rows so the final pip lands at bottom-right. */
 function resourcePipRows(maximum: number, rowCount: number): number[] {
   const rows: number[] = [];
   let remaining = maximum;
   for (let row = 0; row < rowCount; row += 1) {
-    const count = Math.ceil(remaining / (rowCount - row));
+    const count = Math.floor(remaining / (rowCount - row));
     rows.push(count);
     remaining -= count;
   }
@@ -201,7 +203,7 @@ function resourcePipsHtml(
     .join('');
   return `<div class="${
     interactive ? 'resource-pips' : 'active-resource-pips'
-  }${pipClass} pip-rows-${pipRows}">${content}</div>`;
+  }${pipClass} pip-rows-${pipRows} pip-count-${Math.floor(definition.maximum)}">${content}</div>`;
 }
 
 function resourceBarsHtml(definition: ProfessionResourceView, value: number): string {

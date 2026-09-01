@@ -2,7 +2,7 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill
 /** Renegade runtime state machines backed by declarative skill profiles. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -21,7 +21,6 @@ import type {
   RenegadeState,
   RevenantCastContext,
   RevenantSchedulerContext,
-  RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/content/professions/revenant/types.js';
 
@@ -76,12 +75,7 @@ function emitProfileEffects(
       statusDuration
     });
     for (const application of applications) {
-      const emitted = context.emit(application.event);
-      if (eventSkill.id === ID.RAZORCLAWS_RAGE && emitted.type === 'buff' && emitted.kind === 'razorclaws-rage') {
-        context.replaceEvent(emitted, {
-          recipientCount: gw2AlliedPlayerAssumptions(context.config).count + 1
-        });
-      }
+      context.emit(application.event);
     }
   }
 }
@@ -227,19 +221,6 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
   return { enhanced, profileSkillId: profile?.id || skill.id };
 }
 
-/** Adds dynamic recipient information to the declarative Razorclaw buff. */
-export function observeBandTogetherEffect(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-  event: RevenantSimulationEvent
-): void {
-  if (skill.id === ID.RAZORCLAWS_RAGE && event.type === 'buff' && event.kind === 'razorclaws-rage') {
-    context.replaceEvent(event, {
-      recipientCount: gw2AlliedPlayerAssumptions(context.config).count + 1
-    });
-  }
-}
-
 // Seed the player's finite Razorclaw charge window and precompute each assumed
 // ally's ICD-limited bleed procs from the same buff profile.
 function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill, profile: RevenantSkill): void {
@@ -307,7 +288,6 @@ export const revenantAssassinRenegadeSkillHandlers = Object.freeze({
   'revenant.band-together': Object.freeze({
     beforeEffects: beginBandTogether,
     replacesEffects: replacesBandTogetherEffects,
-    afterEffect: observeBandTogetherEffect,
     afterEffects: completeBandTogether
   })
 });

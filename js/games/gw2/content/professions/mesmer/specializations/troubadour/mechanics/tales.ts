@@ -43,7 +43,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
   const runtime = mesmerRuntimeFor(context);
   const profileId = TALE_PROFILE_IDS[skill.id];
   const profile = profileId ? runtime.balanceProfile(profileId) : null;
-  const partyRecipients = { recipients: 'party' as const, maximumRecipients: 5 };
+  const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
 
   for (const boon of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
     runtime.addEvent({

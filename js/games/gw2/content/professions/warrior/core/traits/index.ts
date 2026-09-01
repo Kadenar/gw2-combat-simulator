@@ -222,7 +222,7 @@ function applyKeenStrikeCriticalMight(
     boon: 'might',
     duration: 5,
     stacks: 1,
-    recipients: 'self'
+    audience: { recipients: 'self' as const }
   });
 }
 

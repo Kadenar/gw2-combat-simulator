@@ -51,9 +51,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'fear'
-        }
+        controlKind: 'fear'
       }
     ]
   },

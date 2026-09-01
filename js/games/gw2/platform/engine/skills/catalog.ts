@@ -5,6 +5,7 @@
  */
 import { normalizeSkillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
+import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 import { toEntries } from '#kernel/core/collections.js';
 import type {
   AutoattackChainPosition,
@@ -90,6 +91,9 @@ const EFFECT_FIELDS = new Set([
   'actorType',
   'ownerActorType',
   'summonKind',
+  'summonOwner',
+  'skillName',
+  'parentSkillName',
   'weapon',
   'weaponStrength',
   'weaponStrengthProfileId',
@@ -99,50 +103,25 @@ const EFFECT_FIELDS = new Set([
   'flatDamage',
   'flatStrikeBase',
   'flatStrikePowerCoeff',
+  'flatStrikeMultiplier',
+  'flatStrikeHealthThreshold',
+  'flatStrikeThresholdMultiplier',
+  'damageKind',
+  'noCrit',
+  'forceCrit',
+  'projectile',
+  'controlKind',
+  'breakbar',
+  'bonusDefianceBreak',
+  'target',
   'persistsAfterInterrupt',
   'interruptCommitMs',
-  'recipients',
-  'affectsSelf',
-  'affectsSummons',
-  'maximumRecipients',
-  'targetCap',
-  'companionIds',
+  'audience',
   'metadata',
   'eventType',
   'event',
   'comboFields',
   'comboFinishers'
-]);
-const EFFECT_METADATA_FIELDS = new Set([
-  'skillName',
-  'parentSkillName',
-  'controlKind',
-  'duration',
-  'breakbar',
-  'bonusDefianceBreak',
-  'damageKind',
-  'packetKind',
-  'flatDamage',
-  'flatStrikeBase',
-  'flatStrikePowerCoeff',
-  'flatStrikeMultiplier',
-  'flatStrikeHealthThreshold',
-  'flatStrikeThresholdMultiplier',
-  'noCrit',
-  'forceCrit',
-  'projectile',
-  'summonKind',
-  'affectsSelf',
-  'affectsSummons',
-  'targetCap',
-  'companionIds',
-  'hitboxIndex',
-  'smallHitboxCap',
-  'largeHitboxOnly',
-  'affinityOnHit',
-  'legendId',
-  'target',
-  'trigger'
 ]);
 
 /**
@@ -239,7 +218,8 @@ function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
       }
 
       previousAtMs = atMs;
-      return Object.freeze({ ...tick, atMs, coefficient });
+      const metadata = normalizeEffectMetadata(tick.metadata);
+      return Object.freeze({ ...tick, atMs, coefficient, ...(metadata ? { metadata } : {}) });
     })
   );
 }
@@ -284,12 +264,14 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
       }
 
       previousAtMs = atMs;
+      const metadata = normalizeEffectMetadata(tick.metadata);
       return Object.freeze({
         ...tick,
         atMs,
         condition,
         stacks,
-        duration
+        duration,
+        ...(metadata ? { metadata } : {})
       });
     })
   );
@@ -341,22 +323,10 @@ function normalizeEffect(effect: unknown): SkillEffect {
     throw new TypeError('Effect interruptCommitMs requires persistsAfterInterrupt.');
   }
 
-  if (
-    normalizedEffect.metadata != null &&
-    (typeof normalizedEffect.metadata !== 'object' || Array.isArray(normalizedEffect.metadata))
-  ) {
-    throw new TypeError('Skill effect metadata must be an object.');
-  }
-
-  const unknownMetadata = Object.keys(normalizedEffect.metadata || {}).filter(
-    (field) => !EFFECT_METADATA_FIELDS.has(field)
-  );
-  if (unknownMetadata.length) {
-    throw new TypeError(
-      'Skill effect metadata has unsupported field' +
-        `${unknownMetadata.length === 1 ? '' : 's'}: ` +
-        unknownMetadata.join(', ')
-    );
+  const metadata = normalizeEffectMetadata(normalizedEffect.metadata);
+  const audience = normalizeEffectAudience(normalizedEffect.audience);
+  if (audience && normalizedEffect.type !== 'boon' && normalizedEffect.type !== 'buff') {
+    throw new TypeError('Skill effect audience is only valid on boon and buff effects.');
   }
 
   if (
@@ -364,18 +334,6 @@ function normalizeEffect(effect: unknown): SkillEffect {
     (normalizedEffect.type !== 'strike' || normalizedEffect.weaponStrengthSource !== 'equipped')
   ) {
     throw new TypeError('Effect weaponStrengthSource must be "equipped" on a strike effect.');
-  }
-
-  if (normalizedEffect.atMsList != null) {
-    throw new TypeError('Exact effect packets must use ticks; atMsList is not canonical.');
-  }
-
-  if (normalizedEffect.atCastEndOffsetMs != null) {
-    throw new TypeError('Cast-end offsets must use atMs with timingAnchor "castEnd".');
-  }
-
-  if (normalizedEffect.at != null) {
-    throw new TypeError('Effect offsets must use millisecond fields; legacy at is not canonical.');
   }
 
   if (normalizedEffect.ticks != null && normalizedEffect.type !== 'strike' && normalizedEffect.type !== 'condition') {
@@ -496,16 +454,13 @@ function normalizeEffect(effect: unknown): SkillEffect {
     throw new TypeError('Timing metadata is only valid for explicitly timed effects.');
   }
 
-  // Tick timelines own the full schedule; aggregate fields would be ambiguous or redundant.
+  // Tick timelines own packet count and timing; formula defaults may still apply to every tick.
   if (
     strikeTicks &&
     (normalizedEffect.coefficient != null ||
       normalizedEffect.hits != null ||
       normalizedEffect.atMs != null ||
-      normalizedEffect.intervalMs != null ||
-      normalizedEffect.flatDamage != null ||
-      normalizedEffect.flatStrikeBase != null ||
-      normalizedEffect.flatStrikePowerCoeff != null)
+      normalizedEffect.intervalMs != null)
   ) {
     throw new TypeError('Strike tick timelines cannot use aggregate coefficient or timing fields.');
   }
@@ -582,7 +537,9 @@ function normalizeEffect(effect: unknown): SkillEffect {
     ...(applications ? { applications } : {}),
     ...(strikeTicks ? { ticks: strikeTicks } : {}),
     ...(conditionTicks ? { ticks: conditionTicks } : {}),
-    ...(coefficientModifiers ? { coefficientModifiers } : {})
+    ...(coefficientModifiers ? { coefficientModifiers } : {}),
+    ...(audience ? { audience } : {}),
+    ...(metadata ? { metadata } : {})
   }) as SkillEffect;
 }
 
@@ -681,10 +638,6 @@ export function createCanonicalCatalog({
       ...(extraSkills.find((candidate) => candidate.id === id) || {})
     };
     const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
-    if (merged.activation != null || merged.castTime != null) {
-      throw new TypeError(`Skill ${id} uses legacy cast timing; use castTimeMs.`);
-    }
-
     const quicknessCastTimeMs = merged.quicknessCastTimeMs == null ? null : Number(merged.quicknessCastTimeMs);
     if (quicknessCastTimeMs != null && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))) {
       throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);

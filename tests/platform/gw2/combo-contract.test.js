@@ -14,6 +14,7 @@ import {
   registerComboField,
   resolveComboAttempt
 } from '#gw2/platform/combos/events.js';
+import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
@@ -108,26 +109,51 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
 });
 
 test('area combo boons use party targeting and can reach a summon', () => {
-  const [areaMight] = materializeComboOutcome({
-    type: 'combo',
-    at: 1,
-    source: 'Fixture Blast',
-    sourceId: 'fixture.blast',
-    actorType: 'player',
+  const state = createGw2ComboRuntimeState();
+  registerComboField(state, {
+    type: 'combo_field',
+    at: 0,
+    source: 'Fixture Fire Field',
+    sourceId: 'fixture.fire-field',
+    actorType: 'effect',
+    fieldId: 'field:fire',
     fieldType: 'Fire',
-    finisherType: 'Blast',
-    applicationCount: 1
+    expiresAt: 5,
+    ownerId: 'fixture',
+    ownerActorType: 'player'
   });
+  const finisher = prepareGw2BuffCompanionCandidates(
+    {
+      type: 'combo_finisher',
+      at: 1,
+      effectAt: 1,
+      source: 'Fixture Blast',
+      sourceId: 'fixture.blast',
+      actorType: 'player',
+      attemptId: 'attempt:blast',
+      finisherType: 'Blast',
+      fieldBinding: { kind: 'field-id', fieldId: 'field:fire' },
+      chance: 1,
+      applications: 1,
+      successfulCombos: 1
+    },
+    ['summon:one']
+  );
+  const [combo] = resolveComboAttempt(state, finisher, {
+    stochastic: false,
+    roll: () => true,
+    warn: () => {}
+  });
+  const [areaMight] = materializeComboOutcome(combo);
   const prepared = createGw2EventPreparer().prepare(
     { ...context, config: { allies: { count: 0 }, sharePlayerBoonsWithSummons: true } },
     areaMight
   );
 
-  assert.equal(areaMight.recipients, 'party');
-  assert.equal(areaMight.maximumRecipients, 5);
-  assert.equal(prepared.affectsSelf, true);
-  assert.equal(prepared.affectsSummons, true);
-  assert.equal(prepared.recipientCount, 2);
+  assert.equal(areaMight.audience.recipients, 'party');
+  assert.equal(areaMight.audience.maximumRecipients, 5);
+  assert.equal(prepared.resolvedAudience.includesSummons, true);
+  assert.equal(prepared.resolvedAudience.recipientCount, 2);
 });
 
 test('missing bindings and invalid field lifetimes fail event validation', () => {

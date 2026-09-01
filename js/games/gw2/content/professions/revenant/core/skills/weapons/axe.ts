@@ -66,10 +66,8 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
         atMs: 640,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'pull',
-          duration: 300
-        }
+        controlKind: 'pull',
+        duration: 300
       }
     ]
   }

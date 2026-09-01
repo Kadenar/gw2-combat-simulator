@@ -5,6 +5,7 @@
  * interruption and actual event emission remain scheduler concerns.
  */
 import type {
+  EffectMetadata,
   SchedulerRecord,
   SimulationActorType,
   SimulationEventInput,
@@ -39,6 +40,45 @@ export interface MaterializeSkillEffectOptions {
   readonly statusDuration?: number;
 }
 
+/** Preserves authored annotations as one nested runtime object, with tick values overriding effect defaults. */
+function nestedEffectMetadata(
+  effectMetadata?: EffectMetadata,
+  tickMetadata?: EffectMetadata
+): { readonly metadata: EffectMetadata } | Record<string, never> {
+  if (!effectMetadata && !tickMetadata) return {};
+  return { metadata: { ...effectMetadata, ...tickMetadata } };
+}
+
+/** Copies the strike formula fields that the numeric resolver consumes from each packet. */
+function strikeEventFields(source: SchedulerRecord): SchedulerRecord {
+  return {
+    ...(source.name != null ? { name: String(source.name) } : {}),
+    ...(source.weaponStrength != null ? { weaponStrength: Number(source.weaponStrength) } : {}),
+    ...(source.independentSummonStrike != null ? { independentSummonStrike: source.independentSummonStrike } : {}),
+    ...(source.summonUsesProfessionModifiers != null
+      ? { summonUsesProfessionModifiers: source.summonUsesProfessionModifiers }
+      : {}),
+    ...(source.summonInheritsAttributes != null ? { summonInheritsAttributes: source.summonInheritsAttributes } : {}),
+    ...(source.summonInheritsCriticalAttributes != null
+      ? { summonInheritsCriticalAttributes: source.summonInheritsCriticalAttributes }
+      : {}),
+    ...(source.flatDamage != null ? { flatDamage: Number(source.flatDamage) } : {}),
+    ...(source.flatStrikeBase != null ? { flatStrikeBase: Number(source.flatStrikeBase) } : {}),
+    ...(source.flatStrikePowerCoeff != null ? { flatStrikePowerCoeff: Number(source.flatStrikePowerCoeff) } : {}),
+    ...(source.flatStrikeMultiplier != null ? { flatStrikeMultiplier: Number(source.flatStrikeMultiplier) } : {}),
+    ...(source.flatStrikeHealthThreshold != null
+      ? { flatStrikeHealthThreshold: Number(source.flatStrikeHealthThreshold) }
+      : {}),
+    ...(source.flatStrikeThresholdMultiplier != null
+      ? { flatStrikeThresholdMultiplier: Number(source.flatStrikeThresholdMultiplier) }
+      : {}),
+    ...(source.damageKind != null ? { damageKind: source.damageKind } : {}),
+    ...(source.noCrit != null ? { noCrit: source.noCrit } : {}),
+    ...(source.forceCrit != null ? { forceCrit: source.forceCrit } : {}),
+    ...(source.projectile != null ? { projectile: source.projectile } : {})
+  };
+}
+
 /** Resolves the first timestamp at which an effect should fire. */
 export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffect): number {
   const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
@@ -70,14 +110,11 @@ export function materializeSkillEffectApplications({
   // Summon subtype follows every packet so ownership and clone/phantasm identity remain separate.
   const effectBaseEvent = {
     ...baseEvent,
-    ...((effect.summonKind ?? effect.metadata?.summonKind) != null
-      ? { summonKind: String(effect.summonKind ?? effect.metadata?.summonKind) }
-      : {})
-  };
-  const flatStrikeMetadata = {
-    ...(effect.flatDamage != null ? { flatDamage: Number(effect.flatDamage) } : {}),
-    ...(effect.flatStrikeBase != null ? { flatStrikeBase: Number(effect.flatStrikeBase) } : {}),
-    ...(effect.flatStrikePowerCoeff != null ? { flatStrikePowerCoeff: Number(effect.flatStrikePowerCoeff) } : {})
+    ...(effect.summonKind != null ? { summonKind: String(effect.summonKind) } : {}),
+    ...(effect.summonOwner != null ? { summonOwner: String(effect.summonOwner) } : {}),
+    ...(effect.skillName != null ? { skillName: String(effect.skillName) } : {}),
+    ...(effect.parentSkillName != null ? { parentSkillName: String(effect.parentSkillName) } : {}),
+    ...(effect.icon != null ? { icon: String(effect.icon) } : {})
   };
 
   if (effect.type === 'strike') {
@@ -105,9 +142,9 @@ export function materializeSkillEffectApplications({
           weaponStrengthSource: effect.weaponStrengthSource,
           canCrit: effect.canCrit !== false,
           ...(effect.coefficientModifiers ? { coefficientModifiers: effect.coefficientModifiers } : {}),
-          ...(effect.metadata || {}),
-          ...(tick?.metadata || {}),
-          ...flatStrikeMetadata,
+          ...strikeEventFields(effect),
+          ...(tick ? strikeEventFields(tick) : {}),
+          ...nestedEffectMetadata(effect.metadata, tick?.metadata),
           ...comboMetadata,
           ...comboFieldMetadata,
           ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
@@ -133,8 +170,12 @@ export function materializeSkillEffectApplications({
             duration: Number(tick.duration),
             applicationIndex,
             totalApplications: ticks.length,
-            ...(effect.metadata || {}),
-            ...(tick.metadata || {}),
+            ...(effect.damageKind != null ? { damageKind: effect.damageKind } : {}),
+            ...(tick.damageKind != null ? { damageKind: tick.damageKind } : {}),
+            ...(effect.projectile != null ? { projectile: effect.projectile } : {}),
+            ...(tick.projectile != null ? { projectile: tick.projectile } : {}),
+            ...(effect.target != null ? { target: effect.target } : {}),
+            ...nestedEffectMetadata(effect.metadata, tick.metadata),
             ...comboMetadata,
             ...comboFieldMetadata,
             ...(tick.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
@@ -158,7 +199,10 @@ export function materializeSkillEffectApplications({
             duration: Number(effect.duration),
             applicationIndex,
             totalApplications: count,
-            ...(effect.metadata || {}),
+            ...(effect.damageKind != null ? { damageKind: effect.damageKind } : {}),
+            ...(effect.projectile != null ? { projectile: effect.projectile } : {}),
+            ...(effect.target != null ? { target: effect.target } : {}),
+            ...nestedEffectMetadata(effect.metadata),
             ...comboMetadata,
             ...comboFieldMetadata
           }
@@ -176,24 +220,19 @@ export function materializeSkillEffectApplications({
           ...effectBaseEvent,
           at,
           type: effect.type,
+          ...(effect.controlKind != null ? { controlKind: effect.controlKind } : {}),
           ...(effect.duration != null ? { duration: Number(effect.duration) } : {}),
+          ...(effect.breakbar != null ? { breakbar: Number(effect.breakbar) } : {}),
+          ...(effect.bonusDefianceBreak != null ? { bonusDefianceBreak: Number(effect.bonusDefianceBreak) } : {}),
           applicationIndex,
           totalApplications: count,
-          ...(effect.metadata || {}),
+          ...nestedEffectMetadata(effect.metadata),
           ...comboMetadata,
           ...comboFieldMetadata
         }
       });
     }
   } else if (effect.type === 'boon' || effect.type === 'buff') {
-    const recipientMetadata = {
-      ...(effect.recipients != null ? { recipients: effect.recipients } : {}),
-      ...(effect.affectsSelf != null ? { affectsSelf: effect.affectsSelf } : {}),
-      ...(effect.affectsSummons != null ? { affectsSummons: effect.affectsSummons } : {}),
-      ...(effect.maximumRecipients != null ? { maximumRecipients: effect.maximumRecipients } : {}),
-      ...(effect.targetCap != null ? { targetCap: effect.targetCap } : {}),
-      ...(effect.companionIds != null ? { companionIds: effect.companionIds } : {})
-    };
     const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
@@ -210,8 +249,8 @@ export function materializeSkillEffectApplications({
           stacks: Math.max(1, Number(effect.stacks || 1)),
           duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
           ...(count > 1 ? { applicationIndex, totalApplications: count } : {}),
-          ...recipientMetadata,
-          ...(effect.metadata || {}),
+          ...(effect.audience ? { audience: effect.audience } : {}),
+          ...nestedEffectMetadata(effect.metadata),
           ...comboMetadata,
           ...comboFieldMetadata
         }
@@ -231,6 +270,7 @@ export function materializeSkillEffectApplications({
           type: effect.eventType,
           applicationIndex,
           totalApplications: count,
+          ...nestedEffectMetadata(effect.metadata),
           ...comboMetadata,
           ...comboFieldMetadata
         }

@@ -213,37 +213,19 @@ export type NecromancerAmmoModifierContext = NecromancerRechargeModifierContext 
 };
 
 export type NecromancerSimulationEvent = SimulationEvent & {
-  readonly activeSpirits?: number;
-  readonly anguishConditionalDamage?: boolean;
   readonly application?: NecromancerSimulationEvent;
   readonly cancelled?: boolean;
   readonly coefficient?: number;
   readonly condition?: string;
-  readonly essenceBlastDamagePerSpirit?: number;
-  readonly dhuumfireDuration?: number;
-  readonly dhuumfireInterval?: number;
   readonly expiresAt?: number;
   readonly hitIndex?: number;
-  readonly necromancerBlight?: number;
-  readonly necromancerShroudSkillOne?: boolean;
-  readonly spirit?: string;
-  readonly spiritAttackType?: string;
   readonly state?: Partial<NecromancerState>;
   readonly summonKind?: string;
 };
 
 export type NecromancerResolverEvent = Gw2ResolverEvent & {
-  readonly activeSpirits?: number;
-  readonly anguishConditionalDamage?: boolean;
   readonly application?: NecromancerResolverEvent;
   readonly coefficient?: number;
-  readonly essenceBlastDamagePerSpirit?: number;
-  readonly dhuumfireDuration?: number;
-  readonly dhuumfireInterval?: number;
-  readonly necromancerBlight?: number;
-  readonly necromancerShroudSkillOne?: boolean;
-  readonly spirit?: string;
-  readonly spiritAttackType?: string;
   readonly state?: Partial<NecromancerState>;
   readonly summonKind?: string;
   readonly summonCount?: number;
@@ -261,9 +243,6 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly requiresSpirit?: string;
   readonly requiresSpiritGeneration?: number;
   readonly mode?: string;
-  readonly recipients?: readonly string[];
-  readonly alliedPlayerCount?: number;
-  readonly recipientCount?: number;
   readonly playerStacks?: number;
   readonly allyStacks?: number;
   readonly spell?: string;

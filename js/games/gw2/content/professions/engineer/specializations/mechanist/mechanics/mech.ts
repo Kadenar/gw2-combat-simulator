@@ -131,7 +131,7 @@ function emitMechStrike(
     summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId,
-    engineerMech: true,
+    metadata: { engineerMech: true },
     mechBasicAttack: basicAttack
   });
 }
@@ -143,13 +143,15 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
   const skill = context.catalog?.skillsById?.get(event.skillId ?? event.sourceId);
   const slot = Number(skill?.mechanicSlot || 0);
   const engineerMech =
-    event.engineerMech === true ||
+    event.metadata?.engineerMech === true ||
     (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId)) ||
     event.skillId === ID.JADE_BUSTER_CANNON ||
     (slot >= 1 && slot <= 3);
   if (!engineerMech) return;
 
-  const updates = { engineerMech: true };
+  const updates: Record<string, unknown> = {
+    metadata: { ...event.metadata, engineerMech: true }
+  };
   // Positive damage packets additionally need the native scaling metadata
   // consumed by summon damage resolution; other mech events need ownership only.
   if (event.type === 'damage' && Number(event.coefficient) > 0) {
@@ -228,7 +230,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId,
-    engineerMech: true,
+    metadata: { engineerMech: true },
     explosion: true,
     activationId,
     triggeredBy: skill.name
@@ -244,7 +246,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     condition: 'Burning',
     stacks: balanceProfileValue(condition, 'stacks', 1),
     duration: balanceProfileValue(condition, 'duration', 5),
-    engineerMech: true,
+    metadata: { engineerMech: true },
     activationId,
     triggeredBy: skill.name
   });
@@ -258,7 +260,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     name: 'Rocket Punch (Mech)',
     controlKind: 'defiance',
     duration: balanceProfileValue(control, 'duration', 100),
-    engineerMech: true,
+    metadata: { engineerMech: true },
     activationId,
     triggeredBy: skill.name
   });
@@ -439,7 +441,7 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
       condition: 'Burning',
       stacks: balanceProfileValue(condition, 'stacks', 1),
       duration: balanceProfileValue(condition, 'duration', 6),
-      engineerMech: true,
+      metadata: { engineerMech: true },
       triggeredBy: skill.name
     });
   }

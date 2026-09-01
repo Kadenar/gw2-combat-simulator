@@ -303,9 +303,7 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
       Number(quickness?.duration ?? 5)
     ),
     stacks: Number(quickness?.stacks ?? 1),
-    recipients: 'party',
-    affectsSummons: true,
-    maximumRecipients: 5,
+    audience: { recipients: 'party' as const, maximumRecipients: 5 },
     triggeredBy: skill.name
   });
 }

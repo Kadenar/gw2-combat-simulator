@@ -13,7 +13,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Heal',
     weapon: '',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     castTimeMs: 1440,
     cooldown: 25,
     // False Oasis leaves its mirror three seconds after the cast finishes.
@@ -33,7 +32,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 371,
     cooldown: 20,
     mechanicTriggers: [
@@ -70,7 +68,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 25,
     effects: [
@@ -89,7 +86,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
@@ -107,7 +103,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
@@ -124,7 +119,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Elite',
     weapon: '',
     specialization: 'Mirage',
-    environment: 'Terrestrial',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0.5,

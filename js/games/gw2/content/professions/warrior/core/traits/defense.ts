@@ -74,7 +74,7 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
     boon: 'stability',
     duration: Number(stability?.duration || 5),
     stacks: Number(stability?.stacks || 1),
-    recipients: 'self'
+    audience: { recipients: 'self' as const }
   });
 }
 

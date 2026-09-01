@@ -89,18 +89,8 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     lockouts: [{ group: 'firebrand-mantra-liberation', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 5,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 5,
-        recipients: 'party'
-      }
+      { type: 'boon', boon: 'stability', duration: 5, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'resolution', duration: 5, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.IGNITING_BURST]: {
@@ -221,18 +211,8 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     lockouts: [{ group: 'firebrand-mantra-solace', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 2,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 2,
-        recipients: 'party'
-      }
+      { type: 'boon', boon: 'protection', duration: 2, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'resolution', duration: 2, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.MANTRA_OF_SOLACE]: {
@@ -268,10 +248,8 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'taunt',
-          duration: 2
-        }
+        controlKind: 'taunt',
+        duration: 2
       },
       {
         type: 'boon',
@@ -287,19 +265,8 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     lockouts: [{ group: 'firebrand-mantra-potence', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 5,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        stacks: 8,
-        duration: 10,
-        recipients: 'party'
-      }
+      { type: 'boon', boon: 'quickness', duration: 5, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'might', stacks: 8, duration: 10, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.SHINING_RIVER]: {
@@ -381,9 +348,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'pull'
-        }
+        controlKind: 'pull'
       }
     ]
   },
@@ -415,19 +380,8 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     lockouts: [{ group: 'firebrand-mantra-potence', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 2.5,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        stacks: 5,
-        duration: 6,
-        recipients: 'party'
-      }
+      { type: 'boon', boon: 'quickness', duration: 2.5, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'might', stacks: 5, duration: 6, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.UNFLINCHING_CHARGE]: {
@@ -593,24 +547,9 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     lockouts: [{ group: 'firebrand-mantra-solace', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
-      {
-        type: 'boon',
-        boon: 'aegis',
-        duration: 2,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 3,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 3,
-        recipients: 'party'
-      }
+      { type: 'boon', boon: 'aegis', duration: 2, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'protection', duration: 3, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'resolution', duration: 3, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.UNHINDERED_DELIVERY]: {
@@ -620,25 +559,9 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     lockouts: [{ group: 'firebrand-mantra-liberation', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 8,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'stability',
-        stacks: 5,
-        duration: 8,
-        recipients: 'party'
-      },
-      {
-        type: 'boon',
-        boon: 'swiftness',
-        duration: 5,
-        recipients: 'party'
-      }
+      { type: 'boon', boon: 'resolution', duration: 8, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'stability', stacks: 5, duration: 8, audience: { recipients: 'party' as const } },
+      { type: 'boon', boon: 'swiftness', duration: 5, audience: { recipients: 'party' as const } }
     ]
   }
 });

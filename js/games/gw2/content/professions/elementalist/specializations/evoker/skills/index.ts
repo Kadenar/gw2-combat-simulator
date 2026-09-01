@@ -152,9 +152,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     elementalistStateMachine: 'evoker-familiar'
@@ -301,9 +299,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     elementalistStateMachine: 'evoker-familiar'
@@ -362,9 +358,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        metadata: {
-          controlKind: 'crowd-control'
-        }
+        controlKind: 'crowd-control'
       }
     ],
     elementalistStateMachine: 'evoker-familiar'

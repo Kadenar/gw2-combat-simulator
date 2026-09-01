@@ -297,7 +297,7 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
       skillName: skill.name,
       name: skill.name,
       coefficient,
-      radiantWeapon
+      metadata: { radiantWeapon }
     })
   );
 }

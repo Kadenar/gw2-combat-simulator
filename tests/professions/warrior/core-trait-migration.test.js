@@ -130,7 +130,7 @@ const traitCases = [
     verify: (result) =>
       assert.ok(
         result.events.some(
-          (event) => event.sourceId === TRAIT.PHALANX_STRENGTH && event.recipients === 'allies' && !event.affectsSelf
+          (event) => event.sourceId === TRAIT.PHALANX_STRENGTH && event.audience?.recipients === 'party'
         )
       )
   },

@@ -390,7 +390,7 @@ function emitStrike(
   hitIndex: number,
   totalHits: number,
   coefficient = 1,
-  metadata: SchedulerRecord = {}
+  fields: SchedulerRecord = {}
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
@@ -440,7 +440,7 @@ function emitStrike(
     autonomousElementalSkill: skillName !== commandName(element),
     playerCommandedElementalSkill: skillName === commandName(element),
     ...summonStrikeMetadata(element, Number(task.payload?.summonGeneration || 0), baseDamage),
-    ...metadata
+    ...fields
   });
 }
 
@@ -489,8 +489,7 @@ function emitFlameBurstMight(context: ElementalistSchedulerContext, task: Schedu
     kind: 'might',
     stacks: profile.mightStacks,
     duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', profile.mightDuration),
-    recipients: 'party',
-    maximumRecipients: 5
+    audience: { recipients: 'party' as const, maximumRecipients: 5 }
   });
 }
 
@@ -511,8 +510,7 @@ function emitStompProtection(context: ElementalistSchedulerContext, task: Schedu
     kind: 'protection',
     stacks: 1,
     duration: gw2SchedulerBoonDuration(context, sourceSkill, 'protection', profile.protectionDuration),
-    recipients: 'party',
-    maximumRecipients: 5
+    audience: { recipients: 'party' as const, maximumRecipients: 5 }
   });
 }
 

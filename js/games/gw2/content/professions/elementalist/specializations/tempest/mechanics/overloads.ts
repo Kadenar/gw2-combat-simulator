@@ -60,8 +60,7 @@ export function applyTempestShoutTraits(context: ElementalistCastContext, skill:
     stacks: Number(might?.stacks ?? 2),
     duration: Number(might?.duration ?? 10),
     skillName: skill.name,
-    recipients: 'party',
-    maximumRecipients: 5
+    audience: { recipients: 'party' as const, maximumRecipients: 5 }
   });
 }
 

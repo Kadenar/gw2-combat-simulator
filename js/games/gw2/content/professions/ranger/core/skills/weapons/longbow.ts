@@ -102,7 +102,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'control',
-        metadata: { controlKind: 'knockback' }
+        controlKind: 'knockback'
       }
     ],
     quicknessCastTimeMs: 360,

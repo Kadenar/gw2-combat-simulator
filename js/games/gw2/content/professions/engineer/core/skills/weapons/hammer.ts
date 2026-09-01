@@ -68,9 +68,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         name: 'Electro-whirl',
         actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
+        damageKind: 'explosion'
       }
     ]
   },
@@ -189,10 +187,8 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 750,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'stun',
-          duration: 1
-        }
+        controlKind: 'stun',
+        duration: 1
       }
     ]
   }

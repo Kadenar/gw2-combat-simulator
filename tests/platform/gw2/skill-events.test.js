@@ -42,7 +42,7 @@ test('procedural damage packets share attribution, ownership, and timing default
     summonKind: 'minion',
     activationId: 'summon-attack:1',
     triggeredBy: 'Summon Minion',
-    metadata: { type: 'condition', source: 'wrong-source', at: 99, professionFlag: true }
+    metadata: { packetKind: 'profession' }
   });
 
   assert.deepEqual(
@@ -64,7 +64,8 @@ test('procedural damage packets share attribution, ownership, and timing default
     assert.equal(event.summonKind, 'minion');
     assert.equal(event.activationId, 'summon-attack:1');
     assert.equal(event.triggeredBy, 'Summon Minion');
-    assert.equal(event.professionFlag, true);
+    assert.equal(event.metadata.packetKind, 'profession');
+    assert.equal(event.packetKind, undefined);
     assert.equal(event.hits, 1);
     assert.equal(event.skillWeapon, 'Unequipped');
     assert.equal(event.canCrit, true);
@@ -166,8 +167,7 @@ test('buff helper applies boon duration and preserves fixed or non-boon duration
     duration: 4,
     stacks: 2,
     maximumDuration: 5,
-    recipients: 'party',
-    maximumRecipients: 5
+    audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 }
   });
   emitSkillBuff(context, skill, {
     at: 3,
@@ -182,27 +182,30 @@ test('buff helper applies boon duration and preserves fixed or non-boon duration
   });
 
   assert.deepEqual(
-    events.map((event) => [event.kind, event.duration, event.stacks, event.recipients, event.maximumRecipients]),
+    events.map((event) => [
+      event.kind,
+      event.duration,
+      event.stacks,
+      event.audience?.recipients,
+      event.audience?.affectsSelf,
+      event.audience?.maximumRecipients
+    ]),
     [
-      ['might', 5, 2, 'party', 5],
-      ['profession-mode', 4, 1, undefined, undefined],
-      ['fury', 4, 1, undefined, undefined]
+      ['might', 5, 2, 'party', false, 5],
+      ['profession-mode', 4, 1, undefined, undefined, undefined],
+      ['fury', 4, 1, undefined, undefined, undefined]
     ]
   );
   assert.deepEqual(durationCalls, [{ type: 'boon', boon: 'might', duration: 4, fixedDuration: false }]);
 });
 
-test('procedural helpers reject recipient fields nested in metadata', () => {
+test('procedural helpers reject unknown metadata', () => {
   const { context } = captureContext();
   const options = { at: 0, kind: 'might', duration: 1 };
 
   assert.throws(
-    () => emitSkillBuff(context, { ...options, metadata: { recipients: 'party' } }),
-    /canonical field recipients/
-  );
-  assert.throws(
-    () => emitSkillBuff(context, { ...options, metadata: { maximumRecipients: 5 } }),
-    /canonical field maximumRecipients/
+    () => emitSkillBuff(context, { ...options, metadata: { arbitraryFlag: true } }),
+    /unsupported field: arbitraryFlag/
   );
 });
 

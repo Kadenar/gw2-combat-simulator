@@ -126,15 +126,18 @@ test('event preparation resolves capped boon recipients before handoff', () => {
     sourceId: 'party-fury',
     kind: 'fury',
     duration: 5,
-    recipients: 'party',
-    maximumRecipients: 5,
-    companionIds: ['summon:one', 'summon:two']
+    audience: {
+      recipients: 'party',
+      maximumRecipients: 5,
+      eligibleCompanionIds: ['summon:one', 'summon:two']
+    }
   });
 
-  assert.equal(prepared.affectsSelf, true);
-  assert.equal(prepared.alliedPlayerCount, 4);
-  assert.deepEqual(prepared.companionIds, []);
-  assert.equal(prepared.affectsSummons, false);
-  assert.equal(prepared.recipientCount, 5);
-  assert.equal(prepared.boonAudienceResolved, true);
+  assert.deepEqual(prepared.resolvedAudience, {
+    includesSelf: true,
+    includesSummons: false,
+    alliedPlayerCount: 4,
+    companionIds: [],
+    recipientCount: 5
+  });
 });

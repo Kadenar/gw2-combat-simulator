@@ -61,9 +61,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze'
-        }
+        controlKind: 'daze'
       }
     ],
     quicknessCastTimeMs: 500,
@@ -83,10 +81,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze',
-          duration: 1
-        }
+        controlKind: 'daze',
+        duration: 1
       },
       {
         type: 'condition',
@@ -198,16 +194,12 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         coefficient: 2.5,
         hits: 1,
         // Wild Blow always critically hits, regardless of precision.
-        metadata: {
-          forceCrit: true
-        }
+        forceCrit: true
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze',
-          duration: 3
-        }
+        controlKind: 'daze',
+        duration: 3
       },
       {
         type: 'boon',
@@ -289,10 +281,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'stun',
-          duration: 3
-        }
+        controlKind: 'stun',
+        duration: 3
       }
     ],
     quicknessCastTimeMs: 800,
@@ -426,10 +416,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'daze',
-          duration: 1
-        }
+        controlKind: 'daze',
+        duration: 1
       }
     ],
     quicknessCastTimeMs: 920,
@@ -477,9 +465,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'pull'
-        }
+        controlKind: 'pull'
       }
     ],
     quicknessCastTimeMs: 500,

@@ -154,7 +154,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         flatStrikeBase: 200,
         flatStrikePowerCoeff: 0.4,
         actorType: 'effect',
-        metadata: { noCrit: true }
+        noCrit: true
       }
     ]
   },
@@ -172,7 +172,8 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         flatStrikeBase: 1200,
         flatStrikePowerCoeff: 0.05,
         actorType: 'effect',
-        metadata: { noCrit: true, damageKind: 'life-steal' }
+        noCrit: true,
+        damageKind: 'life-steal'
       },
       {
         type: 'condition',
@@ -220,7 +221,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         stacks: 1,
         duration: 3.75,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       },
       {
         type: 'boon',
@@ -228,7 +229,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         stacks: 8,
         duration: 10,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       },
       {
         type: 'boon',
@@ -236,7 +237,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         stacks: 1,
         duration: 5,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       },
       {
         type: 'boon',
@@ -244,7 +245,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         stacks: 1,
         duration: 4,
         actorType: 'player',
-        recipients: 'party'
+        audience: { recipients: 'party' as const }
       }
     ]
   }

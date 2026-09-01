@@ -1,6 +1,7 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
+import { normalizeEffectAudience } from '#gw2/platform/engine/effects/contracts.js';
 
-import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { EffectAudience, ResolvedEffectAudience, SimulationEventInput } from '#gw2/platform/engine/types.js';
 
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc
@@ -27,25 +28,12 @@ interface Gw2AlliedPlayerProcOptions {
   readonly internalCooldown?: number;
 }
 
-interface Gw2AlliedEffectRecipientOptions {
-  readonly maximumRecipients?: number;
-  readonly includeSelf?: boolean;
-  readonly includeAlliedPlayers?: boolean;
-  readonly companionIds?: readonly string[];
-}
-
 interface Gw2BoonRecipientEvent {
   readonly type?: unknown;
-  readonly recipients?: unknown;
-  readonly affectsSelf?: unknown;
-  readonly affectsSummons?: unknown;
-  readonly maximumRecipients?: unknown;
-  readonly targetCap?: unknown;
-  readonly companionIds?: readonly unknown[];
-  readonly alliedPlayerCount?: unknown;
-  readonly recipientCount?: unknown;
-  readonly boonAudienceResolved?: unknown;
-  readonly buffAudienceResolved?: unknown;
+  readonly actorType?: unknown;
+  readonly summonOwner?: unknown;
+  readonly audience?: EffectAudience;
+  readonly resolvedAudience?: ResolvedEffectAudience;
 }
 
 /**
@@ -62,18 +50,7 @@ export interface Gw2AlliedPlayerProc {
  * other profession-owned companions. Player party members take priority over
  * companions, matching GW2's allied-target priority.
  */
-export interface Gw2AlliedEffectRecipients {
-  readonly includesSelf: boolean;
-  readonly alliedPlayerCount: number;
-  readonly companionIds: readonly string[];
-  readonly recipientCount: number;
-}
-
-/** Canonical audience metadata attached to every resolved boon application. */
-export interface Gw2BoonApplicationRecipients extends Gw2AlliedEffectRecipients {
-  readonly affectsSelf: boolean;
-  readonly affectsSummons: boolean;
-}
+export type Gw2AlliedEffectRecipients = ResolvedEffectAudience;
 
 /**
  * Normalizes the small party model used by effects that are triggered by
@@ -89,55 +66,51 @@ export function gw2AlliedPlayerAssumptions(config: Gw2AlliedPlayerConfig = {}): 
 }
 
 /**
- * Supplies concrete active companion candidates before the canonical boon
- * recipient resolver applies player-first target-cap selection.
+ * Supplies concrete active companion candidates before canonical recipient
+ * selection, including finishers whose generated Area boons resolve later.
  */
 export function prepareGw2BuffCompanionCandidates(
   event: SimulationEventInput,
   companionIds: readonly unknown[]
 ): SimulationEventInput {
-  if (
-    event.type !== 'buff' ||
-    event.boonAudienceResolved === true ||
-    event.buffAudienceResolved === true ||
-    event.affectsSummons === false
-  )
-    return event;
-  const scope = String(event.recipients || '').toLowerCase();
-  const shared =
-    scope === 'party' ||
-    scope === 'allies' ||
-    ['summon', 'summons', 'pet', 'pets', 'companions'].includes(scope) ||
-    event.affectsSummons === true;
-  if (!shared || Array.isArray(event.companionIds)) return event;
+  const candidates = [...new Set(companionIds.map(String).filter(Boolean))];
+  if (event.type === 'combo_finisher') return { ...event, companionCandidates: candidates };
+  if (event.type !== 'buff' || event.resolvedAudience || !event.audience) return event;
+  const audience = normalizeEffectAudience(event.audience)!;
+  if (audience.recipients === 'self' || audience.eligibleCompanionIds) return event;
   return {
     ...event,
-    companionIds: [...new Set(companionIds.map(String).filter(Boolean))]
+    audience: {
+      ...audience,
+      eligibleCompanionIds: candidates
+    }
   };
 }
 
 /**
- * Selects recipients for a capped allied effect. The returned companion list
- * contains only companions that fit after the caster and configured allied
- * players have claimed their higher-priority slots.
+ * Selects recipients for a capped allied effect. The simulated player normally
+ * claims the first slot; affectsSelf false leaves that slot available to allies.
  */
 export function gw2AlliedEffectRecipients(
   config: Gw2AlliedPlayerConfig,
-  {
-    maximumRecipients = 5,
-    includeSelf = true,
-    includeAlliedPlayers = true,
-    companionIds = []
-  }: Gw2AlliedEffectRecipientOptions = {}
-): Gw2AlliedEffectRecipients {
+  request: EffectAudience = { recipients: 'party' }
+): ResolvedEffectAudience {
+  const audience = normalizeEffectAudience(request)!;
   const party = gw2AlliedPlayerAssumptions(config);
-  const limit = Math.max(0, Math.trunc(Number(maximumRecipients || 0)));
-  const includesSelf = includeSelf && limit > 0;
-  const alliedPlayerCount = includeAlliedPlayers ? clamp(limit - Number(includesSelf), 0, party.count) : 0;
+  const shared = audience.recipients !== 'self';
+  const limit = audience.maximumRecipients ?? (shared ? 5 : 1);
+  const includesSelf = audience.affectsSelf !== false;
+  const alliedPlayerCount = audience.recipients === 'party' ? clamp(limit - Number(includesSelf), 0, party.count) : 0;
   const remaining = limit - Number(includesSelf) - alliedPlayerCount;
-  const selectedCompanions = [...new Set(companionIds.map(String).filter(Boolean))].slice(0, remaining);
+  const summonsEligible =
+    audience.recipients === 'summons' ||
+    (audience.recipients === 'party' && config.sharePlayerBoonsWithSummons !== false);
+  const selectedCompanions = summonsEligible
+    ? [...new Set((audience.eligibleCompanionIds || []).map(String).filter(Boolean))].slice(0, remaining)
+    : [];
   return Object.freeze({
     includesSelf,
+    includesSummons: selectedCompanions.length > 0,
     alliedPlayerCount,
     companionIds: Object.freeze(selectedCompanions),
     recipientCount: Number(includesSelf) + alliedPlayerCount + selectedCompanions.length
@@ -146,106 +119,49 @@ export function gw2AlliedEffectRecipients(
 
 /**
  * Resolves a boon event's audience. Party players claim capped allied-effect
- * slots before companions, and the summon-sharing config only controls whether
- * companions may compete for slots that remain. Summon-only effects bypass
- * both that config and allied-player selection.
+ * slots before companions, while affectsSelf can exclude the simulated player.
+ * Summon-only effects bypass allied-player selection and boon-sharing policy.
  */
 export function gw2BoonApplicationRecipients(
   config: Gw2AlliedPlayerConfig,
   event: Gw2BoonRecipientEvent = {}
-): Gw2BoonApplicationRecipients {
-  if (event.boonAudienceResolved === true) {
-    const companionIds = Array.isArray(event.companionIds)
-      ? [...new Set(event.companionIds.map(String).filter(Boolean))]
-      : [];
-    return Object.freeze({
-      includesSelf: event.affectsSelf === true,
-      affectsSelf: event.affectsSelf === true,
-      alliedPlayerCount: Math.max(0, Math.trunc(Number(event.alliedPlayerCount || 0))),
-      companionIds: Object.freeze(companionIds),
-      affectsSummons: event.affectsSummons === true,
-      recipientCount: Math.max(0, Math.trunc(Number(event.recipientCount || 0)))
-    });
-  }
+): ResolvedEffectAudience {
+  if (event.resolvedAudience) return event.resolvedAudience;
+  const audience = normalizeEffectAudience(event.audience ?? { recipients: 'self' })!;
+  if (event.actorType !== 'summon') return gw2AlliedEffectRecipients(config, audience);
 
-  const scope = String(event.recipients || '').toLowerCase();
-  const summonOnly = ['summon', 'summons', 'pet', 'pets', 'companions'].includes(scope);
-  const hasCompanionIds = Array.isArray(event.companionIds);
-  const explicitCompanionIds = hasCompanionIds ? [...new Set(event.companionIds.map(String).filter(Boolean))] : [];
-  const shared =
-    scope === 'party' ||
-    scope === 'allies' ||
-    summonOnly ||
-    event.affectsSummons === true ||
-    explicitCompanionIds.length > 0;
-  const includesSelf = !summonOnly && event.affectsSelf !== false && scope !== 'allies';
-
-  if (!shared || scope === 'self') {
-    const selectedSelf = includesSelf;
-    return Object.freeze({
-      includesSelf: selectedSelf,
-      affectsSelf: selectedSelf,
-      alliedPlayerCount: 0,
-      companionIds: Object.freeze([]),
-      affectsSummons: false,
-      recipientCount: Number(selectedSelf)
-    });
-  }
-
-  const cappedAllyEffect = scope === 'party' || scope === 'allies';
-  const summonsEligible = summonOnly
-    ? true
-    : cappedAllyEffect
-      ? event.affectsSummons !== false && config.sharePlayerBoonsWithSummons !== false
-      : event.affectsSummons === true || explicitCompanionIds.length > 0;
-  // The sentinel reserves one logical summon slot when the event exposes only
-  // boolean summon eligibility. It is never exposed as a concrete recipient.
-  const genericSummonId = '__generic-summon__';
-  const candidates = summonsEligible ? (hasCompanionIds ? explicitCompanionIds : [genericSummonId]) : [];
-  const maximumRecipients = event.maximumRecipients ?? event.targetCap ?? 5;
-  const selected = gw2AlliedEffectRecipients(config, {
-    maximumRecipients: Number(maximumRecipients),
-    includeSelf: includesSelf,
-    includeAlliedPlayers: cappedAllyEffect,
-    companionIds: candidates
-  });
-  const genericSummonSelected = selected.companionIds.includes(genericSummonId);
-  const companionIds = genericSummonSelected ? [] : [...selected.companionIds];
+  // A summon-cast effect always includes that summon, while the controlled
+  // player is selected only by a party scope with room beyond the caster.
+  const party = gw2AlliedPlayerAssumptions(config);
+  const shared = audience.recipients !== 'self';
+  const limit = audience.maximumRecipients ?? (shared ? 5 : 1);
+  const includesSelf = audience.recipients === 'party' && audience.affectsSelf !== false && limit > 1;
+  const alliedPlayerCount =
+    audience.recipients === 'party' ? clamp(limit - 1 - Number(includesSelf), 0, party.count) : 0;
+  const remaining = limit - 1 - Number(includesSelf) - alliedPlayerCount;
+  const casterId = String(event.summonOwner || '');
+  const candidates = [...new Set((audience.eligibleCompanionIds || []).map(String).filter(Boolean))].filter(
+    (id) => id !== casterId
+  );
+  const summonsEligible =
+    audience.recipients === 'summons' ||
+    (audience.recipients === 'party' && config.sharePlayerBoonsWithSummons !== false);
+  const selectedCompanions = summonsEligible ? candidates.slice(0, remaining) : [];
   return Object.freeze({
-    includesSelf: selected.includesSelf,
-    affectsSelf: selected.includesSelf,
-    alliedPlayerCount: selected.alliedPlayerCount,
-    companionIds: Object.freeze(companionIds),
-    affectsSummons: genericSummonSelected || selected.companionIds.length > 0,
-    // Unknown summon identities cannot be counted accurately. Concrete ids
-    // are counted; generic eligibility reserves one logical summon slot.
-    recipientCount:
-      Number(selected.includesSelf) + selected.alliedPlayerCount + companionIds.length + Number(genericSummonSelected)
+    includesSelf,
+    includesSummons: true,
+    alliedPlayerCount,
+    companionIds: Object.freeze(casterId ? [casterId, ...selectedCompanions] : selectedCompanions),
+    recipientCount: 1 + Number(includesSelf) + alliedPlayerCount + selectedCompanions.length
   });
 }
 
-/**
- * Resolves generic timed-buff recipients without consulting the configuration
- * that controls whether player boons may be shared with summons.
- */
+/** Resolves non-boon buffs without applying the player-boon summon-sharing toggle. */
 export function gw2BuffApplicationRecipients(
   config: Gw2AlliedPlayerConfig,
   event: Gw2BoonRecipientEvent = {}
-): Gw2BoonApplicationRecipients {
-  if (event.buffAudienceResolved === true) {
-    return gw2BoonApplicationRecipients(config, {
-      ...event,
-      boonAudienceResolved: true
-    });
-  }
-
-  return gw2BoonApplicationRecipients(
-    {
-      ...config,
-      sharePlayerBoonsWithSummons: true
-    },
-    event
-  );
+): ResolvedEffectAudience {
+  return gw2BoonApplicationRecipients({ ...config, sharePlayerBoonsWithSummons: true }, event);
 }
 
 /**

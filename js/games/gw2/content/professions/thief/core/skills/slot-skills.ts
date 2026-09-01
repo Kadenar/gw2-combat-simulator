@@ -6,6 +6,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
 const PITFALL_PULSE_OFFSETS_MS = [1000, 2000, 3000];
 
+// EVTC-measured Quickness timings keep utility casts aligned with their observed cast-lane occupancy.
 export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WITHDRAW]: {
     implemented: true,
@@ -17,7 +18,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   [ID.PREPARE_THOUSAND_NEEDLES]: {
     implemented: true,
     handlerId: 'thief.prepare-trap',
-    castTimeMs: 750,
+    quicknessCastTimeMs: 600,
     cooldown: 30,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
@@ -46,7 +47,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.CALTROPS]: {
     implemented: true,
-    castTimeMs: 1150,
+    quicknessCastTimeMs: 920,
     cooldown: 24,
     initiativeCost: 0,
     durationMultiplier: 3,
@@ -82,13 +83,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 30,
     initiativeCost: 0,
     effects: [
-      {
-        type: 'buff',
-        kind: 'spider-venom',
-        duration: 24,
-        stacks: 6,
-        recipients: 'party'
-      }
+      { type: 'buff', kind: 'spider-venom', duration: 24, stacks: 6, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.BLINDING_POWDER]: {
@@ -131,13 +126,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 30,
     initiativeCost: 0,
     effects: [
-      {
-        type: 'buff',
-        kind: 'skale-venom',
-        duration: 24,
-        stacks: 4,
-        recipients: 'party'
-      }
+      { type: 'buff', kind: 'skale-venom', duration: 24, stacks: 4, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.PREPARE_PITFALL]: {
@@ -353,13 +342,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 40,
     initiativeCost: 0,
     effects: [
-      {
-        type: 'buff',
-        kind: 'devourer-venom',
-        duration: 24,
-        stacks: 2,
-        recipients: 'party'
-      }
+      { type: 'buff', kind: 'devourer-venom', duration: 24, stacks: 2, audience: { recipients: 'party' as const } }
     ]
   },
   [ID.BASILISK_VENOM]: {
@@ -417,10 +400,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
+        controlKind: 'knockdown',
+        duration: 3
       }
     ]
   },

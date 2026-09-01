@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Torch',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: true,
     resource: {
@@ -73,7 +72,6 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Torch',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 40,
     rechargeAnchor: 'castStart',
     cooldown: 20,

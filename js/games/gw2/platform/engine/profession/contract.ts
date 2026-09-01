@@ -3,6 +3,7 @@
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
 import type {
+  AvailabilityResult,
   CanonicalCatalog,
   NormalizedProfessionContract,
   PaletteSkillAvailability,
@@ -11,7 +12,7 @@ import type {
   SchedulerRecord,
   Skill
 } from '#gw2/platform/engine/types.js';
-import { assertAvailabilityResult, CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
+import { CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
 
 type ComposableHook = (...args: any[]) => unknown;
 
@@ -152,7 +153,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
       foldAvailability(
         (function* () {
           for (const hook of hooks) {
-            const availability = assertAvailabilityResult(hook.handler(context, skill), `${hook.id} availability hook`);
+            const availability = hook.handler(context, skill) as AvailabilityResult;
             if (availability.ready !== false) continue;
             yield availability;
           }

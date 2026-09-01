@@ -8,7 +8,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 520,
     cooldown: 12,
     effects: [
@@ -57,7 +56,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 640,
     cooldown: 20,
     effects: [
@@ -77,7 +75,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 520,
     cooldown: 0,
     nextChainId: ID.MIND_PIERCE,
@@ -97,7 +94,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 600,
     cooldown: 5,
     // Mind the Gap creates its clone with the observed impact packet, before the cast-end cooldown is applied.
@@ -123,7 +119,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 0,
     nextChainId: null,
@@ -143,7 +138,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    environment: 'Terrestrial',
     quicknessCastTimeMs: 680,
     interruptCommitMs: 600,
     cooldown: 10,
@@ -164,7 +158,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    environment: 'Terrestrial',
     cooldown: 0,
     nextChainId: ID.PSYSTRIKE,
     effects: [

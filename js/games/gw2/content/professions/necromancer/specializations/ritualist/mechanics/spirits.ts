@@ -136,19 +136,23 @@ function activePrimaryWeapon(context: NecromancerCastContext): string {
 }
 
 // Stamp spirit packets with stable ownership, attack classification, and summon weapon strength.
-function spiritMetadata(
+function spiritEventFields(
   context: NecromancerCastContext | NecromancerSchedulerContext,
   key: string,
   attackType: string,
   extra: Readonly<Record<string, unknown>> = {}
 ): Readonly<Record<string, unknown>> {
+  const { anguishConditionalDamage, ...fields } = extra;
   return {
     summonKind: 'spirit',
     summonOwner: `spirit:${key}`,
-    spirit: key,
-    spiritAttackType: attackType,
     weaponStrength: Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048),
-    ...extra
+    ...fields,
+    metadata: {
+      spirit: key,
+      spiritAttackType: attackType,
+      ...(typeof anguishConditionalDamage === 'boolean' ? { anguishConditionalDamage } : {})
+    }
   };
 }
 
@@ -230,9 +234,11 @@ function handleSpiritAutoattack(
     summonKind: 'spirit',
     summonOwner: `spirit:${spirit.key}`,
     summonInheritsCriticalAttributes: true,
-    spirit: spirit.key,
-    spiritAttackType: 'autoattack',
-    anguishConditionalDamage: spirit.key === 'anguish'
+    metadata: {
+      spirit: spirit.key,
+      spiritAttackType: 'autoattack',
+      anguishConditionalDamage: spirit.key === 'anguish'
+    }
   });
 
   const nextAt = task.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval || 4);
@@ -310,7 +316,7 @@ function emitAnguishInitial(
       source: 'Spirit',
       actorType: 'player',
       coefficient: Number(tick.coefficient),
-      metadata: spiritMetadata(context, 'anguish', 'initial', {
+      ...spiritEventFields(context, 'anguish', 'initial', {
         anguishConditionalDamage: true,
         weaponStrength: spirit.summonWeaponStrength,
         hitIndex: index + 1,
@@ -346,7 +352,7 @@ function emitWanderlustInitial(
       name: 'Spirit of Wanderlust - Initial Attack',
       source: 'Spirit',
       actorType: 'player',
-      metadata: spiritMetadata(context, 'wanderlust', 'initial', {
+      ...spiritEventFields(context, 'wanderlust', 'initial', {
         hitIndex: index + 1,
         totalHits: spirit.lingeringTicks.length
       })
@@ -362,7 +368,7 @@ function emitWanderlustInitial(
     condition: 'Vulnerability',
     stacks: 4,
     duration: 6,
-    metadata: spiritMetadata(context, 'wanderlust', 'initial')
+    ...spiritEventFields(context, 'wanderlust', 'initial')
   });
   emitSkillCondition(context, skill, {
     at: fieldAt + 2,
@@ -371,7 +377,7 @@ function emitWanderlustInitial(
     condition: 'Weakness',
     stacks: 1,
     duration: 4,
-    metadata: spiritMetadata(context, 'wanderlust', 'initial')
+    ...spiritEventFields(context, 'wanderlust', 'initial')
   });
   emitSkillCondition(context, skill, {
     at: fieldAt + 3,
@@ -380,7 +386,7 @@ function emitWanderlustInitial(
     condition: 'Slow',
     stacks: 1,
     duration: 2,
-    metadata: spiritMetadata(context, 'wanderlust', 'initial')
+    ...spiritEventFields(context, 'wanderlust', 'initial')
   });
 }
 
@@ -417,10 +423,7 @@ function summonSpirit(
   } else if (spirit.key === 'wanderlust') {
     emitWanderlustInitial(context, skill, spirit, at);
   } else if (spirit.key === 'preservation') {
-    const boonOptions = {
-      recipients: 'party',
-      maximumRecipients: 5
-    };
+    const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
     emitSkillBuff(context, skill, { at, kind: 'protection', duration: 4, stacks: 1, ...boonOptions });
     emitSkillBuff(context, skill, { at, kind: 'vigor', duration: 4, stacks: 1, ...boonOptions });
   }
@@ -445,7 +448,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         sourceId: `ritualist.${spirit.key}.summon-spirits`,
         actorType: 'player',
         skillWeapon: 'Unequipped',
-        metadata: spiritMetadata(context, spirit.key, 'summon-spirits', {
+        ...spiritEventFields(context, spirit.key, 'summon-spirits', {
           anguishConditionalDamage: spirit.key === 'anguish',
           weaponStrength: Number(balanceProfileFromContext(context, PROFILE.resources)?.weaponStrength || 1056),
           hitIndex: index + 1,
@@ -465,7 +468,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         skillName: skill.name,
         controlKind: 'daze',
         duration: 2,
-        ...spiritMetadata(context, spirit.key, 'summon-spirits')
+        ...spiritEventFields(context, spirit.key, 'summon-spirits')
       });
     }
 
@@ -525,17 +528,11 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       actorType: 'player',
       skillWeapon: 'Profession mechanic',
       coefficient: Number(strike?.coefficient || 1.3),
-      metadata: {
-        summonKind: 'spirit',
-        summonOwner: 'spirit:anguish',
-        spirit: 'anguish',
-        spiritAttackType: 'innervate'
-      }
+      summonKind: 'spirit',
+      summonOwner: 'spirit:anguish',
+      metadata: { spirit: 'anguish', spiritAttackType: 'innervate' }
     });
-    const boonOptions = {
-      recipients: 'party',
-      maximumRecipients: 5
-    };
+    const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
     for (const boon of boons) {
       emitSkillBuff(context, skill, {
         at,
@@ -555,13 +552,10 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       skillName: skill.name,
       controlKind: 'fear',
       duration: 1.5,
-      ...spiritMetadata(context, 'wanderlust', 'innervate')
+      ...spiritEventFields(context, 'wanderlust', 'innervate')
     });
   } else if (skill.id === ID.INNERVATE_PRESERVATION) {
-    const boonOptions = {
-      recipients: 'party',
-      maximumRecipients: 5
-    };
+    const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
     emitSkillBuff(context, skill, { at, kind: 'aegis', duration: 3, stacks: 1, ...boonOptions });
     emitSkillBuff(context, skill, { at, kind: 'resistance', duration: 4, stacks: 1, ...boonOptions });
     emitSkillBuff(context, skill, { at, kind: 'stability', duration: 5, stacks: 1, ...boonOptions });

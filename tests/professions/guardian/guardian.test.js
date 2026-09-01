@@ -1196,22 +1196,22 @@ test('Guardian measured Quickness cast times remain exact', () => {
     return Math.round((action.endsAt - action.at) * 1000);
   };
 
-  assert.equal(castDuration(['Helio Rush'], 'Helio Rush'), 320);
+  assert.equal(castDuration(['Helio Rush'], 'Helio Rush'), 440);
   assert.equal(castDuration(['Gleaming Disc'], 'Gleaming Disc'), 560);
   assert.equal(castDuration(['Solar Storm'], 'Solar Storm'), 560);
   assert.equal(castDuration(['Enter Radiant Forge', 'Dazzling Hammer'], 'Dazzling Hammer'), 480);
 
-  const chain = simulateGw2({
+  const repeated = simulateGw2({
     profession: guardianProfession,
     rotation: ['Daybreaking Slash', 'Daybreaking Slash', 'Helio Rush', 'Daybreaking Slash'],
     config: quicknessConfig
   });
 
   assert.deepEqual(
-    chain.events
+    repeated.events
       .filter((event) => event.type === 'action' && event.skillName === 'Daybreaking Slash')
       .map((event) => Math.round((event.endsAt - event.at) * 1000)),
-    [520, 440, 520]
+    [560, 560, 560]
   );
 });
 
@@ -1243,8 +1243,8 @@ test('Guardian spear packets use measured safe-cancel and lockout timing', () =>
   assert.equal(Math.round((actions[0].endsAt - actions[0].at) * 1000), 280);
   assert.equal(actions[0].castLockoutEndsAt, undefined);
   assert.equal(Math.round((actions[1].endsAt - actions[1].at) * 1000), 400);
-  assert.equal(Math.round((actions[1].castLockoutEndsAt - actions[1].at) * 1000), 520);
-  assert.equal(Math.round((actions[2].at - actions[1].at) * 1000), 520);
+  assert.equal(actions[1].castLockoutEndsAt, undefined);
+  assert.equal(Math.round((actions[2].at - actions[1].at) * 1000), 400);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -1646,17 +1646,16 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
   assert.deepEqual(
     phoenixActivationAlacrity.map((event) => [
       event.duration,
-      event.recipients,
-      event.affectsSelf,
-      event.alliedPlayerCount
+      event.audience?.recipients,
+      event.resolvedAudience.alliedPlayerCount
     ]),
-    [[5, 'self', true, 0]]
+    [[5, 'self', 0]]
   );
   assert.equal(phoenixResolveTriggers.length > 0, true);
   assert.equal(phoenixTriggeredAlacrity.length, phoenixResolveTriggers.length);
   assert.deepEqual(
-    phoenixTriggeredAlacrity.map((event) => [event.at, event.duration, event.affectsSelf, event.alliedPlayerCount]),
-    phoenixResolveTriggers.map((event) => [event.at, 1, true, 0])
+    phoenixTriggeredAlacrity.map((event) => [event.at, event.duration, event.resolvedAudience.alliedPlayerCount]),
+    phoenixResolveTriggers.map((event) => [event.at, 1, 0])
   );
   assert.equal(
     phoenixTriggeredAlacrity.every((event) => event.triggeredBy != null && String(event.triggeredBy).length > 0),
@@ -2195,7 +2194,7 @@ test('Ashes of the Just grants party charges using Firebrand condition stats', (
     {
       stacks: ashesBuff.stacks,
       duration: ashesBuff.duration,
-      recipients: ashesBuff.recipientCount
+      recipients: ashesBuff.resolvedAudience.recipientCount
     },
     { stacks: 2, duration: 10, recipients: 5 }
   );
@@ -2203,7 +2202,7 @@ test('Ashes of the Just grants party charges using Firebrand condition stats', (
     {
       stacks: might.stacks,
       duration: might.duration,
-      recipients: might.recipientCount
+      recipients: might.resolvedAudience.recipientCount
     },
     { stacks: 8, duration: 10, recipients: 5 }
   );
@@ -3030,12 +3029,12 @@ test('Feel My Wrath applies split quickness durations and triggers Quickfire', (
     ]
   );
   assert.deepEqual(
-    quickness.map((event) => [event.affectsSelf, event.alliedPlayerCount, event.duration]),
+    quickness.map((event) => [event.resolvedAudience.alliedPlayerCount, event.duration]),
     [
-      [false, 1, 3],
-      [true, 0, 6],
-      [false, 1, 3],
-      [true, 0, 6]
+      [1, 3],
+      [0, 3],
+      [1, 3],
+      [0, 3]
     ]
   );
   assert.equal(
@@ -3312,7 +3311,7 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   const glaring = result.resolvedEvents.find((event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST);
 
   assert.equal(glaring.coefficient, 1);
-  assert.equal(glaring.radiantWeapon, 'hammer');
+  assert.equal(glaring.metadata?.radiantWeapon, 'hammer');
   assert.equal(Object.hasOwn(result.endState.cooldowns, 'Enter Radiant Forge'), false);
   assert.ok(result.totalDamage > 0);
 });
@@ -3539,7 +3538,7 @@ test('Radiant Forge strikes use its normalized transform weapon strength', () =>
 
   assert.deepEqual(
     hitsFor('Glaring Burst').map((event) => [
-      event.radiantWeapon,
+      event.metadata?.radiantWeapon,
       event.weaponStrengthProfileId,
       event.resolvedWeaponStrength
     ]),

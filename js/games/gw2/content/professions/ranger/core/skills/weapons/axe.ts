@@ -133,7 +133,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: { controlKind: 'pull' }
+        controlKind: 'pull'
       }
     ],
     quicknessCastTimeMs: 440,

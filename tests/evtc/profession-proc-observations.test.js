@@ -93,7 +93,7 @@ function catalog(profiles) {
     {
       id: EXPLOSION_SKILL_ID,
       name: 'Test Explosion',
-      effects: [{ type: 'strike', metadata: { damageKind: 'explosion' } }]
+      effects: [{ type: 'strike', damageKind: 'explosion' }]
     },
     { id: STRIKE_SKILL_ID, name: 'Test Strike', effects: [{ type: 'strike' }] }
   ];

@@ -76,10 +76,8 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       {
         type: 'control',
         actorType: 'player',
-        metadata: {
-          controlKind: 'pull',
-          duration: 600
-        }
+        controlKind: 'pull',
+        duration: 600
       }
     ]
   },

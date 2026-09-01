@@ -48,7 +48,6 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       // Resolve the selected Shade Step packet once, then emit it through the canonical boon path.
       const effect = balanceProfileEffect(profile, 'boon', authoredBoon.index);
       const boon = String(effect?.boon || authoredBoon.fallback);
-      const party = gw2AlliedPlayerAssumptions(context.config);
       emitSkillBuff(context, {
         at: context.effectiveEnd,
         source: 'Trait',
@@ -66,13 +65,12 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
           Number(effect?.duration || authoredBoon.duration)
         ),
         stacks: 1,
-        recipients: 'party',
-        recipientCount: party.count + 1
+        audience: { recipients: 'party' as const }
       });
     }
   }
 
-  // Dawn's Repose grants barrier to the tethered ally and nearby allies.
+  // Dawn's Repose grants barrier to the tethered ally and nearby allies, not the caster.
   // Dark Sentry is a mandatory Specter minor trait.
   if (skill.id === ID.DAWNS_REPOSE) {
     const profile = balanceProfileFromContext(context, PROFILE.dawnsReposeBarrier);
@@ -94,10 +92,7 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       kind: 'barrier',
       duration: Number(barrier?.duration || 5),
       stacks: Number(barrier?.stacks || 1),
-      affectsSelf: false,
-      recipients: 'allies',
-      recipientCount: alliedRecipients,
-      maximumRecipients: alliedRecipients
+      audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: alliedRecipients }
     });
     context.tasks.schedule({
       type: 'thief.specter-dark-sentry',
@@ -184,10 +179,7 @@ export function handleDarkSentry(
     kind: 'rot-wallow-venom',
     duration: Number(venom?.duration || 10),
     stacks: Number(venom?.stacks || 1),
-    affectsSelf: false,
-    recipients: 'allies',
-    recipientCount,
-    maximumRecipients: recipientCount
+    audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: recipientCount }
   });
   // Rot Wallow Venom procs on the next allied strike, not immediately on application.
   if (party.strikesPerSecond > 0) {

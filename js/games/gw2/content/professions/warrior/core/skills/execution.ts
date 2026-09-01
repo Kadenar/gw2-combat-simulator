@@ -150,7 +150,7 @@ function adjustMightyThrowTarget(
   event: WarriorSimulationEvent
 ): void {
   if (
-    event.packetKind === 'warrior.mighty-throw-shard' &&
+    event.metadata?.packetKind === 'warrior.mighty-throw-shard' &&
     Math.max(1, Number(context.config.target?.count || 1)) === 1
   ) {
     context.replaceEvent(event, {

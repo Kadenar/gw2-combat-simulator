@@ -203,8 +203,10 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
   );
   for (let index = 1; index <= extraPackets; index += 1) {
     const at = template.at + interval * index;
-    context.emit({ ...template, at, largeHitboxOnly: false });
-    for (const condition of attachedConditions) context.emit({ ...condition, at, largeHitboxOnly: false });
+    context.emit({ ...template, at, metadata: { ...template.metadata, largeHitboxOnly: false } });
+    for (const condition of attachedConditions) {
+      context.emit({ ...condition, at, metadata: { ...condition.metadata, largeHitboxOnly: false } });
+    }
   }
 }
 

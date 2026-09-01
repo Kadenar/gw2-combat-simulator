@@ -44,9 +44,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         boon: 'might',
         duration: 5,
         stacks: 1,
-        affectsSelf: false,
-        affectsSummons: true,
-        maximumRecipients: 1
+        audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1 }
       }
     ],
     quicknessCastTimeMs: 600
@@ -95,7 +93,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        metadata: { damageKind: 'ranger-pounce-defiant' },
+        damageKind: 'ranger-pounce-defiant',
         comboFinishers: [
           {
             ownerId: 'ranger',

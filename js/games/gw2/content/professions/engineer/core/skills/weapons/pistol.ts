@@ -27,9 +27,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         interruptCommitMs: 360,
         persistsAfterInterrupt: true,
         actorType: 'player',
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',
@@ -56,9 +54,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         name: 'Poison Dart Volley',
         actorType: 'player',
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',
@@ -86,9 +82,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         hits: 1,
         name: 'Static Shot',
         actorType: 'player',
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',
@@ -122,9 +116,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         hits: 1,
         name: 'Glue Shot',
         actorType: 'player',
-        metadata: {
-          projectile: true
-        }
+        projectile: true
       },
       {
         type: 'condition',

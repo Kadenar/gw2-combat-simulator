@@ -76,7 +76,8 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Ra
 export function triggerStrengthOfThePack(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!isPlayerStrike(event)) return;
   const active = (context.boons.get('strength-of-the-pack') || []).some(
-    (application) => application.affectsSelf !== false && application.at <= event.at && application.expiresAt > event.at
+    (application) =>
+      application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at
   );
   if (!active) return;
   const might = profileEffect(context, PROFILE.strengthOfThePack, 'boon');
@@ -92,10 +93,12 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
     kind: String(might?.boon || 'might'),
     duration: gw2ResolverBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 8)),
     stacks: Number(might?.stacks ?? 1),
-    affectsSelf: false,
-    affectsSummons: true,
-    maximumRecipients: 5,
-    companionIds: [rangerPetCompanionId(context)],
+    audience: {
+      recipients: 'summons' as const,
+      affectsSelf: false,
+      maximumRecipients: 5,
+      eligibleCompanionIds: [rangerPetCompanionId(context)]
+    },
     triggeredBy: event.skillName
   });
 }

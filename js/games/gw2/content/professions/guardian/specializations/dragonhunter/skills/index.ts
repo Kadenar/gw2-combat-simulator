@@ -35,9 +35,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'blind',
-        metadata: {
-          duration: 6
-        }
+        duration: 6
       }
     ]
   },
@@ -66,9 +64,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'control',
-        metadata: {
-          controlKind: 'pull'
-        }
+        controlKind: 'pull'
       },
       {
         type: 'condition',
@@ -121,9 +117,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'control',
-        metadata: {
-          controlKind: 'pull'
-        }
+        controlKind: 'pull'
       }
     ]
   }

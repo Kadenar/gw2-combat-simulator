@@ -212,8 +212,9 @@ export function timelineDeadTimeMarkers(
     }
   }
 
+  // Simultaneous actions anchor to the earliest authored entry so preceding idle time renders before all of them.
   intervals.sort(
-    (left, right) => left.start - right.start || right.end - left.end || left.insertionIndex - right.insertionIndex
+    (left, right) => left.start - right.start || left.insertionIndex - right.insertionIndex || right.end - left.end
   );
   const busy: typeof intervals = [];
   for (const interval of intervals) {

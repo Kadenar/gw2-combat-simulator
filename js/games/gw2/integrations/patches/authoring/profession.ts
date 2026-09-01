@@ -106,24 +106,6 @@ function assertNativeModuleDefinition(definition: object): void {
 
   const execution = candidate.mechanics?.execution;
   const resolution = candidate.mechanics?.resolution;
-  if (Object.prototype.hasOwnProperty.call(candidate.data, 'handlers')) {
-    throw new TypeError(`${candidate.id}.data.handlers is no longer supported; use mechanics.execution.skillHandlers.`);
-  }
-
-  for (const [legacy, preferred] of [
-    ['availability', 'execution.availability'],
-    ['castLifecycle', 'execution.castLifecycle'],
-    ['castRules', 'execution.castRules'],
-    ['schedulerHooks', 'execution.hooks'],
-    ['skillMechanicHandlers', 'execution.skillMechanicHandlers'],
-    ['reactions', 'resolution.reactions'],
-    ['resolverHooks', 'resolution.hooks']
-  ] as const) {
-    if (candidate.mechanics && Object.prototype.hasOwnProperty.call(candidate.mechanics, legacy)) {
-      throw new TypeError(`${candidate.id}.mechanics.${legacy} is no longer supported; use mechanics.${preferred}.`);
-    }
-  }
-
   // availability can be a single mechanic or an array; normalize to array for uniform validation.
   const availability = execution?.availability;
   const castLifecycle = execution?.castLifecycle;

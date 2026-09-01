@@ -383,6 +383,19 @@ function effectNumericRows(
         ]
       : [];
   });
+  if (typeof effect.audience?.maximumRecipients === 'number') {
+    rows.push(
+      numberInput({
+        entity: 'effect',
+        id: skillId,
+        field: 'audience.maximumRecipients',
+        label: 'Maximum recipients',
+        current: effect.audience.maximumRecipients,
+        edit: topPatch?.audience?.maximumRecipients
+      })
+    );
+  }
+
   const ticks = Array.isArray(effect.ticks) ? effect.ticks : [];
   for (const [tickIndex, tick] of ticks.entries()) {
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
@@ -648,6 +661,20 @@ function balanceProfileEffectRows(
         ]
       : [];
   });
+  if (tier === 'advanced' && typeof effect.audience?.maximumRecipients === 'number') {
+    rows.push(
+      numberInput({
+        entity: 'balance-profile-effect',
+        id: profileId,
+        field: 'audience.maximumRecipients',
+        label: 'Maximum recipients',
+        current: effect.audience.maximumRecipients,
+        edit: topPatch?.audience?.maximumRecipients,
+        effect: effectIndex
+      })
+    );
+  }
+
   const ticks = Array.isArray(effect.ticks) ? effect.ticks : [];
   for (const [tickIndex, tick] of ticks.entries()) {
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
@@ -1029,7 +1056,12 @@ function setNumericEdit(input: HTMLInputElement): void {
       effects.push(effect);
     }
 
-    if (effect && numericEdit) effect[field] = numericEdit;
+    if (effect && field === 'audience.maximumRecipients') {
+      const audience = numericEdit ? ensureRecord(effect, 'audience') : asRecord(effect.audience);
+      if (numericEdit) audience!.maximumRecipients = numericEdit;
+      else if (audience) delete audience.maximumRecipients;
+      removeEmptyRecord(effect, 'audience');
+    } else if (effect && numericEdit) effect[field] = numericEdit;
     else if (effect) delete effect[field];
     const retained = effects.filter((entry) =>
       Object.keys(entry).some((key) => !['effectIndex', 'tickIndex'].includes(key))
@@ -1058,7 +1090,12 @@ function setNumericEdit(input: HTMLInputElement): void {
       effects.push(effect);
     }
 
-    if (effect && numericEdit) effect[field] = numericEdit;
+    if (effect && field === 'audience.maximumRecipients') {
+      const audience = numericEdit ? ensureRecord(effect, 'audience') : asRecord(effect.audience);
+      if (numericEdit) audience!.maximumRecipients = numericEdit;
+      else if (audience) delete audience.maximumRecipients;
+      removeEmptyRecord(effect, 'audience');
+    } else if (effect && numericEdit) effect[field] = numericEdit;
     else if (effect) delete effect[field];
     const retained = effects.filter((entry) =>
       Object.keys(entry).some((key) => !['effectIndex', 'tickIndex'].includes(key))

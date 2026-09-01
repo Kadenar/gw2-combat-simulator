@@ -82,13 +82,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         ticks: [1000, 2000, 3000, 4000, 5000, 6000].map((atMs) => ({
           atMs,
           coefficient: 0.2,
-          metadata: {
-            weaponStrength: 2880,
-            independentSummonStrike: true,
-            summonUsesProfessionModifiers: true,
-            summonInheritsAttributes: true,
-            summonInheritsCriticalAttributes: true
-          }
+          weaponStrength: 2880,
+          independentSummonStrike: true,
+          summonUsesProfessionModifiers: true,
+          summonInheritsAttributes: true,
+          summonInheritsCriticalAttributes: true
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -1294,7 +1292,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon',
-        metadata: { controlKind: 'pull' }
+        controlKind: 'pull'
       }
     ],
     quicknessCastTimeMs: 1000,
@@ -1542,7 +1540,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon',
-        metadata: { controlKind: 'knockback' }
+        controlKind: 'knockback'
       }
     ],
     quicknessCastTimeMs: 1280,

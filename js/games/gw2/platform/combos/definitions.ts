@@ -404,7 +404,15 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           duration: outcome.duration,
           // Area combo boons use normal party targeting so an active companion
           // can claim an open target slot after players.
-          ...(outcome.name.startsWith('Area ') ? { recipients: 'party', maximumRecipients: 5 } : { affectsSelf: true })
+          ...(outcome.name.startsWith('Area ')
+            ? {
+                audience: {
+                  recipients: 'party' as const,
+                  maximumRecipients: 5,
+                  eligibleCompanionIds: combo.companionCandidates
+                }
+              }
+            : { audience: { recipients: 'party' as const } })
         };
       case 'condition':
         return {
@@ -448,7 +456,7 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           kind: 'stealth',
           stacks: 1,
           duration: outcome.duration,
-          affectsSelf: true,
+          audience: { recipients: 'party' as const },
           fixedDuration: true
         };
       case 'cleanse':
