@@ -1,5 +1,6 @@
 import { rotationDeadTimeVisibility, setRotationDeadTimeVisibility } from '#gw2/app/rotation/timeline/size.js';
 import { storeRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
+import { activeSpecialization } from '#gw2/app/rotation/shared/context.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
@@ -80,6 +81,23 @@ export function mountRotationDisplayControls(app: ProfessionAppState, root: Docu
       }
     })
   );
+
+  // Sovereign of Light is Luminary-only, so keep its display preference out of unrelated builds.
+  if (activeSpecialization(app) === 'Luminary') {
+    controls.append(
+      checkboxControl(root, {
+        id: 'rotation-overlay-sovereign-of-light-procs',
+        label: 'Overlay Sovereign of Light',
+        title: 'Show Sovereign of Light activations at their simulated positions in the rotation',
+        checked: Boolean(app.overlaySovereignOfLightProcs),
+        onChange: (checked) => {
+          app.overlaySovereignOfLightProcs = checked;
+          storeRotationProcOverlayVisibility(root, 'sovereignOfLight', checked);
+          renderTimeline(app);
+        }
+      })
+    );
+  }
 
   section.append(summary, controls);
   container.append(section);

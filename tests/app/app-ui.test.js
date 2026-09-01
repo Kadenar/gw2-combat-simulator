@@ -41,9 +41,9 @@ import {
   rotationSkillHighlightKey,
   shatterResourceSpends,
   sigilProcTimelineMarkers,
-  skillProcTimelineMarkers,
   targetHealthTimelineMarkers,
-  timelineWeaponRows
+  timelineWeaponRows,
+  traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
 import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
@@ -222,7 +222,7 @@ test('proc timeline markers follow their simulated activation times', () => {
       },
       {
         ri: -1,
-        type: 'skill_proc',
+        type: 'trait_proc',
         skill: 'Sovereign of Light',
         sourceSkill: 'Dazzling Hammer',
         detail: 'Light aura detonated',
@@ -289,11 +289,14 @@ test('proc timeline markers follow their simulated activation times', () => {
     [{ skill: 'Relic of Fireworks', insertionIndex: 2 }]
   );
   assert.deepEqual(
-    skillProcTimelineMarkers(result, 3).map((marker) => ({
+    traitProcTimelineMarkers(result, 3).map((marker) => ({
       skill: marker.skill,
       insertionIndex: marker.insertionIndex
     })),
-    [{ skill: 'Sovereign of Light', insertionIndex: 2 }]
+    [
+      { skill: 'Trait Proc', insertionIndex: 2 },
+      { skill: 'Sovereign of Light', insertionIndex: 2 }
+    ]
   );
   assert.equal(procFilterLabel(result.procSteps[0]), 'Sigil of Air (Sigil)');
 });
@@ -704,6 +707,10 @@ test('timeline display checkboxes are owned by Simulation Config instead of the 
   assert.match(displayControls, /label: 'Display idle time'/);
   assert.match(displayControls, /id: 'rotation-overlay-sigil-procs'/);
   assert.match(displayControls, /id: 'rotation-overlay-relic-procs'/);
+  assert.match(displayControls, /id: 'rotation-overlay-sovereign-of-light-procs'/);
+  assert.match(displayControls, /label: 'Overlay Sovereign of Light'/);
+  assert.match(displayControls, /activeSpecialization\(app\) === 'Luminary'/);
+  assert.match(timelineView, /app\.overlaySovereignOfLightProcs/);
   assert.doesNotMatch(timelineView, /data-overlay-proc-type/);
   assert.doesNotMatch(timelineSize, /rotation-dead-time-control/);
 });

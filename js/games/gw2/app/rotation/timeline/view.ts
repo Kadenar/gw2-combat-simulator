@@ -56,11 +56,11 @@ import {
   rotationSkillHighlightKey,
   shatterResourceSpends,
   sigilProcTimelineMarkers,
-  skillProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineStepsWithChargeFills,
   timelineWeaponLineExitMarkerRowIndex,
-  timelineWeaponRows
+  timelineWeaponRows,
+  traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
 import type { RotationCommand, SchedulerRecord, SchedulerStep, Skill, SkillId } from '#gw2/platform/engine/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
@@ -545,9 +545,12 @@ export function renderTimeline(app: ProfessionAppState): void {
     ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, app.build.rotation.length) : []),
     ...(app.overlayRelicProcs ? relicProcTimelineMarkers(results, app.build.rotation.length) : []),
     ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, app.build.rotation.length) : []),
-    ...skillProcTimelineMarkers(results, app.build.rotation.length).filter(
-      (marker) => marker.skill === 'Sovereign of Light'
-    )
+    // Keep this requested trait proc opt-in without overlaying every simulated trait proc.
+    ...(specialization === 'Luminary' && app.overlaySovereignOfLightProcs
+      ? traitProcTimelineMarkers(results, app.build.rotation.length).filter(
+          (marker) => marker.skill === 'Sovereign of Light'
+        )
+      : [])
   ].sort((left, right) => left.start - right.start);
   const overlayProcMarkersByIndex = new Map<number, typeof overlayProcMarkers>();
   for (const marker of overlayProcMarkers) {
@@ -704,9 +707,16 @@ export function renderTimeline(app: ProfessionAppState): void {
     const icon = resolveProcIcon(app, marker) || PLACEHOLDER_ICON;
     const isRelic = marker.type === 'relic_proc';
     const isSkill = marker.type === 'skill_proc';
+    const isTrait = marker.type === 'trait_proc';
     const expired = marker.expired === true;
-    const type = isRelic ? 'Relic' : isSkill ? 'Skill' : 'Sigil';
-    const className = isRelic ? 'rot-relic-proc' : isSkill ? 'rot-skill-proc' : 'rot-sigil-proc';
+    const type = isRelic ? 'Relic' : isSkill ? 'Skill' : isTrait ? 'Trait' : 'Sigil';
+    const className = isRelic
+      ? 'rot-relic-proc'
+      : isSkill
+        ? 'rot-skill-proc'
+        : isTrait
+          ? 'rot-trait-proc'
+          : 'rot-sigil-proc';
     const color = procColors[marker.type] || '#9d7bd0';
     const count = marker.activations.length;
     const badgeLabel = expired ? '' : procBadgeLabel(marker.activations);

@@ -67,6 +67,7 @@ export class ProfessionApp
   rotationInsertionIndex: number | null;
   overlaySigilProcs: boolean;
   overlayRelicProcs: boolean;
+  overlaySovereignOfLightProcs: boolean;
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
@@ -110,6 +111,7 @@ export class ProfessionApp
     // Restore timeline display preferences independently from the saved build and simulation configuration.
     this.overlaySigilProcs = readStoredRotationProcOverlayVisibility(document, 'sigil');
     this.overlayRelicProcs = readStoredRotationProcOverlayVisibility(document, 'relic');
+    this.overlaySovereignOfLightProcs = readStoredRotationProcOverlayVisibility(document, 'sovereignOfLight');
     this.templatePresets = [];
     this.templateContainer = null;
     this.currentTemplate = null;

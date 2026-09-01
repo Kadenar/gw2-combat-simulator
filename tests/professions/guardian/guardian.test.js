@@ -105,7 +105,7 @@ test('Guardian uses a current API catalog with real skills and trait lines', () 
   assert.match(DATA_SNAPSHOT, /^2026-/);
   assert.equal(guardianCatalog.specializations.length, 9);
   assert.equal(guardianCatalog.traits.length, 108);
-  assert.ok(guardianCatalog.skills.length >= 190);
+  assert.ok(guardianCatalog.skills.length >= 178);
   assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.TRUE_STRIKE).name, 'True Strike');
   assert.equal(guardianCatalog.skillsByName.get('Virtue of Justice').id, 9115);
   assert.equal(
@@ -1897,16 +1897,18 @@ test('every catalog skill has executable mechanics', () => {
   assert.deepEqual(result.warnings, []);
 });
 
-test('API mode aliases are not exposed as parent-child skill flips', () => {
-  for (const name of ['Sword of Justice', '"Feel My Wrath!"']) {
-    const variants = guardianCatalog.skills.filter((skill) => skill.name === name);
+test('Guardian alias input loads canonical Sword of Justice while Shield of Absorption remains a real flip', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [{ type: 'cast', skillId: 44846 }],
+    config
+  });
+  const action = result.events.find((event) => event.type === 'action');
 
-    assert.equal(variants.length, 2);
-    assert.equal(
-      variants.every((skill) => skill.flipParentId == null),
-      true
-    );
-  }
+  assert.equal(guardianCatalog.skillsById.has(44846), false);
+  assert.equal(action.skillId, GUARDIAN_SKILL_IDS.SWORD_OF_JUSTICE);
+  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION).flipSkillId, 9224);
+  assert.equal(guardianCatalog.skillsById.get(9224).flipParentId, GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION);
 });
 
 test('non-DPS Guardian slot skills are excluded from the simulator surface', () => {
@@ -4132,6 +4134,10 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
     true
   );
   assert.equal(sovereignProcs.length, 1);
+  assert.equal(
+    sovereignProcs.every((step) => step.type === 'trait_proc'),
+    true
+  );
   assert.equal(
     sovereignProcs.every((step) => Boolean(step.icon)),
     true

@@ -4931,6 +4931,13 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   color: #201b28;
 }
 
+/* Trait-proc overlays use the same green identity as their timeline proc entries. */
+.rot-trait-proc .rot-injected-badge {
+  right: -5px;
+  background: #77cc77;
+  color: #201b28;
+}
+
 .rot-injected-badge {
   position: absolute;
   top: -6px;

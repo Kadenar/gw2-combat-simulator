@@ -94,12 +94,12 @@ export function relicProcTimelineMarkers(
   return matchingProcTimelineMarkers(result, 'relic_proc', rotationLength);
 }
 
-/** Places simulated skill procs after the rotation command that triggered them. */
-export function skillProcTimelineMarkers(
+/** Places simulated trait procs after the rotation command that triggered them. */
+export function traitProcTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
   rotationLength = 0
 ): ProcTimelineMarker[] {
-  return matchingProcTimelineMarkers(result, 'skill_proc', rotationLength);
+  return matchingProcTimelineMarkers(result, 'trait_proc', rotationLength);
 }
 
 /**

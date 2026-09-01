@@ -362,6 +362,7 @@ export interface ProfessionAppState {
   procHighlightKey?: string | null;
   overlaySigilProcs?: boolean;
   overlayRelicProcs?: boolean;
+  overlaySovereignOfLightProcs?: boolean;
   rotationSkillHighlightKey?: string | null;
   _skillBreakdownState?: {
     readonly skillRows: readonly SchedulerRecord[];
