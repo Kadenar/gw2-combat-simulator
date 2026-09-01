@@ -30,12 +30,10 @@ type GuardianAmmoModifierContext = GuardianSchedulerContext &
     readonly skill?: GuardianSkill;
   };
 
-/** @param {Gw2ModifierContext} context */
 export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
   return readProfessionCoreState<GuardianState>(context.runtime?.profession);
 }
 
-/** @param {Gw2ModifierContext} context */
 function activeWeapon(context: Gw2ModifierContext): string | undefined {
   const eventWeapon = context.event?.skillWeapon;
   if (typeof eventWeapon === 'string') return eventWeapon;
@@ -43,17 +41,12 @@ function activeWeapon(context: Gw2ModifierContext): string | undefined {
   return gw2PrimaryWeapon(context.config, weaponSet);
 }
 
-/** @param {string | undefined} weapon */
 function isOneHandedWeapon(weapon: string | undefined): boolean {
   return (
     typeof weapon === 'string' && !['Greatsword', 'Hammer', 'Longbow', 'Short Bow', 'Spear', 'Staff'].includes(weapon)
   );
 }
 
-/**
- * @param {Gw2ModifierContext} context
- * @param {string} boon
- */
 export function guardianBoonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
   if (context.timeline?.timedActive(boon, context.time)) return true;
@@ -63,19 +56,10 @@ export function guardianBoonActive(context: Gw2ModifierContext, boon: string): b
   );
 }
 
-/**
- * @param {Gw2ModifierContext} context
- * @param {string} kind
- */
 export function guardianTimedBuffActive(context: Gw2ModifierContext, kind: string): boolean {
   return Boolean(context.timeline?.timedActive(kind, context.time));
 }
 
-/**
- * @param {Gw2ModifierContext} context
- * @param {string} kind
- * @returns {SimulationEvent | null}
- */
 export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: string): SimulationEvent | null {
   let latest: SimulationEvent | null = null;
   for (const event of context.events || []) {
@@ -86,7 +70,6 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
   return latest;
 }
 
-/** @param {Gw2ModifierContext} context */
 export function guardianTargetDisabled(context: Gw2ModifierContext): boolean {
   if (context.config?.target?.disabled || context.config?.target?.defiant || context.config?.target?.defianceBroken)
     return true;
@@ -98,11 +81,6 @@ export function guardianTargetDisabled(context: Gw2ModifierContext): boolean {
   );
 }
 
-/**
- * @param {Gw2ModifierContext} context
- * @param {Gw2ResolvedStats} attributes
- * @returns {Gw2ResolvedStats}
- */
 export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'guardian.zealous-blade-power',
@@ -311,10 +289,6 @@ export function compileGuardianModifierRules(rules: readonly Gw2ModifierRule[]) 
   return createModifierHooks({ rules });
 }
 
-/**
- * @param {GuardianRechargeModifierContext} context
- * @param {number} duration
- */
 function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext, duration: number): number {
   const skill = context.skill;
   let result = duration;
@@ -341,10 +315,6 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
   return result;
 }
 
-/**
- * @param {GuardianAmmoModifierContext} context
- * @param {number} maximum
- */
 function modifyGuardianMaximumAmmo(context: GuardianAmmoModifierContext, maximum: number): number {
   let result = maximum;
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {

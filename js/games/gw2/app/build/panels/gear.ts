@@ -147,10 +147,6 @@ function selectRow(label: string, id: string, selectedLabel: string, optionsHtml
             ${compactSelect(selectedLabel, `<select class="gear-select" id="${id}">${optionsHtml}</select>`)}</div>`;
 }
 
-/**
- * @param {ProfessionAppState} app
- * @returns {void}
- */
 export function renderGear(app: ProfessionAppState): void {
   const b = app.build;
   const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;

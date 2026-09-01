@@ -33,9 +33,7 @@ const ALL_ATTRIBUTES = Object.freeze([
  * contributes every attribute. Legends without a Bolstered Bonds bonus are
  * ignored.
  *
- * @param {readonly string[]} selectedLegendIds Selected Revenant legend IDs.
- * @param {number} multiplier Number of bonus copies to apply.
- * @returns {Record<string, number>} Bonuses keyed by runtime attribute name.
+ * Bonuses keyed by runtime attribute name.
  */
 export function bolsteredBondsBonuses(
   selectedLegendIds: readonly string[] = [],

@@ -2,6 +2,7 @@ import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/
 import { normalized, skillForAction } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
+import { canonicalAction, combatStartTime } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -15,6 +16,8 @@ export interface EngineerActionIdentity {
 const PRECOMBAT_SIGNAL_WINDOW_MS = 1200;
 
 export { normalized, skillForAction };
+export { catalogDuration as castDuration } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
+export { canonicalAction };
 
 export function selectedIdentity(
   context: EvtcProfessionReconstructionContext,
@@ -37,48 +40,11 @@ export function selectedIdentity(
   };
 }
 
-export function canonicalAction(
-  eventIndex: number,
-  time: number,
-  identity: EngineerActionIdentity,
-  rawSkillId: number,
-  evidence: EvtcRecordedRotationAction['evidence'] = 'resource-inference'
-): EvtcRecordedRotationAction {
-  return {
-    start: time,
-    end: time,
-    expectedDuration: 0,
-    rawSkillId,
-    rawName: identity.name,
-    canonicalSkillId: identity.skillId,
-    canonicalName: identity.name,
-    evidence,
-    status: 'instant',
-    eventIndex
-  };
-}
-
-export function castDuration(context: EvtcProfessionReconstructionContext, identity: EngineerActionIdentity): number {
-  const skill = findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
-  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
-}
-
-export function combatStartTime(context: EvtcProfessionReconstructionContext): number | null {
-  const explicit = context.log.events.find(
-    (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
-  )?.time;
-  if (explicit != null) return explicit;
-  const initial = context.log.events
-    .filter((event) => event.target === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL)
-    .sort((left, right) => left.time - right.time)[0]?.time;
-  return initial ?? null;
-}
-
 export function findOpeningPrecast(
   context: EvtcProfessionReconstructionContext,
   identities: ReadonlyMap<string, EngineerActionIdentity>
 ): EvtcRecordedRotationAction | null {
-  const combatStart = combatStartTime(context);
+  const combatStart = combatStartTime(context, true);
   if (combatStart == null) return null;
   const names = new Map(context.log.skills.map((skill) => [skill.id, skill.name.trim()]));
   const candidate = context.log.events

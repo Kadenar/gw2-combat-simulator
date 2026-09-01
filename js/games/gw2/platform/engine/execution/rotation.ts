@@ -29,10 +29,6 @@ function positiveInteger(value: unknown, field: string): number {
 
 /**
  * Converts one rotation entry into the canonical scheduler command shape.
- *
- * @param {unknown} entry
- * @param {CatalogLookup|null} [catalog]
- * @returns {RotationCommand}
  */
 export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null = null): RotationCommand {
   if (typeof entry === 'number') return { type: 'cast', skillId: canonicalGw2SkillId(entry) };
@@ -123,11 +119,6 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
 /**
  * Normalizes an entire rotation, optionally dropping malformed entries when the
  * caller is doing best-effort migration instead of strict scheduling.
- *
- * @param {unknown} rotation
- * @param {CatalogLookup|null} [catalog]
- * @param {{strict?: boolean}} [options]
- * @returns {RotationCommand[]}
  */
 export function normalizeRotation(
   rotation: unknown,

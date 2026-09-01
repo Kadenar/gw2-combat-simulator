@@ -48,10 +48,6 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
   app.changed();
 }
 
-/**
- * @param {ProfessionAppState} app
- * @returns {void}
- */
 export function renderTraits(app: ProfessionAppState): void {
   const container = document.getElementById('traits-panel');
   if (!container) throw new Error('Required traits panel is missing.');

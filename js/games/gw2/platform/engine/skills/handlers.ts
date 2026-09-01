@@ -60,10 +60,6 @@ function assertMode(mode: unknown, handlerId: string): SkillHandlerMode {
 
 /**
  * Creates one immutable handler strategy.
- *
- * @template {object} TContext
- * @param {Partial<SkillHandlerStrategy<TContext>> & {mode?: unknown}} [options]
- * @returns {Readonly<SkillHandlerStrategy<TContext>>}
  */
 export function skillHandler<TContext extends object = SchedulerRecord>(
   options: SkillHandlerOptions<TContext> = {}
@@ -93,11 +89,6 @@ export function skillHandler<TContext extends object = SchedulerRecord>(
   return Object.freeze(strategy);
 }
 
-/**
- * @template {object} TContext
- * @param {SkillHandlerPhase<TContext>} beforeEffects
- * @param {Omit<Partial<SkillHandlerStrategy<TContext>>, "mode" | "beforeEffects">} [options]
- */
 export function augmentSkillHandler<TContext extends object = SchedulerRecord>(
   beforeEffects: SkillHandlerPhase<TContext> | null,
   options: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode' | 'beforeEffects'> = {}
@@ -109,11 +100,6 @@ export function augmentSkillHandler<TContext extends object = SchedulerRecord>(
   });
 }
 
-/**
- * @template {object} TContext
- * @param {SkillHandlerPhase<TContext>} beforeEffects
- * @param {Omit<Partial<SkillHandlerStrategy<TContext>>, "mode" | "beforeEffects">} [options]
- */
 export function replaceSkillHandler<TContext extends object = SchedulerRecord>(
   beforeEffects: SkillHandlerPhase<TContext> | null,
   options: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode' | 'beforeEffects'> = {}
@@ -127,11 +113,6 @@ export function replaceSkillHandler<TContext extends object = SchedulerRecord>(
 
 /**
  * Validates a registered strategy while retaining its callable phases.
- *
- * @template {object} TContext
- * @param {string} handlerId
- * @param {unknown} value
- * @returns {Readonly<SkillHandlerStrategy<TContext>>}
  */
 export function normalizeSkillHandler<TContext extends object = SchedulerRecord>(
   handlerId: string,
@@ -165,13 +146,6 @@ export function normalizeSkillHandler<TContext extends object = SchedulerRecord>
   return Object.freeze(strategy);
 }
 
-/**
- * @template {object} TContext
- * @param {SkillHandlerStrategy<TContext> | null | undefined} strategy
- * @param {TContext} context
- * @param {Skill} skill
- * @returns {SkillHandlerMode}
- */
 export function resolveSkillHandlerMode<TContext extends object = SchedulerRecord>(
   strategy: SkillHandlerStrategy<TContext> | null | undefined,
   context: TContext,

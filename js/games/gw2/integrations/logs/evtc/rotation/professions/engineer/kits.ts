@@ -57,7 +57,7 @@ export function inferDetonateActions(context: EvtcProfessionReconstructionContex
 
     // Gadgeteer's two same-time strike packets still represent one Detonate input.
     previous = event.time;
-    return [canonicalAction(eventIndex, event.time, DETONATE, event.skillId)];
+    return [canonicalAction(eventIndex, event.time, DETONATE, event.skillId, 'resource-inference')];
   });
 }
 

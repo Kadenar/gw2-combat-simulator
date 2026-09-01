@@ -1,6 +1,14 @@
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import {
+  canonicalAction,
+  catalogDuration as castDuration,
+  combatStartTime,
+  hasNearbyAction,
+  playerInstance,
+  rawSkillName
+} from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -35,43 +43,7 @@ export const MESMER_EFFECT_GUIDS = Object.freeze({
 
 /** Normalizes a skill or action name for case-insensitive comparisons across EVTC and simulator metadata. */
 export { normalized };
-
-/** Resolves a raw EVTC skill ID to its recorded name, returning a stable placeholder when metadata is missing. */
-export function rawSkillName(context: EvtcProfessionReconstructionContext, skillId: number): string {
-  return context.log.skills.find((skill) => skill.id === skillId)?.name.trim() || `Unknown ${skillId}`;
-}
-
-/** Returns the active catalog's nonnegative quickness-adjusted cast duration for a canonical Mesmer action. */
-export function castDuration(context: EvtcProfessionReconstructionContext, identity: MesmerActionIdentity): number {
-  const skill = findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
-  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
-}
-
-/**
- * Creates a canonical zero-duration Mesmer action from EVTC evidence and applies any supplied timing or state overrides.
- */
-export function canonicalAction(
-  eventIndex: number,
-  time: number,
-  identity: MesmerActionIdentity,
-  rawSkillId = identity.skillId,
-  evidence: EvtcRecordedRotationAction['evidence'] = 'effect',
-  options: Partial<EvtcRecordedRotationAction> = {}
-): EvtcRecordedRotationAction {
-  return {
-    start: time,
-    end: time,
-    expectedDuration: 0,
-    rawSkillId,
-    rawName: identity.name,
-    canonicalSkillId: identity.skillId,
-    canonicalName: identity.name,
-    evidence,
-    status: 'instant',
-    eventIndex,
-    ...options
-  };
-}
+export { canonicalAction, castDuration, combatStartTime, hasNearbyAction, playerInstance, rawSkillName };
 
 /**
  * Creates a completed canonical cast whose start is derived from its catalog duration and observed end, marking casts
@@ -92,23 +64,6 @@ export function canonicalCast(
     status: 'completed',
     precast: combatStart != null && end <= combatStart
   });
-}
-
-/** Returns the selected player's first recorded EnterCombat timestamp, or null when the log has no such boundary. */
-export function combatStartTime(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find(
-      (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
-    )?.time ?? null
-  );
-}
-
-/** Returns the selected player's first positive EVTC instance ID for matching owned agents and lifecycle events. */
-export function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
-      ?.sourceInstance ?? null
-  );
 }
 
 /** Encodes a 64-bit EVTC field as eight uppercase little-endian hexadecimal bytes for effect GUID reconstruction. */
@@ -216,27 +171,6 @@ export function clusterSignals(
   }
 
   return clustered;
-}
-
-/**
- * Reports whether an action with the same canonical/raw ID or normalized name starts or ends within the given window,
- * preventing independent evidence channels from reconstructing the same input twice.
- */
-export function hasNearbyAction(
-  actions: readonly EvtcRecordedRotationAction[],
-  identity: MesmerActionIdentity,
-  time: number,
-  windowMs: number
-): boolean {
-  const name = normalized(identity.name);
-  return actions.some(
-    (action) =>
-      (action.rawSkillId === identity.skillId ||
-        action.canonicalSkillId === identity.skillId ||
-        normalized(action.rawName) === name ||
-        normalized(action.canonicalName) === name) &&
-      Math.min(Math.abs(action.start - time), Math.abs(action.end - time)) <= windowMs
-  );
 }
 
 /**

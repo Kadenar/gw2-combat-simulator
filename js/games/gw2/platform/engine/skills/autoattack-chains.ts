@@ -18,9 +18,6 @@ export interface ResolvedAutoattackChainStep {
 
 /**
  * Freezes a chain after normalizing all skill ids to numbers.
- *
- * @param {readonly SkillId[]} chain
- * @returns {readonly number[]}
  */
 function freezeChain(chain: readonly SkillId[]): readonly number[] {
   return Object.freeze(chain.map(Number));
@@ -29,9 +26,6 @@ function freezeChain(chain: readonly SkillId[]): readonly number[] {
 /**
  * Discovers rooted weapon-slot-1 autoattack chains from canonical skill
  * metadata.
- *
- * @param {readonly Skill[]} skills
- * @returns {readonly (readonly number[])[]}
  */
 export function deriveAutoattackChains(skills: readonly Skill[]): readonly (readonly number[])[] {
   const byId = new Map(skills.map((skill) => [skill.id, skill]));
@@ -58,9 +52,6 @@ export function deriveAutoattackChains(skills: readonly Skill[]): readonly (read
 /**
  * Produces a per-skill lookup describing where that skill sits inside its
  * chain.
- *
- * @param {readonly (readonly SkillId[])[]} chains
- * @returns {Map<number, AutoattackChainPosition>}
  */
 export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): Map<number, AutoattackChainPosition> {
   const positions = new Map<number, AutoattackChainPosition>();

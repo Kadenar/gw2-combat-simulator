@@ -16,8 +16,7 @@ const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
  * Resolves Signet of Illusions when it is present in the configured utility
  * loadout.
  *
- * @param {object} context Scheduler context.
- * @returns {object|null} Catalog skill when equipped, otherwise null.
+ * Catalog skill when equipped, otherwise null.
  */
 function equippedSignetOfIllusions(context: MesmerSchedulerContext): MesmerSkill | null {
   const skill = context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
@@ -29,10 +28,6 @@ function equippedSignetOfIllusions(context: MesmerSchedulerContext): MesmerSkill
 /**
  * Replaces any pending Signet of Illusions passive task with one at the
  * requested timestamp.
- *
- * @param {object} context Scheduler context.
- * @param {number} at Requested task timestamp.
- * @returns {void}
  */
 function scheduleSignetIllusionsPassive(context: MesmerSchedulerContext, at: number): void {
   if (!equippedSignetOfIllusions(context)) return;
@@ -49,10 +44,6 @@ function scheduleSignetIllusionsPassive(context: MesmerSchedulerContext, at: num
 /**
  * Restarts Signet of Illusions' passive interval after both the supplied time
  * and the signet's current cooldown.
- *
- * @param {object} context Scheduler context.
- * @param {number} activeAt Earliest time the passive may resume.
- * @returns {void}
  */
 export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, activeAt: number): void {
   const skill = equippedSignetOfIllusions(context);
@@ -68,10 +59,6 @@ export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, a
 /**
  * Grants Signet of Illusions' passive resource when available or defers the
  * pulse until its cooldown and combat-start requirements are satisfied.
- *
- * @param {object} context Scheduler task context.
- * @param {object} task Signet passive task.
- * @returns {void}
  */
 export function handleSignetIllusionsPassiveTask(
   context: MesmerSchedulerContext,

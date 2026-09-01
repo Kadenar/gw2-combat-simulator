@@ -19,9 +19,6 @@ const NON_WEAPON_EFFECT_SOURCES = new Set(['equipment', 'food', 'relic', 'sigil'
 
 /**
  * Classifies display-oriented source labels when explicit actor ownership is absent.
- *
- * @param {unknown} source
- * @returns {Gw2EventActorType}
  */
 export function gw2ActorTypeForSource(source: unknown): Gw2EventActorType {
   if (source === 'Player') return GW2_EVENT_ACTOR_TYPES.PLAYER;
@@ -37,10 +34,6 @@ export function gw2ActorTypeForSource(source: unknown): Gw2EventActorType {
   return GW2_EVENT_ACTOR_TYPES.UNKNOWN;
 }
 
-/**
- * @param {Partial<SimulationEventInput> | null | undefined} event
- * @returns {Gw2EventActorType}
- */
 export function gw2EventActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
   const explicit = String(event?.actorType || '');
   // Explicit canonical ownership is authoritative. Source inference is only a
@@ -52,7 +45,6 @@ export function gw2EventActorType(event: Partial<SimulationEventInput> | null | 
   return gw2ActorTypeForSource(event?.source);
 }
 
-/** @param {Partial<SimulationEventInput> | null | undefined} event */
 export function isGw2PlayerActorEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
   // UNKNOWN is conservative: unclassified effects must not trigger player-only
   // sigils, food, or profession hit rules.

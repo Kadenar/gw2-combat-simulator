@@ -15,10 +15,6 @@ import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js'
  * This includes interrupted resource restoration, profession actions,
  * autoattack chains, flips, phantasms, specialization controllers, trait
  * events, and signet task scheduling.
- *
- * @param {object} context Scheduler cast-completion context.
- * @param {object} skill Completed or interrupted skill.
- * @returns {void}
  */
 /** Notifies the active specialization after Core has committed a shatter's exact resource spend. */
 function dispatchShatterResolved(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
@@ -234,10 +230,6 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
 /**
  * Reserves or consumes shatter resources at the correct cast progress and
  * stores cast-local details for completion or interruption handling.
- *
- * @param {object} context Scheduler cast-start context.
- * @param {object} skill Skill beginning its cast.
- * @returns {void}
  */
 export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
@@ -304,10 +296,6 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
 
 /**
  * Public cast-completion hook that delegates to the Mesmer runtime processor.
- *
- * @param {object} context Scheduler cast-completion context.
- * @param {object} skill Completed or interrupted skill.
- * @returns {void}
  */
 export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   completeMesmerSkill(context, skill);

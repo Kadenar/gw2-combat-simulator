@@ -20,10 +20,6 @@ export const ACTION_SAFETY_LIMIT = 100_000;
 /**
  * Internal cooldowns remain active through their recorded boundary timestamp.
  * A proc at exactly readyAt is blocked; only a later timestamp may trigger it.
- *
- * @param {number} at
- * @param {number} [readyAt]
- * @returns {boolean}
  */
 export function isInternalCooldownReady(at: number, readyAt = 0): boolean {
   const triggerAt = Number(at);

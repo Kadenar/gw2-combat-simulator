@@ -34,11 +34,6 @@ import type {
 
 /**
  * Emits the sigil-swap trigger caused by equipping a radiant weapon.
- *
- * @param {GuardianEventContext} context Scheduler callback context.
- * @param {GuardianSkill} skill Radiant weapon skill being equipped.
- * @param {GuardianEventExtra} [event] Additional event fields.
- * @returns {void}
  */
 function emitForgeWeaponSwap(
   context: GuardianEventContext,
@@ -58,11 +53,6 @@ function emitForgeWeaponSwap(
 
 /**
  * Emits a weapon-bar transition for entering or leaving Radiant Forge.
- *
- * @param {GuardianEventContext} context Scheduler callback context.
- * @param {GuardianSkill} skill Forge transition skill.
- * @param {GuardianEventExtra} [event] Additional event fields.
- * @returns {void}
  */
 function emitForgeTransition(
   context: GuardianEventContext,
@@ -101,9 +91,7 @@ export function recordRadiantWeaponEquipped(context: GuardianCastContext, skill:
  * Determines whether a forge transition or forge-only skill is currently
  * castable. Unrelated skills return ready under the shared result contract.
  *
- * @param {GuardianPrecastContext} context Cast-validation context.
- * @param {GuardianSkill} skill Candidate skill.
- * @returns {AvailabilityResult} Whether the relevant forge skill is castable.
+ * Whether the relevant forge skill is castable.
  */
 export function radiantForgeAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const forgeActive = luminaryState.from(context).radiantForge;
@@ -153,9 +141,7 @@ export function radiantForgeAvailability(context: GuardianPrecastContext, skill:
  * Enters or exits Radiant Forge and emits the corresponding state and
  * weapon-bar transition events.
  *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Enter or Exit Radiant Forge.
- * @returns {boolean} Always true because this replacing handler owns the cast.
+ * Always true because this replacing handler owns the cast.
  */
 function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boolean {
   const entering = skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
@@ -195,9 +181,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
  * Applies state changes and conditional virtue bonuses after a radiant weapon
  * finishes casting.
  *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Radiant weapon or radiant weapon flip skill.
- * @returns {boolean} True for interrupted casts; otherwise false so declared
+ * True for interrupted casts; otherwise false so declared
  * effects remain authoritative.
  */
 function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): boolean {
@@ -265,10 +249,6 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
 
 /**
  * Emits Glaring Burst's weapon-dependent replacement strike.
- *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Glaring Burst skill definition.
- * @returns {void}
  */
 function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void {
   const elapsedMs = (context.effectiveEnd - context.start) * 1000;
@@ -305,10 +285,6 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
 /**
  * Replaces Radiant Forge's provisional recharge with the final recharge based
  * on how many distinct radiant weapons were used during the entry.
- *
- * @param {GuardianSchedulerContext} context Scheduler context.
- * @param {number} at Simulation time when the forge ends.
- * @returns {void}
  */
 function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: number): void {
   const state = luminaryState.from(context);
@@ -343,11 +319,6 @@ export const guardianRadiantForgeSkillHandlers = Object.freeze({
 
 /**
  * Replays a scheduler forge transition into chronological resolver state.
- *
- * @param {GuardianResolverContext} context Resolver event-handler context.
- * @param {GuardianResolverEvent} event Forge-entered or forge-exited timeline
- * event.
- * @returns {void}
  */
 function handleRadiantForgeTransition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   // One handler serves both entered and exited events; the event payload
@@ -373,10 +344,6 @@ export const guardianRadiantForgeEventHandlers = Object.freeze({
 /**
  * Expires Radiant Forge when scheduler time advances past its end, finalizes
  * its cooldown, and emits the automatic exit transition.
- *
- * @param {GuardianSchedulerContext} context Scheduler advancement context.
- * @param {number} target Target simulation time.
- * @returns {void}
  */
 export function advanceRadiantForgeState(context: GuardianSchedulerContext, target: number): void {
   const state = luminaryState.from(context);

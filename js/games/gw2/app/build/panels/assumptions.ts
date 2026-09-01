@@ -11,7 +11,11 @@ import {
 import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { ProfessionAssumptionControl, ProfessionAssumptionOption, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import type {
+  ProfessionAssumptionControl,
+  ProfessionAssumptionOption,
+  ProfessionBuildAssumptions
+} from '#gw2/platform/builds/types.js';
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   ['fury', 'Fury'],
@@ -33,10 +37,6 @@ interface EffectItemOptions {
   readonly stacks?: number | null;
 }
 
-/**
- * @param {ProfessionAppState} app
- * @returns {void}
- */
 export function renderAssumptions(app: ProfessionAppState): void {
   const a = app.build.assumptions as ProfessionBuildAssumptions;
   const targetArmorValue = normalizeTargetArmor(app.build.targetArmor);

@@ -10,10 +10,10 @@ import {
 import {
   canonicalAction,
   castDuration,
-  combatStartTime,
   selectedIdentity,
   selectedSkill
 } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
+import { combatStartTime } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 
 const RECONSTRUCTION_FIELD = Object.freeze({ name: 'Reconstruction Field', skillId: 29505 });
 const PROTECTION = 717;
@@ -45,7 +45,7 @@ function initialBuffEvidence(context: EvtcProfessionReconstructionContext, skill
 
 function inferOpeningReconstructionField(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (!selectedSkill(context, 'Medic Gyro')) return [];
-  const combatStart = combatStartTime(context);
+  const combatStart = combatStartTime(context, true);
   if (combatStart == null) return [];
 
   // Reconstruction Field is absent when its cast finishes before EVTC starts, but its protection and

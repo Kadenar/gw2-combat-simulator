@@ -80,8 +80,6 @@ interface CreateSchedulerOptions<TProfessionState extends object> {
 
 /**
  * Reads a skill's base cast duration from canonical metadata.
- *
- * @param {Skill} skill
  */
 function baseDurationSeconds(skill: Skill): number {
   return Math.max(0, Number(skill.castTimeMs || 0)) / 1000;
@@ -94,9 +92,6 @@ function interruptCommitCutoffs(skill: Skill): number[] {
   );
 }
 
-/**
- * @template {object} TProfessionState
- */
 function cancelledBeforeInterruptCommit<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   skill: Skill,
@@ -129,8 +124,6 @@ function cancelledBeforeEffectCommit<TProfessionState extends object>(
 /**
  * Expands declarative skill effects into canonical scheduled events. This is
  * only used when a profession hook does not fully handle the cast itself.
- *
- * @template {object} TProfessionState
  */
 function scheduleDeclarativeEffects<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
@@ -205,38 +198,16 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
 
 const CORE_CAST_COMPLETE = 'platform.cast-complete';
 
-/**
- * @param {string} reason
- * @param {string} [code]
- * @param {number | null} [retryAt]
- * @returns {AvailabilityResult}
- */
 function unavailable(reason: string, code = 'platform.unavailable', retryAt: number | null = null): AvailabilityResult {
   return retryAt == null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
 }
 
-/**
- * @param {readonly AvailabilityResult[]} results
- * @returns {AvailabilityResult}
- */
 function combineAvailability(results: readonly AvailabilityResult[]): AvailabilityResult {
   return foldAvailability(results);
 }
 
 /**
  * Creates the profession-neutral chronological scheduler.
- *
- * @template {object} TProfessionState
- * @param {{
- *   profession?: ProfessionSource<TProfessionState>,
- *   config?: SchedulerConfig,
- *   catalog?: CanonicalCatalog,
- *   startingTime?: number,
- *   epsilon?: number,
- *   schedulerPolicy?: SchedulerPolicy<TProfessionState>,
- *   observationPolicy?: ObservationPolicy
- * }} [options]
- * @returns {Scheduler<TProfessionState>}
  */
 export function createScheduler<TProfessionState extends object = SchedulerRecord>({
   profession,
@@ -480,10 +451,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     }
   };
 
-  /**
-   * @param {CastContext<TProfessionState>} castContext
-   * @param {Skill} skill
-   */
   function castDurationFor(castContext: CastContext<TProfessionState>, skill: Skill): number {
     const baseDuration = baseDurationSeconds(skill);
     // Shared game rules run before profession-specific modifiers. The same
@@ -492,11 +459,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     return Math.max(0, Number(activeProfession.modifyCastDuration(castContext, sharedDuration) || 0));
   }
 
-  /**
-   * @param {Skill} skill
-   * @param {number} [at]
-   * @param {SchedulerRecord} [details]
-   */
   function rechargeDurationFor(skill: Skill, at = state.time, details: SchedulerRecord = {}): number {
     const rechargeContext = {
       ...context,
@@ -524,7 +486,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     return Math.max(0, Number(activeProfession.modifyRechargeDuration(rechargeContext, sharedDuration) || 0));
   }
 
-  /** @param {Skill} skill */
   function maximumAmmoFor(skill: Skill): number {
     const baseMaximum = Math.max(0, Number(skill.ammo || 0));
     const sharedMaximum = schedulerPolicy.maximumAmmo?.({ ...context, skill }, skill, baseMaximum) ?? baseMaximum;
@@ -542,10 +503,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   context.rechargeDurationFor = rechargeDurationFor;
   context.maximumAmmoFor = maximumAmmoFor;
 
-  /**
-   * @param {SchedulerContext<TProfessionState>} _taskContext
-   * @param {ScheduledTask<SchedulerRecord>} task
-   */
   const completeReservation: ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord> = (
     _taskContext,
     task
@@ -738,7 +695,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     nextAt: taskQueue.nextAt
   });
 
-  /** @param {number} at */
   function refreshSharedState(at: number): void {
     for (const skillId of state.ammo.keys()) {
       const skill = skillFor(skillId);
@@ -746,7 +702,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     }
   }
 
-  /** @param {number} time */
   function advanceTo(time: number): void {
     const target = Math.max(state.time, Number(time));
     if (!Number.isFinite(target)) {
@@ -775,10 +730,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
   context.advanceTo = advanceTo;
 
-  /**
-   * @param {Skill} skill
-   * @param {number} at
-   */
   function engineAvailability(skill: Skill, at: number): { ammo: AmmoState | null; result: AvailabilityResult } {
     const ammo = cooldownController.refreshAmmo(skill, at);
     const readyAt = state.cooldowns.get(skill.id) || 0;
@@ -828,12 +779,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     return { ammo, result: combineAvailability(result) };
   }
 
-  /**
-   * @param {Skill} skill
-   * @param {CastCommand} command
-   * @param {number} commandIndex
-   * @param {number} start
-   */
   function castAvailability(
     skill: Skill,
     command: CastCommand,
@@ -871,12 +816,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     return { result, castContext };
   }
 
-  /**
-   * @param {number} commandIndex
-   * @param {Skill} skill
-   * @param {number} start
-   * @param {string} reason
-   */
   function recordInvalid(commandIndex: number, skill: Skill, start: number, reason: string): void {
     warnings.push(reason);
     steps.push({
@@ -889,11 +828,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     });
   }
 
-  /**
-   * @param {CastCommand} command
-   * @param {number} [commandIndex]
-   * @returns {boolean}
-   */
   function cast(command: CastCommand, commandIndex = steps.length): boolean {
     const skill = skillFor(command.skillId);
     if (!skill) {
@@ -1184,9 +1118,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   schedulerPolicy.initialize?.(context);
   activeProfession.initialize(context);
 
-  /**
-   * @param {readonly unknown[]} rotation
-   */
   function run(rotation: readonly unknown[]): SchedulerRunResult<TProfessionState> {
     const commands = normalizeRotation(rotation, activeCatalog, {
       strict: true

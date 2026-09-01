@@ -38,9 +38,7 @@ interface AshesHitDependencies {
  * active Firebrand tome. Unrelated skills return ready so every hook follows
  * the structured availability contract.
  *
- * @param {GuardianPrecastContext} context Cast-validation context.
- * @param {GuardianSkill} skill Candidate skill.
- * @returns {AvailabilityResult} Whether the relevant tome skill is castable.
+ * Whether the relevant tome skill is castable.
  */
 export function tomeStateAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const activeTome = firebrandState.from(context).activeTome;
@@ -82,9 +80,7 @@ export function tomeStateAvailability(context: GuardianPrecastContext, skill: Gu
  * match (handled as permanent gating by tomeStateAvailability), the scheduler can
  * pause until the next page lands instead of discarding the cast.
  *
- * @param {GuardianPrecastContext} context Cast-availability context.
- * @param {GuardianSkill} skill Candidate tome skill.
- * @returns {AvailabilityResult} Ready or a retry descriptor when pages are insufficient.
+ * Ready or a retry descriptor when pages are insufficient.
  */
 export function tomePageAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const state = firebrandState.from(context);
@@ -105,9 +101,7 @@ export function tomePageAvailability(context: GuardianPrecastContext, skill: Gua
  * Closes the active tome and emits the state transition consumed by the
  * resolver.
  *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Stow Tome skill.
- * @returns {boolean} Always true to indicate the state-only action completed.
+ * Always true to indicate the state-only action completed.
  */
 function stowTome(context: GuardianCastContext, skill: GuardianSkill): boolean {
   firebrandState.from(context).activeTome = '';
@@ -130,9 +124,7 @@ function stowTome(context: GuardianCastContext, skill: GuardianSkill): boolean {
  * Pays a completed tome skill's page cost, arms Ashes when appropriate, closes
  * an exhausted tome, and emits the resulting resource snapshot.
  *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Tome page skill.
- * @returns {boolean} True when interrupted; false after a completed page use.
+ * True when interrupted; false after a completed page use.
  */
 function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolean {
   // Interrupted casts must not spend pages; returning true signals the handler
@@ -312,9 +304,6 @@ export const guardianTomeSkillHandlers = Object.freeze({
 
 /**
  * Replays a tome-stowed event into resolver state.
- *
- * @param {GuardianResolverContext} context Resolver event-handler context.
- * @returns {void}
  */
 function handleTomeStowed(context: GuardianResolverContext): void {
   firebrandState.from(context).activeTome = '';
@@ -322,10 +311,6 @@ function handleTomeStowed(context: GuardianResolverContext): void {
 
 /**
  * Replays a tome page resource snapshot into resolver state.
- *
- * @param {GuardianResolverContext} context Resolver event-handler context.
- * @param {GuardianResolverEvent} event Tome-page-used timeline event.
- * @returns {void}
  */
 function handleTomePageUsed(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   firebrandState.from(context).tomePages = Number(event.pagesRemaining || 0);
@@ -369,10 +354,6 @@ export const guardianTomeEventHandlers = Object.freeze({
 /**
  * Regenerates all tome pages due by the target scheduler time and disables the
  * next-page timer when the resource reaches its maximum.
- *
- * @param {GuardianSchedulerContext} context Scheduler advancement context.
- * @param {number} target Target simulation time.
- * @returns {void}
  */
 export function advanceTomeState(context: GuardianSchedulerContext, target: number): void {
   const state = firebrandState.from(context);
@@ -427,11 +408,6 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
 /**
  * Consumes an available Ashes of the Just charge on an eligible player strike
  * and applies its burning packet subject to the trigger interval.
- *
- * @param {GuardianResolverContext} context Resolver reaction context.
- * @param {GuardianResolverEvent} event Resolved damage event.
- * @param {AshesHitDependencies} dependencies Resolver helpers.
- * @returns {void}
  */
 export function reactToAshesHit(
   context: GuardianResolverContext,

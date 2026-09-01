@@ -20,9 +20,6 @@ import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js'
 
 /**
  * Default availability rule for shared-shell profession skill selectors.
- *
- * @param {Skill} skill
- * @param {ProfessionSkillAvailabilityContext} [context]
  */
 export function defaultIsSkillAvailable(
   skill: Skill,
@@ -35,9 +32,6 @@ export function defaultIsSkillAvailable(
 
 /**
  * Creates an offhand selector that prefers one weapon when it is available.
- *
- * @param {string} preferred
- * @returns {ProfessionDefaultOffhand}
  */
 export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
   return function defaultOffhand({ offHands = [] }: ProfessionOffhandContext = {}): string {
@@ -48,9 +42,6 @@ export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
 /**
  * Composes a native profession's attribute calculator and runtime into the
  * single shared-shell adapter consumed by the browser application.
- *
- * @param {DefineProfessionAppOptions} options
- * @returns {Readonly<Gw2AppAdapter>}
  */
 export function defineProfessionApp({
   profession,

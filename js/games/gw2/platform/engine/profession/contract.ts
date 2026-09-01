@@ -314,11 +314,6 @@ function assertSkillMechanicTriggers(
   }
 }
 
-/**
- * @param {unknown} value
- * @param {string} professionId
- * @returns {PaletteSkillAvailability}
- */
 function normalizePaletteAvailability(value: unknown, professionId: string): PaletteSkillAvailability {
   if (!value || typeof value !== 'object') {
     throw new TypeError(`${professionId} paletteSkillAvailability must return an object.`);
@@ -396,11 +391,7 @@ function normalizeSimulation(simulation: SchedulerRecord | null | undefined): Sc
  * optional capability. The returned object is what the engine depends on; raw
  * profession definition objects are intentionally not used directly elsewhere.
  */
-/**
- * @template {object} TProfessionState
- * @param {ProfessionDefinition<TProfessionState>} definition
- * @returns {Readonly<NormalizedProfessionContract<TProfessionState>>}
- */
+
 export function defineProfession<TProfessionState extends object>(
   definition: ProfessionDefinition<TProfessionState>
 ): Readonly<NormalizedProfessionContract<TProfessionState>> {

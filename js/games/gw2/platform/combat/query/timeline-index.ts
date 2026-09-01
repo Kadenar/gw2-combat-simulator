@@ -32,13 +32,6 @@ interface IndexedBuffEvents {
 
 /**
  * Common timestamp queries over scheduled GW2 events.
- *
- * @param {{
- *   config?: Gw2Config,
- *   events?: readonly SimulationEvent[],
- *   sigilSet?: (config: Gw2Config, weaponSet: number) => Gw2SigilSet
- * }} [options]
- * @returns {Readonly<Gw2TimelineIndex>}
  */
 export function createGw2TimelineIndex({
   config = {},
@@ -47,10 +40,7 @@ export function createGw2TimelineIndex({
 }: CreateGw2TimelineIndexOptions = {}): Readonly<Gw2TimelineIndex> {
   // Timestamp ties follow scheduler causal order so derived events are queried
   // in the same order the resolver consumes them.
-  /**
-   * @param {SimulationEvent} left
-   * @param {SimulationEvent} right
-   */
+
   const compareEvents = (left: SimulationEvent, right: SimulationEvent): number =>
     left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0);
   // Late-derived events use neutral stable insertion without changing the GW2-specific comparator.
@@ -111,14 +101,6 @@ export function createGw2TimelineIndex({
     }
   };
 
-  /**
-   * @param {string} kind
-   * @param {number} time
-   * @param {number} duration
-   * @param {number} maximum
-   * @param {Gw2BuffAudience} [audience]
-   * @param {string | null} [companionId]
-   */
   const buffStacksAt = (
     kind: string,
     time: number,
@@ -154,18 +136,12 @@ export function createGw2TimelineIndex({
   const timedStacks = (kind: string, time: number, duration: number, maximum: number): number =>
     buffStacksAt(kind, time, duration, maximum);
 
-  /**
-   * @param {string} kind
-   * @param {number} time
-   */
   const timedActive = (kind: string, time: number): boolean => {
     return buffStacksAt(kind, time, 0, 1) > 0;
   };
 
-  /** @param {number} time */
   const vigorActiveAt = (time: number): boolean => Boolean(config.boons?.vigor) || timedActive('vigor', time);
 
-  /** @param {number} time */
   const activeWeaponSetAt = (time: number): number => {
     refreshIndex();
     let activeSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
@@ -178,13 +154,8 @@ export function createGw2TimelineIndex({
     return activeSet;
   };
 
-  /** @param {number} time */
   const activeSigilSetAt = (time: number): Gw2SigilSet => sigilSet(config, activeWeaponSetAt(time));
 
-  /**
-   * @param {SkillId} skillId
-   * @param {number} time
-   */
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
     refreshIndex();
     let readyAt = 0;

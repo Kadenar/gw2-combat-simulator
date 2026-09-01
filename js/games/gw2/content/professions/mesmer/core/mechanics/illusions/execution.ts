@@ -17,9 +17,6 @@ import type { MesmerSchedulerTask } from '#gw2/content/professions/mesmer/state/
 /**
  * Initializes the per-simulation Mesmer runtime, weapon set, resource pool,
  * ammo, persistent flips, critical-fact requirements, and passive tasks.
- *
- * @param {object} context Scheduler initialization context.
- * @returns {void}
  */
 export function initializeMesmerScheduler(context: MesmerSchedulerContext): void {
   if (context.state.activeWeaponSet === 2 && gw2ConfiguredWeaponSet(context.config, 2).every((weapon) => !weapon)) {
@@ -58,10 +55,6 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
 
 /**
  * Expires shared flip-skill windows as scheduler time advances.
- *
- * @param {object} context Scheduler advancement context.
- * @param {number} target Target simulation time.
- * @returns {void}
  */
 export function advanceMesmerScheduler(context: MesmerSchedulerContext, target: number): void {
   const profession = professionCoreState(context);
@@ -78,10 +71,6 @@ export function advanceMesmerScheduler(context: MesmerSchedulerContext, target: 
 /**
  * Observes shared combat-start, control, bleeding, and critical-hit candidates
  * and schedules chronological processing where required.
- *
- * @param {object} context Scheduler event-observer context.
- * @param {object} event Newly scheduled event.
- * @returns {void}
  */
 export function observeMesmerEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = context.mesmerRuntime;
@@ -141,10 +130,6 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
 
 /**
  * Dispatches a scheduled clone attack to the illusion controller.
- *
- * @param {object} context Scheduler task context.
- * @param {object} task Clone-attack task.
- * @returns {void}
  */
 export function handleCloneAttackTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'cloneAttack'>): void {
   mesmerRuntimeFor(context).cloneAttackScheduler.handleTask(task.payload.cloneId, task.at);
@@ -152,10 +137,6 @@ export function handleCloneAttackTask(context: MesmerSchedulerContext, task: Mes
 
 /**
  * Applies a delayed clone or blade resource gain.
- *
- * @param {object} context Scheduler task context.
- * @param {object} task Resource-gain task.
- * @returns {void}
  */
 export function handleResourceGainTask(
   context: MesmerSchedulerContext,
@@ -183,10 +164,6 @@ export function handleResourceGainTask(
 /**
  * Resolves delayed critical trait procs. Deterministic mode uses critical-hit
  * probability; stochastic mode consumes the canonical sampled hit fact.
- *
- * @param {object} context Scheduler task context.
- * @param {object} task Expected-proc task.
- * @returns {void}
  */
 export function handleExpectedProcTask(
   context: MesmerSchedulerContext,

@@ -58,10 +58,6 @@ const GEAR_STATS_BY_NAME = GEAR_STATS as Readonly<Record<string, unknown>>;
  *
  * `toApplicationBuild()` migrates and normalizes an unknown candidate into the
  * canonical build shape consumed by the browser application.
- *
- * @template {Gw2CanonicalBuild} TBuild
- * @param {Gw2BuildCodecOptions<TBuild>} [options]
- * @returns {Readonly<Gw2BuildCodec<TBuild>>}
  */
 export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
   professionId,
@@ -332,51 +328,26 @@ function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   return errors;
 }
 
-/**
- * @param {unknown} value
- * @returns {value is SchedulerRecord}
- */
 function isPlainObject(value: unknown): value is SchedulerRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-/**
- * @param {unknown} value
- * @returns {SchedulerRecord}
- */
 function plainObject(value: unknown): SchedulerRecord {
   return isPlainObject(value) ? value : {};
 }
 
-/**
- * @template T
- * @param {T} value
- * @returns {T}
- */
 function clone<T>(value: T): T {
   return structuredClone(value);
 }
 
-/**
- * @param {readonly string[]} names
- * @param {unknown} value
- * @returns {value is string}
- */
 function listedName(names: readonly string[], value: unknown): value is string {
   return typeof value === 'string' && names.includes(value);
 }
 
-/** @param {string} professionId */
 function professionName(professionId: string): string {
   return professionId.charAt(0).toUpperCase() + professionId.slice(1);
 }
 
-/**
- * @param {unknown} value
- * @param {Gw2CanonicalBuild} defaults
- * @param {Readonly<Record<string, string>>} aliases
- * @returns {Record<string, string>}
- */
 function normalizeGear(
   value: unknown,
   defaults: Gw2CanonicalBuild,
@@ -398,12 +369,6 @@ function normalizeGear(
   return gear;
 }
 
-/**
- * @param {unknown} value
- * @param {readonly string[]} fallback
- * @param {Readonly<Record<string, string>>} aliases
- * @returns {string[]}
- */
 function normalizeWeaponPrefixes(
   value: unknown,
   fallback: readonly string[],
@@ -416,13 +381,6 @@ function normalizeWeaponPrefixes(
   });
 }
 
-/**
- * @param {unknown} value
- * @param {readonly string[]} fallback
- * @param {CanonicalCatalog} catalog
- * @param {boolean} [allowEmpty]
- * @returns {string[]}
- */
 function normalizeWeaponPair(
   value: unknown,
   fallback: readonly string[],
@@ -446,12 +404,6 @@ function normalizeWeaponPair(
   return [mainHand, offHand];
 }
 
-/**
- * @param {unknown} value
- * @param {readonly Gw2BuildSpecialization[]} fallback
- * @param {CanonicalCatalog} catalog
- * @returns {Gw2BuildSpecialization[]}
- */
 function normalizeSpecializations(
   value: unknown,
   fallback: readonly Gw2BuildSpecialization[],
@@ -483,11 +435,6 @@ function normalizeSpecializations(
   return selected.length === 3 && eliteCount <= 1 ? selected : clone([...fallback]);
 }
 
-/**
- * @param {SchedulerRecord} saved
- * @param {CanonicalCatalog} catalog
- * @returns {Record<string, string>}
- */
 // Older builds stored skill IDs instead of names. Canonicalize numeric aliases
 // before catalog lookup so deleted compatibility records still migrate.
 function selectedSkillsFromLegacy(saved: SchedulerRecord, catalog: CanonicalCatalog): Record<string, string> {
@@ -507,11 +454,6 @@ function selectedSkillsFromLegacy(saved: SchedulerRecord, catalog: CanonicalCata
   return result;
 }
 
-/**
- * @param {Skill | null | undefined} skill
- * @param {string} type
- * @param {ReadonlySet<string> | null} [selectedSpecializations]
- */
 function selectableSlotSkill(
   skill: Skill | null | undefined,
   type: string,
@@ -530,13 +472,6 @@ function selectableSlotSkill(
   );
 }
 
-/**
- * @param {SchedulerRecord} saved
- * @param {Gw2CanonicalBuild} defaults
- * @param {CanonicalCatalog} catalog
- * @param {readonly Gw2BuildSpecialization[]} specializations
- * @returns {Record<string, string>}
- */
 function normalizeSelectedSkills(
   saved: SchedulerRecord,
   defaults: Gw2CanonicalBuild,
@@ -573,11 +508,6 @@ function normalizeSelectedSkills(
   return normalized;
 }
 
-/**
- * @param {unknown} value
- * @param {readonly import("#gw2/platform/builds/types.ts").Gw2BuildInfusion[]} fallback
- * @returns {import("#gw2/platform/builds/types.ts").Gw2BuildInfusion[]}
- */
 function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[]): Gw2BuildInfusion[] {
   if (!Array.isArray(value)) return clone([...fallback]);
   // remaining tracks the budget across entries so total count never exceeds 18.
@@ -613,10 +543,6 @@ function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[
  * until `schemaVersion` is reached. Throws for wrong profession or an
  * unrecognized (future) schema version. Missing migration steps are skipped
  * by bumping `schemaVersion` without transforming the data.
- *
- * @param {unknown} candidate
- * @param {{ professionId: string, schemaVersion: number, migrations: Readonly<Record<number, (saved: SchedulerRecord) => SchedulerRecord>> }} options
- * @returns {SchedulerRecord}
  */
 function migrateVersionedBuild(
   candidate: unknown,
@@ -661,13 +587,6 @@ function migrateVersionedBuild(
   return saved;
 }
 
-/**
- * @param {unknown} pair
- * @param {string} label
- * @param {CanonicalCatalog} catalog
- * @param {string[]} errors
- * @param {boolean} [allowEmpty]
- */
 function validateWeaponPair(
   pair: unknown,
   label: string,
@@ -697,12 +616,6 @@ function validateWeaponPair(
   }
 }
 
-/**
- * @param {Gw2CanonicalBuild} build
- * @param {CanonicalCatalog} catalog
- * @param {string} professionId
- * @param {string[]} errors
- */
 function validateSpecializations(
   build: Gw2CanonicalBuild,
   catalog: CanonicalCatalog,
@@ -741,10 +654,6 @@ function validateSpecializations(
   }
 }
 
-/**
- * @param {SchedulerRecord} command
- * @param {string} field
- */
 function validCanonicalMilliseconds(command: SchedulerRecord, field: string): boolean {
   if (!Object.hasOwn(command, field)) return true;
   const value = Number(command[field]);
@@ -764,11 +673,6 @@ function validCanonicalPositiveInteger(command: SchedulerRecord, field: string):
   return Number.isInteger(value) && value >= 1;
 }
 
-/**
- * @param {unknown} command
- * @param {CanonicalCatalog} catalog
- * @param {string[]} errors
- */
 function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, errors: string[]): void {
   if (!command || typeof command !== 'object' || Array.isArray(command)) {
     errors.push('rotation contains an invalid canonical command.');
@@ -833,16 +737,10 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
   }
 }
 
-/** @param {unknown} value @returns {value is SkillId} */
 function isSkillId(value: unknown): value is SkillId {
   return typeof value === 'string' || typeof value === 'number';
 }
 
-/**
- * @param {unknown} build
- * @param {Gw2BuildValidationOptions} validationOptions
- * @returns {Gw2BuildValidationResult}
- */
 function validateCommonBuild(
   build: unknown,
   { professionId, schemaVersion, catalog, slotLoadout = null }: Gw2BuildValidationOptions

@@ -171,10 +171,6 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
   return null;
 }
 
-/**
- * @param {Gw2RelicRule} rules
- * @returns {Readonly<Gw2RelicRule>}
- */
 function defineRelic(rules: Gw2RelicRule): Readonly<Gw2RelicRule> {
   return Object.freeze(rules);
 }
@@ -818,9 +814,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 /**
  * Creates the selected relic runtime. Rules are immutable and shared; mutable
  * state is created independently for each simulation.
- *
- * @param {unknown} name
- * @returns {Readonly<Gw2RelicRuntime>}
  */
 export function createRelicRuntime(name: unknown): Readonly<Gw2RelicRuntime> {
   const selectedName = String(name || '');
@@ -847,11 +840,6 @@ export function createRelicTimelineRuntime(
   return runtime;
 }
 
-/**
- * @param {{readonly relic?: Gw2RelicRuntime} | null | undefined} ctx
- * @param {keyof Gw2RelicRule} hook
- * @param {unknown[]} args
- */
 export function invokeRelicHook(
   ctx: Gw2RelicRuntimeContext | null | undefined,
   hook: keyof Gw2RelicRule,

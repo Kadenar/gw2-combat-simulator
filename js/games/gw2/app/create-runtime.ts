@@ -43,8 +43,7 @@ import type { Gw2ApplicationBuild, ProfessionBuildAssumptions } from '#gw2/platf
  *   `adjustConditionDurationBonus`).
  * - `buildConfigExtras(app)` returns extra fields merged *onto* the resulting
  *   config (e.g. Guardian's `initialTomePages`, Necromancer's `initialBlight`).
- * @param {ProfessionRuntimeOptions} options
- * @returns {ProfessionRuntimeApi} Runtime functions shared by the
+ * Runtime functions shared by the
  * profession app adapter.
  */
 export function createProfessionRuntime({
@@ -75,10 +74,6 @@ export function createProfessionRuntime({
     return build.specializations.find((specialization) => eliteNames.has(specialization.name))?.name || 'Core';
   }
 
-  /**
-   * @param {ProfessionAppState} app
-   * @returns {Skill[]}
-   */
   function selectedSkills(app: ProfessionAppState): Skill[] {
     const catalog = app.activeCatalog || profession.catalog;
     const loadout = profession.ui.slotLoadout ? (profession.ui.slotLoadout as ProfessionSlotLoadout) : null;
@@ -108,11 +103,6 @@ export function createProfessionRuntime({
     ) as ProfessionAttributeData;
   }
 
-  /**
-   * @param {ProfessionAppState} app
-   * @param {ProfessionModifier | null} disabled
-   * @returns {ProfessionAttributeData}
-   */
   function attributesWithModifierDisabled(
     app: ProfessionAppState,
     disabled: ProfessionModifier | null,
@@ -151,11 +141,6 @@ export function createProfessionRuntime({
     ) as ProfessionAttributeData;
   }
 
-  /**
-   * @param {ProfessionAppState} app
-   * @param {ProfessionModifier | null} [disabled]
-   * @returns {Gw2Config}
-   */
   function simulationConfig(app: ProfessionAppState, disabled: ProfessionModifier | null = null): Gw2Config {
     const attributeData = attributesWithModifierDisabled(app, disabled);
     const attributeDataByWeaponSet = [1, 2].map((weaponSet) =>
@@ -181,10 +166,6 @@ export function createProfessionRuntime({
     return buildConfigExtras ? { ...config, ...buildConfigExtras(app) } : config;
   }
 
-  /**
-   * @param {ProfessionAppState} app
-   * @returns {ProfessionModifier[]}
-   */
   function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     const candidates: ProfessionModifier[] = [];
     const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
@@ -264,10 +245,6 @@ export function createProfessionRuntime({
     return candidates;
   }
 
-  /**
-   * @param {ProfessionAppState} app
-   * @returns {ModifierContributionRequest}
-   */
   function modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest {
     const deterministicConfig = (config: Gw2Config): Gw2Config =>
       config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
@@ -311,10 +288,6 @@ export function createProfessionRuntime({
     return calculateContributionComparisons({ rotation, baseConfig, comparisons }, simulateBuild);
   }
 
-  /**
-   * @param {ProfessionAppState} app
-   * @returns {RandomDistributionJobRequest | null}
-   */
   function randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest {
     const config = simulationConfig(app);
     const baseConfig = {
@@ -338,9 +311,6 @@ export function createProfessionRuntime({
    * relic, or null when the equipped relic is not an allowlisted opponent. The
    * base config is the same deterministic baseline used for the on-screen result
    * so the opponent curve matches `app.results` exactly.
-   *
-   * @param {ProfessionAppState} app
-   * @returns {RelicComparisonJobRequest | null}
    */
   function relicComparisonRequest(app: ProfessionAppState): RelicComparisonJobRequest | null {
     const opponentRelic = String(app.build.relic || '');
@@ -355,10 +325,6 @@ export function createProfessionRuntime({
     };
   }
 
-  /**
-   * @param {RandomDistributionRequest} request
-   * @param {RandomDistributionOptions} [options]
-   */
   function calculateRandomDistribution(
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions

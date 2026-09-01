@@ -19,7 +19,6 @@ export const GUARDIAN_PROFESSION_ID = 'guardian';
 
 export { createDefaultTargetConditions };
 
-/** @returns {GuardianCanonicalBuild} */
 export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
   return {
     schemaVersion: GUARDIAN_BUILD_SCHEMA_VERSION,

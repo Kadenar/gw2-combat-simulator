@@ -127,9 +127,6 @@ const EFFECT_FIELDS = new Set([
 /**
  * Normalizes handler maps so catalog lookup is always string-keyed regardless
  * of whether the source used a plain object or Map.
- *
- * @param {ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>> | null | undefined} value
- * @returns {Map<string, SkillHandlerStrategy<SchedulerRecord>>}
  */
 function normalizeSkillHandlers(
   value: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>> | null | undefined
@@ -141,9 +138,6 @@ function normalizeSkillHandlers(
  * Discovers the catalog's normal weapon chains, applies the small number of
  * API-data corrections supplied by a profession, and creates the shared
  * per-skill position index used by runtime rules.
- *
- * @param {readonly Skill[]} skills
- * @param {{additional?: readonly (readonly import("#gw2/platform/engine/skills/types.d.ts").SkillId[])[], excludeSkillIds?: readonly import("#gw2/platform/engine/skills/types.d.ts").SkillId[]}} [options]
  */
 function normalizeAutoattackChains(
   skills: readonly Skill[],
@@ -190,9 +184,6 @@ function normalizeAutoattackChains(
 
 /**
  * Validates explicit strike timelines and freezes each hit descriptor.
- *
- * @param {unknown} value
- * @returns {readonly StrikeTick[]}
  */
 function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
   if (!Array.isArray(value) || value.length === 0) {
@@ -226,9 +217,6 @@ function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
 
 /**
  * Validates explicit condition-application timelines and freezes each entry.
- *
- * @param {unknown} value
- * @returns {readonly ConditionTick[]}
  */
 function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
   if (!Array.isArray(value) || value.length === 0) {
@@ -279,9 +267,6 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
 
 /**
  * Validates one declarative effect and normalizes any embedded timelines.
- *
- * @param {unknown} effect
- * @returns {SkillEffect}
  */
 function normalizeEffect(effect: unknown): SkillEffect {
   const candidate = effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as SchedulerRecord) : null;
@@ -545,10 +530,6 @@ function normalizeEffect(effect: unknown): SkillEffect {
 
 /**
  * Validates the skill-family lockouts applied when a skill activates.
- *
- * @param {unknown} lockouts
- * @param {import("#gw2/platform/engine/skills/types.d.ts").SkillId} skillId
- * @returns {readonly SkillLockout[]}
  */
 function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillLockout[] {
   if (lockouts == null) return Object.freeze([]);
@@ -588,9 +569,6 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 /**
  * Builds the immutable catalog consumed by the shared scheduler, resolver, and
  * app adapters.
- *
- * @param {CanonicalCatalogOptions} [options]
- * @returns {Readonly<CanonicalCatalog>}
  */
 export function createCanonicalCatalog({
   generated = [],
@@ -777,9 +755,6 @@ export function createCanonicalCatalog({
 
 /**
  * Enforces referential integrity and shape rules for a canonical catalog.
- *
- * @param {CanonicalCatalog} catalog
- * @returns {CanonicalCatalog}
  */
 export function validateCanonicalCatalog(catalog: CanonicalCatalog): CanonicalCatalog {
   const validWeaponHands = new Set(['mh', 'oh', 'mh+oh', '2h', '-']);

@@ -212,7 +212,15 @@ function inferDirectInputs(context: EvtcProfessionReconstructionContext): EvtcRe
     }
 
     lastSignal.set(event.skillId, event.time);
-    return [canonicalAction(eventIndex, event.time, { name: skill.name, skillId: Number(skill.id) }, event.skillId)];
+    return [
+      canonicalAction(
+        eventIndex,
+        event.time,
+        { name: skill.name, skillId: Number(skill.id) },
+        event.skillId,
+        'resource-inference'
+      )
+    ];
   });
 }
 

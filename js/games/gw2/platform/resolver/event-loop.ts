@@ -19,13 +19,6 @@ interface RunGw2ResolverEventLoopOptions {
   readonly shouldSkipEvent?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => boolean;
 }
 
-/**
- * @param {{
- *   commonHandlers?: Gw2ResolverEventHandlers,
- *   professionHandlers?: Gw2ResolverEventHandlers
- * }} [options]
- * @returns {Gw2ResolverHandlerRegistry}
- */
 export function createGw2ResolverHandlerRegistry({
   commonHandlers = {},
   professionHandlers = {}

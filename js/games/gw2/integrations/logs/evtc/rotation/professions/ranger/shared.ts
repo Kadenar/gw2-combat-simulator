@@ -1,6 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
+import { playerInstance, rawSkillName } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -17,12 +18,11 @@ export interface RangerRotationSkill extends Skill {
   readonly unleashedPetSkill?: boolean;
 }
 
-export function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
-      ?.sourceInstance ?? null
-  );
-}
+export {
+  catalogDuration as recordedDuration,
+  instantAction as directAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
+export { playerInstance, rawSkillName };
 
 export function firstPlayerEventTime(context: EvtcProfessionReconstructionContext): number | null {
   const times = context.log.events
@@ -33,45 +33,12 @@ export function firstPlayerEventTime(context: EvtcProfessionReconstructionContex
   return times.length ? Math.min(...times) : null;
 }
 
-export function rawSkillName(context: EvtcProfessionReconstructionContext, skillId: number): string {
-  return context.log.skills.find((skill) => skill.id === skillId)?.name.trim() || `Unknown ${skillId}`;
-}
-
 export function rangerSkill(
   context: EvtcProfessionReconstructionContext,
   skillId: number,
   name = rawSkillName(context, skillId)
 ): RangerRotationSkill | null {
   return findRotationSkill(skillId, name, context.catalog, context.profile) as RangerRotationSkill | null;
-}
-
-export function recordedDuration(context: EvtcProfessionReconstructionContext, identity: RangerActionIdentity): number {
-  const skill = rangerSkill(context, identity.skillId, identity.name);
-  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
-}
-
-export function directAction(
-  eventIndex: number,
-  start: number,
-  rawSkillId: number,
-  rawName: string,
-  canonical: RangerActionIdentity,
-  evidence: EvtcRecordedRotationAction['evidence'],
-  extras: Partial<EvtcRecordedRotationAction> = {}
-): EvtcRecordedRotationAction {
-  return {
-    start,
-    end: start,
-    expectedDuration: 0,
-    rawSkillId,
-    rawName,
-    canonicalSkillId: canonical.skillId,
-    canonicalName: canonical.name,
-    evidence,
-    status: 'instant',
-    eventIndex,
-    ...extras
-  };
 }
 
 export function finalizeRangerActions(

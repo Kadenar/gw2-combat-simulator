@@ -14,10 +14,6 @@ interface PresetBundle {
 
 /**
  * Downloads a value as pretty-printed JSON using a temporary object URL.
- *
- * @param {string} filename Name assigned to the downloaded file.
- * @param {unknown} payload JSON-serializable value to download.
- * @returns {void}
  */
 export function downloadJson(filename: string, payload: unknown): void {
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -34,8 +30,7 @@ export function downloadJson(filename: string, payload: unknown): void {
 /**
  * Reads a browser `File` as text and parses it as JSON.
  *
- * @param {File} file File selected from an input element.
- * @returns {Promise<unknown>} Parsed JSON value.
+ * Parsed JSON value.
  * @throws {Error} Rejects when the file cannot be read or contains invalid JSON.
  */
 export function readJsonFile(file: File): Promise<unknown> {
@@ -62,11 +57,9 @@ export function readJsonFile(file: File): Promise<unknown> {
 /**
  * Fetches and parses a JSON asset, bypassing the browser cache.
  *
- * @param {string} path Asset URL.
- * @param {{ optional?: boolean }} [options]
- * `optional` returns `null` instead of throwing
- * when the server responds with a non-success status.
- * @returns {Promise<unknown | null>} Parsed JSON, or `null` for a missing
+ * Optional requests return `null` instead of throwing for a non-success status.
+ *
+ * Parsed JSON, or `null` for a missing
  * optional asset.
  * @throws {Error} When a required asset cannot be loaded or the response is not
  * valid JSON.
@@ -87,8 +80,7 @@ export async function fetchJsonAsset(
 /**
  * Extracts rotation items from either a bare array or a wrapped rotation payload.
  *
- * @param {unknown} payload Imported rotation data.
- * @returns {unknown[] | undefined} Rotation items when present.
+ * Rotation items when present.
  */
 export function getRotationItems(payload: unknown): unknown[] | undefined {
   if (Array.isArray(payload)) return payload;
@@ -100,8 +92,7 @@ export function getRotationItems(payload: unknown): unknown[] | undefined {
 /**
  * Creates an exportable build payload without its rotation.
  *
- * @param {Gw2ApplicationBuild} build Build state to export.
- * @returns {Omit<Gw2ApplicationBuild, "rotation">} Shallow copy of the
+ * Shallow copy of the
  * build without the `rotation` property.
  */
 export function getBuildExportPayload(build: Gw2ApplicationBuild): Omit<Gw2ApplicationBuild, 'rotation'> {
@@ -115,8 +106,7 @@ export function getBuildExportPayload(build: Gw2ApplicationBuild): Omit<Gw2Appli
  * A missing optional rotation or a rotation payload without an array is ignored.
  * Other loading and parsing failures are propagated.
  *
- * @param {BuildTemplatePreset} preset Preset asset paths.
- * @returns {Promise<{
+ * {Promise<{
  *   buildData: unknown,
  *   rotationItems: unknown[] | undefined,
  * }>} Loaded build data and any valid rotation items.

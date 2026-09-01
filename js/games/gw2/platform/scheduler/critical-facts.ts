@@ -71,7 +71,7 @@ export function hasStochasticCriticalFood(config: Gw2Config): boolean {
  * does not check the active weapon set or individual sigil cooldowns; the sigil
  * proc engine applies those constraints after receiving the returned cause.
  *
- * @returns The causal damage event when a critical-sigil trigger occurred, or
+ * The causal damage event when a critical-sigil trigger occurred, or
  * `null` when the event was ineligible or did not produce a critical trigger.
  */
 export function resolveCriticalTrigger(

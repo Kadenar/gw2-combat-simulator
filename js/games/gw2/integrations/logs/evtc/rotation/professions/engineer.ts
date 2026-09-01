@@ -13,13 +13,13 @@ import { reconstructScrapperActions } from '#gw2/integrations/logs/evtc/rotation
 import {
   canonicalAction,
   castDuration,
-  combatStartTime,
   finalizeEngineerActions,
   findOpeningPrecast,
   selectedIdentity,
   selectedSkill,
   type EngineerActionIdentity
 } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
+import { combatStartTime } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionActionReconstructor,
   EvtcProfessionReconstructionContext,
@@ -84,7 +84,7 @@ function reconstructCoreOpening(context: EvtcProfessionReconstructionContext): E
   });
   actions.push(opening);
 
-  const combatStart = combatStartTime(context);
+  const combatStart = combatStartTime(context, true);
   const stow = kitIdentity(context, 'Bomb Kit', true);
   const swap = context.recordedActions.find(
     (action) =>

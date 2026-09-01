@@ -43,10 +43,6 @@ import type {
 
 /**
  * Pays the skill's Energy cost and captures weapon state at cast start.
- *
- * @param {object} context Scheduler cast-start context.
- * @param {object} skill Skill beginning its cast.
- * @returns {void}
  */
 function onCastStart(context: RevenantCastContext, skill: RevenantSkill): void {
   spendRevenantEnergy(context, skill);
@@ -55,10 +51,6 @@ function onCastStart(context: RevenantCastContext, skill: RevenantSkill): void {
 
 /**
  * Commits completion-gated Core weapon mechanics.
- *
- * @param {object} context Scheduler cast-completion context.
- * @param {object} skill Completed skill.
- * @returns {void}
  */
 function onCastComplete(context: RevenantCastContext, skill: RevenantSkill): void {
   completeRevenantFollowup(context, skill);
@@ -68,10 +60,6 @@ function onCastComplete(context: RevenantCastContext, skill: RevenantSkill): voi
 /**
  * Updates weapon transitions before applying general Revenant after-cast
  * trait reactions.
- *
- * @param {object} context Scheduler after-cast context.
- * @param {object} skill Completed or interrupted skill.
- * @returns {void}
  */
 function afterCast(context: RevenantCastContext, skill: RevenantSkill): void {
   updateRevenantWeaponState(context, skill);
@@ -118,9 +106,6 @@ export const revenantSchedulerHooks = Object.freeze({
   afterCast,
   /**
    * Makes legend swap immediately available after a global cooldown reset.
-   *
-   * @param {object} context Scheduler cooldown-reset context.
-   * @returns {void}
    */
   onCooldownReset: (context: RevenantSchedulerContext): void => {
     professionCoreState(context).legendSwapReadyAt = context.state.time;

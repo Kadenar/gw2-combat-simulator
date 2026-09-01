@@ -111,12 +111,6 @@ function isTemplateBoonFilter(value: string | undefined): value is TemplateBoonF
   return TEMPLATE_BOON_FILTERS.includes(value as TemplateBoonFilter);
 }
 
-/**
- * @param {ProfessionAppState} app
- * @param {BuildTemplatePreset} preset
- * @param {string | null} section
- * @returns {string}
- */
 function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset, section: string | null): string {
   const index = app.templatePresets.push({ ...preset, section }) - 1;
   const label = esc(preset.label);
@@ -187,11 +181,6 @@ function applyTemplateFilter(
   if (emptyMessage) emptyMessage.hidden = visibleTemplates > 0;
 }
 
-/**
- * @param {ProfessionAppState} app
- * @param {unknown} manifest
- * @returns {string}
- */
 function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string {
   app.templatePresets = [];
   return normalizeTemplateSections(manifest)
@@ -206,19 +195,10 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string 
     .join('');
 }
 
-/**
- * @param {Gw2ApplicationBuild} build
- * @returns {string}
- */
 function buildSignature(build: Gw2ApplicationBuild): string {
   return JSON.stringify(build);
 }
 
-/**
- * @param {ProfessionAppState} app
- * @param {unknown} buildData
- * @returns {void}
- */
 function validateBuildProfession(app: ProfessionAppState, buildData: unknown): void {
   if (!buildData || typeof buildData !== 'object') return;
   const profession = (buildData as { profession?: unknown }).profession;
@@ -227,21 +207,12 @@ function validateBuildProfession(app: ProfessionAppState, buildData: unknown): v
   }
 }
 
-/**
- * @param {TemplateLoadAction} action
- * @returns {string}
- */
 function actionLabel(action: TemplateLoadAction): string {
   if (action === 'build') return 'build';
   if (action === 'rotation') return 'rotation';
   return 'template';
 }
 
-/**
- * @param {BuildTemplatePreset} preset
- * @param {TemplateLoadAction} action
- * @returns {string}
- */
 function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction): string {
   const name = preset.section ? `${preset.section} ${preset.label}` : preset.label;
   if (action === 'build') return `Loaded the ${name} build only.`;
@@ -249,12 +220,6 @@ function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction):
   return `Loaded the ${name} template.`;
 }
 
-/**
- * @param {ProfessionAppState} app
- * @param {string} message
- * @param {Gw2ApplicationBuild} previousBuild
- * @returns {void}
- */
 function showTemplateUndo(app: ProfessionAppState, message: string, previousBuild: Gw2ApplicationBuild): void {
   app.templateUndoBuild = previousBuild;
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
@@ -264,20 +229,12 @@ function showTemplateUndo(app: ProfessionAppState, message: string, previousBuil
   if (messageElement) messageElement.textContent = message;
 }
 
-/**
- * @param {ParentNode | null | undefined} container
- * @returns {void}
- */
 function closeTemplateMenus(container: ParentNode | null | undefined): void {
   container
     ?.querySelectorAll('.template-actions[open], .template-filter[open]')
     .forEach((details) => details.removeAttribute('open'));
 }
 
-/**
- * @param {HTMLElement} container
- * @returns {void}
- */
 function mountBuildTemplateLayout(container: HTMLElement): void {
   const buildEditor = document.querySelector<HTMLElement>('.build-editor');
   if (!buildEditor) return;
@@ -317,10 +274,6 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
   appRoot.classList.add('has-template-sidebar');
 }
 
-/**
- * @param {ProfessionAppState} app
- * @returns {Promise<void>}
- */
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {
   try {
     const manifest = await fetchJsonAsset(`data/gw2/builds/${app.adapter.id}/manifest.json`, { optional: true });
@@ -452,13 +405,6 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
   }
 }
 
-/**
- * @param {ProfessionAppState} app
- * @param {BuildTemplatePreset} preset
- * @param {TemplateLoadAction} action
- * @param {HTMLButtonElement} button
- * @returns {Promise<void>}
- */
 export async function loadTemplateAction(
   app: ProfessionAppState,
   preset: BuildTemplatePreset,
@@ -517,10 +463,6 @@ export async function loadTemplateAction(
   }
 }
 
-/**
- * @param {ProfessionAppState} app
- * @returns {void}
- */
 export function updateTemplateSelection(app: ProfessionAppState): void {
   const container = app.templateContainer;
   if (!container) return;
@@ -536,10 +478,6 @@ export function updateTemplateSelection(app: ProfessionAppState): void {
   });
 }
 
-/**
- * @param {ProfessionAppState} app
- * @returns {void}
- */
 export function undoTemplateLoad(app: ProfessionAppState): void {
   if (!app.templateUndoBuild) return;
   app.build = app.templateUndoBuild;

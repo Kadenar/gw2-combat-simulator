@@ -11,9 +11,7 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/profess
  * Calculates Mesmer recharge with special handling for ammo lockouts, weapon
  * swap, shared traits, Alacrity, and shatter resources.
  *
- * @param {object} context Recharge-modifier context.
- * @param {number} sharedDuration Shared-engine recharge duration in seconds.
- * @returns {number} Mesmer-adjusted recharge duration.
+ * Mesmer-adjusted recharge duration.
  */
 export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
   const { skill, config } = context;
@@ -51,9 +49,7 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
 /**
  * Adds Shatter Storm's second charge to slot-one shatters or instruments.
  *
- * @param {object} context Maximum-ammo modifier context.
- * @param {number} maximum Shared-engine maximum charge count.
- * @returns {number} Mesmer-adjusted maximum charge count.
+ * Mesmer-adjusted maximum charge count.
  */
 export function modifyMesmerMaximumAmmo(context: MesmerMaximumAmmoContext, maximum: number): number {
   const id = context.skill.id;

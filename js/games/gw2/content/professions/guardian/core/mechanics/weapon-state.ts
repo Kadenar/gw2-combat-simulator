@@ -15,10 +15,6 @@ import type { GuardianCastContext, GuardianSkill } from '#gw2/content/profession
  *   back at it, arm that flip: Zealot's Flame gets a fixed 3s window, otherwise
  *   the flip stays castable for the skill's cooldown/recharge (min 1, default 5).
  * - Casting a flip skill consumes its `availableFlips` entry.
- *
- * @param {GuardianCastContext} context Scheduler after-cast context.
- * @param {GuardianSkill} skill Completed skill.
- * @returns {void}
  */
 export function updateWeaponCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;

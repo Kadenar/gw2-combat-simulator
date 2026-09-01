@@ -29,9 +29,7 @@ const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null,
  * Activates the virtue represented by the skill's profession slot and emits
  * the neutral resolver transition decorated by active elite modules.
  *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Virtue skill.
- * @returns {boolean} False when the virtue was handled; false also rejects an
+ * False when the virtue was handled; false also rejects an
  * unrecognized profession slot without emitting a transition.
  */
 function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): boolean {
@@ -57,9 +55,7 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): boo
  * Clears all Guardian virtue cooldowns after Renewed Focus completes and emits
  * a resolver refresh event.
  *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Renewed Focus skill.
- * @returns {boolean} Always true because this replacing handler owns the cast.
+ * Always true because this replacing handler owns the cast.
  */
 function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): boolean {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
@@ -83,10 +79,6 @@ export const guardianVirtueSkillHandlers = Object.freeze({
 
 /**
  * Replays a Core virtue activation into resolver state.
- *
- * @param {GuardianResolverContext} context Resolver event-handler context.
- * @param {GuardianResolverEvent} event Virtue-activated timeline event.
- * @returns {void}
  */
 export function handleVirtueActivation(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const virtue = event.virtue;
@@ -100,10 +92,6 @@ export function handleVirtueActivation(context: GuardianResolverContext, event: 
 
 /**
  * Marks all resolver-side virtue passives ready at the refresh timestamp.
- *
- * @param {GuardianResolverContext} context Resolver event-handler context.
- * @param {GuardianResolverEvent} event Virtues-refreshed timeline event.
- * @returns {void}
  */
 export function handleVirtueRefresh(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   professionCoreState(context).virtueReadyAt = {
@@ -115,11 +103,6 @@ export function handleVirtueRefresh(context: GuardianResolverContext, event: Gua
 
 /**
  * Applies and records one active or passive Virtue of Justice burn.
- *
- * @param {GuardianResolverContext} context Resolver reaction context.
- * @param {GuardianResolverEvent} event Damage event that triggered Justice.
- * @param {{ readonly active: boolean }} options Justice trigger options.
- * @returns {void}
  */
 function applyJusticeBurn(
   context: GuardianResolverContext,

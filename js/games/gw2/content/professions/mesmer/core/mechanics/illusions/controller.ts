@@ -66,8 +66,7 @@ function runtimeTraitsPhantasmSpawnModifiers(
  * resource and illusion controllers, cast-local details, and helper functions
  * shared by lifecycle hooks and task handlers.
  *
- * @param {object} context Scheduler initialization context.
- * @returns {object} Connected Mesmer runtime.
+ * Connected Mesmer runtime.
  */
 export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
   const { state, config, catalog } = context;

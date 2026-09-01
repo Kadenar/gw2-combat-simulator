@@ -19,15 +19,6 @@ function cloneSerializable<T>(value: T, label: string): T {
 /**
  * Creates the scheduler's private state-work queue. Tasks are ordered by
  * timestamp, priority, and insertion order and never enter the resolver stream.
- *
- * @template TContext
- * @template TPayload
- * @param {{
- *   handlers?: Readonly<Record<string, ScheduledTaskHandler<TContext, TPayload>>>,
- *   epsilon?: number,
- *   safetyLimit?: number
- * }} [options]
- * @returns {TaskQueue<TContext, TPayload>}
  */
 export function createTaskQueue<TContext, TPayload>({
   handlers = {},

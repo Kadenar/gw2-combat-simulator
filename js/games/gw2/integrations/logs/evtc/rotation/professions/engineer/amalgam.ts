@@ -122,7 +122,7 @@ function inferThornsActions(context: EvtcProfessionReconstructionContext): EvtcR
     }
 
     previous = event.time;
-    return [canonicalAction(eventIndex, event.time, identity, event.skillId)];
+    return [canonicalAction(eventIndex, event.time, identity, event.skillId, 'resource-inference')];
   });
 }
 

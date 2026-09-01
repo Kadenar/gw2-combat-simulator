@@ -14,56 +14,6 @@
  * by passing a subtype of this definition.
  *
  * Times ending in `Ms` are milliseconds. Other durations are seconds.
- *
- * @typedef {object} SkillMechanicDefinition
- * @property {number} [id] Catalog skill id.
- * @property {string} [name] Display name.
- * @property {string} [description] Display description.
- * @property {string} [icon] Icon URL.
- * @property {string} [type] Skill type, such as `"Weapon"` or `"Utility"`.
- * @property {string | number} [slot] Canonical slot name or numeric slot.
- * @property {string} [weapon] Weapon name.
- * @property {string} [specialization] Required specialization name.
- * @property {number} [castTimeMs] Base cast duration in milliseconds.
- * @property {number} [quicknessCastTimeMs] Measured Quickness cast duration in
- * milliseconds; when supplied without `castTimeMs`, the canonical catalog
- * derives the base duration by multiplying it by 1.5.
- * @property {boolean} [unaffectedByQuickness] Whether Quickness leaves the cast
- * duration and cast-bound effect timing unchanged.
- * @property {readonly {group: string, durationMs: number}[]} [lockouts]
- * Skill-family availability lockouts applied at activation. Only skills
- * declaring the same group block one another.
- * @property {"castStart"|"castEnd"} [rechargeAnchor] Point from which recharge
- * begins. Defaults to cast completion.
- * @property {number} [rechargeOffsetMs] Fixed delay from the recharge anchor
- * before recharge begins.
- * @property {number} [cooldown] Recharge duration in seconds.
- * @property {number} [recharge] Legacy alias for `cooldown`.
- * @property {number} [ammo] Maximum charge count.
- * @property {number} [ammoRecharge] Per-charge recharge duration in seconds.
- * @property {number} [ammoCastLockout] Minimum delay between consecutive ammo
- * skill casts in seconds.
- * @property {number} [defaultInterruptMs] Default interruption point in
- * milliseconds.
- * @property {"commit"|"per-packet"} [interruptMode] Whether interruption
- * requires a declared commit cutoff or preserves only packets already dealt.
- * @property {number} [interruptCommitMs] Minimum interrupted-cast duration
- * required for persistent effects to resolve.
- * @property {boolean} [retainsCastLockoutAfterInterrupt] Whether an interrupted
- * cast keeps the player's cast lane blocked until its uninterrupted end while
- * recharge and cast completion still begin at the interruption point.
- * @property {readonly object[]} [effects] Declarative effects created by
- * `effect-factories.js`. An empty array is valid for handler-only skills.
- * @property {string} [handlerId] Id of a handler registered in the canonical
- * catalog. The registered strategy explicitly augments or replaces declarative
- * effect scheduling; replacing strategies require an empty effects list.
- * @property {number} [parentId] Id of an existing parent skill.
- * @property {number | null} [flipParentId] Id of an existing flip parent.
- * @property {number | null} [flipSkillId] Id exposed after this skill is used.
- * @property {number} [nextChainId] Next skill id in an autoattack chain.
- * @property {readonly string[]} [tags] Searchable catalog tags.
- * @property {true} [implemented] Allowed when re-wrapping an already
- * implemented fragment; the factory always emits `true`.
  */
 
 /**
@@ -105,9 +55,7 @@
  * });
  * // Later properties follow normal object-spread rules and win.
  *
- * @template {SkillMechanicDefinition} Definition
- * @param {Definition} definition Skill metadata/mechanics to mark implemented.
- * @returns {Definition & {implemented: true}}
+ * }
  */
 export const implemented = <Definition extends SkillFragment>(
   definition: Definition

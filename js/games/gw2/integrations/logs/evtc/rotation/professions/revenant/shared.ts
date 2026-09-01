@@ -1,6 +1,9 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
-import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import {
+  instantAction,
+  rawSkillName as sharedRawSkillName
+} from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -18,22 +21,22 @@ export const SWAP_LEGENDS = Object.freeze({
 
 export const SIGNAL_DEDUPLICATION_WINDOW_MS = 150;
 
+export {
+  catalogDuration as runtimeDuration,
+  combatStartTime as combatStart,
+  hasNearbyAction as hasRecordedAction,
+  playerInstance
+} from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
+
 export function rawSkillName(context: EvtcProfessionReconstructionContext, skillId: number): string {
-  return context.log.skills.find((skill) => skill.id === skillId)?.name || `Unknown ${skillId}`;
+  return sharedRawSkillName(context, skillId, false);
 }
 
 export function skillFor(context: EvtcProfessionReconstructionContext, identity: RevenantActionIdentity): Skill | null {
   return findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
 }
 
-export function runtimeDuration(
-  context: EvtcProfessionReconstructionContext,
-  identity: RevenantActionIdentity
-): number {
-  const skill = skillFor(context, identity);
-  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
-}
-
+/** Extends the shared instant shape only when Revenant evidence proves a duration-bearing cast. */
 export function directAction(
   eventIndex: number,
   start: number,
@@ -44,46 +47,13 @@ export function directAction(
   duration = 0
 ): EvtcRecordedRotationAction {
   return {
-    start,
-    end: start + duration,
-    expectedDuration: duration,
-    rawSkillId,
-    rawName,
-    canonicalSkillId: identity.skillId,
-    canonicalName: identity.name,
-    evidence,
-    status: duration > 0 ? 'completed' : 'instant',
-    eventIndex
+    ...instantAction(eventIndex, start, rawSkillId, rawName, identity, evidence),
+    ...(duration > 0
+      ? {
+          end: start + duration,
+          expectedDuration: duration,
+          status: 'completed' as const
+        }
+      : {})
   };
-}
-
-export function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
-      ?.sourceInstance ?? null
-  );
-}
-
-export function combatStart(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find(
-      (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
-    )?.time ?? null
-  );
-}
-
-export function hasRecordedAction(
-  actions: readonly EvtcRecordedRotationAction[],
-  identity: RevenantActionIdentity,
-  time: number,
-  windowMs: number
-): boolean {
-  return actions.some(
-    (action) =>
-      (action.rawSkillId === identity.skillId ||
-        action.canonicalSkillId === identity.skillId ||
-        action.rawName === identity.name ||
-        action.canonicalName === identity.name) &&
-      Math.abs(action.start - time) <= windowMs
-  );
 }

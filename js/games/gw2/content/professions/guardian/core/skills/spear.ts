@@ -53,9 +53,7 @@ const SYMBOL_OF_LUMINANCE_ICON =
 /**
  * Resolves a declarative effect's first strike time in simulation seconds.
  *
- * @param {GuardianCastContext} context Active cast context.
- * @param {GuardianSpearEffect} effect Declarative skill effect.
- * @returns {number} Absolute simulation timestamp for the first strike.
+ * Absolute simulation timestamp for the first strike.
  */
 function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearEffect): number {
   const atMs = effect.type === 'strike' || effect.type === 'condition' ? effectFirstAtMs(effect) : effect.atMs;
@@ -73,10 +71,7 @@ function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearE
  * Applies the illuminated strike profile to a spear skill by replacing
  * existing packets or emitting the additional packets defined by the skill.
  *
- * @param {GuardianCastContext} context Active cast context.
- * @param {GuardianSkill} skill Cast spear skill.
- * @param {number} multiplier Illuminated aggregate damage multiplier.
- * @returns {number|null} Timestamp used for the Illuminated proc, or null when
+ * Timestamp used for the Illuminated proc, or null when
  * no bonus packet could be applied.
  */
 function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill, multiplier: number): number | null {
@@ -181,14 +176,6 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
 
 /**
  * Emits a skill proc entry for the rotation timeline.
- *
- * @param {GuardianCastContext} context Active cast context.
- * @param {number} at Proc timestamp.
- * @param {string} name Proc name.
- * @param {string} sourceSkill Skill that caused the proc.
- * @param {string} icon Icon URL.
- * @param {string} detail Human-readable proc detail.
- * @returns {void}
  */
 function emitProc(
   context: GuardianCastContext,
@@ -215,10 +202,6 @@ function emitProc(
  * Applies the Illuminated bonus after a spear cast, consumes any prior armed
  * charge, arms a new charge where applicable, and refreshes Symbol of
  * Luminance's persistent window.
- *
- * @param {GuardianCastContext} context Scheduler after-cast context.
- * @param {GuardianSkill} skill Completed skill.
- * @returns {void}
  */
 export function updateSpearIlluminationState(context: GuardianCastContext, skill: GuardianSkill): void {
   const state = professionCoreState(context);
@@ -273,10 +256,6 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
 
 /**
  * Removes an armed Illuminated charge once scheduler time reaches its expiry.
- *
- * @param {GuardianSchedulerContext} context Scheduler advancement context.
- * @param {number} target Target simulation time.
- * @returns {void}
  */
 export function advanceSpearIlluminationState(context: GuardianSchedulerContext, target: number): void {
   const state = professionCoreState(context);

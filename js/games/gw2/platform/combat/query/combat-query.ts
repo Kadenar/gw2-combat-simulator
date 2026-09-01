@@ -69,10 +69,6 @@ interface HookContextOptions {
 
 /**
  * Carries both stable ids and names for every selected profession trait.
- *
- * @param {Gw2Config} [config]
- * @param {{readonly traits?: readonly CatalogEntity[]}} [catalog]
- * @returns {Set<string | number>}
  */
 // Expands canonical trait IDs to both ID and name forms so existing internal
 // consumers can migrate independently without duplicating catalog lookups.
@@ -99,15 +95,6 @@ export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCat
  * A supplied runtime makes same-timestamp buffs, weapon sets, profession state,
  * conditions, and active equipment effects chronological instead of looking
  * ahead in the completed event stream.
- *
- * @template {object} TProfessionState
- * @param {{
- *   profession?: NormalizedProfessionContract<TProfessionState>,
- *   config?: Gw2Config,
- *   events?: readonly SimulationEvent[],
- *   traits?: ReadonlySet<string | number>
- * }} [options]
- * @returns {Readonly<Gw2CombatQuery>}
  */
 export function createGw2CombatQuery<TProfessionState extends object = SchedulerRecord>({
   profession,
@@ -198,13 +185,6 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
 
   let query: Readonly<Gw2CombatQuery> | null = null;
 
-  /**
-   * @param {Gw2QueryRuntime | null | undefined} runtime
-   * @param {string} kind
-   * @param {number} time
-   * @param {number} maximum
-   * @param {Gw2BuffAudience} [audience]
-   */
   // Returns null (not 0) when no runtime is present — null signals the caller
   // to fall back to the scheduled timeline rather than overriding with zero.
   const runtimeBuffStacks = (
@@ -255,8 +235,6 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   /**
    * Player-configured permanent boons do not apply to ordinary summons.
    * Explicitly inherited companion profiles retain their existing behavior.
-   *
-   * @param {SimulationEvent | null | undefined} event
    */
   const isBoonIsolatedSummonEvent = (event: SimulationEvent | null | undefined): boolean =>
     gw2EventActorType(event) === 'summon' && event?.summonInheritsAttributes !== true && event?.source !== 'Phantasm';
@@ -266,13 +244,6 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     return null;
   };
 
-  /**
-   * @param {string} kind
-   * @param {number} time
-   * @param {number} maximum
-   * @param {Gw2QueryRuntime | null | undefined} runtime
-   * @param {SimulationEvent | null | undefined} event
-   */
   const boonStacksAt = (
     kind: string,
     time: number,
@@ -292,21 +263,12 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     return clamp(configured + dynamic, 0, maximum);
   };
 
-  /**
-   * @param {number} time
-   * @param {Gw2QueryRuntime | null | undefined} runtime
-   * @param {SimulationEvent | null | undefined} event
-   */
   const mightStacksAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
     event: SimulationEvent | null | undefined
   ): number => boonStacksAt('might', time, 25, runtime, event);
-  /**
-   * @param {number} time
-   * @param {Gw2QueryRuntime | null | undefined} runtime
-   * @param {SimulationEvent | null | undefined} event
-   */
+
   const furyActiveAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
@@ -345,9 +307,6 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
 
   /**
    * Reads Vulnerability only from target-condition state so it follows condition stacking and expiry rules.
-   *
-   * @param {number} time
-   * @param {Gw2QueryRuntime | null | undefined} runtime
    */
   const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number =>
     clamp(
@@ -355,11 +314,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       0,
       25
     );
-  /**
-   * @param {string} condition
-   * @param {number} time
-   * @param {Gw2QueryRuntime | null} [runtime]
-   */
+
   const targetConditionStacksAt = (condition: string, time: number, runtime: Gw2QueryRuntime | null = null): number => {
     const name = canonicalTargetConditionName(condition);
     if (name === 'Vulnerability') {
@@ -369,19 +324,11 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     return configuredTargetConditionStacks(name) + runtimeTargetConditionStacks(runtime, name, time);
   };
 
-  /**
-   * @param {number} time
-   * @param {Gw2QueryRuntime | null | undefined} runtime
-   */
   const activeWeaponSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number => {
     const runtimeSet = Number(runtime?.activeWeaponSet);
     return runtimeSet === 1 || runtimeSet === 2 ? runtimeSet : timeline.activeWeaponSetAt(time);
   };
 
-  /**
-   * @param {number} time
-   * @param {Gw2QueryRuntime | null | undefined} runtime
-   */
   const activeSigilSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined) =>
     gw2SigilSet(config, activeWeaponSetAt(time, runtime));
   const activeConfigAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): Gw2Config => {
@@ -414,12 +361,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     damageAdditiveBonus,
     criticalChanceContributors
   });
-  /**
-   * @param {number} time
-   * @param {SimulationEvent | null} [event]
-   * @param {Gw2QueryRuntime | null} [runtime]
-   * @returns {Gw2ResolvedStats}
-   */
+
   const statsAt = (
     time: number,
     event: SimulationEvent | null = null,

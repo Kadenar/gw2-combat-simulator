@@ -1,6 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { catalogDuration as recordedDuration } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -15,14 +16,12 @@ export interface WarriorActionIdentity {
 // Signals inside this window are treated as evidence for the same activation.
 export const SIGNAL_WINDOW_MS = 150;
 
-/** Returns the player's first explicit EnterCombat event, which anchors inferred opening casts. */
-export function combatStart(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find(
-      (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
-    )?.time ?? null
-  );
-}
+export {
+  combatStartTime as combatStart,
+  hasNearbyAction as hasActionNear,
+  instantAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
+export { recordedDuration };
 
 /** Tests whether the initial-state snapshot proves that a self-applied buff was already active. */
 export function playerInitialBuff(context: EvtcProfessionReconstructionContext, buffSkillId: number): boolean {
@@ -39,15 +38,6 @@ export function playerInitialBuff(context: EvtcProfessionReconstructionContext, 
 /** Resolves an inferred action through the active build's catalog and profile aliases. */
 export function skillFor(context: EvtcProfessionReconstructionContext, identity: WarriorActionIdentity): Skill | null {
   return findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
-}
-
-/** Uses the replay duration for an inferred cast, preferring the Quickness-adjusted value recorded by the catalog. */
-export function recordedDuration(
-  context: EvtcProfessionReconstructionContext,
-  identity: WarriorActionIdentity
-): number {
-  const skill = skillFor(context, identity);
-  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
 }
 
 /** Builds a completed precast whose activation was omitted but whose resulting initial state survived in the log. */
@@ -93,50 +83,6 @@ export function sequentialInitialActions(
   }
 
   return reversed.reverse();
-}
-
-/** Creates a zero-duration action recovered from an instantaneous EVTC side effect. */
-export function instantAction(
-  eventIndex: number,
-  time: number,
-  rawSkillId: number,
-  rawName: string,
-  canonical: WarriorActionIdentity,
-  evidence: EvtcRecordedRotationAction['evidence'] = 'effect'
-): EvtcRecordedRotationAction {
-  return {
-    start: time,
-    end: time,
-    expectedDuration: 0,
-    rawSkillId,
-    rawName,
-    canonicalSkillId: canonical.skillId,
-    canonicalName: canonical.name,
-    evidence,
-    status: 'instant',
-    eventIndex
-  };
-}
-
-/**
- * Deduplicates inferred evidence against both raw and canonical action
- * identities because profile aliasing may have changed either ID or name.
- */
-export function hasActionNear(
-  actions: readonly EvtcRecordedRotationAction[],
-  identity: WarriorActionIdentity,
-  time: number,
-  windowMs = SIGNAL_WINDOW_MS
-): boolean {
-  const normalizedName = identity.name.toLowerCase();
-  return actions.some(
-    (action) =>
-      (action.rawSkillId === identity.skillId ||
-        action.canonicalSkillId === identity.skillId ||
-        action.rawName.trim().toLowerCase() === normalizedName ||
-        action.canonicalName?.trim().toLowerCase() === normalizedName) &&
-      Math.abs(action.start - time) <= windowMs
-  );
 }
 
 /** Accepts both legacy untyped buff events and modern explicit BuffApply events. */

@@ -86,9 +86,7 @@ function normalizeTargetConditions(
 
 /**
  * Resolves a configured target condition with canonical and alias-aware matching.
- * @param {Gw2Config} config - Simulation config containing target state
- * @param {string} name - Condition name (e.g., "Vulnerability", "Slow")
- * @returns {number|boolean} Configured value or 0 if not found
+ * Configured value or 0 if not found
  * @private
  */
 function configuredConditionValue(
@@ -127,9 +125,7 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
 /**
  * Gets stack count of permanent condition on target.
  * Boolean true converts to 1 stack; numeric values preserved; falsy returns 0.
- * @param {Gw2Config} config - Simulation config
- * @param {string} name - Condition name to check
- * @returns {number} Stack count (≥0)
+ * Stack count (≥0)
  * @example
  * permanentTargetConditionStacks(config, "Vulnerability") // → 2
  */
@@ -141,9 +137,7 @@ export function permanentTargetConditionStacks(config: Gw2Config, name: string):
 
 /**
  * Checks whether target has active permanent condition.
- * @param {Gw2Config} config - Simulation config
- * @param {string} name - Condition name to check
- * @returns {boolean} True if condition stacks > 0
+ * True if condition stacks > 0
  * @example
  * targetHasPermanentCondition(config, "Vulnerability") // → true
  */
@@ -151,10 +145,6 @@ export function targetHasPermanentCondition(config: Gw2Config, name: string): bo
   return permanentTargetConditionStacks(config, name) > 0;
 }
 
-/**
- * @param {Gw2RuntimeConditionStack} stack
- * @param {number} at
- */
 function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
   const appliedAt = Number(stack?.appliedAt ?? -Infinity);
   const expiresAt = Number(stack?.expiresAt ?? Infinity);

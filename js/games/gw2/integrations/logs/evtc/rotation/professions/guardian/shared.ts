@@ -15,28 +15,9 @@ export const SWAP_WEAPONS = Object.freeze({
 });
 export const SIGNAL_WINDOW_MS = 150;
 
-const PHYSICAL_WEAPON_SETS = new Set([4, 5]);
+export { canonicalAction } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 
-export function canonicalAction(
-  eventIndex: number,
-  start: number,
-  identity: GuardianActionIdentity,
-  rawSkillId: number,
-  evidence: EvtcRecordedRotationAction['evidence'] = 'buff-transition'
-): EvtcRecordedRotationAction {
-  return {
-    start,
-    end: start,
-    expectedDuration: 0,
-    rawSkillId,
-    rawName: identity.name,
-    canonicalSkillId: identity.skillId,
-    canonicalName: identity.name,
-    evidence,
-    status: 'instant',
-    eventIndex
-  };
-}
+const PHYSICAL_WEAPON_SETS = new Set([4, 5]);
 
 export function skillFor(context: EvtcProfessionReconstructionContext, identity: GuardianActionIdentity) {
   return findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);

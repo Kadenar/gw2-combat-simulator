@@ -50,11 +50,6 @@ function weaponStrengthAliasMatchers(aliases: Readonly<Record<string, string>>):
 /** Power and Condition Damage granted by one stack of Might. */
 export const MIGHT_ATTRIBUTE_BONUS_PER_STACK = 30;
 
-/**
- * @param {Gw2Config} config
- * @param {number} [weaponSet]
- * @returns {Gw2SigilSet}
- */
 export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
   // Public weapon sets are one-based; storage is a zero-based array.
   return config.sigilSets?.[Math.max(1, Number(weaponSet || 1)) - 1] || {};
@@ -70,11 +65,6 @@ export function gw2StatsForWeaponSet(config: Gw2Config, weaponSet = config.start
   };
 }
 
-/**
- * @param {Gw2Config} config
- * @param {number | boolean} [mightStacks]
- * @returns {Gw2ResolvedStats}
- */
 export function gw2StaticAttributes(
   config: Gw2Config,
   mightStacks: number | boolean | undefined = config.boons?.might,
@@ -103,10 +93,6 @@ export function gw2StaticAttributes(
   };
 }
 
-/**
- * @param {Gw2Config} config
- * @param {{alacrityRate?: number}} [options]
- */
 export function gw2RechargeRate(config: Gw2Config, { alacrityRate = 1.25 }: RechargeRateOptions = {}): number {
   // The returned value is a speed, not a duration multiplier.
   return config.boons?.alacrity ? alacrityRate : 1;

@@ -9,10 +9,6 @@ export const EVENT_SCHEMA_VERSION = 1 as const;
 
 const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'environment', 'unknown']);
 
-/**
- * @param {unknown} value
- * @returns {value is number}
- */
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -53,9 +49,6 @@ const COMMON_EVENT_TYPE_SET = new Set(COMMON_EVENT_TYPES);
 
 /**
  * Verifies that an arbitrary value satisfies the shared event contract.
- *
- * @param {unknown} candidate
- * @returns {SimulationEvent}
  */
 export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   if (!candidate || typeof candidate !== 'object') {
@@ -150,9 +143,6 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
 
 /**
  * Validates and freezes an event before it enters a scheduled event stream.
- *
- * @param {unknown} event
- * @returns {Readonly<SimulationEvent>}
  */
 export function createEvent(event: unknown): Readonly<SimulationEvent> {
   const normalized = Object.fromEntries(

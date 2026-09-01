@@ -3,8 +3,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * Handles shared profession actions decorated by active modules.
  * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
  * Returns: consumeResources, currentResource, handleShatter, triggerShatterTraits.
- * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
- * @returns {Object} Profession action controller
+ * Profession action controller
  */
 import { mesmerNumericResourceState } from '#gw2/content/professions/mesmer/state/resources.js';
 import { triggerMesmerPostShatterTraits } from '#gw2/content/professions/mesmer/core/traits/index.js';

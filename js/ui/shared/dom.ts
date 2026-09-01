@@ -3,8 +3,7 @@
 /**
  * Returns the element with the given id or throws when it is missing.
  *
- * @param {string} id Element id to look up.
- * @returns {HTMLElement} The matching element.
+ * The matching element.
  * @throws {Error} When no element with the id exists.
  */
 export function requiredElement(id: string): HTMLElement {
@@ -17,8 +16,7 @@ export function requiredElement(id: string): HTMLElement {
  * Returns the `<input>` with the given id or throws when it is missing or of the
  * wrong type.
  *
- * @param {string} id Element id to look up.
- * @returns {HTMLInputElement} The matching input.
+ * The matching input.
  * @throws {Error} When the element is missing.
  * @throws {TypeError} When the element is not an `<input>`.
  */
@@ -35,8 +33,7 @@ export function requiredInput(id: string): HTMLInputElement {
  * Returns the `<select>` with the given id or throws when it is missing or of
  * the wrong type.
  *
- * @param {string} id Element id to look up.
- * @returns {HTMLSelectElement} The matching select.
+ * The matching select.
  * @throws {Error} When the element is missing.
  * @throws {TypeError} When the element is not a `<select>`.
  */
@@ -53,8 +50,7 @@ export function requiredSelect(id: string): HTMLSelectElement {
  * Returns the value-bearing control with the given id or throws when it is
  * missing or cannot expose a value.
  *
- * @param {string} id Element id to look up.
- * @returns {HTMLInputElement | HTMLSelectElement} The matching control.
+ * The matching control.
  * @throws {Error} When the element is missing.
  * @throws {TypeError} When the element is neither an `<input>` nor a `<select>`.
  */
@@ -70,8 +66,7 @@ export function requiredValueControl(id: string): HTMLInputElement | HTMLSelectE
 /**
  * Extracts a human-readable message from a thrown value.
  *
- * @param {unknown} error Thrown value.
- * @returns {string} The error message, or the stringified value.
+ * The error message, or the stringified value.
  */
 export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);

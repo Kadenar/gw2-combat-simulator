@@ -34,12 +34,6 @@ interface HeapEntry<T extends QueuedEvent> {
   readonly sequence: number;
 }
 
-/**
- * @template {QueuedEvent} T
- * @param {HeapEntry<T>} left
- * @param {HeapEntry<T>} right
- * @returns {number}
- */
 function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: HeapEntry<T>): number {
   const eventOrder = compareQueuedEvents(left.event, right.event);
   if (eventOrder) return eventOrder;
@@ -52,10 +46,6 @@ function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: He
 
 /**
  * Sort comparator for queued events.
- *
- * @param {QueuedEvent} left
- * @param {QueuedEvent} right
- * @returns {number}
  */
 export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): number {
   const time = eventTimestamp(left) - eventTimestamp(right);
@@ -73,8 +63,6 @@ export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): numb
  * Resolver-created events inherit the causal order of the event currently
  * being handled, keeping derived effects adjacent to their cause without
  * leaking ordering state between simulations.
- *
- * @template {QueuedEvent} T
  */
 export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   private readonly heap: HeapEntry<T>[];
@@ -98,10 +86,6 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     return this.heap.length;
   }
 
-  /**
-   * @param {T} event
-   * @returns {T}
-   */
   enqueue(event: T): T {
     const entry: HeapEntry<T> = {
       event,
@@ -121,9 +105,6 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     return event;
   }
 
-  /**
-   * @returns {T|undefined}
-   */
   dequeue(): T | undefined {
     if (this.heap.length === 0) return undefined;
     const first = this.heap[0];
@@ -137,10 +118,6 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     return first.event;
   }
 
-  /**
-   * @param {number} start
-   * @returns {void}
-   */
   private siftDown(start: number): void {
     let index = start;
     while (true) {
@@ -162,11 +139,6 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   }
 }
 
-/**
- * @template {QueuedEvent} T
- * @param {readonly T[]|StableEventQueue<T>} [events]
- * @returns {StableEventQueue<T>}
- */
 export function createEventQueue<T extends QueuedEvent>(
   events: readonly T[] | StableEventQueue<T> = []
 ): StableEventQueue<T> {
@@ -175,11 +147,6 @@ export function createEventQueue<T extends QueuedEvent>(
 
 /**
  * Inserts an event while preserving queue order without a full re-sort.
- *
- * @template {QueuedEvent} T
- * @param {T[]|StableEventQueue<T>} queue
- * @param {T} event
- * @returns {T}
  */
 export function enqueueOrdered<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>, event: T): T {
   if (queue instanceof StableEventQueue) return queue.enqueue(event);
@@ -195,10 +162,6 @@ export function enqueueOrdered<T extends QueuedEvent>(queue: T[] | StableEventQu
 
 /**
  * Re-sorts an existing queue in-place after bulk insertion or mutation.
- *
- * @template {QueuedEvent} T
- * @param {T[]|StableEventQueue<T>} queue
- * @returns {T[]|StableEventQueue<T>}
  */
 export function sortQueuedEvents<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>): T[] | StableEventQueue<T> {
   if (queue instanceof StableEventQueue) return queue;
@@ -207,10 +170,6 @@ export function sortQueuedEvents<T extends QueuedEvent>(queue: T[] | StableEvent
 
 /**
  * Removes and returns the next event to process.
- *
- * @template {QueuedEvent} T
- * @param {T[]|StableEventQueue<T>} queue
- * @returns {T|undefined}
  */
 export function takeNextEvent<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>): T | undefined {
   return queue instanceof StableEventQueue ? queue.dequeue() : queue.shift();

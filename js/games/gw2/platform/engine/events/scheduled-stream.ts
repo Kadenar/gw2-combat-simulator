@@ -24,15 +24,6 @@ export const SCHEDULED_EVENT_STREAM_VERSION = 1 as const;
 
 /**
  * Builds the immutable stream consumed by resolver pipelines and tests.
- *
- * @param {{
- *   events: readonly SimulationEvent[],
- *   rotationEndTime: number,
- *   resolutionEndTime?: number,
- *   resolverHandoff?: Record<string, unknown>,
- *   source?: string
- * }} options
- * @returns {ScheduledEventStream}
  */
 export function buildScheduledEventStream(options: BuildScheduledEventStreamOptions): ScheduledEventStream {
   const {
@@ -65,9 +56,6 @@ export function buildScheduledEventStream(options: BuildScheduledEventStreamOpti
 
 /**
  * Validates a scheduler output stream before resolution or fixture reuse.
- *
- * @param {unknown} stream
- * @returns {ScheduledEventStream}
  */
 export function assertScheduledEventStream(stream: unknown): ScheduledEventStream {
   const candidate = stream as Partial<ScheduledEventStream> | null | undefined;

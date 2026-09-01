@@ -103,10 +103,6 @@ const EMPTY_MODIFIER_PARAMETERS: Readonly<Record<string, number>> = Object.freez
 /**
  * Creates an error tied to a declaration's stable id so invalid profession
  * data identifies the responsible rule.
- *
- * @param {string} id Rule id, or a generated missing-id description.
- * @param {string} message Validation failure.
- * @returns {TypeError}
  */
 function ruleError(id: string, message: string): TypeError {
   return new TypeError(`Modifier rule "${id}": ${message}`);
@@ -115,11 +111,7 @@ function ruleError(id: string, message: string): TypeError {
 /**
  * Validates a static numeric value or retains a dynamic value resolver.
  * Dynamic results are validated by `resolveNumeric` when the hook runs.
- *
- * @param {Gw2ModifierRule} rule Rule being normalized.
- * @param {"amount"|"factor"} field Numeric field required by the operation.
- * @param {{positive?: boolean}} [options] Whether the value must be above zero.
- * @returns {number|Gw2ModifierNumericResolver}
+ * The positive option rejects zero and negative values.
  */
 function normalizeResolver(
   rule: Gw2ModifierRule,
@@ -166,9 +158,6 @@ function normalizeParameters(rule: Gw2ModifierRule): Readonly<Record<string, num
 /**
  * Converts a scalar or array target declaration into a validated, deduplicated
  * frozen array. Original target order is preserved.
- *
- * @param {Gw2ModifierRule} rule Rule with a normalized id.
- * @returns {readonly Gw2ModifierTarget[]}
  */
 function normalizeTargets(rule: Gw2ModifierRule): readonly Gw2ModifierTarget[] {
   const declared = Array.isArray(rule.target) ? rule.target : [rule.target];
@@ -194,10 +183,7 @@ function normalizeTargets(rule: Gw2ModifierRule): readonly Gw2ModifierTarget[] {
  * `add` is restricted to scalar targets. `damage-additive` is restricted to
  * strike and condition damage so those bonuses cannot bypass GW2's shared
  * additive damage bucket. `multiply` is valid for every target.
- *
- * @param {Gw2ModifierRule} rule Raw profession rule.
- * @param {number} declarationIndex Original position used as the final sort tie-breaker.
- * @returns {Readonly<Gw2NormalizedModifierRule>}
+ * Declaration order is the final sort tie-breaker.
  */
 function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonly<Gw2NormalizedModifierRule> {
   if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
@@ -266,9 +252,6 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
 
 /**
  * Normalizes a complete rule list and enforces globally unique rule ids.
- *
- * @param {readonly Gw2ModifierRule[]} rules Raw rule declarations.
- * @returns {readonly Readonly<Gw2NormalizedModifierRule>[]}
  */
 function normalizeRules(rules: readonly Gw2ModifierRule[]): readonly Readonly<Gw2NormalizedModifierRule>[] {
   if (!Array.isArray(rules)) {
@@ -294,9 +277,6 @@ function normalizeRules(rules: readonly Gw2ModifierRule[]): readonly Readonly<Gw
  * Both damage targets include the active sigil in the additive bucket by
  * default. A boolean disables it permanently; a callback can decide from the
  * current hook context, such as excluding player sigils from summon damage.
- *
- * @param {Gw2DamageBucketPolicies} damageBuckets
- * @returns {Readonly<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>>}
  */
 function normalizeBucketPolicies(
   damageBuckets: Gw2DamageBucketPolicies
@@ -339,12 +319,6 @@ function normalizeBucketPolicies(
 /**
  * Resolves and validates an amount or factor at hook-execution time.
  * Functional values receive both the current context and active rule target.
- *
- * @param {Readonly<Gw2NormalizedModifierRule>} rule
- * @param {"amount"|"factor"} field Field to resolve.
- * @param {Gw2ModifierContext} context
- * @param {Gw2ModifierTarget} target
- * @returns {number}
  */
 function resolveNumeric(
   rule: Readonly<Gw2NormalizedModifierRule>,
@@ -365,10 +339,6 @@ function resolveNumeric(
  * Builds an ordered hook for chance, critical multiplier, or duration values.
  * Operations run sequentially, so order matters: add-then-multiply can differ
  * from multiply-then-add. This layer does not clamp the final value.
- *
- * @param {readonly Readonly<Gw2NormalizedModifierRule>[]} rules
- * @param {Gw2ModifierTarget} target
- * @returns {Gw2ModifierHook}
  */
 function createScalarHook(
   rules: readonly Readonly<Gw2NormalizedModifierRule>[],
@@ -447,11 +417,6 @@ function createAttributeHook(
  * Every active `damage-additive` amount is summed into one outgoing-damage
  * bucket. Every active `multiply` factor is multiplied separately and applied
  * after the rebuilt bucket, regardless of rule order.
- *
- * @param {readonly Readonly<Gw2NormalizedModifierRule>[]} rules
- * @param {Gw2DamageModifierTarget} target
- * @param {Gw2DamageBucketPolicy} policy
- * @returns {Gw2ModifierHook}
  */
 function createDamageHook(
   rules: readonly Readonly<Gw2NormalizedModifierRule>[],
@@ -512,11 +477,6 @@ function createDamageHook(
  * `includeSigil` value may be a boolean or `(context) => boolean` and defaults
  * to true.
  *
- * @param {{
- *   rules?: readonly Gw2ModifierRule[],
- *   damageBuckets?: Gw2DamageBucketPolicies
- * }} [options]
- * @returns {Readonly<Gw2ModifierHooks>}
  * @throws {TypeError} If declarations are malformed or a dynamic value resolves
  * to an unsupported value.
  */
