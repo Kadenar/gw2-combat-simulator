@@ -18,7 +18,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   SEVER_ARTERY: 14364, // Sever Artery
   GASH: 14365, // Gash
   SAVAGE_LEAP: 14366, // Savage Leap
-  FRENZY: 14368, // Frenzy
   CHOP: 14369, // Chop
   DOUBLE_CHOP: 14370, // Double Chop
   TRIPLE_CHOP: 14371, // Triple Chop
@@ -45,7 +44,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   RIPOSTE: 14400, // Riposte
   MENDING: 14401, // Mending
   TO_THE_LIMIT: 14402, // "To the Limit!"
-  FOR_GREAT_JUSTICE: 14403, // "For Great Justice!"
   SIGNET_OF_MIGHT: 14404, // Signet of Might
   BANNER_OF_STRENGTH: 14405, // Banner of Strength
   BERSERKER_STANCE: 14406, // Berserker Stance
@@ -54,7 +52,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   FEAR_ME: 14409, // "Fear Me!"
   SIGNET_OF_FURY: 14410, // Signet of Fury
   BALANCED_STANCE: 14412, // Balanced Stance
-  DOLYAK_SIGNET: 14413, // Dolyak Signet
   SKULL_CRACK: 14414, // Skull Crack
   TREMOR: 14415, // Tremor
   VOLLEY: 14416, // Volley
@@ -68,7 +65,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   WHIRLWIND_ATTACK: 14447, // Whirlwind Attack
   FORCEFUL_SHOT: 14544, // Forceful Shot
   EXPLOSIVE_SHELL: 14472, // Explosive Shell
-  SIGNET_OF_STAMINA: 14479, // Signet of Stamina
   HAMMER_SHOCK: 14482, // Hammer Shock
   RAMPAGE: 14483, // Rampage
   IMPALE: 14498, // Impale
@@ -174,9 +170,7 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   WILD_THROW_ALTERNATE: 73131, // Wild Throw (alternating projectile packet)
   WE_WILL_NEVER_YIELD: 76562, // "We Will Never Yield!"
   WE_SHALL_RETURN: 76755, // "We Shall Return!"
-  NEVER_SURRENDER: 76769, // "Never Surrender!"
   CHANT_OF_RECUPERATION: 76782, // Chant of Recuperation
-  BRACE_YOURSELVES: 76934, // "Brace Yourselves!"
   FIND_THEIR_WEAKNESS: 77040, // "Find Their Weakness!"
   ON_YOUR_KNEES: 77114, // "On Your Knees!"
   CHANT_OF_FREEDOM: 77155, // Chant of Freedom

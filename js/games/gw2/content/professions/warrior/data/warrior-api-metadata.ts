@@ -1506,22 +1506,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14368,
-    name: 'Frenzy',
-    description: 'Stance. Frenzy to gain quickness and might.',
-    icon: 'https://render.guildwars2.com/file/D9D0E21579EE501D1DDB291A06140254D5A5B161/102825.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Stance'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14369,
     name: 'Chop',
     description: 'Chain. Chop your foe.',
@@ -1943,22 +1927,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14403,
-    name: '"For Great Justice!"',
-    description: 'Shout. Grant fury and might to yourself and allies.',
-    icon: 'https://render.guildwars2.com/file/80B5DF730EC3E24D7B08539C9749FF722AE5ADEE/103174.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Shout'],
-    recharge: 5,
-    ammo: 2,
-    ammoRecharge: 20,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14404,
     name: 'Signet of Might',
     description: 'Signet Passive: Improves power.\nSignet Active: Attacks are unblockable and you gain might.',
@@ -2084,22 +2052,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     slot: 'Utility',
     specialization: '',
     categories: ['Stance'],
-    recharge: 25,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14413,
-    name: 'Dolyak Signet',
-    description: 'Signet Passive: Reduces incoming damage.\nSignet Active: Heal yourself and gain stability.',
-    icon: 'https://render.guildwars2.com/file/456FAF783E6E99056F490F6BC105DEAE5958412F/104121.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
     recharge: 25,
     ammo: 0,
     ammoRecharge: 0,
@@ -2298,23 +2250,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     recharge: 1,
     ammo: 2,
     ammoRecharge: 8,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14479,
-    name: 'Signet of Stamina',
-    description:
-      'Signet Passive: Faster endurance regeneration.\nSignet Active: Cure all conditions and gain endurance. Gain additional endurance for each condition cured.',
-    icon: 'https://render.guildwars2.com/file/3763DF075356FE2A22A56915EB0B982B32F3FBA3/104128.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null
   },
@@ -4050,23 +3985,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 76769,
-    name: '"Never Surrender!"',
-    description:
-      'Command. Break stun while granting boons to nearby allies. The cooldown of this skill is increased if used to break a stun.\nEcho. Grant additional boons to nearby allies after a set interval or after you use a burst skill.',
-    icon: 'https://render.guildwars2.com/file/2E01685B0D461B74DAD603D6757E7AFB0680D3C5/3680230.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Paragon',
-    categories: [],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 76782,
     name: 'Chant of Recuperation',
     description:
@@ -4078,23 +3996,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     specialization: '',
     categories: [],
     recharge: 15,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 76934,
-    name: '"Brace Yourselves!"',
-    description:
-      'Command. Apply barrier to yourself and allies around you. \nEcho.  Apply barrier again to allies after a set interval or after you use a burst skill.',
-    icon: 'https://render.guildwars2.com/file/38710B053667560742722F08B99EBA560C09A3A9/3680228.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Paragon',
-    categories: [],
-    recharge: 20,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

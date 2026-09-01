@@ -168,7 +168,17 @@ test('catalog contains every terrestrial Mesmer skill and trait line', () => {
     ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']
   );
   assert.equal(TRAITS.length, 108);
-  assert.equal(SKILLS.length, 119);
+  assert.equal(SKILLS.length, 117);
+
+  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
+  for (const omittedId of [10236, 62573]) {
+    assert.equal(mesmerCatalog.skillsById.has(omittedId), false);
+  }
+
+  for (const omittedName of ['Signet of Inspiration', 'Psychic Force']) {
+    assert.equal(mesmerCatalog.skillsByName.has(omittedName), false);
+  }
+
   assert.deepEqual(
     SKILLS.filter((skill) => ['Arcane Thievery', 'Veil'].includes(skill.name)),
     []

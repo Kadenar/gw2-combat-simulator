@@ -18,27 +18,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     categories: ['Command'],
     handlerId: 'warrior.command'
   },
-  [ID.NEVER_SURRENDER]: {
-    implemented: true,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 6,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'aegis',
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333,
-    categories: ['Command'],
-    handlerId: 'warrior.command'
-  },
   [ID.CHANT_OF_RECUPERATION]: {
     implemented: true,
     effects: [],
@@ -48,21 +27,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     burst: true,
     categories: ['Burst', 'Chant'],
     handlerId: 'warrior.chant'
-  },
-  [ID.BRACE_YOURSELVES]: {
-    implemented: true,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 167,
-    categories: ['Command'],
-    handlerId: 'warrior.command'
   },
   [ID.FIND_THEIR_WEAKNESS]: {
     implemented: true,

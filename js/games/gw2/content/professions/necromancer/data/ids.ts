@@ -113,7 +113,6 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   EPIDEMIC: 10606, // Epidemic
   SPECTRAL_RING: 10608, // Spectral Ring
   WELL_OF_POWER: 10609, // Well of Power
-  SIGNET_OF_THE_LOCUST: 10612, // Signet of the Locust
   SPECTRAL_GRASP: 10620, // Spectral Grasp
   SPECTRAL_WALK: 10685, // Spectral Walk
   SPECTRAL_RECALL: 10687, // Spectral Recall
@@ -143,10 +142,8 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   RISE: 30772, // "Rise!"
   FADING_TWILIGHT: 30799, // Fading Twilight
   DEATH_SPIRAL: 30860, // Death Spiral
-  TRAIL_OF_ANGUISH: 40274, // Trail of Anguish
   SERPENT_SIPHON: 41615, // Serpent Siphon
   GHASTLY_BREACH: 42355, // Ghastly Breach
-  SAND_SWELL: 42917, // Sand Swell
   DESICCATE: 42935, // Desiccate
   SAND_FLARE: 43148, // Sand Flare
   OPPRESSIVE_COLLAPSE: 44296, // Oppressive Collapse

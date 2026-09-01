@@ -108,7 +108,6 @@ export const MESMER_SKILL_IDS = Object.freeze({
   ILLUSIONARY_WAVE: 10220, // Illusionary Wave
   SIGNET_OF_DOMINATION: 10232, // Signet of Domination
   SIGNET_OF_MIDNIGHT: 10234, // Signet of Midnight
-  SIGNET_OF_INSPIRATION: 10236, // Signet of Inspiration
   MASS_INVISIBILITY: 10245, // Mass Invisibility
   SIGNET_OF_ILLUSIONS: 10247, // Signet of Illusions
   THE_PRESTIGE: 10285, // The Prestige
@@ -132,7 +131,6 @@ export const MESMER_SKILL_IDS = Object.freeze({
   JAUNT: 45449, // Jaunt
   TWIN_BLADE_RESTORATION: 62522, // Twin Blade Restoration
   BLADE_LEAP: 62568, // Blade Leap
-  PSYCHIC_FORCE: 62573, // Psychic Force
   FRIENDLY_FIRE: 71892, // Friendly Fire
   JOURNEY: 71897, // Journey
   INSPIRING_IMAGERY: 72005, // Inspiring Imagery

@@ -160,26 +160,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
       }
     ]
   },
-  [ID.PSYCHIC_FORCE]: {
-    implemented: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Virtuoso',
-    environment: 'Terrestrial',
-    quicknessCastTimeMs: 333.333333333,
-    cooldown: 3,
-    blade: true,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        name: 'Damage',
-        actorType: 'player',
-        weapon: 'utility'
-      }
-    ]
-  },
   [ID.BLADETURN_REQUIEM]: {
     implemented: true,
     type: 'Profession',

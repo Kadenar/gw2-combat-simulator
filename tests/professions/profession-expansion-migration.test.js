@@ -1085,43 +1085,6 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
       true
     );
 
-    const engineerFixture = {
-      ...apiFixture,
-      profession: {
-        ...apiFixture.profession,
-        skills: [
-          ...apiFixture.profession.skills,
-          { id: 5825 },
-          { id: 5832 },
-          { id: 5860 },
-          { id: 5861 },
-          { id: 5862 },
-          { id: 5910 }
-        ]
-      },
-      skills: [
-        ...apiFixture.skills,
-        { id: 5825, name: 'Slick Shoes', type: 'Utility', slot: 'Utility', facts: [] },
-        { id: 5832, name: 'Elixir X', type: 'Elite', slot: 'Elite', facts: [] },
-        { id: 5860, name: 'Elixir C', type: 'Utility', slot: 'Utility', facts: [] },
-        { id: 5861, name: 'Elixir S', type: 'Utility', slot: 'Utility', facts: [] },
-        { id: 5862, name: 'Elixir U', type: 'Utility', slot: 'Utility', facts: [] },
-        { id: 5910, name: 'Rocket Boots', type: 'Utility', slot: 'Utility', facts: [] }
-      ]
-    };
-    const engineer = await updateProfessionApiData('engineer', {
-      fetchImpl: createFixtureFetch([], engineerFixture),
-      snapshotDate: '2026-07-27',
-      output: path.join(directory, 'engineer-api-metadata.ts'),
-      log: () => {}
-    });
-
-    // The profession updater owns this exclusion so refreshing generated data cannot restore unsupported skills.
-    assert.equal(
-      engineer.skills.some((skill) => [5825, 5832, 5860, 5861, 5862, 5910].includes(skill.id)),
-      false
-    );
-
     const omittedProfessionFixture = (skillIds, professionName) => ({
       ...apiFixture,
       profession: {
@@ -1139,32 +1102,30 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
         }))
       ]
     });
-    const guardianSkillIds = [9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676];
-    const guardian = await updateProfessionApiData('guardian', {
-      fetchImpl: createFixtureFetch([], omittedProfessionFixture(guardianSkillIds, 'Guardian')),
-      snapshotDate: '2026-07-27',
-      output: path.join(directory, 'guardian-api-metadata.ts'),
-      log: () => {}
+    const omittedSkillsByProfession = Object.freeze({
+      engineer: [5825, 5832, 5860, 5861, 5862, 5910],
+      guardian: [9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676],
+      mesmer: [10236, 62573],
+      necromancer: [10612, 40274, 42917],
+      ranger: [12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256],
+      warrior: [14368, 14403, 14413, 14479, 76769, 76934]
     });
 
-    // Guardian refreshes must preserve the same unsupported-skill boundary as the checked-in catalog.
-    assert.equal(
-      guardian.skills.some((skill) => guardianSkillIds.includes(skill.id)),
-      false
-    );
+    // The profession updater owns these exclusions so refreshing generated data cannot restore unsupported skills.
+    for (const [professionName, skillIds] of Object.entries(omittedSkillsByProfession)) {
+      const snapshot = await updateProfessionApiData(professionName, {
+        fetchImpl: createFixtureFetch([], omittedProfessionFixture(skillIds, professionName)),
+        snapshotDate: '2026-07-27',
+        output: path.join(directory, `${professionName}-api-metadata.ts`),
+        log: () => {}
+      });
 
-    const rangerSkillIds = [12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256];
-    const ranger = await updateProfessionApiData('ranger', {
-      fetchImpl: createFixtureFetch([], omittedProfessionFixture(rangerSkillIds, 'Ranger')),
-      snapshotDate: '2026-07-27',
-      output: path.join(directory, 'ranger-api-metadata.ts'),
-      log: () => {}
-    });
-
-    assert.equal(
-      ranger.skills.some((skill) => rangerSkillIds.includes(skill.id)),
-      false
-    );
+      assert.equal(
+        snapshot.skills.some((skill) => skillIds.includes(skill.id)),
+        false,
+        professionName
+      );
+    }
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

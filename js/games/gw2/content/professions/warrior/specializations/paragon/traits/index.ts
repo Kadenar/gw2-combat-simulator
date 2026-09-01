@@ -161,27 +161,6 @@ function executeCommandEcho(context: WarriorSchedulerContext, skillId: number, a
       affectsSelf: true
     });
     gainWarriorAdrenaline(context, 3);
-  } else if (skillId === ID.NEVER_SURRENDER) {
-    for (const boon of ['resolution', 'regeneration']) {
-      emitSkillBuff(context, {
-        skill: sourceSkill,
-        at,
-        source: 'Paragon',
-        sourceId: skillId,
-        actorType: 'player',
-        skillId,
-        skillName,
-        name: `${skillName} — ${boon}`,
-        kind: boon,
-        boon,
-        duration: 6,
-        stacks: 1,
-        recipients: 'party',
-        affectsSelf: true
-      });
-    }
-  } else if (skillId === ID.BRACE_YOURSELVES) {
-    gainWarriorAdrenaline(context, 10);
   } else if (skillId === ID.ON_YOUR_KNEES) {
     emitSkillDamage(context, {
       at,
@@ -235,7 +214,6 @@ function executePendingEcho(context: WarriorSchedulerContext, echoId: number, at
 
 export function activateCommand(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.id === ID.FIND_THEIR_WEAKNESS) gainWarriorAdrenaline(context, 3);
-  if (skill.id === ID.BRACE_YOURSELVES) gainWarriorAdrenaline(context, 10);
 
   const state = paragonState.from(context);
   const commands = balanceProfileFromContext(context, PROFILE.commands);

@@ -6,7 +6,10 @@ const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
 const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
   Engineer: Object.freeze([5825, 5832, 5860, 5861, 5862, 5910]),
   Guardian: Object.freeze([9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676]),
-  Ranger: Object.freeze([12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256])
+  Mesmer: Object.freeze([10236, 62573]),
+  Necromancer: Object.freeze([10612, 40274, 42917]),
+  Ranger: Object.freeze([12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256]),
+  Warrior: Object.freeze([14368, 14403, 14413, 14479, 76769, 76934])
 });
 
 export function normalizeProfessionName(value) {

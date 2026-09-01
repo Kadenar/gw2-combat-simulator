@@ -441,17 +441,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     lifeForceGain: 0
   },
-  [ID.SIGNET_OF_THE_LOCUST]: {
-    implemented: true,
-    castTimeMs: 500,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1
-      }
-    ]
-  },
   [ID.SPECTRAL_GRASP]: {
     implemented: true,
     quicknessCastTimeMs: 600,

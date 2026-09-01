@@ -1550,23 +1550,6 @@ export const SKILLS: readonly MesmerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 10236,
-    name: 'Signet of Inspiration',
-    description:
-      'Signet Passive: Grant swiftness and an additional random boon every ten seconds.\nSignet Active: Extends the duration of all boons on yourself.',
-    icon: 'https://render.guildwars2.com/file/636A59096E48DD9B01D11F74EFECAEDCC4DB300D/103750.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 10245,
     name: 'Mass Invisibility',
     description: 'Manipulation. You and all your allies gain stealth for a short time.',
@@ -2449,23 +2432,6 @@ export const SKILLS: readonly MesmerSkill[] = [
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: 62675
-  },
-  {
-    id: 62573,
-    name: 'Psychic Force',
-    description:
-      'Psionic. Channel energy into your blades to damage nearby enemies and make your next bladesong unblockable.',
-    icon: 'https://render.guildwars2.com/file/06BA1C041FC301A9670A072117300CD55863EF53/2479386.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Virtuoso',
-    categories: [],
-    recharge: 3,
-    ammo: 2,
-    ammoRecharge: 20,
-    nextChainId: null,
-    flipSkillId: null
   },
   {
     id: 62597,

@@ -9,35 +9,6 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromance
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.TRAIL_OF_ANGUISH]: {
-    implemented: true,
-    castTimeMs: 500,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.55,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 3,
-        duration: 8
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 4
-      },
-      {
-        type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
-      }
-    ]
-  },
   [ID.NEFARIOUS_FAVOR]: {
     implemented: true,
     castTimeMs: 0,
@@ -88,24 +59,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 2
       }
     ]
-  },
-  [ID.SAND_SWELL]: {
-    implemented: true,
-    castTimeMs: 500,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.4,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 3,
-        duration: 8
-      }
-    ],
-    handlerId: 'necromancer.barrier'
   },
   [ID.DESICCATE]: {
     implemented: true,

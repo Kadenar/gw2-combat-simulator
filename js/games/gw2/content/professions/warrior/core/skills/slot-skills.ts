@@ -39,24 +39,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       }
     ]
   },
-  [ID.FRENZY]: {
-    implemented: true,
-    quicknessCastTimeMs: 333,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 6,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 6,
-        stacks: 10
-      }
-    ]
-  },
   [ID.SHAKE_IT_OFF]: {
     implemented: true,
     quicknessCastTimeMs: 333,
@@ -124,24 +106,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     adrenalineGain: 30,
     handlerId: 'warrior.resource',
     effects: []
-  },
-  [ID.FOR_GREAT_JUSTICE]: {
-    implemented: true,
-    quicknessCastTimeMs: 333,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 8,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 25,
-        stacks: 6
-      }
-    ]
   },
   [ID.SIGNET_OF_MIGHT]: {
     implemented: true,
@@ -290,18 +254,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       }
     ]
   },
-  [ID.DOLYAK_SIGNET]: {
-    implemented: true,
-    quicknessCastTimeMs: 333,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 8,
-        stacks: 10
-      }
-    ]
-  },
   [ID.BATTLE_STANDARD]: {
     implemented: true,
     quicknessCastTimeMs: 1333,
@@ -330,11 +282,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
         stacks: 1
       }
     ]
-  },
-  [ID.SIGNET_OF_STAMINA]: {
-    implemented: true,
-    quicknessCastTimeMs: 333,
-    effects: []
   },
   [ID.RAMPAGE]: {
     implemented: true,

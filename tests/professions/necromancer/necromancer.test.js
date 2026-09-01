@@ -83,9 +83,24 @@ test('Necromancer uses the current API catalog and all nine trait lines', () => 
   assert.equal(DATA_SNAPSHOT, '2026-07-25');
   assert.equal(necromancerCatalog.specializations.length, 9);
   assert.equal(necromancerCatalog.traits.length, 108);
-  assert.ok(necromancerCatalog.skills.length >= 159);
+  assert.ok(necromancerCatalog.skills.length >= 156);
   assert.equal(necromancerCatalog.skillsById.get(ID.LIFE_BLAST).name, 'Life Blast');
-  for (const name of ['Corrupt Boon', 'Spectral Ring', 'Epidemic', 'Summon Flesh Wurm', 'Necrotic Traversal']) {
+
+  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
+  for (const omittedId of [10612, 40274, 42917]) {
+    assert.equal(necromancerCatalog.skillsById.has(omittedId), false);
+  }
+
+  for (const name of [
+    'Corrupt Boon',
+    'Spectral Ring',
+    'Epidemic',
+    'Summon Flesh Wurm',
+    'Necrotic Traversal',
+    'Signet of the Locust',
+    'Trail of Anguish',
+    'Sand Swell'
+  ]) {
     assert.equal(necromancerCatalog.skillsByName.has(name), false, name);
   }
 

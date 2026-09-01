@@ -1899,23 +1899,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 10612,
-    name: 'Signet of the Locust',
-    description:
-      'Signet Passive: Your movement speed is increased.\nSignet Active:Strike and remove boons from nearby foes. Heal for each foe you strike and for each boon removed.',
-    icon: 'https://render.guildwars2.com/file/E9779110A24733AEAC403E48D6ADF00F9F3A0507/58463.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 10620,
     name: 'Spectral Grasp',
     description: 'Spectral. Pull target foe and all nearby foes to you, chill them, and gain life force.',
@@ -2640,23 +2623,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 40274,
-    name: 'Trail of Anguish',
-    description:
-      'Punishment. Leave a trail of sand as you travel. Grant boons to allies passing through it. Inflict burning on enemies and corrupt a boon into torment.',
-    icon: 'https://render.guildwars2.com/file/707877465DF8AD08E7E7F30EC908CAA4684D203B/1770544.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Scourge',
-    categories: [],
-    recharge: 25,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 40813,
     name: 'Nefarious Favor',
     description:
@@ -2702,23 +2668,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     specialization: 'Scourge',
     categories: [],
     recharge: 60,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 42917,
-    name: 'Sand Swell',
-    description:
-      'Punishment. Plunge into the ground, creating a portal through Tyria for allied use. Grant allies using this passage a health barrier. Convert a boon on nearby enemies into torment.',
-    icon: 'https://render.guildwars2.com/file/791B58AC799B4F90FD80EC0F529B0B5A15AF1D0F/1770543.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Scourge',
-    categories: [],
-    recharge: 35,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

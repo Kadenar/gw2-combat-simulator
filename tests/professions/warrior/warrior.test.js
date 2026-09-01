@@ -99,7 +99,7 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
   assert.equal(DATA_SNAPSHOT, '2026-08-08');
   assert.equal(warriorCatalog.specializations.length, 9);
   assert.equal(warriorCatalog.traits.length, 108);
-  assert.equal(warriorCatalog.skills.length, 192);
+  assert.equal(warriorCatalog.skills.length, 186);
   assert.deepEqual(
     warriorCatalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name),
     ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
@@ -113,6 +113,22 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
     80252, 80263
   ]) {
     assert.equal(warriorCatalog.skillsById.has(aliasId), false);
+  }
+
+  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
+  for (const omittedId of [14368, 14403, 14413, 14479, 76769, 76934]) {
+    assert.equal(warriorCatalog.skillsById.has(omittedId), false);
+  }
+
+  for (const omittedName of [
+    'Frenzy',
+    '"For Great Justice!"',
+    'Dolyak Signet',
+    'Signet of Stamina',
+    '"Never Surrender!"',
+    '"Brace Yourselves!"'
+  ]) {
+    assert.equal(warriorCatalog.skillsByName.has(omittedName), false);
   }
 
   for (const distinctId of [

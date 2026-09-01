@@ -126,16 +126,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     cooldown: 20,
     effects: []
   },
-  [ID.SIGNET_OF_INSPIRATION]: {
-    implemented: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: '',
-    environment: 'Terrestrial',
-    quicknessCastTimeMs: 500,
-    cooldown: 20,
-    effects: []
-  },
   [ID.MASS_INVISIBILITY]: {
     implemented: true,
     type: 'Elite',
