@@ -34,7 +34,7 @@ function heraldPaletteAvailability(context: RevenantUiContext, skill: RevenantSk
 }
 
 export const heraldUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  paletteGroups: (context: RevenantUiContext) => {
+  paletteGroups: () => {
     return [
       {
         id: 'revenant-profession-specialization',

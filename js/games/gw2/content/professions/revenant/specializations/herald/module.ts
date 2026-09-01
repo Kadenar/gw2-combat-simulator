@@ -1,6 +1,9 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { augmentSkill } from '#gw2/integrations/patches/authoring/mechanics.js';
+import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
+import type { RevenantCastContext } from '#gw2/content/professions/revenant/types.js';
 import { createRevenantModuleData } from '#gw2/content/professions/revenant/catalog/module-data.js';
-import { heraldSkillHandlers } from '#gw2/content/professions/revenant/specializations/herald/skills/execution.js';
+import { consumeRevenantFacet } from '#gw2/content/professions/revenant/specializations/herald/mechanics/facet-upkeep.js';
 import {
   heraldAttributeRules,
   heraldCastRules,
@@ -12,6 +15,16 @@ import {
   HERALD_BALANCE_PROFILES,
   HERALD_BASE_SKILL_MECHANICS
 } from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
+
+/** Appends facet teardown after each consume skill's catalog effects. */
+const heraldSkillHandlers = new Map([
+  [
+    'revenant.facet-consume',
+    augmentSkill<RevenantCastContext>({
+      afterEffects: consumeRevenantFacet as SkillHandlerPhase<RevenantCastContext>
+    })
+  ]
+]);
 
 export const heraldModule = defineNativeModule({
   id: 'Herald',

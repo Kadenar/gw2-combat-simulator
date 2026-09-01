@@ -1,7 +1,13 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
-import { onBuffApplied, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import {
+  augmentSkill,
+  onBuffApplied,
+  onResolvedDamage,
+  replaceSkill
+} from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createGuardianModuleData } from '#gw2/content/professions/guardian/catalog/module-data.js';
-import { guardianCoreSkillHandlers } from '#gw2/content/professions/guardian/core/skills/execution.js';
+import { guardianVirtueSkillHandlers } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
+import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import {
   guardianCoreEventHandlers,
   guardianCoreEventReactions
@@ -28,6 +34,15 @@ import {
   updateGuardianTraitCastState
 } from '#gw2/content/professions/guardian/core/traits/index.js';
 import { updateWeaponCastState } from '#gw2/content/professions/guardian/core/mechanics/weapon-state.js';
+
+/** Binds Core Guardian virtues and weapon swap to their scheduler strategies. */
+const guardianCoreSkillHandlers = Object.freeze({
+  'guardian.virtue': augmentSkill({ beforeEffects: guardianVirtueSkillHandlers['guardian.virtue'] }),
+  'guardian.renewed-focus': replaceSkill({
+    beforeEffects: guardianVirtueSkillHandlers['guardian.renewed-focus']
+  }),
+  'guardian.weapon-swap': gw2WeaponSwapSkillHandler
+});
 
 /** Registers the ordered Core Guardian hooks while each behavior stays with its owning concept. */
 const guardianCoreExecutionHooks = Object.freeze({

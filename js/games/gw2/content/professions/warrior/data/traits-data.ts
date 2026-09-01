@@ -11,6 +11,5 @@ const traitData = createProfessionTraitData<WarriorApiTrait>(CATALOG_SPECIALIZAT
 
 export const TRAITS: readonly WarriorApiTrait[] = Object.freeze([...traitData.traits]);
 
-export function getActiveTraits(specializations: readonly WarriorSpecializationSelection[] = []): WarriorApiTrait[] {
-  return traitData.getActiveTraits(specializations);
-}
+export const getActiveTraits: (specializations?: readonly WarriorSpecializationSelection[]) => WarriorApiTrait[] =
+  traitData.getActiveTraits;

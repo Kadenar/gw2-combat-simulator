@@ -394,10 +394,6 @@ export function displayedWeaponSkills(
 ): Skill[] {
   const endState = paletteEndState(app);
   const professionState = paletteProfessionState(app);
-  const autoattackChains =
-    professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
-      ? (professionState.autoattackChains as SchedulerRecord)
-      : {};
   const catalog = app.activeCatalog || app.profession.catalog;
   const specialization = app.adapter?.eliteSpecialization?.(app.build) || '';
   const equippedWeapons = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;

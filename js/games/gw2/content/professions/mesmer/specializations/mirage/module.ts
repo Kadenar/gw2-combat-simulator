@@ -6,17 +6,14 @@ import {
   mirageSchedulerHooks,
   mirageSkillMechanicHandlers
 } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/ambush-rules.js';
-import {
-  createMirageResolverState,
-  mirageState
-} from '#gw2/content/professions/mesmer/specializations/mirage/state.js';
+import { mirageState } from '#gw2/content/professions/mesmer/specializations/mirage/state.js';
 import { mirageUi } from '#gw2/content/professions/mesmer/specializations/mirage/presentation.js';
 import {
   MESMER_MIRAGE_EXTRA_SKILLS,
   MESMER_MIRAGE_SKILL_MECHANICS,
   MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/content/professions/mesmer/specializations/mirage/skills/index.js';
-import { mirageSkillHandlers } from '#gw2/content/professions/mesmer/specializations/mirage/skills/execution.js';
+import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/skills/execution.js';
 import { MIRAGE_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
 
 export const mirageModule = defineNativeModule({
@@ -29,12 +26,17 @@ export const mirageModule = defineNativeModule({
   }),
   state: {
     scheduler: mirageState.create,
-    resolver: createMirageResolverState
+    // Mirage has no resolver-local state; timeline events carry its resolver data.
+    resolver: () => ({})
   },
   mechanics: {
     modifiers: mirageAttributeRules,
     execution: {
-      skillHandlers: mirageSkillHandlers,
+      // Mirage dodge and ambush replace their declarative profiles with stateful handlers.
+      skillHandlers: Object.freeze({
+        'mesmer.mirage-dodge': mesmerReplaceProfile,
+        'mesmer.ambush': mesmerReplaceProfile
+      }),
       castRules: mirageCastRules,
       skillMechanicHandlers: mirageSkillMechanicHandlers,
       hooks: mirageSchedulerHooks

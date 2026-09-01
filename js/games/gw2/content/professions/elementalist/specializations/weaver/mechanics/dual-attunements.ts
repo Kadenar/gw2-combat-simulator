@@ -187,7 +187,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   }
 
   const state = weaverState.from(context);
-  const core = professionCoreState(context);
   const at = event.at;
   const target = event.to;
   const previous = event.from;

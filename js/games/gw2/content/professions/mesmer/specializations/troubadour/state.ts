@@ -10,8 +10,4 @@ export function createTroubadourState(_config: Partial<MesmerConfig> = {}): Mesm
   };
 }
 
-export function createTroubadourResolverState(): Record<string, never> {
-  return {};
-}
-
 export const troubadourState = defineProfessionSpecializationState('Troubadour', createTroubadourState);

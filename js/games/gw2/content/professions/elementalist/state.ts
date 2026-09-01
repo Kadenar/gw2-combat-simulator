@@ -17,10 +17,6 @@ import {
   EVOKER_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import {
-  TEMPEST_PUBLIC_END_STATE_KEYS,
-  TEMPEST_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from '#gw2/content/professions/elementalist/specializations/tempest/state.js';
-import {
   WEAVER_PUBLIC_END_STATE_KEYS,
   WEAVER_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
@@ -33,7 +29,6 @@ import type {
 /** Every state field the Elementalist family publishes in simulation results. */
 export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
   ...ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS,
-  ...TEMPEST_PUBLIC_END_STATE_KEYS,
   ...WEAVER_PUBLIC_END_STATE_KEYS,
   ...CATALYST_PUBLIC_END_STATE_KEYS,
   ...EVOKER_PUBLIC_END_STATE_KEYS
@@ -42,7 +37,6 @@ export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
 // Values reported for a specialization's keys when that specialization is not the one
 // running, so the projected record keeps a constant shape across every build.
 const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<ElementalistState>> = Object.freeze({
-  ...TEMPEST_PUBLIC_INACTIVE_STATE_DEFAULTS,
   ...WEAVER_PUBLIC_INACTIVE_STATE_DEFAULTS,
   ...CATALYST_PUBLIC_INACTIVE_STATE_DEFAULTS,
   ...EVOKER_PUBLIC_INACTIVE_STATE_DEFAULTS

@@ -9,8 +9,4 @@ export function createChronomancerState(_config: Partial<MesmerConfig> = {}): Me
   };
 }
 
-export function createChronomancerResolverState(): Record<string, never> {
-  return {};
-}
-
 export const chronomancerState = defineProfessionSpecializationState('Chronomancer', createChronomancerState);

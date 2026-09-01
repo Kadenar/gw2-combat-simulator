@@ -10,8 +10,4 @@ export function createVirtuosoState(config: Partial<MesmerConfig> = {}): MesmerV
   };
 }
 
-export function createVirtuosoResolverState(): Record<string, never> {
-  return {};
-}
-
 export const virtuosoState = defineProfessionSpecializationState('Virtuoso', createVirtuosoState);

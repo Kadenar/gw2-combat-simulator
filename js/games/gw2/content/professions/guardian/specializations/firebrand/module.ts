@@ -1,7 +1,13 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
-import { onBuffApplied, onResolvedDamage, skillAvailability } from '#gw2/integrations/patches/authoring/mechanics.js';
+import {
+  augmentSkill,
+  onBuffApplied,
+  onResolvedDamage,
+  replaceSkill,
+  skillAvailability
+} from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createGuardianModuleData } from '#gw2/content/professions/guardian/catalog/module-data.js';
-import { firebrandSkillHandlers } from '#gw2/content/professions/guardian/specializations/firebrand/skills/execution.js';
+import { guardianTomeSkillHandlers } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import {
   firebrandEventHandlers,
   firebrandEventReactions
@@ -15,6 +21,16 @@ import { FIREBRAND_SKILL_MECHANICS } from '#gw2/content/professions/guardian/spe
 import { firebrandState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
 import { firebrandUi } from '#gw2/content/professions/guardian/specializations/firebrand/presentation.js';
 import { FIREBRAND_BALANCE_PROFILES } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
+
+/** Accounts for tome pages while preserving authored tome effects. */
+const firebrandSkillHandlers = Object.freeze({
+  'guardian.stow-tome': replaceSkill({
+    beforeEffects: guardianTomeSkillHandlers['guardian.stow-tome']
+  }),
+  'guardian.tome-page': augmentSkill({
+    beforeEffects: guardianTomeSkillHandlers['guardian.tome-page']
+  })
+});
 
 export const firebrandModule = defineNativeModule({
   id: 'Firebrand',

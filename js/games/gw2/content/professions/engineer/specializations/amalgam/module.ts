@@ -1,7 +1,11 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
-import { onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { augmentSkill, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
-import { amalgamSkillHandlers } from '#gw2/content/professions/engineer/specializations/amalgam/skills/execution.js';
+import {
+  activateAmalgamMorph,
+  activatePlasmaticState,
+  evolveAmalgam
+} from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { amalgamResolverEventReactions } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import {
   amalgamAttributeRules,
@@ -12,6 +16,13 @@ import { AMALGAM_SKILL_MECHANICS } from '#gw2/content/professions/engineer/speci
 import { amalgamState } from '#gw2/content/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_BALANCE_PROFILES } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
 import { bindAmalgamUi } from '#gw2/content/professions/engineer/specializations/amalgam/presentation.js';
+
+/** Runs Amalgam state transitions after each skill's authored effects. */
+const amalgamSkillHandlers = Object.freeze({
+  'engineer.amalgam-morph': augmentSkill({ afterEffects: activateAmalgamMorph }),
+  'engineer.evolve': augmentSkill({ afterEffects: evolveAmalgam }),
+  'engineer.plasmatic-state': augmentSkill({ afterEffects: activatePlasmaticState })
+});
 
 // Compose cast-time protocol state with resolver-side reactions: handlers establish
 // strains and Evolve state, while resolved hits drive Rapacious and Carbolic procs.

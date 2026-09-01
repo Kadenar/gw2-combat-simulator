@@ -39,10 +39,6 @@ const PATH_HIT_WINDOW_MS = 3000;
 const TRUNCATED_CAST_WINDOW_MS = 150;
 const SIC_EM_RECAST_SIGNAL_MS = 60000;
 
-function isAction(action: EvtcRecordedRotationAction, skillId: number): boolean {
-  return action.rawSkillId === skillId || action.canonicalSkillId === skillId;
-}
-
 function truncatedOverbearingSmashActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]

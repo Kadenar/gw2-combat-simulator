@@ -126,9 +126,9 @@ function lichSkillGate(
 
 // Match each specialization shroud skill to the currently active shroud identity.
 function inShroudGate(
-  context: NecromancerPrecastContext,
+  _context: NecromancerPrecastContext,
   skill: NecromancerSkill,
-  { state, activeShroud }: AvailabilityEnvironment
+  { activeShroud }: AvailabilityEnvironment
 ): AvailabilityVerdict {
   const shroud = requiredShroud(skill);
   if (!shroud) return null;

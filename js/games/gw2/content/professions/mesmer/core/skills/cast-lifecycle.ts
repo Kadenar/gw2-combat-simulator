@@ -172,7 +172,6 @@ function emitCompletionEvents(
 function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   const details = runtime.castDetails.get(context.reservationId) || {};
-  const { state } = context;
   const at = context.fullEnd;
   const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
   if (interrupted && details.earlyResourceAt != null && context.effectiveEnd < details.earlyResourceAt - EPSILON) {

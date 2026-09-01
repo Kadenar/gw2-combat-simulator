@@ -5,13 +5,10 @@ import {
   virtuosoCastRules,
   virtuosoRuntimeHooks
 } from '#gw2/content/professions/mesmer/specializations/virtuoso/mechanics/blades-and-bladesongs.js';
-import {
-  createVirtuosoResolverState,
-  virtuosoState
-} from '#gw2/content/professions/mesmer/specializations/virtuoso/state.js';
+import { virtuosoState } from '#gw2/content/professions/mesmer/specializations/virtuoso/state.js';
 import { virtuosoUi } from '#gw2/content/professions/mesmer/specializations/virtuoso/presentation.js';
 import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/specializations/virtuoso/skills/index.js';
-import { virtuosoSkillHandlers } from '#gw2/content/professions/mesmer/specializations/virtuoso/skills/execution.js';
+import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/skills/execution.js';
 import { VIRTUOSO_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/virtuoso/profiles.js';
 
 export const virtuosoModule = defineNativeModule({
@@ -22,12 +19,14 @@ export const virtuosoModule = defineNativeModule({
   }),
   state: {
     scheduler: virtuosoState.create,
-    resolver: createVirtuosoResolverState
+    // Virtuoso has no resolver-local state; timeline events carry its resolver data.
+    resolver: () => ({})
   },
   mechanics: {
     modifiers: virtuosoAttributeRules,
     execution: {
-      skillHandlers: virtuosoSkillHandlers,
+      // Bladesongs replace their declarative profiles with blade-aware handlers.
+      skillHandlers: Object.freeze({ 'mesmer.bladesong': mesmerReplaceProfile }),
       castRules: virtuosoCastRules,
       hooks: virtuosoRuntimeHooks
     }

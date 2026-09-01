@@ -14,8 +14,6 @@ export const ELITE_SPECS = new Set(traitData.eliteSpecs);
 export const CORE_SPECS = [...traitData.coreSpecs];
 export const TRAITS = [...traitData.traits];
 
-export function getActiveTraits(
-  specializations: readonly NecromancerSpecializationSelection[] = []
-): NecromancerApiTrait[] {
-  return traitData.getActiveTraits(specializations);
-}
+export const getActiveTraits: (
+  specializations?: readonly NecromancerSpecializationSelection[]
+) => NecromancerApiTrait[] = traitData.getActiveTraits;

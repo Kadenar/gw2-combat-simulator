@@ -1,9 +1,9 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { augmentSkill } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createElementalistModuleData } from '#gw2/content/professions/elementalist/catalog/module-data.js';
 import { createEvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { evokerUi } from '#gw2/content/professions/elementalist/specializations/evoker/presentation.js';
 import { EVOKER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/evoker/skills/index.js';
-import { evokerSkillHandlers } from '#gw2/content/professions/elementalist/specializations/evoker/skills/execution.js';
 import { EVOKER_BALANCE_PROFILES } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 import { availability } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/availability.js';
 import {
@@ -18,6 +18,15 @@ import {
   evokerModifierRules,
   modifyEvokerAttributes
 } from '#gw2/content/professions/elementalist/specializations/evoker/traits/modifiers.js';
+import { applyAltruisticAspect } from '#gw2/content/professions/elementalist/specializations/evoker/traits/index.js';
+import type { ElementalistCastContext } from '#gw2/content/professions/elementalist/types.js';
+
+/** Appends Altruistic Aspect after each Evoker meditation's authored effects. */
+const evokerSkillHandlers = Object.freeze({
+  'elementalist.evoker-meditation': augmentSkill<ElementalistCastContext>({
+    afterEffects: applyAltruisticAspect
+  })
+});
 
 /** Registers Evoker contributions while each callback remains with its familiar, resource, or trait owner. */
 const evokerCastRules = Object.freeze({

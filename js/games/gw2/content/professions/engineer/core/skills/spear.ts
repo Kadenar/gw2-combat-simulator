@@ -193,7 +193,7 @@ export function scheduleRoilingSkiesControl(context: EngineerCastContext, skill:
 }
 
 /** Emits Devastator's delayed six-packet damage and Burning follow-up when Focused survives to impact. */
-export function scheduleDevastatorFollowup(context: EngineerCastContext, skill: EngineerSkill): void {
+export function scheduleDevastatorFollowup(context: EngineerCastContext, _skill: EngineerSkill): void {
   // fullEnd (not effectiveEnd) — follow-up fires at animation end, not the interrupt-commit point
   const impactAt = context.fullEnd;
   if (professionCoreState(context).focusedUntil <= impactAt) return;

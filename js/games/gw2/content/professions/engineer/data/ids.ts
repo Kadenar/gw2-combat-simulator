@@ -39,10 +39,6 @@ export const ENGINEER_TRAIT_IDS = stableNameIndex(
   ]).map((trait) => [trait.name, trait.id] as const)
 );
 
-export const ENGINEER_SPECIALIZATION_IDS = Object.freeze(
-  Object.fromEntries(SPECIALIZATIONS.map((specialization) => [constantName(specialization.name), specialization.id]))
-);
-
 export const ENGINEER_INTERNAL_IDS = Object.freeze({
   MECH_BASIC_ATTACK: 'engineer.mech-basic-attack',
   KIT_TRANSITION: 'engineer.kit-transition',

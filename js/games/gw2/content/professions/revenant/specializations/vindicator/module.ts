@@ -1,6 +1,12 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { augmentSkill } from '#gw2/integrations/patches/authoring/mechanics.js';
+import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
+import type { RevenantCastContext } from '#gw2/content/professions/revenant/types.js';
 import { createRevenantModuleData } from '#gw2/content/professions/revenant/catalog/module-data.js';
-import { vindicatorSkillHandlers } from '#gw2/content/professions/revenant/specializations/vindicator/skills/execution.js';
+import {
+  performEnergyMeld,
+  switchAllianceTactics
+} from '#gw2/content/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 import {
   vindicatorAttributeRules,
   vindicatorCastRules,
@@ -12,6 +18,20 @@ import {
   VINDICATOR_BASE_SKILL_MECHANICS,
   VINDICATOR_BALANCE_PROFILES
 } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+
+/** Applies Vindicator state changes after the native cast lifecycle completes. */
+const vindicatorSkillHandlers = new Map(
+  Object.entries(
+    Object.freeze({
+      'revenant.energy-meld': augmentSkill<RevenantCastContext>({
+        afterEffects: performEnergyMeld as SkillHandlerPhase<RevenantCastContext>
+      }),
+      'revenant.alliance-tactics': augmentSkill<RevenantCastContext>({
+        afterEffects: switchAllianceTactics
+      })
+    })
+  )
+);
 
 export const vindicatorModule = defineNativeModule({
   id: 'Vindicator',

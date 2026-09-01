@@ -70,7 +70,7 @@ function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
 
 /** Builds F-key and active-shroud skill-bar groups for one transform definition. */
 export function necromancerTransformSkillBarGroups(
-  context: NecromancerUiContext,
+  _context: NecromancerUiContext,
   {
     entryId,
     exitId,

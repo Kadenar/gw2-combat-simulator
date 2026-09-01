@@ -12,8 +12,4 @@ export function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMi
   };
 }
 
-export function createMirageResolverState(): Record<string, never> {
-  return {};
-}
-
 export const mirageState = defineProfessionSpecializationState('Mirage', createMirageState);

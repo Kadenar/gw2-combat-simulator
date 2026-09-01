@@ -15,10 +15,6 @@ import {
   CONDUIT_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
 import {
-  HERALD_PUBLIC_END_STATE_KEYS,
-  HERALD_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from '#gw2/content/professions/revenant/specializations/herald/state.js';
-import {
   RENEGADE_PUBLIC_END_STATE_KEYS,
   RENEGADE_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
@@ -52,14 +48,12 @@ export function emitRevenantStateSnapshot(
 
 export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantState)[] = Object.freeze([
   ...REVENANT_CORE_PUBLIC_END_STATE_KEYS,
-  ...HERALD_PUBLIC_END_STATE_KEYS,
   ...RENEGADE_PUBLIC_END_STATE_KEYS,
   ...VINDICATOR_PUBLIC_END_STATE_KEYS,
   ...CONDUIT_PUBLIC_END_STATE_KEYS
 ]);
 
 const REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RevenantState>> = Object.freeze({
-  ...HERALD_PUBLIC_INACTIVE_STATE_DEFAULTS,
   ...RENEGADE_PUBLIC_INACTIVE_STATE_DEFAULTS,
   ...VINDICATOR_PUBLIC_INACTIVE_STATE_DEFAULTS,
   ...CONDUIT_PUBLIC_INACTIVE_STATE_DEFAULTS

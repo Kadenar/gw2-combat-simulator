@@ -378,18 +378,6 @@ export const THIEF_TRAIT_IDS = Object.freeze({
   COMBAT_HIGH: 2348 // Combat High
 });
 
-export const THIEF_SPECIALIZATION_IDS = Object.freeze({
-  DAREDEVIL: 7, // Daredevil
-  SHADOW_ARTS: 20, // Shadow Arts
-  DEADLY_ARTS: 28, // Deadly Arts
-  CRITICAL_STRIKES: 35, // Critical Strikes
-  TRICKERY: 44, // Trickery
-  ACROBATICS: 54, // Acrobatics
-  DEADEYE: 58, // Deadeye
-  SPECTER: 71, // Specter
-  ANTIQUARY: 77 // Antiquary
-});
-
 // Keep canonical PvE artifact identities explicit for the artifact picker.
 export const THIEF_ARTIFACT_IDS = Object.freeze({
   // Display order follows the Guild Wars 2 Wiki artifact tables.

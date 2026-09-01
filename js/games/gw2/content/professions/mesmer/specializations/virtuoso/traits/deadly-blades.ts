@@ -55,7 +55,6 @@ export function handleDeadlyBladesCriticalTask(
   context: MesmerSchedulerContext,
   task: MesmerSchedulerTask<'deadlyBladesCritical'>
 ): void {
-  const runtime = mesmerRuntimeFor(context);
   const payloadEvent = task.payload.event;
   const canonicalEvent = context.eventByOrder(Number(payloadEvent.eventOrder));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;

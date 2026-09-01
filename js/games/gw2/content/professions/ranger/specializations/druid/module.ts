@@ -1,12 +1,16 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { onConditionApplied, onResolvedControl } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createRangerModuleData } from '#gw2/content/professions/ranger/catalog/module-data.js';
-import { druidSkillHandlers } from '#gw2/content/professions/ranger/specializations/druid/skills/execution.js';
 import {
+  applyCelestialAvatarTraits,
   druidAttributeRules,
   druidCastRules,
   druidSchedulerHooks
 } from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import {
+  enterAvatar,
+  leaveAvatar
+} from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 import {
   reactToDruidCondition,
   reactToDruidControl
@@ -15,6 +19,25 @@ import { DRUID_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/spec
 import { druidState } from '#gw2/content/professions/ranger/specializations/druid/state.js';
 import { druidUi } from '#gw2/content/professions/ranger/specializations/druid/presentation.js';
 import { DRUID_BALANCE_PROFILES } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
+import type { RangerCastContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
+
+/** Applies Celestial Avatar transitions after the corresponding native cast. */
+const druidSkillHandlers = Object.freeze({
+  'ranger.celestial-avatar-enter': {
+    mode: 'augment' as const,
+    afterEffects: enterAvatar
+  },
+  'ranger.celestial-avatar-exit': {
+    mode: 'augment' as const,
+    afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      leaveAvatar(context, false, context.effectiveEnd, skill);
+    }
+  },
+  'ranger.celestial-avatar-skill': {
+    mode: 'augment' as const,
+    afterEffects: applyCelestialAvatarTraits
+  }
+});
 
 export const druidModule = defineNativeModule({
   id: 'Druid',

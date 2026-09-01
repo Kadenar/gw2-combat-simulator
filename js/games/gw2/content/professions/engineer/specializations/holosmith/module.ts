@@ -1,7 +1,7 @@
-import { afterSkillEffects } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { afterSkillEffects, augmentSkill } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
-import { holosmithSkillHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/skills/execution.js';
+import { engineerPhotonForgeSkillHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { holosmithResolverEventHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
 import {
   holosmithAdvancedSchedulerHooks,
@@ -21,6 +21,19 @@ const HOLOSMITH_AUTOATTACK_CHAINS = Object.freeze([
   Object.freeze([ID.LIGHT_STRIKE, ID.BRIGHT_SLASH, ID.FLASH_CUTTER]),
   Object.freeze([ID.LIGHT_STRIKE_STORM, ID.BRIGHT_SLASH_STORM, ID.FLASH_CUTTER_STORM])
 ]);
+
+/** Applies Photon Forge lifecycle changes after the native skill effects run. */
+const holosmithSkillHandlers = Object.freeze({
+  'engineer.photon-forge-enter': augmentSkill({
+    afterEffects: engineerPhotonForgeSkillHandlers['engineer.photon-forge-enter']
+  }),
+  'engineer.photon-forge-exit': augmentSkill({
+    afterEffects: engineerPhotonForgeSkillHandlers['engineer.photon-forge-exit']
+  }),
+  'engineer.heat': augmentSkill({
+    afterEffects: engineerPhotonForgeSkillHandlers['engineer.heat']
+  })
+});
 
 export const holosmithModule = defineNativeModule({
   id: 'Holosmith',
