@@ -43,7 +43,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   SIGNET_OF_WRATH: 9151,
   PURGING_FLAMES: 9187,
   PROCESSION_OF_BLADES: 30364,
-  TEST_OF_FAITH: 29786,
   PURIFICATION: 30025,
   DRAGONS_MAW: 30273,
 
@@ -105,7 +104,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   HOLY_STRIKE: 9140, // Holy Strike
   SYMBOL_OF_SWIFTNESS: 9143, // Symbol of Swiftness
   LINE_OF_WARDING: 9144, // Line of Warding
-  SIGNET_OF_JUDGMENT: 9150, // Signet of Judgment
   HOLD_THE_LINE: 9152, // "Hold the Line!"
   STAND_YOUR_GROUND: 9153, // "Stand Your Ground!"
   SIGNET_OF_RESOLVE: 9158, // Signet of Resolve
@@ -114,21 +112,17 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   SYMBOL_OF_PROTECTION: 9161, // Symbol of Protection
   SIGNET_OF_MERCY: 9163, // Signet of Mercy
   BOW_OF_TRUTH: 9175, // Bow of Truth
-  SHIELD_OF_THE_AVENGER: 9182, // Shield of the Avenger
   MIGHTY_BLOW: 9194, // Mighty Blow
   RING_OF_WARDING: 9195, // Ring of Warding
   SHIELD_OF_ABSORPTION_ID_9224: 9224, // Shield of Absorption
   PULL: 9226, // Pull
-  SMITE_CONDITION: 9245, // Smite Condition
   MERCIFUL_INTERVENTION: 9246, // Merciful Intervention
   JUDGES_INTERVENTION: 9247, // Judge's Intervention
   CONTEMPLATION_OF_PURITY: 9248, // Contemplation of Purity
-  VIRTUE_OF_RESOLVE: 9250, // Virtue of Resolve
   WALL_OF_REFLECTION: 9251, // Wall of Reflection
   HALLOWED_GROUND: 9253, // Hallowed Ground
   ZEALOTS_EMBRACE: 9260, // Zealot's Embrace
   EMPOWER: 9265, // Empower
-  VIRTUE_OF_COURAGE: 9268, // Virtue of Courage
   SHIELD_OF_JUDGMENT_ID_15834: 15834, // Shield of Judgment
   LITANY_OF_WRATH: 21664, // Litany of Wrath
   DEFLECTING_SHOT: 29630, // Deflecting Shot
@@ -136,11 +130,9 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   SPEAR_OF_JUSTICE: 29887, // Spear of Justice
   FEEL_MY_WRATH: 29965, // "Feel My Wrath!"
   TRUE_SHOT: 30229, // True Shot
-  SIGNET_OF_COURAGE: 30461, // Signet of Courage
   PUNCTURE_SHOT: 30471, // Puncture Shot
   FRAGMENTS_OF_FAITH: 30553, // Fragments of Faith
   HUNTERS_WARD: 30628, // Hunter's Ward
-  LIGHTS_JUDGMENT: 30871, // Light's Judgment
   HUNTERS_VERDICT: 33134, // Hunter's Verdict
   PORTENT_OF_FREEDOM: 40114, // Portent of Freedom
   SYMBOL_OF_VENGEANCE: 40624, // Symbol of Vengeance
@@ -148,7 +140,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   UNHINDERED_DELIVERY: 41328, // Unhindered Delivery
   STOW_TOME: 41380, // Stow Tome
   RESTORING_REPRIEVE: 41475, // Restoring Reprieve
-  SHIELD_OF_THE_AVENGER_ID_41571: 41571, // Shield of the Avenger
   MANTRA_OF_SOLACE: 41714, // Mantra of Solace
   OVERWHELMING_CELERITY: 41988, // Overwhelming Celerity
   ECHO_OF_TRUTH: 42360, // Echo of Truth
@@ -158,18 +149,15 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   REJUVENATING_RESPITE: 42960, // Rejuvenating Respite
   POTENT_HASTE: 42983, // Potent Haste
   MANTRA_OF_LIBERATION: 43357, // Mantra of Liberation
-  BOW_OF_TRUTH_ID_43565: 43565, // Bow of Truth
   SEARING_SLASH: 43826, // Searing Slash
   MANTRA_OF_TRUTH: 44080, // Mantra of Truth
   CLARIFIED_CONCLUSION: 44248, // Clarified Conclusion
   BLEEDING_EDGE: 44602, // Bleeding Edge
-  SWORD_OF_JUSTICE_ID_44846: 44846, // Sword of Justice
   CORE_CLEAVE: 45047, // Core Cleave
   FLAME_RUSH: 45082, // Flame Rush
   BLAZING_EDGE: 45402, // Blazing Edge
   MANTRA_OF_LORE: 45460, // Mantra of Lore
   MANTRA_OF_FLAME: 46148, // Mantra of Flame
-  HAMMER_OF_WISDOM_ID_46170: 46170, // Hammer of Wisdom
   SEEKING_JUDGMENT: 51645, // Seeking Judgment
   SEARING_LIGHT: 51660, // Searing Light
   GLACIAL_BLOW: 53482, // Glacial Blow
@@ -177,7 +165,7 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   EXECUTIONERS_CALLING: 62525, // Executioner's Calling
   WILLBENDER_FLAMES: 62528, // Willbender Flames
   WILLBENDER_JUSTICE: 62529, // Justice
-  CRASHING_COURAGE: 62532, // Crashing Courage
+  CRASHING_COURAGE: 62648, // Crashing Courage
   HEEL_CRACK: 62549, // Heel Crack
   WILLBENDER_FLAMES_COURAGE: 62552, // Willbender Flames
   HEAVENS_PALM: 62561, // Heaven's Palm
@@ -187,18 +175,10 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   RUSHING_JUSTICE_IMPACT: 62624, // Rushing Justice
   WILLBENDER_FLAMES_ID_62618: 62618, // Willbender Flames
   REVERSAL_OF_FORTUNE: 62622, // Reversal of Fortune
-  CRASHING_COURAGE_ID_62648: 62648, // Crashing Courage
   ADVANCING_STRIKE: 62650, // Advancing Strike
   RUSHING_JUSTICE: 62668, // Rushing Justice
   REPOSE: 62669, // Repose
   QUICK_RETRIBUTION: 62676, // Quick Retribution
-  TOME_OF_JUSTICE_ID_68647: 68647, // Tome of Justice
-  TOME_OF_RESOLVE_ID_68648: 68648, // Tome of Resolve
-  TOME_OF_COURAGE_ID_68650: 68650, // Tome of Courage
-  RENEWED_FOCUS_ID_68666: 68666, // Renewed Focus
-  FEEL_MY_WRATH_ID_68670: 68670, // "Feel My Wrath!"
-  SIGNET_OF_COURAGE_ID_68676: 68676, // Signet of Courage
-  DRAGONS_MAW_ID_68686: 68686, // Dragon's Maw
   EXIT_RADIANT_FORGE: 76616, // Exit Radiant Forge
   RESOLUTE_STANCE: 76621, // Resolute Stance
   DARING_ADVANCE: 76687, // Daring Advance
@@ -209,8 +189,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   STALWART_STANCE: 77321, // Stalwart Stance
   RADIANT_COURAGE: 78358, // Radiant Courage
   RADIANT_RESOLVE: 78514, // Radiant Resolve
-  RADIANT_RESOLVE_ID_78604: 78604, // Radiant Resolve
-  RADIANT_COURAGE_ID_78770: 78770, // Radiant Courage
   RADIANT_JUSTICE: 78837, // Radiant Justice
 
   // Trait-owned skills and damage packets that are not exposed by the

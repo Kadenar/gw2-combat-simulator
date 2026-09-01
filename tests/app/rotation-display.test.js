@@ -292,17 +292,20 @@ test('rotation proc overlay preferences normalize stored checkbox values', () =>
   assert.equal(normalizeRotationProcOverlayVisibility(null), false);
 });
 
-test('rotation sigil and relic overlay preferences persist independently', () => {
+test('rotation proc overlay preferences persist independently', () => {
   const root = storageRoot({
     [ROTATION_PROC_OVERLAY_STORAGE_KEYS.sigil]: 'true'
   });
 
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'sigil'), true);
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'relic'), false);
+  assert.equal(readStoredRotationProcOverlayVisibility(root, 'sovereignOfLight'), false);
 
   storeRotationProcOverlayVisibility(root, 'relic', true);
+  storeRotationProcOverlayVisibility(root, 'sovereignOfLight', true);
   storeRotationProcOverlayVisibility(root, 'sigil', false);
 
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'sigil'), false);
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'relic'), true);
+  assert.equal(readStoredRotationProcOverlayVisibility(root, 'sovereignOfLight'), true);
 });

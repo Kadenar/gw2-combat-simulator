@@ -35,7 +35,7 @@ export const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> 
   Mace: ID.SKULL_CRACK,
   Rifle: ID.KILL_SHOT,
   Spear: ID.HARRIERS_TOSS,
-  Staff: ID.PATH_TO_VICTORY,
+  Staff: ID.PATH_TO_VICTORY_ID_71932,
   Sword: ID.BLOODTHIRSTER
 });
 

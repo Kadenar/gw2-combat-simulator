@@ -2205,39 +2205,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14422,
-    name: 'Eviscerate',
-    description:
-      'Burst. Leap at your foe with a devastating attack. Effect increases with adrenaline level. Gain might if this attack hits.',
-    icon: 'https://render.guildwars2.com/file/EA325CADCFA2EEF9E2427DD415402E056A6D6CB3/103230.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14425,
-    name: 'Skull Crack',
-    description: 'Burst. Stun your foe with a skull crack. Effect increases with adrenaline level.',
-    icon: 'https://render.guildwars2.com/file/F4F19D3AA21DD174389D01ACD9D76433750CE9DF/103280.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14431,
     name: 'Dual Shot',
     description: 'Shoot a pair of arrows at your foe.',
@@ -2318,22 +2285,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14469,
-    name: 'Forceful Shot',
-    description: 'Burst. Fire a forceful shot. Damage increases with adrenaline level.',
-    icon: 'https://render.guildwars2.com/file/7F72FA15CA1A5FBC94CE910E3AC958E0E705F30E/103788.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14472,
     name: 'Explosive Shell',
     description:
@@ -2347,57 +2298,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     recharge: 1,
     ammo: 2,
     ammoRecharge: 8,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14473,
-    name: 'Kill Shot',
-    description:
-      'Burst. Fire a powerful shot. Damage increases with adrenaline level. Deal increased damage to enemies that are affected by crowd control or below the health threshold.',
-    icon: 'https://render.guildwars2.com/file/9A4310F746AECD6348D6663D56F45447BAF0789C/103313.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14474,
-    name: 'Kill Shot',
-    description:
-      'Burst. Fire a powerful shot. Damage increases with adrenaline level. Deal increased damage to enemies that are affected by crowd control or below the health threshold.',
-    icon: 'https://render.guildwars2.com/file/9A4310F746AECD6348D6663D56F45447BAF0789C/103313.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14475,
-    name: 'Kill Shot',
-    description:
-      'Burst. Fire a powerful shot. Damage increases with adrenaline level. Deal increased damage to enemies that are affected by crowd control or below the health threshold.',
-    icon: 'https://render.guildwars2.com/file/9A4310F746AECD6348D6663D56F45447BAF0789C/103313.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null
   },
@@ -2613,22 +2513,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14512,
-    name: 'Earthshaker',
-    description: 'Burst. Jump to the targeted location and slam your hammer down, damaging and stunning foes.',
-    icon: 'https://render.guildwars2.com/file/B8D91A691871E4EA40645E2DE8F0452643263E9E/103181.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14516,
     name: "Bull's Charge",
     description: 'Physical. Charge and knock down your foe.',
@@ -2678,22 +2562,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14520,
-    name: 'Combustive Shot',
-    description: 'Burst. Ignite target area, burning nearby foes. Effect increases with adrenaline level.',
-    icon: 'https://render.guildwars2.com/file/45CE3B6BCD1FBB5B592859C37FC7D35FDA9E482B/103212.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14528,
     name: 'Banner of Defense',
     description:
@@ -2727,23 +2595,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14545,
-    name: 'Arcing Slice',
-    description:
-      'Burst. Deliver a circular attack to foes around you, and gain fury. Deal more damage to foes with low health.',
-    icon: 'https://render.guildwars2.com/file/6003B9BAF49D80F30D13E40453C145BF1159572B/103017.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14548,
     name: 'Tactical Blow',
     description: 'Stop blocking and swing out with an attack.',
@@ -2754,22 +2605,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     specialization: '',
     categories: [],
     recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14549,
-    name: 'Whirling Strike',
-    description: 'Burst. Strike all foes around you, stunning them. Effect increases with adrenaline level.',
-    icon: 'https://render.guildwars2.com/file/9155F7470CC1E4010E56AC53B3445CDA243A050F/102981.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3056,22 +2891,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 30435,
-    name: 'Berserk',
-    description: 'Rage. Gain adrenaline, an attack-speed boost, and access to primal burst skills.',
-    icon: 'https://render.guildwars2.com/file/1354D8FC07F9F859DC7F0E7B61C0724FD4927C4E/1058638.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_2',
-    specialization: '',
-    categories: ['Rage'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 30682,
     name: 'Flaming Flurry',
     description:
@@ -3342,23 +3161,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     specialization: 'Spellbreaker',
     categories: ['Meditation'],
     recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 42041,
-    name: 'Kill Shot',
-    description:
-      'Burst. Fire a powerful shot. Deal increased damage to enemies that are affected by crowd control or below the health threshold.',
-    icon: 'https://render.guildwars2.com/file/9A4310F746AECD6348D6663D56F45447BAF0789C/103313.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3846,38 +3648,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 69297,
-    name: 'Breaching Strike',
-    description: 'Burst. Strike your target and remove boons. Deal more damage if your target has no boons.',
-    icon: 'https://render.guildwars2.com/file/48B836AE01C6EC0D0A0A0680D23834960D556A7E/1770661.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 69433,
-    name: 'Breaching Strike',
-    description: 'Burst. Strike your target and remove boons. Deal more damage if your target has no boons.',
-    icon: 'https://render.guildwars2.com/file/48B836AE01C6EC0D0A0A0680D23834960D556A7E/1770661.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 71860,
     name: 'Line Breaker',
     description:
@@ -4044,23 +3814,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 72029,
-    name: 'Path to Victory',
-    description:
-      'Burst. Carve a path to victory, dealing damage to enemies in front of you while healing and granting regeneration to nearby allies.',
-    icon: 'https://render.guildwars2.com/file/337928249A067249569AA70D78120D0E03257203/3256396.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 72049,
     name: 'Inspiring Whirl',
     description: 'Whirl your staff, damaging nearby enemies and inspiring allies.',
@@ -4105,23 +3858,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     specialization: '',
     categories: [],
     recharge: 5,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 72911,
-    name: "Harrier's Toss",
-    description:
-      'Burst. Jump up and throw a spear at your targeted location, dealing damage in an area. Damage dealt is increased with adrenaline level, and the opponent closest to the epicenter takes additional damage.',
-    icon: 'https://render.guildwars2.com/file/FE3E5C674895F8B2F59280552A460FE310BE32A0/3379205.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -4461,40 +4197,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     specialization: '',
     categories: [],
     recharge: 12,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 80252,
-    name: 'Bloodthirster',
-    description:
-      'Burst. Sweep your blade around yourself, slicing nearby enemies. Effect increases with adrenaline level. Heal if you strike a target, healing more if they are bleeding. Healing scales off of the target struck that is bleeding the most.',
-    icon: 'https://render.guildwars2.com/file/9B1F4EC20A4B9A497A9A361052C608C5FFED3001/3790492.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 80263,
-    name: 'Bloodthirster',
-    description:
-      'Burst. Sweep your blade around yourself, slicing nearby enemies. Effect increases with adrenaline level. Heal if you strike a target, healing more if they are bleeding. Healing scales off of the target struck that is bleeding the most.',
-    icon: 'https://render.guildwars2.com/file/9B1F4EC20A4B9A497A9A361052C608C5FFED3001/3790492.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Burst'],
-    recharge: 8,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

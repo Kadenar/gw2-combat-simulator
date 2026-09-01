@@ -117,7 +117,8 @@ const SIMULATOR_EXCLUDED_SKILL_NAMES = new Set([
   'Smoke Screen'
 ]);
 
-const SIMULATOR_EXCLUDED_ALIAS_IDS = new Set<SkillId>([45094, 80278, 76744, 76550, 76601, 76800, 76900, 77288]);
+// Context-specific variants remain distinct records but are not valid manual simulator selections.
+const SIMULATOR_EXCLUDED_SKILL_IDS = new Set<SkillId>([45094, 76550, 76601, 76800, 76900, 77288]);
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.BRANCH_LEAP,
@@ -196,7 +197,7 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
 ]);
 
 const generatedSource: readonly ThiefSkill[] = SKILLS.filter(
-  (skill) => !SIMULATOR_EXCLUDED_SKILL_NAMES.has(skill.name) && !SIMULATOR_EXCLUDED_ALIAS_IDS.has(skill.id)
+  (skill) => !SIMULATOR_EXCLUDED_SKILL_NAMES.has(skill.name) && !SIMULATOR_EXCLUDED_SKILL_IDS.has(skill.id)
 ).map((skill) => ({
   ...skill,
   flipSkillId:

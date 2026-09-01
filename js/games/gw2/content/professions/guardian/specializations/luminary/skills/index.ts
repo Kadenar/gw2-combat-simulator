@@ -1,10 +1,70 @@
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 export const PIERCING_STANCE_IMPACT_MS = 160;
+export const LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID = 25_518;
+export const LUMINARY_INITIAL_STATE_SKILL_IDS = Object.freeze({
+  resolution: 873,
+  claw: 73_955,
+  empoweredArmaments: 77_169,
+  radiantHammer: 77_360
+});
+
+export const LUMINARY_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  {
+    id: LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
+    name: 'Initial Light Aura',
+    description: 'Replays an initial Light Aura state recorded before the EVTC timeline.',
+    icon: '',
+    type: 'Action',
+    slot: 'Action',
+    specialization: 'Luminary',
+    castTimeMs: 0,
+    cooldown: 0,
+    implemented: true,
+    simulatorExcluded: true,
+    effects: []
+  },
+  ...[
+    [LUMINARY_INITIAL_STATE_SKILL_IDS.resolution, 'Initial Resolution'],
+    [LUMINARY_INITIAL_STATE_SKILL_IDS.claw, 'Initial Relic of the Claw'],
+    [LUMINARY_INITIAL_STATE_SKILL_IDS.empoweredArmaments, 'Initial Empowered Armaments'],
+    [LUMINARY_INITIAL_STATE_SKILL_IDS.radiantHammer, 'Initial Radiant Hammer']
+  ].map(([id, name]) => ({
+    id: Number(id),
+    name: String(name),
+    description: 'Replays an exact-duration initial state observed in an EVTC log.',
+    icon: '',
+    type: 'Action',
+    slot: 'Action',
+    specialization: 'Luminary',
+    castTimeMs: 0,
+    cooldown: 0,
+    implemented: true,
+    simulatorExcluded: true,
+    effects: []
+  }))
+]);
 
 export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  [LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID]: {
+    implemented: true,
+    simulatorExcluded: true,
+    castTimeMs: 0,
+    effects: []
+  },
+  ...Object.fromEntries(
+    Object.values(LUMINARY_INITIAL_STATE_SKILL_IDS).map((skillId) => [
+      skillId,
+      {
+        implemented: true,
+        simulatorExcluded: true,
+        castTimeMs: 0,
+        effects: []
+      }
+    ])
+  ),
   [ID.EXIT_RADIANT_FORGE]: {
     implemented: true,
     castTimeMs: 0,
@@ -23,8 +83,11 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 1
+        // The strike lands 674 ms into the fixed one-second animation; this
+        // also anchors its aura detonation and light-field finisher.
+        ticks: [{ atMs: 674, coefficient: 3 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -222,18 +285,6 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: []
   },
   [ID.RADIANT_RESOLVE]: {
-    implemented: true,
-    castTimeMs: 0,
-    handlerId: 'guardian.virtue',
-    effects: []
-  },
-  [ID.RADIANT_RESOLVE_ID_78604]: {
-    implemented: true,
-    castTimeMs: 0,
-    handlerId: 'guardian.virtue',
-    effects: []
-  },
-  [ID.RADIANT_COURAGE_ID_78770]: {
     implemented: true,
     castTimeMs: 0,
     handlerId: 'guardian.virtue',

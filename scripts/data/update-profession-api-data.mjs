@@ -2,6 +2,13 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { fetchProfessionSnapshot, writeProfessionSnapshot } from './lib/gw2-profession-snapshot.mjs';
 
+const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
+const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
+  Engineer: Object.freeze([5825, 5832, 5860, 5861, 5862, 5910]),
+  Guardian: Object.freeze([9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676]),
+  Ranger: Object.freeze([12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256])
+});
+
 export function normalizeProfessionName(value) {
   const normalized = String(value || '').trim();
 
@@ -24,7 +31,25 @@ export async function updateProfessionApiData(
   { fetchImpl = fetch, snapshotDate, snapshotConfig, output: requestedOutput, refreshCommand, log = console.log } = {}
 ) {
   const normalizedProfession = normalizeProfessionName(professionName);
-  const config = snapshotConfig || {};
+  const omittedSkillIds = SIMULATOR_OMITTED_SKILL_IDS[normalizedProfession] || [];
+  // Unsupported profession skills are filtered during generation so an API refresh cannot restore them.
+  // The live Thief profession payload alternates between expansion snapshots; explicit seeds prevent data loss.
+  const config = {
+    ...(snapshotConfig || {}),
+    ...(omittedSkillIds.length
+      ? {
+          excludedIds: [...omittedSkillIds, ...(snapshotConfig?.excludedIds || [])]
+        }
+      : {}),
+    ...(normalizedProfession === 'Thief'
+      ? {
+          extraSkillIds: [
+            ...STABLE_THIEF_ARTIFACT_SKILL_IDS,
+            ...(Array.isArray(snapshotConfig?.extraSkillIds) ? snapshotConfig.extraSkillIds : [])
+          ]
+        }
+      : {})
+  };
   const id = normalizedProfession.toLowerCase();
   const output = requestedOutput
     ? path.resolve(requestedOutput)

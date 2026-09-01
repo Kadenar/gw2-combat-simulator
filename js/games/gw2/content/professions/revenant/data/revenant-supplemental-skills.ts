@@ -690,20 +690,6 @@ const records: readonly Skill[] = [
     flipSkillId: null
   },
   {
-    id: 76917,
-    name: 'Beguiling Haze',
-    description:
-      'Send an unblockable fragment of Razah towards the targeted area. When the fragment reaches its target, shadowstep to its position, dealing damage to enemies in the area. If it hits, you can use this skill up to two more times with no energy cost or casting time. <br><br>Resonance. If Legendary Assassin Stance is equipped, this skill deals additional damage and removes boons if only one enemy was struck by this attack.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Beguiling_Haze.png',
-    type: 'Utility',
-    slot: 'Utility',
-    weapon: '',
-    specialization: 'Conduit',
-    categories: ['Legendary Entity'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 77001,
     name: 'Twin Moon Sweep',
     description:

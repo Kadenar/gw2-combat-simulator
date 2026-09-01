@@ -1,4 +1,5 @@
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS, GEAR_STATS, INFUSION_STATS } from '#gw2/platform/equipment/gear/stats.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
@@ -487,12 +488,14 @@ function normalizeSpecializations(
  * @param {CanonicalCatalog} catalog
  * @returns {Record<string, string>}
  */
-// Older builds stored skill IDs instead of names. Resolve each ID through the
-// catalog and convert to the slot-keyed name map the current schema uses.
+// Older builds stored skill IDs instead of names. Canonicalize numeric aliases
+// before catalog lookup so deleted compatibility records still migrate.
 function selectedSkillsFromLegacy(saved: SchedulerRecord, catalog: CanonicalCatalog): Record<string, string> {
   const result: Record<string, string> = {};
   const skills = (Array.isArray(saved.selectedSkillIds) ? saved.selectedSkillIds : [])
-    .map((id) => (typeof id === 'string' || typeof id === 'number' ? catalog.skillsById.get(id) : undefined))
+    .map((id) =>
+      typeof id === 'string' || typeof id === 'number' ? catalog.skillsById.get(canonicalGw2SkillId(id)) : undefined
+    )
     .filter((skill) => skill != null);
   result.Heal = skills.find((skill) => skill.type === 'Heal')?.name || '';
   result.Elite = skills.find((skill) => skill.type === 'Elite')?.name || '';
@@ -782,7 +785,8 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
     !(candidate.type === 'combat-start'
       ? validCanonicalOffset(candidate, 'concurrentOffsetMs')
       : validCanonicalMilliseconds(candidate, 'concurrentOffsetMs')) ||
-    !validCanonicalMilliseconds(candidate, 'interruptAfterMs')
+    !validCanonicalMilliseconds(candidate, 'interruptAfterMs') ||
+    !validCanonicalMilliseconds(candidate, 'initialStateDurationMs')
   ) {
     errors.push('rotation timing fields must be finite; cast timing must be non-negative.');
   }
@@ -800,6 +804,10 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
 
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'interruptAfterMs')) {
     errors.push('only cast commands may contain interruptAfterMs.');
+  }
+
+  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'initialStateDurationMs')) {
+    errors.push('only cast commands may contain initialStateDurationMs.');
   }
 
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'releaseAtCharges')) {

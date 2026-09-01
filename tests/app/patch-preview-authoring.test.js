@@ -51,6 +51,14 @@ test('patch authoring omits unused skills but retains indirect runtime skills', 
     assert.equal(engineerSkillNames.has(unusedName), false, unusedName);
   }
 
+  for (const unusedId of [5865, 29591, 29991, 30881]) {
+    assert.equal(engineerSkillIds.has(unusedId), false, String(unusedId));
+  }
+
+  for (const usedId of [5811, 21659]) {
+    assert.equal(engineerSkillIds.has(usedId), true, String(usedId));
+  }
+
   assert.equal(engineerSkillIds.has('engineer.turret.rifle.attack'), true);
 
   const lesserGrenadeBarrage = engineerSkills.find((entry) => entry.name === 'Lesser Grenade Barrage');
@@ -96,6 +104,7 @@ test('patch authoring omits unreachable skills for the remaining professions', (
   }
 
   const guardianNames = namesFor(guardianProfession);
+  const guardianIds = idsFor(guardianProfession);
 
   for (const unusedName of [
     '"Advance!"',
@@ -108,14 +117,21 @@ test('patch authoring omits unreachable skills for the remaining professions', (
   }
 
   assert.equal(guardianNames.has('Chapter 1: Searing Spell'), true);
+  for (const unusedId of [44846, 62532, 78604, 78770]) {
+    assert.equal(guardianIds.has(unusedId), false, String(unusedId));
+  }
+
+  for (const usedId of [9168, 62648, 78514, 78358]) {
+    assert.equal(guardianIds.has(usedId), true, String(usedId));
+  }
 
   const warriorIds = idsFor(warriorProfession);
 
-  for (const unusedId of [14372, 14422, 14443, 30989, 39972, 62804]) {
+  for (const unusedId of [14372, 14422, 30435, 69297, 69433, 14443, 30989, 39972, 62804]) {
     assert.equal(warriorIds.has(unusedId), false, String(unusedId));
   }
 
-  for (const usedId of [14353, 30435, 69297, 69433]) {
+  for (const usedId of [14353, 30185, 45252]) {
     assert.equal(warriorIds.has(usedId), true, String(usedId));
   }
 

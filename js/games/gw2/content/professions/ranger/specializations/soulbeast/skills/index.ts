@@ -565,25 +565,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       }
     ]
   },
-  [ID.GRIFFON_STANCE]: {
-    implemented: true,
-    evades: true,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 2
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 6,
-        stacks: 2
-      }
-    ],
-    quicknessCastTimeMs: 667
-  },
   [ID.SHARPEN_SPINES]: {
     implemented: true,
     castTimeMs: 0,
@@ -620,52 +601,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       }
     ]
   },
-  [ID.DOLYAK_STANCE]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 6,
-        stacks: 6
-      }
-    ],
-    quicknessCastTimeMs: 333
-  },
   [ID.UNFLINCHING_FORTITUDE]: {
     implemented: true,
     effects: [],
     quicknessCastTimeMs: 167
-  },
-  [ID.MOA_STANCE]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 6,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'swiftness',
-        duration: 6,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 8,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333
   },
   [ID.TAIL_LASH_ID_46386]: {
     implemented: true,

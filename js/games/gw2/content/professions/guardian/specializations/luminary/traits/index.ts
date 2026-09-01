@@ -1,7 +1,12 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
-import { PIERCING_STANCE_IMPACT_MS } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
+import {
+  LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
+  LUMINARY_INITIAL_STATE_SKILL_IDS,
+  PIERCING_STANCE_IMPACT_MS
+} from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -10,12 +15,9 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  emitGuardianProc,
-  guardianTraitIcon,
-  isGuardianSymbolSkill
-} from '#gw2/content/professions/guardian/core/traits/index.js';
+import { emitGuardianProc, guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
 import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
+import { radiantWeaponImpactAt } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
@@ -38,9 +40,7 @@ const RADIANT_WEAPON_SKILLS = Object.freeze({
 const RADIANT_VIRTUE_IDS: ReadonlySet<SkillId> = new Set([
   GUARDIAN_SKILL_IDS.RADIANT_JUSTICE,
   GUARDIAN_SKILL_IDS.RADIANT_RESOLVE,
-  GUARDIAN_SKILL_IDS.RADIANT_RESOLVE_ID_78604,
-  GUARDIAN_SKILL_IDS.RADIANT_COURAGE,
-  GUARDIAN_SKILL_IDS.RADIANT_COURAGE_ID_78770
+  GUARDIAN_SKILL_IDS.RADIANT_COURAGE
 ]);
 
 function lightAuraActive(state: GuardianLuminaryState, at: number, epsilon: number): boolean {
@@ -59,14 +59,41 @@ function addLightField(state: GuardianLuminaryState, startsAt: number, duration:
   state.lightFields.push({ startsAt, endsAt: startsAt + duration });
 }
 
-function detonateLightAura(context: GuardianCastContext, skill: GuardianSkill, at: number): boolean {
+// Aura operations are replayed by the resolver so overlapping casts mutate
+// aura state in combat-time order rather than rotation scheduling order.
+function emitLightAuraOperation(
+  context: GuardianCastContext | GuardianSchedulerContext,
+  type: string,
+  at: number,
+  skill: Pick<GuardianSkill, 'id' | 'name'>,
+  priority: number,
+  extra: Readonly<Record<string, unknown>> = {}
+): void {
+  context.emit({
+    type,
+    at,
+    priority,
+    source: 'guardian',
+    sourceId: skill.id,
+    actorType: 'player',
+    skillId: skill.id,
+    skillName: skill.name,
+    sourceSkill: skill.name,
+    ...extra
+  });
+}
+
+function detonateLightAura(context: GuardianResolverContext, event: GuardianResolverEvent): boolean {
   const state = luminaryState.from(context);
-  if (!lightAuraActive(state, at, context.epsilon)) return false;
+  const epsilon = Number(context.epsilon ?? EPSILON);
+  if (!lightAuraActive(state, event.at, epsilon)) return false;
   const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sovereignOfLight), 'strike');
   state.lightAuraUntil = 0;
-  context.emit(
+  enqueueOrdered(
+    context.queue,
     buildGuardianStrike({
-      at,
+      at: event.at,
+      priority: -15,
       sourceId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
       actorType: 'effect',
       ownerActorType: 'player',
@@ -75,29 +102,50 @@ function detonateLightAura(context: GuardianCastContext, skill: GuardianSkill, a
       name: 'Sovereign of Light',
       coefficient: Number(strike?.coefficient || 1.5),
       skillWeapon: 'Unequipped',
-      triggeredBy: skill.name
+      triggeredBy: event.sourceSkill || event.skillName
     })
   );
-  emitGuardianProc(context, {
-    name: 'Sovereign of Light',
-    at,
-    sourceSkill: skill.name,
-    detail: 'Light aura detonated',
-    icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
-  });
+  context.recordProc(
+    'trait',
+    'Sovereign of Light',
+    event.at,
+    event.sourceSkill || event.skillName,
+    'Light aura detonated',
+    guardianTraitIcon(GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
+  );
   return true;
 }
 
-function grantLightAura(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
+export function handleLightAuraGrant(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  const state = luminaryState.from(context);
   if (
-    lightAuraActive(luminaryState.from(context), at, context.epsilon) &&
+    event.refreshOnly !== true &&
+    lightAuraActive(state, event.at, Number(context.epsilon ?? EPSILON)) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
   ) {
-    detonateLightAura(context, skill, at);
+    detonateLightAura(context, event);
   }
 
-  luminaryState.from(context).lightAuraUntil =
-    at + Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration || 4);
+  state.lightAuraUntil =
+    event.at +
+    Number(
+      event.duration ||
+        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration ||
+        4
+    );
+}
+
+export function handleLightAuraDetonate(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  detonateLightAura(context, event);
+}
+
+export function handleLightFieldStart(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  addLightField(luminaryState.from(context), event.at, Number(event.duration || 0));
+}
+
+export function handleLightFinisher(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  if (!activeLightField(luminaryState.from(context), event.at, Number(context.epsilon ?? EPSILON))) return;
+  handleLightAuraGrant(context, { ...event, duration: 5 });
 }
 
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
@@ -119,34 +167,37 @@ function isLightLeap(skill: GuardianSkill): boolean {
 }
 
 function processLightAuraAndFields(context: GuardianCastContext, skill: GuardianSkill): void {
-  const state = luminaryState.from(context);
   const activationAt = context.start;
-  const impactAt = context.effectiveEnd;
+  const impactAt = radiantWeaponImpactAt(context, skill);
   const sovereign = hasTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT);
   if (sovereign && isLuminaryDetonator(skill)) {
-    detonateLightAura(context, skill, activationAt);
+    const detonatesOnImpact =
+      skill.radiantForgeSkill === true ||
+      skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE ||
+      skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE;
+    emitLightAuraOperation(
+      context,
+      'guardian.luminary.light-aura-detonate',
+      detonatesOnImpact ? impactAt : activationAt,
+      skill,
+      -20
+    );
   }
 
   const virtueOne = skill.categories?.includes('Virtue') && String(skill.slot) === 'Profession_1';
   const enteringRadiantForge = skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   const grantsImmediately =
+    skill.id === LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID ||
     skill.id === GUARDIAN_SKILL_IDS.EFFULGENT_STANCE ||
-    [GUARDIAN_SKILL_IDS.RADIANT_RESOLVE, GUARDIAN_SKILL_IDS.RADIANT_RESOLVE_ID_78604].some(
-      (skillId) => skillId === skill.id
-    ) ||
+    skill.id === GUARDIAN_SKILL_IDS.RADIANT_RESOLVE ||
     (enteringRadiantForge && sovereign) ||
     (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND));
   if (grantsImmediately) {
-    if (enteringRadiantForge) {
-      // Bypass grantLightAura to avoid a spurious Sovereign of Light detonation:
-      // the trait grants the aura at forge entry, not the skill itself, so an
-      // existing aura must be refreshed rather than consumed.
-      state.lightAuraUntil =
-        activationAt +
-        Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration || 4);
-    } else {
-      grantLightAura(context, skill, activationAt);
-    }
+    emitLightAuraOperation(context, 'guardian.luminary.light-aura-grant', activationAt, skill, -10, {
+      // Forge entry applies the trait's aura itself, so it refreshes rather
+      // than consuming an aura granted by another source at the same instant.
+      refreshOnly: enteringRadiantForge
+    });
   }
 
   if (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)) {
@@ -164,16 +215,12 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
     });
   }
 
-  if (isGuardianSymbolSkill(skill)) addLightField(state, impactAt, 4);
   if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
-    addLightField(state, impactAt, 5);
+    emitLightAuraOperation(context, 'guardian.luminary.light-field-start', impactAt, skill, -30, { duration: 5 });
   }
 
-  if (
-    (isLightLeap(skill) || skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER) &&
-    activeLightField(state, impactAt, context.epsilon)
-  ) {
-    grantLightAura(context, skill, impactAt);
+  if (isLightLeap(skill) || skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER) {
+    emitLightAuraOperation(context, 'guardian.luminary.light-finisher', impactAt, skill, -15);
   }
 }
 
@@ -223,6 +270,7 @@ function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianS
       context.emit({
         type,
         at,
+        priority: type === 'guardian.effulgent-activated' ? -40 : 0,
         source: 'guardian',
         sourceId: skill.id,
         actorType: 'player',
@@ -230,6 +278,43 @@ function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianS
         skillName: skill.name
       });
     }
+  }
+}
+
+/** Replays only the remaining duration ArcDPS observed at the EVTC boundary. */
+function replayInitialLuminaryState(context: GuardianCastContext, skill: GuardianSkill): void {
+  const duration = Math.max(0, Number(context.command.initialStateDurationMs || 0)) / 1000;
+  if (!(duration > 0)) return;
+  const common = {
+    at: context.start,
+    source: 'guardian',
+    sourceId: skill.id,
+    actorType: 'player' as const,
+    duration,
+    stacks: 1
+  };
+  if (skill.id === LUMINARY_INITIAL_STATE_SKILL_IDS.resolution) {
+    emitSkillBuff(context, skill, { ...common, kind: 'resolution' });
+  } else if (skill.id === LUMINARY_INITIAL_STATE_SKILL_IDS.empoweredArmaments) {
+    luminaryState.from(context).empoweredArmamentsUntil = context.start + duration;
+    emitSkillBuff(context, skill, { ...common, kind: 'guardian-empowered-armaments' });
+  } else if (skill.id === LUMINARY_INITIAL_STATE_SKILL_IDS.radiantHammer) {
+    emitSkillBuff(context, skill, {
+      ...common,
+      kind: 'guardian-radiant-armaments',
+      metadata: { radiantWeapon: 'hammer' }
+    });
+  } else if (skill.id === LUMINARY_INITIAL_STATE_SKILL_IDS.claw) {
+    // A zero-duration control hydrates only the selected Claw relic; it cannot disable the target.
+    context.emit({
+      ...common,
+      type: 'control',
+      controlKind: 'initial-state',
+      duration: 0,
+      initialStateDuration: duration,
+      skillId: skill.id,
+      skillName: skill.name
+    });
   }
 }
 
@@ -384,6 +469,7 @@ function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: Guardia
 }
 
 export function updateLuminaryTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {
+  replayInitialLuminaryState(context, skill);
   if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
     // Register Exit Radiant Forge as an available flip so the scheduler and
     // UI treat it as an always-ready option while the forge is active.
@@ -397,6 +483,20 @@ export function updateLuminaryTraitCastState(context: GuardianCastContext, skill
 }
 
 export function observeLuminaryScheduledEvent(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
+  if (event.type === 'combo_field' && String(event.fieldType) === 'Light') {
+    emitLightAuraOperation(
+      context,
+      'guardian.luminary.light-field-start',
+      event.at,
+      {
+        id: event.skillId ?? event.sourceId,
+        name: event.skillName || event.name || 'Light field'
+      },
+      -30,
+      { duration: Number(event.expiresAt) - event.at }
+    );
+  }
+
   if (
     event.type === 'damage' &&
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES &&
@@ -404,7 +504,17 @@ export function observeLuminaryScheduledEvent(context: GuardianSchedulerContext,
     // is the initial impact and does not create a combo field.
     Number(event.hitIndex || 0) === 1
   ) {
-    addLightField(luminaryState.from(context), event.at, 4);
+    emitLightAuraOperation(
+      context,
+      'guardian.luminary.light-field-start',
+      event.at,
+      {
+        id: event.skillId,
+        name: event.skillName || 'Lesser Symbol of Blades'
+      },
+      -30,
+      { duration: 4 }
+    );
   }
 
   if (event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.LUMINOUS_STAFF) {
@@ -451,7 +561,7 @@ export function reactToEffulgentStrike(context: GuardianResolverContext, event: 
     !(Number(event.coefficient || 0) > 0) ||
     // Strict less-than with epsilon so a strike at exactly effulgentActiveUntil
     // does not count — the window is half-open [activated, detonated).
-    !(event.at < Number(state.effulgentActiveUntil || 0) - Number(context.epsilon || 0.0001))
+    !(event.at < Number(state.effulgentActiveUntil || 0) - Number(context.epsilon ?? EPSILON))
   ) {
     return;
   }

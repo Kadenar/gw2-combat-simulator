@@ -99,7 +99,7 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
   assert.equal(DATA_SNAPSHOT, '2026-08-08');
   assert.equal(warriorCatalog.specializations.length, 9);
   assert.equal(warriorCatalog.traits.length, 108);
-  assert.equal(warriorCatalog.skills.length, 210);
+  assert.equal(warriorCatalog.skills.length, 192);
   assert.deepEqual(
     warriorCatalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name),
     ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
@@ -108,6 +108,26 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
   assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).name, 'Weapon Stow');
   assert.match(warriorCatalog.skillsById.get(ID.WEAPON_STOW).icon, /assets\/warrior\/weapon-stow\.png$/);
   assert.equal(warriorCatalog.skillsById.get(ID.EVISCERATE).name, 'Eviscerate');
+  for (const aliasId of [
+    14422, 14425, 14469, 14473, 14474, 14475, 14512, 14520, 14545, 14549, 30435, 42041, 69297, 69433, 72029, 72911,
+    80252, 80263
+  ]) {
+    assert.equal(warriorCatalog.skillsById.has(aliasId), false);
+  }
+
+  for (const distinctId of [
+    40601, 41110, 41330, 41746, 42707, 42803, 43566, 71922, 71950, 72089, 73006, 73014, 73042
+  ]) {
+    assert.equal(warriorCatalog.skillsById.has(distinctId), true, String(distinctId));
+  }
+
+  for (const protectedId of [41746, 73006, 73042]) {
+    assert.equal(warriorCatalog.skillsById.get(protectedId).simulatorExcluded, false, String(protectedId));
+  }
+
+  assert.equal(warriorCatalog.skillsByName.get('Forceful Shot').id, ID.FORCEFUL_SHOT);
+  assert.equal(warriorCatalog.skillsByName.get('Path to Victory').id, ID.PATH_TO_VICTORY_ID_71932);
+  assert.equal(warriorCatalog.skillsByName.get("Harrier's Toss").id, ID.HARRIERS_TOSS);
   assert.equal(
     warriorCatalog.skills.every((skill) => skill.implemented || skill.simulatorExcluded),
     true
@@ -340,7 +360,7 @@ test('Warrior F keys follow the selected primary weapons', () => {
   const paragon = groups('Paragon', ['Staff', ''], ['Spear', '']);
 
   assert.deepEqual(paragon.palette, [
-    ID.PATH_TO_VICTORY,
+    ID.PATH_TO_VICTORY_ID_71932,
     ID.HARRIERS_TOSS,
     ID.CHANT_OF_ACTION,
     ID.CHANT_OF_RECUPERATION,
@@ -1137,9 +1157,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
   assert.equal(resolvedBreaching.weaponStrengthProfileId, 'weapon.dagger');
   assert.equal(resolvedBreaching.resolvedWeaponStrength, 1000);
 
-  for (const id of [ID.BLOODTHIRSTER, ID.BLOODTHIRSTER_ID_80252, ID.BLOODTHIRSTER_ID_80263]) {
-    assert.equal(warriorCatalog.skillsById.get(id).skillWeapon, 'Sword');
-  }
+  assert.equal(warriorCatalog.skillsById.get(ID.BLOODTHIRSTER).skillWeapon, 'Sword');
 
   const fixedBloodthirster = simulate('Spellbreaker', ['Bloodthirster'], {
     initialResource: 10,
@@ -2878,7 +2896,6 @@ test('Axe packets and burst coefficients use the supplied PvE values', () => {
   );
   assert.equal(warriorCatalog.skillsById.get(ID.WHIRLING_AXE).cooldown, 15);
   assert.equal(warriorCatalog.skillsById.get(ID.EVISCERATE).cooldown, 8);
-  assert.equal(warriorCatalog.skillsById.get(ID.EVISCERATE_ID_14422).cooldown, 8);
   assert.equal(warriorCatalog.skillsById.get(ID.DECAPITATE).cooldown, 0);
 
   for (const [resource, coefficient] of [

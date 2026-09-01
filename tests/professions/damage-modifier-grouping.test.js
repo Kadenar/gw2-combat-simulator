@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
-import { GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/content/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/content/professions/guardian/data/ids.js';
 import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
 import { MESMER_TRAIT_IDS as MESMER } from '#gw2/content/professions/mesmer/data/ids.js';
 import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
@@ -114,6 +114,25 @@ test('Guardian additive and multiplicative modifiers use separate buckets', () =
   const actual = guardianLuminaryRules.modifyStrikeDamage(context, 1.08);
 
   assert.ok(Math.abs(actual - 1.6 * 1.05 * 1.05) < 1e-12);
+});
+
+test('Glaring Burst hammer damage multiplies shared additive modifiers', () => {
+  const context = modifierContext({
+    event: {
+      source: 'Player',
+      skillId: GUARDIAN_SKILL_IDS.GLARING_BURST,
+      radiantWeapon: 'hammer'
+    },
+    active: ['guardian-piercing-stance'],
+    sigils: {
+      strike: 1.05,
+      strikeAdd: 0.05,
+      condition: 1,
+      conditionAdd: 0
+    }
+  });
+
+  assertClose(guardianLuminaryRules.modifyStrikeDamage(context, 1.05), 1.15 * 1.25);
 });
 
 test('Necromancer active runtimes isolate their Discretize modifier buckets', () => {

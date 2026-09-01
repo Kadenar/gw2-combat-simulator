@@ -842,6 +842,7 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
     skillId?: string | number;
     offset?: number;
     interruptMs?: number;
+    initialStateDurationMs?: number;
     doubleEdgeOutcome?: 'success' | 'backfire';
   } = {
     name: action.name,
@@ -851,6 +852,10 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
   // EVTC duration is replayed only after the shared commit check; otherwise
   // omitting interruptMs makes the simulator use its normal Quickness cast.
   if (interruptMs != null) command.interruptMs = interruptMs;
+
+  if (action.initialStateDurationMs != null) {
+    command.initialStateDurationMs = action.initialStateDurationMs;
+  }
 
   if (action.doubleEdgeOutcome != null) {
     command.doubleEdgeOutcome = action.doubleEdgeOutcome;

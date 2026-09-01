@@ -1,4 +1,5 @@
 import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/platform/builds/templates/data.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/types.js';
 import type { Gw2BuildSpecialization } from '#gw2/platform/builds/types.js';
 
@@ -272,11 +273,14 @@ export function resolveGw2BuildTemplate(
   for (const { slot, type, paletteIndex } of SLOT_LAYOUT) {
     const paletteId = decoded.skillPaletteIds[paletteIndex];
     if (!paletteId) continue;
-    const skillId = paletteMap.get(paletteId);
-    if (skillId == null) {
+    const rawSkillId = paletteMap.get(paletteId);
+    if (rawSkillId == null) {
       warnings.push(`${slot} uses unknown palette ID ${paletteId}.`);
       continue;
     }
+
+    // Build-template snapshots can retain an older API ID after its simulator record is removed.
+    const skillId = canonicalGw2SkillId(rawSkillId);
 
     const skill = preferredCandidate(
       selectableCandidates(catalog, skillId, type, selectedSpecializations),

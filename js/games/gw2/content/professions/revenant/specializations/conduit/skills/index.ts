@@ -180,18 +180,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ]
   },
-  [ID.BEGUILING_HAZE_ID_76917]: {
-    implemented: true,
-    handlerId: 'revenant.beguiling-haze',
-    castTimeMs: 250,
-    cooldown: 10,
-    recharge: 0,
-    ammo: 1,
-    ammoRecharge: 10,
-    energyCost: 20,
-    effects: BEGUILING_HAZE_EFFECTS,
-    legendId: 'LegendaryEntity'
-  },
   [ID.TWIN_MOON_SWEEP]: {
     implemented: true,
     handlerId: 'revenant.twin-moon-sweep',
@@ -254,18 +242,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.BEGUILING_HAZE]: {
-    implemented: true,
-    handlerId: 'revenant.beguiling-haze',
-    castTimeMs: 250,
-    cooldown: 10,
-    recharge: 0,
-    ammo: 1,
-    ammoRecharge: 10,
-    energyCost: 20,
-    effects: BEGUILING_HAZE_EFFECTS,
-    legendId: 'LegendaryEntity'
-  },
-  [ID.BEGUILING_HAZE_ID_77159]: {
     implemented: true,
     handlerId: 'revenant.beguiling-haze',
     castTimeMs: 250,

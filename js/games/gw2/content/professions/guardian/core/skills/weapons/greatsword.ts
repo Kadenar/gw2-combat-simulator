@@ -141,10 +141,10 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         name: 'Binding Blade — Tether',
         canCrit: false,
         sourceId: 9148,
+        // Tether pulses are non-critical power strikes, so they remain in strike totals.
         metadata: {
           flatStrikeBase: 160,
-          flatStrikePowerCoeff: 0.3,
-          damageKind: 'condition'
+          flatStrikePowerCoeff: 0.3
         }
       },
       {

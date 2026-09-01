@@ -78,7 +78,7 @@ function emitForgeTransition(
 }
 
 /** Returns the primary strike timestamp so linked bonuses follow its packet instead of cast completion. */
-function radiantWeaponImpactAt(context: GuardianCastContext, skill: GuardianSkill): number {
+export function radiantWeaponImpactAt(context: GuardianCastContext, skill: GuardianSkill): number {
   const strike = skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
   if (strike?.type !== 'strike') return context.effectiveEnd;
   const atMs = effectFirstAtMs(strike);

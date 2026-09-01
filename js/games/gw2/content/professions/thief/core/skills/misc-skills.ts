@@ -463,20 +463,5 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     cooldown: 0,
     initiativeCost: 0,
     effects: []
-  },
-  [ID.DEATHS_ADVANCE_ID_80278]: {
-    implemented: true,
-    castTimeMs: 250,
-    cooldown: 0,
-    initiativeCost: 2,
-    effects: [
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    kneelSkill: true
   }
 });

@@ -126,7 +126,8 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
   assert.equal(revenantCatalog.specializations.length, 9);
   assert.equal(revenantCatalog.traits.length, 108);
-  assert.ok(revenantCatalog.skills.length >= 209);
+  // Keep the catalog-size guard aligned with the six API-linked duplicate records now owned by aliases.
+  assert.ok(revenantCatalog.skills.length >= 203);
   assert.equal(REVENANT_LEGENDS.length, 8);
   assert.ok(REVENANT_LEGENDS.every((legend) => legend.skillIds.length === 5));
   assert.ok(REVENANT_LEGENDS.every((legend) => legend.icon));

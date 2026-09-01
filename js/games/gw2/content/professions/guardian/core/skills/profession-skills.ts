@@ -20,17 +20,5 @@ export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     castTimeMs: 0,
     handlerId: 'guardian.virtue',
     effects: []
-  },
-  [ID.VIRTUE_OF_RESOLVE]: {
-    implemented: true,
-    castTimeMs: 0,
-    handlerId: 'guardian.virtue',
-    effects: []
-  },
-  [ID.VIRTUE_OF_COURAGE]: {
-    implemented: true,
-    castTimeMs: 0,
-    handlerId: 'guardian.virtue',
-    effects: []
   }
 });

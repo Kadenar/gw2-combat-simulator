@@ -145,15 +145,12 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   DEATH_SPIRAL: 30860, // Death Spiral
   TRAIL_OF_ANGUISH: 40274, // Trail of Anguish
   SERPENT_SIPHON: 41615, // Serpent Siphon
-  MANIFEST_SAND_SHADE_ID_42297: 42297, // Manifest Sand Shade
   GHASTLY_BREACH: 42355, // Ghastly Breach
   SAND_SWELL: 42917, // Sand Swell
   DESICCATE: 42935, // Desiccate
   SAND_FLARE: 43148, // Sand Flare
   OPPRESSIVE_COLLAPSE: 44296, // Oppressive Collapse
   HARROWING_WAVE: 45846, // Harrowing Wave
-  MANIFEST_SAND_SHADE_ID_46473: 46473, // Manifest Sand Shade
-  MANIFEST_SAND_SHADE_ID_46474: 46474, // Manifest Sand Shade
   SOUL_GRASP: 55050, // Soul Grasp
   VILE_BLAST: 62511, // Vile Blast
   WEEPING_SHOTS: 62513, // Weeping Shots

@@ -3738,22 +3738,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     flipSkillId: null
   },
   {
-    id: 76744,
-    name: 'Canach-Coin Toss',
-    description: 'This skill has backfired and cannot be used again until fully recharged.',
-    icon: 'https://render.guildwars2.com/file/CA51F09750F4C7C70A546E9F040EEF2977370DFF/3680220.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Antiquary',
-    categories: [],
-    recharge: 15,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 76784,
     name: 'Emergency Jade Shield',
     description: 'This skill has backfired and cannot be used again until fully recharged.',
@@ -4091,23 +4075,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     weapon: 'Sword',
     slot: 'Weapon_3',
     specialization: '',
-    categories: [],
-    recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 80278,
-    name: "Death's Advance",
-    description:
-      "Kneel. Shadowstep forward while granting yourself stealth. While standing within Sniper's Cover, shadowstep to any position within range instead.",
-    icon: 'https://render.guildwars2.com/file/F66C0938F052950905AE804BB4C495CBF6AD36AF/2779165.png',
-    type: 'Weapon',
-    weapon: 'Rifle',
-    slot: 'Weapon_4',
-    specialization: 'Deadeye',
     categories: [],
     recharge: 0,
     ammo: 0,

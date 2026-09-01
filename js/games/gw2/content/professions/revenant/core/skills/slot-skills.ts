@@ -473,50 +473,11 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ],
     legendId: 'LegendaryDwarf'
   },
-  [ID.NATURAL_HARMONY_ID_29082]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 2,
-    energyCost: 20,
-    effects: [],
-    legendId: 'LegendaryCentaur'
-  },
-  [ID.ENERGY_EXPULSION_ID_29114]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 2,
-    energyCost: 35,
-    effects: [
-      {
-        type: 'control',
-        actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
-      },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 5,
-        stacks: 3
-      }
-    ],
-    legendId: 'LegendaryCentaur'
-  },
   [ID.PROJECT_TRANQUILITY]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 2,
     energyCost: 0,
-    effects: [],
-    legendId: 'LegendaryCentaur'
-  },
-  [ID.PURIFYING_ESSENCE_ID_29197]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 5,
-    energyCost: 25,
     effects: [],
     legendId: 'LegendaryCentaur'
   },

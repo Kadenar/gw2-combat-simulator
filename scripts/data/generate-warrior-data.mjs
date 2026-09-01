@@ -133,7 +133,7 @@ const CONTROL_TYPES = new Set([
   'Stun',
   'Taunt'
 ]);
-const QUICKNESS_UNAFFECTED_SKILL_IDS = new Set([14418, 45252, 46233, 69297, 69433]);
+const QUICKNESS_UNAFFECTED_SKILL_IDS = new Set([14418, 45252, 46233]);
 
 async function fetchJson(url) {
   const response = await fetch(url, {
@@ -379,7 +379,7 @@ function ownerOf(identity, raw, specializationById) {
 }
 
 function handlerId(identity, raw) {
-  if ([30185, 30435].includes(identity.id)) return 'warrior.berserk';
+  if (identity.id === 30185) return 'warrior.berserk';
 
   if (identity.id === 44165) return 'warrior.full-counter';
 
@@ -649,11 +649,7 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
     const castTimeMs = activationById.get(identity.id) || (identity.type === 'Profession' ? 0 : 500);
     const burst =
       identity.categories?.some((category) => /burst/i.test(category)) || /Burst\./.test(identity.description || '');
-    const cost = [30185, 30435].includes(identity.id)
-      ? 30
-      : burst && !identity.name.startsWith('Dragon Slash')
-        ? 10
-        : 0;
+    const cost = identity.id === 30185 ? 30 : burst && !identity.name.startsWith('Dragon Slash') ? 10 : 0;
     const adrenalineGain = Math.max(0, Number(fact(raw, 'Adrenaline', 'Number')?.value || 0));
     const flowGain = Math.max(0, Number(fact(raw, 'Flow', 'Number')?.value || 0));
     const handler = handlerId(identity, raw);

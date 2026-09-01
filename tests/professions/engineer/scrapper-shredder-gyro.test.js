@@ -27,10 +27,11 @@ test('Shredder Gyro uses its measured coefficient and fixed damage cadence', () 
 
   assert.equal(skill.quicknessCastTimeMs, 520);
   assert.equal(skill.castTimeMs, 780);
-  assert.equal(strike.coefficient, 4.8);
-  assert.equal(strike.hits, 12);
-  assert.equal(strike.atMs, 360);
-  assert.equal(strike.intervalMs, 520);
+  // Authored tick packets define the deployed gyro's total coefficient and cadence.
+  assert.ok(Math.abs(strike.ticks.reduce((total, tick) => total + tick.coefficient, 0) - 4.8) < 1e-12);
+  assert.equal(strike.ticks.length, 12);
+  assert.equal(strike.ticks[0].atMs, 360);
+  assert.equal(strike.ticks[1].atMs - strike.ticks[0].atMs, 520);
   assert.equal(strike.timingAnchor, 'castEnd');
   assert.equal(strike.timingScale, 'fixed');
 

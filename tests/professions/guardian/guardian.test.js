@@ -26,6 +26,7 @@ import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guard
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
+import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);
@@ -105,7 +106,7 @@ test('Guardian uses a current API catalog with real skills and trait lines', () 
   assert.match(DATA_SNAPSHOT, /^2026-/);
   assert.equal(guardianCatalog.specializations.length, 9);
   assert.equal(guardianCatalog.traits.length, 108);
-  assert.ok(guardianCatalog.skills.length >= 178);
+  assert.ok(guardianCatalog.skills.length >= 172);
   assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.TRUE_STRIKE).name, 'True Strike');
   assert.equal(guardianCatalog.skillsByName.get('Virtue of Justice').id, 9115);
   assert.equal(
@@ -403,12 +404,17 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
     true
   );
   assert.equal(
-    tether.every(
-      (event) => event.flatStrikeBase === 160 && event.flatStrikePowerCoeff === 0.3 && event.damageKind === 'condition'
-    ),
+    tether.every((event) => event.flatStrikeBase === 160 && event.flatStrikePowerCoeff === 0.3),
     true
   );
-  assert.equal(quick.conditionDamage > 0, true);
+  const tetherBreakdown = quick.breakdown.find((entry) => entry.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
+
+  assert.equal(
+    tetherBreakdown.strikeDamage,
+    tether.reduce((damage, event) => damage + event.damage, 0)
+  );
+  assert.equal(tetherBreakdown.conditionDamage, 0);
+  assert.equal(tetherBreakdown.hits, 10);
 });
 
 test('Guardian greatsword autos separate packet, safe-cancel, and retained-lockout timing', () => {
@@ -521,14 +527,7 @@ test('Guardian longbow packets and Symbol of Energy burning use measured EVTC ti
 });
 
 test('Guardian utilities and traps use the reference damage timelines', () => {
-  const skillNames = [
-    'Sword of Justice',
-    'Procession of Blades',
-    'Bane Signet',
-    "Dragon's Maw",
-    'Purification',
-    'Test of Faith'
-  ];
+  const skillNames = ['Sword of Justice', 'Procession of Blades', 'Bane Signet', "Dragon's Maw", 'Purification'];
   const simulate = (quickness) =>
     simulateGw2({
       profession: guardianProfession,
@@ -567,11 +566,11 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
 
   assert.deepEqual(
     skillNames.map((name) => normal[name].cast),
-    [900, 660, 750, 660, 900, 0]
+    [900, 660, 750, 660, 900]
   );
   assert.deepEqual(
     skillNames.map((name) => quick[name].cast),
-    [600, 440, 500, 440, 600, 0]
+    [600, 440, 500, 440, 600]
   );
   assert.deepEqual(quick['Sword of Justice'], {
     cast: 600,
@@ -621,11 +620,6 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
     cast: 600,
     ticks: [500],
     coefficient: 0.1875
-  });
-  assert.deepEqual(quick['Test of Faith'], {
-    cast: 0,
-    ticks: [500],
-    coefficient: 1.4
   });
 });
 
@@ -1879,11 +1873,28 @@ test('Renewed Focus recharges all three core virtues', () => {
   });
 });
 
-test('every catalog skill has executable mechanics', () => {
+test('every supported catalog skill has executable mechanics', () => {
   assert.equal(
     guardianCatalog.skills.every((skill) => skill.implemented === true),
     true
   );
+
+  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
+  for (const omittedId of [9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676]) {
+    assert.equal(guardianCatalog.skillsById.has(omittedId), false);
+  }
+
+  for (const omittedName of [
+    'Signet of Judgment',
+    'Shield of the Avenger',
+    'Smite Condition',
+    'Test of Faith',
+    "Light's Judgment",
+    'Signet of Courage'
+  ]) {
+    assert.equal(guardianCatalog.skillsByName.has(omittedName), false);
+  }
+
   assert.equal(guardianCatalog.skillsByName.has('Chapter 1: Searing Spell'), true);
   assert.equal(guardianCatalog.skillsByName.has('Dazzling Hammer'), true);
 
@@ -4046,6 +4057,7 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
     daringThenPiercing.resolvedEvents.find((event) => event.skillName === 'Daring Advance').damage,
     daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance').damage
   );
+  assert.equal(daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance').at, 0.674);
   assert.ok(piercing.procSteps.some((step) => step.skill === 'Relic of the Claw'));
   assert.equal(
     daring.events.some((event) => event.type === 'control' && event.skillName === 'Daring Advance'),
@@ -4067,6 +4079,32 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
     [[4000, 'Effulgent Stance', '10/10 stacks']]
   );
   assert.ok(effulgent.procSteps.some((step) => step.skill === 'Relic of the Claw' && step.start === 4000));
+});
+
+test('Luminary hidden actions replay exact EVTC opening-state durations', () => {
+  const durations = {
+    resolution: 9_280,
+    claw: 8_000,
+    empoweredArmaments: 14_514,
+    radiantHammer: 7_320
+  };
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: Object.entries(LUMINARY_INITIAL_STATE_SKILL_IDS).map(([kind, skillId]) => ({
+      type: 'cast',
+      skillId,
+      initialStateDurationMs: durations[kind]
+    })),
+    config: { ...config, specialization: 'Luminary', relic: 'Claw' }
+  });
+  const buffDuration = (kind) => result.events.find((event) => event.type === 'buff' && event.kind === kind).duration;
+  const claw = result.procSteps.find((step) => step.skill === 'Relic of the Claw');
+
+  assert.equal(buffDuration('resolution'), 9.28);
+  assert.equal(buffDuration('guardian-empowered-armaments'), 14.514);
+  assert.equal(buffDuration('guardian-radiant-armaments'), 7.32);
+  assert.equal(claw.expiresAt, 8_000);
+  assert.equal(result.events.find((event) => event.controlKind === 'initial-state').duration, 0);
 });
 
 test('Sovereign of Light consumes combo and trait-granted light auras', () => {
@@ -4157,6 +4195,43 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
     { actorType: 'effect', ownerActorType: 'player' }
   );
   assert.ok(Math.abs(clawSovereign.damage / justiceSovereign.damage - 1.07) < 1e-12);
+});
+
+test('Sovereign of Light resolves overlapping aura grants and finishers chronologically', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Enter Radiant Forge',
+      'Dazzling Hammer',
+      { name: 'Effulgent Stance', offset: 240 },
+      { name: 'Radiant Justice', offset: 40 },
+      'Shining Spin',
+      { name: 'Radiant Resolve', offset: 80 }
+    ],
+    config: {
+      ...config,
+      boons: { quickness: true },
+      specialization: 'Luminary',
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+        GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
+        GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT
+      ]
+    }
+  });
+
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.name === 'Sovereign of Light')
+      .map((event) => [Math.round(event.at * 1000), event.triggeredBy]),
+    [
+      [240, 'Effulgent Stance'],
+      [280, 'Radiant Justice'],
+      [440, 'Dazzling Hammer'],
+      [560, 'Radiant Resolve'],
+      [880, 'Shining Spin']
+    ]
+  );
 });
 
 test('Luminary recharge traits alter the intended cooldown families', () => {

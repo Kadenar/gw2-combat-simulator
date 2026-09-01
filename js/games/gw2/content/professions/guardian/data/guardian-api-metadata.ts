@@ -1752,7 +1752,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 9268
+    flipSkillId: null
   },
   {
     id: 9120,
@@ -1768,7 +1768,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 9250
+    flipSkillId: null
   },
   {
     id: 9122,
@@ -1817,7 +1817,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 2,
     ammoRecharge: 20,
     nextChainId: null,
-    flipSkillId: 46170
+    flipSkillId: null
   },
   {
     id: 9128,
@@ -1968,23 +1968,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     flipSkillId: 9226
   },
   {
-    id: 9150,
-    name: 'Signet of Judgment',
-    description:
-      'Signet Passive: Reduces all incoming damage.\nSignet Active: Grant resolution and protection to nearby allies while debilitating nearby enemies.',
-    icon: 'https://render.guildwars2.com/file/2A0C7B5FED084FCEE050BE9D6EB5B054A416E607/103662.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 9151,
     name: 'Signet of Wrath',
     description:
@@ -2047,7 +2030,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 68666
+    flipSkillId: null
   },
   {
     id: 9158,
@@ -2144,7 +2127,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 3,
     ammoRecharge: 15,
     nextChainId: null,
-    flipSkillId: 44846
+    flipSkillId: null
   },
   {
     id: 9175,
@@ -2160,24 +2143,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 2,
     ammoRecharge: 20,
     nextChainId: null,
-    flipSkillId: 43565
-  },
-  {
-    id: 9182,
-    name: 'Shield of the Avenger',
-    description:
-      'Spirit Weapon. Command the Shield of the Avenger to form a protective dome, and then shatter, flying out to weaken nearby foes.',
-    icon: 'https://render.guildwars2.com/file/CFBE4110635CD25B68EE194E7DBE25166DAAA197/103673.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['SpiritWeapon'],
-    recharge: 1,
-    ammo: 3,
-    ammoRecharge: 25,
-    nextChainId: null,
-    flipSkillId: 41571
+    flipSkillId: null
   },
   {
     id: 9187,
@@ -2279,22 +2245,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     flipSkillId: null
   },
   {
-    id: 9245,
-    name: 'Smite Condition',
-    description: 'Meditation. Cure conditions and damage nearby foes. Deal more damage if a condition is cured.',
-    icon: 'https://render.guildwars2.com/file/DB5FBEBBD092642AE39C99F7CD3521EB41C0D717/103644.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Meditation'],
-    recharge: 16,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 9246,
     name: 'Merciful Intervention',
     description:
@@ -2338,22 +2288,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     specialization: '',
     categories: ['Meditation'],
     recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 9250,
-    name: 'Virtue of Resolve',
-    description: 'Virtue: Regenerates health.\nActivate: Heal yourself and nearby allies.',
-    icon: 'https://render.guildwars2.com/file/F12B07B5466A51AB2BFD2C0CB8F3994D3F9E610C/103652.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_2',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 30,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -2426,22 +2360,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     flipSkillId: null
   },
   {
-    id: 9268,
-    name: 'Virtue of Courage',
-    description: 'Virtue: Gain aegis periodically.\nActivate: Grant aegis to yourself and nearby allies.',
-    icon: 'https://render.guildwars2.com/file/1B55CBCB3E1165FD5D0C7BC3CBEEB65C5BD9D07C/103258.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_3',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 45,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 15834,
     name: 'Shield of Judgment',
     description:
@@ -2486,23 +2404,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     specialization: 'Dragonhunter',
     categories: [],
     recharge: 10,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 29786,
-    name: 'Test of Faith',
-    description:
-      'Trap. Lay a trap that creates a ring of weapons that punishes enemies that attempt to cross their threshold. Passthrough damage is increased against disabled targets.',
-    icon: 'https://render.guildwars2.com/file/A93131C1705E230802B951911C6A0A0D619C9A63/1012876.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Dragonhunter',
-    categories: ['Trap'],
-    recharge: 24,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -2557,7 +2458,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 68670
+    flipSkillId: null
   },
   {
     id: 30025,
@@ -2606,7 +2507,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 68686
+    flipSkillId: null
   },
   {
     id: 30364,
@@ -2623,23 +2524,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null
-  },
-  {
-    id: 30461,
-    name: 'Signet of Courage',
-    description:
-      'Signet Passive: Periodically heal allies in an area around you while in combat.\nSignet Active: Channel healing and boons in a large area around you, concluding with a large heal if this skill is not interrupted.',
-    icon: 'https://render.guildwars2.com/file/59C43DD96D4096AF5DF576182506A20765CAEF07/1012875.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 60,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: 68676
   },
   {
     id: 30471,
@@ -2685,23 +2569,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     slot: 'Weapon_5',
     specialization: 'Dragonhunter',
     categories: [],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 30871,
-    name: "Light's Judgment",
-    description:
-      'Trap. Lay down a trap that creates an area of pure light that reveals enemies and pierces their armor. The first strike dazes foes.',
-    icon: 'https://render.guildwars2.com/file/6ECB36B9047E9920DDD354100A68B9E705CAC478/1012874.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Dragonhunter',
-    categories: ['Trap'],
     recharge: 20,
     ammo: 0,
     ammoRecharge: 0,
@@ -2808,23 +2675,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     flipSkillId: null
   },
   {
-    id: 41571,
-    name: 'Shield of the Avenger',
-    description:
-      'Spirit Weapon. Command the Shield of the Avenger to form a protective dome, and then shatter, flying out to weaken nearby foes.',
-    icon: 'https://render.guildwars2.com/file/CFBE4110635CD25B68EE194E7DBE25166DAAA197/103673.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['SpiritWeapon'],
-    recharge: 1,
-    ammo: 3,
-    ammoRecharge: 25,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 41714,
     name: 'Mantra of Solace',
     description:
@@ -2856,7 +2706,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 68648
+    flipSkillId: null
   },
   {
     id: 41988,
@@ -2889,7 +2739,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 68650
+    flipSkillId: null
   },
   {
     id: 42360,
@@ -2974,22 +2824,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     flipSkillId: 40114
   },
   {
-    id: 43565,
-    name: 'Bow of Truth',
-    description: 'Spirit Weapon. Command the Bow of Truth to barrage a location with healing arrows.',
-    icon: 'https://render.guildwars2.com/file/D6B3F74013A80F14BADF5D2D0D1D9E40D64F9C04/103671.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['SpiritWeapon'],
-    recharge: 1,
-    ammo: 2,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 43826,
     name: 'Searing Slash',
     description: 'Unleash your searing axe in an overhand slash, following it up with a magical edge.',
@@ -3054,7 +2888,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 68647
+    flipSkillId: null
   },
   {
     id: 44602,
@@ -3071,22 +2905,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammoRecharge: 0,
     nextChainId: 43826,
     flipSkillId: 43826
-  },
-  {
-    id: 44846,
-    name: 'Sword of Justice',
-    description: 'Spirit Weapon. Will the Sword of Justice to appear beside your enemy and attack nearby foes.',
-    icon: 'https://render.guildwars2.com/file/98B40D09401B44949604E073F5F793C660B7ED22/103669.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['SpiritWeapon'],
-    recharge: 1,
-    ammo: 3,
-    ammoRecharge: 15,
-    nextChainId: null,
-    flipSkillId: null
   },
   {
     id: 45047,
@@ -3168,22 +2986,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: 45082
-  },
-  {
-    id: 46170,
-    name: 'Hammer of Wisdom',
-    description: 'Spirit Weapon. Order the Hammer of Wisdom to knock down your foe.',
-    icon: 'https://render.guildwars2.com/file/99430A49F97BA45EF101E611A69193D57BF70A7D/103655.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['SpiritWeapon'],
-    recharge: 8,
-    ammo: 2,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
   },
   {
     id: 51645,
@@ -3279,23 +3081,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     specialization: '',
     categories: [],
     recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 62532,
-    name: 'Crashing Courage',
-    description:
-      'Virtue. Shadowstep a short distance while gaining boons and emanating Willbender Flames from your location. Gain courage.',
-    icon: 'https://render.guildwars2.com/file/3AD50BA43AA00EA97C6152D5EC6092FE0F0979D0/2479369.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_3',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 30,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3434,7 +3219,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 62532
+    flipSkillId: null
   },
   {
     id: 62650,
@@ -3497,123 +3282,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     specialization: 'Willbender',
     categories: ['Physical'],
     recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 68647,
-    name: 'Tome of Justice',
-    description:
-      'Virtue: Burn foes every few attacks.\nActivate: Pull forth a magical tome on the dangers of the blazing heat in Kourna.',
-    icon: 'https://render.guildwars2.com/file/0A1A7614641DADEB09DF25E12BF4A8CA54A8EFF3/2779163.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 68648,
-    name: 'Tome of Resolve',
-    description:
-      'Virtue: Regenerate health.\nActivate: Draw forth an enchanted tome that recounts the trials undergone by the people of Vabbi.',
-    icon: 'https://render.guildwars2.com/file/CA747F315578704ED2ED9CB76E48083828CE730C/2779164.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_2',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 68650,
-    name: 'Tome of Courage',
-    description:
-      'Virtue: Gain aegis periodically. \nActivate: Conjure a mystic tome containing stories about the heroes of Istan.',
-    icon: 'https://render.guildwars2.com/file/BB01170AD5B630DFBB6BEF79664B35D71DDDF299/2779162.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_3',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 68666,
-    name: 'Renewed Focus',
-    description: 'Meditation. Focus, making yourself invulnerable and recharging your virtues.',
-    icon: 'https://render.guildwars2.com/file/344C7EEC3F6FE10568720E4F75EF91C37A58C43C/103665.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: '',
-    categories: ['Meditation'],
-    recharge: 90,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 68670,
-    name: '"Feel My Wrath!"',
-    description:
-      'Shout. Grant fury and quickness to nearby allies. The duration of the quickness you grant yourself is doubled.',
-    icon: 'https://render.guildwars2.com/file/B743B8DDF91DBC0239460877775FBE7BD36F6873/103702.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: '',
-    categories: ['Shout'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 68676,
-    name: 'Signet of Courage',
-    description:
-      'Signet Passive: Periodically heal allies in an area around you while in combat.\nSignet Active: Channel healing and boons in a large area around you, concluding with a large heal if this skill is not interrupted.',
-    icon: 'https://render.guildwars2.com/file/59C43DD96D4096AF5DF576182506A20765CAEF07/1012875.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 60,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 68686,
-    name: "Dragon's Maw",
-    description: 'Trap. Lay a trap that pulls enemies and creates a barrier that holds them in.',
-    icon: 'https://render.guildwars2.com/file/71FF4F27E1404DAD3EB1A63A4214A9797F740810/1024103.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: 'Dragonhunter',
-    categories: ['Trap'],
-    recharge: 40,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3933,7 +3601,7 @@ export const SKILLS: readonly GuardianSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 78770
+    flipSkillId: null
   },
   {
     id: 78514,
@@ -3947,40 +3615,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     specialization: '',
     categories: ['Virtue'],
     recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 78604,
-    name: 'Radiant Resolve',
-    description:
-      'Virtue: Regenerates health.\nActivate: Heal yourself and nearby allies while granting light aura. The next time you use Luminous Staff, it heals allies and grants them regeneration.',
-    icon: 'https://render.guildwars2.com/file/FA9E0C3E1024084F9E0F5505DAD826E242580C58/3713158.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_2',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: 78514
-  },
-  {
-    id: 78770,
-    name: 'Radiant Courage',
-    description:
-      "Virtue: Gain aegis periodically.\nActivate: Grant aegis, resistance, and Luminary's Blessing to yourself and nearby allies. \nThe next time you use Gleaming Blade, it deals increased damage and immobilizes enemies. The next time you use Radiant Bulwark, it grants barrier to nearby allies.",
-    icon: 'https://render.guildwars2.com/file/61FA2B39C018F8930B38D1FC0FE5CE9C49BA681A/3713156.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_3',
-    specialization: '',
-    categories: ['Virtue'],
-    recharge: 45,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

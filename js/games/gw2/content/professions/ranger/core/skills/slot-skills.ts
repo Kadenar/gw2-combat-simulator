@@ -126,24 +126,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ],
     quicknessCastTimeMs: 167
   },
-  [ID.LIGHTNING_REFLEXES]: {
-    implemented: true,
-    evades: true,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1
-      },
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 10,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333
-  },
   [ID.STONE_SPIRIT]: {
     implemented: true,
     effects: [
@@ -277,11 +259,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ],
     quicknessCastTimeMs: 333
   },
-  [ID.SIGNET_OF_STONE]: {
-    implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 333
-  },
   [ID.MUDDY_TERRAIN]: {
     implemented: true,
     effects: [
@@ -299,24 +276,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       }
     ],
     quicknessCastTimeMs: 500
-  },
-  [ID.SIGNET_OF_RENEWAL]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333
   },
   [ID.STRENGTH_OF_THE_PACK]: {
     implemented: true,
@@ -360,23 +319,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 0,
     canCastConcurrently: true,
     handlerId: 'ranger.sharpening-stone'
-  },
-  [ID.SIGNET_OF_THE_HUNT]: {
-    implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 333
-  },
-  [ID.QUICKENING_ZEPHYR]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 6,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333
   },
   [ID.SPIRIT_OF_NATURE]: {
     implemented: true,
@@ -641,17 +583,5 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       }
     ],
     quicknessCastTimeMs: 667
-  },
-  [ID.SEARCH_AND_RESCUE]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 8,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333
   }
 });

@@ -1412,14 +1412,7 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
 
   for (const [owner, skillIds] of [
     ['Herald', [REVENANT_SKILL_IDS.LEGENDARY_DRAGON_STANCE, REVENANT_SKILL_IDS.CALL_OF_THE_DRAGON]],
-    [
-      'Renegade',
-      [
-        REVENANT_SKILL_IDS.LEGENDARY_RENEGADE_STANCE,
-        REVENANT_SKILL_IDS.LEGENDARY_RENEGADE_STANCE_ID_46409,
-        REVENANT_SKILL_IDS.CALL_OF_THE_RENEGADE
-      ]
-    ],
+    ['Renegade', [REVENANT_SKILL_IDS.LEGENDARY_RENEGADE_STANCE, REVENANT_SKILL_IDS.CALL_OF_THE_RENEGADE]],
     ['Vindicator', [REVENANT_SKILL_IDS.LEGENDARY_ALLIANCE_STANCE, REVENANT_SKILL_IDS.CALL_OF_THE_ALLIANCE]],
     [
       'Conduit',

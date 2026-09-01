@@ -220,7 +220,44 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
   assert.equal(engineerCatalog.specializations.length, 9);
   assert.equal(engineerCatalog.traits.length, 108);
-  assert.ok(engineerCatalog.skills.length >= 330);
+  assert.ok(engineerCatalog.skills.length >= 308);
+  for (const aliasId of [29591, 29991, 30881]) {
+    assert.equal(engineerCatalog.skillsById.has(aliasId), false);
+  }
+
+  // Unsupported utility families and their tool-belt actions must stay out of the simulator catalog.
+  for (const omittedId of [
+    5825, 5832, 5860, 5861, 5862, 5910, 5969, 5970, 5972, 5973, 5983, 6077, 6078, 6084, 6088, 6089, 6090, 29522, 29722,
+    30725, 30828, 49097
+  ]) {
+    assert.equal(engineerCatalog.skillsById.has(omittedId), false);
+  }
+
+  for (const omittedName of [
+    'Slick Shoes',
+    'Rocket Boots',
+    'Superspeed (skill)',
+    'Rocket Kick',
+    'Elixir C',
+    'Elixir S',
+    'Elixir U',
+    'Elixir X',
+    'Toss Elixir C',
+    'Toss Elixir S',
+    'Toss Elixir U',
+    'Toss Elixir X',
+    'Detonate Elixir C',
+    'Detonate Elixir S',
+    'Detonate Elixir U',
+    'Detonate Elixir X',
+    'Lesser Elixir C'
+  ]) {
+    assert.equal(engineerCatalog.skillsByName.has(omittedName), false);
+  }
+
+  assert.equal(engineerCatalog.skillsByName.get('Utility Goggles').id, 5865);
+  assert.equal(engineerCatalog.skillsByName.get('Personal Battering Ram').id, 5811);
+  assert.equal(engineerCatalog.skillsByName.get('A.E.D.').id, 21659);
   assert.equal(engineerCatalog.skillsById.get(5842).name, 'Bomb');
   assert.equal(strikeEffectCoefficient(engineerCatalog.skillsByName.get('Bomb').effects[0]), 1.2);
   assert.match(engineerCatalog.skillsById.get(5806).icon, /Special:Redirect\/file\/Poison_Grenade\.png$/);
@@ -999,12 +1036,8 @@ test('Engineer slot selection excludes contextual and unsupported utilities', ()
 
   for (const name of [
     'Elixir B',
-    'Elixir C',
-    'Elixir S',
-    'Elixir U',
     'Elixir R',
     'Utility Goggles',
-    'Rocket Boots',
     'Stow Grenade Kit',
     'Stow Flamethrower',
     'Detonate',

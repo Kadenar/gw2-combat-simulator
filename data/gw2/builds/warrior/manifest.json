@@ -60,7 +60,7 @@
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-hammer-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-hammer-dagger-mace-bench.json",
         "dpsReportUrl": "https://dps.report/dzrB-20260721-123458_golem",
-        "benchmarkDps": 42938,
+        "benchmarkDps": 42933,
         "upToDate": true
       }
     ]

@@ -10,6 +10,7 @@ export interface ReconstructedRotationCommand {
   readonly skillId?: string | number;
   readonly offset?: number;
   readonly interruptMs?: number;
+  readonly initialStateDurationMs?: number;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }
 

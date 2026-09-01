@@ -380,70 +380,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     shroudSlot: 5,
     specialization: ''
   },
-  [ID.MANIFEST_SAND_SHADE_ID_42297]: {
-    implemented: true,
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.666,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 2
-      }
-    ],
-    simulatorAliasOfId: 44946,
-    simulatorExcluded: true,
-    flipSkillId: null
-  },
   [ID.MARCH_OF_UNDEATH]: {
     implemented: true,
     castTimeMs: 0,
     effects: []
-  },
-  [ID.MANIFEST_SAND_SHADE_ID_46473]: {
-    implemented: true,
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.666,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 2
-      }
-    ],
-    simulatorAliasOfId: 44946,
-    simulatorExcluded: true,
-    flipSkillId: null
-  },
-  [ID.MANIFEST_SAND_SHADE_ID_46474]: {
-    implemented: true,
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.666,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 2
-      }
-    ],
-    simulatorAliasOfId: 44946,
-    simulatorExcluded: true,
-    flipSkillId: null
   },
   [ID.DARK_PURSUIT]: {
     implemented: true,

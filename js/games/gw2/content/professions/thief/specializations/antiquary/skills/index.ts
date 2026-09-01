@@ -282,14 +282,6 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ],
     artifactKind: 'defensive'
   },
-  [ID.CANACH_COIN_TOSS]: {
-    implemented: true,
-    castTimeMs: 250,
-    cooldown: 15,
-    initiativeCost: 0,
-    effects: [],
-    backfire: true
-  },
   [ID.EMERGENCY_JADE_SHIELD]: {
     implemented: true,
     castTimeMs: 0,

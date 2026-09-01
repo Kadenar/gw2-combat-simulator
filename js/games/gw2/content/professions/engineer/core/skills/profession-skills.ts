@@ -43,34 +43,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     ],
     toolbeltParentName: 'Elixir B'
   },
-  [ID.TOSS_ELIXIR_C]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 16,
-    effects: [],
-    toolbeltParentName: 'Elixir C'
-  },
-  [ID.TOSS_ELIXIR_U]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 25,
-    effects: [],
-    toolbeltParentName: 'Elixir U'
-  },
-  [ID.TOSS_ELIXIR_S]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 45,
-    effects: [],
-    toolbeltParentName: 'Elixir S'
-  },
-  [ID.SUPERSPEED_SKILL]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: [],
-    toolbeltParentName: 'Slick Shoes'
-  },
   [ID.TOSS_ELIXIR_H]: {
     implemented: true,
     castTimeMs: 500,
@@ -120,42 +92,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     ],
     toolbeltParentName: 'Personal Battering Ram'
   },
-  [ID.ROCKET_KICK]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 15,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Rocket Kick',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 8,
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Rocket Boots'
-  },
-  [ID.TOSS_ELIXIR_C_ID_6077]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 16,
-    effects: [],
-    toolbeltParentName: 'Elixir C'
-  },
-  [ID.DETONATE_ELIXIR_C]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    toolbeltParentName: 'Elixir C'
-  },
   [ID.DETONATE_ELIXIR_B]: {
     implemented: true,
     castTimeMs: 0,
@@ -163,47 +99,12 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     effects: [],
     toolbeltParentName: 'Elixir B'
   },
-  [ID.DETONATE_ELIXIR_S]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    toolbeltParentName: 'Elixir S'
-  },
   [ID.DETONATE_ELIXIR_R]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
     toolbeltParentName: 'Elixir R'
-  },
-  [ID.DETONATE_ELIXIR_U]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    toolbeltParentName: 'Elixir U'
-  },
-  [ID.TOSS_ELIXIR_U_ID_6089]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 25,
-    effects: [],
-    toolbeltParentName: 'Elixir U'
-  },
-  [ID.TOSS_ELIXIR_S_ID_6090]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 45,
-    effects: [],
-    toolbeltParentName: 'Elixir S'
   },
   [ID.TOSS_ELIXIR_R_ID_6091]: {
     implemented: true,
@@ -687,13 +588,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Supply Crate',
     mechanicSlot: 5
   },
-  [ID.DETONATE_ELIXIR_X]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    toolbeltParentName: 'Elixir X (underwater)'
-  },
   [ID.FLASHBANG]: {
     implemented: true,
     castTimeMs: 500,
@@ -716,13 +610,5 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       }
     ],
     toolbeltParentName: 'Utility Goggles'
-  },
-  [ID.TOSS_ELIXIR_X]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 60,
-    effects: [],
-    toolbeltParentName: 'Elixir X',
-    mechanicSlot: 5
   }
 });

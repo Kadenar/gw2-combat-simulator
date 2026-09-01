@@ -3,6 +3,7 @@
  * the boundary while the scheduler and application use canonical commands.
  */
 import type { CatalogLookup, RotationCommand } from '#gw2/platform/engine/types.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 function finiteMilliseconds(
   value: unknown,
@@ -34,13 +35,13 @@ function positiveInteger(value: unknown, field: string): number {
  * @returns {RotationCommand}
  */
 export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null = null): RotationCommand {
-  if (typeof entry === 'number') return { type: 'cast', skillId: entry };
+  if (typeof entry === 'number') return { type: 'cast', skillId: canonicalGw2SkillId(entry) };
   if (typeof entry === 'string') {
     if (entry === '__combat_start') return { type: 'combat-start' };
     if (entry === '__cooldown_reset') return { type: 'cooldown-reset' };
     if (entry === '__wait') return { type: 'wait', durationMs: 0 };
     const skill = catalog?.skillsByName?.get(entry);
-    return skill ? { type: 'cast', skillId: skill.id } : { type: 'cast', skillId: entry };
+    return skill ? { type: 'cast', skillId: canonicalGw2SkillId(skill.id) } : { type: 'cast', skillId: entry };
   }
 
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
@@ -85,6 +86,7 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
 
   const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
+  const initialStateDuration = candidate.initialStateDurationMs;
   const releaseAtCharges = candidate.releaseAtCharges;
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
   if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
@@ -93,7 +95,7 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
 
   return {
     type: 'cast',
-    skillId,
+    skillId: canonicalGw2SkillId(skillId),
     ...(concurrent == null
       ? {}
       : {
@@ -103,6 +105,11 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
       ? {}
       : {
           interruptAfterMs: finiteMilliseconds(interrupt, 'Interrupt duration')
+        }),
+    ...(initialStateDuration == null
+      ? {}
+      : {
+          initialStateDurationMs: finiteMilliseconds(initialStateDuration, 'Initial-state duration')
         }),
     ...(releaseAtCharges == null
       ? {}

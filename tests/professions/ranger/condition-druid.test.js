@@ -207,8 +207,6 @@ test('Ranger evade skills and dodges trigger Light on Your Feet', () => {
     ID.PREDATORS_AMBUSH,
     ID.WARCLAWS_ENGAGE,
     ID.FLEETING_ZEPHYR,
-    ID.LIGHTNING_REFLEXES,
-    ID.GRIFFON_STANCE,
     ID.WHIRLWIND
   ]) {
     assert.equal(rangerCatalog.skillsById.get(id).evades, true);

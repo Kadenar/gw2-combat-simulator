@@ -79,7 +79,6 @@ function rageBerserkExtension(context: WarriorCastContext, skill: WarriorSkill):
   const profile = balanceProfileFromContext(context, PROFILE.rageExtensions);
   switch (skill.id) {
     case ID.BERSERK:
-    case ID.BERSERK_ID_30435:
       return 0;
     case ID.WILD_BLOW:
       return Number(profile?.maximumStacks ?? 5);
@@ -107,7 +106,7 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
       skill.id === ID.DECAPITATE ? Number(profile?.minimumStacks ?? 1) : Number(profile?.resourceGain ?? 2);
   }
 
-  if (skill.categories?.includes('Rage') && skill.id !== ID.BERSERK && skill.id !== ID.BERSERK_ID_30435) {
+  if (skill.categories?.includes('Rage') && skill.id !== ID.BERSERK) {
     state.berserkUntil +=
       rageBerserkExtension(context, skill) +
       (skill.id !== ID.OUTRAGE && hasTrait(context, TRAIT.LAST_BLAZE)

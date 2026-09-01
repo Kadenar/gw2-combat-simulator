@@ -445,7 +445,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     control(ctx, state, event) {
       if (!isGw2PlayerActorEvent(event)) return;
       recordTimedBuffProc(ctx, state, event, {
-        duration: 8,
+        // EVTC imports carry the exact remaining opening window without fabricating the CC that created it.
+        duration: event.controlKind === 'initial-state' ? Math.max(0, Number(event.initialStateDuration || 0)) : 8,
         name: 'Relic of the Claw'
       });
     },

@@ -2,18 +2,6 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.TEST_OF_FAITH]: {
-    implemented: true,
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 500, coefficient: 1.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  },
   [ID.SPEAR_OF_JUSTICE]: {
     implemented: true,
     quicknessCastTimeMs: 560,
@@ -125,23 +113,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ]
   },
-  [ID.LIGHTS_JUDGMENT]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.1875,
-        hits: 1
-      },
-      {
-        type: 'control',
-        metadata: {
-          controlKind: 'pull'
-        }
-      }
-    ]
-  },
   [ID.HUNTERS_VERDICT]: {
     implemented: true,
     castTimeMs: 0,
@@ -152,23 +123,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'control',
         metadata: {
           controlKind: 'pull'
-        }
-      }
-    ]
-  },
-  [ID.DRAGONS_MAW_ID_68686]: {
-    implemented: true,
-    castTimeMs: 1000,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 3.6,
-        hits: 1
-      },
-      {
-        type: 'control',
-        metadata: {
-          controlKind: 'control'
         }
       }
     ]

@@ -71,33 +71,11 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(fan.interruptCommitMs, 240);
   assert.equal(fan.retainsCastLockoutAfterInterrupt, true);
   assert.deepEqual(
-    fan.effects.map(({ type, coefficient, hits, stacks, duration, atMs }) => ({
-      type,
-      coefficient,
-      hits,
-      stacks,
-      duration,
-      atMs
-    })),
-    [
-      {
-        type: 'strike',
-        coefficient: 1.32,
-        hits: 3,
-        stacks: undefined,
-        duration: undefined,
-        atMs: 240
-      },
-      {
-        type: 'condition',
-        coefficient: undefined,
-        hits: undefined,
-        stacks: 3,
-        duration: 3,
-        atMs: 240
-      }
-    ]
+    fan.effects.slice(0, 1).map(({ type, coefficient, hits, atMs }) => ({ type, coefficient, hits, atMs })),
+    [{ type: 'strike', coefficient: 1.32, hits: 3, atMs: 240 }]
   );
+  // The burning packet lands with the arrows, so its tick owns the release timing and condition values.
+  assert.deepEqual(fan.effects[1].ticks, [{ atMs: 240, condition: 'Burning', stacks: 3, duration: 3 }]);
 
   const gash = skill(ID.GASH);
 
@@ -111,35 +89,8 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(arcingArrow.ammoCastLockout, 1);
   assert.equal(arcingArrow.comboFinishers[0].finisherType, 'Blast');
   assert.deepEqual(
-    arcingArrow.effects.map(({ type, coefficient, hits, condition, stacks, duration, atMs }) => ({
-      type,
-      coefficient,
-      hits,
-      condition,
-      stacks,
-      duration,
-      atMs
-    })),
-    [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        condition: undefined,
-        stacks: undefined,
-        duration: undefined,
-        atMs: 600
-      },
-      {
-        type: 'condition',
-        coefficient: undefined,
-        hits: undefined,
-        condition: 'Burning',
-        stacks: 1,
-        duration: 5,
-        atMs: 600
-      }
-    ]
+    arcingArrow.effects.map((effect) => effect.ticks),
+    [[{ atMs: 600, coefficient: 2.5 }], [{ atMs: 600, condition: 'Burning', stacks: 1, duration: 5 }]]
   );
 
   const smolderingArrow = skill(ID.SMOLDERING_ARROW);
@@ -158,11 +109,14 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   const pinDown = skill(ID.PIN_DOWN);
 
   assert.equal(pinDown.cooldown, 20);
-  assert.equal(pinDown.effects[0].coefficient, 0.44);
-  assert.equal(pinDown.effects[1].stacks, 6);
-  assert.equal(pinDown.effects[1].duration, 12);
-  assert.equal(pinDown.effects[2].condition, 'Immobilized');
-  assert.equal(pinDown.effects[2].duration, 3);
+  assert.deepEqual(
+    pinDown.effects.map((effect) => effect.ticks),
+    [
+      [{ atMs: 560, coefficient: 0.44 }],
+      [{ atMs: 560, condition: 'Bleeding', stacks: 6, duration: 12 }],
+      [{ atMs: 560, condition: 'Immobilized', stacks: 1, duration: 3 }]
+    ]
+  );
   assert.equal(pinDown.comboFinishers[0].finisherType, 'Projectile');
 
   const combustiveShot = skill(ID.COMBUSTIVE_SHOT);
@@ -191,9 +145,9 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   );
 
   const savageLeap = skill(ID.SAVAGE_LEAP);
-  const savageBleeding = savageLeap.effects.find(
-    (effect) => effect.type === 'condition' && effect.condition === 'Bleeding'
-  );
+  const savageBleeding = savageLeap.effects
+    .flatMap((effect) => effect.ticks || [])
+    .find((tick) => tick.condition === 'Bleeding');
 
   assert.equal(savageBleeding.stacks, 3);
   assert.equal(savageBleeding.duration, 5);
@@ -215,43 +169,11 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(blazeBreaker.totalCoefficient, 2);
   assert.equal(blazeBreaker.maximumHitsPerTarget, 1);
   assert.deepEqual(
-    blazeBreaker.effects.map(({ type, coefficient, hits, condition, stacks, duration, atMs }) => ({
-      type,
-      coefficient,
-      hits,
-      condition,
-      stacks,
-      duration,
-      atMs
-    })),
+    blazeBreaker.effects.map((effect) => effect.ticks),
     [
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        condition: undefined,
-        stacks: undefined,
-        duration: undefined,
-        atMs: 400
-      },
-      {
-        type: 'condition',
-        coefficient: undefined,
-        hits: undefined,
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6,
-        atMs: 400
-      },
-      {
-        type: 'condition',
-        coefficient: undefined,
-        hits: undefined,
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3,
-        atMs: 400
-      }
+      [{ atMs: 400, coefficient: 0.4 }],
+      [{ atMs: 400, condition: 'Burning', stacks: 1, duration: 6 }],
+      [{ atMs: 400, condition: 'Crippled', stacks: 1, duration: 3 }]
     ]
   );
 
@@ -262,9 +184,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(flamesOfWar.comboFields[0].duration, 5);
   assert.deepEqual(flamesOfWar.effects[0], {
     type: 'strike',
-    coefficient: 1,
-    hits: 1,
-    atMs: 5480,
+    ticks: [{ atMs: 5480, coefficient: 1 }],
     timingAnchor: 'castStart',
     timingScale: 'fixed',
     persistsAfterInterrupt: true

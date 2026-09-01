@@ -10,13 +10,19 @@ import {
   recordedDuration,
   type WarriorActionIdentity
 } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/shared.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 const WINDS_OF_DISENCHANTMENT = Object.freeze({
   name: 'Winds of Disenchantment',
   skillId: 45333
 });
-const BREACHING_STRIKE_IDS = new Set([45252, 69297, 69433]);
+const BREACHING_STRIKE_ID = 45252;
 const INITIAL_SIGNAL_WINDOW_MS = 1000;
+
+// Raw ArcDPS variants share the input-boundary alias map instead of maintaining a parser-local ID list.
+function isBreachingStrikeId(skillId: number): boolean {
+  return canonicalGw2SkillId(skillId) === BREACHING_STRIKE_ID;
+}
 
 /**
  * Rebuilds a Spellbreaker opener when a precombat Breaching Strike has no
@@ -34,13 +40,11 @@ function spellbreakerPrecasts(
     .find(
       ({ event }) =>
         event.source === context.playerAddress &&
-        BREACHING_STRIKE_IDS.has(event.skillId) &&
+        isBreachingStrikeId(event.skillId) &&
         event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP &&
         event.value > 0 &&
         event.time - event.value < atCombat &&
-        !actions.some(
-          (action) => BREACHING_STRIKE_IDS.has(action.rawSkillId) && Math.abs(action.end - event.time) <= 50
-        )
+        !actions.some((action) => isBreachingStrikeId(action.rawSkillId) && Math.abs(action.end - event.time) <= 50)
     );
   if (!unmatchedBreachingStop) return [];
 

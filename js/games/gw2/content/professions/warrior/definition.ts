@@ -6,6 +6,7 @@ import {
   validateWarriorBuild
 } from '#gw2/content/professions/warrior/build/build.js';
 import { warriorNativeModules } from '#gw2/content/professions/warrior/modules.js';
+import { WARRIOR_NATIVE_CATALOG_OPTIONS } from '#gw2/content/professions/warrior/catalog/module-data.js';
 
 export const warriorProfession = defineNativeProfession({
   id: 'warrior',
@@ -16,6 +17,7 @@ export const warriorProfession = defineNativeProfession({
     validateBuild: validateWarriorBuild
   },
   modules: warriorNativeModules,
+  catalog: WARRIOR_NATIVE_CATALOG_OPTIONS,
   patchPreview: activePatchPreview
 });
 

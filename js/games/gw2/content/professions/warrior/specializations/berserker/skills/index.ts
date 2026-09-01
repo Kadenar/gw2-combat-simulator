@@ -302,15 +302,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     selfStunMs: 1000,
     handlerId: 'warrior.resource'
   },
-  [ID.BERSERK_ID_30435]: {
-    implemented: true,
-    castTimeMs: 0,
-    effects: [],
-    adrenalineCost: 30,
-    burstTier: 3,
-    adrenalineGain: 10,
-    handlerId: 'warrior.berserk'
-  },
   [ID.FLAMING_FLURRY]: {
     implemented: true,
     skillWeapon: 'Sword',

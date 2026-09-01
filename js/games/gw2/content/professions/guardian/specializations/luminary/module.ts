@@ -12,7 +12,10 @@ import {
   luminarySchedulerHooks,
   luminarySkillMechanicHandlers
 } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge-rules.js';
-import { LUMINARY_SKILL_MECHANICS } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
+import {
+  LUMINARY_EXTRA_SKILLS,
+  LUMINARY_SKILL_MECHANICS
+} from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
 import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 import { luminaryUi } from '#gw2/content/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_BALANCE_PROFILES } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
@@ -21,6 +24,7 @@ export const luminaryModule = defineNativeModule({
   id: 'Luminary',
   data: createGuardianModuleData('Luminary', {
     skillMechanics: LUMINARY_SKILL_MECHANICS,
+    extraSkills: LUMINARY_EXTRA_SKILLS,
     balanceProfiles: LUMINARY_BALANCE_PROFILES
   }),
   state: {

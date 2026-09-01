@@ -2265,40 +2265,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     flipSkillId: 29256
   },
   {
-    id: 29082,
-    name: 'Natural Harmony',
-    description:
-      'Legendary Centaur. Collect energy, pulling it into the tablet to build up its power. After a short delay the energy will be released, healing nearby allies. \n\nIf this skill is empowered, healing is increased and endurance is granted to affected allies.',
-    icon: 'https://render.guildwars2.com/file/BBF2026B38E6EC7108B44FFA6BB66F0BFF0A7E01/1013015.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: [],
-    recharge: 2,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 29114,
-    name: 'Energy Expulsion',
-    description:
-      'Legendary Centaur. Force energy to erupt from the tablet, knocking down nearby foes and healing nearby allies. \n\nIf this skill is empowered, grant stability to allies near the tablet.',
-    icon: 'https://render.guildwars2.com/file/47F60D20E87C7A6D5B9E4E5D062F01F2793A1414/1012984.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: '',
-    categories: [],
-    recharge: 2,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 29145,
     name: "Mender's Rebuke",
     description:
@@ -2347,23 +2313,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     ammoRecharge: 0,
     nextChainId: 29331,
     flipSkillId: 29331
-  },
-  {
-    id: 29197,
-    name: 'Purifying Essence',
-    description:
-      'Legendary Centaur. Remove conditions from allies near the tablet, and heal them for a small amount per condition removed. \n\nIf this skill is empowered, remove additional conditions from allies.',
-    icon: 'https://render.guildwars2.com/file/02DEFA14E7A5E925F22C7EB85E7B51364316DE77/1013018.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: [],
-    recharge: 5,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
   },
   {
     id: 29209,
@@ -2726,22 +2675,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     specialization: 'Renegade',
     categories: [],
     recharge: 3,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 46409,
-    name: 'Legendary Renegade Stance',
-    description: 'Invoke the power of the legendary charr renegade, Kalla Scorchrazor.',
-    icon: 'https://render.guildwars2.com/file/6B3205EF5ED0802DB74BBF7F0CAE04FAA2089B74/1770592.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: [],
-    recharge: 0,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3583,23 +3516,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     specialization: 'Conduit',
     categories: [],
     recharge: 10,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 77159,
-    name: 'Beguiling Haze',
-    description:
-      'Send an unblockable fragment of Razah toward the targeted area. When the fragment reaches its target, shadowstep to its position, dealing damage to enemies in the area. If it hits, you can use this skill up to two more times with no energy cost or casting time.\n\nResonance. If Legendary Assassin Stance is equipped, this skill deals additional damage and removes boons if only one enemy was struck by this attack.',
-    icon: 'https://render.guildwars2.com/file/93F823A8E8CD7EA9E579D1A8E32505D5DEB9DD53/3680203.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Conduit',
-    categories: [],
-    recharge: 1,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

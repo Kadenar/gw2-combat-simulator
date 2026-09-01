@@ -7,6 +7,7 @@ import { migrateWarriorBuild, validateWarriorBuild } from '#gw2/content/professi
 import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -66,11 +67,12 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     [ID.FOCUSED_SLASH, 360, 280],
     [ID.KEEN_STRIKE, 440, 280],
     [ID.DISRUPTING_STAB, 440, 160],
-    [ID.BREACHING_STRIKE_ID_69297, 840, 760]
+    [69297, 842, 758]
   ]) {
-    const skill = warriorCatalog.skillsById.get(skillId);
+    const canonicalSkillId = canonicalGw2SkillId(skillId);
+    const skill = warriorCatalog.skillsById.get(canonicalSkillId);
 
-    if (skillId === ID.BREACHING_STRIKE_ID_69297) {
+    if (skillId === 69297) {
       assert.equal(skill.castTimeMs, castMs, skill.name);
       assert.equal(skill.unaffectedByQuickness, true, skill.name);
       assert.equal(skill.quicknessCastTimeMs, undefined, skill.name);
@@ -90,20 +92,21 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     ].includes(skillId);
     const rotation =
       skillId === ID.HAMMER_BASH
-        ? [ID.HAMMER_SWING, skill.id]
+        ? [ID.HAMMER_SWING, skillId]
         : skillId === ID.HAMMER_SMASH
-          ? [ID.HAMMER_SWING, ID.HAMMER_BASH, skill.id]
+          ? [ID.HAMMER_SWING, ID.HAMMER_BASH, skillId]
           : skillId === ID.FOCUSED_SLASH
-            ? [ID.PRECISE_CUT, skill.id]
+            ? [ID.PRECISE_CUT, skillId]
             : skillId === ID.KEEN_STRIKE
-              ? [ID.PRECISE_CUT, ID.FOCUSED_SLASH, skill.id]
-              : [skill.id];
+              ? [ID.PRECISE_CUT, ID.FOCUSED_SLASH, skillId]
+              : [skillId];
     const result = simulate('Spellbreaker', rotation, {
       primaryWeapon: usesHammer ? 'Hammer' : 'Dagger',
       secondaryWeapon: usesHammer ? '' : 'Mace',
       initialResource: skill.burst ? 10 : 0
     });
-    const action = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
+    // Alias inputs execute and emit events under their canonical runtime identity.
+    const action = result.events.find((event) => event.type === 'action' && event.skillId === canonicalSkillId);
     const damage = result.events.find((event) => event.type === 'damage' && event.activationId === action.activationId);
 
     assert.equal(Math.round((damage.at - action.at) * 1000), packetMs, skill.name);
@@ -159,13 +162,13 @@ test('recorded interrupt commit cutoffs preserve landed warrior packets', () => 
       config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace', initialResource: 10 }
     },
     {
-      skillId: ID.BREACHING_STRIKE_ID_69297,
-      cutoffMs: 760,
+      skillId: 69297,
+      cutoffMs: 758,
       prefix: [],
       config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace', initialResource: 10 }
     },
     {
-      skillId: ID.BREACHING_STRIKE_ID_69433,
+      skillId: 69433,
       cutoffMs: 758,
       prefix: [],
       config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace', initialResource: 10 }
@@ -173,10 +176,11 @@ test('recorded interrupt commit cutoffs preserve landed warrior packets', () => 
   ];
 
   for (const { skillId, cutoffMs, prefix, config } of cases) {
-    const skill = warriorCatalog.skillsById.get(skillId);
+    const canonicalSkillId = canonicalGw2SkillId(skillId);
+    const skill = warriorCatalog.skillsById.get(canonicalSkillId);
     const damageCount = (interruptMs) =>
       simulate('Spellbreaker', [...prefix, { name: skill.name, skillId, interruptMs }], config).events.filter(
-        (event) => event.type === 'damage' && event.skillId === skillId
+        (event) => event.type === 'damage' && event.skillId === canonicalSkillId
       ).length;
 
     assert.equal(skill.interruptCommitMs, cutoffMs, skill.name);
@@ -244,7 +248,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
   const removals = (result, skillId) =>
     result.resolvedEvents.filter((event) => event.type === 'warrior.boon-removal' && event.skillId === skillId);
 
-  const breaching = simulate('Spellbreaker', [ID.BREACHING_STRIKE_ID_69297], {
+  const breaching = simulate('Spellbreaker', [69297], {
     ...insightConfig,
     primaryWeapon: 'Dagger',
     initialResource: 10,
@@ -252,7 +256,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
   });
 
   assert.deepEqual(
-    removals(breaching, ID.BREACHING_STRIKE_ID_69297).map(({ attemptedBoonRemovals, boonsRemoved }) => ({
+    removals(breaching, ID.BREACHING_STRIKE).map(({ attemptedBoonRemovals, boonsRemoved }) => ({
       attemptedBoonRemovals,
       boonsRemoved
     })),
@@ -260,7 +264,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
   );
   assert.equal(insightStacks(breaching), 0);
 
-  const breachingCombo = simulate('Spellbreaker', [ID.WINDS_OF_DISENCHANTMENT, ID.BREACHING_STRIKE_ID_69297], {
+  const breachingCombo = simulate('Spellbreaker', [ID.WINDS_OF_DISENCHANTMENT, 69297], {
     ...insightConfig,
     primaryWeapon: 'Dagger',
     initialResource: 10,
@@ -354,7 +358,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     [
       warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT).comboFields[0].fieldType,
       warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT).comboFields[0].duration,
-      warriorCatalog.skillsById.get(ID.BREACHING_STRIKE_ID_69297).comboFinishers[0].finisherType,
+      warriorCatalog.skillsById.get(ID.BREACHING_STRIKE).comboFinishers[0].finisherType,
       warriorCatalog.skillsById.get(ID.BULLS_CHARGE).comboFinishers[0].finisherType
     ],
     ['Lightning', 5, 'Leap', 'Leap']

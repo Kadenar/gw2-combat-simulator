@@ -2691,23 +2691,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 42297,
-    name: 'Manifest Sand Shade',
-    description:
-      'Shade. Manifest a sand shade using some of your life force. Using a shade ability strikes enemies near you and your shades.',
-    icon: 'https://render.guildwars2.com/file/E15557DE4FC766EE28E31F73B3125FDC1AEFE608/1770539.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: [],
-    recharge: 0,
-    ammo: 3,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 42355,
     name: 'Ghastly Breach',
     description:
@@ -2873,40 +2856,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     recharge: 16,
     ammo: 0,
     ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 46473,
-    name: 'Manifest Sand Shade',
-    description:
-      'Shade. Manifest a sand shade using some of your life force. Using a shade ability strikes enemies near you and your shades.',
-    icon: 'https://render.guildwars2.com/file/E15557DE4FC766EE28E31F73B3125FDC1AEFE608/1770539.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: [],
-    recharge: 0,
-    ammo: 3,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 46474,
-    name: 'Manifest Sand Shade',
-    description:
-      'Shade. Manifest a sand shade using some of your life force. Using a shade ability strikes enemies near you and your shades.',
-    icon: 'https://render.guildwars2.com/file/E15557DE4FC766EE28E31F73B3125FDC1AEFE608/1770539.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_1',
-    specialization: '',
-    categories: [],
-    recharge: 0,
-    ammo: 3,
-    ammoRecharge: 8,
     nextChainId: null,
     flipSkillId: null
   },

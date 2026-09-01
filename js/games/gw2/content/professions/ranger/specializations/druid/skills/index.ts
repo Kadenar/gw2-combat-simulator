@@ -24,20 +24,10 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [],
     handlerId: 'ranger.celestial-avatar-exit'
   },
-  [ID.GLYPH_OF_BURGEONING]: {
-    implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 333
-  },
   [ID.GLYPH_OF_THE_STARS]: {
     implemented: true,
     effects: [],
     quicknessCastTimeMs: 667
-  },
-  [ID.GLYPH_OF_EQUALITY]: {
-    implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 333
   },
   [ID.CELESTIAL_AVATAR]: {
     implemented: true,

@@ -224,11 +224,14 @@ function resolveAction(
 function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   const sourceDurationMs = action.end - action.start;
   const paletteInterruptMs = Number(action.skill?.paletteInterruptMs);
-  // EI's reduced-aftercast duration may stop near a catalog's measured replay point; snap only within two action ticks.
+  const runtimeDurationMs = quicknessReferenceCastTimeMs(action.skill);
+  const paletteDistanceMs = Math.abs(sourceDurationMs - paletteInterruptMs);
+  // Snap reduced aftercasts to a measured replay point only when it is closer than normal completion.
   if (
     action.status !== 'interrupted' &&
     paletteInterruptMs > 0 &&
-    Math.abs(sourceDurationMs - paletteInterruptMs) <= 2 * GW2_ACTION_TICK_MS
+    paletteDistanceMs <= 2 * GW2_ACTION_TICK_MS &&
+    (!(runtimeDurationMs > 0) || paletteDistanceMs < Math.abs(sourceDurationMs - runtimeDurationMs))
   ) {
     return observedCommittedInterruptMs(action.skill, paletteInterruptMs);
   }

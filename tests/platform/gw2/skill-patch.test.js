@@ -25,7 +25,7 @@ function fixtureCatalog() {
         cooldown: 10,
         resourceGain: 50,
         effects: [
-          { type: 'strike', coefficient: 2, hits: 2, name: 'Initial' },
+          { type: 'strike', coefficient: 2, hits: 2, atMs: 0, name: 'Initial' },
           {
             type: 'condition',
             condition: 'Burning',

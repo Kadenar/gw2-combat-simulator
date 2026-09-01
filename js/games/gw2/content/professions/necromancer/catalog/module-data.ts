@@ -27,10 +27,6 @@ export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
   ])
 );
 
-const CANONICAL_ALIAS_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({
-  'Manifest Sand Shade': ID.MANIFEST_SAND_SHADE
-});
-
 const STATIC_REPLACEMENT_PAIRS = new Set<string>([
   `${ID.LIFE_BLAST}:${ID.DHUUMFIRE_BLAST}`,
   `${ID.FEAST_OF_CORRUPTION}:${ID.DEVOURING_DARKNESS}`,
@@ -48,13 +44,7 @@ const UNSUPPORTED_SKILL_IDS = new Set<SkillId>([
 const allSkills: readonly Skill[] = Object.freeze(
   [...SKILLS, ...NECROMANCER_SUPPLEMENTAL_SKILLS]
     .filter((skill) => !UNSUPPORTED_SKILL_IDS.has(skill.id))
-    .sort((left, right) => {
-      const leftCanonical = CANONICAL_ALIAS_ID_BY_NAME[left.name] === left.id ? 0 : 1;
-
-      const rightCanonical = CANONICAL_ALIAS_ID_BY_NAME[right.name] === right.id ? 0 : 1;
-
-      return leftCanonical - rightCanonical || Number(left.id) - Number(right.id);
-    })
+    .sort((left, right) => Number(left.id) - Number(right.id))
 );
 
 const generatedById = new Map<SkillId, Skill>(allSkills.map((skill) => [skill.id, skill]));
@@ -66,8 +56,6 @@ const flipParentById = createFlipParentMap(allSkills, {
 });
 
 const generated: readonly Skill[] = allSkills.map((skill) => {
-  const canonicalAliasId = CANONICAL_ALIAS_ID_BY_NAME[skill.name];
-
   const flipParentId = flipParentById.get(skill.id);
 
   return {
@@ -75,9 +63,7 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
     cooldown: gw2BaseRecharge(skill),
     flipParentId: flipParentId ?? null,
     flipParent: flipParentId == null ? '' : generatedById.get(flipParentId)?.name || '',
-    simulatorAliasOfId: canonicalAliasId && canonicalAliasId !== skill.id ? canonicalAliasId : null,
-    simulatorExcluded:
-      NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name) || Boolean(canonicalAliasId && canonicalAliasId !== skill.id),
+    simulatorExcluded: NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name),
     ...(NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name)
       ? {
           patchAuthoringExcluded: true
@@ -88,8 +74,9 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
   };
 });
 
+// Keeps the one canonical shade owned by Scourge after duplicate API forms are removed.
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
-  Scourge: [ID.MANIFEST_SAND_SHADE_ID_42297, ID.MANIFEST_SAND_SHADE_ID_46473, ID.MANIFEST_SAND_SHADE_ID_46474]
+  Scourge: [ID.MANIFEST_SAND_SHADE]
 });
 
 const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);

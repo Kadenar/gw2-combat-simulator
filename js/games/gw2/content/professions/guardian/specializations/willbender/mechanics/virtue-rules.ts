@@ -385,9 +385,9 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
         emitSkillBuff(context, {
           at,
           source: 'guardian',
-          sourceId: ID.CRASHING_COURAGE_ID_62648,
+          sourceId: ID.CRASHING_COURAGE,
           actorType: 'player',
-          skillId: ID.CRASHING_COURAGE_ID_62648,
+          skillId: ID.CRASHING_COURAGE,
           skillName: 'Crashing Courage',
           name: `Crashing Courage — Triggered ${kind === 'aegis' ? 'Aegis' : 'Stability'}`,
           kind,

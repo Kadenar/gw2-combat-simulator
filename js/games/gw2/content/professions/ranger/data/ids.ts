@@ -28,15 +28,12 @@ export const RANGER_SKILL_IDS = Object.freeze({
   SIGNET_OF_THE_WILD: 12491, // Signet of the Wild
   FROST_TRAP: 12492, // Frost Trap
   STORM_SPIRIT: 12493, // Storm Spirit
-  LIGHTNING_REFLEXES: 12494, // Lightning Reflexes
   STONE_SPIRIT: 12495, // Stone Spirit
   VIPERS_NEST: 12496, // Viper's Nest
   FROST_SPIRIT: 12497, // Frost Spirit
   SUN_SPIRIT: 12498, // Sun Spirit
   FLAME_TRAP: 12499, // Flame Trap
-  SIGNET_OF_STONE: 12500, // Signet of Stone
   MUDDY_TERRAIN: 12501, // Muddy Terrain
-  SIGNET_OF_RENEWAL: 12502, // Signet of Renewal
   BONFIRE: 12504, // Bonfire
   CRIPPLING_SHOT: 12507, // Crippling Shot
   CONCUSSION_SHOT: 12508, // Concussion Shot
@@ -50,8 +47,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   COUNTERATTACK_KICK: 12523, // Counterattack Kick
   MAUL: 12525, // Maul
   SHARPENING_STONE: 12537, // Sharpening Stone
-  SIGNET_OF_THE_HUNT: 12542, // Signet of the Hunt
-  QUICKENING_ZEPHYR: 12550, // Quickening Zephyr
   SPIRIT_OF_NATURE: 12569, // Spirit of Nature
   HUNTERS_SHOT: 12573, // Hunter's Shot
   ENTANGLE: 12580, // Entangle
@@ -82,15 +77,12 @@ export const RANGER_SKILL_IDS = Object.freeze({
   RELEASE_CELESTIAL_AVATAR: 31411, // Release Celestial Avatar
   SUBLIME_CONVERSION: 31496, // Sublime Conversion
   ANCESTRAL_GRACE: 31535, // Ancestral Grace
-  GLYPH_OF_BURGEONING: 31582, // Glyph of Burgeoning
   GLYPH_OF_THE_STARS: 31677, // Glyph of the Stars
   VINE_SURGE: 31700, // Vine Surge
   SOLAR_BEAM: 31710, // Solar Beam
-  GLYPH_OF_EQUALITY: 31746, // Glyph of Equality
   CELESTIAL_AVATAR: 31869, // Celestial Avatar
   ASTRAL_WISP: 31889, // Astral Wisp
   WE_HEAL_AS_ONE: 31914, // "We Heal As One!"
-  SEARCH_AND_RESCUE: 34309, // "Search and Rescue!"
   NARCOTIC_SPORES: 40111, // Narcotic Spores
   SMOKE_ASSAULT: 40255, // Smoke Assault
   LEADING_SWIPE: 40301, // Leading Swipe
@@ -136,16 +128,13 @@ export const RANGER_SKILL_IDS = Object.freeze({
   CHOMP_ID_44885: 44885, // Chomp
   BEAR_STANCE: 44948, // Bear Stance
   SWOOP_ID_44991: 44991, // Swoop
-  GRIFFON_STANCE: 45142, // Griffon Stance
   GROUNDWORK_GOUGE: 45426, // Groundwork Gouge
   SHARPEN_SPINES: 45479, // Sharpen Spines
   ONE_WOLF_PACK: 45717, // One Wolf Pack
   ONE_WOLF_PACK_STRIKE: 42145,
   LESSER_SIC_EM: 79348,
   CHARGE: 45743, // Charge
-  DOLYAK_STANCE: 45789, // Dolyak Stance
   UNFLINCHING_FORTITUDE: 45797, // Unflinching Fortitude
-  MOA_STANCE: 45970, // Moa Stance
   INSTINCTIVE_ENGAGE: 46123, // Instinctive Engage
   TAIL_LASH_ID_46386: 46386, // Tail Lash
   BRUTAL_CHARGE_ID_46432: 46432, // Brutal Charge
@@ -158,13 +147,11 @@ export const RANGER_SKILL_IDS = Object.freeze({
   UNLEASH_RANGER: 63147, // Unleash Ranger
   EXPLODING_SPORES: 63157, // Exploding Spores
   FORESTS_FORTIFICATION: 63163, // Forest's Fortification
-  UNNATURAL_TRAVERSAL: 63195, // Unnatural Traversal
   UNLEASHED_OVERBEARING_SMASH: 63197, // Unleashed Overbearing Smash
   OVERBEARING_SMASH_SECOND_STRIKE: 63201,
   UNLEASHED_THUMP: 63208, // Unleashed Thump
   VENOMOUS_OUTBURST: 63209, // Venomous Outburst
   HAMMER_SLAM: 63222, // Hammer Slam
-  MUTATE_CONDITIONS: 63256, // Mutate Conditions
   RENDING_VINES: 63258, // Rending Vines
   PERILOUS_GIFT: 63319, // Perilous Gift
   UNLEASHED_WILD_SWING: 63335, // Unleashed Wild Swing

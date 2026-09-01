@@ -46,15 +46,7 @@ const KIT_ORDER = new Map<string, number>([
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']);
 
 // these skills appear in the palette but are not manually placed in utility slots
-const UNSELECTABLE_SLOT_SKILLS = new Set<string>([
-  'Elixir B',
-  'Elixir C',
-  'Elixir S',
-  'Elixir U',
-  'Elixir R',
-  'Utility Goggles',
-  'Rocket Boots'
-]);
+const UNSELECTABLE_SLOT_SKILLS = new Set<string>(['Elixir B', 'Elixir R', 'Utility Goggles']);
 
 // controls which engineer.state events Core spec suppresses from the event log;
 // specialization modules handle filtering of their own state reasons

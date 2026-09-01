@@ -720,6 +720,20 @@ test('recovers alacrity Luminary opening state and retains only physical weapon 
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
 
+test('keeps near-nominal Glaring Burst report casts at their 600 ms runtime', () => {
+  const report = reportFixture(
+    'Luminary',
+    [{ id: 76_950, skills: [{ castTime: 0, duration: 600, timeGained: 0 }] }],
+    { s76950: { name: 'Glaring Burst', autoAttack: true } },
+    1_000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  const glaringBurst = result.rotation.find((command) => command.name === 'Glaring Burst');
+
+  assert.equal('interruptMs' in glaringBurst, false);
+});
+
 test('recovers Renegade warband precasts and normalizes legend and enhanced summon signals', () => {
   const report = reportFixture(
     'Renegade',

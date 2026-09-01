@@ -68,11 +68,7 @@ function decorateWillbenderVirtueEffect(
   skill: GuardianSkill,
   event: SimulationEvent
 ): void {
-  if (
-    skill.id !== ID.RUSHING_JUSTICE &&
-    skill.id !== ID.CRASHING_COURAGE &&
-    skill.id !== ID.CRASHING_COURAGE_ID_62648
-  ) {
+  if (skill.id !== ID.RUSHING_JUSTICE && skill.id !== ID.CRASHING_COURAGE) {
     return;
   }
 

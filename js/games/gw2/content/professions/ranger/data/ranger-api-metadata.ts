@@ -1660,22 +1660,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: 12598
   },
   {
-    id: 12494,
-    name: 'Lightning Reflexes',
-    description: 'Survival. Evade back with a crack of lightning, dealing damage and gaining vigor.',
-    icon: 'https://render.guildwars2.com/file/4B15F4122401A902F35C42655E0A5E6D6253DED7/102784.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Survival'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 12495,
     name: 'Stone Spirit',
     description:
@@ -1759,23 +1743,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 12500,
-    name: 'Signet of Stone',
-    description:
-      'Signet Passive: Improves toughness for you and your pet. \nSignet Active: You and your pet take no damage from attacks. You and your pet are still susceptible to conditions and control effects.',
-    icon: 'https://render.guildwars2.com/file/0419F0A9D9494B4273F31FA1E92A551AA67246B8/102886.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 12501,
     name: 'Muddy Terrain',
     description: 'Survival. Use mud to cripple, slow, and immobilize foes.',
@@ -1785,23 +1752,6 @@ export const SKILLS: readonly RangerSkill[] = [
     slot: 'Utility',
     specialization: '',
     categories: ['Survival'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 12502,
-    name: 'Signet of Renewal',
-    description:
-      'Signet Passive: You and your pet recover health. \nSignet Active: Grant resistance and resolution to your pet; it pulls conditions from nearby allies to itself.',
-    icon: 'https://render.guildwars2.com/file/B83DDE1DD9F3DC65590D7EA207F0604F26B1BCA7/103590.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
     recharge: 20,
     ammo: 0,
     ammoRecharge: 0,
@@ -2014,39 +1964,6 @@ export const SKILLS: readonly RangerSkill[] = [
     specialization: '',
     categories: ['Survival'],
     recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 12542,
-    name: 'Signet of the Hunt',
-    description:
-      'Signet Passive: Grants 25% increased movement speed to you and your pet.\nSignet Active: Attacks from you and your pet become unblockable, and you both gain superspeed.',
-    icon: 'https://render.guildwars2.com/file/4008F219B5DA1B0BF059EA7CF6CD3157C8ED76F8/104005.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 12550,
-    name: 'Quickening Zephyr',
-    description: 'Survival. You and your pet gain quickness and superspeed.',
-    icon: 'https://render.guildwars2.com/file/5C2FFFD8103A1D763E5A71EE557277B5959F2051/104006.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Survival'],
-    recharge: 20,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -2445,22 +2362,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 31582,
-    name: 'Glyph of Burgeoning',
-    description: 'Glyph. Use nature energy to heal allies and gain astral force or grant allies barrier and endurance.',
-    icon: 'https://render.guildwars2.com/file/2A0DAB9B761FB75E2FEF5FF5D0ADE1143E32A6F4/1128639.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Druid',
-    categories: ['Glyph'],
-    recharge: 25,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 31677,
     name: 'Glyph of the Stars',
     description: 'Glyph. Channel the power of the stars to prevent harm to your allies.',
@@ -2510,22 +2411,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 31746,
-    name: 'Glyph of Equality',
-    description: 'Glyph. Daze foes or break stun for allies.',
-    icon: 'https://render.guildwars2.com/file/2BBD3BC59BF33E0A9B3F4A7DFB9B7EFF3FCA2D9A/1128637.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Druid',
-    categories: ['Glyph'],
-    recharge: 24,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 31869,
     name: 'Celestial Avatar',
     description: 'Consume your accumulated astral force to become a celestial avatar.',
@@ -2569,23 +2454,6 @@ export const SKILLS: readonly RangerSkill[] = [
     specialization: '',
     categories: [],
     recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 34309,
-    name: '"Search and Rescue!"',
-    description:
-      'Command.Your pet teleports a downed ally within range of you and begins reviving them. Grant regeneration to nearby allies.',
-    icon: 'https://render.guildwars2.com/file/4345CDEAFF22E0A45DE84F42ED6B4862760D5731/104014.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: [],
-    recharge: 48,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3316,23 +3184,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 45142,
-    name: 'Griffon Stance',
-    description:
-      'Stance. Evade and gain endurance. Your endurance recovery is greatly improved. You gain might and superspeed when you evade attacks.\nEvasion bonuses can occur once per interval.',
-    icon: 'https://render.guildwars2.com/file/BFD6BD2D9D60F1B25C3B2ECAAF902F07F7424C5C/1770569.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Soulbeast',
-    categories: ['Stance'],
-    recharge: 25,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 45426,
     name: 'Groundwork Gouge',
     description: "Swipe past your foe's defenses, exposing their vulnerability.",
@@ -3398,23 +3249,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 45789,
-    name: 'Dolyak Stance',
-    description:
-      'Stance. Enter a defensive stance and remove conditions that impede movement. Prevent application of such conditions while in this stance.',
-    icon: 'https://render.guildwars2.com/file/134103AEE929B7F0B4CE9B380A48B7A2DFB863FB/1770568.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Soulbeast',
-    categories: ['Stance'],
-    recharge: 25,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 45797,
     name: 'Unflinching Fortitude',
     description:
@@ -3426,22 +3260,6 @@ export const SKILLS: readonly RangerSkill[] = [
     specialization: '',
     categories: [],
     recharge: 35,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 45970,
-    name: 'Moa Stance',
-    description: 'Stance. Gain boons. Increase the duration of boons you grant while in this stance.',
-    icon: 'https://render.guildwars2.com/file/12571D4103DE1DF91BB5D20E7DE34D4998337DDE/1770570.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Soulbeast',
-    categories: ['Stance'],
-    recharge: 25,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3645,23 +3463,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 63195,
-    name: 'Unnatural Traversal',
-    description:
-      "Cantrip. Teleport to your target, making nearby enemies vulnerable. If an enemy is struck, this skill's recharge is reduced.",
-    icon: 'https://render.guildwars2.com/file/DEBBE571B2A3C879DBDF1270931A74D3CEB0263A/2503732.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Untamed',
-    categories: ['Cantrip'],
-    recharge: 40,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 63197,
     name: 'Unleashed Overbearing Smash',
     description:
@@ -3726,22 +3527,6 @@ export const SKILLS: readonly RangerSkill[] = [
     ammoRecharge: 0,
     nextChainId: 63337,
     flipSkillId: 63337
-  },
-  {
-    id: 63256,
-    name: 'Mutate Conditions',
-    description: 'Cantrip. Convert all your conditions into vulnerability.',
-    icon: 'https://render.guildwars2.com/file/1C05CDE211F96F0EC933FA4A14B756BBAA01E4A5/2503731.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Untamed',
-    categories: ['Cantrip'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
   },
   {
     id: 63258,

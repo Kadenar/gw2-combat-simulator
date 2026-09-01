@@ -64,12 +64,9 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   SURGE_OF_THE_MISTS: 28978, // Surge of the Mists
   REJUVENATING_ASSAULT: 29002, // Rejuvenating Assault
   PREPARATION_THRUST: 29057, // Preparation Thrust
-  NATURAL_HARMONY_ID_29082: 29082, // Natural Harmony
-  ENERGY_EXPULSION_ID_29114: 29114, // Energy Expulsion
   MENDERS_REBUKE: 29145, // Mender's Rebuke
   PROJECT_TRANQUILITY: 29148, // Project Tranquility
   RAPID_SWIPE: 29180, // Rapid Swipe
-  PURIFYING_ESSENCE_ID_29197: 29197, // Purifying Essence
   RIPOSTING_SHADOWS: 29209, // Riposting Shadows
   CHILLING_ISOLATION: 29233, // Chilling Isolation
   BRUTAL_BLADE: 29256, // Brutal Blade
@@ -92,7 +89,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   ORDERS_FROM_ABOVE: 45537, // Orders from Above
   BREAKRAZORS_BASTION: 45686, // Breakrazor's Bastion
   SOULCLEAVES_SUMMIT: 45773, // Soulcleave's Summit
-  LEGENDARY_RENEGADE_STANCE_ID_46409: 46409, // Legendary Renegade Stance
   TRUE_NATURE: 51667, // True Nature
   TRUE_NATURE_ID_51675: 51675, // True Nature
   TRUE_NATURE_ID_51696: 51696, // True Nature
@@ -144,7 +140,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   TWIN_MOON_SWEEP: 76968, // Twin Moon Sweep
   SHIELDING_HANDS: 77043, // Shielding Hands
   BEGUILING_HAZE: 77141, // Beguiling Haze
-  BEGUILING_HAZE_ID_77159: 77159, // Beguiling Haze
   HEX_EATER_VORTEX: 77243, // Hex-Eater Vortex
   GLADIATORS_DEFENSE: 77291, // Gladiator's Defense
   COSMIC_WISDOM: 77371, // Cosmic Wisdom
@@ -207,7 +202,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   REPLENISHING_DESPAIR_TRAIT_SKILL: 76497, // Replenishing Despair (trait skill)
   BEGUILING_HAZE_ID_76805: 76805, // Beguiling Haze
   FORM_OF_THE_DERVISH_ATTACK: 76818, // Form of the Dervish (Attack)
-  BEGUILING_HAZE_ID_76917: 76917, // Beguiling Haze
   TWIN_MOON_SWEEP_ID_77001: 77001, // Twin Moon Sweep
   FORM_OF_THE_DERVISH_ATTACK_ELITE: 77116, // Form of the Dervish (Attack - Elite)
   DWARVEN_RETRIBUTION: 77920, // Dwarven Retribution

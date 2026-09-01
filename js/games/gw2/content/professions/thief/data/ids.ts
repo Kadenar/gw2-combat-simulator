@@ -152,7 +152,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   HOLO_DANCER_DECOY: 76674, // Holo-Dancer Decoy
   EXALTED_HAMMER_ID_76702: 76702, // Exalted Hammer
   STONE_SUMMIT_CANNON: 76725, // Stone Summit Cannon
-  CANACH_COIN_TOSS: 76744, // Canach-Coin Toss
   EMERGENCY_JADE_SHIELD: 76784, // Emergency Jade Shield
   HOLO_DANCER_DECOY_ID_76800: 76800, // Holo-Dancer Decoy
   INQUEST_PORTAL_DEVICE: 76808, // Inquest Portal Device
@@ -174,7 +173,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   SKRITT_SWIPE: 77397, // Skritt Swipe
   ZEPHYRITE_SUN_CRYSTAL_ID_78309: 78309, // Zephyrite Sun Crystal
   FLAWLESS_EXECUTION: 80244, // Flawless Execution
-  DEATHS_ADVANCE_ID_80278: 80278, // Death's Advance
 
   // API-omitted identities from the supplemental catalog.
   BONE_CRACK: 1113, // Bone Crack

@@ -51,12 +51,6 @@ function targetControlled(context: Gw2ModifierContext): boolean {
   );
 }
 
-const BREACHING_STRIKE_IDS = new Set<number>([
-  ID.BREACHING_STRIKE,
-  ID.BREACHING_STRIKE_ID_69297,
-  ID.BREACHING_STRIKE_ID_69433
-]);
-
 // Warrior modifiers historically read configured and live resolver boons only; timeline state must not change them.
 function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
@@ -383,8 +377,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) =>
-      BREACHING_STRIKE_IDS.has(Number(eventSkill(context)?.id)) && context.config?.target?.boonless === true
+    when: (context) => eventSkill(context)?.id === ID.BREACHING_STRIKE && context.config?.target?.boonless === true
   },
   {
     id: 'warrior.slicing-maelstrom-boonless',
@@ -438,7 +431,7 @@ const DUAL_WIELDING_EXCLUDED_SKILL_IDS = new Set<number>([
   ID.AURA_SLICER,
   ID.KICK,
   ID.BULLS_CHARGE,
-  ...BREACHING_STRIKE_IDS
+  ID.BREACHING_STRIKE
 ]);
 /** GW2 completes cast durations on 40 ms action-tick boundaries. */
 const ACTION_TICK_MS = 40;

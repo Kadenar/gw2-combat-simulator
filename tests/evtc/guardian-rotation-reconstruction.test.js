@@ -187,7 +187,6 @@ test('reconstructs Luminary forge, virtue, stance, and physical swap signals', (
   assert.deepEqual(
     result.actions.map((action) => action.name),
     [
-      'Radiant Courage',
       'Enter Radiant Forge',
       'Radiant Justice',
       'Swap Weapons',
@@ -196,7 +195,95 @@ test('reconstructs Luminary forge, virtue, stance, and physical swap signals', (
       'Effulgent Stance'
     ]
   );
-  assert.equal(result.combatStartTimestampMs, 1_200);
+  assert.equal(result.combatStartTimestampMs, 0);
+});
+
+test('reconstructs an evidenced initial Sovereign aura without fabricating a virtue cast', () => {
+  const skills = [skill(25_518, 'Initial Light Aura'), skill(77_164, 'Sovereign of Light')];
+  const fixture = guardianLog(81, skills, [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      value: 1_000,
+      buffDamage: 4_000,
+      skillId: 25_518,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({ time: 2_000, target: ALLY, skillId: 77_164, result: 1 })
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    ['Initial Light Aura']
+  );
+  assert.equal(result.combatStartTimestampMs, 3_000);
+});
+
+test('reconstructs exact remaining Luminary opening buff durations', () => {
+  const skills = [
+    skill(873, 'Initial Resolution'),
+    skill(73_955, 'Initial Relic of the Claw'),
+    skill(77_169, 'Initial Empowered Armaments'),
+    skill(77_360, 'Initial Radiant Hammer')
+  ];
+  const fixture = guardianLog(81, skills, [
+    event({ target: PLAYER, value: 1_000, skillId: 873, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({ target: PLAYER, value: 2_000, skillId: 873, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({ target: PLAYER, value: 8_000, skillId: 73_955, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({ target: PLAYER, value: 2_500, skillId: 77_169, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({ target: PLAYER, value: 6_000, skillId: 77_169, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({ target: PLAYER, value: 7_320, skillId: 77_360, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({ time: 1_001, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT })
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    result.rotation
+      .filter((command) => command.initialStateDurationMs != null)
+      .map((command) => [command.name, command.initialStateDurationMs]),
+    [
+      ['Initial Resolution', 3_000],
+      ['Initial Relic of the Claw', 8_000],
+      ['Initial Empowered Armaments', 8_500],
+      ['Initial Radiant Hammer', 7_320]
+    ]
+  );
+});
+
+test('places Luminary combat start before both opening Symbol packets', () => {
+  const opening = animation(73_132, 'Symbol of Luminance', 1_000, 432);
+  const symbol = skill(73_132, 'Symbol of Luminance', {
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    castTimeMs: 440,
+    quicknessCastTimeMs: 440,
+    effects: [
+      { type: 'strike', ticks: [{ atMs: 360, coefficient: 1.5 }] },
+      { type: 'strike', ticks: [{ atMs: 360, coefficient: 0.5 }] }
+    ]
+  });
+  const fixture = guardianLog(
+    81,
+    [symbol],
+    [
+      opening.events[0],
+      event({ time: 1_361, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ time: 1_361, target: ALLY, skillId: 73_132, value: 10_000, result: 1 }),
+      opening.events[1]
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [symbol] });
+
+  assert.deepEqual(result.rotation, [
+    { name: 'Symbol of Luminance', skillId: 73_132 },
+    { name: '__combat_start', offset: 359 }
+  ]);
 });
 
 test('coalesces Willbender animations and ignores passive flame packets', () => {

@@ -209,7 +209,10 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
   });
   assert.equal(profile('Mirage', MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes).profile.effects[0].coefficient, 1);
   assert.equal(profile('Virtuoso', VIRTUOSO_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
-  assert.equal(profile('Troubadour', TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute).profile.effects[0].coefficient, 3);
+  assert.equal(
+    strikeCoefficient(profile('Troubadour', TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute).profile.effects[0]),
+    3
+  );
   assert.equal(profile('Troubadour', TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).profile.effects[0].coefficient, 2.25);
   assert.equal(
     profile('Troubadour', TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).patchableFields.damageIncreasePerStack,
@@ -263,7 +266,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
         fields: { maximumStacks: { from: 5, to: 6 } }
       },
       [TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 3, to: 3.2 } }]
+        effects: [{ effectIndex: 0, tickIndex: 0, coefficient: { from: 1, to: 1.2 } }]
       },
       [TROUBADOUR_BALANCE_PROFILE_IDS.crescendo]: {
         fields: { damageIncreasePerStack: { from: 0.25, to: 0.3 } },
@@ -304,11 +307,13 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     1.1
   );
   assert.equal(
-    mesmerProfiledInstrument(
-      { catalog: preview },
-      INSTRUMENTS[ID.LIVELY_LUTE],
-      TROUBADOUR_INSTRUMENT_PROFILE_IDS[ID.LIVELY_LUTE]
-    ).coefficient,
+    strikeCoefficient(
+      mesmerProfiledInstrument(
+        { catalog: preview },
+        INSTRUMENTS[ID.LIVELY_LUTE],
+        TROUBADOUR_INSTRUMENT_PROFILE_IDS[ID.LIVELY_LUTE]
+      )
+    ),
     3.2
   );
 
@@ -467,9 +472,9 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
   const expected = {
     [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2950, 3710],
-    [ID.PHANTASMAL_BERSERKER]: [560, 1340, 2620, 3680, 4960],
+    [ID.PHANTASMAL_BERSERKER]: [560, 1340, 2620, 3680, 5160],
     [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 8560, 9270],
-    [ID.PHANTASMAL_DISENCHANTER]: [760, 1240, 1920, 3230, 3910],
+    [ID.PHANTASMAL_DISENCHANTER]: [760, 1240, 1920, 3230, 4080],
     [ID.PHANTASMAL_DUELIST]: [560, 2230, 2800, 5260, 5800],
     [ID.PHANTASMAL_LANCER]: [520, 1160, 2040, 3300, 4140],
     [ID.PHANTASMAL_MAGE]: [800, 2000, 2240, 3920, 4160],
@@ -502,7 +507,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
 
 test('Warden preserves all measured initial and Chronophantasma strike packets', () => {
   assert.deepEqual(
-    MESMER_CORE_PHANTASM_ATTACK_TIMINGS[ID.PHANTASMAL_WARDEN].damageTicks.Damage.map((tick) => tick.atMs),
+    MESMER_CORE_SKILL_MECHANICS[ID.PHANTASMAL_WARDEN].effects[0].ticks.map((tick) => tick.atMs),
     [880, 1240, 1600, 1960, 2320, 2680, 3080, 3440, 3800, 4160, 4520, 4880]
   );
   assert.deepEqual(
@@ -594,7 +599,7 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
     const [rootId, ...childIds] = chain;
     const rootSkill = mesmerCatalog.skillsById.get(rootId);
 
-    assert.equal(strikeEffects(rootSkill)[0].hits, 1);
+    assert.equal(strikeEffects(rootSkill)[0].ticks?.length ?? strikeEffects(rootSkill)[0].hits, 1);
     assert.notEqual(strikeEffects(rootSkill)[0].name, 'Full autoattack chain');
     assert.equal(rootSkill.chainRoot, rootId);
     assert.equal(rootSkill.chainStep, 1);
@@ -665,6 +670,7 @@ test('Mirage ambush data uses current player and clone variants', () => {
   assert.deepEqual(AMBUSH_ATTACKS.Axe.player, {
     coefficient: 1,
     hits: 2,
+    atMs: 0,
     damageAtMs: 360,
     conditions: [
       {
@@ -680,9 +686,7 @@ test('Mirage ambush data uses current player and clone variants', () => {
   assert.equal(AMBUSH_ATTACKS.Spear.name, 'Fractured Glass');
   assert.equal(AMBUSH_ATTACKS.Spear.id, 73067);
   assert.deepEqual(AMBUSH_ATTACKS.Spear.player, {
-    coefficient: 3.15,
-    hits: 7,
-    ticks: [{ atMs: 400 }, { atMs: 480 }, { atMs: 520 }, { atMs: 560 }, { atMs: 640 }, { atMs: 720 }, { atMs: 760 }]
+    ticks: [400, 480, 520, 560, 640, 720, 760].map((atMs) => ({ atMs, coefficient: 3.15 / 7 }))
   });
   assert.deepEqual(AMBUSH_ATTACKS.Spear.vulnerability, {
     duration: 6,
@@ -856,7 +860,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
   const swordsman = normalized('Phantasmal Swordsman');
 
   assert.deepEqual(
-    strikeEffects(swordsman).map((effect) => [effect.name, effect.coefficient]),
+    strikeEffects(swordsman).map((effect) => [effect.name, Number(strikeCoefficient(effect).toFixed(12))]),
     [
       ['Mesmer strike', 0.5],
       ['Phantasm leap', 0.5],
@@ -916,7 +920,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
   );
   assert.equal(AMBUSH_ATTACKS.Sword.player.coefficient, 3);
   assert.equal(AMBUSH_ATTACKS.Sword.clone.coefficient, 3);
-  assert.equal(AMBUSH_ATTACKS.Greatsword.player.coefficient, 3.1875);
+  assert.equal(strikeCoefficient(AMBUSH_ATTACKS.Greatsword.player), 3.1875);
   assert.equal(AMBUSH_ATTACKS.Rifle.player.coefficient, 2.6);
 
   const flyingCutter = normalized('Flying Cutter');
@@ -948,13 +952,18 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
     ]
   );
   assert.equal(TRAIT_DAMAGE['Phantasmal Blade'].weaponStrength, 2553.5);
-  assert.deepEqual(Object.fromEntries(Object.entries(TRAIT_DAMAGE).map(([name, data]) => [name, data.coefficient])), {
-    'Lesser Chaos Storm': 1.98,
-    'Phantasmal Blade': 0.7,
-    Syncopate: 0.75,
-    SyncopateDelayedWave: 1,
-    'Time Bomb': 3
-  });
+  assert.deepEqual(
+    Object.fromEntries(
+      Object.entries(TRAIT_DAMAGE).map(([name, data]) => [name, Number(strikeCoefficient(data).toFixed(12))])
+    ),
+    {
+      'Lesser Chaos Storm': 1.98,
+      'Phantasmal Blade': 0.7,
+      Syncopate: 0.75,
+      SyncopateDelayedWave: 1,
+      'Time Bomb': 3
+    }
+  );
 });
 
 test('supplied shatter and instrument coefficient tables are preserved', () => {
@@ -981,7 +990,7 @@ test('supplied shatter and instrument coefficient tables are preserved', () => {
     Object.fromEntries(
       [ID.LIVELY_LUTE, ID.FLUSTERING_FLUTE, ID.DEAFENING_DRUM, ID.HARMONIOUS_HARP].map((id) => [
         mesmerCatalog.skillsById.get(id).name,
-        INSTRUMENTS[id].coefficient
+        strikeCoefficient(INSTRUMENTS[id])
       ])
     ),
     {

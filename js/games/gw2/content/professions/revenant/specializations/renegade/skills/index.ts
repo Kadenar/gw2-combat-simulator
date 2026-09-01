@@ -446,13 +446,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     energyCost: 0,
     effects: []
   },
-  [ID.LEGENDARY_RENEGADE_STANCE_ID_46409]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
-  },
   [ID.CALL_OF_THE_RENEGADE]: {
     implemented: true,
     castTimeMs: 0,

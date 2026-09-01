@@ -34,7 +34,6 @@ const WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS = new Set<number>([
 
 const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
   14443, // Whirling Strike
-  14469, // Forceful Shot
   30989, // Burning Shackles
   31048, // Wild Whirl
   39972, // Silencer
@@ -45,32 +44,24 @@ const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
   46044 // Magehunter Strike
 ]);
 
-// These duplicate-name records are addressed directly by live mechanics.
-const WARRIOR_AUTHORABLE_RUNTIME_ALIAS_IDS = new Set<SkillId>([
-  30435, // Berserk
-  69297, // Breaching Strike
-  69433 // Breaching Strike
-]);
-
 const allSkills: readonly Skill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ''))),
   ...WARRIOR_SUPPLEMENTAL_SKILLS
 ]);
 
-const canonicalIdByName = new Map<string, SkillId>();
-
-for (const skill of [...allSkills].sort((left, right) => Number(left.id) - Number(right.id))) {
-  if (!canonicalIdByName.has(skill.name)) {
-    canonicalIdByName.set(skill.name, skill.id);
-  }
-}
+// Explicit winners preserve canonical name-based rotations when reviewed variants share a name.
+export const WARRIOR_NATIVE_CATALOG_OPTIONS = Object.freeze({
+  skillNameOverrides: Object.freeze({
+    'Path to Victory': 71932,
+    "Harrier's Toss": 73024
+  })
+});
 
 const flipParentById = createFlipParentMap(allSkills);
 
 const generated: readonly Skill[] = Object.freeze(
   allSkills.map((skill) => {
     const { recharge: legacyRecharge, ...sourceSkill } = skill;
-    const canonicalId = canonicalIdByName.get(skill.name)!;
     const maximumAmmo = Number(skill.ammo || 0);
     const ammoRecharge = Number(skill.ammoRecharge || 0);
 
@@ -86,10 +77,8 @@ const generated: readonly Skill[] = Object.freeze(
       cooldown,
       ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
       flipParentId: flipParentById.get(skill.id) ?? null,
-      simulatorAliasOfId: canonicalId === skill.id ? null : canonicalId,
-      simulatorExcluded: canonicalId !== skill.id || WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)),
-      ...((canonicalId !== skill.id && !WARRIOR_AUTHORABLE_RUNTIME_ALIAS_IDS.has(skill.id)) ||
-      WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)) ||
+      simulatorExcluded: WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)),
+      ...(WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)) ||
       WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
         ? {
             patchAuthoringExcluded: true
@@ -163,6 +152,11 @@ export function createWarriorModuleData(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
+    ...(id === 'Core'
+      ? {
+          skillNameOverrides: WARRIOR_NATIVE_CATALOG_OPTIONS.skillNameOverrides
+        }
+      : {}),
     ...(id === 'Core' ? WEAPON_DATA : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });

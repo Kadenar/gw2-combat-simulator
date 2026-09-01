@@ -76,27 +76,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.SLICK_SHOES]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 30,
-    effects: [
-      {
-        type: 'control',
-        actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 2
-        }
-      }
-    ]
-  },
-  [ID.ELIXIR_X]: {
-    implemented: true,
-    castTimeMs: 1000,
-    cooldown: 75,
-    effects: []
-  },
   [ID.ELIXIR_H]: {
     implemented: true,
     castTimeMs: 750,
@@ -191,43 +170,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'boon',
         boon: 'regeneration',
         duration: 3,
-        stacks: 1
-      }
-    ]
-  },
-  [ID.ELIXIR_C]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: []
-  },
-  [ID.ELIXIR_S]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 30,
-    effects: []
-  },
-  [ID.ELIXIR_U]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 6,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 6,
-        stacks: 2
-      },
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 6,
         stacks: 1
       }
     ]
@@ -347,21 +289,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'blind',
-        actorType: 'player'
-      }
-    ]
-  },
-  [ID.ROCKET_BOOTS]: {
-    implemented: true,
-    castTimeMs: 750,
-    cooldown: 2,
-    ammo: 2,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
-        name: 'Rocket Boots',
         actorType: 'player'
       }
     ]
@@ -685,62 +612,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.ROCKET_BOOTS_ID_29522]: {
-    implemented: true,
-    castTimeMs: 750,
-    cooldown: 2,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
-        name: 'Rocket Boots',
-        actorType: 'player'
-      }
-    ]
-  },
-  [ID.UTILITY_GOGGLES_ID_29591]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 4,
-        stacks: 1
-      }
-    ]
-  },
-  [ID.PERSONAL_BATTERING_RAM_ID_29991]: {
-    implemented: true,
-    castTimeMs: 250,
-    cooldown: 5,
-    ammo: 2,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
-        name: 'Personal Battering Ram',
-        actorType: 'player'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        metadata: {
-          controlKind: 'launch',
-          duration: 450
-        }
-      }
-    ]
-  },
   [ID.OVERCHARGE_SUPPLY_CRATE]: {
     implemented: true,
     castTimeMs: 0,
@@ -768,27 +639,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         }
       }
     ]
-  },
-  [ID.SLICK_SHOES_ID_30828]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 30,
-    effects: [
-      {
-        type: 'control',
-        actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 2
-        }
-      }
-    ]
-  },
-  [ID.A_E_D_ID_30881]: {
-    implemented: true,
-    castTimeMs: 750,
-    cooldown: 24,
-    effects: []
   },
   [ID.DEPLOY_MINE_ID_30893]: {
     implemented: true,

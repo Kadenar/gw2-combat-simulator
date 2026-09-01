@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { replaceBuild } from '#gw2/app/build/state/persistence.js';
+import { GW2_SKILL_ID_ALIASES as RUNTIME_SKILL_ID_ALIASES } from '#gw2/platform/skills/aliases.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
@@ -35,8 +36,10 @@ import {
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
   fetchProfessionSnapshot,
   GW2_SKILL_FLAGS,
+  GW2_SKILL_ID_ALIASES,
   isTerrestrialSkill,
-  serializeProfessionSnapshot
+  serializeProfessionSnapshot,
+  skillSnapshot
 } from '../../scripts/data/lib/gw2-profession-snapshot.mjs';
 import { updateProfessionApiData } from '../../scripts/data/update-profession-api-data.mjs';
 
@@ -77,7 +80,7 @@ const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
   warrior: WARRIOR_PUBLIC_END_STATE_KEYS
 });
 
-function createFixtureFetch(requests = []) {
+function createFixtureFetch(requests = [], fixture = apiFixture) {
   return async (requestUrl) => {
     const url = new URL(requestUrl);
 
@@ -89,13 +92,13 @@ function createFixtureFetch(requests = []) {
     let value;
 
     if (url.pathname.startsWith('/v2/professions/')) {
-      value = apiFixture.profession;
+      value = fixture.profession;
     } else if (url.pathname === '/v2/specializations') {
-      value = apiFixture.specializations.filter((entry) => ids.includes(entry.id));
+      value = fixture.specializations.filter((entry) => ids.includes(entry.id));
     } else if (url.pathname === '/v2/traits') {
-      value = apiFixture.traits.filter((entry) => ids.includes(entry.id));
+      value = fixture.traits.filter((entry) => ids.includes(entry.id));
     } else if (url.pathname === '/v2/skills') {
-      value = apiFixture.skills.filter((entry) => ids.includes(entry.id));
+      value = fixture.skills.filter((entry) => ids.includes(entry.id));
     } else {
       return {
         ok: false,
@@ -974,6 +977,56 @@ test('API snapshot transforms chains, filtering, and ordering', () => {
   );
 });
 
+test('API snapshots emit canonical records for reviewed aliases only', () => {
+  const snapshot = createProfessionSnapshot({
+    profession: {
+      id: 'Fixture',
+      skills: [{ id: 42297 }, { id: 68666 }, { id: 9224 }, { id: 99999 }]
+    },
+    specializationData: [],
+    traitData: [],
+    skillData: [
+      { id: 42297, name: 'Manifest Sand Shade', type: 'Profession', slot: 'Profession_1', facts: [] },
+      {
+        id: 44946,
+        name: 'Manifest Sand Shade',
+        type: 'Profession',
+        slot: 'Profession_1',
+        facts: [],
+        flip_skill: 42297
+      },
+      { id: 68666, name: 'Renewed Focus', type: 'Elite', slot: 'Elite', facts: [] },
+      { id: 9154, name: 'Renewed Focus', type: 'Elite', slot: 'Elite', facts: [] },
+      { id: 9224, name: 'Shield of Absorption', type: 'Weapon', slot: 'Weapon_5', facts: [] },
+      { id: 99999, name: 'Renewed Focus', type: 'Elite', slot: 'Elite', facts: [] }
+    ]
+  });
+
+  assert.deepEqual(GW2_SKILL_ID_ALIASES, RUNTIME_SKILL_ID_ALIASES);
+  assert.equal(GW2_SKILL_ID_ALIASES[42297], 44946);
+  assert.equal(GW2_SKILL_ID_ALIASES[68666], 9154);
+  assert.equal(
+    snapshot.skills.some((skill) => Object.hasOwn(skill, 'attunement')),
+    false
+  );
+  assert.equal(
+    skillSnapshot({
+      id: 1,
+      name: 'Flame Burst',
+      type: 'Weapon',
+      slot: 'Weapon_1',
+      attunement: 'Fire',
+      facts: []
+    }).attunement,
+    'Fire'
+  );
+  assert.deepEqual(
+    snapshot.skills.map((skill) => skill.id),
+    [9154, 9224, 44946, 99999]
+  );
+  assert.equal(snapshot.skills.find((skill) => skill.id === 44946).flipSkillId, null);
+});
+
 test('API snapshot fetches are English, fixture-backed, and profession-generic', async () => {
   const requests = [];
   const fetchImpl = createFixtureFetch(requests);
@@ -1010,6 +1063,108 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     assert.match(source, /export const DATA_SNAPSHOT: string = "2026-07-27"/);
     assert.match(source, /export const SPECIALIZATIONS: readonly WarriorApiSpecialization\[]/);
     assert.match(source, /export const SKILLS: readonly WarriorSkill\[]/);
+
+    const thiefRequests = [];
+
+    await updateProfessionApiData('thief', {
+      fetchImpl: createFixtureFetch(thiefRequests),
+      snapshotDate: '2026-07-27',
+      output: path.join(directory, 'thief-api-metadata.ts'),
+      log: () => {}
+    });
+    const requestedThiefSkillIds = thiefRequests
+      .filter((request) => request.pathname === '/v2/skills')
+      .flatMap((request) =>
+        String(request.searchParams.get('ids') || '')
+          .split(',')
+          .map(Number)
+      );
+
+    assert.equal(
+      [76633, 76674, 76702].every((skillId) => requestedThiefSkillIds.includes(skillId)),
+      true
+    );
+
+    const engineerFixture = {
+      ...apiFixture,
+      profession: {
+        ...apiFixture.profession,
+        skills: [
+          ...apiFixture.profession.skills,
+          { id: 5825 },
+          { id: 5832 },
+          { id: 5860 },
+          { id: 5861 },
+          { id: 5862 },
+          { id: 5910 }
+        ]
+      },
+      skills: [
+        ...apiFixture.skills,
+        { id: 5825, name: 'Slick Shoes', type: 'Utility', slot: 'Utility', facts: [] },
+        { id: 5832, name: 'Elixir X', type: 'Elite', slot: 'Elite', facts: [] },
+        { id: 5860, name: 'Elixir C', type: 'Utility', slot: 'Utility', facts: [] },
+        { id: 5861, name: 'Elixir S', type: 'Utility', slot: 'Utility', facts: [] },
+        { id: 5862, name: 'Elixir U', type: 'Utility', slot: 'Utility', facts: [] },
+        { id: 5910, name: 'Rocket Boots', type: 'Utility', slot: 'Utility', facts: [] }
+      ]
+    };
+    const engineer = await updateProfessionApiData('engineer', {
+      fetchImpl: createFixtureFetch([], engineerFixture),
+      snapshotDate: '2026-07-27',
+      output: path.join(directory, 'engineer-api-metadata.ts'),
+      log: () => {}
+    });
+
+    // The profession updater owns this exclusion so refreshing generated data cannot restore unsupported skills.
+    assert.equal(
+      engineer.skills.some((skill) => [5825, 5832, 5860, 5861, 5862, 5910].includes(skill.id)),
+      false
+    );
+
+    const omittedProfessionFixture = (skillIds, professionName) => ({
+      ...apiFixture,
+      profession: {
+        ...apiFixture.profession,
+        skills: [...apiFixture.profession.skills, ...skillIds.map((id) => ({ id }))]
+      },
+      skills: [
+        ...apiFixture.skills,
+        ...skillIds.map((id) => ({
+          id,
+          name: `${professionName} skill ${id}`,
+          type: 'Utility',
+          slot: 'Utility',
+          facts: []
+        }))
+      ]
+    });
+    const guardianSkillIds = [9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676];
+    const guardian = await updateProfessionApiData('guardian', {
+      fetchImpl: createFixtureFetch([], omittedProfessionFixture(guardianSkillIds, 'Guardian')),
+      snapshotDate: '2026-07-27',
+      output: path.join(directory, 'guardian-api-metadata.ts'),
+      log: () => {}
+    });
+
+    // Guardian refreshes must preserve the same unsupported-skill boundary as the checked-in catalog.
+    assert.equal(
+      guardian.skills.some((skill) => guardianSkillIds.includes(skill.id)),
+      false
+    );
+
+    const rangerSkillIds = [12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256];
+    const ranger = await updateProfessionApiData('ranger', {
+      fetchImpl: createFixtureFetch([], omittedProfessionFixture(rangerSkillIds, 'Ranger')),
+      snapshotDate: '2026-07-27',
+      output: path.join(directory, 'ranger-api-metadata.ts'),
+      log: () => {}
+    });
+
+    assert.equal(
+      ranger.skills.some((skill) => rangerSkillIds.includes(skill.id)),
+      false
+    );
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

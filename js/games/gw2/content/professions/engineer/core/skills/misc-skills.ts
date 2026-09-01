@@ -443,12 +443,6 @@ export const ENGINEER_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.LESSER_ELIXIR_C]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 10,
-    effects: []
-  },
   [ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL]: {
     implemented: true,
     castTimeMs: 0,

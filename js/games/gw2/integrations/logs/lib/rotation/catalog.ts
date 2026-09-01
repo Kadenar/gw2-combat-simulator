@@ -1,6 +1,7 @@
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/types.js';
 import type { RotationActionKind } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 export type RotationCatalog = Pick<CanonicalCatalog, 'skills'> &
   Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName'>>;
@@ -41,7 +42,7 @@ function parentSkill(skill: Skill, catalog: RotationCatalog, profile: RotationPr
   return parent || skill;
 }
 
-/** Resolves a recorded source identity to the active simulator catalog without depending on either log format. */
+/** Resolves and canonicalizes a recorded identity without depending on either combat-log format. */
 export function findRotationSkill(
   rawSkillId: number,
   rawName: string,
@@ -50,7 +51,7 @@ export function findRotationSkill(
 ): Skill | null {
   if (!catalog) return null;
   const aliasedName = profile.skillNameAliases[normalizedName(rawName)] || rawName.trim();
-  const aliasedSkillId = profile.skillIdAliases[rawSkillId] ?? rawSkillId;
+  const aliasedSkillId = canonicalGw2SkillId(profile.skillIdAliases[rawSkillId] ?? rawSkillId);
   const byId = bestCandidate(
     catalog.skills.filter((skill) => typeof skill.id === 'number' && Number(skill.id) === aliasedSkillId),
     profile

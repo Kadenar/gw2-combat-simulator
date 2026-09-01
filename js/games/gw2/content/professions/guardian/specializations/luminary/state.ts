@@ -44,6 +44,7 @@ export const LUMINARY_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianLuminarySta
 ]);
 
 export const LUMINARY_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianLuminaryState)[] = Object.freeze([
+  'lightAuraUntil',
   'effulgentActiveUntil',
   'effulgentStacks'
 ]);

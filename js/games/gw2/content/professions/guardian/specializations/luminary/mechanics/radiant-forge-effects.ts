@@ -2,6 +2,10 @@ import { guardianRadiantForgeEventHandlers } from '#gw2/content/professions/guar
 import {
   handleEffulgentActivated,
   handleEffulgentDetonate,
+  handleLightAuraDetonate,
+  handleLightAuraGrant,
+  handleLightFieldStart,
+  handleLightFinisher,
   reactToEffulgentStrike,
   reactToLuminaryJusticeHit
 } from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
@@ -11,7 +15,11 @@ export const luminaryEventHandlers = Object.freeze({
   // These two handlers run inside the resolver (not the scheduler) because
   // effulgent stack counting happens on already-resolved damage packets.
   'guardian.effulgent-activated': handleEffulgentActivated,
-  'guardian.effulgent-detonate': handleEffulgentDetonate
+  'guardian.effulgent-detonate': handleEffulgentDetonate,
+  'guardian.luminary.light-aura-detonate': handleLightAuraDetonate,
+  'guardian.luminary.light-aura-grant': handleLightAuraGrant,
+  'guardian.luminary.light-field-start': handleLightFieldStart,
+  'guardian.luminary.light-finisher': handleLightFinisher
 });
 
 export const luminaryEventReactions = Object.freeze({

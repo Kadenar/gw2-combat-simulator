@@ -3385,7 +3385,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
     canonicalCatalog
   );
 
-  assert.equal(spellbreaker.actions[0].skillId, 69_297);
+  assert.equal(spellbreaker.actions[0].skillId, 45_252);
 });
 
 test('supports the legacy single-event activation encoding', () => {

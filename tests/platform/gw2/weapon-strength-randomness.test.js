@@ -204,10 +204,11 @@ function fixtureProfession() {
         effects: [
           {
             type: 'strike',
-            coefficient: 3,
-            hits: 3,
-            atMs: 100,
-            intervalMs: 100,
+            ticks: [
+              { atMs: 100, coefficient: 1 },
+              { atMs: 200, coefficient: 1 },
+              { atMs: 300, coefficient: 1 }
+            ],
             timingAnchor: 'castStart',
             timingScale: 'fixed'
           }

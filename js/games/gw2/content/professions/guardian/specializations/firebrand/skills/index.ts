@@ -640,48 +640,5 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         recipients: 'party'
       }
     ]
-  },
-  [ID.TOME_OF_JUSTICE_ID_68647]: {
-    implemented: true,
-    castTimeMs: 0,
-    handlerId: 'guardian.virtue',
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 4
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1
-      },
-      {
-        type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
-      }
-    ]
-  },
-  [ID.TOME_OF_RESOLVE_ID_68648]: {
-    implemented: true,
-    castTimeMs: 0,
-    handlerId: 'guardian.virtue',
-    effects: []
-  },
-  [ID.TOME_OF_COURAGE_ID_68650]: {
-    implemented: true,
-    castTimeMs: 0,
-    handlerId: 'guardian.virtue',
-    effects: []
   }
 });

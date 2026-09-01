@@ -1139,6 +1139,8 @@ export interface CastCommand {
   readonly skillId: SkillId;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
+  /** Exact remaining duration carried by a hidden combat-log initial-state action. */
+  readonly initialStateDurationMs?: number;
   readonly releaseAtCharges?: number;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }

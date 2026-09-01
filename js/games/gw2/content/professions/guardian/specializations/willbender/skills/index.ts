@@ -179,38 +179,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 1000,
     effects: []
   },
-  [ID.CRASHING_COURAGE_ID_62648]: {
-    implemented: true,
-    quicknessCastTimeMs: 680,
-    handlerId: 'guardian.willbender-virtue',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 520, coefficient: 1 }],
-        name: 'Crashing Courage — Initial Damage',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'aegis',
-        stacks: 1,
-        duration: 4,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'stability',
-        stacks: 1,
-        duration: 4,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  },
   [ID.RUSHING_JUSTICE]: {
     implemented: true,
     quicknessCastTimeMs: 480,

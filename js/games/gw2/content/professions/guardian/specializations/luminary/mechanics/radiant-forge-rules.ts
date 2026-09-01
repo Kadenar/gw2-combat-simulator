@@ -66,8 +66,9 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'guardian.glaring-burst-hammer',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.25,
+    // Glaring Burst's hammer variant scales its packet after shared additive damage bonuses.
+    operation: 'multiply',
+    factor: 1.25,
     order: 100,
     when: (context) =>
       context.event?.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST && context.event?.radiantWeapon === 'hammer'

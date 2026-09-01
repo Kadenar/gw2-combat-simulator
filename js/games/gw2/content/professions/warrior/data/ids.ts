@@ -61,18 +61,13 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   DUAL_STRIKE: 14418, // Dual Strike
   BATTLE_STANDARD: 14419, // Battle Standard
   CYCLONE_AXE: 14421, // Cyclone Axe
-  EVISCERATE_ID_14422: 14422, // Eviscerate
-  SKULL_CRACK_ID_14425: 14425, // Skull Crack
   DUAL_SHOT: 14431, // Dual Shot
   FIERCE_SHOT: 14432, // Fierce Shot
   WHIRLING_STRIKE: 14443, // Whirling Strike
   RUSH: 14446, // Rush
   WHIRLWIND_ATTACK: 14447, // Whirlwind Attack
-  FORCEFUL_SHOT: 14469, // Forceful Shot
+  FORCEFUL_SHOT: 14544, // Forceful Shot
   EXPLOSIVE_SHELL: 14472, // Explosive Shell
-  KILL_SHOT_ID_14473: 14473, // Kill Shot
-  KILL_SHOT_ID_14474: 14474, // Kill Shot
-  KILL_SHOT_ID_14475: 14475, // Kill Shot
   SIGNET_OF_STAMINA: 14479, // Signet of Stamina
   HAMMER_SHOCK: 14482, // Hammer Shock
   RAMPAGE: 14483, // Rampage
@@ -86,16 +81,11 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   COUNTERBLOW: 14507, // Counterblow
   BLADETRAIL: 14510, // Bladetrail
   BACKBREAKER: 14511, // Backbreaker
-  EARTHSHAKER_ID_14512: 14512, // Earthshaker
   BULLS_CHARGE: 14516, // Bull's Charge
   CRUSHING_BLOW: 14518, // Crushing Blow
   FAN_OF_FIRE: 14519, // Fan of Fire
-  COMBUSTIVE_SHOT_ID_14520: 14520, // Combustive Shot
   BANNER_OF_DEFENSE: 14528, // Banner of Defense
-  FORCEFUL_SHOT_ID_14544: 14544, // Forceful Shot
-  ARCING_SLICE_ID_14545: 14545, // Arcing Slice
   TACTICAL_BLOW: 14548, // Tactical Blow
-  WHIRLING_STRIKE_ID_14549: 14549, // Whirling Strike
   HUNDRED_BLADES: 14554, // Hundred Blades
   ADRENALINE_RUSH: 14557, // Adrenaline Rush
   ON_MY_MARK: 14575, // "On My Mark!"
@@ -113,7 +103,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   BLOOD_RECKONING: 30189, // Blood Reckoning
   OUTRAGE: 30258, // Outrage
   HEAD_BUTT: 30343, // Head Butt
-  BERSERK_ID_30435: 30435, // Berserk
   FLAMING_FLURRY: 30682, // Flaming Flurry
   DECAPITATE: 30851, // Decapitate
   RUPTURING_SMASH: 30879, // Rupturing Smash
@@ -131,7 +120,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   WOUNDING_STRIKE: 41543, // Wounding Strike
   WHIRLING_STRIKE_ID_41746: 41746, // Whirling Strike
   IMMINENT_THREAT: 41919, // Imminent Threat
-  KILL_SHOT_ID_42041: 42041, // Kill Shot
   ARCING_SLICE_ID_42707: 42707, // Arcing Slice
   PRECISE_CUT: 42745, // Precise Cut
   COMBUSTIVE_SHOT_ID_42803: 42803, // Combustive Shot
@@ -161,8 +149,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   COMBAT_STIMULANT: 62978, // Combat Stimulant
   OVERCHARGED_CARTRIDGES: 68085, // Overcharged Cartridges
   SLICING_MAELSTROM: 69290, // Slicing Maelstrom
-  BREACHING_STRIKE_ID_69297: 69297, // Breaching Strike
-  BREACHING_STRIKE_ID_69433: 69433, // Breaching Strike
   LINE_BREAKER: 71860, // Line Breaker
   RAMPART_SPLITTER: 71875, // Rampart Splitter
   DEFIANT_ROAR: 71889, // Defiant Roar
@@ -173,18 +159,16 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   VALIANT_LEAP: 72002, // Valiant Leap
   BALANCED_STRIKE: 72024, // Balanced Strike
   SNAP_PULL: 72026, // Snap Pull
-  PATH_TO_VICTORY_ID_72029: 72029, // Path to Victory
   INSPIRING_WHIRL: 72049, // Inspiring Whirl
   PATH_TO_VICTORY_ID_72089: 72089, // Path to Victory
   MAIMING_SPEAR: 72897, // Maiming Spear
-  HARRIERS_TOSS: 72911, // Harrier's Toss
+  HARRIERS_TOSS: 73024, // Harrier's Toss
   MIGHTY_THROW: 72958, // Mighty Throw
   DISRUPTING_THROW: 72959, // Disrupting Throw
   SPEARMARSHALS_SUPPORT: 72992, // Spearmarshal's Support
   HARRIERS_TOSS_ID_73006: 73006, // Harrier's Toss
   SPEAR_SWIPE: 73009, // Spear Swipe
   HARRIERS_TOSS_ID_73014: 73014, // Harrier's Toss
-  HARRIERS_TOSS_ID_73024: 73024, // Harrier's Toss
   HARRIERS_TOSS_ID_73042: 73042, // Harrier's Toss
   WILD_THROW: 73103, // Wild Throw
   WILD_THROW_ALTERNATE: 73131, // Wild Throw (alternating projectile packet)
@@ -199,8 +183,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   CHANT_OF_ACTION: 77342, // Chant of Action
   BLOODTHIRSTER: 80203, // Bloodthirster
   REND: 80247, // Rend
-  BLOODTHIRSTER_ID_80252: 80252, // Bloodthirster
-  BLOODTHIRSTER_ID_80263: 80263, // Bloodthirster
   SWIFT_CUT: 62966, // Swift Cut
   STEEL_DIVIDE: 62772, // Steel Divide
   EXPLOSIVE_THRUST: 62918, // Explosive Thrust

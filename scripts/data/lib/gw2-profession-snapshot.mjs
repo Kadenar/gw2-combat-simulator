@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -7,6 +8,24 @@ export const GW2_SKILL_FLAGS = Object.freeze({
   TERRESTRIAL_ONLY: 'NoUnderwater',
   UNDERWATER_ONLY: 'Underwater'
 });
+
+const aliasSource = readFileSync(new URL('../../../js/games/gw2/platform/skills/aliases.ts', import.meta.url), 'utf8');
+const aliasRows = [...aliasSource.matchAll(/^\s*(\d+):\s*(\d+),?\s*\/\/\s*.+$/gm)];
+const numericRows = [...aliasSource.matchAll(/^\s*\d+:\s*\d+/gm)];
+
+if (!aliasRows.length || aliasRows.length !== numericRows.length) {
+  throw new Error('Every GW2 skill ID alias in aliases.ts must have an inline comment.');
+}
+
+// Reads the reviewed TypeScript inventory directly so generation and runtime cannot diverge.
+export const GW2_SKILL_ID_ALIASES = Object.freeze(
+  Object.fromEntries(aliasRows.map(([, aliasId, canonicalId]) => [Number(aliasId), Number(canonicalId)]))
+);
+
+// Canonicalizes only audited compatibility IDs before graph expansion so aliases are never fetched or emitted.
+function canonicalSkillId(id) {
+  return GW2_SKILL_ID_ALIASES[id] ?? id;
+}
 
 function englishPath(pathname) {
   return `${pathname}${pathname.includes('?') ? '&' : '?'}lang=en`;
@@ -98,14 +117,15 @@ export function skillSnapshot(skill, { weapon = '', specialization = '' } = {}) 
     type: skill.type,
     weapon,
     slot: skill.slot,
-    attunement: skill.attunement || '',
+    // Only Elementalist API records carry meaningful attunement metadata.
+    ...(skill.attunement ? { attunement: skill.attunement } : {}),
     specialization,
     categories: skill.categories || [],
     recharge: Number(recharge?.value || recharge?.duration || 0),
     ammo: Number(casts?.value || 0),
     ammoRecharge: Number(countRecharge?.duration || countRecharge?.value || 0),
-    nextChainId: skill.next_chain ?? null,
-    flipSkillId: skill.flip_skill ?? null
+    nextChainId: canonicalSkillId(skill.next_chain) ?? null,
+    flipSkillId: canonicalSkillId(skill.flip_skill) ?? null
   };
 }
 
@@ -158,7 +178,7 @@ export function professionSkillAssociations(
     if (!eliteSpecializations.has(training.name)) continue;
     for (const entry of training.track || []) {
       if (entry.type === 'Skill') {
-        specializationBySkillId.set(entry.skill_id, training.name);
+        specializationBySkillId.set(canonicalSkillId(entry.skill_id), training.name);
       }
     }
   }
@@ -168,15 +188,21 @@ export function professionSkillAssociations(
   for (const [weapon, definition] of Object.entries(profession.weapons || {})) {
     if (weaponExclusions instanceof Set ? weaponExclusions.has(weapon) : weaponExclusions.includes(weapon)) continue;
     for (const skill of definition.skills || []) {
-      weaponBySkillId.set(skill.id, weapon);
+      const skillId = canonicalSkillId(skill.id);
+
+      weaponBySkillId.set(skillId, weapon);
 
       if (definition.specialization) {
-        specializationBySkillId.set(skill.id, specializationById.get(definition.specialization) || '');
+        specializationBySkillId.set(skillId, specializationById.get(definition.specialization) || '');
       }
     }
   }
 
-  const seedIds = [...(profession.skills || []).map((skill) => skill.id), ...weaponBySkillId.keys(), ...extraSkillIds];
+  const seedIds = [
+    ...(profession.skills || []).map((skill) => canonicalSkillId(skill.id)),
+    ...weaponBySkillId.keys(),
+    ...extraSkillIds.map(canonicalSkillId)
+  ];
 
   return {
     seedIds: [...new Set(seedIds)].sort((left, right) => left - right),
@@ -186,7 +212,7 @@ export function professionSkillAssociations(
 }
 
 function linkedSkillIds(skill) {
-  return [skill?.next_chain, skill?.flip_skill].filter(Number.isFinite);
+  return [skill?.next_chain, skill?.flip_skill].filter(Number.isFinite).map(canonicalSkillId);
 }
 
 // Builds a snapshot of all skills for a profession, including linked skills, based on the provided skill data and associations.
@@ -313,15 +339,15 @@ export async function fetchProfessionSnapshot({
 // the large generated arrays widened to their public contracts.
 export function serializeProfessionSnapshot({ professionName, snapshotDate, specializations, skills, refreshCommand }) {
   const id = professionName.toLowerCase();
-  const command = refreshCommand || `node scripts/data/update-profession-api-data.mjs --profession ${professionName}`;
+  const command = refreshCommand || `scripts/data/update-profession-api-data.mjs --profession ${professionName}`;
 
   return [
     `// Generated Guild Wars 2 API metadata for ${id}.`,
     `// Snapshot: ${snapshotDate}. Run ${command} to refresh.`,
     `// Simulator mechanics are maintained under ${id}/mechanics/.`,
     '',
-    `import type { Gw2ApiSpecialization, Gw2ApiTrait } from "../../../platform/gw2/authoring/api-metadata-types.js";`,
-    `import type { ${professionName}Skill } from "../types.js";`,
+    `import type { Gw2ApiSpecialization, Gw2ApiTrait } from "#gw2/integrations/patches/authoring/api-metadata-types.js";`,
+    `import type { ${professionName}Skill } from "#gw2/content/professions/${id}/types.js";`,
     '',
     `export type ${professionName}ApiTrait = Gw2ApiTrait;`,
     `export type ${professionName}ApiSpecialization = Gw2ApiSpecialization;`,

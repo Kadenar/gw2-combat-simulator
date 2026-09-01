@@ -182,30 +182,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineGain: 3,
     handlerId: 'warrior.resource'
   },
-  [ID.KILL_SHOT_ID_42041]: {
-    implemented: true,
-    skillWeapon: 'Rifle',
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: 'Projectile',
-        chance: 1,
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.25,
-        hits: 1
-      }
-    ],
-    quicknessCastTimeMs: 833,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
-  },
   [ID.ARCING_SLICE_ID_42707]: {
     implemented: true,
     effects: [
@@ -423,43 +399,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     burst: true,
     handlerId: 'warrior.resource'
   },
-  [ID.BREACHING_STRIKE_ID_69297]: {
-    implemented: true,
-    interruptCommitMs: 760,
-    skillWeapon: 'Dagger',
-    comboFinishers: [
-      {
-        ownerId: 'warrior',
-        finisherType: 'Leap',
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    cooldown: 8,
-    castTimeMs: 840,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 2.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'custom',
-        eventType: 'warrior.boon-removal',
-        atMs: 760,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        event: {
-          attemptedBoonRemovals: 2
-        }
-      }
-    ],
-    unaffectedByQuickness: true,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
-  },
   [ID.PATH_TO_VICTORY_ID_72089]: {
     implemented: true,
     effects: [
@@ -497,30 +436,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
-  },
-  [ID.BLOODTHIRSTER_ID_80252]: {
-    implemented: true,
-    skillWeapon: 'Sword',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 3, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
-    quicknessCastTimeMs: 500,
-    dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

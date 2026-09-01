@@ -125,18 +125,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     quicknessCastTimeMs: 667
   },
-  [ID.UNNATURAL_TRAVERSAL]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 6
-      }
-    ],
-    quicknessCastTimeMs: 167
-  },
   [ID.VENOMOUS_OUTBURST]: {
     implemented: true,
     castTimeMs: 0,
@@ -158,18 +146,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     handlerId: 'ranger.venomous-outburst'
-  },
-  [ID.MUTATE_CONDITIONS]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6
-      }
-    ],
-    quicknessCastTimeMs: 333
   },
   [ID.RENDING_VINES]: {
     implemented: true,

@@ -136,14 +136,6 @@ const sources: readonly RotationProfileSource[] = [
       spellbreaker: 'Spellbreaker',
       bladesworn: 'Bladesworn',
       paragon: 'Paragon'
-    },
-    skillIdAliasesBySpecialization: {
-      paragon: {
-        69297: 45252,
-        69433: 45252,
-        80252: 80203,
-        80263: 80203
-      }
     }
   },
   {

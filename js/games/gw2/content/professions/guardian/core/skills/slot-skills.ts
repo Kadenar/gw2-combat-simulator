@@ -62,17 +62,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 250,
     effects: []
   },
-  [ID.SIGNET_OF_JUDGMENT]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1
-      }
-    ]
-  },
   [ID.SIGNET_OF_WRATH]: {
     implemented: true,
     castTimeMs: 1000,
@@ -158,17 +147,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 250,
     effects: []
   },
-  [ID.SHIELD_OF_THE_AVENGER]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1
-      }
-    ]
-  },
   [ID.PURGING_FLAMES]: {
     implemented: true,
     quicknessCastTimeMs: 320,
@@ -226,18 +204,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         ticks: [{ atMs: 5320, condition: 'Burning', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.SMITE_CONDITION]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.9,
-        hits: 1,
-        name: 'Smite Condition — Damage With Condition'
       }
     ]
   },
@@ -307,91 +273,5 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         recipients: 'party'
       }
     ]
-  },
-  [ID.SIGNET_OF_COURAGE]: {
-    implemented: true,
-    castTimeMs: 1000,
-    effects: []
-  },
-  [ID.SHIELD_OF_THE_AVENGER_ID_41571]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1
-      }
-    ]
-  },
-  [ID.BOW_OF_TRUTH_ID_43565]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: []
-  },
-  [ID.SWORD_OF_JUSTICE_ID_44846]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 3.2,
-        hits: 4,
-        atMs: 0
-      }
-    ]
-  },
-  [ID.HAMMER_OF_WISDOM_ID_46170]: {
-    implemented: true,
-    castTimeMs: 250,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.2,
-        hits: 1
-      },
-      {
-        type: 'control',
-        metadata: {
-          controlKind: 'control'
-        }
-      }
-    ]
-  },
-  [ID.RENEWED_FOCUS_ID_68666]: {
-    implemented: true,
-    castTimeMs: 1000,
-    handlerId: 'guardian.renewed-focus',
-    effects: []
-  },
-  [ID.FEEL_MY_WRATH_ID_68670]: {
-    implemented: true,
-    quicknessCastTimeMs: 400,
-    cooldown: 30,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 3,
-        recipients: 'allies'
-      },
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 6,
-        recipients: 'self'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 10,
-        recipients: 'party'
-      }
-    ]
-  },
-  [ID.SIGNET_OF_COURAGE_ID_68676]: {
-    implemented: true,
-    castTimeMs: 1000,
-    effects: []
   }
 });

@@ -83,7 +83,7 @@ test('Necromancer uses the current API catalog and all nine trait lines', () => 
   assert.equal(DATA_SNAPSHOT, '2026-07-25');
   assert.equal(necromancerCatalog.specializations.length, 9);
   assert.equal(necromancerCatalog.traits.length, 108);
-  assert.ok(necromancerCatalog.skills.length >= 160);
+  assert.ok(necromancerCatalog.skills.length >= 159);
   assert.equal(necromancerCatalog.skillsById.get(ID.LIFE_BLAST).name, 'Life Blast');
   for (const name of ['Corrupt Boon', 'Spectral Ring', 'Epidemic', 'Summon Flesh Wurm', 'Necrotic Traversal']) {
     assert.equal(necromancerCatalog.skillsByName.has(name), false, name);
@@ -801,15 +801,24 @@ test('Grasping Darkness commits at 120 ms and lands after combat starts', () => 
   assert.ok(openerHit.at > combatStart.at);
 });
 
-test('every catalog skill has mechanics and API aliases are excluded', () => {
+test('Manifest Sand Shade aliases load the one canonical Scourge behavior', () => {
+  const canonical = simulate('Scourge', [ID.MANIFEST_SAND_SHADE], { initialResource: 100 });
+
+  for (const aliasId of [42297, 46473, 46474]) {
+    const result = simulate('Scourge', [aliasId], { initialResource: 100 });
+    const action = result.events.find((event) => event.type === 'action');
+
+    assert.equal(necromancerCatalog.skillsById.has(aliasId), false);
+    assert.equal(action.skillId, ID.MANIFEST_SAND_SHADE);
+    assert.equal(result.endState.profession.shades.length, canonical.endState.profession.shades.length);
+    assert.equal(result.endState.profession.lifeForce, canonical.endState.profession.lifeForce);
+    assert.deepEqual(result.warnings, canonical.warnings);
+  }
+});
+
+test('every catalog skill has mechanics and non-DPS skills stay excluded', () => {
   assert.equal(
     necromancerCatalog.skills.every((skill) => skill.implemented),
-    true
-  );
-  assert.equal(
-    necromancerCatalog.skills
-      .filter((skill) => skill.simulatorAliasOfId != null)
-      .every((skill) => skill.simulatorExcluded),
     true
   );
   for (const name of NECROMANCER_NON_DPS_SKILL_NAMES) {

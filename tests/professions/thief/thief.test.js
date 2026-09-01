@@ -91,6 +91,10 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.equal(thiefCatalog.skillsById.has(76550), false);
   assert.equal(thiefCatalog.skillsById.has(40436), true);
   assert.equal(thiefCatalog.skillsById.has(80278), false);
+  assert.equal(thiefCatalog.skillsById.has(76744), false);
+  assert.equal(thiefCatalog.skillsById.has(77230), true);
+  assert.equal(thiefCatalog.skillsByName.get("Death's Advance").id, 40436);
+  assert.equal(thiefCatalog.skillsByName.get('Canach-Coin Toss').id, 77230);
   assert.equal(thiefCatalog.skillsByName.get('Death Blossom').initiativeCost, 4);
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
@@ -874,37 +878,50 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
       })
     };
 
-    return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
+    return weaponPaletteRows(app, 1)[0].skills;
   };
 
-  assert.ok(paletteAfter('Specter', ['Scepter', 'Pistol'], []).includes('Shadow Bolt'));
-  assert.ok(paletteAfter('Specter', ['Scepter', 'Pistol'], ['Shadow Bolt']).includes('Double Bolt'));
-  assert.ok(paletteAfter('Specter', ['Scepter', 'Pistol'], ['Shadow Bolt', 'Double Bolt']).includes('Triple Bolt'));
+  const paletteNamesAfter = (...args) => paletteAfter(...args).map((skill) => skill.name);
 
-  const sword = paletteAfter('Core', ['Sword', 'Pistol'], ["Infiltrator's Strike"]);
+  assert.ok(paletteNamesAfter('Specter', ['Scepter', 'Pistol'], []).includes('Shadow Bolt'));
+  assert.ok(paletteNamesAfter('Specter', ['Scepter', 'Pistol'], ['Shadow Bolt']).includes('Double Bolt'));
+  assert.ok(
+    paletteNamesAfter('Specter', ['Scepter', 'Pistol'], ['Shadow Bolt', 'Double Bolt']).includes('Triple Bolt')
+  );
+
+  const sword = paletteNamesAfter('Core', ['Sword', 'Pistol'], ["Infiltrator's Strike"]);
 
   assert.ok(sword.includes("Infiltrator's Return"));
   assert.equal(sword.includes("Infiltrator's Strike"), false);
 
-  const shortbow = paletteAfter('Core', ['Shortbow', ''], ['Cluster Bomb']);
+  const shortbow = paletteNamesAfter('Core', ['Shortbow', ''], ['Cluster Bomb']);
 
   assert.ok(shortbow.includes('Detonate Cluster'));
   assert.equal(shortbow.includes('Cluster Bomb'), false);
 
-  const staff = paletteAfter('Daredevil', ['Staff', ''], ['Debilitating Arc']);
+  const staff = paletteNamesAfter('Daredevil', ['Staff', ''], ['Debilitating Arc']);
 
   assert.ok(staff.includes('Helmet Breaker'));
   assert.equal(staff.includes('Debilitating Arc'), false);
 
-  const standingRifle = paletteAfter('Deadeye', ['Rifle', ''], []);
+  const standingRifle = paletteNamesAfter('Deadeye', ['Rifle', ''], []);
 
   assert.ok(standingRifle.includes("Death's Retreat"));
   assert.equal(standingRifle.includes("Sniper's Cover"), false);
 
-  const kneelingRifle = paletteAfter('Deadeye', ['Rifle', ''], ['Kneel', "Sniper's Cover"]);
+  const kneelingRifleSkills = paletteAfter('Deadeye', ['Rifle', ''], ['Kneel', "Sniper's Cover"]);
+  const kneelingRifle = kneelingRifleSkills.map((skill) => skill.name);
 
   assert.ok(kneelingRifle.includes("Death's Advance"));
   assert.equal(kneelingRifle.includes("Sniper's Cover"), false);
+  assert.equal(
+    kneelingRifleSkills.some((skill) => skill.id === 40436),
+    true
+  );
+  assert.equal(
+    kneelingRifleSkills.some((skill) => skill.id === 80278),
+    false
+  );
 });
 
 test('Steal exposes a choice pool and consumes whichever stolen skill is selected', () => {

@@ -162,8 +162,32 @@ test('Ranger catalog pins API identity and explicit module-owned mechanics', () 
   assert.equal(DATA_SNAPSHOT, '2026-08-08');
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 313);
-  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 302);
+  assert.equal(rangerCatalog.skills.length, 300);
+  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 289);
+
+  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
+  for (const omittedId of [12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256]) {
+    assert.equal(rangerCatalog.skillsById.has(omittedId), false);
+  }
+
+  for (const omittedName of [
+    'Lightning Reflexes',
+    'Signet of Stone',
+    'Signet of the Hunt',
+    'Signet of Renewal',
+    'Quickening Zephyr',
+    'Glyph of Burgeoning',
+    '"Search and Rescue!"',
+    'Glyph of Equality',
+    'Unnatural Traversal',
+    'Mutate Conditions',
+    'Griffon Stance',
+    'Dolyak Stance',
+    'Moa Stance'
+  ]) {
+    assert.equal(rangerCatalog.skillsByName.has(omittedName), false);
+  }
+
   assert.equal(rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE), false);
   assert.equal(
     [ID.WOLFS_ONSLAUGHT, ID.OWLS_FLIGHT, ID.PREDATORS_AMBUSH, ID.SPIDERS_WEB].every((skillId) =>

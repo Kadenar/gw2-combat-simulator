@@ -59,6 +59,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
   const effectiveCombatStart = replayCombatStart(actions, combatStart);
+  const preserveCombatStartOffset = actions.some(
+    (action) => Number(action.combatStartOverride) === effectiveCombatStart
+  );
   const entries: Array<
     | { readonly type: 'action'; readonly action: Action }
     | { readonly type: 'combat-start'; readonly at: number; readonly index: number }
@@ -103,7 +106,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const overlapping = at < blockingEnd - timingToleranceMs;
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
-        rotation.push({ name: '__combat_start', offset: quantizeMs(at - previousCastStart) });
+        // Keep a profession-proven observation boundary exact so action-frame rounding cannot move it past an opener.
+        const offset = preserveCombatStartOffset ? at - previousCastStart : quantizeMs(at - previousCastStart);
+        rotation.push({ name: '__combat_start', offset });
       } else {
         appendObservedIdle(at);
         rotation.push({ name: '__combat_start' });
