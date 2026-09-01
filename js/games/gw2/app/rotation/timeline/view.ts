@@ -518,7 +518,8 @@ export function renderTimeline(app: ProfessionAppState): void {
     }
   });
   const combatReferenceMs = resultCombatReferenceMs(results);
-  const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs);
+  // Timeline timestamps keep millisecond precision so authored waits display their exact boundaries.
+  const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs, 3);
   const deadTimes = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(resultSteps, resourceSpends),
     results?.resolvedEvents || [],

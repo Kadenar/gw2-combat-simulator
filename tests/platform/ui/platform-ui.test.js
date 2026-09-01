@@ -200,10 +200,10 @@ test('rotation insertion cursors validate positions and expose accessible gaps',
   );
 });
 
-test('timeline cast details include start, end, and elapsed cast time', () => {
+test('timeline cast details preserve millisecond wait boundaries', () => {
   assert.equal(
-    formatTimelineCastDetails({ start: 1250, end: 2010 }, (time) => `${(time / 1000).toFixed(2)}s`),
-    'Cast: 1.25s → 2.01s\nCast time: 0.76s'
+    formatTimelineCastDetails({ start: 3000, end: 3083 }, (time) => `${(time / 1000).toFixed(3)}s`),
+    'Cast: 3.000s → 3.083s\nCast time: 0.083s'
   );
 });
 

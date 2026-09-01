@@ -2297,7 +2297,7 @@ test('Bladeturn Requiem and Thousand Cuts retain their zero-second cast times', 
     assert.equal(action.at, action.fullEndsAt);
     assert.match(
       formatTimelineCastDetails(step, (time) => `${(time / 1000).toFixed(2)}s`),
-      /Cast time: 0\.00s$/
+      /Cast time: 0\.000s$/
     );
   }
 });

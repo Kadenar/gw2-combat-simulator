@@ -93,6 +93,7 @@ export function clearTimelineDropIndicators(root: HTMLElement | null | undefined
     );
 }
 
+/** Preserves millisecond timing in cast details so short waits are not displayed as rounded centiseconds. */
 export function formatTimelineCastDetails(
   step: SchedulerStep | null | undefined,
   formatTime: (time: number) => string
@@ -101,7 +102,7 @@ export function formatTimelineCastDetails(
   const end = Number(step?.end);
   if (!Number.isFinite(start) || !Number.isFinite(end)) return '';
   const castSeconds = Math.max(0, end - start) / 1000;
-  return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(2)}s`;
+  return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(3)}s`;
 }
 
 const NON_SKILL_STEP_NAMES = new Set([
