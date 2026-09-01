@@ -22,6 +22,8 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   /** Positive source gaps at or below this threshold are timing jitter, not intentional simulator idle time. */
   readonly minimumWaitMs?: number;
   readonly quantizeMs?: (value: number) => number;
+  /** Quantizes imported idle durations independently from offsets when their replay precision differs. */
+  readonly quantizeWaitMs?: (value: number) => number;
   readonly replayEnd?: (action: Action) => number;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
   readonly commandFor: (action: Action) => ReconstructedRotationCommand;
@@ -56,6 +58,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const timingToleranceMs = policy.timingToleranceMs ?? 50;
   const minimumWaitMs = Math.max(0, Number(policy.minimumWaitMs || 0));
   const quantizeMs = policy.quantizeMs ?? identityMilliseconds;
+  const quantizeWaitMs = policy.quantizeWaitMs ?? quantizeMs;
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
   const effectiveCombatStart = replayCombatStart(actions, combatStart);
@@ -93,7 +96,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const observedGapMs = nextActionAt - blockingEnd;
     const retainedTimingJitter =
       retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
-    const waitMs = quantizeMs(observedGapMs);
+    const waitMs = quantizeWaitMs(observedGapMs);
     // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
     // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
     if (!retainedTimingJitter && waitMs > minimumWaitMs) rotation.push({ name: '__wait', waitMs });
@@ -127,7 +130,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const actionReplayEnd = Math.max(at, replayEnd(action));
     if (!canEmit(action)) {
       if (!overlapping) appendObservedIdle(at);
-      const waitMs = quantizeMs(actionReplayEnd - at);
+      const waitMs = quantizeWaitMs(actionReplayEnd - at);
       if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
       previousCastStart = null;
@@ -152,7 +155,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     rotation.push(command);
     if (action.followingWaitMs && action.followingWaitMs > 0) {
-      rotation.push({ name: '__wait', waitMs: quantizeMs(action.followingWaitMs) });
+      rotation.push({ name: '__wait', waitMs: quantizeWaitMs(action.followingWaitMs) });
     }
 
     if (independent) {

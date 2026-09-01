@@ -2,6 +2,7 @@ import type {
   CatalogEntity,
   CanonicalCatalog,
   ObservationPolicy,
+  ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionUiContract,
   RotationCommand,
@@ -212,9 +213,7 @@ export interface ProfessionSlotLoadout extends SchedulerRecord {
     readonly catalog: CanonicalCatalog;
   }): readonly SkillId[];
   skillChildren?(context: ProfessionSlotLoadoutContext, skillId: SkillId): readonly SkillId[];
-  paletteGroups(
-    context: ProfessionSlotLoadoutContext
-  ): import('../../platform/engine/types.js').ProfessionPaletteGroup[];
+  paletteGroups(context: ProfessionSlotLoadoutContext): ProfessionPaletteGroup[];
   unavailableReason(skill: Skill, context: ProfessionSlotLoadoutContext): string;
   view(context: ProfessionSlotLoadoutContext): ProfessionSlotLoadoutView;
   updateBuild(

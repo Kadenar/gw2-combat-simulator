@@ -54,18 +54,18 @@ Use this table as the first place to look.
 
 | You're adding or changing...                                          | Usually belongs in...                                 |
 | --------------------------------------------------------------------- | ----------------------------------------------------- |
-| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`        |
+| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`       |
 | Shared mechanic data used by several skills                           | Profession `profiles.ts`                              |
-| Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                     |
+| Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                    |
 | Skill availability rule                                               | The owning skill or mechanic module                   |
-| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                              |
-| Cast lifecycle behavior                                               | The owning skill, trait, or mechanic module            |
-| Declarative trait modifier                                            | `traits/modifiers.ts` or `traits/<trait-line>.ts`      |
-| Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`          |
-| Scheduler-specific skill implementation                               | The owning skill module; a focused handler if shared   |
+| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                             |
+| Cast lifecycle behavior                                               | The owning skill, trait, or mechanic module           |
+| Declarative trait modifier                                            | `traits/modifiers.ts` or `traits/<trait-line>.ts`     |
+| Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`         |
+| Scheduler-specific skill implementation                               | The owning skill module; a focused handler if shared  |
 | Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
-| Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution`  |
-| Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module        |
+| Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution` |
+| Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module       |
 | Shared code used by several files within one profession               | `shared.ts`                                           |
 | New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                              |
 | Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                          |
@@ -155,16 +155,16 @@ The shared rotation-builder application.
 
 Important modules include:
 
-| Module            | Responsibility                                                  |
-| ----------------- | --------------------------------------------------------------- |
-| `index.ts`        | Rotation-builder orchestration                                  |
-| `editing/`        | Rotation mutations, history, and entry editors                  |
-| `input/`          | Hotkeys and GW2 keybind import                                  |
-| `palette/`        | Palette state, resources, rendering, and interaction            |
-| `timeline/`       | Timeline model, rendering, interaction, and display controls    |
-| `state-snapshot/` | Insertion-aware state queries and active-state rendering        |
-| `result/`         | Results, loop analysis, event log, and warnings                 |
-| `shared/`         | Cross-feature context and icon helpers                          |
+| Module            | Responsibility                                               |
+| ----------------- | ------------------------------------------------------------ |
+| `index.ts`        | Rotation-builder orchestration                               |
+| `editing/`        | Rotation mutations, history, and entry editors               |
+| `input/`          | Hotkeys and GW2 keybind import                               |
+| `palette/`        | Palette state, resources, rendering, and interaction         |
+| `timeline/`       | Timeline model, rendering, interaction, and display controls |
+| `state-snapshot/` | Insertion-aware state queries and active-state rendering     |
+| `result/`         | Results, loop analysis, event log, and warnings              |
+| `shared/`         | Cross-feature context and icon helpers                       |
 
 Profession-specific rotation presentation is supplied through profession UI hooks rather than hard-coded here.
 
@@ -241,7 +241,6 @@ Examples include:
 - cooldown/ammo machinery;
 - state containers;
 - effect materialization primitives;
-- generic skill factories.
 
 Important modules include:
 
@@ -254,7 +253,6 @@ Important modules include:
 | `execution/cooldowns.ts`       | Cooldown and ammo state machine                    |
 | `effects/factories.ts`         | Canonical effect constructors                      |
 | `effects/materializer.ts`      | Converts effects into scheduled events             |
-| `skills/factories.ts`          | Shared skill constructors                          |
 | `skills/autoattack-chains.ts`  | Autoattack-chain indexing                          |
 | `profession/family.ts`         | Core + specialization contract composition         |
 | `profession/module.ts`         | Profession module composition                      |
@@ -303,8 +301,7 @@ Important modules include:
 | `combat/state/traits.ts`          | Shared selected-trait lookup                    |
 | `combat/state/event-ownership.ts` | Player/summon/effect ownership rules            |
 
-Native profession and balance-preview authoring lives under
-`js/games/gw2/integrations/patches/authoring/`.
+Native profession and balance-preview authoring lives under `js/games/gw2/integrations/patches/authoring/`.
 
 Subdirectories such as:
 
@@ -737,12 +734,12 @@ State fields should belong to the module that owns the mechanic.
 
 ## `mechanics/`
 
-Profession and specialization systems that are not naturally owned by one skill or trait. Use GW2 concept names such
-as `shatters.ts`, `continuum-split.ts`, `pets.ts`, `beastmode.ts`, `life-force.ts`, `attunements.ts`, `energy.ts`, or
+Profession and specialization systems that are not naturally owned by one skill or trait. Use GW2 concept names such as
+`shatters.ts`, `continuum-split.ts`, `pets.ts`, `beastmode.ts`, `life-force.ts`, `attunements.ts`, `energy.ts`, or
 `initiative-and-endurance.ts`.
 
-A mechanics module may contain scheduler declarations, resolver declarations, or both. Its exports must make that
-phase visible when assembled in `module.ts`. Shared strike and condition resolution stays under
+A mechanics module may contain scheduler declarations, resolver declarations, or both. Its exports must make that phase
+visible when assembled in `module.ts`. Shared strike and condition resolution stays under
 `js/games/gw2/platform/resolver/`.
 
 Generic `rules.ts`, `handlers.ts`, and `resolver.ts` ownership files are retired. Keep a cohesive availability file when

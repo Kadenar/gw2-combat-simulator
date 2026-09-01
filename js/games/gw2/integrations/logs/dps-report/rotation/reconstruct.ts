@@ -18,6 +18,7 @@ import type { Skill } from '#gw2/platform/engine/types.js';
 import {
   GW2_ACTION_TICK_MS,
   observedCommittedInterruptMs,
+  quantizeGw2ActionTimingMs,
   quicknessReferenceCastTimeMs
 } from '#gw2/platform/skills/timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
@@ -353,6 +354,8 @@ function buildRotation(
   return buildReplayTimeline(actions, origin, combatStart, {
     // EI's cast/aftercast split leaves up to two action ticks of residue between otherwise continuous inputs.
     minimumWaitMs: completeReportedAftercast ? 2 * GW2_ACTION_TICK_MS : 0,
+    // Imported idle gaps share the same action-tick precision as observed cast durations.
+    quantizeWaitMs: quantizeGw2ActionTimingMs,
     commandFor: actionCommand,
     // Troubadour EI animations omit ordinary aftercast; its measured catalog cadence already models that occupied lane.
     replayEnd: (action) => replayActionEnd(action, completeReportedAftercast),

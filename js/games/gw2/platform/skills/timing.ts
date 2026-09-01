@@ -5,6 +5,11 @@ export const GW2_QUICKNESS_ACTION_RATE = 1.5;
 /** GW2 completes calculated cast durations on 40 ms action-tick boundaries. */
 export const GW2_ACTION_TICK_MS = 40;
 
+/** Snaps observed timing to the nearest GW2 action tick so imported replay values do not retain false precision. */
+export function quantizeGw2ActionTimingMs(value: number): number {
+  return Math.max(0, Math.round(value / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS);
+}
+
 /** Rounds a positive duration up to the next server/action interval. */
 export function quantizeGw2ActionDurationUp(value: number, interval = GW2_ACTION_TICK_MS): number {
   if (!(value > 0)) return 0;
@@ -33,7 +38,7 @@ export function observedCommittedInterruptMs(skill: Skill | null, observedDurati
   if (skill?.interruptCommitMs == null) return null;
   const commitMs = Number(skill.interruptCommitMs);
   if (!Number.isFinite(commitMs) || commitMs < 0) return null;
-  const observedMs = Math.round(Math.max(0, Number(observedDurationMs)) / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS;
+  const observedMs = quantizeGw2ActionTimingMs(observedDurationMs);
   const runtimeMs = quicknessReferenceCastTimeMs(skill);
   // Interrupting exactly at the commit point is valid because the skill has committed on that action tick.
   if (!(observedMs > 0) || observedMs < commitMs || observedMs >= runtimeMs) return null;

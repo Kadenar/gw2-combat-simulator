@@ -39,10 +39,9 @@ import type {
   RotationReconstructionBase
 } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { observedCommittedInterruptMs } from '#gw2/platform/skills/timing.js';
+import { observedCommittedInterruptMs, quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 
 const TIMING_TOLERANCE_MS = 50;
-const EVTC_TIMING_QUANTUM_MS = 40;
 const TRANSITION_WINDOW_MS = 150;
 const STANDARD_DODGE_ANIMATION_ID = 23275;
 const STANDARD_DODGE_STOP_ACTIVATION = 6;
@@ -82,11 +81,6 @@ interface ResolvedAction extends RecordedAction {
   readonly skillId: string | number;
 }
 
-/** Snaps replay-only EVTC timing to the game's 40 ms execution frames. */
-function quantizeEvtcTimingMs(value: number): number {
-  return Math.max(0, Math.round(value / EVTC_TIMING_QUANTUM_MS) * EVTC_TIMING_QUANTUM_MS);
-}
-
 /** Applies the shared observed-cast safety contract to an EVTC action. */
 function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof findRotationSkill>): number | null {
   if (action.forceCompleteReplay === true || (action.replayCastEnd != null && action.replayInterruptMs == null)) {
@@ -104,7 +98,7 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
   // Per-packet skills retain exact EVTC timing because rounding across a packet boundary changes which hits commit;
   // atomic autoattack cancellations still snap to the game's action tick.
   if (perPacketPartialCast && sourceObservedMs < runtimeMs) return sourceObservedMs;
-  if (interruptedAutoattack && sourceObservedMs < runtimeMs) return quantizeEvtcTimingMs(sourceObservedMs);
+  if (interruptedAutoattack && sourceObservedMs < runtimeMs) return quantizeGw2ActionTimingMs(sourceObservedMs);
 
   // The EVTC duration is authoritative once it falls within the skill's declared commit/full-cast bounds.
   return observedCommittedInterruptMs(skill, action.replayInterruptMs ?? action.end - action.start);
@@ -879,7 +873,7 @@ function buildRotation(
 ): ReconstructedCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
     timingToleranceMs: TIMING_TOLERANCE_MS,
-    quantizeMs: quantizeEvtcTimingMs,
+    quantizeMs: quantizeGw2ActionTimingMs,
     replayEnd: replayActionEnd,
     commandFor: actionCommand,
     canEmit: (action) => action.skill != null || action.rawName === 'Swap Weapons' || isDodgeName(action.rawName),

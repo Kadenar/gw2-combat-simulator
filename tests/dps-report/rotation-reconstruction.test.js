@@ -167,6 +167,36 @@ test('registers a generic parser for every supported profession profile', () => 
   assert.equal(getDpsReportProfessionRotationParser('engineer', 'amalgam')?.id, 'engineer:amalgam');
 });
 
+test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', () => {
+  const report = parseDpsReport({
+    players: [
+      {
+        name: 'Fixture Chronomancer',
+        profession: 'Chronomancer',
+        rotation: [
+          {
+            id: 1_000,
+            skills: [
+              { castTime: 0, duration: 400, timeGained: 0 },
+              { castTime: 501, duration: 400, timeGained: 0 }
+            ]
+          }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 1_000, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: { s1000: { name: 'Mind Stab' } }
+  });
+  const result = reconstructDpsReportRotation(report, {
+    skills: [skill(1_000, 'Mind Stab', { type: 'weapon', quicknessCastTimeMs: 400 })]
+  });
+
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    [120]
+  );
+});
+
 test('reconstructs generic report casts and applies Amalgam report corrections', () => {
   const report = parseDpsReport(reportFixture());
   const players = detectDpsReportRotationPlayers(report);
@@ -208,10 +238,6 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
   assert.equal(
     result.actions.some((action) => action.name === 'Automatic Proc'),
     false
-  );
-  assert.equal(
-    result.rotation.some((command) => command.name === '__wait' && command.waitMs === 100),
-    true
   );
   assert.deepEqual(
     result.rotation.find((command) => command.name === '__combat_start'),
