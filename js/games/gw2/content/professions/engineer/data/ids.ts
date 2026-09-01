@@ -38,9 +38,3 @@ export const ENGINEER_TRAIT_IDS = stableNameIndex(
     ...specialization.majorTraits.flat()
   ]).map((trait) => [trait.name, trait.id] as const)
 );
-
-export const ENGINEER_INTERNAL_IDS = Object.freeze({
-  MECH_BASIC_ATTACK: 'engineer.mech-basic-attack',
-  KIT_TRANSITION: 'engineer.kit-transition',
-  PHOTON_FORGE_TRANSITION: 'engineer.photon-forge-transition'
-});

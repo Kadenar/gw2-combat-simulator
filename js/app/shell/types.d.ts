@@ -17,12 +17,6 @@ export interface ShellSession<TInput = unknown, TOutput = unknown> extends GameC
   readonly status: 'idle' | 'queued' | 'running' | 'error';
 }
 
-/** Lifecycle implemented by a game-owned session and invoked by the shared shell. */
-export interface ShellLifecycle<TSession> {
-  initialize(session: TSession): Promise<void>;
-  change(session: TSession): void;
-}
-
 /** One game-supplied editor section; the shell only orders and invokes contributions. */
 export interface BuildEditorContribution<TSession> {
   readonly id: string;

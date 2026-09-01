@@ -474,7 +474,6 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly specializations: CanonicalCatalog['specializations'];
   readonly weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
   readonly relicNames: readonly string[];
-  readonly renderResults: (app: ProfessionAppState) => void;
   readonly renderRotationBuilder: (app: ProfessionAppState) => void;
   readonly buildEditor: BuildEditor<ProfessionAppState>;
   readonly presentation: SimulationPresentation<ProfessionAppState>;

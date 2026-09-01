@@ -10,6 +10,11 @@ import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison-runn
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 
+// Supplies the complete presentation contract so runner tests can observe refreshes without mounting the DOM.
+function testPresentation(render = () => {}) {
+  return { createViewModel: () => ({}), render };
+}
+
 function runTimersImmediately(t) {
   t.mock.method(globalThis, 'setTimeout', (callback) => {
     callback();
@@ -288,9 +293,9 @@ test('modifier fallback clears stale state when calculation fails', (t) => {
       calculateModifierContributions() {
         throw new Error('Contribution calculation failed.');
       },
-      renderResults() {
+      presentation: testPresentation(() => {
         renderCount += 1;
-      }
+      })
     },
     randomDistributionRunner: { isRunning: false }
   };
@@ -348,9 +353,9 @@ test('modifier worker batches ignore superseded responses and terminate on compl
       modifierContributionRequest() {
         return { comparisons: [{}] };
       },
-      renderResults() {
+      presentation: testPresentation(() => {
         renderCount += 1;
-      }
+      })
     },
     randomDistributionRunner: { isRunning: false }
   };
@@ -423,9 +428,9 @@ test('RNG worker errors preserve the ErrorEvent cause', (t) => {
       randomDistributionRequest() {
         return { trials: 1 };
       },
-      renderResults() {
+      presentation: testPresentation(() => {
         renderCount += 1;
-      }
+      })
     }
   };
   const runner = new RandomDistributionRunner(app);
@@ -490,7 +495,7 @@ test('RNG runner limits parallel workers for a condition-tick-heavy baseline', (
       randomDistributionRequest() {
         return { trials: 500 };
       },
-      renderResults() {}
+      presentation: testPresentation()
     }
   };
 
@@ -534,7 +539,7 @@ test('relic comparison scheduling publishes availability without simulating', ()
 
         return minimalResult(4000);
       },
-      renderResults() {}
+      presentation: testPresentation()
     }
   };
   const runner = new RelicComparisonRunner(app);
@@ -569,9 +574,9 @@ test('relic comparison run simulates Thorns once and stores the break-even model
 
         return minimalResult(4200);
       },
-      renderResults() {
+      presentation: testPresentation(() => {
         renderCount += 1;
-      }
+      })
     }
   };
   const runner = new RelicComparisonRunner(app);
@@ -607,7 +612,7 @@ test('relic comparison run surfaces simulation failures', (t) => {
       simulateBuild() {
         throw new Error('Comparison simulation failed.');
       },
-      renderResults() {}
+      presentation: testPresentation()
     }
   };
   const runner = new RelicComparisonRunner(app);

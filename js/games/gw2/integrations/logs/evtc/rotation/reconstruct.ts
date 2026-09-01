@@ -3,12 +3,9 @@ import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integra
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
-  type EvtcReconstructedCommand,
   type EvtcRotationAction,
-  type EvtcRotationActionStatus,
   type EvtcRotationEvidence,
   type EvtcRotationPlayer,
-  type EvtcRotationReconstruction,
   type ParsedEvtc,
   type ParsedEvtcAgent,
   type ParsedEvtcEvent
@@ -36,6 +33,11 @@ import {
   reconstructProfessionActions,
   type EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import type {
+  ReconstructedCommand,
+  RotationActionStatus,
+  RotationReconstructionBase
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { observedCommittedInterruptMs } from '#gw2/platform/skills/timing.js';
 
@@ -328,7 +330,7 @@ function expectedDuration(event: ParsedEvtcEvent): number | null {
   return duration >= 0 ? duration : null;
 }
 
-function activationStatus(activation: number): EvtcRotationActionStatus {
+function activationStatus(activation: number): RotationActionStatus {
   if (activation === EVTC_ACTIVATION.CANCEL_CANCEL) return 'interrupted';
   if (activation === EVTC_ACTIVATION.CANCEL_FIRE) return 'completed';
   if (activation === EVTC_ACTIVATION.RESET) return 'completed';
@@ -826,7 +828,7 @@ function resolveAction(
   };
 }
 
-function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
+function actionCommand(action: ResolvedAction): ReconstructedCommand {
   const command: {
     name: string;
     skillId?: string | number;
@@ -874,7 +876,7 @@ function buildRotation(
   actions: readonly ResolvedAction[],
   origin: number,
   combatStart: number | null
-): EvtcReconstructedCommand[] {
+): ReconstructedCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
     timingToleranceMs: TIMING_TOLERANCE_MS,
     quantizeMs: quantizeEvtcTimingMs,
@@ -969,7 +971,7 @@ export function reconstructWithProfile(
   profile: EvtcRotationProfessionProfile,
   catalog: EvtcRotationCatalog | null = null,
   options: EvtcRotationOptions = {}
-): EvtcRotationReconstruction {
+): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
   const { agent, player } = selectPlayerAgent(log, options.playerAddress);
   if (player.professionId !== profile.professionId || player.specializationId !== profile.specializationId) {
     throw new EvtcError(

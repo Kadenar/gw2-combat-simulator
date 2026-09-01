@@ -33,7 +33,7 @@ export class ModifierContributionRunner {
     const failContributions = (): void => {
       if (requestId !== this.requestId || !app.results) return;
       app.results.modifierContributionsStale = false;
-      app.adapter.renderResults(app);
+      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
     };
 
     // A new schedule owns a fresh batch, terminating and invalidating any prior pool.
@@ -50,7 +50,7 @@ export class ModifierContributionRunner {
       if (requestId !== this.requestId || !app.results) return;
       app.results.contributions = contributions;
       app.results.modifierContributionsStale = false;
-      app.adapter.renderResults(app);
+      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
     };
 
     const calculateContributions = (): void => {

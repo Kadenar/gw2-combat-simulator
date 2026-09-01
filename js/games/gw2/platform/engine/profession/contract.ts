@@ -28,8 +28,8 @@ type HookCategory = 'scheduler' | 'cast' | 'attribute';
 
 /**
  * Single source of truth for hook names and the composition families each one
- * belongs to. Array order defines PROFESSION_HOOK_ORDER; the family arrays below
- * are derived, so adding a hook can no longer silently miss a subset list.
+ * belongs to. Array order defines hook order; the family arrays below are
+ * derived, so adding a hook can no longer silently miss a subset list.
  */
 const HOOK_DEFINITIONS: readonly (readonly [string, readonly HookCategory[]])[] = Object.freeze([
   ['prepareEvent', ['scheduler']],
@@ -535,8 +535,3 @@ export function defineProfession<TProfessionState extends object>(
   };
   return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState>>;
 }
-
-/**
- * Ordered list of supported hook names, mainly for documentation and tests.
- */
-export const PROFESSION_HOOK_ORDER = HOOK_NAMES;

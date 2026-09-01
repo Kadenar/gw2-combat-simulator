@@ -49,7 +49,7 @@ import {
 import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
 import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
-import { renderResults } from '#gw2/app/presentation.js';
+import { gw2SimulationPresentation } from '#gw2/app/presentation.js';
 import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
@@ -792,7 +792,8 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   results.ownerDocument = mockDocument;
   globalThis.document = mockDocument;
   try {
-    renderResults({ build: { rotation: [] }, results: null });
+    const app = { build: { rotation: [] }, results: null };
+    gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
   } finally {
     globalThis.document = previousDocument;
   }
@@ -834,7 +835,7 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   summaryStrip.ownerDocument = mockDocument;
   globalThis.document = mockDocument;
   try {
-    renderResults({
+    const app = {
       build: { rotation: [{ type: 'cast', skillId: 'Strike' }], targetHealth: 0 },
       buildRevision: 2,
       resultRevision: 2,
@@ -850,7 +851,8 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
       runRandomDistribution() {
         runCount += 1;
       }
-    });
+    };
+    gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
   } finally {
     globalThis.document = previousDocument;
   }

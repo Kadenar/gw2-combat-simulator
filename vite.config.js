@@ -24,46 +24,37 @@ const runtimeContentTypes = {
 // Supplies the profession-specific copy and display differences used by the shared simulator page template.
 const professionPages = {
   elementalist: {
-    snapshot: 'Elementalist PvE API snapshot: August 12, 2026',
     attributeNote:
       'Values are calculated for the equipped weapon set. Dynamic Elementalist modifiers resolve during simulation.',
     singleWeaponSet: true
   },
   engineer: {
-    snapshot: 'Engineer PvE API snapshot: July 28, 2026',
     attributeNote:
       'Values are calculated for the selected weapon set. Dynamic Engineer modifiers resolve during simulation.'
   },
   guardian: {
-    snapshot: 'Guardian PvE API snapshot: July 25, 2026',
     attributeNote:
       'Values are calculated for the selected weapon set. The simulation changes sigil bonuses on weapon swap. Boons and conditional Guardian modifiers are resolved during simulation.'
   },
   mesmer: {
-    snapshot: 'Mesmer PvE data snapshot: July 23, 2026',
     attributeNote:
       'Values are calculated for the selected weapon set. The simulation changes sigil bonuses when weapons are swapped. Boons are applied during simulation, not baked into the equipment totals above.'
   },
   necromancer: {
-    snapshot: 'Necromancer PvE API snapshot: July 25, 2026',
     attributeNote:
       'Values are calculated for the selected weapon set. Dynamic Necromancer modifiers resolve during simulation.'
   },
   ranger: {
-    snapshot: 'Ranger PvE API snapshot: August 8, 2026',
     attributeNote:
       'Values are calculated for the selected weapon set. Dynamic Ranger modifiers resolve during simulation.'
   },
   revenant: {
-    snapshot: 'Revenant PvE API snapshot: July 28, 2026',
     attributeNote: 'Dynamic Revenant modifiers resolve during simulation.'
   },
   thief: {
-    snapshot: 'Thief PvE API snapshot: July 28, 2026',
     attributeNote: 'Dynamic Thief modifiers resolve during simulation.'
   },
   warrior: {
-    snapshot: 'Warrior PvE API snapshot: August 8, 2026',
     attributeNote:
       'Values are calculated for the selected weapon set. Dynamic Warrior modifiers resolve during simulation.'
   }

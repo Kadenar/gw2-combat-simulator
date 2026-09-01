@@ -1,14 +1,4 @@
-import type {
-  ReconstructedCombatStartCommand,
-  ReconstructedCommand,
-  ReconstructedRotationCommand,
-  ReconstructedWaitCommand,
-  RotationActionKind,
-  RotationActionStatus,
-  RotationActionSummary,
-  RotationPlayerIdentity,
-  RotationReconstructionBase
-} from '#gw2/integrations/logs/lib/rotation/model.js';
+import type { RotationActionSummary, RotationPlayerIdentity } from '#gw2/integrations/logs/lib/rotation/model.js';
 
 export const EVTC_STATE_CHANGE = Object.freeze({
   NONE: 0,
@@ -241,8 +231,6 @@ export interface EvtcAnalysisResult {
   readonly warnings: readonly string[];
 }
 
-export type EvtcRotationActionKind = RotationActionKind;
-
 export type EvtcRotationEvidence =
   | 'animation'
   | 'legacy-activation'
@@ -251,12 +239,6 @@ export type EvtcRotationEvidence =
   | 'state-change'
   | 'buff-transition'
   | 'initial-state';
-
-export type EvtcRotationActionStatus = RotationActionStatus;
-export type EvtcRotationCommand = ReconstructedRotationCommand;
-export type EvtcRotationMarkerCommand = ReconstructedCombatStartCommand;
-export type EvtcRotationWaitCommand = ReconstructedWaitCommand;
-export type EvtcReconstructedCommand = ReconstructedCommand;
 
 export interface EvtcRotationAction extends RotationActionSummary {
   readonly evidence: EvtcRotationEvidence;
@@ -267,5 +249,3 @@ export interface EvtcRotationAction extends RotationActionSummary {
 export interface EvtcRotationPlayer extends RotationPlayerIdentity {
   readonly address: string;
 }
-
-export type EvtcRotationReconstruction = RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction>;

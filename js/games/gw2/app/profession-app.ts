@@ -152,7 +152,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
       const results = document.getElementById('rotation-results');
       if (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true') {
-        this.adapter.renderResults(this);
+        this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
       }
     });
     const templatesReady = Promise.resolve(this.adapter.buildEditor.initialize?.(this));

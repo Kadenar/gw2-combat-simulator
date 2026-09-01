@@ -319,18 +319,6 @@ export const REVENANT_TRAIT_IDS = Object.freeze({
   FOUND_PURPOSE: 2352 // Found Purpose
 });
 
-export const REVENANT_SPECIALIZATION_IDS = Object.freeze({
-  INVOCATION: 3, // Invocation
-  RETRIBUTION: 9, // Retribution
-  SALVATION: 12, // Salvation
-  CORRUPTION: 14, // Corruption
-  DEVASTATION: 15, // Devastation
-  HERALD: 52, // Herald
-  RENEGADE: 63, // Renegade
-  VINDICATOR: 69, // Vindicator
-  CONDUIT: 79 // Conduit
-});
-
 export const REVENANT_LEGEND_IDS = Object.freeze({
   ASSASSIN: 'LegendaryAssassin',
   DEMON: 'LegendaryDemon',
@@ -341,5 +329,3 @@ export const REVENANT_LEGEND_IDS = Object.freeze({
   ALLIANCE: 'LegendaryAlliance',
   ENTITY: 'LegendaryEntity'
 });
-
-export type RevenantLegendId = (typeof REVENANT_LEGEND_IDS)[keyof typeof REVENANT_LEGEND_IDS];

@@ -301,15 +301,3 @@ export const WARRIOR_TRAIT_IDS = Object.freeze({
   BRISK_PACING: 2375, // Brisk Pacing
   ENDURING_REFRAIN: 2428 // Enduring Refrain
 });
-
-export const WARRIOR_SPECIALIZATION_IDS = Object.freeze({
-  STRENGTH: 4, // Strength
-  TACTICS: 11, // Tactics
-  BERSERKER: 18, // Berserker
-  DEFENSE: 22, // Defense
-  ARMS: 36, // Arms
-  DISCIPLINE: 51, // Discipline
-  SPELLBREAKER: 61, // Spellbreaker
-  BLADESWORN: 68, // Bladesworn
-  PARAGON: 74 // Paragon
-});

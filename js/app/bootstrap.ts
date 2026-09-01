@@ -14,5 +14,3 @@ export async function bootstrapGameApp(
   if (!content) throw new Error(`No playable content is registered for "${gameId}/${contentId}".`);
   return content.mount(root);
 }
-
-export { bootstrapGameApp as bootstrapProfessionApp };

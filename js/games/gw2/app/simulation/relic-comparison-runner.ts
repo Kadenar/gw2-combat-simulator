@@ -71,7 +71,7 @@ export class RelicComparisonRunner {
     const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app) : null;
     if (!request) {
       this.schedule();
-      app.adapter.renderResults(app);
+      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
       return;
     }
 
@@ -82,7 +82,7 @@ export class RelicComparisonRunner {
     results.relicComparisonStale = true;
     results.relicComparisonError = '';
     results.relicComparisonOpponent = request.opponentRelic;
-    app.adapter.renderResults(app);
+    app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
 
     this.timer = setTimeout(() => {
       this.timer = null;
@@ -104,13 +104,13 @@ export class RelicComparisonRunner {
         app.results.relicComparison = model;
         app.results.relicComparisonStale = false;
         app.results.relicComparisonError = '';
-        app.adapter.renderResults(app);
+        app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
       } catch (error) {
         if (requestId !== this.requestId || !app.results) return;
         app.results.relicComparisonStale = false;
         app.results.relicComparisonError =
           error instanceof Error ? error.message : String(error || 'Relic comparison failed.');
-        app.adapter.renderResults(app);
+        app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
       }
     }, 0);
   }

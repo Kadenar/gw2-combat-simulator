@@ -1,4 +1,5 @@
-import type { EvtcRotationActionStatus, EvtcRotationEvidence, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationEvidence, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { EvtcRotationCatalog } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type { EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 
@@ -9,7 +10,7 @@ export interface EvtcRecordedRotationAction {
   readonly rawSkillId: number;
   readonly rawName: string;
   readonly evidence: EvtcRotationEvidence;
-  readonly status: EvtcRotationActionStatus;
+  readonly status: RotationActionStatus;
   readonly eventIndex: number;
   readonly weaponSet?: number | null;
   readonly suppressesWeaponSwap?: boolean;

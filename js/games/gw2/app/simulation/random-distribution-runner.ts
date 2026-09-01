@@ -47,7 +47,7 @@ export class RandomDistributionRunner {
       app.results.randomDistributionStale = false;
       app.results.randomDistributionError =
         error instanceof Error ? error.message : String(error || 'Randomized DPS calculation failed.');
-      app.adapter.renderResults(app);
+      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
     };
 
     // Each requested distribution replaces the prior pool and invalidates its pending responses.
@@ -117,7 +117,7 @@ export class RandomDistributionRunner {
         percent: 100
       };
       app.results.randomDistributionError = '';
-      app.adapter.renderResults(app);
+      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
     };
 
     this.timer = setTimeout(() => {
@@ -202,6 +202,6 @@ export class RandomDistributionRunner {
   run(): void {
     this.schedule(true);
     this.app.modifierContributionRunner.schedule();
-    this.app.adapter.renderResults(this.app);
+    this.app.adapter.presentation.render(this.app, this.app.adapter.presentation.createViewModel(this.app));
   }
 }

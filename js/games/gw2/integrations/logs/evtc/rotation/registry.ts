@@ -1,5 +1,6 @@
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
-import type { EvtcRotationReconstruction, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationAction, EvtcRotationPlayer, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import type { RotationReconstructionBase } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { EvtcRotationCatalog } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import {
   detectEvtcRotationPlayers,
@@ -22,7 +23,7 @@ export interface EvtcProfessionRotationParser {
     log: ParsedEvtc,
     catalog?: EvtcRotationCatalog | null,
     options?: EvtcRotationOptions
-  ): EvtcRotationReconstruction;
+  ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction>;
 }
 
 function parserForProfile(profile: EvtcRotationProfessionProfile): EvtcProfessionRotationParser {
@@ -35,7 +36,7 @@ function parserForProfile(profile: EvtcRotationProfessionProfile): EvtcProfessio
       log: ParsedEvtc,
       catalog: EvtcRotationCatalog | null = null,
       options: EvtcRotationOptions = {}
-    ): EvtcRotationReconstruction {
+    ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
       return reconstructWithProfile(log, profile, catalog, options);
     }
   });
@@ -59,7 +60,7 @@ export function reconstructEvtcRotation(
   log: ParsedEvtc,
   catalog: EvtcRotationCatalog | null = null,
   options: EvtcRotationOptions = {}
-): EvtcRotationReconstruction {
+): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
   const players = detectEvtcRotationPlayers(log);
   let explicitMatch: ((candidate: (typeof players)[number]) => boolean) | undefined;
   if (options.playerAddress != null) {

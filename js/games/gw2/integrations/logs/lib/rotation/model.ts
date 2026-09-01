@@ -1,5 +1,3 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
-
 export type RotationActionKind =
   'weapon-skill' | 'profession-skill' | 'utility' | 'heal' | 'elite' | 'dodge' | 'weapon-swap' | 'action' | 'unknown';
 
@@ -33,23 +31,6 @@ export type ReconstructedCommand =
   | ReconstructedCombatStartCommand
   | ReconstructedWaitCommand
   | ReconstructedCooldownResetCommand;
-
-export interface NormalizedRotationAction {
-  readonly start: number;
-  readonly end: number;
-  readonly eventIndex: number;
-  readonly status: RotationActionStatus;
-  readonly rawSkillId: number;
-  readonly rawName: string;
-  readonly canonicalSkillId?: number;
-  readonly canonicalName?: string;
-}
-
-export interface ResolvedRotationAction extends NormalizedRotationAction {
-  readonly skill: Skill | null;
-  readonly name: string;
-  readonly skillId: string | number;
-}
 
 export interface RotationPlayerIdentity {
   readonly character: string;

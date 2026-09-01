@@ -175,15 +175,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   };
 }
 
-/** Compatibility renderer used by GW2 app callers while the shell consumes only the view model. */
-export function renderResults(app: ProfessionAppState): void {
-  const viewModel = createGw2SimulationViewModel(app);
-  renderSimulationViewModel(viewModel, {
-    inputRevision: app.buildRevision,
-    outputRevision: app.resultRevision
-  });
-}
-
+/** Owns the only GW2 result-rendering path: callers create a view model, then render it through this contract. */
 export const gw2SimulationPresentation = Object.freeze({
   createViewModel: createGw2SimulationViewModel,
   render(app: ProfessionAppState, viewModel: SimulationViewModel) {

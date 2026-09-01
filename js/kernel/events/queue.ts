@@ -13,12 +13,6 @@ export interface QueuedEvent {
   readonly [field: string]: unknown;
 }
 
-/** Caller-owned event shape for new kernel users; legacy game events remain structurally queue-compatible. */
-export interface KernelEvent<TPayload = unknown> extends QueuedEvent {
-  readonly kind: string;
-  readonly payload: TPayload;
-}
-
 function eventTimestamp(event: QueuedEvent): number {
   return Number(event.at ?? event.time ?? 0);
 }
