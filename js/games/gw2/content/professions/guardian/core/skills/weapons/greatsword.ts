@@ -98,10 +98,11 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.SYMBOL_OF_RESOLUTION]: {
     implemented: true,
-    castTimeMs: 280,
+    castTimeMs: 320,
     unaffectedByQuickness: true,
-    // EVTC places the initial impact ~200 ms after activation and shows recharge
-    // progressing from activation while the remaining symbol pulses continue.
+    // The symbol commits at 240 ms but may occupy the action lane through 320 ms, so imported tick timings
+    // between those bounds are safe interrupts and the committed symbol keeps pulsing afterward.
+    interruptCommitMs: 240,
     rechargeAnchor: 'castStart',
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 200, startAnchor: 'castStart' }],
     effects: [
@@ -117,6 +118,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 1200 + index * 1000, coefficient: 2.6 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Symbol of Resolution'
       }
     ]

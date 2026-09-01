@@ -389,7 +389,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
     coefficient: 2
   });
   assert.deepEqual(profile(quick, 'Symbol of Resolution'), {
-    cast: 280,
+    cast: 320,
     ticks: [200, 1200, 2200, 3200, 4200],
     coefficient: 3.4
   });
@@ -417,6 +417,24 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   );
   assert.equal(tetherBreakdown.conditionDamage, 0);
   assert.equal(tetherBreakdown.hits, 10);
+});
+
+test('Symbol of Resolution retains its pulses after committing at 240 ms', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      { name: 'Symbol of Resolution', interruptMs: 240 },
+      { type: 'wait', durationMs: 5_000 }
+    ],
+    config: { ...config, primaryWeapon: 'Greatsword' }
+  });
+  const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Symbol of Resolution');
+  const ticks = result.resolvedEvents
+    .filter((event) => event.type === 'damage' && event.skillName === 'Symbol of Resolution')
+    .map((event) => Math.round((event.at - action.at) * 1_000));
+
+  assert.equal(Math.round((action.endsAt - action.at) * 1_000), 240);
+  assert.deepEqual(ticks, [200, 1_200, 2_200, 3_200, 4_200]);
 });
 
 test('Guardian greatsword autos separate packet, safe-cancel, and retained-lockout timing', () => {
