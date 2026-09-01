@@ -83,9 +83,9 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        // The strike lands 674 ms into the fixed one-second animation; this
-        // also anchors its aura detonation and light-field finisher.
-        ticks: [{ atMs: 674, coefficient: 3 }],
+        // The strike and target tether land about 680 ms into the fixed animation;
+        // this also anchors its damage buff, aura detonation, and light-field finisher.
+        ticks: [{ atMs: 680, coefficient: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

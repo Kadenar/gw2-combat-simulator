@@ -6,23 +6,13 @@ import type {
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
-  canonicalAction,
   isPhysicalWeaponSwap,
+  recordedDuration,
   skillFor,
   SWAP_WEAPONS
 } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
-const INITIAL_LIGHT_AURA = Object.freeze({
-  name: 'Initial Light Aura',
-  skillId: 25518
-});
-const INITIAL_TIMED_STATES = Object.freeze([
-  { buffSkillId: 873, name: 'Initial Resolution' },
-  { buffSkillId: 73_955, name: 'Initial Relic of the Claw' },
-  { buffSkillId: 77_169, name: 'Initial Empowered Armaments' },
-  { buffSkillId: 77_360, name: 'Initial Radiant Hammer' }
-]);
 const ENTER_RADIANT_FORGE = Object.freeze({
   name: 'Enter Radiant Forge',
   skillId: 77073
@@ -37,11 +27,18 @@ const RADIANT_COURAGE = Object.freeze({
 });
 const RADIANT_FORGE_BUFF = 77142;
 const LIGHT_AURA_BUFF = 25518;
-const SOVEREIGN_OF_LIGHT_DAMAGE = 77164;
+const EMPOWERED_ARMAMENTS_BUFF = 77169;
+const RADIANT_HAMMER_BUFF = 77360;
+const RELIC_OF_THE_CLAW_BUFF = 73955;
 const SYMBOL_OF_LUMINANCE = Object.freeze({
   name: 'Symbol of Luminance',
   skillId: 73132
 });
+const OPENING_RADIANT_WEAPONS = Object.freeze([
+  Object.freeze({ name: 'Luminous Staff', skillId: 76708 }),
+  Object.freeze({ name: 'Radiant Bulwark', skillId: 77197 }),
+  Object.freeze({ name: 'Dazzling Hammer', skillId: 77339 })
+]);
 
 export const LUMINARY_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
   {
@@ -75,70 +72,66 @@ export const LUMINARY_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = 
   }
 ];
 
-function inferInitialSovereignAura(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
-  const initialForge = context.log.events.some(
+function initialSelfBuffs(context: EvtcProfessionReconstructionContext, skillId: number) {
+  return context.log.events.filter(
     (event) =>
       event.source === context.playerAddress &&
       event.target === context.playerAddress &&
-      event.skillId === RADIANT_FORGE_BUFF &&
-      event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
+      event.skillId === skillId &&
+      event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
+      event.value > 0
   );
-  const sovereignObserved = context.log.events.some(
-    (event) =>
-      event.source === context.playerAddress &&
-      event.skillId === SOVEREIGN_OF_LIGHT_DAMAGE &&
-      event.stateChange === EVTC_STATE_CHANGE.NONE
-  );
-  const initial = context.log.events
-    .map((event, eventIndex) => ({ event, eventIndex }))
-    .find(
-      ({ event }) =>
-        event.source === context.playerAddress &&
-        event.target === context.playerAddress &&
-        event.skillId === LIGHT_AURA_BUFF &&
-        event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
-        event.buffDamage === 4_000 &&
-        event.buffDamage > event.value
-    );
-  if (initialForge || !sovereignObserved || !initial) return [];
-
-  const start = initial.event.time - (initial.event.buffDamage - initial.event.value);
-  // Replay the observed state directly because the buff does not identify
-  // which four-second aura source produced it before logging began.
-  return [
-    {
-      ...canonicalAction(initial.eventIndex, start, INITIAL_LIGHT_AURA, initial.event.skillId, 'initial-state'),
-      precast: true
-    }
-  ];
 }
 
-function inferInitialTimedStates(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
-  return INITIAL_TIMED_STATES.flatMap(({ buffSkillId, name }) => {
-    const initial = context.log.events
-      .map((event, eventIndex) => ({ event, eventIndex }))
-      .filter(
-        ({ event }) =>
-          event.target === context.playerAddress &&
-          event.skillId === buffSkillId &&
-          event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
-          event.value > 0
-      );
-    if (!initial.length) return [];
-    const start = Math.min(initial[0].event.time, ...context.recordedActions.map((action) => action.start));
-    const initialStateDurationMs =
-      initial.reduce((total, { event }) => total + event.value, 0) + (initial[0].event.time - start);
-    // Duration-stacking buffs expose one BUFF_INITIAL record per queued stack;
-    // replay their exact remaining total from the first imported cast rather than guessing omitted source casts.
-    return [
-      {
-        ...canonicalAction(initial[0].eventIndex, start, { name, skillId: buffSkillId }, buffSkillId, 'initial-state'),
-        initialState: true,
-        precast: true,
-        initialStateDurationMs
-      }
-    ];
-  });
+/** Rebuilds the omitted Forge setup only when its three weapon uses and final hammer state survive in the snapshot. */
+function inferOpeningForgePrecast(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const opening = actions.find(
+    (action) =>
+      action.precast === true &&
+      (action.rawSkillId === SYMBOL_OF_LUMINANCE.skillId ||
+        action.rawName.trim().toLowerCase() === SYMBOL_OF_LUMINANCE.name.toLowerCase())
+  );
+  if (
+    !opening ||
+    initialSelfBuffs(context, EMPOWERED_ARMAMENTS_BUFF).length < OPENING_RADIANT_WEAPONS.length ||
+    !initialSelfBuffs(context, LIGHT_AURA_BUFF).length ||
+    !initialSelfBuffs(context, RADIANT_HAMMER_BUFF).length ||
+    !initialSelfBuffs(context, RELIC_OF_THE_CLAW_BUFF).length ||
+    actions.some(
+      (action) =>
+        action.start <= opening.start &&
+        (action.canonicalSkillId === ENTER_RADIANT_FORGE.skillId || action.rawSkillId === ENTER_RADIANT_FORGE.skillId)
+    )
+  ) {
+    return [];
+  }
+
+  const identities = [ENTER_RADIANT_FORGE, ...OPENING_RADIANT_WEAPONS, EXIT_RADIANT_FORGE];
+  let cursor = opening.start;
+  const reversed: EvtcRecordedRotationAction[] = [];
+  for (let index = identities.length - 1; index >= 0; index -= 1) {
+    const identity = identities[index];
+    const duration = recordedDuration(context, identity);
+    cursor -= duration;
+    reversed.push({
+      start: cursor,
+      end: cursor + duration,
+      expectedDuration: duration,
+      rawSkillId: identity.skillId,
+      rawName: identity.name,
+      canonicalSkillId: identity.skillId,
+      canonicalName: identity.name,
+      evidence: 'initial-state',
+      status: duration > 0 ? 'completed' : 'instant',
+      eventIndex: opening.eventIndex - identities.length + index,
+      precast: true
+    });
+  }
+
+  return reversed.reverse();
 }
 
 function alignOpeningSymbolCombatStart(
@@ -206,11 +199,7 @@ export function reconstructLuminaryActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  // Luminary's Blessing can survive from several sources, so its initial state
-  // cannot prove that Radiant Courage was cast before the recording began.
-  return [
-    ...alignOpeningSymbolCombatStart(context, alignInitialRadiantForge(context, actions)),
-    ...inferInitialSovereignAura(context),
-    ...inferInitialTimedStates(context)
-  ];
+  // Buff snapshots are evidence for omitted player inputs, not standalone casts.
+  const aligned = alignOpeningSymbolCombatStart(context, alignInitialRadiantForge(context, actions));
+  return [...inferOpeningForgePrecast(context, aligned), ...aligned];
 }

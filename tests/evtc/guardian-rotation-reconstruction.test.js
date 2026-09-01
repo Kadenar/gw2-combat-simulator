@@ -198,60 +198,72 @@ test('reconstructs Luminary forge, virtue, stance, and physical swap signals', (
   assert.equal(result.combatStartTimestampMs, 0);
 });
 
-test('reconstructs an evidenced initial Sovereign aura without fabricating a virtue cast', () => {
-  const skills = [skill(25_518, 'Initial Light Aura'), skill(77_164, 'Sovereign of Light')];
+test('reconstructs the evidenced Luminary Forge precast instead of synthetic opening buffs', () => {
+  const openingSymbol = skill(73_132, 'Symbol of Luminance', {
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    castTimeMs: 440,
+    quicknessCastTimeMs: 440,
+    effects: [
+      { type: 'strike', ticks: [{ atMs: 360, coefficient: 1.5 }] },
+      { type: 'strike', ticks: [{ atMs: 360, coefficient: 0.5 }] }
+    ]
+  });
+  const skills = [
+    skill(77_073, 'Enter Radiant Forge'),
+    skill(76_708, 'Luminous Staff', { quicknessCastTimeMs: 560 }),
+    skill(77_197, 'Radiant Bulwark', { castTimeMs: 2_000 }),
+    skill(77_339, 'Dazzling Hammer', { quicknessCastTimeMs: 480 }),
+    skill(76_616, 'Exit Radiant Forge'),
+    openingSymbol,
+    skill(72_940, 'Helio Rush', { castTimeMs: 280 })
+  ];
+  const helio = animation(72_940, 'Helio Rush', 1_072, 280);
   const fixture = guardianLog(81, skills, [
     event({
-      time: 1_000,
       target: PLAYER,
       value: 1_000,
       buffDamage: 4_000,
       skillId: 25_518,
-      buff: 1,
       stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
     }),
-    event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
-    event({ time: 2_000, target: ALLY, skillId: 77_164, result: 1 })
-  ]);
-
-  const result = reconstructEvtcRotation(fixture, { skills });
-
-  assert.deepEqual(
-    result.actions.map((action) => action.name),
-    ['Initial Light Aura']
-  );
-  assert.equal(result.combatStartTimestampMs, 3_000);
-});
-
-test('reconstructs exact remaining Luminary opening buff durations', () => {
-  const skills = [
-    skill(873, 'Initial Resolution'),
-    skill(73_955, 'Initial Relic of the Claw'),
-    skill(77_169, 'Initial Empowered Armaments'),
-    skill(77_360, 'Initial Radiant Hammer')
-  ];
-  const fixture = guardianLog(81, skills, [
-    event({ target: PLAYER, value: 1_000, skillId: 873, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
-    event({ target: PLAYER, value: 2_000, skillId: 873, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
-    event({ target: PLAYER, value: 8_000, skillId: 73_955, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
     event({ target: PLAYER, value: 2_500, skillId: 77_169, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
     event({ target: PLAYER, value: 6_000, skillId: 77_169, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
-    event({ target: PLAYER, value: 7_320, skillId: 77_360, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
-    event({ time: 1_001, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT })
+    event({ target: PLAYER, value: 6_000, skillId: 77_169, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({
+      target: PLAYER,
+      value: 7_320,
+      buffDamage: 10_000,
+      skillId: 77_360,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({ target: PLAYER, value: 8_000, skillId: 73_955, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+    event({ time: 1_001, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({ time: 1_001, target: ALLY, value: 1_000, skillId: 73_132 }),
+    event({
+      time: 1_072,
+      skillId: 73_132,
+      value: 432,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    }),
+    ...helio.events
   ]);
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
-  assert.deepEqual(
-    result.rotation
-      .filter((command) => command.initialStateDurationMs != null)
-      .map((command) => [command.name, command.initialStateDurationMs]),
-    [
-      ['Initial Resolution', 3_000],
-      ['Initial Relic of the Claw', 8_000],
-      ['Initial Empowered Armaments', 8_500],
-      ['Initial Radiant Hammer', 7_320]
-    ]
+  assert.deepEqual(result.rotation.slice(0, 7), [
+    { name: 'Enter Radiant Forge', skillId: 77_073 },
+    { name: 'Luminous Staff', skillId: 76_708 },
+    { name: 'Radiant Bulwark', skillId: 77_197 },
+    { name: 'Dazzling Hammer', skillId: 77_339 },
+    { name: 'Exit Radiant Forge', skillId: 76_616 },
+    { name: 'Symbol of Luminance', skillId: 73_132 },
+    { name: '__combat_start', offset: 359 }
+  ]);
+  assert.equal(
+    result.actions.some((action) => action.name.startsWith('Initial ')),
+    false
   );
 });
 

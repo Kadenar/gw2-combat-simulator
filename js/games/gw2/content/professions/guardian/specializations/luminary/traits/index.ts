@@ -247,10 +247,10 @@ function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianS
       stacks: 1
     });
   } else if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
-    // +0.001 offset ensures the buff is active when the modifier rule evaluates
-    // strikes scheduled at effectiveEnd (strict > comparison in the rule).
+    // The target damage bonus begins with the logged tether application at impact,
+    // rather than at the end of the one-second animation.
     emitSkillBuff(context, skill, {
-      at: context.effectiveEnd + 0.001,
+      at: radiantWeaponImpactAt(context, skill),
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',

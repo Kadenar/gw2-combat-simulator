@@ -4043,6 +4043,11 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
   const quickPiercingPackets = quickPiercing.events.filter(
     (event) => ['damage', 'control'].includes(event.type) && event.skillName === 'Piercing Stance'
   );
+  const daringImpact = daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance');
+  const daringBuff = daring.events.find((event) => event.kind === 'guardian-daring-advance');
+  const unmodifiedDaringDamage =
+    ((daringImpact.coefficient * config.stats.power * daringImpact.resolvedWeaponStrength) / config.target.armor) *
+    (1 + daringImpact.criticalChance * (daringImpact.criticalDamage - 1));
 
   assert.equal(
     piercing.events.find((event) => event.type === 'control' && event.skillName === 'Piercing Stance').controlKind,
@@ -4055,15 +4060,17 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
   assert.ok(quickPiercingPackets.every((event) => Math.abs(event.at - quickPiercingBuff.at) < 1e-9));
   assert.equal(
     daringThenPiercing.resolvedEvents.find((event) => event.skillName === 'Daring Advance').damage,
-    daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance').damage
+    daringImpact.damage
   );
-  assert.equal(daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance').at, 0.674);
+  assert.equal(daringImpact.at, 0.68);
+  assert.equal(daringBuff.at, daringImpact.at);
+  assert.equal(daringImpact.damage, unmodifiedDaringDamage);
   assert.ok(piercing.procSteps.some((step) => step.skill === 'Relic of the Claw'));
   assert.equal(
     daring.events.some((event) => event.type === 'control' && event.skillName === 'Daring Advance'),
     false
   );
-  assert.equal(daring.events.find((event) => event.kind === 'guardian-daring-advance').duration, 8);
+  assert.equal(daringBuff.duration, 8);
   assert.equal(effulgentDamage.at, 4);
   assert.equal(effulgentDamage.stackCount, 10);
   assert.equal(effulgentDamage.coefficient, 4);

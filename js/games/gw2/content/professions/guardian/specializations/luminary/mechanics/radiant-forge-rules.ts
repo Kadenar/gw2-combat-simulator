@@ -53,7 +53,10 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // order: 100 places this after additive stacking; multiplicative modifiers
     // that interact with additive sums must sort after them.
     order: 100,
-    when: (context) => guardianTimedBuffActive(context, 'guardian-daring-advance')
+    // The impact applies the tether, so it cannot benefit from its own damage bonus.
+    when: (context) =>
+      context.event?.skillId !== GUARDIAN_SKILL_IDS.DARING_ADVANCE &&
+      guardianTimedBuffActive(context, 'guardian-daring-advance')
   },
   {
     id: 'guardian.shining-spin',
