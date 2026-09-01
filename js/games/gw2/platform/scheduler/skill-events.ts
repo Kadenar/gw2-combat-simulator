@@ -34,7 +34,10 @@ interface SkillEventOwnership extends SchedulerRecord {
 
 interface SkillEventMetadata {
   /** Profession-specific fields that are outside the canonical GW2 envelope. */
-  readonly metadata?: Readonly<SchedulerRecord>;
+  readonly metadata?: Readonly<SchedulerRecord> & {
+    readonly recipients?: never;
+    readonly maximumRecipients?: never;
+  };
 }
 
 interface StandardSkillEventEnvelope extends SchedulerRecord {
@@ -134,6 +137,13 @@ function supplementalEventFields(
   options: SkillEventOwnership & SkillEventMetadata,
   internalFields: readonly string[] = []
 ): SchedulerRecord {
+  // Recipient targeting belongs to the canonical event envelope, so nested copies are invalid.
+  for (const field of ['recipients', 'maximumRecipients']) {
+    if (Object.hasOwn(options.metadata || {}, field)) {
+      throw new TypeError(`Skill event metadata must not contain canonical field ${field}.`);
+    }
+  }
+
   // Preserve explicit profession metadata while keeping helper-only controls out
   // of the emitted event and allowing the canonical envelope to win conflicts.
   const fields: SchedulerRecord = { ...options, ...(options.metadata || {}) };

@@ -192,6 +192,20 @@ test('buff helper applies boon duration and preserves fixed or non-boon duration
   assert.deepEqual(durationCalls, [{ type: 'boon', boon: 'might', duration: 4, fixedDuration: false }]);
 });
 
+test('procedural helpers reject recipient fields nested in metadata', () => {
+  const { context } = captureContext();
+  const options = { at: 0, kind: 'might', duration: 1 };
+
+  assert.throws(
+    () => emitSkillBuff(context, { ...options, metadata: { recipients: 'party' } }),
+    /canonical field recipients/
+  );
+  assert.throws(
+    () => emitSkillBuff(context, { ...options, metadata: { maximumRecipients: 5 } }),
+    /canonical field maximumRecipients/
+  );
+});
+
 test('event-record migration preserves finalized boon duration and canonical weapon identity', () => {
   const durationCalls = [];
   const { context, events } = captureContext((_context, _skill, _effect, duration) => {

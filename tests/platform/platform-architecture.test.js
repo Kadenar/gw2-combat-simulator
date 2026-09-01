@@ -1906,6 +1906,29 @@ test('the shared effect contract rejects undeclared simulation fields', () => {
   );
 });
 
+test('the shared effect contract rejects recipient fields nested in metadata', () => {
+  assert.throws(
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930043,
+            name: 'Nested Recipients',
+            effects: [
+              {
+                type: 'buff',
+                kind: 'might',
+                duration: 1,
+                metadata: { recipients: 'party', maximumRecipients: 5 }
+              }
+            ]
+          }
+        ]
+      }),
+    /unsupported fields: recipients, maximumRecipients/
+  );
+});
+
 test('target-health coefficient modifiers are shared and resolve per hit', () => {
   const thresholdModifier = Object.freeze([
     {

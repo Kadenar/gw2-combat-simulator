@@ -488,98 +488,112 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         boon: 'aegis',
         duration: 5,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'alacrity',
         duration: 3,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'fury',
         duration: 3,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 10,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 5,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'protection',
         duration: 2,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'quickness',
         duration: 2,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'regeneration',
         duration: 5,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'regeneration',
         duration: 3,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'resistance',
         duration: 2,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'resolution',
         duration: 5,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'stability',
         duration: 3,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'swiftness',
         duration: 3,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       },
       {
         type: 'boon',
         boon: 'vigor',
         duration: 3,
         stacks: 1,
-        metadata: { affectsSummons: true, maximumRecipients: 2 }
+        maximumRecipients: 2,
+        metadata: { affectsSummons: true }
       }
     ],
     quicknessCastTimeMs: 667

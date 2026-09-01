@@ -198,7 +198,10 @@ export interface SkillEffectBase {
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
   readonly name?: string;
-  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<Record<string, unknown>> & {
+    readonly recipients?: never;
+    readonly maximumRecipients?: never;
+  };
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
   readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
   readonly [field: string]: unknown;
@@ -239,6 +242,8 @@ export interface StatusEffect extends SkillEffectBase {
   readonly kind?: string;
   readonly duration: number;
   readonly stacks?: number;
+  readonly recipients?: string;
+  readonly maximumRecipients?: number;
 }
 
 export interface CustomEffect extends SkillEffectBase {

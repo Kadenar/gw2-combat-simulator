@@ -418,7 +418,8 @@ function summonSpirit(
     emitWanderlustInitial(context, skill, spirit, at);
   } else if (spirit.key === 'preservation') {
     const boonOptions = {
-      metadata: { recipients: 'party', maximumRecipients: 5 }
+      recipients: 'party',
+      maximumRecipients: 5
     };
     emitSkillBuff(context, skill, { at, kind: 'protection', duration: 4, stacks: 1, ...boonOptions });
     emitSkillBuff(context, skill, { at, kind: 'vigor', duration: 4, stacks: 1, ...boonOptions });
@@ -532,7 +533,8 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       }
     });
     const boonOptions = {
-      metadata: { recipients: 'party', maximumRecipients: 5 }
+      recipients: 'party',
+      maximumRecipients: 5
     };
     for (const boon of boons) {
       emitSkillBuff(context, skill, {
@@ -557,7 +559,8 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
     });
   } else if (skill.id === ID.INNERVATE_PRESERVATION) {
     const boonOptions = {
-      metadata: { recipients: 'party', maximumRecipients: 5 }
+      recipients: 'party',
+      maximumRecipients: 5
     };
     emitSkillBuff(context, skill, { at, kind: 'aegis', duration: 3, stacks: 1, ...boonOptions });
     emitSkillBuff(context, skill, { at, kind: 'resistance', duration: 4, stacks: 1, ...boonOptions });

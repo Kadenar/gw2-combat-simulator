@@ -147,7 +147,7 @@ function emitElixirEffects(
   skill: NecromancerSkill,
   source: NecromancerSkill | BalanceProfile,
   impactAt: number,
-  boonOptions: Pick<EmitSkillBuffOptions, 'metadata'> | undefined,
+  boonOptions: Pick<EmitSkillBuffOptions, 'recipients' | 'maximumRecipients'> | undefined,
   blight: number
 ): void {
   // Translate each declarative profile effect through the scheduler emitter that owns its event type.
@@ -222,7 +222,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     dedupeAcrossSourceIds: true
   });
   const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
-    ? { metadata: { recipients: 'party', maximumRecipients: 5 } }
+    ? { recipients: 'party', maximumRecipients: 5 }
     : undefined;
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
     const protection = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bolsteringBrew), 'boon');

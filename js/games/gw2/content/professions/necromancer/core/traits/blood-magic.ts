@@ -302,7 +302,7 @@ export function applyOverflowingThirst(context: NecromancerCastContext, skill: N
     kind: String(buff?.kind || 'taste-for-blood'),
     duration,
     stacks,
-    metadata: recipients
+    ...recipients
   });
   context.emit({
     type: 'necromancer.taste-for-blood-grant',

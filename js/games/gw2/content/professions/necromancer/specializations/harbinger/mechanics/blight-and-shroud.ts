@@ -75,14 +75,14 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
         kind: String(quickness?.boon || 'quickness'),
         duration: Number(quickness?.duration || 4),
         stacks: Number(quickness?.stacks || 1),
-        metadata: recipients
+        ...recipients
       });
       emitSkillBuff(context, skill, {
         at,
         kind: String(fury?.boon || 'fury'),
         duration: Number(fury?.duration || 4),
         stacks: Number(fury?.stacks || 1),
-        metadata: recipients
+        ...recipients
       });
     }
 
@@ -120,14 +120,14 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       kind: String(quickness?.boon || 'quickness'),
       duration: Number(quickness?.duration || 4),
       stacks: Number(quickness?.stacks || 1),
-      metadata: deathlyHaste
+      ...deathlyHaste
     });
     emitSkillBuff(context, skill, {
       at,
       kind: String(fury?.boon || 'fury'),
       duration: Number(fury?.duration || 4),
       stacks: Number(fury?.stacks || 1),
-      metadata: deathlyHaste
+      ...deathlyHaste
     });
   }
 }

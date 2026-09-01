@@ -302,7 +302,8 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
       kind: 'might',
       duration: 20,
       stacks: 5,
-      metadata: { recipients: 'party', maximumRecipients: 5 }
+      recipients: 'party',
+      maximumRecipients: 5
     });
   }
 

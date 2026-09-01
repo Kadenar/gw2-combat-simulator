@@ -248,7 +248,8 @@ function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerS
     kind: 'might',
     duration: 8,
     stacks: conditionCount * 2,
-    metadata: { recipients: 'party', maximumRecipients: 5 }
+    recipients: 'party',
+    maximumRecipients: 5
   });
 }
 
