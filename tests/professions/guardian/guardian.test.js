@@ -4263,6 +4263,28 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   assert.ok(Math.abs(clawSovereign.damage / justiceSovereign.damage - 1.07) < 1e-12);
 });
 
+test('Sovereign of Light ignores fresh stance modifiers but retains an active Piercing Stance', () => {
+  const simulate = (rotation) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: {
+        ...config,
+        specialization: 'Luminary',
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+      }
+    });
+  const sovereignDamage = (result) => result.resolvedEvents.find((event) => event.name === 'Sovereign of Light').damage;
+  const freshDaring = simulate(['Enter Radiant Forge', 'Exit Radiant Forge', 'Daring Advance']);
+  const freshPiercing = simulate(['Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']);
+  const activePiercing = simulate(['Piercing Stance', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']);
+  const unmodifiedDamage = ((1.5 * config.stats.power * 690.5) / config.target.armor) * (1 + 0.05 * (1.5 - 1));
+
+  assert.equal(sovereignDamage(freshDaring), unmodifiedDamage);
+  assert.equal(sovereignDamage(freshPiercing), unmodifiedDamage);
+  assert.ok(Math.abs(sovereignDamage(activePiercing) / unmodifiedDamage - 1.1) < 1e-12);
+});
+
 test('Sovereign of Light resolves overlapping aura grants and finishers chronologically', () => {
   const result = simulateGw2({
     profession: guardianProfession,

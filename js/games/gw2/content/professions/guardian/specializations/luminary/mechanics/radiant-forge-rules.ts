@@ -13,8 +13,21 @@ import {
   observeLuminaryScheduledEvent,
   updateLuminaryTraitCastState
 } from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { GuardianSchedulerContext, GuardianSkill } from '#gw2/content/professions/guardian/types.js';
+
+/** Applies a stance modifier to its own impact or proc only when an older application was already active. */
+function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId: number, skillName: string): boolean {
+  if (!guardianTimedBuffActive(context, kind)) return false;
+  if (context.event?.skillId !== skillId && context.event?.triggeredBy !== skillName) return true;
+  return (context.events || []).some(
+    (event) =>
+      event.type === 'buff' &&
+      event.kind === kind &&
+      event.at < context.time &&
+      event.at + Number(event.duration || 0) > context.time
+  );
+}
 
 export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -45,7 +58,8 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,
-    when: (context) => guardianTimedBuffActive(context, 'guardian-piercing-stance')
+    when: (context) =>
+      stanceModifierActive(context, 'guardian-piercing-stance', GUARDIAN_SKILL_IDS.PIERCING_STANCE, 'Piercing Stance')
   },
   {
     id: 'guardian.daring-advance',
@@ -55,10 +69,8 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // order: 100 places this after additive stacking; multiplicative modifiers
     // that interact with additive sums must sort after them.
     order: 100,
-    // The impact applies the tether, so it cannot benefit from its own damage bonus.
     when: (context) =>
-      context.event?.skillId !== GUARDIAN_SKILL_IDS.DARING_ADVANCE &&
-      guardianTimedBuffActive(context, 'guardian-daring-advance')
+      stanceModifierActive(context, 'guardian-daring-advance', GUARDIAN_SKILL_IDS.DARING_ADVANCE, 'Daring Advance')
   },
   {
     id: 'guardian.shining-spin',
