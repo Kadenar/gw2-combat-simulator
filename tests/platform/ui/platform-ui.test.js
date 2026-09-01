@@ -186,9 +186,14 @@ test('rotation insertion cursors validate positions and expose accessible gaps',
 
   assert.match(rotationInsertionGapHtml(2, 2), /class="rot-insertion-gap active"/);
   assert.match(rotationInsertionGapHtml(2, null), /Insert at position 3/);
+  const entryHtml = rotationTimelineEntryHtml(
+    2,
+    null,
+    '<div class="rot-dead-time">Dead</div><div class="rot-skill">Skill</div>'
+  );
   assert.match(
-    rotationTimelineEntryHtml(2, null, '<div class="rot-skill">Skill</div>'),
-    /class="rot-entry"[\s\S]*data-insertion-index="2"[\s\S]*class="rot-skill"/
+    entryHtml,
+    /class="rot-entry"[\s\S]*data-insertion-index="2"[\s\S]*class="rot-dead-time"[\s\S]*class="rot-skill"/
   );
 });
 

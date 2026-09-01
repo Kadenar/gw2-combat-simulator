@@ -367,6 +367,14 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
   assert.equal(antiquaryInitiative.pipStyle, 'thief-initiative');
   assert.equal(antiquaryInitiative.pipRows, 3);
 
+  const projectedAntiquaryState = simulate('Antiquary', []).endState.profession;
+  const projectedAntiquaryInitiative = resourceDisplayViews(thiefProfession, {
+    specialization: 'Antiquary',
+    professionState: projectedAntiquaryState
+  })[0];
+
+  assert.equal(projectedAntiquaryInitiative.pipRows, 3);
+
   const deadeyeMalice = resourceViews('Deadeye').find((view) => view.id === 'malice');
 
   assert.equal(deadeyeMalice.displayMode, 'pips');

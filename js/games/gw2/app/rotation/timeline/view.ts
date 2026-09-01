@@ -696,7 +696,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             ].join('\n');
     return `<div class="rot-skill rot-injected rot-dead-time" role="note"
             aria-label="${esc(detail)}" title="${esc(detail)}">
-            <span class="rot-dead-time-label">Dead</span>
+            <span class="rot-dead-time-label">Idle</span>
             <strong class="rot-dead-time-duration">${esc(duration)}</strong>
         </div>`;
   };
@@ -763,10 +763,6 @@ export function renderTimeline(app: ProfessionAppState): void {
     const rowTitle = row.weaponLine ? `${row.weaponLine} weapon line` : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
     const rowItems: string[] = [];
     row.skills.forEach(({ entry, index }) => {
-      for (const marker of deadTimesByIndex.get(index) || []) {
-        rowItems.push(renderDeadTime(marker));
-      }
-
       for (const marker of overlayProcMarkersByIndex.get(index) || []) {
         rowItems.push(renderOverlayProcMarker(marker));
       }
@@ -884,11 +880,13 @@ export function renderTimeline(app: ProfessionAppState): void {
       // Casts and Combat Start share behavior editing; waits expose their duration through the same pencil affordance.
       const canEditActivation = (item.type === 'cast' && skill != null) || item.type === 'combat-start';
       const canEditWait = item.type === 'wait';
+      // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
+      const deadTimeHtml = (deadTimesByIndex.get(index) || []).map(renderDeadTime).join('');
       rowItems.push(
         rotationTimelineEntryHtml(
           index,
           app.rotationInsertionIndex ?? app.build.rotation.length,
-          `<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
+          `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}

@@ -37,6 +37,8 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
 }
 
 export const ANTIQUARY_PUBLIC_END_STATE_KEYS: readonly (keyof AntiquaryState)[] = Object.freeze([
+  // Preserve Antiquary's three-row initiative layout when the palette reads projected simulation state.
+  'initiativePipRows',
   'artifactSlots',
   'artifactUsesRemaining',
   'scoundrelsLuck',

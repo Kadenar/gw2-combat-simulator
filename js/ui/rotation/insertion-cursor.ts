@@ -25,10 +25,11 @@ export function rotationInsertionGapHtml(index: number, activeIndex: unknown): s
   </button>`;
 }
 
-export function rotationTimelineEntryHtml(index: number, activeIndex: unknown, skillHtml: string): string {
+export function rotationTimelineEntryHtml(index: number, activeIndex: unknown, entryHtml: string): string {
+  // Keep everything at a rotation boundary after its insertion cursor so the visual order matches insertion behavior.
   return `<div class="rot-entry">
     ${rotationInsertionGapHtml(index, activeIndex)}
-    ${skillHtml}
+    ${entryHtml}
   </div>`;
 }
 
