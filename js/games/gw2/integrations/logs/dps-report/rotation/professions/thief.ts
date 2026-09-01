@@ -1,5 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -26,23 +28,16 @@ const CANNON_BACKFIRE_PACKETS = 1;
 const CANNON_SUCCESS_RECAST_MIN_MS = 9_000;
 const COMPOSITE_SIGNAL_WINDOW_MS = 75;
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function catalogSkill(context: DpsReportProfessionReconstructionContext, id: number): Skill | null {
   return context.catalog?.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === id) || null;
 }
 
 function actionSkill(context: DpsReportProfessionReconstructionContext, action: DpsReportRecordedAction): Skill | null {
-  const id = action.canonicalSkillId ?? action.rawSkillId;
-  const name = normalized(action.canonicalName ?? action.rawName);
-  return (
-    context.catalog?.skills.find(
-      (skill) => (typeof skill.id === 'number' && Number(skill.id) === Number(id)) || normalized(skill.name) === name
-    ) || null
+  return findRotationSkill(
+    action.canonicalSkillId ?? action.rawSkillId,
+    action.canonicalName ?? action.rawName,
+    context.catalog,
+    context.profile
   );
 }
 
@@ -51,17 +46,6 @@ function selectedSkill(context: DpsReportProfessionReconstructionContext, skill:
     !context.selectedSkillNames?.length ||
     context.selectedSkillNames.some((name) => normalized(name) === normalized(skill.name))
   );
-}
-
-function primaryTargetHits(
-  context: DpsReportProfessionReconstructionContext,
-  damageId: number,
-  phase = context.phase
-): number {
-  if (context.report.targets?.length !== 1) return 0;
-  const phaseIndex = context.report.phases.indexOf(phase);
-  const row = context.player.targetDamageDist?.[0]?.[phaseIndex]?.find((entry) => Number(entry.id) === damageId);
-  return Math.max(0, Number(row?.connectedHits ?? row?.hits ?? 0));
 }
 
 /** Places omitted Chak Shield casts where packet counts cross report subphase boundaries. */

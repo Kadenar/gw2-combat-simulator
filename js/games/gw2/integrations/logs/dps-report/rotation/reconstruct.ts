@@ -2,6 +2,7 @@ import {
   actionKind,
   findNamedRotationSkill,
   findRotationSkill,
+  normalizedName as normalized,
   skillIdentity
 } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
@@ -47,12 +48,6 @@ const DUPLICATE_SIGNAL_WINDOW_MS = 75;
 // was cancelled and must not enter the rotation — an emitted phantom autoattack
 // would wrongly advance the weapon-1 chain and desync every following chain skill.
 const AUTOATTACK_COMMIT_FRACTION = 0.7;
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
 
 function automaticProc(metadata: DpsReportSkillMetadata | null): boolean {
   return Boolean(metadata?.isTraitProc || metadata?.isUnconditionalProc || metadata?.isGearProc);

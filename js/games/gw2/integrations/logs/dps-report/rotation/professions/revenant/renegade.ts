@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -12,12 +13,6 @@ const WARBAND_ACTIONS = Object.freeze([ICERAZOR, RAZORCLAW, DARKRAZOR, BREAKRAZO
 const LEGEND_APPLICATION_DELAY_MS = 100;
 const ENHANCED_RAZORCLAW_SIGNAL_ID = 72363;
 const ENHANCED_DARKRAZOR_SIGNAL_ID = 72366;
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
 
 function catalogSkill(context: DpsReportProfessionReconstructionContext, name: string): Skill | null {
   return context.catalog?.skills.find((skill) => normalized(skill.name) === normalized(name)) || null;

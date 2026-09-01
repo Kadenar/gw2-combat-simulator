@@ -1,6 +1,6 @@
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -34,11 +34,7 @@ export const MESMER_EFFECT_GUIDS = Object.freeze({
 });
 
 /** Normalizes a skill or action name for case-insensitive comparisons across EVTC and simulator metadata. */
-export function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
+export { normalized };
 
 /** Resolves a raw EVTC skill ID to its recorded name, returning a stable placeholder when metadata is missing. */
 export function rawSkillName(context: EvtcProfessionReconstructionContext, skillId: number): string {
@@ -257,23 +253,6 @@ export function selectedSkill(
     context.selectedSkillIds?.includes(identity.skillId) === true ||
     context.selectedSkillNames?.some((name) => normalized(name) === normalized(identity.name)) === true
   );
-}
-
-/** Returns the earliest death or combat-exit timestamp among agents identified as encounter targets. */
-export function encounterEndTime(context: EvtcProfessionReconstructionContext): number | null {
-  const targets = new Set(
-    context.log.agents
-      .filter((agent) => agent.profession === context.log.header.encounterId)
-      .map((agent) => agent.address)
-  );
-  const times = context.log.events
-    .filter(
-      (event) =>
-        targets.has(event.source) &&
-        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
-    )
-    .map((event) => event.time);
-  return times.length ? Math.min(...times) : null;
 }
 
 /** Sorts actions and removes later actions with the same canonical/raw skill ID inside the deduplication window. */

@@ -2,7 +2,8 @@ import { removeUncommittedMesmerAutoattacks } from '#gw2/integrations/logs/evtc/
 import { reconstructChronomancerActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/chronomancer.js';
 import { addMesmerCommonActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/common.js';
 import { reconstructMirageActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/mirage.js';
-import { dedupeActions, encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/shared.js';
+import { dedupeActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/shared.js';
+import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { reconstructVirtuosoActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/virtuoso.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -30,7 +31,7 @@ function finalizeMesmerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context);
+  const encounterEnd = encounterEndTime(context.log);
   const encounterEndGrace = context.profile.specializationId === 'mirage' ? MIRAGE_ENCOUNTER_END_INPUT_GRACE_MS : 0;
   return dedupeActions(
     actions.filter((action) => encounterEnd == null || action.start < encounterEnd + encounterEndGrace)

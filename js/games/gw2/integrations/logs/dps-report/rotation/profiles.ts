@@ -1,10 +1,5 @@
 import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
+import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 
 /** Resolves EI's profession/spec name to the shared combat-log rotation profile. */
 export function dpsReportRotationProfile(profession: string): RotationProfessionProfile | null {

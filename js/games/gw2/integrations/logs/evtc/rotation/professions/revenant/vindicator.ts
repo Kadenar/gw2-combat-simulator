@@ -6,15 +6,10 @@ import {
   committedActionsFromStrikePackets,
   skillForAction
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { reconstructCommonRevenantActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
 
 const DEATH_DROP_IDS = new Set([62693, 62730]);
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
 
 function deathDrop(action: EvtcRecordedRotationAction): boolean {
   return (

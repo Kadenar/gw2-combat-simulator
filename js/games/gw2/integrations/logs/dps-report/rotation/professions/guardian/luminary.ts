@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -6,20 +7,8 @@ import type {
 
 const EFFULGENT_DAMAGE_SIGNAL_ID = 76730;
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return (
-    context.catalog?.skills.find(
-      (skill) =>
-        (typeof skill.id === 'number' && Number(skill.id) === action.rawSkillId) ||
-        normalized(skill.name) === normalized(action.rawName)
-    ) || null
-  );
+  return findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
 }
 
 function physicalWeapon(skill: Skill | null): string | null {

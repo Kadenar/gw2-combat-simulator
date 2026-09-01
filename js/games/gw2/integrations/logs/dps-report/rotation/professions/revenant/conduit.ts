@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -8,12 +9,6 @@ const RELINQUISH_POWER_ID = 28382;
 const GENERATED_SIGNAL_IDS = new Set([76818, 77116, 77141]);
 const ASSASSIN_LEGEND_ID = 'LegendaryAssassin';
 const DEFAULT_LEGEND_SWAP_COOLDOWN_MS = 10_000;
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
 
 function namedSkill(context: DpsReportProfessionReconstructionContext, name: string): Skill | null {
   return context.catalog?.skills.find((skill) => normalized(skill.name) === normalized(name)) || null;

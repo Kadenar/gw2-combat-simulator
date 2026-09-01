@@ -1,5 +1,5 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
-import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   firstStrikePacketOffsetMs,
   openingStrikeCombatStartMs,
@@ -14,12 +14,6 @@ const REND_ANIMATION_ID = 80_247;
 const REND_FOLLOW_UP_ANIMATION_ID = 80_224;
 const HEAD_BUTT_ID = 30_343;
 const COMPOSITE_SIGNAL_WINDOW_MS = 75;
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
 
 /** Anchors a pre-phase Head Butt to its strike packet so the replay does not gate away its damage. */
 function alignOpeningHeadButtCombatStart(

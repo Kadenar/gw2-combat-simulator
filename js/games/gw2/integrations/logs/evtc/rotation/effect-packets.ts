@@ -5,7 +5,7 @@ import {
   strikePacketOffsets
 } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -46,11 +46,7 @@ export interface CommittedStrikeActionOptions {
   readonly matcher?: StrikePacketMatcherOptions;
 }
 
-export function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
+export { normalized };
 
 export function skillForAction(
   context: EvtcProfessionReconstructionContext,

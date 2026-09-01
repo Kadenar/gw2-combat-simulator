@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
-import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -74,27 +74,11 @@ export function directAction(
   };
 }
 
-export function encounterEndTime(context: EvtcProfessionReconstructionContext): number | null {
-  const targets = new Set(
-    context.log.agents
-      .filter((agent) => agent.profession === context.log.header.encounterId)
-      .map((agent) => agent.address)
-  );
-  const times = context.log.events
-    .filter(
-      (event) =>
-        targets.has(event.source) &&
-        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
-    )
-    .map((event) => event.time);
-  return times.length ? Math.min(...times) : null;
-}
-
 export function finalizeRangerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context);
+  const encounterEnd = encounterEndTime(context.log);
   const completionTolerance = context.profile.specializationId === 'druid' ? 200 : 0;
   return encounterEnd == null
     ? [...actions]

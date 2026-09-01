@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -7,20 +8,12 @@ import type {
 const HARBINGER_SHROUD = Object.freeze({ name: 'Harbinger Shroud', skillId: 62567 });
 const HARBINGER_SHROUD_SKILL_IDS = new Set([62539, 62563, 62611, 62621, 62672]);
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  const id = action.canonicalSkillId ?? action.rawSkillId;
-  const name = action.canonicalName ?? action.rawName;
-  return (
-    context.catalog?.skills.find(
-      (skill) =>
-        (typeof skill.id === 'number' && Number(skill.id) === Number(id)) || normalized(skill.name) === normalized(name)
-    ) || null
+  return findRotationSkill(
+    action.canonicalSkillId ?? action.rawSkillId,
+    action.canonicalName ?? action.rawName,
+    context.catalog,
+    context.profile
   );
 }
 

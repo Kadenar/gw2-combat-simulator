@@ -1,5 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -14,12 +16,6 @@ const OPENING_SKILLS = [
   { id: PROCESSION_OF_BLADES_ID, damageId: PROCESSION_OF_BLADES_ID, packets: 10 }
 ];
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function catalogSkill(context: DpsReportProfessionReconstructionContext, id: number): Skill | null {
   return context.catalog?.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === id) || null;
 }
@@ -28,13 +24,6 @@ function selectedSkill(context: DpsReportProfessionReconstructionContext, skill:
   if (!context.selectedSkillNames?.length) return true;
   const selected = new Set(context.selectedSkillNames.map(normalized));
   return selected.has(normalized(skill.name));
-}
-
-function primaryTargetHits(context: DpsReportProfessionReconstructionContext, damageId: number): number {
-  if (context.report.targets?.length !== 1) return 0;
-  const phaseIndex = context.report.phases.indexOf(context.phase);
-  const row = context.player.targetDamageDist?.[0]?.[phaseIndex]?.find((entry) => Number(entry.id) === damageId);
-  return Math.max(0, Number(row?.connectedHits ?? row?.hits ?? 0));
 }
 
 function recordedCastCount(context: DpsReportProfessionReconstructionContext, skillId: number): number {

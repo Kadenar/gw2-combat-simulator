@@ -5,7 +5,9 @@ import {
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/content/professions/elementalist/data/ids.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -103,12 +105,6 @@ const BLINDING_FLASH_SOURCE_WINDOW_MS = 1000;
 const BLIND_SOURCES = new Set(['Dust Devil', 'Dust Storm']);
 const WEAKNESS_SOURCES = new Set(['Lightning Blitz']);
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function elementName(value: unknown): Element | null {
   const name = String(value || '').trim();
   const element = `${name.slice(0, 1).toUpperCase()}${name.slice(1).toLowerCase()}` as Element;
@@ -120,13 +116,11 @@ function actionName(action: DpsReportRecordedAction): string {
 }
 
 function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  const id = action.canonicalSkillId ?? action.rawSkillId;
-  const name = actionName(action);
-  return (
-    context.catalog?.skills.find(
-      (skill) =>
-        (typeof skill.id === 'number' && Number(skill.id) === Number(id)) || normalized(skill.name) === normalized(name)
-    ) || null
+  return findRotationSkill(
+    action.canonicalSkillId ?? action.rawSkillId,
+    actionName(action),
+    context.catalog,
+    context.profile
   );
 }
 
@@ -281,13 +275,6 @@ function activationTimes(states: readonly (readonly [number, number])[] | undefi
   }
 
   return activations;
-}
-
-function primaryTargetHits(context: DpsReportProfessionReconstructionContext, skillId: number): number {
-  if (context.report.targets?.length !== 1) return 0;
-  const phaseIndex = context.report.phases.indexOf(context.phase);
-  const row = context.player.targetDamageDist?.[0]?.[phaseIndex]?.find((entry) => Number(entry.id) === skillId);
-  return Math.max(0, Number(row?.connectedHits ?? row?.hits ?? 0));
 }
 
 function fireElementalHits(context: DpsReportProfessionReconstructionContext, skillId: number): number {

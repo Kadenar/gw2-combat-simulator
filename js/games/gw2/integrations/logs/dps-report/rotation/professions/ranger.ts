@@ -2,6 +2,7 @@ import type { Skill } from '#gw2/platform/engine/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -44,13 +45,6 @@ function actionSkill(context: DpsReportProfessionReconstructionContext, action: 
     context.catalog,
     context.profile
   );
-}
-
-function primaryTargetHits(context: DpsReportProfessionReconstructionContext, skillId: number): number {
-  if (context.report.targets?.length !== 1) return 0;
-  const phaseIndex = context.report.phases.indexOf(context.phase);
-  const row = context.player.targetDamageDist?.[0]?.[phaseIndex]?.find((entry) => Number(entry.id) === skillId);
-  return Math.max(0, Number(row?.connectedHits ?? row?.hits ?? 0));
 }
 
 function inferredAction(

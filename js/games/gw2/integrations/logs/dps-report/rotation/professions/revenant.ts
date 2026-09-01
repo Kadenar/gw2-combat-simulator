@@ -1,6 +1,7 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/conduit.js';
 import { reconstructHeraldDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/herald.js';
 import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/renegade.js';
@@ -26,20 +27,12 @@ const COMPOSITE_CASTS = [
   { startId: 62895, finishId: 62713, maximumGapMs: 10 }
 ] as const;
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  const id = action.canonicalSkillId ?? action.rawSkillId;
-  const name = action.canonicalName ?? action.rawName;
-  return (
-    context.catalog?.skills.find(
-      (skill) =>
-        (typeof skill.id === 'number' && Number(skill.id) === Number(id)) || normalized(skill.name) === normalized(name)
-    ) || null
+  return findRotationSkill(
+    action.canonicalSkillId ?? action.rawSkillId,
+    action.canonicalName ?? action.rawName,
+    context.catalog,
+    context.profile
   );
 }
 

@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -8,20 +9,8 @@ const KIT_SWAP_SIGNAL_WINDOW_MS = 25;
 const MINE_SETUP_WAIT_MS = 5000;
 const TRIGGERED_PROC_SKILL_IDS = new Set([43630]);
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return (
-    context.catalog?.skills.find(
-      (skill) =>
-        (typeof skill.id === 'number' && Number(skill.id) === action.rawSkillId) ||
-        normalized(skill.name) === normalized(action.rawName)
-    ) || null
-  );
+  return findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
 }
 
 function kitName(skill: Skill | null): string | null {

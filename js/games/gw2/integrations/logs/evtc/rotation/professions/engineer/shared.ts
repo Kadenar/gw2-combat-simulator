@@ -1,6 +1,7 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { normalized, skillForAction } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -116,27 +117,11 @@ export function selectedSkill(context: EvtcProfessionReconstructionContext, name
   );
 }
 
-function encounterEndTime(context: EvtcProfessionReconstructionContext): number | null {
-  const targets = new Set(
-    context.log.agents
-      .filter((agent) => agent.profession === context.log.header.encounterId)
-      .map((agent) => agent.address)
-  );
-  const times = context.log.events
-    .filter(
-      (event) =>
-        targets.has(event.source) &&
-        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
-    )
-    .map((event) => event.time);
-  return times.length ? Math.min(...times) : null;
-}
-
 export function finalizeEngineerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context);
+  const encounterEnd = encounterEndTime(context.log);
   const inEncounter = encounterEnd == null ? [...actions] : actions.filter((action) => action.start < encounterEnd);
   const throwMine = selectedIdentity(context, 'Throw Mine', 6161);
   return inEncounter.map((action) => {

@@ -1,14 +1,9 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
 } from '#gw2/integrations/logs/dps-report/rotation/types.js';
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
 
 function namedSkill(context: DpsReportProfessionReconstructionContext, name: string): Skill | null {
   return context.catalog?.skills.find((skill) => normalized(skill.name) === normalized(name)) || null;

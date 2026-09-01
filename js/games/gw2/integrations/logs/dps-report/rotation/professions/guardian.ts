@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
 import { reconstructDragonhunterDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian/dragonhunter.js';
 import { reconstructLuminaryDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian/luminary.js';
@@ -15,20 +16,12 @@ const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActio
   ['willbender', reconstructWillbenderDpsReportActions]
 ]);
 
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
 function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  const id = action.canonicalSkillId ?? action.rawSkillId;
-  const name = action.canonicalName ?? action.rawName;
-  return (
-    context.catalog?.skills.find(
-      (skill) =>
-        (typeof skill.id === 'number' && Number(skill.id) === Number(id)) || normalized(skill.name) === normalized(name)
-    ) || null
+  return findRotationSkill(
+    action.canonicalSkillId ?? action.rawSkillId,
+    action.canonicalName ?? action.rawName,
+    context.catalog,
+    context.profile
   );
 }
 

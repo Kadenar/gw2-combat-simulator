@@ -2,6 +2,7 @@ import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/engi
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRIPPLED_SKILL_ID,
@@ -46,12 +47,6 @@ export interface EngineerSerratedSteelObservation {
   readonly expectedProcChance: number;
   readonly expectedApplications: number;
   readonly matchedDurationsMs: readonly number[];
-}
-
-function normalized(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
 }
 
 function isExplosionSkill(skill: Skill): boolean {

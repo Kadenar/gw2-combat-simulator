@@ -1,13 +1,13 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   canonicalAction,
-  encounterEndTime,
   recordedDuration,
   SIGNAL_WINDOW_MS
 } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
@@ -96,7 +96,7 @@ function removePostEncounterActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context);
+  const encounterEnd = encounterEndTime(context.log);
   return encounterEnd == null ? [...actions] : actions.filter((action) => action.start < encounterEnd);
 }
 
