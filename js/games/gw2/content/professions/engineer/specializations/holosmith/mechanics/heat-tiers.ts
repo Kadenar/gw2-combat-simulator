@@ -50,8 +50,6 @@ const HEAT_STRIKE_PROFILES: ReadonlyMap<string, SkillId> = new Map([
   [String(ID.PARTICLE_ACCELERATOR), PROFILE.particleAcceleratorHeatTier]
 ]);
 
-const PRISMATIC_SINGULARITY_STRIKE_PROFILE = PROFILE.prismaticSingularityHeatTier;
-
 /** Captures activation heat and ECSU selection so delayed packets retain their original tier. */
 export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
@@ -106,10 +104,6 @@ export function holosmithEventStrikeFactor(context: unknown, event: unknown, fal
 /** Maps eligible direct strike packets to the balance profile that owns their heat scaling. */
 function strikeProfileForEvent(event: EngineerSimulationEvent): SkillId | undefined {
   const skillId = event.skillId ?? event.sourceId;
-  if (String(skillId) === String(ID.PRISMATIC_SINGULARITY)) {
-    return event.damageKind === 'explosion' ? PRISMATIC_SINGULARITY_STRIKE_PROFILE : undefined;
-  }
-
   return HEAT_STRIKE_PROFILES.get(String(skillId));
 }
 

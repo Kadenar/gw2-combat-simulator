@@ -38,12 +38,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     effects: [],
     toolbeltParentName: 'Blast Gyro Tag'
   },
-  [ID.PURGE_GYRO]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: []
-  },
   [ID.SHREDDER_GYRO]: {
     implemented: true,
     quicknessCastTimeMs: 520,
@@ -58,41 +52,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
         actorType: 'effect'
       }
     ]
-  },
-  [ID.DEFENSE_FIELD]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 25,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 6,
-        stacks: 3
-      }
-    ],
-    toolbeltParentName: 'Bulwark Gyro'
-  },
-  [ID.BULWARK_GYRO]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: []
-  },
-  [ID.CHEMICAL_FIELD]: {
-    implemented: true,
-    castTimeMs: 250,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 8,
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Purge Gyro'
   },
   [ID.MEDIC_GYRO]: {
     implemented: true,

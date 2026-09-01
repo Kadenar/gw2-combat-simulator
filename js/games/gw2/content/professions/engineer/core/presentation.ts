@@ -38,15 +38,11 @@ const KIT_ORDER = new Map<string, number>([
   ['Flamethrower', 1],
   ['Bomb Kit', 2],
   ['Med Kit', 3],
-  ['Tool Kit', 4],
   ['Elixir Gun', 5],
   ['Elite Mortar Kit', 6]
 ]);
 
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']);
-
-// these skills appear in the palette but are not manually placed in utility slots
-const UNSELECTABLE_SLOT_SKILLS = new Set<string>(['Elixir B', 'Elixir R', 'Utility Goggles']);
 
 // controls which engineer.state events Core spec suppresses from the event log;
 // specialization modules handle filtering of their own state reasons
@@ -356,11 +352,10 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
   isSlotSkillSelectable(_context: EngineerUiContext, skill: EngineerSkill): boolean {
     return (
       skill.slotSelectable !== false &&
-      // stow skills, flip/detonate skills, and UNSELECTABLE_SLOT_SKILLS live in the palette but aren't slotted
+      // Stow and flip skills live in the palette but are not placed in loadout slots.
       skill.handlerId !== 'engineer.kit-stow' &&
       skill.flipParentId == null &&
-      !String(skill.name || '').startsWith('Detonate') &&
-      !UNSELECTABLE_SLOT_SKILLS.has(skill.name)
+      !String(skill.name || '').startsWith('Detonate')
     );
   },
   // engineer weapon swap exits a kit, not a true weapon set change — sigil system must know this

@@ -228,19 +228,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     countsAsToolbeltSkill: false,
     mechanicSlot: 5
   },
-  [ID.SPECTRUM_SHIELD]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 4,
-        stacks: 6
-      }
-    ]
-  },
   [ID.FLASH_CUTTER_STORM]: {
     implemented: true,
     handlerId: 'engineer.heat',
@@ -622,31 +609,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ],
     forgeSkill: true
   },
-  [ID.HARD_LIGHT_ARENA]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 35,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 2,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 2,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 2,
-        stacks: 1
-      }
-    ]
-  },
   [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
     implemented: true,
     handlerId: 'engineer.photon-forge-exit',
@@ -748,39 +710,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ],
     forgeSkill: true
   },
-  [ID.PRISMATIC_SINGULARITY]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 30,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.1,
-        hits: 1,
-        name: 'Pull Damage',
-        actorType: 'player'
-      },
-      {
-        type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        name: 'Explosion Damage',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        metadata: {
-          controlKind: 'pull',
-          duration: 240
-        }
-      }
-    ],
-    toolbeltParentName: 'Hard Light Arena'
-  },
   [ID.BLADE_BURST]: {
     implemented: true,
     castTimeMs: 0,
@@ -803,18 +732,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
       }
     ],
     toolbeltParentName: 'Laser Disk'
-  },
-  [ID.FLASH_SPARK]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 25,
-    effects: [
-      {
-        type: 'blind',
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Spectrum Shield'
   },
   [ID.CAUTERIZE]: {
     implemented: true,

@@ -55,11 +55,9 @@ test('patch authoring omits unused skills but retains indirect runtime skills', 
     assert.equal(engineerSkillIds.has(unusedId), false, String(unusedId));
   }
 
-  for (const usedId of [5811, 21659]) {
+  for (const usedId of [21659]) {
     assert.equal(engineerSkillIds.has(usedId), true, String(usedId));
   }
-
-  assert.equal(engineerSkillIds.has('engineer.turret.rifle.attack'), true);
 
   const lesserGrenadeBarrage = engineerSkills.find((entry) => entry.name === 'Lesser Grenade Barrage');
 

@@ -38,7 +38,6 @@ const FLIP_SKILL_IDS = new Set<number>([
 ]);
 
 const SPECIAL_PROFILE_SKILL_IDS = new Set<number>([
-  ID.BLINK,
   ID.CONFUSING_IMAGES,
   ID.SPATIAL_SURGE,
   ID.MIND_SPIKE,

@@ -9,7 +9,6 @@ import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
 import { ENGINEER_MED_KIT_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/kits/med-kit.js';
 import { ENGINEER_GRENADE_KIT_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/kits/grenade-kit.js';
 import { ENGINEER_BOMB_KIT_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/kits/bomb-kit.js';
-import { ENGINEER_TOOL_KIT_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/kits/tool-kit.js';
 import { ENGINEER_FLAMETHROWER_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/kits/flamethrower.js';
 import { ENGINEER_ELIXIR_GUN_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/kits/elixir-gun.js';
 import {
@@ -17,7 +16,6 @@ import {
   ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS
 } from '#gw2/content/professions/engineer/core/skills/kits/elite-mortar-kit.js';
 
-export { ENGINEER_TURRET_ATTACK_SKILLS } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
 import { ENGINEER_MISC_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/misc-skills.js';
 import { ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/profession-skills.js';
 import { ENGINEER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/slot-skills.js';
@@ -46,7 +44,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
   ...ENGINEER_MED_KIT_SKILL_MECHANICS,
   ...ENGINEER_GRENADE_KIT_SKILL_MECHANICS,
   ...ENGINEER_BOMB_KIT_SKILL_MECHANICS,
-  ...ENGINEER_TOOL_KIT_SKILL_MECHANICS,
   ...ENGINEER_FLAMETHROWER_SKILL_MECHANICS,
   ...ENGINEER_ELIXIR_GUN_SKILL_MECHANICS,
   ...ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS

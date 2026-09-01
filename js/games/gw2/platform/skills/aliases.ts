@@ -39,8 +39,6 @@ export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.fre
   78604: 78514, // Radiant Resolve
 
   // Engineer
-  29591: 5865, // Utility Goggles
-  29991: 5811, // Personal Battering Ram
   30881: 21659, // A.E.D.
 
   // Thief

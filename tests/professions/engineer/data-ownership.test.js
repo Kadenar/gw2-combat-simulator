@@ -12,7 +12,6 @@ const KIT_SLUGS = new Map([
   ['Med Kit', 'med-kit'],
   ['Grenade Kit', 'grenade-kit'],
   ['Bomb Kit', 'bomb-kit'],
-  ['Tool Kit', 'tool-kit'],
   ['Flamethrower', 'flamethrower'],
   ['Elixir Gun', 'elixir-gun'],
   ['Elite Mortar Kit', 'elite-mortar-kit']

@@ -4,9 +4,12 @@ import { fetchProfessionSnapshot, writeProfessionSnapshot } from './lib/gw2-prof
 
 const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
 const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
-  Engineer: Object.freeze([5825, 5832, 5860, 5861, 5862, 5910]),
+  Engineer: Object.freeze([
+    5811, 5818, 5821, 5825, 5832, 5834, 5836, 5837, 5838, 5860, 5861, 5862, 5865, 5893, 5900, 5904, 5910, 5912, 5913,
+    5960, 5968, 6113, 29739, 30101, 41218, 44646, 77018
+  ]),
   Guardian: Object.freeze([9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676]),
-  Mesmer: Object.freeze([10236, 62573]),
+  Mesmer: Object.freeze([10197, 10200, 10201, 10203, 10236, 62573]),
   Necromancer: Object.freeze([10612, 40274, 42917]),
   Ranger: Object.freeze([12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256]),
   Warrior: Object.freeze([14368, 14403, 14413, 14479, 76769, 76934])

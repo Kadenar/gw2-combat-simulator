@@ -17,7 +17,6 @@ import {
   isEngineerToolbeltSkill,
   observeEngineerHghEvent
 } from '#gw2/content/professions/engineer/core/traits/index.js';
-import { handleEngineerTurretAttack } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
 import { observeEngineerMineFieldEvent } from '#gw2/content/professions/engineer/core/skills/execution.js';
 import {
   activeBoonStacks,
@@ -399,7 +398,6 @@ export const engineerCoreSchedulerHooks = Object.freeze({
     }
   ]),
   taskHandlers: Object.freeze({
-    'engineer.turret-attack': handleEngineerTurretAttack,
     'engineer.lightning-rod-charge': handleLightningRodCharge,
     'engineer.electric-artillery-ready': handleElectricArtilleryReady,
     'engineer.electric-artillery-expire': handleElectricArtilleryExpire

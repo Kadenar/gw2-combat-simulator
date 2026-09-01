@@ -2916,16 +2916,19 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
     initialResource: 0,
-    primaryWeapon: 'Sword',
+    primaryWeapon: 'Staff',
     relic: '',
     modifiers: { strike: 1, condition: 1 }
   });
-  const base = simulateMesmer(['Blink', 'Mind Slash', { name: '__wait', waitMs: 8000 }], config);
-  const equipped = simulateMesmer(['Blink', 'Mind Slash', { name: '__wait', waitMs: 8000 }], {
-    ...config,
-    relic: 'Peitha'
-  });
-  const damage = (result) => result.breakdown.find((entry) => entry.name === 'Mind Slash').strikeDamage;
+  const rotation = [
+    'Phase Retreat',
+    { name: '__wait', waitMs: 900 },
+    'Winds of Chaos',
+    { name: '__wait', waitMs: 8000 }
+  ];
+  const base = simulateMesmer(rotation, config);
+  const equipped = simulateMesmer(rotation, { ...config, relic: 'Peitha' });
+  const damage = (result) => result.breakdown.find((entry) => entry.name === 'Winds of Chaos').strikeDamage;
 
   assert.ok(Math.abs(damage(equipped) / damage(base) - 1.1) < 1e-12);
   assert.ok(
@@ -2933,7 +2936,7 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
   );
   assert.ok(
     equipped.procSteps.some(
-      (proc) => proc.type === 'relic_proc' && proc.skill === 'Relic of Peitha' && proc.sourceSkill === 'Blink'
+      (proc) => proc.type === 'relic_proc' && proc.skill === 'Relic of Peitha' && proc.sourceSkill === 'Phase Retreat'
     )
   );
 });
@@ -2943,18 +2946,23 @@ test('Relic of Peitha does not grant its player damage bonus to phantasms', () =
     specialization: 'Core',
     selectedTraitIds: [],
     initialResource: 0,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Sword',
+    primaryWeapon: 'Staff',
+    secondaryWeapon: 'Staff',
     relic: '',
     modifiers: { strike: 1, condition: 1 }
   });
-  const rotation = ['Blink', 'Phantasmal Swordsman', { name: '__wait', waitMs: 4000 }];
+  const rotation = [
+    'Phase Retreat',
+    { name: '__wait', waitMs: 900 },
+    'Phantasmal Warlock',
+    { name: '__wait', waitMs: 4000 }
+  ];
   const base = simulateMesmer(rotation, config);
   const equipped = simulateMesmer(rotation, { ...config, relic: 'Peitha' });
   const phantasmDamage = (result) =>
     result.resolvedEvents
       .filter(
-        (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman' && event.source === 'Phantasm'
+        (event) => event.type === 'damage' && event.skillName === 'Phantasmal Warlock' && event.source === 'Phantasm'
       )
       .reduce((sum, event) => sum + event.damage, 0);
 
@@ -3095,7 +3103,7 @@ test('shift-queued Mirror Images after an instant action still grants clones', (
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword'
   });
-  const result = simulateMesmer(['Blink', { name: 'Mirror Images', offset: 100 }], config);
+  const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }], config);
 
   assert.equal(result.endState.time, 100);
   assert.equal(result.endState.profession.resource, 2);
@@ -3124,7 +3132,7 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Sword'
   });
-  const result = simulateMesmer(['Blink', { name: 'Mirror Images', offset: 100 }, 'Mind Wrack'], config);
+  const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }, 'Mind Wrack'], config);
 
   assert.equal(result.steps.length, 3);
   assert.equal(result.steps[2].start, 100);
@@ -4471,7 +4479,7 @@ test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulat
 });
 
 test('Power Spike stays invalid even when another instant is chained into the channel first', () => {
-  // Weaving an instant (Blink) into the channel and then Power Spike after it
+  // Weaving an instant (Feedback) into the channel and then Power Spike after it
   // must still be caught: the flip is not armed until the channel completes,
   // regardless of the immediately preceding command.
   const result = simulateMesmer(
@@ -4479,7 +4487,7 @@ test('Power Spike stays invalid even when another instant is chained into the ch
       'Power Spike',
       'Power Spike',
       'Mantra of Pain',
-      { name: 'Blink', offset: 100 },
+      { name: 'Feedback', offset: 100 },
       { name: 'Power Spike', offset: 100 }
     ],
     defaultSimulationConfig({ specialization: 'Core' })
@@ -6031,7 +6039,7 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
       { name: '__wait', waitMs: 150 },
       'Time Sink',
       'Rewinder',
-      'Decoy',
+      'Mirror Images',
       { name: '__wait', waitMs: 300 },
       'Continuum Shift',
       'Rewinder'
@@ -6039,7 +6047,7 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.CHRONOPHANTASMA],
-      selectedSkills: ['Phantasmal Disenchanter', 'Decoy'],
+      selectedSkills: ['Phantasmal Disenchanter', 'Mirror Images'],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
       initialResource: 2

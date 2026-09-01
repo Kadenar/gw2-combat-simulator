@@ -9,7 +9,7 @@ import { engineerCoreCriticalHitDefinitions } from '#gw2/content/professions/eng
 import { engineerCoreSchedulerHooks } from '#gw2/content/professions/engineer/core/traits/modifiers.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
+  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
   stats: {
     power: 2000,
     precision: 1500,
@@ -203,7 +203,7 @@ const traitCases = [
   {
     name: 'Kinetic Battery',
     trait: TRAIT.KINETIC_BATTERY,
-    rotation: ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Surprise Shot (engineer skill)', 'Med Pack Drop'],
+    rotation: ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop'],
     verify: (result) =>
       assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'kinetic-battery'))
   }

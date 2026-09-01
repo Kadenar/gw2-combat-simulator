@@ -98,11 +98,7 @@ export const MESMER_SKILL_IDS = Object.freeze({
   ETHER_FEAST: 10176, // Ether Feast
   MIRROR: 10177, // Mirror
   TEMPORAL_CURTAIN: 10186, // Temporal Curtain
-  PORTAL_ENTRE: 10197, // Portal Entre
-  BLINK: 10200, // Blink
-  DECOY: 10201, // Decoy
   MIRROR_IMAGES: 10202, // Mirror Images
-  NULL_FIELD: 10203, // Null Field
   MANTRA_OF_PAIN: 10211, // Mantra of Pain
   MANTRA_OF_RECOVERY: 10213, // Mantra of Recovery
   ILLUSIONARY_WAVE: 10220, // Illusionary Wave

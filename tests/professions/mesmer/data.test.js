@@ -168,14 +168,21 @@ test('catalog contains every terrestrial Mesmer skill and trait line', () => {
     ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']
   );
   assert.equal(TRAITS.length, 108);
-  assert.equal(SKILLS.length, 117);
+  assert.equal(SKILLS.length, 113);
 
   // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
-  for (const omittedId of [10236, 62573]) {
+  for (const omittedId of [10197, 10200, 10201, 10203, 10236, 62573]) {
     assert.equal(mesmerCatalog.skillsById.has(omittedId), false);
   }
 
-  for (const omittedName of ['Signet of Inspiration', 'Psychic Force']) {
+  for (const omittedName of [
+    'Portal Entre',
+    'Blink',
+    'Decoy',
+    'Null Field',
+    'Signet of Inspiration',
+    'Psychic Force'
+  ]) {
     assert.equal(mesmerCatalog.skillsByName.has(omittedName), false);
   }
 
@@ -541,9 +548,6 @@ test('Mesmer instant-cast skills have zero cast time', () => {
     'Cry of Frustration',
     'Mind Wrack',
     'Distortion',
-    'Portal Entre',
-    'Blink',
-    'Decoy',
     'Mirror Images',
     'Signet of Midnight',
     'Diversion',

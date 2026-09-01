@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
-import { createEngineerBuildDefaults, migrateEngineerBuild } from '#gw2/content/professions/engineer/build/build.js';
 import { engineerNativeModules } from '#gw2/content/professions/engineer/modules.js';
 import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
 import { guardianNativeModules } from '#gw2/content/professions/guardian/modules.js';
@@ -31,7 +30,7 @@ const MODULES = [
 ];
 
 test('the reviewed alias inventory resolves directly to existing canonical skills', () => {
-  assert.equal(ALIASES.length, 46);
+  assert.equal(ALIASES.length, 44);
 
   for (const [alias, canonical] of ALIASES) {
     assert.equal(canonicalGw2SkillId(alias), canonical, String(alias));
@@ -98,11 +97,6 @@ test('combat-log and legacy selected-skill loading use the shared alias map', ()
   assert.equal(findRotationSkill(46409, 'Unknown', revenantCatalog, renegade)?.id, 41858);
   assert.equal(findRotationSkill(76917, 'Unknown', revenantCatalog, conduit)?.id, 76805);
   assert.equal(findRotationSkill(77159, 'Unknown', revenantCatalog, conduit)?.id, 77141);
-
-  const { selectedSkills: _selectedSkills, ...legacyBuild } = createEngineerBuildDefaults();
-  const migrated = migrateEngineerBuild({ ...legacyBuild, selectedSkillIds: [29991] });
-
-  assert.equal(migrated.selectedSkills.Utility1, 'Personal Battering Ram');
 });
 
 test('protected variants and unreviewed IDs remain distinct', () => {

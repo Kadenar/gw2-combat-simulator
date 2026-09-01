@@ -1,7 +1,6 @@
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
-import { turretOwnerId } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
 /** Makes an explicitly declared palette follow-up available after its parent cast completes. */
@@ -22,15 +21,9 @@ function armFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   );
 }
 
-/** Consumes a palette follow-up and cancels tasks owned by its removed parent turret. */
+/** Consumes a palette follow-up after its armed action is used. */
 function consumeFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   professionCoreState(context).availableFlips[skill.id] = false;
-  const parentId = Number(skill.flipParentId ?? context.catalog.skillsByName.get(skill.flipParentName || '')?.id);
-  // cancel pending turret auto-attack tasks — the turret no longer exists after detonation
-  if (Number.isFinite(parentId)) {
-    context.tasks.cancelOwner(turretOwnerId(parentId));
-  }
-
   emitStateSnapshot(
     context,
     'engineer',

@@ -34,7 +34,6 @@ import { engineerProfession } from '#gw2/content/professions/engineer/definition
 import { engineerCoreModule } from '#gw2/content/professions/engineer/core/module.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/core/profiles.js';
 import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/index.js';
-import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
 import { amalgamModule } from '#gw2/content/professions/engineer/specializations/amalgam/module.js';
 import { AMALGAM_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamAttributeRules } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
@@ -54,7 +53,7 @@ import { AMALGAM_SKILL_MECHANICS } from '#gw2/content/professions/engineer/speci
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
+  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -136,7 +135,7 @@ test('Fragmentation Shot and Flame Blast retain packets only after their measure
       [...(flameBlast ? ['Flamethrower'] : []), { name: skillName, interruptAfterMs }],
       flameBlast
         ? {
-            selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate']
+            selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate']
           }
         : {},
       observationTail(1_000)
@@ -177,7 +176,7 @@ test('Napalm interruption retains only volleys fired before the cutoff', () => {
     'Core',
     ['Flamethrower', { name: 'Napalm', interruptAfterMs: 900 }],
     {
-      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate']
+      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate']
     },
     observationTail(1_000)
   );
@@ -186,29 +185,6 @@ test('Napalm interruption retains only volleys fired before the cutoff', () => {
   );
 
   assert.deepEqual(packetCounts, [5, 5]);
-});
-
-test('Throw Napalm burns on impact and pulses through a three-second fire field', () => {
-  const result = simulate('Core', ['Throw Napalm', { type: 'wait', durationMs: 3500 }], {
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Flame Turret', 'Supply Crate']
-  });
-  const damage = result.events.find((event) => event.type === 'damage' && event.skillId === ID.THROW_NAPALM);
-  const burns = result.events.filter((event) => event.type === 'condition' && event.skillId === ID.THROW_NAPALM);
-  const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.THROW_NAPALM);
-
-  assert.ok(Math.abs(damage.coefficient - 0.7) < 1e-12);
-  assert.deepEqual(
-    burns.map((event) => [Number((event.at - damage.at).toFixed(9)), event.stacks, event.duration]),
-    [
-      [0, 1, 4],
-      [1, 1, 2],
-      [2, 1, 2],
-      [3, 1, 2]
-    ]
-  );
-  assert.equal(field.fieldType, 'Fire');
-  assert.equal(field.at, damage.at);
-  assert.ok(field.expiresAt - field.at >= 3);
 });
 
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {
@@ -220,15 +196,16 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
   assert.equal(engineerCatalog.specializations.length, 9);
   assert.equal(engineerCatalog.traits.length, 108);
-  assert.ok(engineerCatalog.skills.length >= 308);
+  assert.ok(engineerCatalog.skills.length >= 236);
   for (const aliasId of [29591, 29991, 30881]) {
     assert.equal(engineerCatalog.skillsById.has(aliasId), false);
   }
 
   // Unsupported utility families and their tool-belt actions must stay out of the simulator catalog.
   for (const omittedId of [
-    5825, 5832, 5860, 5861, 5862, 5910, 5969, 5970, 5972, 5973, 5983, 6077, 6078, 6084, 6088, 6089, 6090, 29522, 29722,
-    30725, 30828, 49097
+    5811, 5818, 5821, 5825, 5832, 5834, 5836, 5837, 5838, 5860, 5861, 5862, 5865, 5904, 5910, 5912, 5968, 5969, 5970,
+    5972, 5973, 5983, 6077, 6078, 6084, 6088, 6089, 6090, 6093, 29522, 29722, 29739, 30101, 30725, 30828, 41218, 44646,
+    49097, 77018
   ]) {
     assert.equal(engineerCatalog.skillsById.has(omittedId), false);
   }
@@ -250,13 +227,36 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
     'Detonate Elixir S',
     'Detonate Elixir U',
     'Detonate Elixir X',
-    'Lesser Elixir C'
+    'Lesser Elixir C',
+    'Personal Battering Ram',
+    'Rifle Turret',
+    'Elixir B',
+    'Elixir H',
+    'Flame Turret',
+    'Net Turret',
+    'Thumper Turret',
+    'Utility Goggles',
+    'Tool Kit',
+    'Rocket Turret',
+    'Elixir R',
+    'Harpoon Turret',
+    'Purge Gyro',
+    'Bulwark Gyro',
+    'Spectrum Shield',
+    'Hard Light Arena',
+    'Gaseous State',
+    'Blessing of Dwayna',
+    'Blessing of Kormir',
+    'Blessing of Lyssa',
+    'Eat Wurm Egg',
+    'Eat Owl Egg',
+    'Leafy Bandage',
+    'Snowman Turret (skill)',
+    'Detonate Snowman Turret'
   ]) {
     assert.equal(engineerCatalog.skillsByName.has(omittedName), false);
   }
 
-  assert.equal(engineerCatalog.skillsByName.get('Utility Goggles').id, 5865);
-  assert.equal(engineerCatalog.skillsByName.get('Personal Battering Ram').id, 5811);
   assert.equal(engineerCatalog.skillsByName.get('A.E.D.').id, 21659);
   assert.equal(engineerCatalog.skillsById.get(5842).name, 'Bomb');
   assert.equal(strikeEffectCoefficient(engineerCatalog.skillsByName.get('Bomb').effects[0]), 1.2);
@@ -397,12 +397,6 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
     2.5
   );
 
-  const rifleTurretAttack = engineerCatalog.skillsById.get(ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle);
-
-  assert.equal(rifleTurretAttack.simulatorExcluded, true);
-  assert.equal(rifleTurretAttack.effects[0].actorType, 'summon');
-  assert.equal(rifleTurretAttack.effects[0].coefficient, 0.75);
-
   const opaqueModifierRules = [...modules.values()].flatMap((module) =>
     module.modifierRules.filter(
       (rule) =>
@@ -414,11 +408,6 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
   assert.deepEqual(opaqueModifierRules, []);
 
   const preview = applyEngineerPatch({
-    skills: {
-      [ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 0.75, to: 0.8 } }]
-      }
-    },
     balanceProfiles: {
       [ENGINEER_CORE_BALANCE_PROFILE_IDS.resources]: {
         fields: { resourceCost: { from: 50, to: 45 } }
@@ -438,7 +427,6 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
     }
   });
 
-  assert.equal(preview.skillsById.get(ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle).effects[0].coefficient, 0.8);
   assert.equal(preview.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 45);
   assert.equal(preview.balanceProfilesById.get(SCRAPPER_BALANCE_PROFILE_IDS.appliedForce).attributePerStack, 35);
   assert.equal(
@@ -448,7 +436,6 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(MECHANIST_BALANCE_PROFILE_IDS.resources).attributeConversion, 0.6);
   assert.equal(preview.balanceProfilesById.get(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).rechargeReduction, 3);
 
-  assert.equal(rifleTurretAttack.effects[0].coefficient, 0.75);
   assert.equal(engineerCatalog.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 50);
 });
 
@@ -493,7 +480,7 @@ test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', 
     'Regenerating Mist',
     'Grenade Barrage',
     'Mine Field',
-    'Surprise Shot (engineer skill)',
+    'Healing Mist',
     'Engage Photon Forge',
     'Deactivate Photon Forge'
   ]);
@@ -899,7 +886,7 @@ test('Engineer kit palettes stack and include their linked stow skills', () => {
         Utility1: 'Grenade Kit',
         Utility2: 'Flamethrower',
         Utility3: 'Bomb Kit',
-        Elite: 'Tool Kit'
+        Elite: 'Supply Crate'
       }
     },
     professionState: { activeKit: 'Grenade Kit' }
@@ -909,12 +896,12 @@ test('Engineer kit palettes stack and include their linked stow skills', () => {
 
   assert.deepEqual(
     groups.map((group) => group.label),
-    ['Gren', 'Flam', 'Bomb', 'Med', 'Tool']
+    ['Gren', 'Flam', 'Bomb', 'Med']
   );
   assert.equal(paletteGroups.at(-1).id, 'engineer-profession');
   assert.deepEqual(
     groups.map((group) => names(group).at(-1)),
-    ['Stow Grenade Kit', 'Stow Flamethrower', 'Stow Bomb Kit', 'Stow Med Kit', 'Stow Tool Kit']
+    ['Stow Grenade Kit', 'Stow Flamethrower', 'Stow Bomb Kit', 'Stow Med Kit']
   );
 });
 
@@ -926,7 +913,7 @@ test('Scrapper F skills follow selected skill-slot order', () => {
         Heal: 'Healing Turret',
         Utility1: 'Grenade Kit',
         Utility2: 'Throw Mine',
-        Utility3: 'Rifle Turret',
+        Utility3: 'Elixir Gun',
         Elite: 'Supply Crate'
       }
     },
@@ -937,13 +924,7 @@ test('Scrapper F skills follow selected skill-slot order', () => {
     .find((candidate) => candidate.id === 'engineer-profession');
 
   assert.equal(group.includeActionSkills, true);
-  const expected = [
-    'Regenerating Mist',
-    'Grenade Barrage',
-    'Mine Field',
-    'Surprise Shot (engineer skill)',
-    'Function Gyro'
-  ];
+  const expected = ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Function Gyro'];
 
   assert.deepEqual(
     group.skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
@@ -969,7 +950,7 @@ test('Core and Mechanist skill bars expose their derived F skills', () => {
     Heal: 'Healing Turret',
     Utility1: 'Grenade Kit',
     Utility2: 'Throw Mine',
-    Utility3: 'Rifle Turret',
+    Utility3: 'Elixir Gun',
     Elite: 'Supply Crate'
   };
   const core = engineerProfession.ui.skillBarGroups({
@@ -984,7 +965,7 @@ test('Core and Mechanist skill bars expose their derived F skills', () => {
   );
   assert.deepEqual(
     core.flatMap((group) => group.skillIds.map((id) => engineerCatalog.skillsById.get(id).name)),
-    ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Surprise Shot (engineer skill)', 'Med Pack Drop']
+    ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop']
   );
 
   const mechanist = engineerProfession.ui.skillBarGroups({
@@ -1022,7 +1003,7 @@ test('Core and Mechanist skill bars expose their derived F skills', () => {
   );
   assert.deepEqual(
     holosmith[0].skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
-    ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Surprise Shot (engineer skill)', 'Engage Photon Forge']
+    ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Engage Photon Forge']
   );
   assert.equal(holosmith.at(-1).label, 'Photon Forge');
   assert.deepEqual(
@@ -1034,20 +1015,11 @@ test('Core and Mechanist skill bars expose their derived F skills', () => {
 test('Engineer slot selection excludes contextual and unsupported utilities', () => {
   const selectable = (name) => engineerProfession.ui.isSlotSkillSelectable({}, engineerCatalog.skillsByName.get(name));
 
-  for (const name of [
-    'Elixir B',
-    'Elixir R',
-    'Utility Goggles',
-    'Stow Grenade Kit',
-    'Stow Flamethrower',
-    'Detonate',
-    'Detonate Thumper Turret',
-    'Detonate Rifle Turret'
-  ]) {
+  for (const name of ['Stow Grenade Kit', 'Stow Flamethrower', 'Detonate']) {
     assert.equal(selectable(name), false, name);
   }
 
-  for (const name of ['Grenade Kit', 'Flamethrower', 'Bomb Kit', 'Med Kit', 'Tool Kit', 'Throw Mine', 'Rifle Turret']) {
+  for (const name of ['Grenade Kit', 'Flamethrower', 'Bomb Kit', 'Med Kit', 'Elixir Gun', 'Throw Mine']) {
     assert.equal(selectable(name), true, name);
   }
 });
@@ -1070,15 +1042,10 @@ test('Engineer build validation matches unsupported slot filtering', () => {
   }
 });
 
-test('Engineer mine and turret detonations are armed by their parent skills', () => {
+test('Engineer mine and healing turret detonations are armed by their parent skills', () => {
   for (const [parent, flip] of [
     ['Throw Mine', 'Detonate'],
-    ['Rifle Turret', 'Detonate Rifle Turret'],
-    ['Flame Turret', 'Detonate Flame Turret'],
-    ['Net Turret', 'Detonate Net Turret'],
-    ['Thumper Turret', 'Detonate Thumper Turret'],
-    ['Healing Turret', 'Detonate Healing Turret'],
-    ['Rocket Turret', 'Detonate Rocket Turret']
+    ['Healing Turret', 'Detonate Healing Turret']
   ]) {
     const config = {
       selectedSkills: [...baseConfig.selectedSkills, parent]
@@ -1092,6 +1059,18 @@ test('Engineer mine and turret detonations are armed by their parent skills', ()
     assert.equal(result.warnings.length, 0, `${parent} -> ${flip}`);
     assert.equal(result.endState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], false);
   }
+
+  const healing = simulate('Core', ['Healing Turret']);
+
+  assert.ok(
+    healing.events.some(
+      (event) =>
+        event.type === 'buff' &&
+        event.skillName === 'Healing Turret' &&
+        event.kind === 'regeneration' &&
+        event.duration === 3
+    )
+  );
 
   const mineConfig = {
     selectedSkills: [...baseConfig.selectedSkills, 'Throw Mine']
@@ -1219,30 +1198,6 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
   assert.deepEqual([hghBuff('fury').stacks, hghBuff('fury').duration], [1, 4]);
 });
 
-test('detonating a turret cancels its remaining summoned attacks', () => {
-  const config = {
-    selectedSkills: [...baseConfig.selectedSkills, 'Rifle Turret']
-  };
-  const active = simulate('Core', ['Rifle Turret', { type: 'wait', durationMs: 10000 }], config);
-  const detonated = simulate(
-    'Core',
-    ['Rifle Turret', 'Detonate Rifle Turret', { type: 'wait', durationMs: 10000 }],
-    config
-  );
-  const turretHits = (result) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.name === 'Rifle Turret' && event.actorType === 'summon'
-    );
-
-  assert.equal(turretHits(active).length, 5);
-  assert.equal(turretHits(detonated).length, 1);
-  assert.equal(
-    detonated.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Detonate Rifle Turret')
-      .length,
-    1
-  );
-});
-
 test('Engineer contextual weapon follow-ups are not standalone selections', () => {
   const rifleGrenade = engineerCatalog.skillsByName.get('Rifle Burst Grenade');
 
@@ -1283,7 +1238,7 @@ test('tool-belt skills derive from selected slot skills', () => {
   assert.ok(available.totalDamage > 0);
 
   const denied = simulate('Core', ['Grenade Barrage'], {
-    selectedSkills: ['Healing Turret', 'Throw Mine', 'Rifle Turret', 'Supply Crate']
+    selectedSkills: ['Healing Turret', 'Throw Mine', 'Elixir Gun', 'Supply Crate']
   });
 
   assert.match(denied.warnings[0], /Grenade Kit is not equipped/);
@@ -1908,7 +1863,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
 });
 
 test('Prime Light Beam creates its damaging field only above 50 heat', () => {
-  const selectedSkills = ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Prime Light Beam'];
+  const selectedSkills = ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Prime Light Beam'];
   const cast = (initialHeat) =>
     simulate('Holosmith', ['Engage Photon Forge', 'Prime Light Beam', { type: 'wait', durationMs: 9000 }], {
       initialHeat,
@@ -2049,7 +2004,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
 });
 
 test('Holosmith direct heat variants apply profile factors to their eligible packets', () => {
-  const packetFor = (skillName, initialHeat, selectedTraitIds, selectedSkills, packetName = skillName) => {
+  const packetFor = (skillName, initialHeat, selectedTraitIds, selectedSkills) => {
     const result = simulate('Holosmith', [skillName, { type: 'wait', durationMs: 1000 }], {
       initialHeat,
       selectedTraitIds,
@@ -2058,32 +2013,15 @@ test('Holosmith direct heat variants apply profile factors to their eligible pac
     });
 
     return result.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.skillName === skillName && event.name === packetName
+      (event) => event.type === 'damage' && event.skillName === skillName && event.name === skillName
     );
   };
 
   const utilitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
-  const singularitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Hard Light Arena', 'Prime Light Beam'];
   const ratio = (variant, base) => variant.damage / base.damage;
 
   const baseBladeBurst = packetFor('Blade Burst', 0, [], utilitySkills);
   const baseParticleAccelerator = packetFor('Particle Accelerator', 0, [], utilitySkills);
-  const baseSingularityExplosion = packetFor('Prismatic Singularity', 0, [], singularitySkills, 'Explosion Damage');
-  const baseSingularityPull = packetFor('Prismatic Singularity', 0, [], singularitySkills, 'Pull Damage');
-  const enhancedSingularityExplosion = packetFor(
-    'Prismatic Singularity',
-    101,
-    [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
-    singularitySkills,
-    'Explosion Damage'
-  );
-  const enhancedSingularityPull = packetFor(
-    'Prismatic Singularity',
-    101,
-    [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
-    singularitySkills,
-    'Pull Damage'
-  );
 
   assert.ok(Math.abs(ratio(packetFor('Blade Burst', 60, [], utilitySkills), baseBladeBurst) - 1.25) < 1e-12);
   assert.ok(
@@ -2114,34 +2052,6 @@ test('Holosmith direct heat variants apply profile factors to their eligible pac
         baseParticleAccelerator
       ) - 1.35
     ) < 1e-12
-  );
-  assert.ok(
-    Math.abs(
-      ratio(
-        packetFor(
-          'Prismatic Singularity',
-          100,
-          [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
-          singularitySkills,
-          'Explosion Damage'
-        ),
-        baseSingularityExplosion
-      ) - 1
-    ) < 1e-12
-  );
-  assert.ok(
-    Math.abs(
-      ratio(enhancedSingularityExplosion, enhancedSingularityPull) /
-        ratio(baseSingularityExplosion, baseSingularityPull) -
-        1.25
-    ) < 1e-12
-  );
-  assert.equal(
-    ratio(
-      packetFor('Prismatic Singularity', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], singularitySkills, 'Pull Damage'),
-      baseSingularityPull
-    ),
-    1
   );
 });
 
@@ -2990,7 +2900,7 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
 });
 
 test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
-  const selectedSkills = ['Healing Turret', 'Bomb Kit', 'Grenade Kit', 'Rifle Turret', 'Supply Crate'];
+  const selectedSkills = ['Healing Turret', 'Bomb Kit', 'Grenade Kit', 'Elixir Gun', 'Supply Crate'];
   const waitForBombPackets = () => ({ type: 'wait', durationMs: 5000 });
   const bombSkills = engineerCatalog.skills.filter(
     (candidate) => candidate.kit === 'Bomb Kit' && candidate.effects.some((effect) => effect.type === 'strike')
@@ -3264,7 +3174,7 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
 
   const config = {
     boons: { quickness: true },
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate'],
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
     selectedMorphSkillIds: [77103, 77104, 76705]
   };
   const result = simulate(
@@ -3318,7 +3228,7 @@ test('measured Quickness animations and Flame Blast commitment drive steps', () 
     ['Flamethrower', { name: 'Flame Blast', interruptAfterMs: 480 }, 'Flame Jet'],
     {
       boons: { quickness: true },
-      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate'],
+      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
       selectedMorphSkillIds: [77103, 77104, 76705]
     }
   );
@@ -3345,7 +3255,7 @@ test('measured Quickness animations and Flame Blast commitment drive steps', () 
 
   const full = simulate('Amalgam', ['Flamethrower', 'Flame Blast'], {
     boons: { quickness: true },
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate'],
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
     selectedMorphSkillIds: [77103, 77104, 76705]
   });
   const fullFlameBlast = full.steps.find((step) => step.skill === 'Flame Blast');
@@ -3367,7 +3277,7 @@ test('measured Quickness animations and Flame Blast commitment drive steps', () 
 
 test('Flame Jet gains ten percent strike damage against burning targets', () => {
   const config = {
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate'],
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
     selectedMorphSkillIds: [77103, 77104, 76705]
   };
   const withoutBurning = simulate('Amalgam', ['Flamethrower', 'Flame Jet'], {
@@ -4319,7 +4229,7 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
     ],
     {
       selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET],
-      selectedSkills: ['Healing Turret', 'Bomb Kit', 'Grenade Kit', 'Rifle Turret', 'Supply Crate'],
+      selectedSkills: ['Healing Turret', 'Bomb Kit', 'Grenade Kit', 'Elixir Gun', 'Supply Crate'],
       relic: 'Bloodstone',
       target: { conditions: {} }
     }
@@ -4470,7 +4380,7 @@ test('Chemical Rounds extends every pistol condition beyond the condition-durati
 
 test('Incendiary Powder tracks player and mech cooldowns independently', () => {
   const result = simulate('Mechanist', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 2500 }], {
-    selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Overclock Signet'],
+    selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Overclock Signet'],
     selectedTraitIds: [
       TRAIT.INCENDIARY_POWDER,
       TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
@@ -4489,17 +4399,6 @@ test('Incendiary Powder tracks player and mech cooldowns independently', () => {
     ['effect', 'summon']
   );
   assert.ok(burning.every((event) => Math.abs(event.naturalExpiresAt - event.at - 10.64) < 1e-12));
-
-  const turret = simulate('Core', ['Rifle Turret', { type: 'wait', durationMs: 3000 }], {
-    selectedTraitIds: [TRAIT.INCENDIARY_POWDER],
-    stats: { precision: 4000, expertise: 0 },
-    target: { conditions: {} }
-  });
-
-  assert.equal(
-    turret.resolvedEvents.some((event) => event.type === 'condition' && event.skillName === 'Incendiary Powder'),
-    false
-  );
 });
 
 test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () => {
@@ -4516,7 +4415,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
 
   const toolbelt = simulate(
     'Core',
-    ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Surprise Shot (engineer skill)', 'Med Pack Drop'],
+    ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop'],
     {
       selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION, TRAIT.STATIC_DISCHARGE, TRAIT.KINETIC_BATTERY],
       stats: { precision: 4000, ferocity: 0 },
@@ -4622,7 +4521,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
     'Scrapper',
     ['Med Kit', 'Bandage Self', 'Function Gyro', 'Function Gyro', { type: 'wait', durationMs: 2100 }],
     {
-      selectedSkills: ['Med Kit', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
+      selectedSkills: ['Med Kit', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
       selectedTraitIds: [
         TRAIT.SPEED_OF_SYNERGY,
         TRAIT.GYROSCOPIC_ACCELERATION,
@@ -4658,7 +4557,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
   assert.equal(result.endState.ammo['Function Gyro'].maximum, 2);
 
   const reconstructionField = simulate('Scrapper', ['Reconstruction Field'], {
-    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
+    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
     selectedTraitIds: [TRAIT.SPEED_OF_SYNERGY]
   });
 
@@ -4711,7 +4610,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
 
 test('Kinetic Accelerators emits party quickness and might from successful combos', () => {
   const config = {
-    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
+    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
     selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
     boons: { quickness: false },
     stats: { power: 2000, concentration: 260 }
@@ -4995,7 +4894,7 @@ test('Poison Gas Shell pulses its five-second poison field', () => {
   );
 
   const result = simulate('Core', ['Elite Mortar Kit', 'Poison Gas Shell', { type: 'wait', durationMs: 5000 }], {
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Elite Mortar Kit']
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Elite Mortar Kit']
   });
   const poison = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Poison Gas Shell' && event.condition === 'Poisoned'

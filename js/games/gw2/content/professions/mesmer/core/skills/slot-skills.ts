@@ -23,43 +23,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     cooldown: 12,
     effects: []
   },
-  [ID.PORTAL_ENTRE]: {
-    implemented: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: '',
-    environment: 'Terrestrial',
-    castTimeMs: 0,
-    rechargeAnchor: 'castStart',
-    cooldown: 72,
-    effects: []
-  },
-  [ID.BLINK]: {
-    implemented: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: '',
-    environment: 'Terrestrial',
-    castTimeMs: 0,
-    rechargeAnchor: 'castStart',
-    cooldown: 20,
-    effects: []
-  },
-  [ID.DECOY]: {
-    implemented: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: '',
-    environment: 'Terrestrial',
-    castTimeMs: 0,
-    rechargeAnchor: 'castStart',
-    cooldown: 20,
-    resource: {
-      mode: 'add',
-      count: 1
-    },
-    effects: []
-  },
   [ID.MIRROR_IMAGES]: {
     implemented: true,
     type: 'Utility',
@@ -73,16 +36,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       mode: 'add',
       count: 2
     },
-    effects: []
-  },
-  [ID.NULL_FIELD]: {
-    implemented: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: '',
-    environment: 'Terrestrial',
-    quicknessCastTimeMs: 166.666666667,
-    cooldown: 25,
     effects: []
   },
   [ID.MANTRA_OF_PAIN]: {

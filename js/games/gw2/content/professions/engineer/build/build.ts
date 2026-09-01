@@ -64,7 +64,7 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
       Heal: 'Healing Turret',
       Utility1: 'Grenade Kit',
       Utility2: 'Throw Mine',
-      Utility3: 'Rifle Turret',
+      Utility3: 'Elixir Gun',
       Elite: 'Supply Crate'
     },
     selectedMorphSkillIds: [...DEFAULT_MORPHS],

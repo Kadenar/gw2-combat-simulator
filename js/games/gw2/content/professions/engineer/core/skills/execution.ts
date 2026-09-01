@@ -15,7 +15,6 @@ import {
 } from '#gw2/content/professions/engineer/core/skills/spear.js';
 import { rechargeOtherSwordSkills } from '#gw2/content/professions/engineer/core/skills/sword.js';
 import { applyEngineerToolbeltTraits } from '#gw2/content/professions/engineer/core/traits/index.js';
-import { deployEngineerTurret } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
 import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
   EngineerCastContext,
@@ -147,9 +146,6 @@ export const engineerCoreSkillHandlers = Object.freeze({
   }),
   'engineer.roiling-skies': augmentSkill({
     afterEffects: scheduleRoilingSkiesControl
-  }),
-  'engineer.turret-deploy': replaceSkill({
-    afterEffects: deployEngineerTurret
   }),
   'engineer.devastator': augmentSkill({
     afterEffects: scheduleDevastatorFollowup

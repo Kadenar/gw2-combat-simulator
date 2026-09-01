@@ -16,7 +16,6 @@ export const HOLOSMITH_BALANCE_PROFILE_IDS = Object.freeze({
   laserDiskHeatTier: 'engineer.holosmith.laser-disk-heat-tier',
   launchWallHeatTier: 'engineer.holosmith.launch-wall-heat-tier',
   primeLightBeamHeatTier: 'engineer.holosmith.prime-light-beam-heat-tier',
-  prismaticSingularityHeatTier: 'engineer.holosmith.prismatic-singularity-heat-tier',
   radiantArcHeatTier: 'engineer.holosmith.radiant-arc-heat-tier',
   refractionCutterHeatTier: 'engineer.holosmith.refraction-cutter-heat-tier',
   thermalReleaseValve: TRAIT.THERMAL_RELEASE_VALVE,
@@ -103,9 +102,6 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       { type: 'strike', coefficient: 0.5, hits: 1 },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }
     ]
-  }),
-  skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.prismaticSingularityHeatTier, 'Prismatic Singularity Heat Tier', {
-    enhancedStrikeFactor: 1.25
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.radiantArcHeatTier, 'Radiant Arc Heat Tier', {
     baseDuration: 2,

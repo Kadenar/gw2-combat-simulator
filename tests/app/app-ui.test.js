@@ -1862,12 +1862,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
   );
   for (const [parentName, flipName] of [
     ['Throw Mine', 'Detonate'],
-    ['Rifle Turret', 'Detonate Rifle Turret'],
-    ['Flame Turret', 'Detonate Flame Turret'],
-    ['Net Turret', 'Detonate Net Turret'],
-    ['Thumper Turret', 'Detonate Thumper Turret'],
-    ['Healing Turret', 'Detonate Healing Turret'],
-    ['Rocket Turret', 'Detonate Rocket Turret']
+    ['Healing Turret', 'Detonate Healing Turret']
   ]) {
     const parent = engineer.skillByName.get(parentName);
     const flip = engineer.skillByName.get(flipName);

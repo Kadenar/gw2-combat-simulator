@@ -158,18 +158,6 @@ export const ENGINEER_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.SNOWMAN_TURRET_SKILL]: {
-    implemented: true,
-    castTimeMs: 1500,
-    cooldown: 20,
-    effects: []
-  },
-  [ID.DETONATE_SNOWMAN_TURRET]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: []
-  },
   [ID.DROP_MINE]: {
     implemented: true,
     castTimeMs: 0,

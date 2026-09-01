@@ -555,12 +555,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     ],
     mechanicSlot: 4
   },
-  [ID.GASEOUS_STATE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: []
-  },
   [ID.SOLID_STATE]: {
     implemented: true,
     castTimeMs: 750,

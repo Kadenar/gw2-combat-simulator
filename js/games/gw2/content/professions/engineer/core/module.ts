@@ -19,8 +19,7 @@ import {
 } from '#gw2/content/professions/engineer/core/mechanics/reactions.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
-  ENGINEER_CORE_SKILL_MECHANICS,
-  ENGINEER_TURRET_ATTACK_SKILLS
+  ENGINEER_CORE_SKILL_MECHANICS
 } from '#gw2/content/professions/engineer/core/skills/index.js';
 import { createEngineerCoreState } from '#gw2/content/professions/engineer/core/state.js';
 import { projectEngineerEndState } from '#gw2/content/professions/engineer/state.js';
@@ -33,7 +32,7 @@ export const engineerCoreModule = defineNativeModule({
   data: createEngineerModuleData('Core', {
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
     balanceProfiles: ENGINEER_CORE_BALANCE_PROFILES,
-    extraSkills: [...ENGINEER_CORE_EXTRA_SKILLS, ...ENGINEER_TURRET_ATTACK_SKILLS],
+    extraSkills: ENGINEER_CORE_EXTRA_SKILLS,
     // RIFLE_BURST_GRENADE is a sub-packet of Rifle Burst, not a standalone chain member
     autoattackChains: { excludeSkillIds: [ID.RIFLE_BURST_GRENADE] }
   }),

@@ -45,28 +45,10 @@ const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
   ]
 ]);
 
-const UNSELECTABLE_SLOT_SKILLS = new Set(['Elixir B', 'Elixir R', 'Utility Goggles']);
-
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.JUMP_SHOT_ID_5817,
-  ID.ELIXIR_B,
-  ID.UTILITY_GOGGLES,
-  ID.TOSS_ELIXIR_R,
-  ID.AUTOMATIC_FIRE,
-  ID.THUMP,
-  ID.TOSS_ELIXIR_B,
-  ID.ELIXIR_R,
   ID.CLEANSING_BURST,
-  ID.DETONATE_ELIXIR_B,
-  ID.DETONATE_ELIXIR_R,
-  ID.DETONATE_ELIXIR_H,
-  ID.TOSS_ELIXIR_R_ID_6091,
-  ID.TOSS_ELIXIR_B_ID_6092,
-  ID.HARPOON_TURRET,
-  ID.DETONATE_HARPOON_TURRET,
-  ID.AUTOMATIC_FIRE_HARPOON_TURRET,
   ID.DEPLOY_MINE,
-  ID.HARPOON_ENGINEER_SKILL,
   ID.WITHERING_PLAGUE,
   ID.PLAGUE_OF_DARKNESS,
   ID.PLAGUE_OF_PESTILENCE,
@@ -76,20 +58,11 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.INVIGORATING_ROAR,
   ID.BOOBY_TRAP_CHARR_SKILL,
   ID.HIDDEN_PISTOLS,
-  ID.BLESSING_OF_DWAYNA,
-  ID.BLESSING_OF_KORMIR,
-  ID.BLESSING_OF_LYSSA,
-  ID.EAT_WURM_EGG,
-  ID.EAT_OWL_EGG,
   ID.THROW_VINE,
   ID.VINE_SHIELD,
-  ID.LEAFY_BANDAGE,
-  ID.LESSER_ELIXIR_B,
   ID.ALLY_WARD,
   ID.STATIC_DISCHARGE_TRAIT_SKILL,
   ID.PLAGUE,
-  ID.SNOWMAN_TURRET_SKILL,
-  ID.DETONATE_SNOWMAN_TURRET,
   ID.MAGNETIC_BOMB_TRAIT_SKILL,
   ID.SUPERSPEED_TRAIT_SKILL,
   ID.FIRE_SHIELD_TRAIT_SKILL,
@@ -100,10 +73,8 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.DETONATE_SUPPLY_CRATE_TURRETS,
   ID.INVISIBLE_ANALYSIS,
   ID.CLEANSING_PULSE,
-  ID.LESSER_UTILITY_GOGGLES,
   ID.DROP_GUNK,
   ID.BANDAGE_TRAIT_SKILL,
-  ID.FLASHBANG,
   ID.OVERCHARGE_SUPPLY_CRATE,
   ID.LONG_FUSED_POWDER_PACK,
   ID.DEPLOY_MINE_ID_30893,
@@ -133,12 +104,7 @@ const allDeclared: readonly Skill[] = [...generatedSource, ...ENGINEER_SUPPLEMEN
 const byId = new Map<SkillId, Skill>(allDeclared.map((skill) => [skill.id, skill]));
 
 const preferredFlipParentById = new Map<SkillId, SkillId>([
-  [ID.DETONATE_RIFLE_TURRET, ID.RIFLE_TURRET],
-  [ID.DETONATE_FLAME_TURRET, ID.FLAME_TURRET],
-  [ID.DETONATE_NET_TURRET, ID.NET_TURRET],
-  [ID.DETONATE_THUMPER_TURRET, ID.THUMPER_TURRET],
   [ID.DETONATE_HEALING_TURRET, ID.HEALING_TURRET],
-  [ID.DETONATE_ROCKET_TURRET, ID.ROCKET_TURRET],
   [ID.DETONATE, ID.THROW_MINE],
   [ID.STOW_FLAMETHROWER, ID.FLAMETHROWER],
   [ID.ELECTRIC_ARTILLERY, ID.LIGHTNING_ROD]
@@ -157,11 +123,6 @@ const generated: readonly Skill[] = generatedSource.map((skill) => ({
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
     ? {
         patchAuthoringExcluded: true
-      }
-    : {}),
-  ...(UNSELECTABLE_SLOT_SKILLS.has(skill.name)
-    ? {
-        slotSelectable: false
       }
     : {})
 }));
@@ -239,18 +200,6 @@ function normalizeMechanics(
             {
               ...mechanic,
               simulatorExcluded: true
-            }
-          ];
-        }
-
-        // Turret deployment owns autonomous attacks, so catalog strike effects cannot run directly on cast.
-        if (declared?.categories?.includes('Turret') && Number.isFinite(Number(mechanic.paletteFlipSkillId))) {
-          return [
-            id,
-            {
-              ...mechanic,
-              handlerId: 'engineer.turret-deploy',
-              effects: []
             }
           ];
         }
