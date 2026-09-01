@@ -4,7 +4,7 @@
 
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/content/professions/necromancer/build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/necromancer/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/content/professions/necromancer/data/traits-data.js';
 import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
@@ -13,7 +13,6 @@ import { necromancerProfession } from '#gw2/content/professions/necromancer/defi
 export const necromancerAppAdapter = defineProfessionApp({
   profession: necromancerProfession,
   applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Spite',
   runtime: {

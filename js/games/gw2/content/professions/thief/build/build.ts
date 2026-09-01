@@ -1,6 +1,5 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import {
   createProfessionBuildCodec,
   normalizeProfessionBuildAssumptions
@@ -24,7 +23,6 @@ export const THIEF_PROFESSION_ID = 'thief';
 
 const THIEF_DODGES = Object.freeze(['Dodge', 'Lotus Training', 'Bounding Dodger', 'Unhindered Combatant'] as const);
 
-export { createDefaultTargetConditions };
 // Seed a complete, schema-current Thief preset with resources, equipment,
 // assumptions, selected skills, and specialization state.
 export function createThiefBuildDefaults(): ThiefCanonicalBuild {

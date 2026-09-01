@@ -487,7 +487,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
 export interface DefineProfessionAppOptions {
   readonly profession: ProfessionAppContract;
   readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
-  readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
+  readonly createDefaultTargetConditions?: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => Gw2ApplicationBuild;
   readonly specializationFallback: string;
   readonly storageVersion?: number;

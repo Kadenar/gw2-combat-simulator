@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
-import { DEFAULT_TARGET_CONDITIONS } from '#gw2/platform/builds/default-target-conditions.js';
+import {
+  createDefaultTargetConditions,
+  DEFAULT_TARGET_CONDITIONS
+} from '#gw2/platform/builds/default-target-conditions.js';
 import { createElementalistBuildDefaults } from '#gw2/content/professions/elementalist/build/build.js';
 import { createEngineerBuildDefaults } from '#gw2/content/professions/engineer/build/build.js';
 import { createGuardianBuildDefaults } from '#gw2/content/professions/guardian/build/build.js';
@@ -10,6 +13,7 @@ import { createMesmerBuildDefaults } from '#gw2/content/professions/mesmer/build
 import { createNecromancerBuildDefaults } from '#gw2/content/professions/necromancer/build/build.js';
 import { createRevenantBuildDefaults } from '#gw2/content/professions/revenant/build/build.js';
 import { createThiefBuildDefaults } from '#gw2/content/professions/thief/build/build.js';
+import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
 
 test('all profession pages use the shared default target conditions', () => {
   for (const createDefaults of [
@@ -23,6 +27,10 @@ test('all profession pages use the shared default target conditions', () => {
   ]) {
     assert.deepEqual(createDefaults().assumptions.targetConditions, DEFAULT_TARGET_CONDITIONS);
   }
+});
+
+test('profession adapters default to the shared target-condition factory', () => {
+  assert.equal(mesmerAppAdapter.createDefaultTargetConditions, createDefaultTargetConditions);
 });
 
 test('ally calculations always use one strike per second per ally', () => {

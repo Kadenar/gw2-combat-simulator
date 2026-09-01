@@ -1,6 +1,5 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
@@ -31,9 +30,6 @@ const AMALGAM_MORPHS = new Set(
     )
     .map((skill) => skill.id)
 );
-
-/** Re-exports the shared default target-condition factory through the Engineer build contract. */
-export { createDefaultTargetConditions };
 
 /** Creates the canonical Engineer build used for new presets and migration fallbacks. */
 export function createEngineerBuildDefaults(): EngineerCanonicalBuild {

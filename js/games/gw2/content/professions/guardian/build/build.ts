@@ -1,5 +1,4 @@
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
 import type { GuardianCanonicalBuild } from '#gw2/content/professions/guardian/types.js';
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
@@ -16,8 +15,6 @@ import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-de
 
 export const GUARDIAN_BUILD_SCHEMA_VERSION = 3;
 export const GUARDIAN_PROFESSION_ID = 'guardian';
-
-export { createDefaultTargetConditions };
 
 export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
   return {

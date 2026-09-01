@@ -1,6 +1,5 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
 import { resolveMesmerSkillIdFromDuplicateName } from '#gw2/content/professions/mesmer/data/duplicate-skill-names.js';
@@ -21,8 +20,6 @@ import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-de
 
 export const BUILD_SCHEMA_VERSION = 3;
 export const PROFESSION_ID = 'mesmer';
-
-export { createDefaultTargetConditions };
 
 // Seed a schema-current Mesmer preset with complete equipment, assumptions,
 // specialization, weapon, and rotation fields for migration and UI consumers.

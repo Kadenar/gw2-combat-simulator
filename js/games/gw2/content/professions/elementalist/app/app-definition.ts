@@ -1,9 +1,6 @@
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/content/professions/elementalist/build/attributes.js';
-import {
-  createDefaultTargetConditions,
-  toApplicationBuild
-} from '#gw2/content/professions/elementalist/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
 
 import type { Skill } from '#gw2/platform/engine/types.js';
@@ -59,7 +56,6 @@ function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvai
 export const elementalistAppAdapter = defineProfessionApp({
   profession: elementalistProfession,
   applyBuildAttributeRules: applyElementalistBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Fire',
   runtime: {

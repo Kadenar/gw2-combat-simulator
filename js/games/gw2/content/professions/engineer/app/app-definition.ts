@@ -4,7 +4,7 @@
 
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/content/professions/engineer/build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/engineer/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
 import type { EngineerApplicationBuild, EngineerEvolveAttributePool } from '#gw2/content/professions/engineer/types.js';
 
@@ -12,7 +12,6 @@ import type { EngineerApplicationBuild, EngineerEvolveAttributePool } from '#gw2
 export const engineerAppAdapter = defineProfessionApp({
   profession: engineerProfession,
   applyBuildAttributeRules: applyEngineerBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Explosives',
   runtime: {

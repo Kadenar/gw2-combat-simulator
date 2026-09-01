@@ -1,7 +1,7 @@
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { applyRangerBuildAttributeRules } from '#gw2/content/professions/ranger/build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/ranger/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/ranger/build/build.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
 import type { RangerApplicationBuild } from '#gw2/content/professions/ranger/types.js';
@@ -10,7 +10,6 @@ import type { RangerApplicationBuild } from '#gw2/content/professions/ranger/typ
 export const rangerAppAdapter = defineProfessionApp({
   profession: rangerProfession,
   applyBuildAttributeRules: applyRangerBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Marksmanship',
   resetPrompt: 'Reset the Ranger build, pet, assumptions, and rotation?',

@@ -1,6 +1,5 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/content/professions/revenant/build/assumptions.js';
 import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
@@ -21,8 +20,6 @@ import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-de
 export const REVENANT_BUILD_SCHEMA_VERSION = 3;
 export const REVENANT_PROFESSION_ID = 'revenant';
 const REVENANT_DODGES = Object.freeze(['Death Drop', 'Saint of zu Heltzer', 'Imperial Impact'] as const);
-
-export { createDefaultTargetConditions };
 
 // Seed a schema-current Revenant preset with a legal legend pair, complete
 // resources, assumptions, equipment, and rotation fields.

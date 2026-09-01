@@ -4,7 +4,7 @@
 
 import { defineProfessionApp } from '#gw2/app/create-adapter.js';
 import { applyThiefBuildAttributeRules } from '#gw2/content/professions/thief/build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/thief/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/thief/build/build.js';
 import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
 import type { ThiefApplicationBuild } from '#gw2/content/professions/thief/types.js';
 
@@ -12,7 +12,6 @@ import type { ThiefApplicationBuild } from '#gw2/content/professions/thief/types
 export const thiefAppAdapter = defineProfessionApp({
   profession: thiefProfession,
   applyBuildAttributeRules: applyThiefBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Trickery',
   resetPrompt: 'Reset the Thief build, assumptions, and rotation?',

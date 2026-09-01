@@ -1,4 +1,5 @@
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createDefaultTargetConditions as createSharedDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
@@ -42,11 +43,12 @@ export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
 /**
  * Composes a native profession's attribute calculator and runtime into the
  * single shared-shell adapter consumed by the browser application.
+ * Shared GW2 target conditions are used unless a profession overrides them.
  */
 export function defineProfessionApp({
   profession,
   applyBuildAttributeRules,
-  createDefaultTargetConditions,
+  createDefaultTargetConditions = createSharedDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback,
   storageVersion = 3,

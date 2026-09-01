@@ -4,7 +4,7 @@
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/content/professions/guardian/build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/guardian/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/guardian/build/build.js';
 import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
 import type { GuardianApplicationBuild } from '#gw2/content/professions/guardian/types.js';
 
@@ -12,7 +12,6 @@ import type { GuardianApplicationBuild } from '#gw2/content/professions/guardian
 export const guardianAppAdapter = defineProfessionApp({
   profession: guardianProfession,
   applyBuildAttributeRules: applyGuardianBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Zeal',
   runtime: {

@@ -4,7 +4,7 @@
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/content/professions/revenant/build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/revenant/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/revenant/build/build.js';
 import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
 import type { RevenantApplicationBuild } from '#gw2/content/professions/revenant/types.js';
 
@@ -12,7 +12,6 @@ import type { RevenantApplicationBuild } from '#gw2/content/professions/revenant
 export const revenantAppAdapter = defineProfessionApp({
   profession: revenantProfession,
   applyBuildAttributeRules: applyRevenantBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Invocation',
   resetPrompt: 'Reset the Revenant build, legends, and rotation?',

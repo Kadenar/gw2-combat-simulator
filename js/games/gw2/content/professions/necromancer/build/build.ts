@@ -1,6 +1,5 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
 import type { NecromancerCanonicalBuild } from '#gw2/content/professions/necromancer/types.js';
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
@@ -17,9 +16,6 @@ import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-de
 
 export const NECROMANCER_BUILD_SCHEMA_VERSION = 3;
 export const NECROMANCER_PROFESSION_ID = 'necromancer';
-
-/** Re-exports the shared default target-condition factory through the Necromancer build contract. */
-export { createDefaultTargetConditions };
 
 /** Creates the schema-current Necromancer preset used for new builds and migration fallbacks. */
 export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {

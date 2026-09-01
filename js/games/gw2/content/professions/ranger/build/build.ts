@@ -1,6 +1,5 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import {
   createProfessionBuildCodec,
   normalizeProfessionBuildAssumptions
@@ -18,8 +17,6 @@ import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-de
 
 export const RANGER_BUILD_SCHEMA_VERSION = 4;
 export const RANGER_PROFESSION_ID = 'ranger';
-
-export { createDefaultTargetConditions };
 
 function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number]): boolean {
   if (command.type !== 'cast') return true;

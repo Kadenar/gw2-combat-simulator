@@ -4,7 +4,7 @@
 
 import { defineProfessionApp } from '#gw2/app/create-adapter.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/content/professions/mesmer/build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/mesmer/build/build.js';
+import { toApplicationBuild } from '#gw2/content/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
 import type { MesmerApplicationBuild } from '#gw2/content/professions/mesmer/types.js';
 
@@ -12,7 +12,6 @@ import type { MesmerApplicationBuild } from '#gw2/content/professions/mesmer/typ
 export const mesmerAppAdapter = defineProfessionApp({
   profession: mesmerProfession,
   applyBuildAttributeRules: applyMesmerBuildAttributeRules,
-  createDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback: 'Domination',
   storageVersion: 2,
