@@ -7,7 +7,7 @@ import {
   useArtillerySlash,
   useDragonSlash,
   useOverchargedCartridges
-} from '#gw2/content/professions/warrior/specializations/bladesworn/traits/index.js';
+} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
 
 export const bladeswornSkillHandlers = Object.freeze({
   'warrior.gunsaber-enter': augmentSkillHandler(enterGunsaber),

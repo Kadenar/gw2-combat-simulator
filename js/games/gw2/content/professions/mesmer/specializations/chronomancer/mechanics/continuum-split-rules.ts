@@ -17,10 +17,11 @@ import type { AvailabilityResult, SimulationEvent } from '#gw2/platform/engine/t
 import type {
   MesmerPrecastContext,
   MesmerRechargeContext,
-  MesmerSchedulerContext,
-  MesmerSchedulerTask,
-  MesmerSkill
+  MesmerSchedulerContext
 } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerSchedulerTask } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 function chronomancerAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {
   if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context).continuum) {

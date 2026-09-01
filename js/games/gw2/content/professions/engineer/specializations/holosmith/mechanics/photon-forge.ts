@@ -4,9 +4,8 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
-import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import { decorateHolosmithHeatEvent } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -17,6 +16,7 @@ import { emitEngineerBarSwap } from '#gw2/content/professions/engineer/core/mech
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
 import {
   HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS,
+  HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
   HOLOSMITH_HEAT,
   HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS
 } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/constants.js';
@@ -248,12 +248,7 @@ export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: nu
 // cooldown. A longer existing cooldown wins so overheat never shortens a skill.
 function applyToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: number, seconds: number): void {
   for (const skill of context.catalog.skills) {
-    if (
-      !skill.toolbeltParentName ||
-      skill.name === 'Engage Photon Forge' ||
-      skill.name.startsWith('Deactivate Photon Forge')
-    )
-      continue;
+    if (!skill.toolbeltParentName || HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(skill.id))) continue;
     const existingReadyAt = Number(context.state.cooldowns.get(skill.id) || 0);
     context.state.cooldowns.set(skill.id, Math.max(existingReadyAt, at + seconds));
   }
@@ -338,7 +333,7 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
 
   // Publish maximum heat at the overheat timestamp. The module blast and its
   // Solar Focusing Lens charges become active after the observed delay.
-  emitStateSnapshot(context, 'engineer', at, 'overheat', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'overheat');
   grantSolarFocusingLens(
     context,
     photonicBlastingModule ? effectAt : at,
@@ -368,7 +363,7 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
     state.photonForgeActive !== previousForgeActive ||
     state.overheated !== previousOverheated
   ) {
-    emitStateSnapshot(context, 'engineer', target, 'passive-heat', snapshotEngineerState(context.state.profession));
+    emitEngineerStateSnapshot(context, target, 'passive-heat');
   }
 }
 
@@ -427,7 +422,7 @@ export function handlePhotonForgePassiveHeat(
   }
 
   if (state.heat !== previousHeat) {
-    emitStateSnapshot(context, 'engineer', task.at, 'passive-heat', snapshotEngineerState(context.state.profession));
+    emitEngineerStateSnapshot(context, task.at, 'passive-heat');
   }
 
   const coolingGraceActive =
@@ -468,7 +463,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
     balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
   );
   emitEngineerBarSwap(context, skill, at);
-  emitStateSnapshot(context, 'engineer', at, 'enter-forge', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'enter-forge');
 }
 
 /** Exits Photon Forge voluntarily and starts cooling and exit trait state. */
@@ -484,7 +479,7 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
     balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
   );
   emitEngineerBarSwap(context, skill, at);
-  emitStateSnapshot(context, 'engineer', at, 'exit-forge', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'exit-forge');
 }
 
 /** Queues a skill-owned heat change, optionally allowing it to land after Forge exit. */
@@ -515,7 +510,7 @@ function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   const state = holosmithState.from(context);
   if (!state.photonForgeActive || !(Number(skill.heatGain) > 0)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
-  if (skill.name === 'Corona Burst') {
+  if (skill.id === ID.CORONA_BURST) {
     const offsets = CORONA_QUICKNESS_PULSE_OFFSETS_MS;
     if (elapsedMs + context.epsilon * 1000 < offsets[0]) return;
     for (const offsetMs of offsets) {
@@ -525,7 +520,7 @@ function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
     return;
   }
 
-  if (skill.name === 'Photon Blitz') {
+  if (skill.id === ID.PHOTON_BLITZ) {
     for (const offsetMs of PHOTON_BLITZ_PULSE_OFFSETS_MS) {
       if (offsetMs > elapsedMs + context.epsilon * 1000) break;
       scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, 2);
@@ -554,7 +549,7 @@ export function handlePhotonForgeHeat(
   const previousHeat = state.heat;
   state.heat = Math.min(state.maximumHeat, state.heat + Math.max(0, Number(task.payload?.amount || 0)));
   triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
-  emitStateSnapshot(context, 'engineer', task.at, 'heat', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, task.at, 'heat');
 }
 
 /** Invokes canonical Vent Exhaust effects and removes its authored heat amount. */
@@ -599,7 +594,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
   state.heat = Math.max(0, state.heat - Math.max(0, Number(ventExhaust.heatLoss || 0)));
   state.heatUpdatedAt = at;
   if (state.heat === 0) state.overheated = false;
-  emitStateSnapshot(context, 'engineer', at, 'vent-exhaust', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'vent-exhaust');
 }
 
 /**

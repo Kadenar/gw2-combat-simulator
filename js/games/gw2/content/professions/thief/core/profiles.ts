@@ -7,6 +7,8 @@ export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   unloadRefund: 'thief.core.unload-refund',
   ashenAssaultRefund: 'thief.core.ashen-assault-refund',
   spiderVenomProc: 'thief.core.spider-venom-proc',
+  skaleVenomProc: 'thief.core.skale-venom-proc',
+  devourerVenomProc: 'thief.core.devourer-venom-proc',
   fallingSpiderEmpowered: 'thief.core.falling-spider-empowered',
   distractingThrow: 'thief.core.distracting-throw',
   assassinsSignet: 'thief.core.assassins-signet',
@@ -83,6 +85,27 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     maximumStacks: 6,
     durationMultiplier: 24,
     effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
+  },
+  {
+    id: THIEF_CORE_BALANCE_PROFILE_IDS.skaleVenomProc,
+    name: 'Skale Venom - Triggered Conditions',
+    profileKind: 'skill-variant',
+    parentId: ID.SKALE_VENOM,
+    maximumStacks: 4,
+    durationMultiplier: 24,
+    effects: [
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 10 },
+      { type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }
+    ]
+  },
+  {
+    id: THIEF_CORE_BALANCE_PROFILE_IDS.devourerVenomProc,
+    name: 'Devourer Venom - Triggered Immobilize',
+    profileKind: 'skill-variant',
+    parentId: ID.DEVOURER_VENOM,
+    maximumStacks: 2,
+    durationMultiplier: 24,
+    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
   },
   {
     id: THIEF_CORE_BALANCE_PROFILE_IDS.fallingSpiderEmpowered,

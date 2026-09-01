@@ -1,11 +1,10 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import type { ThiefCastContext } from '#gw2/content/professions/thief/types.js';
@@ -20,7 +19,7 @@ export function performThiefDodge(context: ThiefCastContext): void {
     state,
     spendEndurance(state, Number(resources?.resourceCost || 50), context.start, state.maximumEndurance)
   );
-  emitStateSnapshot(context, 'thief', context.start, 'dodge', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.start, 'dodge');
   if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
     const profile = balanceProfileFromContext(context, PROFILE.uncatchable);
     const bleeding = balanceProfileEffect(profile, 'condition', 0);

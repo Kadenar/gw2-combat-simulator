@@ -1,4 +1,4 @@
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   normalizeSelectedSkillNames,

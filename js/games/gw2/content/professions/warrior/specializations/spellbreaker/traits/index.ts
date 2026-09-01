@@ -4,7 +4,7 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2RechargeRate } from '#gw2/platform/combat/query/runtime-rules.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
-import { warriorBoonRemovalCounts } from '#gw2/content/professions/warrior/core/mechanics/reactions.js';
+import { warriorBoonRemovalCounts } from '#gw2/content/professions/warrior/core/mechanics/resolution-helpers.js';
 
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
 import { spellbreakerState } from '#gw2/content/professions/warrior/specializations/spellbreaker/state.js';

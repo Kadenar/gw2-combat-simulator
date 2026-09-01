@@ -1,4 +1,4 @@
-import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-chain.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '#gw2/content/professions/thief/types.js';
 

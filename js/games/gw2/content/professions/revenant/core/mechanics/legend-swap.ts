@@ -1,6 +1,5 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant legend-swap transition.
  *
@@ -51,5 +50,5 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
     applyLegendInvocationTraits(context, skill);
   }
 
-  emitStateSnapshot(context, 'revenant', at, 'legend-swap', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'legend-swap');
 }

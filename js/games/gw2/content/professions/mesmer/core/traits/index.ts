@@ -2,7 +2,6 @@
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
   MesmerSchedulerContext,
-  MesmerSchedulerTask,
   MesmerShatter,
   MesmerShatterResolution
 } from '#gw2/content/professions/mesmer/types.js';
@@ -20,6 +19,7 @@ import {
   triggerMaimTheDisillusioned,
   type MesmerMaimContext
 } from '#gw2/content/professions/mesmer/core/traits/illusions.js';
+import type { MesmerSchedulerTask } from '#gw2/content/professions/mesmer/state/types.js';
 
 export { triggerDazzling } from '#gw2/content/professions/mesmer/core/traits/domination.js';
 export {

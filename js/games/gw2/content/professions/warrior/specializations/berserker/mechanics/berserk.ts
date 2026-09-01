@@ -1,6 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
 import { syncWarriorAdrenaline } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import type { WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';

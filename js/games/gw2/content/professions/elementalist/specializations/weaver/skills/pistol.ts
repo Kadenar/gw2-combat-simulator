@@ -7,6 +7,7 @@ import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/bala
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistCastContext } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   emitProfiledBuff,
   emitProfiledCondition,
@@ -35,7 +36,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
   // this specific dual skill grants for that element.
   for (const element of active) {
     state.pistolBullets[element] = false;
-    if (skill.name === 'Frostfire Flurry' && element === 'Fire') {
+    if (skill.id === ID.FROSTFIRE_FLURRY && element === 'Fire') {
       const aura = balanceProfileEffectFromContext(context, PROFILE.frostfireFlurry, 'buff', 0, 'Fire');
       applyElementalistAura(context, {
         at,
@@ -44,13 +45,13 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
         skillName: skill.name,
         sourceId: skill.id
       });
-    } else if (skill.name === 'Frostfire Flurry' && element === 'Water') {
+    } else if (skill.id === ID.FROSTFIRE_FLURRY && element === 'Water') {
       emitProfiledCondition(context, at, PROFILE.frostfireFlurry, 'Water', 'Vulnerability', 4, 8, skill.name, skill.id);
-    } else if (skill.name === 'Purblinding Plasma' && element === 'Fire') {
+    } else if (skill.id === ID.PURBLINDING_PLASMA && element === 'Fire') {
       emitProfiledCondition(context, at, PROFILE.purblindingPlasma, 'Fire', 'Burning', 3, 4, skill.name, skill.id);
-    } else if (skill.name === 'Molten Meteor' && element === 'Earth') {
+    } else if (skill.id === ID.MOLTEN_METEOR && element === 'Earth') {
       emitProfiledCondition(context, at, PROFILE.moltenMeteor, 'Earth', 'Bleeding', 3, 8, skill.name, skill.id);
-    } else if (skill.name === 'Flowing Finesse' && element === 'Water') {
+    } else if (skill.id === ID.FLOWING_FINESSE && element === 'Water') {
       const aura = balanceProfileEffectFromContext(context, PROFILE.flowingFinesse, 'buff', 0, 'Water');
       applyElementalistAura(context, {
         at,
@@ -59,9 +60,9 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
         skillName: skill.name,
         sourceId: skill.id
       });
-    } else if (skill.name === 'Flowing Finesse' && element === 'Air') {
+    } else if (skill.id === ID.FLOWING_FINESSE && element === 'Air') {
       emitProfiledBuff(context, at, PROFILE.flowingFinesse, 'Air', 'Superspeed', 1, 4, skill.name, skill.id);
-    } else if (skill.name === 'Enervating Earth' && element === 'Air') {
+    } else if (skill.id === ID.ENERVATING_EARTH && element === 'Air') {
       emitSkillControl(context, {
         at,
         source: skill.name,
@@ -71,7 +72,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
         skillId: skill.id,
         controlKind: 'crowd-control'
       });
-    } else if (skill.name === 'Enervating Earth' && element === 'Earth') {
+    } else if (skill.id === ID.ENERVATING_EARTH && element === 'Earth') {
       emitProfiledCondition(context, at, PROFILE.enervatingEarth, 'Earth', 'Bleeding', 4, 8, skill.name, skill.id);
     }
   }

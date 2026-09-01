@@ -11,10 +11,7 @@ import type {
   ElementalistCastContext,
   ElementalistPrecastContext
 } from '#gw2/content/professions/elementalist/types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  type ElementalistAttunement
-} from '#gw2/content/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/content/professions/elementalist/core/state.js';
 import { activeHammerOrbElements } from '#gw2/content/professions/elementalist/core/skills/hammer.js';
 import { activeBuffEvents, skillWeapon } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';

@@ -5,9 +5,8 @@ import {
   emitSkillControl,
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { scourgeState } from '#gw2/content/professions/necromancer/specializations/scourge/state.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Scourge sand shade handlers.
@@ -112,7 +111,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   }
 
   syncNecromancerResources(professionCoreState(context));
-  emitStateSnapshot(context, 'necromancer', at, 'shade', snapshotNecromancerState(context.state.profession), {
+  emitNecromancerStateSnapshot(context, at, 'shade', {
     dedupeAcrossSourceIds: true
   });
 

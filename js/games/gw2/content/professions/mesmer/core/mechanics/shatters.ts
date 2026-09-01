@@ -1,26 +1,13 @@
-import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import {
+  mesmerConditionFromProfile,
+  mesmerRuntimeFor
+} from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type {
   MesmerCastContext,
-  MesmerConditionApplication,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/content/professions/mesmer/types.js';
-
-function conditionFromProfile(
-  context: MesmerCastContext,
-  id: number | string,
-  fallback: MesmerConditionApplication
-): MesmerConditionApplication {
-  const effect = mesmerRuntimeFor(context)
-    .balanceProfile(id)
-    ?.effects?.find(({ type }) => type === 'condition');
-  return {
-    name: String(effect?.condition || fallback.name),
-    duration: Number(effect?.duration ?? fallback.duration),
-    stacks: Number(effect?.stacks ?? fallback.stacks)
-  };
-}
 
 /** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */
 export function resolveCloneShatter(
@@ -67,7 +54,7 @@ export function resolveCloneShatter(
       { shatter: true, shatterTraitEligible: true }
     );
 
-    const baseConfusion = conditionFromProfile(context, shatter.balanceProfileId || skill.id, {
+    const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, {
       name: 'Confusion',
       duration: 3,
       stacks: 1

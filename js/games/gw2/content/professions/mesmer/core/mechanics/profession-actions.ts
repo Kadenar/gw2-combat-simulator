@@ -14,17 +14,17 @@ import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerCastContext,
-  MesmerDestroyClone,
   MesmerProfessionActionController,
-  MesmerRuntimeState,
-  MesmerResourceDefinition,
   MesmerRuntime,
   MesmerResourceSpendDetails,
   MesmerShatter,
   MesmerShatterResolver,
-  MesmerShatterResolution,
-  MesmerSkill
+  MesmerShatterResolution
 } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerDestroyClone } from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerRuntimeState, MesmerResourceDefinition } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 interface ProfessionActionControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

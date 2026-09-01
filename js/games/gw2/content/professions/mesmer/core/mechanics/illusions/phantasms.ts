@@ -5,15 +5,20 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerConditionEffect,
-  MesmerDamageGroup,
+  MesmerRuntime
+} from '#gw2/content/professions/mesmer/types.js';
+
+import type {
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
-  MesmerQueueResources,
-  MesmerRuntime,
+  MesmerQueueResources
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type {
+  MesmerConditionEffect,
+  MesmerDamageGroup,
   MesmerSkill,
   MesmerStrikeEffect
-} from '#gw2/content/professions/mesmer/types.js';
+} from '#gw2/content/professions/mesmer/data/types.js';
 
 export interface MesmerPhantasmExecution {
   readonly skill: MesmerSkill;

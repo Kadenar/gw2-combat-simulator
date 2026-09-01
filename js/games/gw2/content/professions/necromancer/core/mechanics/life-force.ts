@@ -1,9 +1,8 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 /**
@@ -105,7 +104,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
     weaponSet: context.state.activeWeaponSet,
     shroudSwap: true
   });
-  emitStateSnapshot(context, 'necromancer', at, reason, snapshotNecromancerState(context.state.profession), {
+  emitNecromancerStateSnapshot(context, at, reason, {
     dedupeAcrossSourceIds: true
   });
 }
@@ -277,7 +276,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 
   state.lastResourceAt = end;
   syncNecromancerResources(state);
-  emitStateSnapshot(context, 'necromancer', end, 'advance', snapshotNecromancerState(context.state.profession), {
+  emitNecromancerStateSnapshot(context, end, 'advance', {
     dedupeAcrossSourceIds: true
   });
 }
@@ -314,14 +313,7 @@ export function finalizeNecromancerCast(context: NecromancerCastContext, skill: 
     delete state.pendingShroudEntryId;
   }
 
-  emitStateSnapshot(
-    context,
-    'necromancer',
-    context.effectiveEnd,
-    'after-cast',
-    snapshotNecromancerState(context.state.profession),
-    { dedupeAcrossSourceIds: true }
-  );
+  emitNecromancerStateSnapshot(context, context.effectiveEnd, 'after-cast', { dedupeAcrossSourceIds: true });
 }
 
 /** Restores the shared Core resource pool and clears simulated self-conditions after a cooldown reset. */
@@ -330,12 +322,5 @@ export function resetNecromancerResources(context: NecromancerSchedulerContext):
   state.lifeForce = state.maximumLifeForce;
   state.resource = state.lifeForce;
   state.selfConditions = [];
-  emitStateSnapshot(
-    context,
-    'necromancer',
-    context.state.time,
-    'cooldown-reset',
-    snapshotNecromancerState(context.state.profession),
-    { dedupeAcrossSourceIds: true }
-  );
+  emitNecromancerStateSnapshot(context, context.state.time, 'cooldown-reset', { dedupeAcrossSourceIds: true });
 }

@@ -1,6 +1,5 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 /**
  * Core (profession-agnostic) necromancer skill handlers.
  *
@@ -32,14 +31,7 @@ function flip(context: NecromancerCastContext, skill: NecromancerSkill): boolean
   }
 
   // Publish the resulting flip state for observers at the same simulation timestamp.
-  emitStateSnapshot(
-    context,
-    'necromancer',
-    context.effectiveEnd,
-    'flip',
-    snapshotNecromancerState(context.state.profession),
-    { dedupeAcrossSourceIds: true }
-  );
+  emitNecromancerStateSnapshot(context, context.effectiveEnd, 'flip', { dedupeAcrossSourceIds: true });
   return false;
 }
 

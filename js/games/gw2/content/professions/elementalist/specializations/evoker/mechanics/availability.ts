@@ -10,24 +10,14 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult, Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistPrecastContext } from '#gw2/content/professions/elementalist/types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  isElementalistAttunement,
-  type ElementalistAttunement
-} from '#gw2/content/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/content/professions/elementalist/core/state.js';
+import { targetAttunement } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
 } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
-
-// derives the destination element from an attunement swap skill's name, or null for any other skill
-function targetAttunement(skill: Skill): ElementalistAttunement | null {
-  if (skill.skillFamily !== 'Attunement') return null;
-  const target = skill.name.replace(/ Attunement$/, '');
-  return isElementalistAttunement(target) ? target : null;
-}
 
 /**
  * The single Evoker availability gate. Only the in-flight familiar cast yields a
@@ -70,7 +60,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
   }
 
   // anything that is not a familiar skill is unconstrained by Evoker state
-  const element = FAMILIAR_ELEMENTS[skill.name];
+  const element = FAMILIAR_ELEMENTS.get(skill.id);
   if (!element) return { ready: true };
   if (state.element !== element) {
     return {
@@ -82,7 +72,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
   }
 
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
-  if (BASIC_FAMILIARS.has(skill.name)) {
+  if (BASIC_FAMILIARS.has(skill.id)) {
     const requiredEmpowered = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3);
     return state.empowered < requiredEmpowered && state.charges >= state.maximumCharges
       ? { ready: true }

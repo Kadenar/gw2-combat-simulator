@@ -1,8 +1,8 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
-import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/content/professions/ranger/app/assumptions.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/content/professions/ranger/build/assumptions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
 import type {

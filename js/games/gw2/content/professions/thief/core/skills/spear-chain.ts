@@ -1,10 +1,7 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import {
   beginStealthAttack as beginBaseStealthAttack,
@@ -109,7 +106,7 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     state.spearChainStage = (requiredStage + 1) % 3;
     state.spearLastWasFinisher = requiredStage === 2;
     state.spearPreviousSkillId = skill.id;
-    emitStateSnapshot(context, 'thief', at, 'spear-chain', snapshotThiefState(context.state.profession));
+    emitThiefStateSnapshot(context, at, 'spear-chain');
     return;
   }
 
@@ -123,7 +120,7 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
         at + Number(balanceProfileFromContext(context, PROFILE.distractingThrow)?.durationMultiplier || 10);
     }
 
-    emitStateSnapshot(context, 'thief', at, 'distracting-throw-lead', snapshotThiefState(context.state.profession));
+    emitThiefStateSnapshot(context, at, 'distracting-throw-lead');
     return;
   }
 
@@ -131,73 +128,6 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     state.spearChainStage = 0;
     state.spearLastWasFinisher = false;
     state.spearPreviousSkillId = skill.id;
-    emitStateSnapshot(context, 'thief', at, 'spear-stealth-attack', snapshotThiefState(context.state.profession));
+    emitThiefStateSnapshot(context, at, 'spear-stealth-attack');
   }
-}
-
-export function observeSpiderVenomEffect(
-  context: ThiefCastContext,
-  _skill: ThiefSkill,
-  event: ThiefSimulationEvent
-): void {
-  if (event.type !== 'buff' || event.kind !== 'spider-venom') return;
-  const party = gw2AlliedPlayerAssumptions(context.config);
-  context.replaceEvent(event, {
-    recipientCount: party.count + 1,
-    maximumRecipients: party.count + 1
-  });
-}
-
-// Seed the player's finite Spider Venom window and precompute each assumed ally's
-// limited poison proc timeline from the same profile.
-export function activateSpiderVenom(context: ThiefCastContext): void {
-  const state = professionCoreState(context);
-  const at = context.effectiveEnd;
-  const profile = balanceProfileFromContext(context, PROFILE.spiderVenomProc);
-  const poison = balanceProfileEffect(profile, 'condition');
-  const maximumStacks = Number(profile?.maximumStacks || 6);
-  const duration = Number(profile?.durationMultiplier || 24);
-  state.spiderVenomCharges = maximumStacks;
-  state.spiderVenomExpiresAt = at + duration;
-  state.spiderVenomGeneration += 1;
-  const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
-    start: at,
-    duration,
-    maximumPerAlly: maximumStacks
-  });
-  for (let index = 0; index < alliedProcs.length; index += 1) {
-    const proc = alliedProcs[index];
-    emitSkillCondition(context, {
-      at: proc.at,
-      source: 'thief',
-      sourceId: ID.SPIDER_VENOM,
-      actorType: 'player',
-      skillId: ID.SPIDER_VENOM,
-      skillName: 'Spider Venom',
-      name: `Spider Venom — Ally ${proc.allyIndex} Poison`,
-      condition: String(poison?.condition || 'Poisoned'),
-      stacks: Number(poison?.stacks || 1),
-      duration: Number(poison?.duration || 3),
-      activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
-      triggeredByAlly: proc.allyIndex
-    });
-  }
-
-  emitStateSnapshot(context, 'thief', at, 'spider-venom', snapshotThiefState(context.state.profession));
-}
-
-export function prepareThousandNeedles(context: ThiefCastContext, skill: ThiefSkill): void {
-  const state = professionCoreState(context);
-  const at = context.effectiveEnd;
-  state.thousandNeedlesPrepared = true;
-  state.thousandNeedlesArmedAt = at + Number(skill.durationMultiplier || 3);
-  emitStateSnapshot(context, 'thief', at, 'prepare-thousand-needles', snapshotThiefState(context.state.profession));
-}
-
-export function activateThousandNeedles(context: ThiefCastContext, _skill: ThiefSkill): void {
-  // Complete the prepared-skill transition; skills.ts owns the declarative pulse timeline.
-  const state = professionCoreState(context);
-  state.thousandNeedlesPrepared = false;
-  state.thousandNeedlesArmedAt = 0;
-  emitStateSnapshot(context, 'thief', context.start, 'thousand-needles', snapshotThiefState(context.state.profession));
 }

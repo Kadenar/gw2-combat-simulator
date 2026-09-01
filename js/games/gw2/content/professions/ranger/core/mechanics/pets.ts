@@ -25,6 +25,14 @@ import type {
 } from '#gw2/content/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
+import {
+  rangerPetAutoProfile,
+  rangerPetBaseAttributes,
+  type PetAutoProfile,
+  type PetAutoSkill
+} from '#gw2/content/professions/ranger/core/mechanics/pet-profiles.js';
+
+export { RANGER_PET_STRIKE_SCALING } from '#gw2/content/professions/ranger/core/mechanics/pet-profiles.js';
 
 const PET_AUTO_TASK = 'ranger.pet-autonomous-skill';
 const PET_COMMAND_START_TASK = 'ranger.pet-command-start';
@@ -40,44 +48,12 @@ function petHasSelectedSkill(context: RangerSchedulerContext, skillName: string)
   return selectedSkillNameSet(context.config.selectedSkills).has(skillName);
 }
 
-// Level-80 Carrion Devourer and Fanged Iboga offensive attributes. Their
-// tooltip damage resolves to a 2,880 internal weapon-strength roll.
-export const RANGER_PET_STRIKE_SCALING = Object.freeze({
-  basePower: 1524,
-  basePrecision: 1524,
-  baseFerocity: 0,
-  baseConditionDamage: 1000,
-  baseExpertise: 0,
-  criticalChance: (1524 - 1000) / 2100,
-  criticalDamage: 1.5,
-  damagePerCoefficient: (2880 * 1524) / 2597
-});
-
 // Resolve each active pet's level-80 base attributes plus inherited Ranger
 // traits so independent summon packets do not fall back to player attributes.
 function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverContext) {
   const petName = context ? professionCoreState(context).activePet : 'Carrion Devourer';
-  let power = 1524;
-  let precision = petName === 'Tiger' ? 2211 : petName === 'Pig' ? 1180 : 1524;
-  let toughness = petName === 'Tiger' ? 1524 : petName === 'Pig' ? 2211 : 1000;
-  let vitality = petName === 'Tiger' ? 2211 : petName === 'Pig' ? 3585 : 1000;
-  let ferocity = 0;
-  let conditionDamage = petName === 'Pig' ? 700 : 1000;
-  let expertise = 0;
-  let healingPower = petName === 'Pig' ? 600 : 0;
-
-  if (petName === 'Carrion Devourer') {
-    toughness = 2898;
-    vitality = 2211;
-  }
-
-  if (petName === 'Jacaranda') {
-    power = 1868;
-    toughness = 2211;
-    vitality = 2211;
-    conditionDamage = 400;
-    healingPower = 1200;
-  }
+  let { power, precision, toughness, vitality, ferocity, conditionDamage, expertise, healingPower } =
+    rangerPetBaseAttributes(petName);
 
   if (context) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
@@ -166,23 +142,6 @@ export function prepareRangerPetEvent(
     : event;
 }
 
-interface PetAutoSkill {
-  readonly id: SkillId;
-  readonly recovery: number;
-  readonly cooldown?: number;
-}
-
-interface PetAutoProfile {
-  readonly openingDelay: number;
-  readonly openingRecoveryDelay?: number;
-  readonly quicknessOpeningRecoveryDelay?: number;
-  readonly opening?: PetAutoSkill;
-  readonly basic: PetAutoSkill;
-  readonly specials: readonly PetAutoSkill[];
-  readonly commandRecovery: Readonly<Record<string, number>>;
-  readonly ignoresAlacrity?: boolean;
-}
-
 interface PetAutoTaskPayload extends SchedulerRecord {
   readonly generation: number;
 }
@@ -197,51 +156,9 @@ interface PetCommandStartTaskPayload extends PetAutoTaskPayload {
   readonly provisionalCooldownReadyAt: number;
 }
 
-const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freeze({
-  'Carrion Devourer': {
-    openingDelay: 0.44,
-    openingRecoveryDelay: 0.8,
-    basic: { id: ID.TWIN_DARTS, recovery: 1.88 },
-    // Tail Lash recovery is serialized separately from its twenty-second recharge.
-    specials: [{ id: ID.PET_TAIL_LASH, recovery: 2.4, cooldown: 20 }],
-    commandRecovery: { [ID.POISONOUS_CLOUD]: 2.08 }
-  },
-  'Fanged Iboga': {
-    openingDelay: 0.44,
-    quicknessOpeningRecoveryDelay: 0.8,
-    basic: { id: ID.CONSUMING_BITE, recovery: 1.87 },
-    specials: [
-      { id: ID.CRIPPLING_ANGUISH_PET, recovery: 1.8, cooldown: 20 },
-      { id: ID.FANG_GRAPPLE, recovery: 2.4, cooldown: 20 }
-    ],
-    commandRecovery: { [ID.NARCOTIC_SPORES_PET]: 1.84 }
-  },
-  Tiger: {
-    ignoresAlacrity: true,
-    openingDelay: 0.48,
-    opening: { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 8 },
-    basic: { id: ID.FELINE_SLASH, recovery: 1.35 },
-    specials: [
-      { id: ID.FELINE_MAUL, recovery: 1.44, cooldown: 16 },
-      { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 8 }
-    ],
-    commandRecovery: { [ID.FURIOUS_POUNCE]: 1.76 }
-  },
-  Jacaranda: {
-    openingDelay: 0.44,
-    basic: { id: ID.JACARANDA_ROOT_SLAP, recovery: 1.6 },
-    specials: [
-      // Match the observed pet recharge used by the catalog skill.
-      { id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 15 },
-      { id: ID.PHOTOSYNTHESIZE, recovery: 1.48, cooldown: 20 }
-    ],
-    commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 }
-  }
-});
-
 function activeProfile(context: RangerSchedulerContext): PetAutoProfile | null {
   const state = professionCoreState(context);
-  return PET_AUTO_PROFILES[state.activePet] || null;
+  return rangerPetAutoProfile(state.activePet);
 }
 
 function schedulePetAuto(context: RangerSchedulerContext, at: number, reset = false): void {

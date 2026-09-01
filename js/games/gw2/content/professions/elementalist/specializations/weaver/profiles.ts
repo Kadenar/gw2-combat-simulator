@@ -3,7 +3,7 @@
  * dual-skill bullet effects that Weaver mechanics look up by profile id at
  * runtime instead of hardcoding, so balance patches can override them.
  */
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait

@@ -1,16 +1,12 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '#gw2/content/professions/thief/app/antiquary-assumptions.js';
+import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '#gw2/content/professions/thief/build/antiquary-assumptions.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import { thiefUiState } from '#gw2/content/professions/thief/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
-import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/content/professions/thief/types.js';
-
-function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
-  return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;
-}
+import type { ThiefSkill, ThiefUiContext } from '#gw2/content/professions/thief/types.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
-  const state = stateFrom(context);
+  const state = thiefUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
   const combatHighRemaining = Number(state.combatHighExpiresAt || 0) - at;
@@ -117,7 +113,7 @@ export const antiquaryUi = Object.freeze({
   // Available artifact uses are a backend gate (state.artifactUsesRemaining),
   // not a palette meter, so Antiquary contributes no artifact resource view.
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
-    const state = stateFrom(context);
+    const state = thiefUiState(context);
     if (skill.artifactKind) {
       const hasUse = Number(state.artifactUsesRemaining || 0) > 0;
       const inSlot = Boolean(state.artifactSlots?.some((slot) => slot.skillId === skill.id));

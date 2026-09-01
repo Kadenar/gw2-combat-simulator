@@ -10,10 +10,14 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/types.js';
-import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2ApplicationBuild,
+  Gw2Build,
+  Gw2CanonicalBuild,
+  ProfessionBuildAssumptions
+} from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '#gw2/app/types.js';
 
 export interface RevenantSpecializationSelection {
   readonly name?: string;
@@ -66,7 +70,7 @@ export interface RevenantCanonicalBuild extends Gw2CanonicalBuild {
   initialEnergy: number;
 }
 
-export interface RevenantApplicationBuild extends ProfessionApplicationBuild {
+export interface RevenantApplicationBuild extends Gw2ApplicationBuild {
   initialEnergy: number;
   selectedLegends: string[];
   startingLegend: string;

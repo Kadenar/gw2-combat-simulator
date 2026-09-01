@@ -14,17 +14,22 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerAmbushAttack,
+  MesmerConfig,
+  MesmerAmbushAttack
+} from '#gw2/content/professions/mesmer/types.js';
+import type {
+  MesmerMirageCloakOptions,
+  MesmerMirageController
+} from '#gw2/content/professions/mesmer/specializations/mirage/types.js';
+import type {
   MesmerAttackStatus,
   MesmerClone,
   MesmerCloneAttack,
-  MesmerConfig,
-  MesmerMirageCloakOptions,
-  MesmerMirageController,
-  MesmerRuntimeState,
-  MesmerQueueResources,
-  MesmerSkill
-} from '#gw2/content/professions/mesmer/types.js';
+  MesmerQueueResources
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerRuntimeState } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 interface MirageActionControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

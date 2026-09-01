@@ -1,15 +1,19 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type {
-  MesmerAmbushAttack,
-  MesmerInstrument,
-  MesmerPhantasmPolicy,
-  MesmerPhantasmAttackTiming,
   MesmerRuntime,
   MesmerShatter,
   MesmerShatterResolver,
   MesmerShatterResolvedHandler,
-  MesmerTraitDamage
+  MesmerAmbushAttack,
+  MesmerInstrument
 } from '#gw2/content/professions/mesmer/types.js';
+
+import type {
+  MesmerPhantasmPolicy,
+  MesmerPhantasmAttackTiming,
+  MesmerTraitDamage
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerConditionApplication } from '#gw2/content/professions/mesmer/data/types.js';
 
 export const MESMER_FLIP_PARENT_BY_CHILD_ID: Readonly<Record<number, number>> = Object.freeze({
   [ID.COUNTERSPELL]: ID.ILLUSIONARY_COUNTER,
@@ -39,6 +43,22 @@ export function mesmerRuntimeFor(
   }
 
   return runtime;
+}
+
+/** Reads the first condition profile while preserving the caller's explicit fallback contract. */
+export function mesmerConditionFromProfile(
+  context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined,
+  id: number | string,
+  fallback: MesmerConditionApplication
+): MesmerConditionApplication {
+  const effect = mesmerRuntimeFor(context)
+    .balanceProfile(id)
+    ?.effects?.find(({ type }) => type === 'condition');
+  return {
+    name: String(effect?.condition || fallback.name),
+    duration: Number(effect?.duration ?? fallback.duration),
+    stacks: Number(effect?.stacks ?? fallback.stacks)
+  };
 }
 
 /**

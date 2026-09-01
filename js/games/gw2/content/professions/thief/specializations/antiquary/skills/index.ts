@@ -282,63 +282,6 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ],
     artifactKind: 'defensive'
   },
-  [ID.EMERGENCY_JADE_SHIELD]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 15,
-    initiativeCost: 0,
-    effects: [],
-    backfire: true
-  },
-  [ID.INQUEST_PORTAL_DEVICE]: {
-    implemented: true,
-    handlerId: 'thief.double-edge',
-    usableWhileRecharging: true,
-    castTimeMs: 500,
-    cooldown: 20,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.2 }],
-        name: 'Inquest Portal Device — Packet 1',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.2 }],
-        name: 'Inquest Portal Device — Packet 2',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 3, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 3, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
-      }
-    ],
-    doubleEdge: true
-  },
   [ID.CHAK_SHIELD]: {
     implemented: true,
     handlerId: 'thief.artifact',
@@ -358,25 +301,6 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       }
     ],
     artifactKind: 'defensive'
-  },
-  [ID.EMERGENCY_JADE_SHIELD_ID_76879]: {
-    implemented: true,
-    handlerId: 'thief.double-edge',
-    usableWhileRecharging: true,
-    castTimeMs: 0,
-    cooldown: 15,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.6 }],
-        name: 'Emergency Jade Shield',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
-    doubleEdge: true
   },
   [ID.ANTIVENOM_DRAUGHT_BACKFIRED]: {
     implemented: true,
@@ -652,14 +576,6 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       }
     ],
     artifactKind: 'offensive'
-  },
-  [ID.INQUEST_PORTAL_DEVICE_BACKFIRED]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    initiativeCost: 0,
-    effects: [],
-    backfire: true
   },
   [ID.SKRITT_SWIPE]: {
     implemented: true,

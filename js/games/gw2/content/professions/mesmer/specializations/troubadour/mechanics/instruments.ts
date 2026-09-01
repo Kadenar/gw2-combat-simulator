@@ -7,12 +7,9 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
 import { troubadourState } from '#gw2/content/professions/mesmer/specializations/troubadour/state.js';
-import type {
-  MesmerCastContext,
-  MesmerInstrument,
-  MesmerRuntime,
-  MesmerSkill
-} from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerCastContext, MesmerRuntime, MesmerInstrument } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 const conditionFromProfile = (
   runtime: MesmerRuntime,

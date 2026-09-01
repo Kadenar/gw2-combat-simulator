@@ -3,9 +3,11 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
-import type { MesmerCastContext, MesmerShatterResolution, MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerCastContext, MesmerShatterResolution } from '#gw2/content/professions/mesmer/types.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/core/profiles.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 /**
  * Commits all completion-time Mesmer mechanics for a skill.
@@ -22,6 +24,148 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/profess
 function dispatchShatterResolved(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
   for (const handler of mesmerRuntimeFor(context).shatterResolvedHandlers) {
     handler(context, resolution);
+  }
+}
+
+// Completion steps remain named and ordered so specialization dispatch and
+// interruption-sensitive state cannot be moved past Core effects accidentally.
+function dispatchSpecializationCompletion(context: MesmerCastContext, skill: MesmerSkill, at: number): boolean {
+  for (const handler of mesmerRuntimeFor(context).skillCompletionHandlers) {
+    const result = handler(context, skill, at);
+    if (result === false) continue;
+    if (typeof result === 'object') dispatchShatterResolved(context, result);
+    return true;
+  }
+
+  return false;
+}
+
+function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: number): void {
+  const runtime = mesmerRuntimeFor(context);
+  const { state } = context;
+  const armedFlip = runtime.flipSkillsByParent.get(skill.id);
+  if (armedFlip && context.maximumAmmoFor(armedFlip)) {
+    professionCoreState(state).availableFlips[armedFlip.id] = {
+      availableAt: at,
+      expiresAt: Infinity
+    };
+    state.ammo.delete(armedFlip.id);
+    state.cooldowns.delete(armedFlip.id);
+    context.cooldownController.ensureAmmo(armedFlip, at);
+  } else if (armedFlip) {
+    const flip = {
+      availableAt: context.start + Number(armedFlip.flipDelay || 0),
+      expiresAt: context.start + Number(armedFlip.flipDuration || 0)
+    };
+    if (flip.expiresAt >= at - EPSILON) {
+      professionCoreState(state).availableFlips[armedFlip.id] = flip;
+      if (armedFlip.id === ID.COUNTERSPELL) {
+        professionCoreState(state).counterspellAvailable = true;
+      }
+    }
+  }
+
+  const flipParentId = skill.mesmerMechanic?.flipParentId;
+  if (!flipParentId) return;
+
+  const flipAmmo = state.ammo.get(skill.id);
+  if (flipAmmo?.maximum) {
+    if (flipAmmo.charges <= 0) {
+      delete professionCoreState(state).availableFlips[skill.id];
+      state.ammo.delete(skill.id);
+      state.cooldowns.delete(skill.id);
+    }
+  } else {
+    delete professionCoreState(state).availableFlips[skill.id];
+  }
+
+  if (skill.id === ID.COUNTERSPELL) {
+    professionCoreState(state).counterspellAvailable = false;
+  }
+
+  if (skill.parentCooldownIncrease) {
+    const parent = runtime.skillsById.get(flipParentId);
+    const parentReadyAt = parent ? state.cooldowns.get(parent.id) : null;
+    if (parent && parentReadyAt != null) {
+      state.cooldowns.set(
+        parent.id,
+        parentReadyAt + context.rechargeDurationFor(parent, at) * Number(skill.parentCooldownIncrease)
+      );
+    }
+  }
+}
+
+function applyMimicCompletion(context: MesmerCastContext, skill: MesmerSkill, at: number): void {
+  const runtime = mesmerRuntimeFor(context);
+  const { state } = context;
+  const core = professionCoreState(state);
+  const mimicUntil = Number(core.traitReadyAt.mimicUntil || 0);
+  if (skill.id === ID.MIMIC) {
+    core.traitReadyAt.mimicUntil =
+      at + balanceProfileValueFromContext(context, PROFILE.mimic, 'durationMultiplier', 10);
+  } else if (
+    skill.type === 'Utility' &&
+    !skill.mesmerMechanic?.flipParentId &&
+    mimicUntil > 0 &&
+    mimicUntil >= context.start - EPSILON
+  ) {
+    state.cooldowns.delete(skill.id);
+    core.traitReadyAt.mimicUntil = 0;
+    runtime.addEvent({
+      type: 'proc',
+      at,
+      source: 'Mimic',
+      sourceId: ID.MIMIC,
+      skillId: ID.MIMIC,
+      skillName: 'Mimic',
+      name: 'Mimic',
+      targetSkillId: skill.id,
+      targetSkillName: skill.name,
+      reduction: context.rechargeDuration
+    });
+  }
+}
+
+function emitCompletionEvents(
+  context: MesmerCastContext,
+  skill: MesmerSkill,
+  at: number,
+  clarityConsumed: boolean
+): void {
+  const runtime = mesmerRuntimeFor(context);
+  const disabled = runtime.controlSkills.has(skill.id) || (skill.id === ID.MENTAL_COLLAPSE && clarityConsumed);
+  if (disabled && !runtime.instruments[skill.id]) {
+    runtime.addEvent({
+      type: 'control',
+      at,
+      source: 'Player',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name
+    });
+  }
+
+  if (runtime.blindSkills.has(skill.id)) {
+    runtime.addEvent({ type: 'blind', at, skillName: skill.name });
+  }
+
+  if (runtime.aristocracySkills.has(skill.id)) {
+    runtime.addEvent({
+      type: 'weakness_vulnerability',
+      at,
+      skillName: skill.name
+    });
+  }
+
+  if (runtime.peithaSkills.has(skill.id)) {
+    // Movement skills trigger Peitha on activation rather than at cast end.
+    runtime.addEvent({
+      type: 'peitha',
+      at: context.start,
+      projectileDelay: runtime.peithaProjectileDelays[skill.id] ?? 0,
+      skillName: skill.name
+    });
   }
 }
 
@@ -52,14 +196,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
 
     if (skill.id === ID.SWAP_WEAPONS) return;
     let clarityConsumed = false;
-    let specializationHandled = false;
-    for (const handler of runtime.skillCompletionHandlers) {
-      const result = handler(context, skill, at);
-      if (result === false) continue;
-      specializationHandled = true;
-      if (typeof result === 'object') dispatchShatterResolved(context, result);
-      break;
-    }
+    const specializationHandled = dispatchSpecializationCompletion(context, skill, at);
 
     if (specializationHandled) {
       // The active specialization committed the replacing skill behavior.
@@ -84,119 +221,11 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         );
       }
 
-      const armedFlip = runtime.flipSkillsByParent.get(skill.id);
-      if (armedFlip && context.maximumAmmoFor(armedFlip)) {
-        professionCoreState(state).availableFlips[armedFlip.id] = {
-          availableAt: at,
-          expiresAt: Infinity
-        };
-        state.ammo.delete(armedFlip.id);
-        state.cooldowns.delete(armedFlip.id);
-        context.cooldownController.ensureAmmo(armedFlip, at);
-      } else if (armedFlip) {
-        const flip = {
-          availableAt: context.start + Number(armedFlip.flipDelay || 0),
-          expiresAt: context.start + Number(armedFlip.flipDuration || 0)
-        };
-        if (flip.expiresAt >= at - EPSILON) {
-          professionCoreState(state).availableFlips[armedFlip.id] = flip;
-          if (armedFlip.id === ID.COUNTERSPELL) {
-            professionCoreState(state).counterspellAvailable = true;
-          }
-        }
-      }
-
-      const flipParentId = skill.mesmerMechanic?.flipParentId;
-      if (flipParentId) {
-        const flipAmmo = state.ammo.get(skill.id);
-        if (flipAmmo?.maximum) {
-          if (flipAmmo.charges <= 0) {
-            delete professionCoreState(state).availableFlips[skill.id];
-            state.ammo.delete(skill.id);
-            state.cooldowns.delete(skill.id);
-          }
-        } else {
-          delete professionCoreState(state).availableFlips[skill.id];
-        }
-
-        if (skill.id === ID.COUNTERSPELL) {
-          professionCoreState(state).counterspellAvailable = false;
-        }
-
-        if (skill.parentCooldownIncrease) {
-          const parent = runtime.skillsById.get(flipParentId);
-          const parentReadyAt = parent ? state.cooldowns.get(parent.id) : null;
-          if (parent && parentReadyAt != null) {
-            state.cooldowns.set(
-              parent.id,
-              parentReadyAt + context.rechargeDurationFor(parent, at) * Number(skill.parentCooldownIncrease)
-            );
-          }
-        }
-      }
+      settleSkillFlips(context, skill, at);
     }
 
-    const core = professionCoreState(state);
-    const mimicUntil = Number(core.traitReadyAt.mimicUntil || 0);
-    if (skill.id === ID.MIMIC) {
-      core.traitReadyAt.mimicUntil =
-        at + balanceProfileValueFromContext(context, PROFILE.mimic, 'durationMultiplier', 10);
-    } else if (
-      skill.type === 'Utility' &&
-      !skill.mesmerMechanic?.flipParentId &&
-      mimicUntil > 0 &&
-      mimicUntil >= context.start - EPSILON
-    ) {
-      state.cooldowns.delete(skill.id);
-      core.traitReadyAt.mimicUntil = 0;
-      runtime.addEvent({
-        type: 'proc',
-        at,
-        source: 'Mimic',
-        sourceId: ID.MIMIC,
-        skillId: ID.MIMIC,
-        skillName: 'Mimic',
-        name: 'Mimic',
-        targetSkillId: skill.id,
-        targetSkillName: skill.name,
-        reduction: context.rechargeDuration
-      });
-    }
-
-    const disabled = runtime.controlSkills.has(skill.id) || (skill.id === ID.MENTAL_COLLAPSE && clarityConsumed);
-    if (disabled && !runtime.instruments[skill.id]) {
-      runtime.addEvent({
-        type: 'control',
-        at,
-        source: 'Player',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name
-      });
-    }
-
-    if (runtime.blindSkills.has(skill.id)) {
-      runtime.addEvent({ type: 'blind', at, skillName: skill.name });
-    }
-
-    if (runtime.aristocracySkills.has(skill.id)) {
-      runtime.addEvent({
-        type: 'weakness_vulnerability',
-        at,
-        skillName: skill.name
-      });
-    }
-
-    if (runtime.peithaSkills.has(skill.id)) {
-      // Movement skills trigger Peitha on activation rather than at cast end.
-      runtime.addEvent({
-        type: 'peitha',
-        at: context.start,
-        projectileDelay: runtime.peithaProjectileDelays[skill.id] ?? 0,
-        skillName: skill.name
-      });
-    }
+    applyMimicCompletion(context, skill, at);
+    emitCompletionEvents(context, skill, at, clarityConsumed);
   } finally {
     runtime.activeEmission = null;
     runtime.castDetails.delete(context.reservationId);

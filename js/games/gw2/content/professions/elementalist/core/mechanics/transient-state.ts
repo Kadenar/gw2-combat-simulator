@@ -3,6 +3,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/content/professions/elementalist/core/state.js';
 import {
@@ -81,7 +82,7 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
   if (state.rockBarrierExpiresAt > 0 && state.rockBarrierExpiresAt <= at) {
     const expiresAt = state.rockBarrierExpiresAt;
     state.rockBarrierExpiresAt = 0;
-    const root = context.catalog.skillsByName.get('Rock Barrier');
+    const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
     if (root) {
       context.state.cooldowns.set(
         root.id,

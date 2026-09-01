@@ -10,7 +10,10 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/content/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/elementalist/data/ids.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistSchedulerContext
@@ -190,7 +193,7 @@ export function applyArcaneLightning(context: ElementalistLifecycleContext, skil
     duration: Number(arcaneWindow?.duration ?? 15),
     skillName: skill.name
   });
-  if (skill.name === 'Arcane Brilliance') {
+  if (skill.id === ID.ARCANE_BRILLIANCE) {
     emitProfiledBuff(
       context,
       at,
@@ -202,7 +205,7 @@ export function applyArcaneLightning(context: ElementalistLifecycleContext, skil
       skill.name,
       skill.id
     );
-  } else if (skill.name === 'Arcane Wave') {
+  } else if (skill.id === ID.ARCANE_WAVE) {
     emitProfiledCondition(
       context,
       at,
@@ -214,7 +217,7 @@ export function applyArcaneLightning(context: ElementalistLifecycleContext, skil
       skill.name,
       skill.id
     );
-  } else if (skill.name === 'Arcane Blast') {
+  } else if (skill.id === ID.ARCANE_BLAST) {
     context.emit({
       type: 'blind',
       at,
@@ -224,7 +227,7 @@ export function applyArcaneLightning(context: ElementalistLifecycleContext, skil
       skillName: skill.name,
       controlKind: 'blind'
     });
-  } else if (skill.name === 'Arcane Echo') {
+  } else if (skill.id === ID.ARCANE_ECHO) {
     emitProfiledBuff(context, at, PROFILE.arcaneLightning, 'Arcane Echo', 'Quickness', 1, 4, skill.name, skill.id);
   }
 }

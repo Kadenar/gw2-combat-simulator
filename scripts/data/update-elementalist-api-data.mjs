@@ -12,7 +12,6 @@ const EXTRA_ELEMENTALIST_SKILL_IDS = Object.freeze([
 ]);
 
 await updateProfessionApiData('Elementalist', {
-  refreshCommand: 'npm run update:elementalist-data',
   snapshotConfig: {
     extraSkillIds: EXTRA_ELEMENTALIST_SKILL_IDS
   }

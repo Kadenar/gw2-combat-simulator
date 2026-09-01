@@ -9,11 +9,10 @@ import {
   emitSkillControl,
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { mechanistState } from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
-import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -186,14 +185,14 @@ function scheduleMechAttack(context: EngineerSchedulerContext, at: number, paylo
 function summonMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
   mechanistState.from(context).mech.active = true;
-  emitStateSnapshot(context, 'engineer', at, 'summon-mech', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'summon-mech');
 }
 
 /** Deactivates the mech at cast completion and publishes the resulting profession state. */
 function recallMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
   mechanistState.from(context).mech.active = false;
-  emitStateSnapshot(context, 'engineer', at, 'recall-mech', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'recall-mech');
 }
 
 /** Identifies the F1-F3 skills that execute as jade mech commands. */

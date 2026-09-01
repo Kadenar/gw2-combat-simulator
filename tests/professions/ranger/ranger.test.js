@@ -44,14 +44,26 @@ import { RANGER_CORE_BASE_SKILL_MECHANICS } from '#gw2/content/professions/range
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
 import { DRUID_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/druid/skills/index.js';
-import { druidAttributeRules } from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
-import { DRUID_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/specializations/druid/state.js';
+import {
+  druidAttributeRules,
+  druidCastAvailability
+} from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import {
+  createDruidState,
+  DRUID_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/ranger/specializations/druid/state.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/soulbeast/profiles.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/soulbeast/skills/index.js';
-import { SOULBEAST_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
+import {
+  createSoulbeastState,
+  SOULBEAST_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
 import { UNTAMED_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 import { UNTAMED_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/untamed/skills/index.js';
-import { UNTAMED_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/specializations/untamed/state.js';
+import {
+  createUntamedState,
+  UNTAMED_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/ranger/specializations/untamed/state.js';
 import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
 import { GALESHOT_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/galeshot/skills/index.js';
 import { GALESHOT_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
@@ -1197,6 +1209,38 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
   assert.equal(
     paletteActionSkills(actionApp, 'Soulbeast').some((skill) => skill.id === ID.PET_SWAP),
     true
+  );
+});
+
+test('Ranger transformation availability follows skill IDs after display labels change', () => {
+  const check = (kind, state, skill, availability) =>
+    availability(
+      {
+        config: { specialization: kind, selectedPet: 'Lynx' },
+        state: { profession: { specialization: { kind, state } } },
+        start: 0,
+        epsilon: 1e-9
+      },
+      skill
+    );
+
+  const soulbeast = createSoulbeastState();
+  const beastmode = { ...rangerCatalog.skillsById.get(ID.BEASTMODE), name: 'Renamed Beastmode' };
+  assert.equal(
+    check('Soulbeast', soulbeast, beastmode, soulbeastCastRules.availability.handler).code,
+    'ranger.beastmode-active'
+  );
+
+  const druid = createDruidState({ initialAstralForce: 100 });
+  druid.celestialAvatarActive = true;
+  const avatar = { ...rangerCatalog.skillsById.get(ID.CELESTIAL_AVATAR), name: 'Renamed Celestial Avatar' };
+  assert.equal(check('Druid', druid, avatar, druidCastAvailability).code, 'ranger.avatar-active');
+
+  const untamed = createUntamedState({ initialUntamedState: 'Ranger' });
+  const unleash = { ...rangerCatalog.skillsById.get(ID.UNLEASH_RANGER), name: 'Renamed Unleash Ranger' };
+  assert.equal(
+    check('Untamed', untamed, unleash, untamedCastRules.availability.handler).code,
+    'ranger.ranger-unleashed'
   );
 });
 

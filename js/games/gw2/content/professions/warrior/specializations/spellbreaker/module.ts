@@ -6,7 +6,7 @@ import { spellbreakerSkillHandlers } from '#gw2/content/professions/warrior/spec
 import {
   reactToSpellbreakerControl,
   reactToSpellbreakerDamage
-} from '#gw2/content/professions/warrior/specializations/spellbreaker/mechanics/full-counter-effects.js';
+} from '#gw2/content/professions/warrior/specializations/spellbreaker/traits/index.js';
 import {
   spellbreakerAttributeRules,
   spellbreakerSchedulerHooks

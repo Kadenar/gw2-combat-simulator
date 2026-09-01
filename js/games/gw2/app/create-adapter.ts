@@ -10,13 +10,13 @@ import { gw2SimulationPresentation, renderResults } from '#gw2/app/presentation.
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type {
   DefineProfessionAppOptions,
-  ProfessionAssumptionControl,
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
   ProfessionSkillAvailabilityContext,
   Gw2AppAdapter,
   ProfessionSlotLoadout
 } from '#gw2/app/types.js';
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 
 /**
  * Default availability rule for shared-shell profession skill selectors.

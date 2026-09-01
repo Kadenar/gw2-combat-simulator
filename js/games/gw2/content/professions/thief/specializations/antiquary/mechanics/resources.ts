@@ -1,8 +1,7 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { pilferArtifacts } from '#gw2/content/professions/thief/specializations/antiquary/mechanics/artifacts.js';
@@ -41,7 +40,7 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
     }
   }
 
-  emitStateSnapshot(context, 'thief', target, 'resources', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, target, 'resources');
 }
 
 export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefSkill): void {

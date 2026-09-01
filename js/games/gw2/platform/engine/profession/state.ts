@@ -8,8 +8,8 @@ import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
  * Flattens Core plus the active specialization solely for stable public
  * projections and event snapshots. Runtime mechanics use the nested state.
  */
-export function flattenProfessionState(professionState: unknown): SchedulerRecord {
-  if (!professionState || typeof professionState !== 'object') return {};
+export function flattenProfessionState<TState extends object = SchedulerRecord>(professionState: unknown): TState {
+  if (!professionState || typeof professionState !== 'object') return {} as TState;
   const runtime = professionState as SchedulerRecord;
   const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
   if (
@@ -21,10 +21,26 @@ export function flattenProfessionState(professionState: unknown): SchedulerRecor
     return {
       ...(runtime.core as SchedulerRecord),
       ...(specialization.state as SchedulerRecord)
-    };
+    } as TState;
   }
 
-  return { ...runtime };
+  return { ...runtime } as TState;
+}
+
+/** Flattens and deeply clones a family runtime at the scheduler/resolver boundary. */
+export function snapshotProfessionState<TState extends object = SchedulerRecord>(professionState: unknown): TState {
+  return structuredClone(flattenProfessionState<TState>(professionState));
+}
+
+/** Restores flat snapshot fields to the specialization that declares them, otherwise Core. */
+export function restoreFlatProfessionState(coreState: object, specializationState: object, snapshot: unknown): void {
+  if (!snapshot || typeof snapshot !== 'object') return;
+  const core = coreState as SchedulerRecord;
+  const specialization = specializationState as SchedulerRecord;
+  for (const [key, value] of Object.entries(snapshot)) {
+    const owner = Object.hasOwn(specialization, key) ? specialization : core;
+    owner[key] = structuredClone(value);
+  }
 }
 
 /** Reads Core state from either the nested family runtime or its legacy flat compatibility shape. */

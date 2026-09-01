@@ -11,12 +11,13 @@ import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerRuntime,
-  MesmerRuntimeState,
   MesmerSchedulerContext,
-  MesmerShatter,
-  MesmerSkill,
-  MesmerTraitDamage
+  MesmerShatter
 } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerRuntimeState } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerTraitDamage } from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 export interface MesmerIllusionaryMembraneContext {
   readonly traits: ReadonlySet<number>;

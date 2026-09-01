@@ -1,4 +1,8 @@
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  flattenProfessionState,
+  projectPublicProfessionState,
+  snapshotProfessionState
+} from '#gw2/platform/engine/profession/state.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/core/state.js';
 import {
   DRUID_PUBLIC_END_STATE_KEYS,
@@ -21,7 +25,7 @@ import type { RangerEndStateProjectionOptions, RangerState } from '#gw2/content/
 
 /** Aggregates Core and active-specialization state at the Ranger family boundary. */
 export function snapshotRangerState(state: unknown): RangerState {
-  return structuredClone(flattenProfessionState(state)) as unknown as RangerState;
+  return snapshotProfessionState<RangerState>(state);
 }
 
 // The family boundary composes the public fragments declared by their semantic owners.

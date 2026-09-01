@@ -5,7 +5,6 @@ import {
   emitSkillControl,
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { EmitSkillBuffOptions } from '#gw2/platform/scheduler/skill-events.js';
 import {
   addBlight,
@@ -14,7 +13,7 @@ import {
   purgeHarbingerTimedState
 } from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 /**
  * Harbinger blight skill handlers.
  *
@@ -219,7 +218,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   const empowered = state.blight >= threshold;
   const consumed = empowered ? consumeBlight(state, threshold, at) : 0;
   applyCascadingCorruption(context, skill, consumed, at);
-  emitStateSnapshot(context, 'necromancer', at, 'blight-consumed', snapshotNecromancerState(context.state.profession), {
+  emitNecromancerStateSnapshot(context, at, 'blight-consumed', {
     dedupeAcrossSourceIds: true
   });
   const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
@@ -246,7 +245,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   );
   // Elixir of Ambition grants more Blight than other elixirs, consistent with its higher empowerment threshold.
   addBlight(state, Number((empoweredProfile || skill).blightGain || (ambition ? 15 : 10)), at);
-  emitStateSnapshot(context, 'necromancer', at, 'blight-gained', snapshotNecromancerState(context.state.profession), {
+  emitNecromancerStateSnapshot(context, at, 'blight-gained', {
     dedupeAcrossSourceIds: true
   });
   return true;
@@ -275,7 +274,7 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   // generated during the cast is advanced afterward and affects later skills.
   const damageBlight = state.blight;
   applyCascadingCorruption(context, skill, consumed, at);
-  emitStateSnapshot(context, 'necromancer', at, 'blight-skill', snapshotNecromancerState(context.state.profession), {
+  emitNecromancerStateSnapshot(context, at, 'blight-skill', {
     dedupeAcrossSourceIds: true
   });
   const source = empowered && empoweredProfile ? empoweredProfile : skill;

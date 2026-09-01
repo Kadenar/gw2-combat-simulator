@@ -16,74 +16,13 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/types.js';
-import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import type { ProfessionApplicationBuild } from '#gw2/app/types.js';
+import type { ElementalistConfig } from '#gw2/content/professions/elementalist/build/types.js';
 import type { ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
 import type { TempestState } from '#gw2/content/professions/elementalist/specializations/tempest/state.js';
 import type { WeaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
 import type { CatalystState } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
 import type { EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
-
-/** One specialization line in a build: its name plus the dash-encoded major-trait picks. */
-export interface ElementalistBuildSpecialization {
-  name: string;
-  traits: string;
-}
-
-/**
- * The build-derived attribute totals that Catalyst's Elemental Empowerment scales its
- * per-stack percentage bonus from, so the bonus is based on gear rather than on
- * attributes that other buffs already inflated.
- */
-export interface CatalystEmpowermentPool {
-  readonly power: number;
-  readonly precision: number;
-  readonly ferocity: number;
-  readonly conditionDamage: number;
-  readonly expertise: number;
-  readonly concentration: number;
-}
-
-/** A stored Elementalist build as it may appear on disk, with every profession field optional. */
-export interface ElementalistBuild extends Gw2Build {
-  specializations?: ElementalistBuildSpecialization[];
-  assumptions?: SchedulerRecord;
-  startAttunement?: string;
-  secondaryAttunement?: string;
-  initialCatalystEnergy?: number;
-  evokerElement?: string;
-  initialEvokerCharges?: number;
-  initialEvokerEmpowered?: number;
-  pistolBullets?: Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>;
-  selectedSkills?: readonly string[] | Record<string, string>;
-}
-
-/** A migrated, fully populated build: the shape the editor and simulation may rely on. */
-export interface ElementalistCanonicalBuild extends Gw2CanonicalBuild {
-  profession: 'elementalist';
-  assumptions: SchedulerRecord;
-  startAttunement: string;
-  secondaryAttunement: string;
-  initialCatalystEnergy: number;
-  evokerElement: string;
-  initialEvokerCharges: number;
-  initialEvokerEmpowered: number;
-  pistolBullets: Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>;
-}
-
-/** Per-run simulation config: the elite spec plus the starting-resource choices from the build. */
-export interface ElementalistConfig extends Gw2Config {
-  readonly specialization?: string;
-  readonly startAttunement?: string;
-  readonly secondaryAttunement?: string;
-  readonly initialCatalystEnergy?: number;
-  readonly evokerElement?: string;
-  readonly initialEvokerCharges?: number;
-  readonly initialEvokerEmpowered?: number;
-  readonly pistolBullets?: Readonly<Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>>;
-}
 
 /**
  * Live profession state during a run: always the core attunement/weapon state, plus the
@@ -165,15 +104,4 @@ export type ElementalistResolverContext = Gw2ResolverRuntime & {
 /** Input to the family end-state projection: the scheduler state at the end of a run. */
 export interface ElementalistEndStateProjectionOptions {
   readonly schedulerState: SchedulerState<ElementalistRuntimeState>;
-}
-
-/** Build shape handed to the browser application shell, with profession fields guaranteed present. */
-export interface ElementalistApplicationBuild extends ProfessionApplicationBuild {
-  startAttunement: string;
-  secondaryAttunement: string;
-  initialCatalystEnergy: number;
-  evokerElement: string;
-  initialEvokerCharges: number;
-  initialEvokerEmpowered: number;
-  pistolBullets: Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>;
 }

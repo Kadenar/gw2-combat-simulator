@@ -3,31 +3,26 @@ import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modif
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
-import {
-  GW2_EVENT_ACTOR_TYPES,
-  gw2EventActorType,
-  isGw2PlayerModifierOwnedEvent
-} from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  eventSkill as gw2EventSkill,
-  hasSelectedSkill,
-  targetConditionActive
-} from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { eventSkill as gw2EventSkill, hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import { rangerCoreCastAvailability } from '#gw2/content/professions/ranger/core/mechanics/availability.js';
 import { stalkersStrikeTargetImpaired } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
-import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
+import {
+  rangerActiveBoonCount,
+  rangerBoonActive,
+  rangerPetEvent,
+  rangerTargetImpaired
+} from '#gw2/content/professions/ranger/core/traits/modifier-queries.js';
+import {
+  modifyRangerPetAttributes,
+  rangerPetModifierRules
+} from '#gw2/content/professions/ranger/core/traits/pet-modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-
-function petEvent(context: Gw2ModifierContext): boolean {
-  // Pet modifiers require both canonical summon classification and Ranger-specific source ownership.
-  return gw2EventActorType(context.event) === GW2_EVENT_ACTOR_TYPES.SUMMON && context.event?.source === 'ranger-pet';
-}
 
 // Count distinct configured or live target conditions at query time for traits
 // that scale from condition variety rather than stack count.
@@ -51,48 +46,6 @@ function targetConditionCount(context: Gw2ModifierContext): number {
   return active.size;
 }
 
-function boonActive(context: Gw2ModifierContext, boon: string): boolean {
-  if (context.config?.boons?.[boon]) return true;
-  if (context.timeline?.timedActive(boon, context.time)) return true;
-  return (context.runtime?.boons?.get(boon) || []).some(
-    (application) => application.at <= context.time && application.expiresAt > context.time
-  );
-}
-
-// Query boon state for the active companion, honoring summon-audience events
-// before falling back to configured assumptions.
-function petBoonActive(context: Gw2ModifierContext, boon: string): boolean {
-  if (context.timeline?.buffStacksAt(boon, context.time, 0, 25, 'summon')) {
-    return true;
-  }
-
-  if (
-    context.config?.sharePlayerBoonsWithSummons !== false &&
-    context.timeline?.buffStacksAt(boon, context.time, 0, 25, 'all')
-  ) {
-    return true;
-  }
-
-  return (context.runtime?.boons?.get(boon) || []).some(
-    (application) =>
-      (application.affectsSummons === true ||
-        (context.config?.sharePlayerBoonsWithSummons !== false && application.affectsSelf !== false)) &&
-      application.at <= context.time &&
-      application.expiresAt > context.time
-  );
-}
-
-function activeBoonCount(context: Gw2ModifierContext, audience: 'player' | 'pet'): number {
-  return GW2_STANDARD_BOONS.filter((boon) =>
-    audience === 'pet' ? petBoonActive(context, boon) : boonActive(context, boon)
-  ).length;
-}
-
-function activePrimaryWeapon(context: Gw2ModifierContext): string {
-  const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  return String(gw2PrimaryWeapon(context.config, weaponSet) || '');
-}
-
 function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names: readonly string[]): boolean {
   const weapons = gw2ConfiguredWeaponSet(context.config, weaponSet);
   return weapons.some((weapon) => names.includes(String(weapon || '')));
@@ -106,14 +59,9 @@ function openingStrikeReady(context: Gw2ModifierContext): boolean {
     playerOpeningStrikeReady?: boolean;
     petOpeningStrikeReady?: boolean;
   }>(context.runtime?.profession);
-  return petEvent(context)
+  return rangerPetEvent(context)
     ? core?.petOpeningStrikeReady === true
     : isGw2PlayerModifierOwnedEvent(context.event) && core?.playerOpeningStrikeReady === true;
-}
-
-function activePetFamily(context: Gw2ModifierContext): string {
-  const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;
-  return rangerPetByName(String(activePet || context.config?.selectedPet || 'Pig')).family;
 }
 
 function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
@@ -125,25 +73,16 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
 
-  if (petEvent(context) && hasTrait(context, TRAIT.FANG_AND_CLAW)) {
-    const family = activePetFamily(context);
-    if (['feline', 'avian', 'drake'].includes(family)) {
-      adjust('precision', balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'attributeBonus', 420));
-      adjust('ferocity', balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'weaponAttributeBonus', 450));
-    }
-  }
-
-  if (petEvent(context) && hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-    const family = activePetFamily(context);
-    if (['spider', 'devourer'].includes(family)) {
-      adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'weaponAttributeBonus', 225));
-    }
-  }
-
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
       const bonus = balanceProfileValueFromContext(context, PROFILE.stridersStrength, 'attributeBonus', 120);
-      adjust('power', bonus + (activePrimaryWeapon(context) === 'Sword' ? bonus : 0));
+      adjust(
+        'power',
+        bonus +
+          (gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Sword'
+            ? bonus
+            : 0)
+      );
     }
 
     if (hasTrait(context, TRAIT.HONED_AXES)) {
@@ -154,7 +93,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       );
     }
 
-    if (hasTrait(context, TRAIT.VICIOUS_QUARRY) && boonActive(context, 'fury')) {
+    if (hasTrait(context, TRAIT.VICIOUS_QUARRY) && rangerBoonActive(context, 'fury')) {
       adjust('ferocity', balanceProfileValueFromContext(context, PROFILE.viciousQuarry, 'attributeBonus', 250));
     }
 
@@ -176,7 +115,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       );
     }
 
-    if (hasTrait(context, TRAIT.WELLSPRING) && !petEvent(context)) {
+    if (hasTrait(context, TRAIT.WELLSPRING) && !rangerPetEvent(context)) {
       // Convert gear-only power (config.stats), not the live power
       // that already includes might and Strider's Strength.
       adjust(
@@ -187,22 +126,27 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     }
   }
 
-  if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.HONED_AXES)) {
+  if (staticRulesApplied && !rangerPetEvent(context) && hasTrait(context, TRAIT.HONED_AXES)) {
     const bonus = balanceProfileValueFromContext(context, PROFILE.honedAxes, 'attributeBonus', 120);
     const activeHasAxe = weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Axe']);
     const calculatedHasAxe = weaponSetIncludes(context, calculatedWeaponSet, ['Axe']);
     adjust('ferocity', bonus * (1 + Number(activeHasAxe)) - 120 * (1 + Number(calculatedHasAxe)));
   }
 
-  if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
+  if (staticRulesApplied && !rangerPetEvent(context) && hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
     const bonus = balanceProfileValueFromContext(context, PROFILE.stridersStrength, 'attributeBonus', 120);
     adjust(
       'power',
-      bonus * (1 + Number(activePrimaryWeapon(context) === 'Sword')) - 120 * (1 + Number(calculatedWeapon === 'Sword'))
+      bonus *
+        (1 +
+          Number(
+            gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Sword'
+          )) -
+        120 * (1 + Number(calculatedWeapon === 'Sword'))
     );
   }
 
-  if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
+  if (staticRulesApplied && !rangerPetEvent(context) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
     const bonus = balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'attributeBonus', 120);
     const favored = ['Dagger', 'Mace', 'Torch'];
     const active = weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), favored);
@@ -210,7 +154,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     adjust('conditionDamage', bonus * (1 + Number(active)) - 120 * (1 + Number(calculated)));
   }
 
-  if (staticRulesApplied && !petEvent(context)) {
+  if (staticRulesApplied && !rangerPetEvent(context)) {
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
       adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'attributeBonus', 150) - 150);
     }
@@ -232,7 +176,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
     if (hasTrait(context, TRAIT.VICIOUS_QUARRY)) {
       const configuredFury = Boolean(context.config?.boons?.fury);
-      const activeFury = boonActive(context, 'fury');
+      const activeFury = rangerBoonActive(context, 'fury');
       adjust(
         'ferocity',
         Number(activeFury) * balanceProfileValueFromContext(context, PROFILE.viciousQuarry, 'attributeBonus', 250) -
@@ -241,21 +185,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     }
   }
 
-  if (petEvent(context) && hasTrait(context, TRAIT.WELLSPRING)) {
-    const conversion = balanceProfileValueFromContext(context, PROFILE.wellspring, 'attributeConversion', 0.07);
-    if (staticRulesApplied) {
-      adjust('healingPower', -Number(context.config?.stats?.power || 0) * 0.07);
-    }
-
-    const summonBasePower = Number(context.event?.summonBasePower);
-    const petPower =
-      Number.isFinite(summonBasePower) && summonBasePower > 0
-        ? summonBasePower +
-          (context.query?.mightStacksAt(context.time, context.runtime || undefined, context.event || undefined) || 0) *
-            30
-        : Number(result.power || 0);
-    adjust('healingPower', petPower * conversion);
-  }
+  modifyRangerPetAttributes(context, result, staticRulesApplied);
 
   if (hasSelectedSkill(context, 'Signet of the Wild')) {
     const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
@@ -309,35 +239,11 @@ function positional(context: Gw2ModifierContext): boolean {
   return Boolean(context.config?.target?.defiant);
 }
 
-function targetImpaired(context: Gw2ModifierContext): boolean {
-  if (context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken) {
-    return true;
-  }
-
-  return ['Chilled', 'Crippled', 'Immobilized', 'Taunt', 'Fear'].some((condition) =>
-    targetConditionActive(context, condition)
-  );
-}
-
 function targetVulnerable(context: Gw2ModifierContext): boolean {
   return Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) > 0;
 }
 
-export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'ranger.sic-em-pet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.4,
-    when: (context) => petEvent(context) && boonActive(context, 'sic-em-pet')
-  },
-  {
-    id: 'ranger.lesser-sic-em-pet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.4,
-    when: (context) => petEvent(context) && boonActive(context, 'lesser-sic-em-pet')
-  },
+const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
   {
     id: 'ranger.hunters-tactics-damage',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -362,7 +268,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
-      boonActive(context, 'light-on-your-feet')
+      rangerBoonActive(context, 'light-on-your-feet')
   },
   {
     id: 'ranger.light-on-your-feet-condition-duration',
@@ -372,14 +278,14 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
-      boonActive(context, 'light-on-your-feet')
+      rangerBoonActive(context, 'light-on-your-feet')
   },
   {
     id: 'ranger.vicious-quarry-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.15,
-    when: (context) => hasTrait(context, TRAIT.VICIOUS_QUARRY) && boonActive(context, 'fury')
+    when: (context) => hasTrait(context, TRAIT.VICIOUS_QUARRY) && rangerBoonActive(context, 'fury')
   },
   {
     id: 'ranger.farsighted',
@@ -397,17 +303,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     parameters: { baseFactor: 1, damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) =>
-      parameters.baseFactor + activeBoonCount(context, 'player') * parameters.damagePerBoon,
+      parameters.baseFactor + rangerActiveBoonCount(context, 'player') * parameters.damagePerBoon,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)
-  },
-  {
-    id: 'ranger.bountiful-hunter-pet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: { baseFactor: 1, damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) =>
-      parameters.baseFactor + activeBoonCount(context, 'pet') * parameters.damagePerBoon,
-    when: (context) => petEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)
   },
   {
     id: 'ranger.wolfsong',
@@ -438,15 +335,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     factor: 1.1,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      targetImpaired(context) &&
+      rangerTargetImpaired(context) &&
       hasTrait(context, TRAIT.PREDATORS_ONSLAUGHT)
-  },
-  {
-    id: 'ranger.predators-onslaught-pet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.1,
-    when: (context) => petEvent(context) && targetImpaired(context) && hasTrait(context, TRAIT.PREDATORS_ONSLAUGHT)
   },
   {
     id: 'ranger.hidden-barbs',
@@ -472,13 +362,6 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'damage-additive',
     amount: 0.15,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS)
-  },
-  {
-    id: 'ranger.loud-whistle-pet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    when: (context) => petEvent(context) && hasTrait(context, TRAIT.LOUD_WHISTLE)
   },
   {
     id: 'ranger.disabled-skill-bonus',
@@ -537,6 +420,12 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     },
     when: (context) => Number(context.event?.skillId ?? context.skillId) === ID.CONSUMING_BITE
   }
+];
+
+// Keep player/shared and pet-audience collections distinct while preserving one public rule list.
+export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  ...rangerPlayerAndSharedModifierRules,
+  ...rangerPetModifierRules
 ]);
 
 export function compileRangerModifierRules(rules: readonly Gw2ModifierRule[]) {

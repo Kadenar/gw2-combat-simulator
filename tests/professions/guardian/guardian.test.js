@@ -26,7 +26,9 @@ import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guard
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
+import { radiantForgeAvailability } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
+import { createLuminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);
@@ -3315,6 +3317,26 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   assert.ok(result.totalDamage > 0);
 });
 
+test('Luminary Forge availability follows skill IDs after display labels change', () => {
+  const state = createLuminaryState();
+  state.radiantForge = true;
+  const context = {
+    config: { specialization: 'Luminary' },
+    state: { profession: { specialization: { kind: 'Luminary', state } } }
+  };
+  const enter = {
+    ...guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE),
+    name: 'Renamed forge entry'
+  };
+  const exit = {
+    ...guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE),
+    name: 'Renamed forge exit'
+  };
+
+  assert.equal(radiantForgeAvailability(context, enter).code, 'guardian.radiant-forge-active');
+  assert.deepEqual(radiantForgeAvailability(context, exit), { ready: true });
+});
+
 test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () => {
   const app = {
     skills: guardianCatalog.skills,
@@ -3861,6 +3883,26 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
   const empoweredBlade = damage(gleaming(true), 'Gleaming Blade');
 
   assert.ok(Math.abs(empoweredBlade.damage / normalBlade.damage - 1.5) < 1e-9);
+});
+
+test('Radiant-weapon traits activate only after a completed equip cast', () => {
+  const run = (radiantWeapon) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Enter Radiant Forge', radiantWeapon, { type: 'wait', durationMs: 10 }],
+      config: {
+        ...config,
+        specialization: 'Luminary',
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS]
+      }
+    });
+  const completed = run('Dazzling Hammer');
+  const interrupted = run({ name: 'Dazzling Hammer', interruptMs: 1 });
+
+  assert.equal(completed.procSteps.filter((step) => step.skill === 'Empowered Armaments').length, 1);
+  assert.equal(interrupted.procSteps.filter((step) => step.skill === 'Empowered Armaments').length, 0);
+  assert.deepEqual(completed.endState.profession.radiantWeaponsUsed, { hammer: true });
+  assert.deepEqual(interrupted.endState.profession.radiantWeaponsUsed, {});
 });
 
 test('Guardian armaments share the additive sigil bucket', () => {

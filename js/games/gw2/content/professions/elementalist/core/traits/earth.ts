@@ -14,6 +14,7 @@ import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import type { ElementalistAuraApplier } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   combatStarted,
@@ -91,11 +92,11 @@ export function applyWrittenInStone(
 ): void {
   if (!hasTrait(context, 'Written in Stone') || skill.skillFamily !== 'Signet') return;
   const aura =
-    skill.name === 'Signet of Restoration'
+    skill.id === ID.SIGNET_OF_RESTORATION
       ? (['Restoration', 'Frost Aura', 4] as const)
-      : skill.name === 'Signet of Fire'
+      : skill.id === ID.SIGNET_OF_FIRE
         ? (['Fire', 'Fire Aura', 4] as const)
-        : skill.name === 'Signet of Earth'
+        : skill.id === ID.SIGNET_OF_EARTH
           ? (['Earth', 'Magnetic Aura', 3] as const)
           : null;
   if (!aura) return;

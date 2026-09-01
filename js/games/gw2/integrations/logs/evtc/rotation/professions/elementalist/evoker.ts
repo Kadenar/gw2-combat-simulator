@@ -283,8 +283,9 @@ function boundedInteger(value: unknown, fallback: number, maximum: number): numb
   return Math.max(0, Math.min(maximum, Number.isFinite(numeric) ? Math.floor(numeric) : fallback));
 }
 
-function actionName(action: EvtcRecordedRotationAction): string {
-  return action.canonicalName ?? action.rawName;
+// Reconstruction state follows canonical skill IDs so report labels can vary without changing familiar/resource behavior.
+function actionSkillId(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): number {
+  return Number(action.canonicalSkillId ?? skillForAction(context, action)?.id ?? action.rawSkillId);
 }
 
 function evokerElement(context: EvtcProfessionReconstructionContext): ElementalistAttunement {
@@ -298,10 +299,9 @@ function chargeGrantForAction(
   element: ElementalistAttunement
 ): EvokerChargeGrant | null {
   if (action.status !== 'completed' && action.status !== 'instant') return null;
-  const name = actionName(action);
   const skill = skillForAction(context, action);
   const gain = skill ? weaponSkillChargeGain({ config: context.professionConfig || {} }, skill, { element }) : 0;
-  const fillsCharges = name === 'Rejuvenate';
+  const fillsCharges = actionSkillId(context, action) === ID.REJUVENATE;
   if (gain <= 0 && !fillsCharges) return null;
   return {
     at: action.end,
@@ -334,8 +334,8 @@ function alignCalcifyWithResourceReadiness(
       grantIndex += 1;
     }
 
-    const name = actionName(action);
-    if (BASIC_FAMILIARS.has(name)) {
+    const skillId = actionSkillId(context, action);
+    if (BASIC_FAMILIARS.has(skillId)) {
       if (empowered >= 3) return action;
       if (charges >= 6) {
         charges = 0;
@@ -343,7 +343,7 @@ function alignCalcifyWithResourceReadiness(
         return action;
       }
 
-      if (name !== CALCIFY.name) return action;
+      if (skillId !== ID.CALCIFY) return action;
 
       let prospectiveCharges = charges;
       let prospectiveGrantIndex = grantIndex;
@@ -370,7 +370,7 @@ function alignCalcifyWithResourceReadiness(
       return { ...action, start: readyAt, end: action.end + shift };
     }
 
-    if (FAMILIAR_ELEMENTS[name] && empowered >= 3) {
+    if (FAMILIAR_ELEMENTS.has(skillId) && empowered >= 3) {
       empowered = 0;
     }
 

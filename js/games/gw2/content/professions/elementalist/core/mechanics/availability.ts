@@ -12,20 +12,16 @@ import type { AvailabilityResult, Skill } from '#gw2/platform/engine/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { denySkillCast as unavailable } from '#gw2/content/professions/lib/availability.js';
-import type {
-  ElementalistPrecastContext as ElementalistCastContext,
-  ElementalistSchedulerContext
-} from '#gw2/content/professions/elementalist/types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  type ElementalistCoreState
-} from '#gw2/content/professions/elementalist/core/state.js';
+import type { ElementalistPrecastContext } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/content/professions/elementalist/core/state.js';
 import {
   AURA_TRANSMUTE_SKILLS,
+  CONJURE_PICKUP_WEAPONS,
   CONJURED_WEAPONS,
   DODGE_ENDURANCE_COST,
   HAMMER_ORB_SKILLS
 } from '#gw2/content/professions/elementalist/core/constants.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import { elementalistElementalAvailability } from '#gw2/content/professions/elementalist/core/skills/elementals.js';
 import { targetAttunement } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import { projectedFreshAirReadyAt } from '#gw2/content/professions/elementalist/core/traits/index.js';
@@ -53,14 +49,14 @@ function ready(): AvailabilityResult {
  * First-match availability gate for every Core Elementalist skill: returns ready,
  * a permanent denial, or a denial carrying the time the command is worth retrying.
  */
-export function elementalistCoreAvailability(context: ElementalistCastContext, skill: Skill): AvailabilityResult {
+export function elementalistCoreAvailability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   // Glyph summons and elemental command skills answer through their own gate first.
   const elementalAvailability = elementalistElementalAvailability(context, skill);
   if (elementalAvailability) return elementalAvailability;
   const state = professionCoreState(context);
   // Pistol's finisher needs one stored bullet of every element.
   if (
-    skill.name === 'Elemental Explosion' &&
+    Number(skill.id) === ID.ELEMENTAL_EXPLOSION &&
     !ELEMENTALIST_ATTUNEMENTS.every((element) => state.pistolBullets[element])
   ) {
     return unavailable(skill, 'elementalist.pistol-bullets', 'requires all four elemental bullets.');
@@ -85,13 +81,8 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   // Dodge settles endurance up to the current instant, then either passes or
   // reports the time regeneration covers the cost.
-  if (skill.name === 'Dodge') {
-    updateEndurance(
-      context as unknown as ElementalistSchedulerContext,
-      state,
-      context.start,
-      Boolean(context.config.boons?.vigor)
-    );
+  if (Number(skill.id) === ID.DODGE) {
+    updateEndurance(context, state, context.start, Boolean(context.config.boons?.vigor));
     const enduranceCost = balanceProfileValueFromContext(
       context,
       PROFILE.resources,
@@ -108,10 +99,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
             state.endurance,
             enduranceCost,
             context.start,
-            elementalistEnduranceRegenerationRate(
-              context as unknown as ElementalistSchedulerContext,
-              Boolean(context.config.boons?.vigor)
-            ),
+            elementalistEnduranceRegenerationRate(context, Boolean(context.config.boons?.vigor)),
             context.epsilon
           )
         );
@@ -119,14 +107,15 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   // Synthetic bundle commands: dropping needs an equipped conjure, and picking one
   // up needs a ground pickup that has not expired.
-  if (skill.name === '__drop_bundle') {
+  if (Number(skill.id) === ID.DROP_BUNDLE) {
     return state.conjureEquipped
       ? ready()
       : unavailable(skill, 'elementalist.no-bundle', 'no conjured weapon is equipped.');
   }
 
-  if (skill.name.startsWith('__pickup_')) {
-    const weapon = skill.name.slice('__pickup_'.length);
+  const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+  if (pickupWeapon) {
+    const weapon = pickupWeapon;
     const expiresAt = Number(state.conjurePickups[weapon] || 0);
     return expiresAt >= context.start
       ? ready()
@@ -153,11 +142,11 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
-  if (skill.name === 'Hurl' && state.rockBarrierExpiresAt <= context.start + context.epsilon) {
+  if (Number(skill.id) === ID.HURL && state.rockBarrierExpiresAt <= context.start + context.epsilon) {
     return unavailable(skill, 'elementalist.rock-barrier', 'requires an active Rock Barrier.');
   }
 
-  if (skill.name === 'Rock Barrier' && state.rockBarrierExpiresAt > context.start + context.epsilon) {
+  if (Number(skill.id) === ID.ROCK_BARRIER && state.rockBarrierExpiresAt > context.start + context.epsilon) {
     return unavailable(
       skill,
       'elementalist.rock-barrier-active',
@@ -168,10 +157,10 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   // Spear etchings unlock their lesser and full payoffs by chain stage, which only
   // other casts can advance, so these denials are never retried on a timer.
-  const chain = etchingChain(skill.name);
-  if (chain && skill.name !== chain.etching) {
+  const chain = etchingChain(skill.id);
+  if (chain && Number(skill.id) !== chain.etchingId) {
     const progress = state.etchings[chain.etching];
-    const requiredStage = skill.name === chain.lesser ? 'lesser' : 'full';
+    const requiredStage = Number(skill.id) === chain.lesserId ? 'lesser' : 'full';
     if (progress?.stage !== requiredStage) {
       return unavailable(
         skill,
@@ -214,7 +203,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   }
 
   // Grand Finale needs at least one floating orb matching the current attunement.
-  if (skill.name === 'Grand Finale') {
+  if (Number(skill.id) === ID.GRAND_FINALE) {
     const compatible = activeHammerOrbElements(state, context.start).some((element) =>
       hammerOrbMatchesAttunement(context, state, element)
     );

@@ -18,9 +18,10 @@ export function skillWeapon(skill: Skill): string {
   return String(skill.weapon || skill.skillWeapon || '');
 }
 
-/** Finds the spear etching chain a skill name participates in, if any. */
-export function etchingChain(name: string) {
-  return ETCHING_CHAINS.find((chain) => name === chain.etching || name === chain.lesser || name === chain.full);
+/** Finds the spear etching chain a stable skill ID participates in, if any. */
+export function etchingChain(skillId: Skill['id']) {
+  const id = Number(skillId);
+  return ETCHING_CHAINS.find((chain) => id === chain.etchingId || id === chain.lesserId || id === chain.fullId);
 }
 
 /** Returns the tracked application of one aura still active at `at`, or null. */

@@ -9,7 +9,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { guardianTargetDisabled } from '#gw2/content/professions/guardian/core/traits/modifiers.js';
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   GuardianCastContext,
   GuardianSchedulerContext,

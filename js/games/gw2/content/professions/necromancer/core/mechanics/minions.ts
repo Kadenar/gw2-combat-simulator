@@ -1,9 +1,7 @@
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 /**
  * Minion summon and command handlers.
  *
@@ -16,64 +14,20 @@ import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/s
  */
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
 import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  NECROMANCER_MINION_PROFILE_BY_SKILL_ID
-} from '#gw2/content/professions/necromancer/core/profiles.js';
-import {
   runCreatureSummonReactions,
   gainNecromancerLifeForce,
   necromancerCreatureStrikeMultiplier
 } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask, SchedulerRecord, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
-
-interface MinionAttack {
-  readonly name: string;
-  readonly coefficient?: number;
-  readonly offset?: number;
-  readonly skillId?: SkillId;
-  readonly icon?: string;
-  readonly weaponStrength?: number;
-  readonly damagePerCoefficient?: number;
-  readonly comboFinishers?: readonly SchedulerRecord[];
-  readonly condition?: readonly (string | number)[];
-  readonly controlKind?: string;
-  readonly controlDuration?: number;
-}
-
-interface MinionDefinition {
-  readonly key: string;
-  readonly count: number;
-  readonly interval: number;
-  readonly initialDelay?: number;
-  readonly coefficient: number;
-  readonly commandId?: SkillId;
-  readonly rechargeOnMinionDeath?: boolean;
-  readonly weaponStrength?: number;
-  readonly basePower?: number;
-  readonly damagePerCoefficient?: number;
-  readonly criticalChance?: number;
-  readonly criticalDamage?: number;
-  readonly commandRecoveryDelay?: number;
-  readonly attacks?: readonly MinionAttack[];
-  readonly alternateEvery?: number;
-  readonly alternateAttacks?: readonly MinionAttack[];
-}
-
-interface MinionCommandDefinition {
-  readonly minion: string;
-  readonly coefficient?: number;
-  readonly condition?: readonly (string | number)[];
-  readonly conditions?: readonly (readonly (string | number)[])[];
-  readonly control?: string;
-  readonly controlDuration?: number;
-  readonly controlWindow?: number;
-  readonly blindDuration?: number;
-  readonly impactDelay?: number;
-  readonly consumes?: number;
-  readonly lifeForceGain?: number;
-  readonly attacks?: readonly MinionAttack[];
-}
+import {
+  commandDefinitionFor,
+  minionDefinitionFor,
+  minionDefinitionForSkill,
+  summonWeaponStrength,
+  type MinionCommandDefinition,
+  type MinionDefinition
+} from '#gw2/content/professions/necromancer/core/mechanics/minion-profiles.js';
 
 const MINION_COMMAND_IMPACT_TASK = 'necromancer.minion-command-impact';
 const MINION_ATTACK_TASK = 'necromancer.minion-attack';
@@ -111,120 +65,6 @@ function queueMinionAttackStop(
     at,
     payload: { ownerId: minionAttackOwner(key, attackGeneration) }
   });
-}
-
-// Normalize a declarative strike effect into the compact packet shape used by minion scheduling.
-function minionAttackFromEffect(effect: SkillEffect, fallbackName: string): MinionAttack {
-  return {
-    name: String(effect.name || fallbackName),
-    coefficient: Number(effect.coefficient || 0),
-    offset: Number(effect.atMs || 0) / 1000,
-    skillId: effect.sourceId,
-    icon: effect.icon == null ? undefined : String(effect.icon),
-    damagePerCoefficient: effect.damagePerCoefficient == null ? undefined : Number(effect.damagePerCoefficient),
-    comboFinishers: effect.comboFinishers
-  };
-}
-
-// Translate a summon balance profile into the runtime attack model, including
-// alternating packets and any condition carried by the alternate attack.
-function minionDefinitionForSkill(context: NecromancerCastContext, skillId: SkillId): MinionDefinition | undefined {
-  const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
-  const profile = balanceProfileFromContext(context, profileId);
-  if (!profile) return undefined;
-  // Separate the ordinary cadence from profile packets reserved for alternating cycles.
-  const strikes = (profile.effects || []).filter((effect) => effect.type === 'strike');
-  const ordinary = strikes.filter((effect) => effect.packetLabel !== 'alternate');
-  const alternate = strikes.filter((effect) => effect.packetLabel === 'alternate');
-  const alternateCondition = (profile.effects || []).find(
-    (effect) => effect.type === 'condition' && effect.packetLabel === 'alternate'
-  );
-  const toAttack = (effect: SkillEffect): MinionAttack => ({
-    ...minionAttackFromEffect(effect, profile.name),
-    ...(alternateCondition
-      ? {
-          condition: [
-            String(alternateCondition.condition || ''),
-            Number(alternateCondition.stacks || 1),
-            Number(alternateCondition.duration || 0)
-          ]
-        }
-      : {})
-  });
-  // Normalize the balance profile once so the scheduling loop stays profile-agnostic.
-  return {
-    key: String(profile.minionKey || ''),
-    count: Number(profile.minionCount || 1),
-    interval: Number(profile.pulseInterval || 0),
-    initialDelay: profile.initialDelay == null ? undefined : Number(profile.initialDelay),
-    coefficient: Number(ordinary[0]?.coefficient || 0),
-    commandId: profile.commandId as SkillId | undefined,
-    weaponStrength: profile.weaponStrength == null ? undefined : Number(profile.weaponStrength),
-    basePower: Number(profile.basePower || 0),
-    damagePerCoefficient: Number(profile.damagePerCoefficient || 0),
-    criticalChance: Number(profile.criticalChance || 0),
-    criticalDamage: Number(profile.criticalDamage || 0),
-    commandRecoveryDelay: profile.rechargeOffsetMs == null ? undefined : Number(profile.rechargeOffsetMs) / 1000,
-    attacks: ordinary.map(toAttack),
-    alternateEvery: Number(profile.alternateEvery || 0),
-    alternateAttacks: alternate.map(toAttack)
-  };
-}
-
-// Resolve a runtime minion definition by its stable state key rather than its summon skill ID.
-function minionDefinitionFor(context: NecromancerCastContext, key: string): MinionDefinition | undefined {
-  for (const skillId of Object.keys(NECROMANCER_MINION_PROFILE_BY_SKILL_ID)) {
-    const definition = minionDefinitionForSkill(context, Number(skillId));
-    if (definition?.key === key) return definition;
-  }
-
-  return undefined;
-}
-
-function summonWeaponStrength(context: NecromancerCastContext): number {
-  return Number(balanceProfileFromContext(context, PROFILE.summonAttributes)?.weaponStrength || 1048);
-}
-
-// Compile a command skill's declarative strikes, ticks, conditions, control, and
-// consumption fields into the shape used by minion command scheduling.
-function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefinition {
-  const effects = skill.effects || [];
-  // Split immediate strikes from explicitly timed attack packets.
-  const strike = effects.find((effect) => effect.type === 'strike' && !Array.isArray(effect.ticks));
-  const tickStrike = effects.find((effect) => effect.type === 'strike' && Array.isArray(effect.ticks));
-  const ticks = Array.isArray(tickStrike?.ticks) ? tickStrike.ticks : [];
-  const attacks: MinionAttack[] = ticks.map((tick) => ({
-    name: String(tick.name || skill.name),
-    coefficient: Number(tick.coefficient || 0),
-    offset: Number(tick.atMs || 0) / 1000,
-    skillId: tick.sourceId as SkillId | undefined,
-    comboFinishers: Array.isArray(tick.comboFinishers) ? tick.comboFinishers : undefined,
-    controlKind: String(tick.controlKind || ''),
-    controlDuration: Number(tick.controlDuration || 0)
-  }));
-  const conditions = effects
-    .filter((effect) => effect.type === 'condition')
-    .map((effect) =>
-      Object.freeze([String(effect.condition || ''), Number(effect.stacks || 1), Number(effect.duration || 0)])
-    );
-  const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
-  const controlMetadata = controlEffect?.metadata || {};
-  // Collapse declarative packets into the command scheduler's compact runtime shape.
-  return {
-    minion: String(skill.minionKey || ''),
-    coefficient: Number(strike?.coefficient || 0),
-    conditions,
-    control: String(
-      controlEffect?.type === 'blind' ? 'blind' : controlMetadata.controlKind || attacks[0]?.controlKind || ''
-    ),
-    controlDuration: Number(controlMetadata.duration || attacks[0]?.controlDuration || 0),
-    controlWindow: Number(skill.controlWindow || 0),
-    blindDuration: Number(controlMetadata.duration || 0),
-    impactDelay: Number(skill.impactDelay || 0),
-    consumes: Number(skill.consumes || 0),
-    lifeForceGain: Number(skill.lifeForceOnHit || 0),
-    attacks
-  };
 }
 
 // Stamp summon-specific damage attributes only when the active profile supplies a complete independent formula.
@@ -448,14 +288,7 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
   }
 
   // Publish the summon before reactions and autonomous attack scheduling consume the new state.
-  emitStateSnapshot(
-    context,
-    'necromancer',
-    context.effectiveEnd,
-    'minion-summoned',
-    snapshotNecromancerState(context.state.profession),
-    { dedupeAcrossSourceIds: true }
-  );
+  emitNecromancerStateSnapshot(context, context.effectiveEnd, 'minion-summoned', { dedupeAcrossSourceIds: true });
   runCreatureSummonReactions(context, skill, context.effectiveEnd, definition.count);
   queueSummonAttacks(context, skill, definition, context.effectiveEnd);
   return true;
@@ -614,14 +447,7 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
     professionCoreState(context).availableFlips[skill.id] = Number.POSITIVE_INFINITY;
   }
 
-  emitStateSnapshot(
-    context,
-    'necromancer',
-    context.effectiveEnd,
-    'minion-command',
-    snapshotNecromancerState(context.state.profession),
-    { dedupeAcrossSourceIds: true }
-  );
+  emitNecromancerStateSnapshot(context, context.effectiveEnd, 'minion-command', { dedupeAcrossSourceIds: true });
   return true;
 }
 

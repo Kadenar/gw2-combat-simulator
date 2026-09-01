@@ -28,7 +28,9 @@ import {
   applySignetMasteryCastComplete,
   applySunderingBurst,
   armBurstPrecision,
+  modifyWarriorArmsAttributes,
   reactToWarriorDamage,
+  warriorArmsModifierRules,
   warriorArmsCriticalCount
 } from '#gw2/content/professions/warrior/core/traits/arms.js';
 import {
@@ -41,7 +43,9 @@ import {
   BRAVE_STRIDE_MOVEMENT_SKILL_IDS,
   grantBerserkersPower,
   grantBerserkersPowerOnFirstHit,
-  reactToWarriorBuff
+  modifyWarriorStrengthAttributes,
+  reactToWarriorBuff,
+  warriorStrengthModifierRules
 } from '#gw2/content/professions/warrior/core/traits/strength.js';
 import {
   advanceEmpowerAllies,
@@ -50,15 +54,22 @@ import {
   applyMartialCadence,
   applyMartialCadenceWeaponSwap,
   applyPhalanxStrength,
-  applySoldiersComfort
+  applySoldiersComfort,
+  modifyWarriorTacticsAttributes,
+  warriorTacticsModifierRules
 } from '#gw2/content/professions/warrior/core/traits/tactics.js';
 import {
   applyCullTheWeak,
   applyMercilessHammer,
   applyStalwartStrength,
-  applyThickSkinCastStart
+  applyThickSkinCastStart,
+  warriorDefenseModifierRules
 } from '#gw2/content/professions/warrior/core/traits/defense.js';
-import { applyBurstMastery, applyVersatileRage } from '#gw2/content/professions/warrior/core/traits/discipline.js';
+import {
+  applyBurstMastery,
+  applyVersatileRage,
+  warriorDisciplineModifierRules
+} from '#gw2/content/professions/warrior/core/traits/discipline.js';
 
 export {
   applyMartialCadenceWeaponSwap,
@@ -67,8 +78,16 @@ export {
   BRAVE_STRIDE_MOVEMENT_SKILL_IDS,
   grantBerserkersPower,
   grantBerserkersPowerOnFirstHit,
+  modifyWarriorArmsAttributes,
+  modifyWarriorStrengthAttributes,
+  modifyWarriorTacticsAttributes,
   reactToWarriorBuff,
-  reactToWarriorDamage
+  reactToWarriorDamage,
+  warriorArmsModifierRules,
+  warriorDefenseModifierRules,
+  warriorDisciplineModifierRules,
+  warriorStrengthModifierRules,
+  warriorTacticsModifierRules
 };
 
 // Arm Burst Precision before applying Burst Mastery's refund and Swiftness.
@@ -140,7 +159,7 @@ export const warriorCoreSkillMechanicHandlers = Object.freeze({
     // Rifle Butt restores one count to other rifle ammo skills and readies every rifle burst.
     for (const skill of context.catalog.skills) {
       if (skill.weapon === 'Rifle' && skill.ammo) restoreAmmo(context, skill, 1, at);
-      if (skill.name === 'Kill Shot' || skill.name === 'Gun Flame') context.state.cooldowns.delete(skill.id);
+      if (skill.id === ID.KILL_SHOT || skill.id === ID.GUN_FLAME) context.state.cooldowns.delete(skill.id);
     }
   },
   'warrior.core.reset-crushing-blow': ({ context }: { context: WarriorSchedulerContext }): void => {

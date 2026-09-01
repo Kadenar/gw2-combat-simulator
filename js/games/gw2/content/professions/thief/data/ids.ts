@@ -28,7 +28,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   INFILTRATORS_STRIKE: 13015, // Infiltrator's Strike
   FLANKING_STRIKE: 13016, // Flanking Strike
   DANCING_DAGGER: 13019, // Dancing Dagger
-  SCORPION_WIRE: 13020, // Scorpion Wire
   WITHDRAW: 13021, // Withdraw
   TRICK_SHOT: 13022, // Trick Shot
   CHOKING_GAS: 13024, // Choking Gas
@@ -36,7 +35,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   PREPARE_THOUSAND_NEEDLES: 13026, // Prepare Thousand Needles
   HIDE_IN_SHADOWS: 13027, // Hide in Shadows
   CALTROPS: 13028, // Caltrops
-  ROLL_FOR_INITIATIVE: 13035, // Roll for Initiative
   SPIDER_VENOM: 13037, // Spider Venom
   PREPARE_SHADOW_PORTAL: 13038, // Prepare Shadow Portal
   SHADOW_SHOT: 13040, // Shadow Shot
@@ -60,7 +58,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   WILD_STRIKE: 13087, // Wild Strike
   SLASH: 13088, // Slash
   DEVOURER_VENOM: 13093, // Devourer Venom
-  ICE_DRAKE_VENOM: 13096, // Ice Drake Venom
   HEARTSEEKER: 13097, // Heartseeker
   SEAL_AREA: 13099, // Seal Area
   LOTUS_STRIKE: 13108, // Lotus Strike
@@ -152,11 +149,8 @@ export const THIEF_SKILL_IDS = Object.freeze({
   HOLO_DANCER_DECOY: 76674, // Holo-Dancer Decoy
   EXALTED_HAMMER_ID_76702: 76702, // Exalted Hammer
   STONE_SUMMIT_CANNON: 76725, // Stone Summit Cannon
-  EMERGENCY_JADE_SHIELD: 76784, // Emergency Jade Shield
   HOLO_DANCER_DECOY_ID_76800: 76800, // Holo-Dancer Decoy
-  INQUEST_PORTAL_DEVICE: 76808, // Inquest Portal Device
   CHAK_SHIELD: 76816, // Chak Shield
-  EMERGENCY_JADE_SHIELD_ID_76879: 76879, // Emergency Jade Shield
   ANTIVENOM_DRAUGHT_BACKFIRED: 76881, // Antivenom Draught: Backfired
   ANTIVENOM_DRAUGHT: 76886, // Antivenom Draught
   ZEPHYRITE_SUN_CRYSTAL: 76895, // Zephyrite Sun Crystal
@@ -169,7 +163,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   SKRITT_SCUFFLE: 77255, // Skritt Scuffle
   MISTBURN_MORTAR: 77277, // Mistburn Mortar
   MISTBURN_MORTAR_ID_77288: 77288, // Mistburn Mortar
-  INQUEST_PORTAL_DEVICE_BACKFIRED: 77361, // Inquest Portal Device: Backfired
   SKRITT_SWIPE: 77397, // Skritt Swipe
   ZEPHYRITE_SUN_CRYSTAL_ID_78309: 78309, // Zephyrite Sun Crystal
   FLAWLESS_EXECUTION: 80244, // Flawless Execution

@@ -2,15 +2,15 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 import type {
   MesmerCoreState,
   MesmerEndState,
   MesmerProfessionState,
   MesmerProjectedFlip,
   MesmerResourceDefinition,
-  MesmerSchedulerContext,
   MesmerStateSnapshot
-} from '#gw2/content/professions/mesmer/types.js';
+} from '#gw2/content/professions/mesmer/state/types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
 export function mesmerResourceDefinition(specialization: string): MesmerResourceDefinition {

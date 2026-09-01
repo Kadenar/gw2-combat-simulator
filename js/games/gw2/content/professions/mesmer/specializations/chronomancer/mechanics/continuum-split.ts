@@ -7,12 +7,13 @@ import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chains.
 import type { SchedulerState, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   MesmerAddEvent,
-  MesmerRuntimeState,
   MesmerRefreshAmmo,
   MesmerResourceSpendDetails,
-  MesmerShatterResolution,
-  MesmerSkill
+  MesmerShatterResolution
 } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerRuntimeState } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 interface ContinuumControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

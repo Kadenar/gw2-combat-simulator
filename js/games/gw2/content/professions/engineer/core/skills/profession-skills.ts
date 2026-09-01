@@ -93,21 +93,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     ],
     toolbeltParentName: 'Technobabble'
   },
-  [ID.PAIN_TRANSFERENCE]: {
-    implemented: true,
-    castTimeMs: 1250,
-    cooldown: 45,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        name: 'Pain Transference',
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Pain Inverter'
-  },
   [ID.VENT_RADIATION]: {
     implemented: true,
     castTimeMs: 0,
@@ -122,42 +107,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       }
     ],
     toolbeltParentName: 'Radiation Field'
-  },
-  [ID.INVIGORATING_ROAR]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 50,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 10,
-        stacks: 1
-      }
-    ],
-    toolbeltParentName: 'Battle Roar'
-  },
-  [ID.BOOBY_TRAP_CHARR_SKILL]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 45,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        name: 'Booby Trap (charr skill)',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 10,
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Shrapnel Mine'
   },
   [ID.HIDDEN_PISTOLS]: {
     implemented: true,
@@ -196,13 +145,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       }
     ],
     toolbeltParentName: 'Seed Turret'
-  },
-  [ID.VINE_SHIELD]: {
-    implemented: true,
-    castTimeMs: 1500,
-    cooldown: 45,
-    effects: [],
-    toolbeltParentName: 'Grasping Vines'
   },
   [ID.STATIC_SHOCK]: {
     implemented: true,

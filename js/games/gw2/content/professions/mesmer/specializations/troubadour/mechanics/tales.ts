@@ -3,7 +3,9 @@ import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
 import { troubadourState } from '#gw2/content/professions/mesmer/specializations/troubadour/state.js';
-import type { MesmerSchedulerContext, MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 interface TroubadourTaleInvocation {
   readonly context: MesmerSchedulerContext;

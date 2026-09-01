@@ -4,10 +4,11 @@ import type {
   MesmerAddCondition,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerConditionApplication,
   MesmerRuntime,
   MesmerShatterResolution
 } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerConditionApplication } from '#gw2/content/professions/mesmer/data/types.js';
 
 type CryOfPainContext = Pick<MesmerRuntime, 'traits' | 'balanceProfile'>;
 

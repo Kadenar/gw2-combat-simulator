@@ -12,6 +12,7 @@ const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
   Mesmer: Object.freeze([10197, 10200, 10201, 10203, 10236, 62573]),
   Necromancer: Object.freeze([10612, 40274, 42917]),
   Ranger: Object.freeze([12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256]),
+  Thief: Object.freeze([13020, 13035, 13096, 76784, 76808, 76879, 77361]),
   Warrior: Object.freeze([14368, 14403, 14413, 14479, 76769, 76934])
 });
 
@@ -34,7 +35,7 @@ export function parseProfession(args) {
 
 export async function updateProfessionApiData(
   professionName,
-  { fetchImpl = fetch, snapshotDate, snapshotConfig, output: requestedOutput, refreshCommand, log = console.log } = {}
+  { fetchImpl = fetch, snapshotDate, snapshotConfig, output: requestedOutput, log = console.log } = {}
 ) {
   const normalizedProfession = normalizeProfessionName(professionName);
   const omittedSkillIds = SIMULATOR_OMITTED_SKILL_IDS[normalizedProfession] || [];
@@ -73,7 +74,6 @@ export async function updateProfessionApiData(
     output,
     professionName: normalizedProfession,
     snapshotDate,
-    refreshCommand,
     ...snapshot
   });
   const traitCount = snapshot.specializations.reduce(

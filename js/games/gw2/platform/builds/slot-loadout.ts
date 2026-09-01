@@ -16,7 +16,7 @@
  * returns a build patch, while `updateBuild` intentionally mutates the build
  * object supplied by the application state layer.
  *
- * @module profession-slot-loadout
+ * @module fixed-slot-loadout
  */
 
 export interface SlotLoadoutEntryInput {
@@ -49,7 +49,6 @@ export interface SlotLoadoutContext {
     [field: string]: unknown;
   };
   activeLoadoutId?: string;
-  [field: string]: unknown;
 }
 
 export interface SlotLoadoutSelectorOption {
@@ -111,16 +110,16 @@ export interface CreateFixedSlotLoadoutOptions {
   defaults?: readonly unknown[];
 }
 
-export interface FixedSlotLoadout {
+export interface FixedSlotLoadout<TBuild extends BuildRecord = BuildRecord> {
   readonly id: string;
   readonly label: string;
   readonly selectionKey: string;
   readonly startingKey: string;
   readonly entries: readonly SlotLoadoutEntry[];
-  normalizeBuild(build: BuildRecord, context?: SlotLoadoutContext): BuildRecord;
-  validateBuild(build: BuildRecord, context?: SlotLoadoutContext): string[];
+  normalizeBuild(build: TBuild, context?: SlotLoadoutContext): Partial<TBuild> & BuildRecord;
+  validateBuild(build: TBuild, context?: SlotLoadoutContext): string[];
   view(context?: SlotLoadoutContext): SlotLoadoutView;
-  updateBuild(build: BuildRecord, selectorKey: string, value: unknown, context?: SlotLoadoutContext): BuildRecord;
+  updateBuild(build: TBuild, selectorKey: string, value: unknown, context?: SlotLoadoutContext): TBuild;
   selectedSkillIds(context?: SlotLoadoutContext): number[];
   paletteGroups(context?: SlotLoadoutContext): SlotLoadoutPaletteGroup[];
   unavailableReason(skill: { readonly id: number }, context?: SlotLoadoutContext): string;
@@ -168,7 +167,7 @@ function loadoutContext(
  * Creates the shared fixed-bar loadout model used by professions whose slot
  * skills are selected as packages rather than five independent dropdowns.
  */
-export function createFixedSlotLoadout({
+export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>({
   id = 'fixed-slot-loadout',
   label = 'Loadout',
   entryLabel = 'Bar',
@@ -180,7 +179,7 @@ export function createFixedSlotLoadout({
   formatActiveBar = true,
   entries: rawEntries,
   defaults
-}: CreateFixedSlotLoadoutOptions = {}): FixedSlotLoadout {
+}: CreateFixedSlotLoadoutOptions = {}): FixedSlotLoadout<TBuild> {
   if (!selectionKeyOption || !startingKeyOption || selectionCount < 1) {
     throw new TypeError('Fixed slot loadouts require selectionKey, startingKey, and selectionCount.');
   }
@@ -218,16 +217,16 @@ export function createFixedSlotLoadout({
     return selected;
   }
 
-  function normalizeBuild(build: BuildRecord, context: SlotLoadoutContext = {}): BuildRecord {
+  function normalizeBuild(build: TBuild, context: SlotLoadoutContext = {}): Partial<TBuild> & BuildRecord {
     const selected = normalizedSelection(build, context);
     const requestedStart = stableId(build?.[startingKey]);
     return {
       [selectionKey]: selected,
       [startingKey]: selected.includes(requestedStart) ? requestedStart : selected[0]
-    };
+    } as Partial<TBuild> & BuildRecord;
   }
 
-  function validateBuild(build: BuildRecord, context: SlotLoadoutContext = {}): string[] {
+  function validateBuild(build: TBuild, context: SlotLoadoutContext = {}): string[] {
     const errors: string[] = [];
     const rawSelected = build?.[selectionKey];
     const selected = Array.isArray(rawSelected) ? rawSelected.map(stableId) : [];
@@ -309,12 +308,8 @@ export function createFixedSlotLoadout({
     };
   }
 
-  function updateBuild(
-    build: BuildRecord,
-    selectorKey: string,
-    value: unknown,
-    context: SlotLoadoutContext = {}
-  ): BuildRecord {
+  function updateBuild(build: TBuild, selectorKey: string, value: unknown, context: SlotLoadoutContext = {}): TBuild {
+    const mutableBuild: BuildRecord = build;
     const selected = normalizedSelection(build, context);
     if (selectorKey.startsWith(`${selectionKey}:`)) {
       const index = Number(selectorKey.split(':').at(-1));
@@ -328,13 +323,13 @@ export function createFixedSlotLoadout({
         !selected.some((entryId, selectedIndex) => entryId === next && selectedIndex !== index)
       ) {
         selected[index] = next;
-        build[selectionKey] = selected;
-        if (!selected.includes(stableId(build[startingKey]))) {
-          build[startingKey] = selected[0];
+        mutableBuild[selectionKey] = selected;
+        if (!selected.includes(stableId(mutableBuild[startingKey]))) {
+          mutableBuild[startingKey] = selected[0];
         }
       }
     } else if (selectorKey === startingKey && selected.includes(stableId(value))) {
-      build[startingKey] = stableId(value);
+      mutableBuild[startingKey] = stableId(value);
     }
 
     return build;

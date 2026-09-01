@@ -2,6 +2,7 @@
  * Mirage-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+
 import type { MesmerAmbushAttack } from '#gw2/content/professions/mesmer/types.js';
 
 export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({

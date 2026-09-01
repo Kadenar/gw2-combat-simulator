@@ -13,7 +13,7 @@ import {
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
-import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
+import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { resolveScheduledStream } from '#gw2/platform/engine/resolution/resolver.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
@@ -420,8 +420,9 @@ test('declarative generic buffs use shared timed state without boon-duration sca
 });
 
 test('handler registry rejects duplicates and missing required handlers', () => {
-  const registry = new HandlerRegistry().register('damage', () => {});
+  const registry = new HandlerRegistry().register('damage', () => {}).register('observable', OBSERVABLE_EVENT_HANDLER);
 
+  assert.equal(registry.dispatch({ type: 'observable' }, {}), undefined);
   assert.throws(() => registry.register('damage', () => {}), /Duplicate event handler/);
   assert.throws(() => registry.require(['condition']), /Missing required/);
   assert.throws(() => registry.dispatch({ type: 'unknown' }, {}), /No event handler/);

@@ -1,4 +1,8 @@
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  flattenProfessionState,
+  projectPublicProfessionState,
+  snapshotProfessionState
+} from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import {
   GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
@@ -51,7 +55,7 @@ const GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<GuardianState>> 
 
 /** Aggregates Core and active-specialization state into the stable Guardian snapshot contract. */
 export function snapshotGuardianState(state: unknown): GuardianState {
-  return structuredClone(flattenProfessionState(state)) as unknown as GuardianState;
+  return snapshotProfessionState<GuardianState>(state);
 }
 
 /** Public compatibility keys are composed from manifests owned by each Guardian vertical slice. */

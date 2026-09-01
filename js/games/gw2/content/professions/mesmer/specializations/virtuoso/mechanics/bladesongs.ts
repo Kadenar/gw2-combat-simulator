@@ -1,26 +1,13 @@
-import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import {
+  mesmerConditionFromProfile,
+  mesmerRuntimeFor
+} from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import { applyCryOfPain } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import type {
   MesmerCastContext,
-  MesmerConditionApplication,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/content/professions/mesmer/types.js';
-
-function conditionFromProfile(
-  context: MesmerCastContext,
-  id: number | string,
-  fallback: MesmerConditionApplication
-): MesmerConditionApplication {
-  const effect = mesmerRuntimeFor(context)
-    .balanceProfile(id)
-    ?.effects?.find(({ type }) => type === 'condition');
-  return {
-    name: String(effect?.condition || fallback.name),
-    duration: Number(effect?.duration ?? fallback.duration),
-    stacks: Number(effect?.stacks ?? fallback.stacks)
-  };
-}
 
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(
@@ -55,7 +42,7 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-confusion') {
-    const baseConfusion = conditionFromProfile(context, shatter.balanceProfileId || skill.id, {
+    const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, {
       name: 'Confusion',
       duration: 3,
       stacks: 1

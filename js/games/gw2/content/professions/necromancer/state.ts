@@ -1,6 +1,31 @@
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { syncNecromancerResources } from '#gw2/content/professions/necromancer/core/state.js';
-import { syncHarbingerState } from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
+import {
+  flattenProfessionState,
+  projectPublicProfessionState,
+  snapshotProfessionState
+} from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import type {
+  ProfessionStateSnapshotEmissionContext,
+  StateSnapshotEmissionOptions
+} from '#gw2/platform/engine/events/state-snapshots.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import {
+  NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
+  syncNecromancerResources
+} from '#gw2/content/professions/necromancer/core/state.js';
+import {
+  HARBINGER_PUBLIC_END_STATE_DEFAULTS,
+  HARBINGER_PUBLIC_END_STATE_KEYS,
+  syncHarbingerState
+} from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
+import {
+  RITUALIST_PUBLIC_END_STATE_DEFAULTS,
+  RITUALIST_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
+import {
+  SCOURGE_PUBLIC_END_STATE_DEFAULTS,
+  SCOURGE_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/necromancer/specializations/scourge/state.js';
 import type {
   NecromancerEndStateProjectionOptions,
   NecromancerState
@@ -8,46 +33,40 @@ import type {
 
 /** Builds the stable flattened state boundary shared by scheduler snapshots and result projection. */
 export function snapshotNecromancerState(state: unknown): NecromancerState {
-  const flattened = flattenProfessionState(state) as unknown as NecromancerState;
+  const flattened = snapshotProfessionState<NecromancerState>(state);
   syncNecromancerResources(flattened);
   if (Object.hasOwn(flattened, 'blightExpiries')) syncHarbingerState(flattened);
-  return structuredClone(flattened) as NecromancerState;
+  return flattened;
+}
+
+/** Emits a synchronized Necromancer resource snapshot with shared deduplication. */
+export function emitNecromancerStateSnapshot(
+  context: ProfessionStateSnapshotEmissionContext,
+  at: number,
+  reason: string,
+  options?: StateSnapshotEmissionOptions
+): SimulationEvent | null {
+  return emitStateSnapshot(
+    context,
+    'necromancer',
+    at,
+    reason,
+    snapshotNecromancerState(context.state.profession),
+    options
+  );
 }
 
 export const NECROMANCER_PUBLIC_END_STATE_KEYS: readonly (keyof NecromancerState)[] = Object.freeze([
-  'lifeForce',
-  'resource',
-  'maximumLifeForce',
-  'maximumHealth',
-  'lifeForcePoolCapacity',
-  'activeShroud',
-  'shroudEnteredAt',
-  'blight',
-  'blightExpiries',
-  'cascadingCorruptionStacks',
-  'soulShards',
-  'soulShardExpiries',
-  'carapaceExpiries',
-  'shades',
-  'activeMinions',
-  'activeSpirits',
-  'availableFlips',
-  'autoattackChains',
-  'selfConditions',
-  'lichEndsAt',
-  'soulTwistingAvailable',
-  'meltdownUntil',
-  'dreadUntil'
+  ...NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
+  ...SCOURGE_PUBLIC_END_STATE_KEYS,
+  ...HARBINGER_PUBLIC_END_STATE_KEYS,
+  ...RITUALIST_PUBLIC_END_STATE_KEYS
 ]);
 
 const NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<NecromancerState>> = Object.freeze({
-  blight: 0,
-  blightExpiries: [],
-  cascadingCorruptionStacks: 0,
-  shades: [],
-  activeSpirits: {},
-  soulTwistingAvailable: false,
-  meltdownUntil: 0
+  ...SCOURGE_PUBLIC_END_STATE_DEFAULTS,
+  ...HARBINGER_PUBLIC_END_STATE_DEFAULTS,
+  ...RITUALIST_PUBLIC_END_STATE_DEFAULTS
 });
 
 /** Projects only the public cross-phase state while folding resolver-owned life-force gains into the result. */

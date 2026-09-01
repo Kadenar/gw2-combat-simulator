@@ -1,6 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
-import type { ElementalistConfig, ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
+import type { ElementalistConfig } from '#gw2/content/professions/elementalist/build/types.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
@@ -96,6 +97,15 @@ export interface ElementalistCoreState {
   arcaneEchoUntil: number;
 }
 
+interface ElementalistAttunementCooldownContext {
+  readonly state: {
+    readonly profession: { readonly core: ElementalistCoreState };
+    readonly time?: number;
+    readonly cooldowns?: Map<SkillId, number>;
+  };
+  readonly time?: number;
+}
+
 /** Narrows arbitrary config input to a valid attunement before it reaches state. */
 export function isElementalistAttunement(value: unknown): value is ElementalistAttunement {
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement);
@@ -178,7 +188,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
  * availability and the UI agree.
  */
 export function setElementalistAttunementReadyAt(
-  context: ElementalistSchedulerContext,
+  context: ElementalistAttunementCooldownContext,
   attunement: ElementalistAttunement,
   readyAt: number
 ): void {
@@ -196,7 +206,7 @@ export function setElementalistAttunementReadyAt(
 }
 
 /** Clears every attunement recharge to now; the Core `onCooldownReset` hook. */
-export function resetElementalistAttunementCooldowns(context: ElementalistSchedulerContext): void {
+export function resetElementalistAttunementCooldowns(context: ElementalistAttunementCooldownContext): void {
   const at = Number((context.state as { time?: number } | undefined)?.time || context.time || 0);
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     setElementalistAttunementReadyAt(context, attunement, at);

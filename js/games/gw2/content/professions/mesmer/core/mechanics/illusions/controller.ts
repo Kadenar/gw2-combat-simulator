@@ -10,16 +10,7 @@ import type { SimulationEvent, SimulationEventInput, SkillId } from '#gw2/platfo
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { mesmerResourceDefinition, mesmerResourceProfileId } from '#gw2/content/professions/mesmer/state/index.js';
-import type {
-  MesmerActiveEmission,
-  MesmerCastDetails,
-  MesmerClone,
-  MesmerPendingResource,
-  MesmerRuntime,
-  MesmerSchedulerContext,
-  MesmerPhantasmAttackTiming,
-  MesmerSkill
-} from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 import {
   MESMER_CORE_ARISTOCRACY_SKILLS,
   MESMER_CORE_BLIND_SKILLS,
@@ -46,6 +37,13 @@ import { createSkillEffectController } from '#gw2/content/professions/mesmer/cor
 import { createCloneAttackScheduler } from '#gw2/content/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { createExpectedProcTracker } from '#gw2/content/professions/mesmer/core/mechanics/illusions/expected-procs.js';
 import { createMesmerEventMaterializer } from '#gw2/content/professions/mesmer/core/mechanics/illusions/event-materializer.js';
+import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/content/professions/mesmer/core/skills/types.js';
+import type {
+  MesmerClone,
+  MesmerPhantasmAttackTiming
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerPendingResource } from '#gw2/content/professions/mesmer/state/types.js';
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 /** Builds Core trait variations consumed by the shared phantasm lifecycle. */
 function runtimeTraitsPhantasmSpawnModifiers(

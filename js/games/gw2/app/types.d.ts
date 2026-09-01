@@ -14,7 +14,7 @@ import type {
   Gw2ApplicationBuild,
   Gw2CalculateAttributes,
   Gw2FinalizedAttributeResult,
-  Gw2SlotLoadout
+  ProfessionAssumptionControl
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProfessionContract, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
@@ -23,31 +23,6 @@ import type { PatchPreview, PatchRuntimeValues } from '#gw2/integrations/patches
 import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison.js';
 import type { BuildEditor, GameContentAddress, SimulationPresentation } from '#app/shell/types.js';
 import type { RotationHotkeyImport } from '#gw2/app/rotation/input/hotkeys.js';
-
-export interface ProfessionBuildAssumptions extends SchedulerRecord {
-  might?: number;
-  fury?: boolean;
-  quickness?: boolean;
-  alacrity?: boolean;
-  protection?: boolean;
-  resolution?: boolean;
-  regeneration?: boolean;
-  swiftness?: boolean;
-  vigor?: boolean;
-  aegis?: boolean;
-  alliedPlayerCount?: number;
-  sharePlayerBoonsWithSummons?: boolean;
-  playerHealthPercent?: number;
-  targetDefiant?: boolean;
-  targetDistance?: number;
-  targetMoving?: boolean;
-  targetBoonless?: boolean;
-  targetSkillActivationsPerSecond?: number;
-  targetConditions?: Record<string, number | boolean>;
-  timeOfDay?: 'day' | 'night';
-}
-
-export type ProfessionApplicationBuild = Gw2ApplicationBuild;
 
 export interface ProfessionAppContract {
   readonly id: string;
@@ -206,49 +181,6 @@ export interface RotationActionOptions extends SchedulerRecord {
   readonly durationMs?: number | null;
 }
 
-export interface ProfessionAssumptionOption {
-  readonly value: string;
-  readonly label: string;
-  readonly skillId?: number;
-  readonly icon?: string;
-}
-
-export interface ProfessionAssumptionControlInput {
-  readonly key?: unknown;
-  readonly label?: unknown;
-  readonly type?: unknown;
-  readonly defaultValue?: unknown;
-  readonly minimum?: unknown;
-  readonly maximum?: unknown;
-  readonly step?: unknown;
-  readonly options?: unknown;
-  readonly specializations?: unknown;
-  readonly section?: unknown;
-}
-
-export interface ProfessionAssumptionControlBase extends SchedulerRecord {
-  readonly key: string;
-  readonly label: string;
-  readonly defaultValue: unknown;
-  readonly specializations?: readonly string[];
-  readonly section?: string;
-}
-
-export type ProfessionAssumptionControl =
-  | (ProfessionAssumptionControlBase & {
-      readonly type: 'boolean';
-    })
-  | (ProfessionAssumptionControlBase & {
-      readonly type: 'number';
-      readonly minimum: number;
-      readonly maximum: number;
-      readonly step: number;
-    })
-  | (ProfessionAssumptionControlBase & {
-      readonly type: 'select';
-      readonly options: readonly ProfessionAssumptionOption[];
-    });
-
 export interface ProfessionSpecializationTrait extends CatalogEntity {
   readonly icon: string;
   readonly description: string;
@@ -265,16 +197,16 @@ export interface ProfessionSlotLoadout extends SchedulerRecord {
   readonly startingKey: string;
   readonly palettePlacement?: string;
   normalizeBuild(
-    build: ProfessionApplicationBuild,
+    build: Gw2ApplicationBuild,
     context: {
-      readonly build: ProfessionApplicationBuild;
+      readonly build: Gw2ApplicationBuild;
       readonly specialization: string;
       readonly professionState?: unknown;
       readonly catalog: CanonicalCatalog;
     }
-  ): Partial<ProfessionApplicationBuild> & SchedulerRecord;
+  ): Partial<Gw2ApplicationBuild> & SchedulerRecord;
   selectedSkillIds(context: {
-    readonly build: ProfessionApplicationBuild;
+    readonly build: Gw2ApplicationBuild;
     readonly specialization: string;
     readonly professionState?: unknown;
     readonly catalog: CanonicalCatalog;
@@ -286,15 +218,15 @@ export interface ProfessionSlotLoadout extends SchedulerRecord {
   unavailableReason(skill: Skill, context: ProfessionSlotLoadoutContext): string;
   view(context: ProfessionSlotLoadoutContext): ProfessionSlotLoadoutView;
   updateBuild(
-    build: ProfessionApplicationBuild,
+    build: Gw2ApplicationBuild,
     selectorKey: string,
     value: string,
     context: ProfessionSlotLoadoutContext
-  ): ProfessionApplicationBuild;
+  ): Gw2ApplicationBuild;
 }
 
 export interface ProfessionSlotLoadoutContext {
-  readonly build: ProfessionApplicationBuild;
+  readonly build: Gw2ApplicationBuild;
   readonly specialization: string;
   readonly professionState?: unknown;
   readonly catalog: CanonicalCatalog;
@@ -339,7 +271,7 @@ export interface ProfessionAppState {
   activeCatalog: Readonly<CanonicalCatalog>;
   patchId: string;
   patchComparison: PatchComparison | null;
-  build: ProfessionApplicationBuild;
+  build: Gw2ApplicationBuild;
   skills: Skill[];
   skillByName: ReadonlyMap<string, Skill>;
   skillById: ReadonlyMap<SkillId, Skill>;
@@ -377,7 +309,7 @@ export interface ProfessionAppState {
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
-  templateUndoBuild: ProfessionApplicationBuild | null;
+  templateUndoBuild: Gw2ApplicationBuild | null;
   modifierContributionRunner: ProfessionFeatureRunner;
   randomDistributionRunner: ProfessionFeatureRunner;
   relicComparisonRunner: ProfessionFeatureRunner;
@@ -454,7 +386,7 @@ export interface ProfessionAppFilenames {
 }
 
 export interface ProfessionSkillAvailabilityContext {
-  readonly build?: ProfessionApplicationBuild;
+  readonly build?: Gw2ApplicationBuild;
   readonly specialization?: string;
   readonly professionState?: unknown;
 }
@@ -490,7 +422,7 @@ export interface ProfessionRuntimeApi {
     config: Gw2Config,
     observationPolicy?: ObservationPolicy
   ): Gw2SimulationResult;
-  eliteSpecialization(build: ProfessionApplicationBuild): string;
+  eliteSpecialization(build: Gw2ApplicationBuild): string;
   recalculate(app: ProfessionAppState): void;
   simulationConfig(app: ProfessionAppState, disabled?: ProfessionModifier | null): Gw2Config;
   modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest;
@@ -536,7 +468,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly resetPrompt: string;
   readonly specializationFallback: string;
   readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
-  readonly toApplicationBuild: (build: unknown) => ProfessionApplicationBuild;
+  readonly toApplicationBuild: (build: unknown) => Gw2ApplicationBuild;
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;
   readonly specializations: CanonicalCatalog['specializations'];
@@ -556,7 +488,7 @@ export interface DefineProfessionAppOptions {
   readonly profession: ProfessionAppContract;
   readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
   readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
-  readonly toApplicationBuild: (build: unknown) => ProfessionApplicationBuild;
+  readonly toApplicationBuild: (build: unknown) => Gw2ApplicationBuild;
   readonly specializationFallback: string;
   readonly storageVersion?: number;
   readonly storageKey?: string;

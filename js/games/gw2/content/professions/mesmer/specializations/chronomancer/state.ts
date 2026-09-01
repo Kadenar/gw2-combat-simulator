@@ -1,5 +1,6 @@
-import type { MesmerChronomancerState, MesmerConfig } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerConfig } from '#gw2/content/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { MesmerChronomancerState } from '#gw2/content/professions/mesmer/specializations/chronomancer/types.js';
 
 export function createChronomancerState(_config: Partial<MesmerConfig> = {}): MesmerChronomancerState {
   return {

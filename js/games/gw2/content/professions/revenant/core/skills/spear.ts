@@ -1,7 +1,6 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import {
   conditionEffectTicks,
@@ -225,13 +224,7 @@ export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task:
     name: effectName,
     detail: `${stacks.length}/${maximum} stacks`
   });
-  emitStateSnapshot(
-    context,
-    'revenant',
-    task.at,
-    'crushing-abyss-gain',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, task.at, 'crushing-abyss-gain');
 }
 
 /** Queues the max-stack weapon-swap attack at the swap's completion time. */
@@ -261,13 +254,7 @@ export function handleCrushingAbyssWeaponSwap(
   if (sameWeaponSet(context.config, origin, destination)) return;
   professionCoreState(context).crushingAbyss = [];
   emitAbyssalRazePackets(context, skill, task.at, maximum, 'Swap Weapons');
-  emitStateSnapshot(
-    context,
-    'revenant',
-    task.at,
-    'crushing-abyss-weapon-swap',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, task.at, 'crushing-abyss-weapon-swap');
 }
 
 /** Removes expired Crushing Abyss stacks from projected scheduler state. */

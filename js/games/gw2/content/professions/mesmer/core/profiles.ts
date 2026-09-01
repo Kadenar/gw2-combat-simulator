@@ -13,7 +13,8 @@ import {
   MESMER_CORE_SHATTERS,
   MESMER_CORE_TRAIT_DAMAGE
 } from '#gw2/content/professions/mesmer/core/mechanics/definitions.js';
-import type { MesmerShatter, MesmerTraitDamage } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerShatter } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerTraitDamage } from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.core.resources',

@@ -14,12 +14,9 @@ import {
 } from '#gw2/platform/combat/state/event-ownership.js';
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 
-import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
-  Gw2ApplyCondition,
-  Gw2ConditionHelpers,
   Gw2RelicContext,
-  Gw2RelicMaterializerContext,
   Gw2RelicRule,
   Gw2RelicRuntime,
   Gw2RelicRuntimeContext,

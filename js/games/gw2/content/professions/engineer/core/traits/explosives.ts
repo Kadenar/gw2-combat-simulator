@@ -166,7 +166,7 @@ export function applyExplosiveTemper(
 
 /** Grants Grand Entrance's resistance and critical-chance window from its trait strike. */
 export function applyGrandEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.name !== 'Explosive Entrance' || !hasTrait(context, TRAIT.GRAND_ENTRANCE)) return;
+  if (Number(event.sourceId) !== TRAIT.EXPLOSIVE_ENTRANCE || !hasTrait(context, TRAIT.GRAND_ENTRANCE)) return;
   queueBuff(context, event, {
     name: 'Grand Entrance — resistance',
     kind: 'resistance',
@@ -192,7 +192,8 @@ export function applyShrapnel(
   event: EngineerResolverEvent,
   explosion: boolean
 ): void {
-  if (!explosion || event.name === 'Aim-Assisted Rocket' || !hasTrait(context, TRAIT.SHRAPNEL)) return;
+  if (!explosion || Number(event.sourceId) === ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL || !hasTrait(context, TRAIT.SHRAPNEL))
+    return;
   const state = procState(context);
   let triggered = false;
   if (context.random?.stochastic === true) {

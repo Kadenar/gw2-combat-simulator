@@ -7,7 +7,7 @@ import type {
   HolosmithState
 } from '#gw2/content/professions/engineer/types.js';
 import type { GuardianCoreState, GuardianFirebrandState } from '#gw2/content/professions/guardian/types.js';
-import type { MesmerCoreState, MesmerVirtuosoState } from '#gw2/content/professions/mesmer/types.js';
+
 import type { NecromancerCoreState, ScourgeState } from '#gw2/content/professions/necromancer/types.js';
 import type {
   ConduitState,
@@ -21,6 +21,8 @@ import type { CatalystState } from '#gw2/content/professions/elementalist/specia
 import type { WeaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
+import type { MesmerCoreState } from '#gw2/content/professions/mesmer/state/types.js';
+import type { MesmerVirtuosoState } from '#gw2/content/professions/mesmer/specializations/virtuoso/types.js';
 
 type Assert<T extends true> = T;
 type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? true : false;

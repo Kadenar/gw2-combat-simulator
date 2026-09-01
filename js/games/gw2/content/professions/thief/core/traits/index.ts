@@ -1,16 +1,12 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileEffectFromContext as traitEffect,
-  balanceProfileFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { gainThiefEndurance } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
+import { applyActiveVenoms } from '#gw2/content/professions/thief/core/skills/venoms.js';
 import { applyFluidStrikes, applyHardToCatch } from '#gw2/content/professions/thief/core/traits/acrobatics.js';
 import {
   applyAssassinsFury,
@@ -81,7 +77,7 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
     const fluidStrikesChanged = applyFluidStrikes(context, at);
     const hardToCatchApplied = applyHardToCatch(context, at);
     if (fluidStrikesChanged && !hardToCatchApplied) {
-      emitStateSnapshot(context, 'thief', at, 'fluid-strikes', snapshotThiefState(context.state.profession));
+      emitThiefStateSnapshot(context, at, 'fluid-strikes');
     }
   }
 
@@ -98,35 +94,10 @@ export function reactToThiefCoreBuff(context: ThiefResolverContext, event: Thief
   applyAssassinsFury(context, event);
 }
 
-// Base Spider Venom remains in this dispatcher so trait files do not own or
-// consume the underlying skill mechanic.
-function applySpiderVenom(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  const state = professionCoreState(context);
-  if (Number(state.spiderVenomCharges || 0) <= 0 || Number(state.spiderVenomExpiresAt || 0) <= event.at) return;
-  state.spiderVenomCharges -= 1;
-  const poison = traitEffect(context, PROFILE.spiderVenomProc, 'condition');
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'thief',
-    sourceId: ID.SPIDER_VENOM,
-    actorType: 'player',
-    skillId: ID.SPIDER_VENOM,
-    skillName: 'Spider Venom',
-    name: 'Spider Venom - Poison',
-    condition: String(poison?.condition || 'Poisoned'),
-    stacks: Number(poison?.stacks || 1),
-    duration: Number(poison?.duration || 3),
-    activationId: event.activationId || `${event.skillId}:${event.at}`,
-    triggeredBy: event.skillName
-  });
-  applyLeechingVenoms(context, event);
-}
-
 /** Runs damage reactions after the base venom packet in their established cross-line order. */
 export function reactToThiefCoreDamage(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  applySpiderVenom(context, event);
+  const venomProcs = applyActiveVenoms(context, event);
+  for (let index = 0; index < venomProcs; index += 1) applyLeechingVenoms(context, event);
   applyShadowSiphoning(context, event);
   applyPanicStrike(context, event);
 }

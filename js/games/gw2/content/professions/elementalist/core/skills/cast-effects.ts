@@ -6,7 +6,7 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerContext, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 import { produceGw2OwnedComboEvents } from '#gw2/platform/scheduler/combo-materializer.js';
 import { emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import {
@@ -37,6 +37,7 @@ import type {
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
 import { applyConjureState } from '#gw2/content/professions/elementalist/core/skills/conjures.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   beginElementalistGlyphCast,
   completeElementalistElementalCommand,
@@ -80,12 +81,12 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
   applySkillAura(context, skill);
   beginElementalistGlyphCast(context, skill);
   const state = professionCoreState(context);
-  const chain = etchingChain(skill.name);
-  if (chain && skill.name === chain.etching && skillWeapon(skill) === 'Spear') {
+  const chain = etchingChain(skill.id);
+  if (chain && Number(skill.id) === chain.etchingId && skillWeapon(skill) === 'Spear') {
     state.etchings[chain.etching] = { stage: 'lesser', otherCasts: 0 };
   }
 
-  if (skill.name === 'Grand Finale') {
+  if (Number(skill.id) === ID.GRAND_FINALE) {
     // Grand Finale re-authors the orbs' damage, so any packet still pending from
     // the activations that created those orbs is cancelled rather than doubled.
     const activations = new Set(
@@ -137,7 +138,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
     )
     .sort((left, right) => left.at - right.at);
 
-  if (skill.name === 'Frigid Flurry' && state.pistolBullets.Water === true) {
+  if (Number(skill.id) === ID.FRIGID_FLURRY && state.pistolBullets.Water === true) {
     // An active ice bullet gives every Frigid Flurry strike its fixed 20% projectile-finisher chance.
     for (const [index, event] of activationEvents.entries()) {
       const replacement = context.replaceEvent(event, {
@@ -151,7 +152,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
           }
         ]
       });
-      produceGw2OwnedComboEvents(context as unknown as SchedulerContext, replacement);
+      produceGw2OwnedComboEvents(context, replacement);
     }
   }
 
@@ -197,16 +198,16 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
     state.activeAuras = state.activeAuras.filter((candidate) => candidate.type !== aura || candidate.expiresAt <= at);
   }
 
-  const chain = etchingChain(skill.name);
-  if (chain && skill.name !== chain.etching && skillWeapon(skill) === 'Spear') {
+  const chain = etchingChain(skill.id);
+  if (chain && Number(skill.id) !== chain.etchingId && skillWeapon(skill) === 'Spear') {
     state.etchings[chain.etching] = null;
-  } else if (!chain || skill.name === chain.etching) {
+  } else if (!chain || Number(skill.id) === chain.etchingId) {
     // Any other completed cast counts toward every armed etching, upgrading it
     // from the lesser release to the full one once enough casts have passed.
     for (const candidate of ETCHING_CHAINS) {
       const progress = state.etchings[candidate.etching];
       if (!progress || progress.stage !== 'lesser') continue;
-      if (skill.name === candidate.etching) continue;
+      if (Number(skill.id) === candidate.etchingId) continue;
       const otherCasts = progress.otherCasts + 1;
       state.etchings[candidate.etching] = {
         stage:
@@ -219,12 +220,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
   }
 
   if (Number(skill.resourceGain || 0) > 0) {
-    updateEndurance(
-      context as unknown as ElementalistSchedulerContext,
-      state,
-      at,
-      Boolean(context.config.boons?.vigor)
-    );
+    updateEndurance(context, state, at, Boolean(context.config.boons?.vigor));
     Object.assign(
       state,
       grantEndurance(
@@ -262,7 +258,7 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     professionCoreState(context).rockBarrierExpiresAt = 0;
-    const root = context.catalog.skillsByName.get('Rock Barrier');
+    const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
     if (root) {
       context.state.cooldowns.set(root.id, at + context.rechargeDurationFor(root, at, { rockBarrierRelease: true }));
     }
@@ -348,12 +344,11 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   // (Weaver dual attunements, Evoker) flags it so Core does not repeat it.
   const target = targetAttunement(skill);
   if (target) {
-    const lifecycle = context as unknown as SchedulerRecord;
-    if (lifecycle.elementalistAttunementHandled !== true) {
+    if (context.elementalistAttunementHandled !== true) {
       onAttunementComplete(context, skill, target);
     }
 
-    delete lifecycle.elementalistAttunementHandled;
+    delete context.elementalistAttunementHandled;
     // Elementalist spear etchings count attunement swaps among the three
     // completed casts required to upgrade their release skill.
     applySpecialSkillProgression(context, skill);
@@ -365,13 +360,8 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   applySpecialSkillProgression(context, skill);
   shareAttunementVariantRecharge(context, skill);
   // Dodge is modeled as a cast, so endurance is caught up to now before its cost is spent.
-  if (skill.name === 'Dodge') {
-    updateEndurance(
-      context as unknown as ElementalistSchedulerContext,
-      state,
-      context.effectiveEnd,
-      Boolean(context.config.boons?.vigor)
-    );
+  if (Number(skill.id) === ID.DODGE) {
+    updateEndurance(context, state, context.effectiveEnd, Boolean(context.config.boons?.vigor));
     Object.assign(
       state,
       spendEndurance(
@@ -386,7 +376,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
 
   // Arcane Echo resets the next recharging weapon skill, and pays for it by
   // pushing its own cooldown out by that skill's full recharge.
-  if (skill.name === 'Arcane Echo') {
+  if (Number(skill.id) === ID.ARCANE_ECHO) {
     state.arcaneEchoUntil =
       context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.arcaneEcho, 'durationMultiplier', 10);
   } else if (
@@ -399,14 +389,14 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
       skill.id,
       context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.arcaneEcho, 'recharge', 1)
     );
-    const arcaneEcho = context.catalog.skillsByName.get('Arcane Echo');
+    const arcaneEcho = context.catalog.skillsById.get(ID.ARCANE_ECHO);
     if (arcaneEcho) {
       const currentReadyAt = Number(context.state.cooldowns.get(arcaneEcho.id) || context.effectiveEnd);
       context.state.cooldowns.set(arcaneEcho.id, currentReadyAt + context.rechargeDuration);
     }
   }
 
-  if (skill.name === 'Fulgor') {
+  if (Number(skill.id) === ID.FULGOR) {
     const pulse = balanceProfileEffectFromContext(context, PROFILE.fulgor, 'strike');
     if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
     // Fulgor owns one secondary action at a time, so a recast replaces only

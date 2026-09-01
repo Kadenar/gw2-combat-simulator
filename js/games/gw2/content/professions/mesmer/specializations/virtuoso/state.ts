@@ -1,5 +1,6 @@
-import type { MesmerConfig, MesmerVirtuosoState } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerConfig } from '#gw2/content/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { MesmerVirtuosoState } from '#gw2/content/professions/mesmer/specializations/virtuoso/types.js';
 
 export function createVirtuosoState(config: Partial<MesmerConfig> = {}): MesmerVirtuosoState {
   return {

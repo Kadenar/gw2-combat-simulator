@@ -1,9 +1,8 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SkillId, StrikeTick } from '#gw2/platform/engine/types.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import type { ThiefCastContext, ThiefDodge, ThiefSkill } from '#gw2/content/professions/thief/types.js';
@@ -193,13 +192,7 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
     state.weakeningStrikeReady = true;
   }
 
-  emitStateSnapshot(
-    context,
-    'thief',
-    context.effectiveEnd,
-    'daredevil-dodge',
-    snapshotThiefState(context.state.profession)
-  );
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'daredevil-dodge');
   for (const effect of DAREDEVIL_DODGE_EFFECTS[state.selectedDodge] || []) {
     emitDodgeEffect(context, skill, effect);
   }
@@ -252,7 +245,7 @@ function applyWeakeningStrike(context: ThiefCastContext, skill: ThiefSkill): voi
     sourceId: TRAIT.WEAKENING_STRIKES,
     name: 'Weakening Strikes — Weakness'
   });
-  emitStateSnapshot(context, 'thief', context.start, 'weakening-strikes', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.start, 'weakening-strikes');
 }
 
 export function beginDaredevilTraits(context: ThiefCastContext, skill: ThiefSkill): void {

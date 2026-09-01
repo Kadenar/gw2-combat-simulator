@@ -1,6 +1,6 @@
 import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 
 export const BERSERKER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.berserker.resources',

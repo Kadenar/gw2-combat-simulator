@@ -1,5 +1,3 @@
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
-import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
 import { GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/guardian/core/skills/profession-skills.js';
 import { GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/guardian/core/skills/slot-skills.js';

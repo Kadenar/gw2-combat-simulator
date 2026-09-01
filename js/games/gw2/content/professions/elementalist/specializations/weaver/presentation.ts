@@ -16,24 +16,19 @@ import type {
   SimulationEvent,
   Skill
 } from '#gw2/platform/engine/types.js';
-import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_WEAVER_SKILL_IDS
 } from '#gw2/content/professions/elementalist/data/ids.js';
 import { getActiveTraits } from '#gw2/content/professions/elementalist/data/traits-data.js';
-import type { ElementalistBuildSpecialization } from '#gw2/content/professions/elementalist/types.js';
+
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/content/professions/elementalist/core/state.js';
+import { elementalistUiState } from '#gw2/content/professions/elementalist/core/presentation.js';
 import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+import type { ElementalistBuildSpecialization } from '#gw2/content/professions/elementalist/build/types.js';
 
 const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
-
-// Prefer live scheduler state, falling back to the end-of-simulation snapshot.
-function uiState(context: SchedulerRecord): SchedulerRecord {
-  const live = context.professionState as SchedulerRecord | undefined;
-  const end = context.state as { profession?: SchedulerRecord } | undefined;
-  return live || end?.profession || {};
-}
 
 // Unravel and its F5 palette group only exist when the trait is selected.
 function hasElementsOfRage(context: SchedulerRecord): boolean {
@@ -44,7 +39,7 @@ function hasElementsOfRage(context: SchedulerRecord): boolean {
 // An attunement swap changes Weaver's primary-hand bar immediately, but GW2
 // leaves the previous element's progressed autoattack on slot 1 until its chain resolves.
 function isCarriedAutoattackSkill(context: SchedulerRecord, skill: Skill): boolean {
-  const state = uiState(context);
+  const state = elementalistUiState(context);
   const carryover = state.autoattackCarryover as SchedulerRecord | undefined;
   const root = Number(carryover?.root);
   if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
@@ -57,7 +52,7 @@ function isCarriedAutoattackSkill(context: SchedulerRecord, skill: Skill): boole
 // Mirror scheduler availability for dual-attuned hands and flipover skills so
 // the palette explains which half of the current attunement pair blocks a skill.
 function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
-  const state = uiState(context);
+  const state = elementalistUiState(context);
   const build = context.build as SchedulerRecord | undefined;
   const now = Number(context.time || 0);
   const primary = String(state.primaryAttunement || build?.startAttunement || 'Fire');
@@ -158,7 +153,7 @@ function eventLogRow(_context: SchedulerRecord, event: SimulationEvent): Profess
 
 // Describe the Weaver state at one inspected point of the rotation editor.
 function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
-  const state = uiState(context);
+  const state = elementalistUiState(context);
   const primary = String(state.primaryAttunement || 'Fire');
   const secondary = String(state.secondaryAttunement || primary);
   const at = Math.max(0, Number(context.atSeconds || 0));

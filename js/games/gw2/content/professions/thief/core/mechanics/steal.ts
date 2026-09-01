@@ -1,8 +1,7 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { applyStealCompletionTraits } from '#gw2/content/professions/thief/core/traits/index.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
@@ -40,13 +39,7 @@ export function storeStolenSkillChoices(
         ? Number(balanceProfileFromContext(context, PROFILE.improvisation)?.maximumStacks || 2)
         : 1;
   if (emitState) {
-    emitStateSnapshot(
-      context,
-      'thief',
-      context.effectiveEnd,
-      'stolen-skill',
-      snapshotThiefState(context.state.profession)
-    );
+    emitThiefStateSnapshot(context, context.effectiveEnd, 'stolen-skill');
   }
 }
 
@@ -57,7 +50,7 @@ export function completeStealWithStoredSkills(
 ): void {
   storeStolenSkillChoices(context, skillIds, forcedSkillId, false);
   applyStealCompletionTraits(context, context.effectiveEnd);
-  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'steal', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'steal');
 }
 
 export function completeSteal(context: ThiefCastContext): void {
@@ -75,11 +68,5 @@ export function consumeStoredStolenSkill(context: ThiefCastContext, skill: Thief
     state.storedStolenSkillIds = [];
   }
 
-  emitStateSnapshot(
-    context,
-    'thief',
-    context.effectiveEnd,
-    'stolen-skill-used',
-    snapshotThiefState(context.state.profession)
-  );
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'stolen-skill-used');
 }

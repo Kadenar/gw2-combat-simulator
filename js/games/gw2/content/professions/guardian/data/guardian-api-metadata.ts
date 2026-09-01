@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for guardian.
-// Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Guardian to refresh.
-// Simulator mechanics are maintained under guardian/mechanics/.
+// Snapshot: 2026-07-25. Run npm run update:profession-data -- --profession Guardian to refresh.
+// Simulator mechanics are maintained under guardian/core/ and guardian/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { GuardianSkill } from '#gw2/content/professions/guardian/types.js';

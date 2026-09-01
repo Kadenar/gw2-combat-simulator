@@ -3,8 +3,9 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.j
 import {
   thiefEnduranceReadyAt,
   thiefInitiativeRegenerationRate
-} from '#gw2/content/professions/thief/core/mechanics/initiative-and-endurance.js';
-import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+} from '#gw2/content/professions/thief/core/mechanics/resources.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-chain.js';
+import { thiefTrapCastAvailability } from '#gw2/content/professions/thief/core/skills/traps.js';
 import { storedStolenSkillChoices } from '#gw2/content/professions/thief/core/mechanics/steal.js';
 import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
@@ -64,20 +65,8 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
     return deny(skill, 'thief.spear-chain', `requires spear chain stage ${spearStage + 1}.`);
   }
 
-  if (skill.id === ID.THOUSAND_NEEDLES) {
-    if (!state.thousandNeedlesPrepared) {
-      return deny(skill, 'thief.thousand-needles', 'prepare Thousand Needles first.');
-    }
-
-    if (Number(state.thousandNeedlesArmedAt || 0) > context.start) {
-      return deny(
-        skill,
-        'thief.thousand-needles-arming',
-        'the preparation is still arming.',
-        Number(state.thousandNeedlesArmedAt)
-      );
-    }
-  }
+  const trapAvailability = thiefTrapCastAvailability(context, skill);
+  if (trapAvailability) return trapAvailability;
 
   if (
     skill.type === 'Weapon' &&

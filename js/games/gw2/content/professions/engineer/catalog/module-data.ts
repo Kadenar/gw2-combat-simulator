@@ -53,13 +53,9 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.PLAGUE_OF_DARKNESS,
   ID.PLAGUE_OF_PESTILENCE,
   ID.CONFUSING_SPEECH,
-  ID.PAIN_TRANSFERENCE,
   ID.VENT_RADIATION,
-  ID.INVIGORATING_ROAR,
-  ID.BOOBY_TRAP_CHARR_SKILL,
   ID.HIDDEN_PISTOLS,
   ID.THROW_VINE,
-  ID.VINE_SHIELD,
   ID.ALLY_WARD,
   ID.STATIC_DISCHARGE_TRAIT_SKILL,
   ID.PLAGUE,
@@ -102,6 +98,7 @@ const generatedSource = SKILLS.map((skill) => ({
 const allDeclared: readonly Skill[] = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
 
 const byId = new Map<SkillId, Skill>(allDeclared.map((skill) => [skill.id, skill]));
+const byName = new Map<string, Skill>(allDeclared.map((skill) => [skill.name, skill]));
 
 const preferredFlipParentById = new Map<SkillId, SkillId>([
   [ID.DETONATE_HEALING_TURRET, ID.HEALING_TURRET],
@@ -192,27 +189,30 @@ function normalizeMechanics(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, mechanic]) => {
         const declared = byId.get(Number(id));
+        const toolbeltParentId = byName.get(String(mechanic.toolbeltParentName || ''))?.id;
+        // Resolve authored parent names once at catalog assembly so runtime trait behavior follows stable IDs.
+        const linkedMechanic = toolbeltParentId == null ? mechanic : { ...mechanic, toolbeltParentId };
 
         // Focused Devastation is a derived packet and must not appear as a manually castable skill.
         if (Number(id) === ID.FOCUSED_DEVASTATION) {
           return [
             id,
             {
-              ...mechanic,
+              ...linkedMechanic,
               simulatorExcluded: true
             }
           ];
         }
 
         if (!declared?.categories?.includes('Morph')) {
-          return [id, mechanic];
+          return [id, linkedMechanic];
         }
 
         // All selectable Amalgam morphs share the stateful morph activation handler.
         return [
           id,
           {
-            ...mechanic,
+            ...linkedMechanic,
             handlerId: 'engineer.amalgam-morph'
           }
         ];

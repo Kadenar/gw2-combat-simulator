@@ -1,5 +1,4 @@
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 /** Renegade runtime state machines backed by declarative skill profiles. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -10,7 +9,7 @@ import {
   balanceProfileEffect as effectByType,
   balanceProfileFromContext as balanceProfileById
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import { renegadeState } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
 import {
@@ -160,7 +159,7 @@ export function grantKallasFervor(
     duration,
     stacks: Number(effect.stacks || 1)
   });
-  emitStateSnapshot(context, 'revenant', at, 'kallas-fervor', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'kallas-fervor');
   return true;
 }
 
@@ -181,13 +180,7 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
   }
 
   if (state.kallasFervor.length) {
-    emitStateSnapshot(
-      context,
-      'revenant',
-      at,
-      'kallas-fervor-refreshed',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, at, 'kallas-fervor-refreshed');
   }
 
   return activeKallasFervorStacks(state, at, Math.max(1, Number(profile.maximumStacks || 1)));
@@ -227,13 +220,7 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
     const allForOne = balanceProfileById(context, RENEGADE_PROFILE_IDS.allForOne);
     const core = professionCoreState(context);
     core.energy = Math.min(core.maximumEnergy, core.energy + Math.max(0, Number(allForOne?.resourceGain || 0)));
-    emitStateSnapshot(
-      context,
-      'revenant',
-      context.start,
-      'all-for-one',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, context.start, 'all-for-one');
   }
 
   if (profile) emitProfileEffects(context, skill, profile);
@@ -310,13 +297,7 @@ export function completeBandTogether(
   profession.bandTogetherReady = true;
   profession.bandTogetherExpiresAt = context.effectiveEnd + Math.max(0, Number(effect.duration || 0));
   emitProfileEffects(context, bandTogether, bandTogether);
-  emitStateSnapshot(
-    context,
-    'revenant',
-    context.effectiveEnd,
-    'band-together',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, context.effectiveEnd, 'band-together');
 }
 
 /** Raw Renegade callbacks consumed by the module handler registry. */

@@ -15,8 +15,8 @@ import {
 import { denySkillCast as unavailable } from '#gw2/content/professions/lib/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistPrecastContext as ElementalistCastContext,
+  ElementalistCastContext,
+  ElementalistPrecastContext,
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
 import type { ElementalistRuntimeState } from '#gw2/content/professions/elementalist/types.js';
@@ -53,7 +53,7 @@ export function isSelectedSlotSkill(skill: Skill, selected: ReadonlySet<string>)
 
 // Attunement variants are alternate faces of one utility slot, so copy both
 // cooldown and ammo state to every variant after any one face is used.
-export function shareAttunementVariantRecharge(context: ElementalistLifecycleContext, skill: Skill): void {
+export function shareAttunementVariantRecharge(context: ElementalistCastContext, skill: Skill): void {
   if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type)) || !skill.attunement) {
     return;
   }
@@ -76,7 +76,7 @@ export function shareAttunementVariantRecharge(context: ElementalistLifecycleCon
  * command — only a different attunement, never elapsed time, makes them usable.
  */
 export function weaponAttunementAvailable(
-  context: ElementalistCastContext,
+  context: ElementalistPrecastContext,
   skill: Skill,
   state: ElementalistCoreState
 ): AvailabilityResult {
@@ -103,7 +103,7 @@ export function weaponAttunementAvailable(
 }
 
 /** Reads the specialization-owned secondary attunement, or null when the active specialization has none. */
-export function activeSecondaryAttunement(context: ElementalistCastContext): ElementalistAttunement | null {
+export function activeSecondaryAttunement(context: ElementalistPrecastContext): ElementalistAttunement | null {
   const specialization = (context.state.profession as ElementalistRuntimeState).specialization.state as Record<
     string,
     unknown
@@ -114,7 +114,7 @@ export function activeSecondaryAttunement(context: ElementalistCastContext): Ele
 
 /** Captures the mid-chain autoattack of the attunement being left so its progress survives the swap. */
 export function progressedAutoattackCarryover(
-  context: ElementalistLifecycleContext,
+  context: ElementalistCastContext,
   state: ElementalistCoreState,
   attunement: ElementalistAttunement
 ): ElementalistCoreState['autoattackCarryover'] {
@@ -135,7 +135,7 @@ export function progressedAutoattackCarryover(
 
 /** Captures an autoattack still casting through the swap; it only becomes carryover once that cast commits. */
 export function inFlightAutoattackCarryover(
-  context: ElementalistLifecycleContext,
+  context: ElementalistCastContext,
   attunement: ElementalistAttunement
 ): ElementalistCoreState['pendingAutoattackCarryover'] {
   for (const skillId of context.inFlight.keys()) {
@@ -174,7 +174,7 @@ function updateAerialAgilityFlip(
   transition: AutoattackChainTransitionContext,
   change: AutoattackChainTransition
 ): void {
-  const context = transition.cast as unknown as ElementalistLifecycleContext;
+  const context = transition.cast;
   context.tasks.cancelOwner(AERIAL_AGILITY_EXPIRY_OWNER);
 
   if (Number(transition.skill.id) === ID.AERIAL_AGILITY_CHAIN) {
@@ -198,7 +198,7 @@ function updateAerialAgilityFlip(
 
 /** Keeps Elementalist's attunement carryover metadata synchronized with shared chain transition results. */
 export function observeElementalistAutoattackTransition(transition: AutoattackChainTransitionContext): void {
-  const context = transition.cast as unknown as ElementalistLifecycleContext;
+  const context = transition.cast;
   const state = professionCoreState(context) as ElementalistCoreState;
   const chainRoot = transition.result.castChainRootId;
   // An uncommitted cast never earns carryover, so drop the pending capture.

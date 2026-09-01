@@ -1,4 +1,4 @@
-import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
+import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 
 // Exposes target size because several Revenant ground effects can overlap a large target more times.
 export const REVENANT_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([

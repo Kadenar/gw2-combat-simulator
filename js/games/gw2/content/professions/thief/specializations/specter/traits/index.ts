@@ -1,12 +1,11 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
 import type { ThiefScheduledTask, ThiefSchedulerContext } from '#gw2/content/professions/thief/types.js';
@@ -138,7 +137,7 @@ export function handleLarcenousTorment(
     state.maximumShadowForce,
     state.shadowForce + stacks * Number(profile?.resourceGain || 0.5)
   );
-  emitStateSnapshot(context, 'thief', task.at, 'larcenous-torment', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, task.at, 'larcenous-torment');
 }
 
 export function handleDarkSentry(
@@ -211,7 +210,7 @@ export function handleDarkSentry(
     }
   }
 
-  emitStateSnapshot(context, 'thief', task.at, 'dark-sentry', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, task.at, 'dark-sentry');
 }
 
 /** Resolver-side life siphons fire once for every applied torment stack. */

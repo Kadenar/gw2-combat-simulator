@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for thief.
-// Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Thief to refresh.
-// Simulator mechanics are maintained under thief/mechanics/.
+// Snapshot: 2026-07-28. Run npm run update:profession-data -- --profession Thief to refresh.
+// Simulator mechanics are maintained under thief/core/ and thief/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { ThiefSkill } from '#gw2/content/professions/thief/types.js';
@@ -1709,22 +1709,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     flipSkillId: null
   },
   {
-    id: 13020,
-    name: 'Scorpion Wire',
-    description: 'Trick. Throw a scorpion wire and pull your foe to you.',
-    icon: 'https://render.guildwars2.com/file/D8E53BEF29C7BB9A9657017761126929EA0BCCAB/103235.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Trick'],
-    recharge: 1,
-    ammo: 2,
-    ammoRecharge: 20,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 13021,
     name: 'Withdraw',
     description: 'Trick. Cure conditions, then roll backward while healing and evading attacks.',
@@ -1831,22 +1815,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     specialization: '',
     categories: ['Trick'],
     recharge: 24,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 13035,
-    name: 'Roll for Initiative',
-    description: 'Trick. Evade backward to regenerate initiative and recover from crippled, chilled, and immobilized.',
-    icon: 'https://render.guildwars2.com/file/FD592C06013BE57465909F062937D6B6FC5DD407/104072.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Trick'],
-    recharge: 25,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -2223,22 +2191,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     specialization: '',
     categories: ['Venom'],
     recharge: 40,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 13096,
-    name: 'Ice Drake Venom',
-    description: 'Venom. Chill foes with your next few attacks.',
-    icon: 'https://render.guildwars2.com/file/77F6B7A22D4BD264C108A2083F0637D0DC520C0D/104098.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Venom'],
-    recharge: 36,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3738,22 +3690,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     flipSkillId: null
   },
   {
-    id: 76784,
-    name: 'Emergency Jade Shield',
-    description: 'This skill has backfired and cannot be used again until fully recharged.',
-    icon: 'https://render.guildwars2.com/file/B719629A506EBA0444060E2D56A1DDB4183FCAD3/3680222.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Antiquary',
-    categories: [],
-    recharge: 15,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 76800,
     name: 'Holo-Dancer Decoy',
     description:
@@ -3771,22 +3707,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     flipSkillId: null
   },
   {
-    id: 76808,
-    name: 'Inquest Portal Device',
-    description: '',
-    icon: 'https://render.guildwars2.com/file/99210D96EB449F7A975920410C4EAEEECB41BC06/3680221.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Antiquary',
-    categories: [],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: 77361
-  },
-  {
     id: 76816,
     name: 'Chak Shield',
     description:
@@ -3798,22 +3718,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     specialization: '',
     categories: [],
     recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 76879,
-    name: 'Emergency Jade Shield',
-    description: '',
-    icon: 'https://render.guildwars2.com/file/B719629A506EBA0444060E2D56A1DDB4183FCAD3/3680222.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Antiquary',
-    categories: [],
-    recharge: 15,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -4012,22 +3916,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     specialization: '',
     categories: [],
     recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 77361,
-    name: 'Inquest Portal Device: Backfired',
-    description: 'This skill has backfired and cannot be used again until fully recharged.',
-    icon: 'https://render.guildwars2.com/file/99210D96EB449F7A975920410C4EAEEECB41BC06/3680221.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Antiquary',
-    categories: [],
-    recharge: 20,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

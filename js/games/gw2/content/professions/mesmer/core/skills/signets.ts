@@ -3,13 +3,12 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { EPSILON } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
-import type {
-  MesmerSchedulerContext,
-  MesmerSchedulerTask,
-  MesmerSkill
-} from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/core/profiles.js';
+import type { MesmerSchedulerTask } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 

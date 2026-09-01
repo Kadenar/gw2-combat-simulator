@@ -13,7 +13,6 @@ import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.j
 
 import { GUARDIAN_SKILL_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { selectedGuardianSpecialization } from '#gw2/content/professions/guardian/core/mechanics/availability.js';
-import { handleRadiantWeaponEquipped } from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
 import {
   buildGuardianStrike,
   emitGuardianEvent
@@ -91,6 +90,13 @@ export function radiantWeaponImpactAt(context: GuardianCastContext, skill: Guard
   return context.start + impactMs / 1000;
 }
 
+/** Records one completed radiant-weapon equip and rejects its autoattack flips. */
+export function recordRadiantWeaponEquipped(context: GuardianCastContext, skill: GuardianSkill): boolean {
+  if (!skill.radiantWeapon || skill.flipParentId != null) return false;
+  luminaryState.from(context).radiantWeaponsUsed[skill.radiantWeapon] = true;
+  return true;
+}
+
 /**
  * Determines whether a forge transition or forge-only skill is currently
  * castable. Unrelated skills return ready under the shared result contract.
@@ -114,7 +120,7 @@ export function radiantForgeAvailability(context: GuardianPrecastContext, skill:
       : denyCast('guardian.radiant-forge-inactive', `${skill.name} is unavailable — requires Radiant Forge.`);
   }
 
-  if (skill.name === 'Enter Radiant Forge') {
+  if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
     if (selectedGuardianSpecialization(context) !== 'Luminary') {
       return denyCast(
         'guardian.luminary-specialization',
@@ -127,7 +133,7 @@ export function radiantForgeAvailability(context: GuardianPrecastContext, skill:
       : CAST_READY;
   }
 
-  if (skill.name === 'Exit Radiant Forge') {
+  if (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) {
     if (selectedGuardianSpecialization(context) !== 'Luminary') {
       return denyCast(
         'guardian.luminary-specialization',
@@ -152,7 +158,7 @@ export function radiantForgeAvailability(context: GuardianPrecastContext, skill:
  * @returns {boolean} Always true because this replacing handler owns the cast.
  */
 function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  const entering = skill.name === 'Enter Radiant Forge';
+  const entering = skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   const state = luminaryState.from(context);
   if (!entering) {
     // Cooldown is finalized on manual exit; automatic expiry calls this
@@ -200,7 +206,6 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   if (skill.radiantWeapon && skill.flipParentId == null) {
     luminaryState.from(context).radiantWeapon = skill.radiantWeapon;
-    handleRadiantWeaponEquipped(context, skill);
     emitForgeWeaponSwap(context, skill);
   }
 

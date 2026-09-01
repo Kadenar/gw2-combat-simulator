@@ -3,15 +3,13 @@ import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/s
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import { completeThiefDodge, performThiefDodge } from '#gw2/content/professions/thief/core/skills/dodge.js';
 import {
-  activateSpiderVenom,
-  activateThousandNeedles,
   completeSpearStealthAttack,
   observeSpearChainEffect,
-  observeSpiderVenomEffect,
   prepareSpearChainSkill,
-  prepareSpearStealthAttack,
-  prepareThousandNeedles
-} from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+  prepareSpearStealthAttack
+} from '#gw2/content/professions/thief/core/skills/spear-chain.js';
+import { activateVenom, observeVenomBuff } from '#gw2/content/professions/thief/core/skills/venoms.js';
+import { activateTrap, prepareTrap } from '#gw2/content/professions/thief/core/skills/traps.js';
 import {
   activateAssassinsSignet,
   kneel,
@@ -45,12 +43,12 @@ export const thiefCoreSkillHandlers = Object.freeze({
   'thief.spear-stealth-attack': augmentSkillHandler(prepareSpearStealthAttack, {
     afterEffects: completeSpearStealthAttack
   }),
-  'thief.spider-venom': augmentSkillHandler(null, {
-    afterEffect: observeSpiderVenomEffect,
-    afterEffects: activateSpiderVenom
+  'thief.venom': augmentSkillHandler(null, {
+    afterEffect: observeVenomBuff,
+    afterEffects: activateVenom
   }),
-  'thief.prepare-thousand-needles': augmentAfter(prepareThousandNeedles),
-  'thief.thousand-needles': augmentAfter(activateThousandNeedles),
+  'thief.prepare-trap': augmentAfter(prepareTrap),
+  'thief.activate-trap': augmentAfter(activateTrap),
   'thief.assassins-signet': augmentAfter(activateAssassinsSignet),
   'thief.thieves-guild': augmentAfter(summonThievesGuild),
   'thief.weapon-swap': gw2WeaponSwapSkillHandler,

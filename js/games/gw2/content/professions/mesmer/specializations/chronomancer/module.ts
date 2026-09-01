@@ -1,4 +1,5 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { createMesmerModuleData } from '#gw2/content/professions/mesmer/catalog/module-data.js';
 import {
   chronomancerAttributeRules,
@@ -17,7 +18,6 @@ import {
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/content/professions/mesmer/specializations/chronomancer/skills/index.js';
 import { chronomancerSkillHandlers } from '#gw2/content/professions/mesmer/specializations/chronomancer/skills/execution.js';
-import { chronomancerEventHandlers } from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/state-events.js';
 import { CHRONOMANCER_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
 
 export const chronomancerModule = defineNativeModule({
@@ -41,7 +41,9 @@ export const chronomancerModule = defineNativeModule({
       hooks: chronomancerRuntimeHooks
     },
     resolution: {
-      hooks: { eventHandlers: chronomancerEventHandlers }
+      hooks: {
+        eventHandlers: { 'mesmer.phantasm-resummoned': OBSERVABLE_EVENT_HANDLER }
+      }
     }
   },
   presentation: chronomancerUi

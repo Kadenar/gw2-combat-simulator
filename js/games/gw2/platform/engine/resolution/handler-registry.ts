@@ -6,6 +6,9 @@
  */
 export type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
 
+/** Explicit shared marker for observable events that require no resolver mutation. */
+export const OBSERVABLE_EVENT_HANDLER: EventHandler<unknown, { type: string }> = () => undefined;
+
 /**
  * Registry for resolver event handlers. It keeps event-type ownership explicit
  * and rejects duplicate registrations so common GW2 handlers and profession

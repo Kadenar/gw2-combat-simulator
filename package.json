@@ -42,7 +42,7 @@
     "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
     "typecheck": "tsc -p tsconfig.typecheck.json",
     "check": "npm run format:check && npm run lint && npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs",
-    "update:profession-data": "node scripts/data/update-profession-api-data.mjs",
+    "update:profession-data": "node scripts/data/update-profession-data.mjs",
     "update:build-template-data": "node scripts/data/update-build-template-data.mjs",
     "update:elementalist-data": "node scripts/data/update-elementalist-api-data.mjs",
     "update:warrior-data": "node scripts/data/update-warrior-data.mjs",

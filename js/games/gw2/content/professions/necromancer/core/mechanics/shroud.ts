@@ -1,9 +1,8 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 /**
  * Shroud entry/exit and Lich Form handlers.
  *
@@ -151,7 +150,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     shroudSwap: true,
     specialization
   });
-  emitStateSnapshot(context, 'necromancer', at, 'shroud-enter', snapshotNecromancerState(context.state.profession), {
+  emitNecromancerStateSnapshot(context, at, 'shroud-enter', {
     dedupeAcrossSourceIds: true
   });
   return true;
@@ -178,7 +177,7 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
     state.lichEndsAt = at + 20;
     state.lastResourceAt = at;
     state.availableFlips[ID.EXIT_LICH_FORM] = state.lichEndsAt;
-    emitStateSnapshot(context, 'necromancer', at, 'lich-enter', snapshotNecromancerState(context.state.profession), {
+    emitNecromancerStateSnapshot(context, at, 'lich-enter', {
       dedupeAcrossSourceIds: true
     });
   } else {
@@ -186,7 +185,7 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
     state.lichEndsAt = 0;
     delete state.availableFlips[ID.EXIT_LICH_FORM];
     gainNecromancerLifeForce(context, 15, at);
-    emitStateSnapshot(context, 'necromancer', at, 'lich-exit', snapshotNecromancerState(context.state.profession), {
+    emitNecromancerStateSnapshot(context, at, 'lich-exit', {
       dedupeAcrossSourceIds: true
     });
   }

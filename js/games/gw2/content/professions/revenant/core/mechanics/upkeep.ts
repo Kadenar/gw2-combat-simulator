@@ -1,4 +1,3 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import {
@@ -6,7 +5,7 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/timelines.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant Core upkeep and pulse state machines.
  *
@@ -76,7 +75,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
     context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
-    emitStateSnapshot(context, 'revenant', at, 'upkeep-disabled', snapshotRevenantState(context.state.profession));
+    emitRevenantStateSnapshot(context, at, 'upkeep-disabled');
     return;
   }
 
@@ -106,7 +105,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
     ownerId: `revenant.upkeep:${skill.id}`,
     payload: { skillId: skill.id }
   });
-  emitStateSnapshot(context, 'revenant', at, 'upkeep-enabled', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'upkeep-enabled');
 }
 
 /** Releases an upkeep parent and applies its manual-release cooldown. */
@@ -123,7 +122,7 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
     context.state.cooldowns.set(parent.id, at + cooldown);
   }
 
-  emitStateSnapshot(context, 'revenant', at, 'upkeep-released', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'upkeep-released');
 }
 
 /** Resolves one recurring upkeep pulse and schedules the next occurrence. */

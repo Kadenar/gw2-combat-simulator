@@ -1,11 +1,10 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
 import type { ThiefCastContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
@@ -126,5 +125,5 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
   state.leadAttacksStacks = expirations.length;
   state.leadAttacksUntil = expirations.length ? Math.max(...expirations) : 0;
 
-  emitStateSnapshot(context, 'thief', at, 'lead-attacks', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'lead-attacks');
 }

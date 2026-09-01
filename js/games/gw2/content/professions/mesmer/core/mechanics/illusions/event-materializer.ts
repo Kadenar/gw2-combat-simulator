@@ -13,9 +13,10 @@ import type {
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerSummonKind
+  MesmerAddTraitProc
 } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSummonKind } from '#gw2/content/professions/mesmer/data/types.js';
 
 interface MesmerEventMaterializerOptions {
   readonly emit: (event: SimulationEventInput) => SimulationEvent | null;

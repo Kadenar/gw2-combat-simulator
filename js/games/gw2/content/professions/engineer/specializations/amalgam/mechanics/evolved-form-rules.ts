@@ -3,7 +3,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   activeBoonStacks,
   activeEngineerSpecializationState,
@@ -20,6 +20,8 @@ import type {
   EngineerEvolveAttributePool,
   EngineerMaximumAmmoContext
 } from '#gw2/content/professions/engineer/types.js';
+
+const EVOLVE_SKILL_IDS = new Set([ID.EVOLVE, ID.EVOLVE_ID_76651]);
 import {
   handleMercurialTendencies,
   observeAmalgamScheduledEvent
@@ -132,7 +134,7 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
 
 /** Upgrades Evolve to two ammo with Double Helix without reducing a larger authored maximum. */
 function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
-  return context.skill?.name === 'Evolve' && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
+  return context.skill && EVOLVE_SKILL_IDS.has(Number(context.skill.id)) && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
     ? Math.max(balanceProfileValueFromContext(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
     : maximum;
 }

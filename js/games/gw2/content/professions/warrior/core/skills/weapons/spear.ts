@@ -56,8 +56,10 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 466.666666666667, coefficient: 0.9 }],
+        ticks: [{ atMs: 460, coefficient: 0.9 }],
         name: 'Mighty Throw — Shard Damage',
+        // Single-target suppression follows this stable packet identity rather than the display label.
+        metadata: { packetKind: 'warrior.mighty-throw-shard' },
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

@@ -38,7 +38,7 @@ export function engineerCoreCastAvailability(
         );
   }
 
-  if (skill.name === 'Electric Artillery' && !state.electricArtilleryAvailable) {
+  if (skill.id === ID.ELECTRIC_ARTILLERY && !state.electricArtilleryAvailable) {
     // electricArtilleryReadyAt is set while Lightning Rod is still charging; gate EA until then
     const retryAt = Number(state.electricArtilleryReadyAt || 0);
     return denyEngineerCast(
@@ -50,7 +50,7 @@ export function engineerCoreCastAvailability(
   }
 
   if (
-    skill.name === 'Lightning Rod' &&
+    skill.id === ID.LIGHTNING_ROD &&
     (state.electricArtilleryAvailable || Number(state.electricArtilleryReadyAt || 0) > context.start)
   ) {
     // block re-cast while EA is available OR while the charge window is still open (both share the slot)

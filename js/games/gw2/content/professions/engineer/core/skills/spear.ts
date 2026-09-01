@@ -1,7 +1,6 @@
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type {
@@ -52,13 +51,7 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
   state.electricArtilleryReadyAt = readyAt;
   // EA expires 14s after it arms; player loses the window if they don't fire it
   state.electricArtilleryExpiresAt = readyAt + 14;
-  emitStateSnapshot(
-    context,
-    'engineer',
-    context.effectiveEnd,
-    'lightning-rod-active',
-    snapshotEngineerState(context.state.profession)
-  );
+  emitEngineerStateSnapshot(context, context.effectiveEnd, 'lightning-rod-active');
 
   for (let index = 0; index < LIGHTNING_ROD_PULSE_COUNT; index += 1) {
     const at = firstAt + index * LIGHTNING_ROD_PULSE_INTERVAL_SECONDS;
@@ -103,7 +96,7 @@ export function scheduleConduitSurge(context: EngineerCastContext, skill: Engine
   // update focusedUntil in scheduler state for subsequent availability/damage checks
   professionCoreState(context).focusedUntil = Math.max(professionCoreState(context).focusedUntil, at + 10);
   // also emit a state event so the resolver's Focused window is synchronized
-  emitStateSnapshot(context, 'engineer', at, 'conduit-surge', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'conduit-surge');
   emitSpearEvent(context, skill, at, 'engineer.conduit-surge');
 }
 
@@ -132,13 +125,7 @@ export function scheduleElectricArtillery(context: EngineerCastContext, skill: E
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
   state.electricArtilleryReadyAt = 0;
   state.electricArtilleryExpiresAt = 0;
-  emitStateSnapshot(
-    context,
-    'engineer',
-    at,
-    'electric-artillery-consumed',
-    snapshotEngineerState(context.state.profession)
-  );
+  emitEngineerStateSnapshot(context, at, 'electric-artillery-consumed');
 }
 
 /** Records one non-stale Lightning Rod charge while enforcing charge expiry and the twelve-charge cap. */
@@ -169,13 +156,7 @@ export function handleElectricArtilleryReady(
   state.electricArtilleryAvailable = true;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
   state.electricArtilleryReadyAt = 0;
-  emitStateSnapshot(
-    context,
-    'engineer',
-    task.at,
-    'electric-artillery-ready',
-    snapshotEngineerState(context.state.profession)
-  );
+  emitEngineerStateSnapshot(context, task.at, 'electric-artillery-ready');
 }
 
 /** Clears an unused Electric Artillery window after its active Lightning Rod sequence expires. */
@@ -191,13 +172,7 @@ export function handleElectricArtilleryExpire(
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
   state.electricArtilleryReadyAt = 0;
   state.electricArtilleryExpiresAt = 0;
-  emitStateSnapshot(
-    context,
-    'engineer',
-    task.at,
-    'electric-artillery-expired',
-    snapshotEngineerState(context.state.profession)
-  );
+  emitEngineerStateSnapshot(context, task.at, 'electric-artillery-expired');
 }
 
 /** Emits Roiling Skies as a stun, or as a launch while Focused is active. */

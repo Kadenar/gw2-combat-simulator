@@ -1,60 +1,45 @@
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type { WarriorEndStateProjectionOptions, WarriorState } from '#gw2/content/professions/warrior/types.js';
+import {
+  WARRIOR_CORE_PUBLIC_END_STATE_DEFAULTS,
+  WARRIOR_CORE_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/warrior/core/state.js';
+import {
+  BERSERKER_PUBLIC_END_STATE_DEFAULTS,
+  BERSERKER_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/warrior/specializations/berserker/state.js';
+import {
+  BLADESWORN_PUBLIC_END_STATE_DEFAULTS,
+  BLADESWORN_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
+import {
+  PARAGON_PUBLIC_END_STATE_DEFAULTS,
+  PARAGON_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/warrior/specializations/paragon/state.js';
+import {
+  SPELLBREAKER_PUBLIC_END_STATE_DEFAULTS,
+  SPELLBREAKER_PUBLIC_END_STATE_KEYS
+} from '#gw2/content/professions/warrior/specializations/spellbreaker/state.js';
 
 /** Aggregates Core and active-specialization state at the Warrior family boundary. */
 export function snapshotWarriorState(state: unknown): WarriorState {
-  return structuredClone(flattenProfessionState(state)) as unknown as WarriorState;
+  return snapshotProfessionState<WarriorState>(state);
 }
 
 export const WARRIOR_PUBLIC_END_STATE_KEYS: readonly (keyof WarriorState)[] = Object.freeze([
-  'adrenaline',
-  'resource',
-  'maximumAdrenaline',
-  'endurance',
-  'maximumEndurance',
-  'autoattackChains',
-  'availableFlips',
-  'berserkActive',
-  'berserkUntil',
-  'attackerInsightExpiries',
-  'fullCounterActiveUntil',
-  'magebaneTetherUntil',
-  'magebaneTetherReadyAt',
-  'flow',
-  'maximumFlow',
-  'flowStabilizerWindows',
-  'traitPositiveFlowStartedAt',
-  'traitPositiveFlowUntil',
-  'gunsaberActive',
-  'dragonTriggerActive',
-  'dragonCharges',
-  'overchargedCartridgeWindows',
-  'motivation',
-  'maximumMotivation',
-  'activeRefrain'
+  ...WARRIOR_CORE_PUBLIC_END_STATE_KEYS,
+  ...BERSERKER_PUBLIC_END_STATE_KEYS,
+  ...SPELLBREAKER_PUBLIC_END_STATE_KEYS,
+  ...BLADESWORN_PUBLIC_END_STATE_KEYS,
+  ...PARAGON_PUBLIC_END_STATE_KEYS
 ]);
 
 const INACTIVE_DEFAULTS: Readonly<Partial<WarriorState>> = Object.freeze({
-  berserkActive: false,
-  berserkUntil: 0,
-  attackerInsightExpiries: [],
-  fullCounterActiveUntil: 0,
-  magebaneTetherUntil: 0,
-  magebaneTetherReadyAt: 0,
-  flow: 0,
-  maximumFlow: 100,
-  flowStabilizerWindows: [],
-  traitPositiveFlowStartedAt: 0,
-  traitPositiveFlowUntil: 0,
-  gunsaberActive: false,
-  dragonTriggerActive: false,
-  dragonCharges: 0,
-  overchargedCartridgeWindows: [],
-  motivation: 0,
-  maximumMotivation: 10,
-  activeRefrain: '',
-  endurance: 100,
-  maximumEndurance: 100
+  ...WARRIOR_CORE_PUBLIC_END_STATE_DEFAULTS,
+  ...BERSERKER_PUBLIC_END_STATE_DEFAULTS,
+  ...SPELLBREAKER_PUBLIC_END_STATE_DEFAULTS,
+  ...BLADESWORN_PUBLIC_END_STATE_DEFAULTS,
+  ...PARAGON_PUBLIC_END_STATE_DEFAULTS
 });
 
 /** Projects the stable public end state after the active slice has been flattened. */

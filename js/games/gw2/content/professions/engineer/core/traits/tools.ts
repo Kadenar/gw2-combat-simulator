@@ -5,12 +5,11 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
-import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/core/profiles.js';
 import { resolverSkill } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import type {
@@ -53,7 +52,7 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
     stacks: 1
   });
   // Grenade Kit additionally drops the trait's mine strike on entry.
-  if ((skill.kitName || skill.name) === 'Grenade Kit') {
+  if (skill.id === ID.GRENADE_KIT) {
     emitSkillDamage(context, {
       at,
       source: 'Trait',
@@ -167,7 +166,7 @@ export function applyKineticBattery(context: EngineerSchedulerContext, skill: En
     });
   }
 
-  emitStateSnapshot(context, 'engineer', at, 'kinetic-battery', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'kinetic-battery');
 }
 
 /** Applies all Core Tools traits triggered by a completed toolbelt cast in contract order. */

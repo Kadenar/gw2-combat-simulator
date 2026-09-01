@@ -1,5 +1,5 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { getActiveTraits } from '#gw2/content/professions/warrior/data/traits-data.js';

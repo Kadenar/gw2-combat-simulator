@@ -8,7 +8,6 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
 import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import {
   applySongOfTheMists,
   applySpiritBoon,
@@ -30,10 +29,7 @@ import {
   applyDwarvenBattleTraining,
   applyViciousReprisal
 } from '#gw2/content/professions/revenant/core/traits/retribution.js';
-import {
-  requireRevenantBalanceProfile as balanceProfileById,
-  requireRevenantEffect as effectByType
-} from '#gw2/content/professions/revenant/core/traits/profile-access.js';
+import { requireRevenantEffect as effectByType } from '#gw2/content/professions/revenant/core/traits/profile-access.js';
 import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,

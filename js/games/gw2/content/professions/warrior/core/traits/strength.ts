@@ -5,11 +5,18 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { gainWarriorEndurance } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
+import {
+  warriorActiveBuffStacks,
+  warriorWieldingWeapon,
+  type WarriorModifierAttributes
+} from '#gw2/content/professions/warrior/core/traits/modifier-queries.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   WarriorCastContext,
   WarriorResolverContext,
@@ -253,3 +260,67 @@ export function applyBuildingMomentum(context: WarriorSchedulerContext, event: W
     event.at
   );
 }
+
+// Resolve Strength-owned attributes without hiding their formulas in the cross-line composer.
+export function modifyWarriorStrengthAttributes(
+  context: Gw2ModifierContext,
+  result: WarriorModifierAttributes,
+  staticRulesApplied: boolean,
+  gearPower: number
+): void {
+  if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
+    const profile = balanceProfileFromContext(context, PROFILE.pinnacleOfStrength);
+    result.power +=
+      Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
+      Number(profile?.attributeBonus ?? 10);
+  }
+
+  if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
+    const profile = balanceProfileFromContext(context, PROFILE.forcefulGreatsword);
+    result.power +=
+      Number(profile?.attributeBonus ?? 120) +
+      Number(warriorWieldingWeapon(context, 'Greatsword')) * Number(profile?.weaponAttributeBonus ?? 120);
+  }
+
+  if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
+    // Static builds already bake this gear-only conversion; live Might and signets must not feed it.
+    const conversion = Number(balanceProfileFromContext(context, PROFILE.greatFortitude)?.attributeConversion ?? 0.1);
+    result.vitality += gearPower * conversion;
+    result.ferocity += gearPower * conversion;
+  }
+}
+
+export const warriorStrengthModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'warrior.pinnacle-critical-chance',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 0.05,
+    when: (context) => hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)
+  },
+  {
+    id: 'warrior.berserkers-power',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    parameters: {
+      maximumStacks: 4,
+      damagePerStack: 0.0375
+    } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) =>
+      (context.timeline?.buffStacksAt('berserkers-power', context.time, 0, parameters.maximumStacks) ??
+        warriorActiveBuffStacks(context, 'berserkers-power', parameters.maximumStacks)) * parameters.damagePerStack,
+    when: (context) => hasTrait(context, TRAIT.BERSERKERS_POWER)
+  },
+  {
+    id: 'warrior.peak-performance',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    parameters: {
+      baseBonus: 0.05,
+      activeBonus: 0.1
+    } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) =>
+      parameters.baseBonus + (warriorActiveBuffStacks(context, 'peak-performance', 1) ? parameters.activeBonus : 0),
+    when: (context) => hasTrait(context, TRAIT.PEAK_PERFORMANCE)
+  }
+]);

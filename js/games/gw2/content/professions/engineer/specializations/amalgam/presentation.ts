@@ -1,4 +1,4 @@
-import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
+import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiState,

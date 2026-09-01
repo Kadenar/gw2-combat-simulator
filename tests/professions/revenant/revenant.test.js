@@ -60,7 +60,7 @@ import {
   REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
   REVENANT_RELEASE_POTENTIAL_BY_LEGEND
 } from '#gw2/content/professions/revenant/data/legends.js';
-import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/content/professions/revenant/app/legend-loadout.js';
+import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/content/professions/revenant/build/legend-loadout.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);

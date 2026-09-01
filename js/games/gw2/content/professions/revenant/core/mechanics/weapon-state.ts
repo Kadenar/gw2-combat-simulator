@@ -1,7 +1,6 @@
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant temporary weapon and flip state. The shared GW2 controller owns
  * canonical autoattack chains; this module owns Abyssal Strike, Imperial
@@ -68,13 +67,7 @@ export function beginRevenantWeaponCast(context: RevenantCastContext, skill: Rev
     duration: Math.max(0, context.effectiveEnd - context.start),
     stacks: 1
   });
-  emitStateSnapshot(
-    context,
-    'revenant',
-    context.start,
-    'imperial-guard',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, context.start, 'imperial-guard');
 }
 
 /** Commits or consumes the Imperial Guard/True Strike temporary flip. */
@@ -107,34 +100,16 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
       ownerId: IMPERIAL_GUARD_OWNER,
       payload: {}
     });
-    emitStateSnapshot(
-      context,
-      'revenant',
-      context.effectiveEnd,
-      'imperial-guard',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, context.effectiveEnd, 'imperial-guard');
   } else if (skill.id === ID.TRUE_STRIKE) {
     delete state.availableFlips[ID.TRUE_STRIKE];
     context.tasks.cancelOwner(IMPERIAL_GUARD_OWNER);
-    emitStateSnapshot(
-      context,
-      'revenant',
-      context.effectiveEnd,
-      'true-strike',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, context.effectiveEnd, 'true-strike');
   }
 }
 
 /** Removes True Strike when the scheduled Imperial Guard window expires. */
 export function expireImperialGuard(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
   delete professionCoreState(context).availableFlips[ID.TRUE_STRIKE];
-  emitStateSnapshot(
-    context,
-    'revenant',
-    task.at,
-    'imperial-guard-expired',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, task.at, 'imperial-guard-expired');
 }

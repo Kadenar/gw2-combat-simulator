@@ -10,6 +10,7 @@ import {
   MESMER_TROUBADOUR_INSTRUMENTS,
   MESMER_TROUBADOUR_TRAIT_DAMAGE
 } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
+
 import type { MesmerInstrument } from '#gw2/content/professions/mesmer/types.js';
 
 export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({

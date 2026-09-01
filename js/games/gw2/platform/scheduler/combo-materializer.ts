@@ -54,11 +54,17 @@ interface OwnedFinisherDescriptor extends SchedulerRecord {
   readonly successfulCombos: number;
 }
 
-function currentEvent(context: SchedulerContext, original: SimulationEvent): SimulationEvent {
+function currentEvent<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  original: SimulationEvent
+): SimulationEvent {
   return context.eventByOrder(Number(original.eventOrder)) || original;
 }
 
-function fieldDescriptors(context: SchedulerContext, event: SimulationEvent): readonly OwnedFieldDescriptor[] {
+function fieldDescriptors<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  event: SimulationEvent
+): readonly OwnedFieldDescriptor[] {
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId);
   const descriptors = Array.isArray(event.comboFields)
     ? event.comboFields
@@ -96,7 +102,10 @@ function hasEffectFinishers(effects: readonly SchedulerRecord[] | undefined): bo
   );
 }
 
-function finisherDescriptors(context: SchedulerContext, event: SimulationEvent): readonly OwnedFinisherDescriptor[] {
+function finisherDescriptors<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  event: SimulationEvent
+): readonly OwnedFinisherDescriptor[] {
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId);
   let descriptors: readonly Readonly<SchedulerRecord>[] = [];
   if (Array.isArray(event.comboFinishers)) {
@@ -132,7 +141,11 @@ function fieldAt(event: SimulationEvent, descriptor: OwnedFieldDescriptor) {
   return baseAt + descriptor.startMs / 1000;
 }
 
-function activeOwnedFields(context: SchedulerContext, ownerId: string, at: number): ComboFieldEvent[] {
+function activeOwnedFields<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  ownerId: string,
+  at: number
+): ComboFieldEvent[] {
   return context
     .eventsOfType('combo_field')
     .filter(
@@ -145,8 +158,8 @@ function activeOwnedFields(context: SchedulerContext, ownerId: string, at: numbe
     .sort((left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0));
 }
 
-function descriptorBinding(
-  context: SchedulerContext,
+function descriptorBinding<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
   descriptor: OwnedFinisherDescriptor,
   at: number
 ): {
@@ -198,7 +211,10 @@ function projectilePacketIdentity(event: SimulationEvent, parentEventOrder: numb
   return `event:${parentEventOrder}`;
 }
 
-function rebindPendingFinishers(context: SchedulerContext, ownerId: string): void {
+function rebindPendingFinishers<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  ownerId: string
+): void {
   for (const pending of [...context.eventsOfType('combo_finisher')]) {
     if (pending.type !== 'combo_finisher' || pending.comboAllowRebind !== true || pending.comboOwnerId !== ownerId) {
       continue;
@@ -225,8 +241,8 @@ function rebindPendingFinishers(context: SchedulerContext, ownerId: string): voi
   }
 }
 
-function produceField(
-  context: SchedulerContext,
+function produceField<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
   event: SimulationEvent,
   descriptor: OwnedFieldDescriptor,
   descriptorIndex: number
@@ -254,8 +270,8 @@ function produceField(
   });
 }
 
-function produceFinisher(
-  context: SchedulerContext,
+function produceFinisher<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
   event: SimulationEvent,
   descriptor: OwnedFinisherDescriptor,
   descriptorIndex: number
@@ -298,7 +314,10 @@ function produceFinisher(
 }
 
 /** Produces semantic combo events from canonical descriptors on one event. */
-export function produceGw2OwnedComboEvents(context: SchedulerContext, event: SimulationEvent): void {
+export function produceGw2OwnedComboEvents<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  event: SimulationEvent
+): void {
   if (event.cancelled === true) return;
   if (Array.isArray(event.comboFields) && Number(event.hitIndex ?? event.applicationIndex ?? 1) !== 1) {
     return;

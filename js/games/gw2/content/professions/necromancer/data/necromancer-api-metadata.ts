@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for necromancer.
-// Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Necromancer to refresh.
-// Simulator mechanics are maintained under necromancer/mechanics/.
+// Snapshot: 2026-07-25. Run npm run update:profession-data -- --profession Necromancer to refresh.
+// Simulator mechanics are maintained under necromancer/core/ and necromancer/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';

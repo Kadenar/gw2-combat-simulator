@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for engineer.
-// Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Engineer to refresh.
-// Simulator mechanics are maintained under engineer/mechanics/.
+// Snapshot: 2026-07-28. Run npm run update:profession-data -- --profession Engineer to refresh.
+// Simulator mechanics are maintained under engineer/core/ and engineer/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { EngineerSkill } from '#gw2/content/professions/engineer/types.js';

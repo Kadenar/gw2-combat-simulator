@@ -17,10 +17,11 @@ import type {
   MesmerEmitDerivedEvent,
   MesmerResolverContext,
   MesmerResolverEvent,
-  MesmerRuntime,
-  MesmerRuntimeState,
-  MesmerSkill
+  MesmerRuntime
 } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerRuntimeState } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 export interface MesmerDuelingCriticalContext {
   readonly state: SchedulerState<MesmerRuntimeState>;

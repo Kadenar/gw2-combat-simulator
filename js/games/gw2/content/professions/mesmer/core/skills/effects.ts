@@ -10,20 +10,23 @@ import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerConfig,
-  MesmerConditionEffect,
+  MesmerRuntime,
+  MesmerShatter,
+  MesmerInstrument
+} from '#gw2/content/professions/mesmer/types.js';
+import type {
   MesmerExceptionalProfileOptions,
-  MesmerInstrument,
+  MesmerSkillEffectController
+} from '#gw2/content/professions/mesmer/core/skills/types.js';
+
+import type {
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
   MesmerQueueResources,
-  MesmerResourceDefinition,
-  MesmerRuntime,
-  MesmerRuntimeState,
-  MesmerShatter,
-  MesmerSkill,
-  MesmerSkillEffectController,
   MesmerTraitDamage
-} from '#gw2/content/professions/mesmer/types.js';
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerResourceDefinition, MesmerRuntimeState } from '#gw2/content/professions/mesmer/state/types.js';
+import type { MesmerConditionEffect, MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 interface SkillEffectControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

@@ -22,11 +22,11 @@ const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RE
 
 export function untamedCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = untamedState.from(context);
-  if (skill.name === 'Unleash Ranger' && state.rangerUnleashed) {
+  if (skill.id === ID.UNLEASH_RANGER && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');
   }
 
-  if (skill.name === 'Unleash Pet' && !state.rangerUnleashed) {
+  if (skill.id === ID.UNLEASH_PET && !state.rangerUnleashed) {
     return deny(skill, 'ranger.pet-unleashed', 'the pet is already unleashed.');
   }
 

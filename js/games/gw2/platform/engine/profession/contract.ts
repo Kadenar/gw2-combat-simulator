@@ -11,8 +11,6 @@ import type {
   SchedulerRecord,
   Skill
 } from '#gw2/platform/engine/types.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
-import { toEntries } from '#kernel/core/collections.js';
 import { assertAvailabilityResult, CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
 
 type ComposableHook = (...args: any[]) => unknown;

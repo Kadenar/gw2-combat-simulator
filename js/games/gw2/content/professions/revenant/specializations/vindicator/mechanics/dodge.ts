@@ -1,7 +1,6 @@
 import { vindicatorState } from '#gw2/content/professions/revenant/specializations/vindicator/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant dodge execution.
  *
@@ -83,7 +82,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   }
 
   // State snapshot carries endurance value to the resolver; must come after all mutations above.
-  emitStateSnapshot(context, 'revenant', at, 'energy-meld', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'energy-meld');
 }
 
 /** Toggles the active Luxon/Kurzick Alliance skill side. */
@@ -92,7 +91,7 @@ export function switchAllianceTactics(context: RevenantCastContext): void {
   const at = context.effectiveEnd;
   state.allianceSide = state.allianceSide === 'luxon' ? 'kurzick' : 'luxon';
   // State snapshot propagates the new side to the resolver for availability checks.
-  emitStateSnapshot(context, 'revenant', at, 'alliance-tactics', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'alliance-tactics');
 }
 
 /** Emits the configured Vindicator dodge replacement at cast completion. */
@@ -151,11 +150,5 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     });
   }
 
-  emitStateSnapshot(
-    context,
-    'revenant',
-    at,
-    'vindicator-dodge-impact',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, at, 'vindicator-dodge-impact');
 }

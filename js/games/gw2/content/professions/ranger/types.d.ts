@@ -7,10 +7,9 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/types.js';
-import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import type { ProfessionApplicationBuild } from '#gw2/app/types.js';
 
 export interface RangerSpecializationSelection {
   readonly name?: string;
@@ -41,7 +40,7 @@ export interface RangerCanonicalBuild extends Gw2CanonicalBuild {
   initialUntamedState: RangerInitialUntamedState;
 }
 
-export interface RangerApplicationBuild extends ProfessionApplicationBuild {
+export interface RangerApplicationBuild extends Gw2ApplicationBuild {
   initialAstralForce: number;
   initialArrows: number;
   selectedPet: string;

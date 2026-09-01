@@ -76,7 +76,7 @@ function updateFamiliarSelection(context: SchedulerRecord, selection: SchedulerR
 // Keeps the F5 palette state aligned with scheduler validation so a familiar
 // only looks clickable when the charges shown at the insertion point can cast it.
 function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
-  const element = FAMILIAR_ELEMENTS[skill.name];
+  const element = FAMILIAR_ELEMENTS.get(skill.id);
   if (!element) return { available: true, message: '' };
   if (selectedElement(context) !== element) {
     return {
@@ -90,7 +90,7 @@ function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   const maximum = Number(state.maximumCharges ?? 6);
   const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
-  if (BASIC_FAMILIARS.has(skill.name)) {
+  if (BASIC_FAMILIARS.has(skill.id)) {
     return empowered < 3 && charges >= maximum
       ? { available: true, message: '' }
       : {

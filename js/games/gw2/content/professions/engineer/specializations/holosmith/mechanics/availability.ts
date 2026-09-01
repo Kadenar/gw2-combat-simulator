@@ -5,6 +5,10 @@ import { denySkillCast as denyEngineerCast } from '#gw2/content/professions/lib/
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
 import type { EngineerPrecastContext } from '#gw2/content/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/content/professions/engineer/specializations/holosmith/types.js';
+import {
+  HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
+  HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS
+} from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/constants.js';
 
 const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
   ID.RADIANT_ARC_ID_69565,
@@ -25,7 +29,7 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
   const state = holosmithState.from(context);
   if (skill.forgeSkill && skill.slot === 'Weapon_1') {
     const stormSelected = hasTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);
-    const stormSkill = skill.name.endsWith('—Storm');
+    const stormSkill = HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS.has(Number(skill.id));
     if (stormSelected !== stormSkill) {
       return denyEngineerCast(
         skill,
@@ -50,7 +54,7 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
     return denyEngineerCast(skill, 'engineer.weapon-bar-replaced', 'Photon Forge replaces weapon skills.');
   }
 
-  if (skill.name === 'Engage Photon Forge') {
+  if (skill.id === ID.ENGAGE_PHOTON_FORGE) {
     if (state.photonForgeActive) {
       return denyEngineerCast(skill, 'engineer.forge-active', 'Photon Forge is already active.');
     }
@@ -60,7 +64,11 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
     }
   }
 
-  if (skill.name.startsWith('Deactivate Photon Forge') && !state.photonForgeActive) {
+  if (
+    HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(skill.id)) &&
+    skill.id !== ID.ENGAGE_PHOTON_FORGE &&
+    !state.photonForgeActive
+  ) {
     return denyEngineerCast(skill, 'engineer.forge-inactive', 'Photon Forge is not active.');
   }
 

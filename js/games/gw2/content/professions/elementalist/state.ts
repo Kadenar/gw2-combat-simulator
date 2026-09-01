@@ -5,7 +5,7 @@
  * core+specialization runtime state into the stable record that simulation results
  * expose, so the shape a consumer sees does not change with the equipped elite spec.
  */
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import { ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/elementalist/core/state.js';
 import {
@@ -52,7 +52,7 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Elementalist
 export function projectElementalistEndState({
   schedulerState
 }: ElementalistEndStateProjectionOptions): SchedulerRecord {
-  const state = flattenProfessionState(schedulerState.profession) as unknown as ElementalistState;
+  const state = snapshotProfessionState<ElementalistState>(schedulerState.profession);
   return projectPublicProfessionState(
     state,
     ELEMENTALIST_PUBLIC_END_STATE_KEYS,

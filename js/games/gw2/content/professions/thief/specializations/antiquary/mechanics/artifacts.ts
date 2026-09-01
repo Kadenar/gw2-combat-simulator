@@ -1,6 +1,6 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
@@ -9,7 +9,6 @@ import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -19,7 +18,6 @@ import type {
   ThiefArtifactSlot,
   ThiefCastContext,
   ThiefDoubleEdgeOutcome,
-  ThiefEmissionContext,
   ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSkill
@@ -145,14 +143,14 @@ export function pilferArtifacts(
     reduceUtilityRecharges(context, at);
   }
 
-  emitStateSnapshot(context, 'thief', at, reason, snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, reason);
 }
 
 export function reshuffleArtifacts(context: ThiefCastContext): void {
   const state = antiquaryState.from(context);
   const at = context.effectiveEnd;
   state.artifactSlots = allArtifactChoices();
-  emitStateSnapshot(context, 'thief', at, 'artifacts-reshuffled', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'artifacts-reshuffled');
 }
 
 function extendExhilaratingEphemera(context: ThiefCastContext, state: AntiquaryState, at: number): void {
@@ -267,7 +265,7 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
 
   applyArtifactIdentity(context, skill, at);
   reduceSkrittSwipeRecharge(context, at);
-  emitStateSnapshot(context, 'thief', at, 'artifact-used', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'artifact-used');
 }
 
 export function completeForgedSurfer(context: ThiefCastContext, skill: ThiefSkill): void {
@@ -498,7 +496,7 @@ export function resolveDoubleEdge(context: ThiefCastContext, skill: ThiefSkill):
     tossCanachCoins(context, at, outcome === 'backfire');
   }
 
-  emitStateSnapshot(context, 'thief', at, `double-edge-${outcome}`, snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, `double-edge-${outcome}`);
   return outcome;
 }
 
@@ -522,7 +520,7 @@ export function completeSkrittScuffle(context: ThiefCastContext, skill: ThiefSki
     ownerId: `thief.skritt-scuffle:${skill.id}:${at}`,
     payload: { expiresAt: summon.expiresAt }
   });
-  emitStateSnapshot(context, 'thief', at, 'skritt-scuffle', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'skritt-scuffle');
 }
 
 export function handleSkrittScuffle(

@@ -13,13 +13,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import type {
-  AvailabilityResult,
-  SchedulerRecord,
-  SimulationEvent,
-  SimulationEventInput,
-  Skill
-} from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, SimulationEvent, SimulationEventInput, Skill } from '#gw2/platform/engine/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ElementalistCastContext,
@@ -262,7 +256,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
 
   // Overload Air's completion strike: a non-critical unequipped-weapon hit, mirrored onto an
   // active fire/earth elemental and recorded as its own proc for attribution.
-  if (skill.name === 'Overload Air') {
+  if (skill.id === ID.OVERLOAD_AIR) {
     const coefficient = balanceProfileValue(
       balanceProfileEffectFromContext(context, PROFILE.lightningJolt, 'strike'),
       'coefficient',

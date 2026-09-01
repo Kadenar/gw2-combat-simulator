@@ -1,10 +1,9 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
@@ -57,6 +56,14 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     state.spiderVenomCharges = 0;
   }
 
+  if (Number(state.skaleVenomExpiresAt || 0) <= target) {
+    state.skaleVenomCharges = 0;
+  }
+
+  if (Number(state.devourerVenomExpiresAt || 0) <= target) {
+    state.devourerVenomCharges = 0;
+  }
+
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt || 0) <= target) {
     state.activeThievesGuild = null;
   }
@@ -87,7 +94,7 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     );
   }
 
-  emitStateSnapshot(context, 'thief', target, 'resources', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, target, 'resources');
 }
 
 // Spend initiative at cast start and apply Signets of Power's immediate refund
@@ -97,13 +104,7 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
   const cost = Number(skill.initiativeCost || 0);
   if (cost > 0) {
     state.initiative = Math.max(0, state.initiative - cost);
-    emitStateSnapshot(
-      context,
-      'thief',
-      context.start,
-      'initiative-spent',
-      snapshotThiefState(context.state.profession)
-    );
+    emitThiefStateSnapshot(context, context.start, 'initiative-spent');
   }
 
   if (

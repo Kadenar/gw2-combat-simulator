@@ -2,12 +2,12 @@
  * Core-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import type { MesmerShatter } from '#gw2/content/professions/mesmer/types.js';
 import type {
   MesmerCloneAttack,
   MesmerPhantasmAttackTiming,
-  MesmerShatter,
   MesmerTraitDamage
-} from '#gw2/content/professions/mesmer/types.js';
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
 
 export const MESMER_CORE_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({
   Axe: 1000,

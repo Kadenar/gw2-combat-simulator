@@ -6,9 +6,10 @@ import {
   normalizeEventLogDescriptor
 } from '#gw2/app/presentation/results/event-log.js';
 import type { EventLogRow } from '#gw2/app/presentation/results/event-log.js';
-import type { ProfessionAppContract, ProfessionApplicationBuild, ProfessionAppState } from '#gw2/app/types.js';
+import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { professionEndState } from '#gw2/app/rotation/shared/context.js';
 import { effectName, resultCombatReferenceMs } from '#gw2/app/rotation/result/model.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 type OrderedEventLogRow = EventLogRow & { readonly order: number };
 
@@ -26,7 +27,7 @@ function minionAttackerLabel(event: SimulationEvent): string {
 
 export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
-  build: ProfessionApplicationBuild | null = null,
+  build: Gw2ApplicationBuild | null = null,
   profession: ProfessionAppContract | null = null
 ): EventLogRow[] {
   const rows: OrderedEventLogRow[] = [];

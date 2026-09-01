@@ -8,7 +8,11 @@ export interface StateSnapshotEmissionOptions {
   readonly dedupeAcrossSourceIds?: boolean;
 }
 
-type StateSnapshotEmissionContext = Pick<SchedulerContext, 'events' | 'emit'>;
+export type StateSnapshotEmissionContext = Pick<SchedulerContext, 'events' | 'emit'>;
+
+export type ProfessionStateSnapshotEmissionContext = StateSnapshotEmissionContext & {
+  readonly state: { readonly profession: unknown };
+};
 
 function sameSnapshotObject(left: object, right: object, seen: WeakMap<object, WeakSet<object>>): boolean {
   if (Array.isArray(left) !== Array.isArray(right)) return false;

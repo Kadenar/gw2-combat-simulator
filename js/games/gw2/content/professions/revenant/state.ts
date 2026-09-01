@@ -1,8 +1,14 @@
 import {
-  flattenProfessionState,
   professionCoreState,
-  projectPublicProfessionState
+  projectPublicProfessionState,
+  restoreFlatProfessionState,
+  snapshotProfessionState
 } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import type {
+  ProfessionStateSnapshotEmissionContext,
+  StateSnapshotEmissionOptions
+} from '#gw2/platform/engine/events/state-snapshots.js';
 import { REVENANT_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/revenant/core/state.js';
 import {
   CONDUIT_PUBLIC_END_STATE_KEYS,
@@ -27,11 +33,21 @@ import type {
   RevenantRuntimeState,
   RevenantState
 } from '#gw2/content/professions/revenant/types.js';
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState, SimulationEvent } from '#gw2/platform/engine/types.js';
 
 /** Flattens the family runtime state for stable scheduler and resolver handoff. */
 export function snapshotRevenantState(state: unknown): RevenantState {
-  return structuredClone(flattenProfessionState(state)) as unknown as RevenantState;
+  return snapshotProfessionState<RevenantState>(state);
+}
+
+/** Emits a complete Revenant snapshot with the family identity owned here. */
+export function emitRevenantStateSnapshot(
+  context: ProfessionStateSnapshotEmissionContext,
+  at: number,
+  reason: string,
+  options?: StateSnapshotEmissionOptions
+): SimulationEvent | null {
+  return emitStateSnapshot(context, 'revenant', at, reason, snapshotRevenantState(context.state.profession), options);
 }
 
 export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantState)[] = Object.freeze([
@@ -68,10 +84,7 @@ export function handleRevenantState(context: RevenantResolverContext, event: Rev
     context.profession.specialization.kind === 'Renegade'
       ? (specialization as RenegadeState).soulcleaveReadyAt
       : undefined;
-  for (const [key, value] of Object.entries(event.state || {})) {
-    const owner = Object.hasOwn(specialization, key) ? specialization : core;
-    (owner as Record<string, unknown>)[key] = structuredClone(value);
-  }
+  restoreFlatProfessionState(core, specialization, event.state);
 
   core.traitProcReadyAt = preservedCoreTraitProcReadyAt;
   if (context.profession.specialization.kind === 'Renegade') {

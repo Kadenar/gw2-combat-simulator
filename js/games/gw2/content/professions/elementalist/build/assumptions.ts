@@ -1,4 +1,4 @@
-import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
+import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 
 /**
  * Elementalist-only simulation assumptions offered in the build editor. Target hitbox

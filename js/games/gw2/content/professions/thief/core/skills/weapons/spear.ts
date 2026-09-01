@@ -237,6 +237,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 0.2 }],
         name: 'Vampiric Slash — Life Siphon',
+        // The vulnerability modifier targets this packet identity without depending on its display label.
+        metadata: { packetKind: 'thief.vampiric-slash-life-siphon' },
         actorType: 'player',
         canCrit: false,
         timingAnchor: 'castEnd',

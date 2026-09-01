@@ -1,7 +1,6 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
@@ -75,5 +74,5 @@ export function advanceEngineerResources(context: EngineerSchedulerContext, targ
       )
     )
   );
-  emitStateSnapshot(context, 'engineer', target, 'resources', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, target, 'resources');
 }

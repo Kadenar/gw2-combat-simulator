@@ -4,7 +4,8 @@
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
-import type { MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_PRECOGNITION]: {

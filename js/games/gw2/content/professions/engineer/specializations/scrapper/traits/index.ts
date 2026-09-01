@@ -4,7 +4,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
@@ -16,12 +16,12 @@ function isHealingSkill(skill: EngineerSkill | undefined): boolean {
 
 // Toolbelt skills inherit their heal category from their parent kit/gyro.
 function isHealingToolbeltSkill(context: EngineerCastContext, skill: EngineerSkill): boolean {
-  if (!skill.toolbeltParentName) return false;
-  return isHealingSkill(context.catalog.skillsByName.get(skill.toolbeltParentName));
+  if (skill.toolbeltParentId == null) return false;
+  return isHealingSkill(context.catalog.skillsById.get(skill.toolbeltParentId));
 }
 
 function isFunctionGyro(skill: EngineerSkill): boolean {
-  return skill.name === 'Function Gyro';
+  return skill.id === ID.FUNCTION_GYRO;
 }
 
 function category(skill: EngineerSkill, name: string): boolean {
@@ -41,7 +41,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       name: 'Speed of Synergy — superspeed',
       kind: 'superspeed',
       duration:
-        skill.toolbeltParentName === 'Med Kit'
+        skill.toolbeltParentId === ID.MED_KIT
           ? balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'maximumStacks', 12)
           : balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'minimumStacks', 5),
       stacks: 1,
@@ -51,7 +51,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Speed of Synergy also applies when casting the heal skill itself (7s),
   // but Med Kit is excluded because equipping it doesn't constitute a cast.
-  if (hasTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingSkill(skill) && skill.name !== 'Med Kit') {
+  if (hasTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingSkill(skill) && skill.id !== ID.MED_KIT) {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',

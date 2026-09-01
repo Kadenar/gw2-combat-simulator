@@ -10,7 +10,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/thief/data/thi
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/thief/data/thief-supplemental-skills.js';
 import { TRAITS } from '#gw2/content/professions/thief/data/traits-data.js';
-import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-chain.js';
 import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from '#gw2/content/professions/thief/core/skills/weapons.js';
 import { deadeyeWeaponSkillMatchesSet } from '#gw2/content/professions/thief/specializations/deadeye/skills/weapons.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/engine/types.js';
@@ -188,11 +188,9 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.TIME_IN_A_BOTTLE,
   ID.THROW_CURSED_ARTIFACT,
   ID.LIFT_PIN_HERO_CHALLENGE,
-  ID.EMERGENCY_JADE_SHIELD,
   ID.ANTIVENOM_DRAUGHT_BACKFIRED,
   ID.UNSTABLE_SKRITT_BOMB,
   ID.STONE_SUMMIT_CANNON_ID_77092,
-  ID.INQUEST_PORTAL_DEVICE_BACKFIRED,
   ID.METAL_LEGION_GUITAR_ID_76591
 ]);
 

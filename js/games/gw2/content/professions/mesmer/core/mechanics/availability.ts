@@ -2,12 +2,9 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
-import type {
-  MesmerConfig,
-  MesmerPrecastContext,
-  MesmerRuntime,
-  MesmerSkill
-} from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 // Enforce terrestrial, specialization, and weaponmaster restrictions before a
 // skill enters either the build UI or runtime availability checks.

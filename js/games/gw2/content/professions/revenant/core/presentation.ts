@@ -1,9 +1,9 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
-import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/content/professions/revenant/app/assumptions.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/content/professions/revenant/build/assumptions.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
 import { getActiveTraits } from '#gw2/content/professions/revenant/data/traits-data.js';
-import { revenantLegend, revenantLegendLoadout } from '#gw2/content/professions/revenant/app/legend-loadout.js';
+import { revenantLegend, revenantLegendLoadout } from '#gw2/content/professions/revenant/build/legend-loadout.js';
 import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
 import type {
   PaletteSkillAvailability,

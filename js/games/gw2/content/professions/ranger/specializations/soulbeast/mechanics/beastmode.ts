@@ -190,20 +190,29 @@ export function soulbeastCastAvailability(context: RangerPrecastContext, skill: 
     return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
   }
 
-  if (skill.beastmodeSkill && !state.beastmodeActive && skill.name !== 'Beastmode') {
+  if (skill.beastmodeSkill && !state.beastmodeActive && skill.id !== ID.BEASTMODE) {
     return deny(skill, 'ranger.beastmode-inactive', 'enter Beastmode first.');
   }
 
-  if (skill.name === 'Beastmode' && state.beastmodeActive) {
+  if (skill.id === ID.BEASTMODE && state.beastmodeActive) {
     return deny(skill, 'ranger.beastmode-active', 'Beastmode is already active.');
   }
 
-  if (skill.name === 'Leave Beastmode' && !state.beastmodeActive) {
+  if (skill.id === ID.LEAVE_BEASTMODE && !state.beastmodeActive) {
     return deny(skill, 'ranger.beastmode-inactive', 'Beastmode is not active.');
   }
 
   return { ready: true };
 }
+
+// Command traits follow stable skill identity instead of API description prose.
+const RANGER_COMMAND_SKILL_IDS: ReadonlySet<number> = new Set([
+  ID.STRENGTH_OF_THE_PACK,
+  ID.PROTECT_ME,
+  ID.GUARD,
+  ID.SIC_EM,
+  ID.WE_HEAL_AS_ONE
+]);
 
 // Soulbeast player modifiers follow outgoing ownership while merged-pet state remains a separate prerequisite.
 export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -313,7 +322,7 @@ function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill
     });
   }
 
-  if (String(skill.description || '').startsWith('Command.') && hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) {
+  if (RANGER_COMMAND_SKILL_IDS.has(Number(skill.id)) && hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) {
     context.emit({
       type: 'ranger.boon-extension',
       at: context.start,

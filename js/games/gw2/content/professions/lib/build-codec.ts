@@ -1,8 +1,8 @@
-import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '#gw2/app/profession/assumptions.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '#gw2/platform/builds/assumptions.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { ProfessionAssumptionControl } from '#gw2/app/types.js';
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 
 export interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
@@ -11,7 +11,7 @@ export interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> e
 
 /**
  * Combines profession controls with the shared randomness control once so
- * build defaults, migration, and validation use the same app-owned schema.
+ * build defaults, migration, and validation use the same platform-owned schema.
  */
 function buildAssumptionControls(
   controls: readonly ProfessionAssumptionControl[] = []
@@ -32,7 +32,7 @@ export function normalizeProfessionBuildAssumptions(
 }
 
 /**
- * Wraps the platform codec with app-layer assumption controls while leaving
+ * Wraps the platform codec with shared assumption controls while leaving
  * profession-specific migrations and repairs in each profession module.
  */
 export function createProfessionBuildCodec<TBuild extends Gw2CanonicalBuild>({

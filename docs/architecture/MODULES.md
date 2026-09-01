@@ -116,13 +116,11 @@ under its game package; GW2 uses `js/games/gw2/app/`.
 
 Shared profession application composition spans `js/games/gw2/app/` and its `profession/` directory.
 
-| Module                       | Responsibility                                 |
-| ---------------------------- | ---------------------------------------------- |
-| `profession/registry.ts`     | Lazy registry of every profession              |
-| `create-runtime.ts`          | Connects application builds to `simulateGw2()` |
-| `create-adapter.ts`          | Composes native profession browser adapters    |
-| `profession/assumptions.ts`  | Shared assumption-control contracts            |
-| `profession/slot-loadout.ts` | Shared heal/utility/elite loadout behavior      |
+| Module                   | Responsibility                                 |
+| ------------------------ | ---------------------------------------------- |
+| `profession/registry.ts` | Lazy registry of every profession              |
+| `create-runtime.ts`      | Connects application builds to `simulateGw2()` |
+| `create-adapter.ts`      | Composes native profession browser adapters    |
 
 The registry is also where a completely new profession would be exposed to the application.
 
@@ -180,7 +178,6 @@ Examples include:
 
 ```text
 config.ts
-randomness.ts
 random-distribution.ts
 random-distribution-runner.ts
 modifier-contributions.ts
@@ -992,11 +989,16 @@ Profession build defaults, migrations, and validation belong in:
 js/games/gw2/content/professions/<profession>/build/build.ts
 ```
 
-Shared Guild Wars 2 build normalization belongs in:
+Shared Guild Wars 2 build contracts belong in:
 
 ```text
-js/games/gw2/platform/builds/codec.ts
+js/games/gw2/platform/builds/
+├── assumptions.ts
+├── codec.ts
+└── slot-loadout.ts
 ```
+
+Shared simulation randomness assumptions belong in `js/games/gw2/platform/simulation/randomness.ts`.
 
 Profession code should own only the fields that are unique to that profession.
 

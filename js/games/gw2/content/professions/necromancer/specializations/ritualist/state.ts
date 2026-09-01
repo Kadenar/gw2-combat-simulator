@@ -2,6 +2,17 @@ import type { RitualistState } from '#gw2/content/professions/necromancer/types.
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { registerNecromancerStatePreserver } from '#gw2/content/professions/necromancer/core/mechanics/state-reconciliation.js';
 
+/** Declares Ritualist's public compatibility fields and inactive values. */
+export const RITUALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'activeSpirits',
+  'soulTwistingAvailable'
+] as const satisfies readonly (keyof RitualistState)[]);
+
+export const RITUALIST_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<RitualistState>> = Object.freeze({
+  activeSpirits: {},
+  soulTwistingAvailable: false
+});
+
 /** Creates Ritualist's spirit cadence, weapon-spell, and Painful Bond runtime state. */
 export function createRitualistState(): RitualistState {
   const state: RitualistState = {

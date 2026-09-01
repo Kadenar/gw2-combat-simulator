@@ -1,11 +1,10 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { specterCastAvailability } from '#gw2/content/professions/thief/specializations/specter/mechanics/availability.js';
 import {
   advanceSpecterResources,
@@ -35,13 +34,7 @@ export const specterSchedulerHooks = Object.freeze({
       const state = specterState.from(context);
       state.shadowForce = state.maximumShadowForce;
       state.shadowForceUpdatedAt = context.state.time;
-      emitStateSnapshot(
-        context,
-        'thief',
-        context.state.time,
-        'cooldown-reset',
-        snapshotThiefState(context.state.profession)
-      );
+      emitThiefStateSnapshot(context, context.state.time, 'cooldown-reset');
     }
   },
   onEventScheduled: {

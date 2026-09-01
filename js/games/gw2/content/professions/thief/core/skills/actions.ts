@@ -1,10 +1,9 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import type {
@@ -78,7 +77,7 @@ export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill)
   });
   if (context.combatStartTime != null) startThievesGuildAttacks(context, at);
 
-  emitStateSnapshot(context, 'thief', at, 'thieves-guild', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'thieves-guild');
 }
 
 /** Wakes a precast Thieves Guild when the scheduler publishes its combat-start boundary. */
@@ -158,7 +157,7 @@ export function expireThievesGuild(
   const state = professionCoreState(context);
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt) <= task.at) {
     state.activeThievesGuild = null;
-    emitStateSnapshot(context, 'thief', task.at, 'thieves-guild-expired', snapshotThiefState(context.state.profession));
+    emitThiefStateSnapshot(context, task.at, 'thieves-guild-expired');
   }
 }
 
@@ -167,7 +166,7 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.kneeling = false;
-  emitStateSnapshot(context, 'thief', at, 'stand', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'stand');
   const inCombat =
     !context.hasExplicitCombatStart ||
     (context.combatStartTime != null && at + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
@@ -184,12 +183,12 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
 
 export function kneel(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = true;
-  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'kneel', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'kneel');
 }
 
 export function stand(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = false;
-  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'stand', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'stand');
 }
 
 export function activateAssassinsSignet(context: ThiefCastContext): void {
@@ -200,5 +199,5 @@ export function activateAssassinsSignet(context: ThiefCastContext): void {
   state.assassinsSignetPassiveDisabledUntil = Number(
     context.rechargeReadyAt || context.state.cooldowns.get(ID.ASSASSINS_SIGNET) || at
   );
-  emitStateSnapshot(context, 'thief', at, 'assassins-signet', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'assassins-signet');
 }

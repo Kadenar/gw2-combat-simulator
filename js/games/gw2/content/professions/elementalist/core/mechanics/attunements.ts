@@ -3,14 +3,15 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistPrecastContext as ElementalistCastContext
+  ElementalistCastContext,
+  ElementalistPrecastContext
 } from '#gw2/content/professions/elementalist/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
 } from '#gw2/content/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   ATTUNEMENT_RECHARGE_SECONDS,
   OFF_ATTUNEMENT_RECHARGE_SECONDS
@@ -44,19 +45,18 @@ export interface ElementalistAttunementTransition {
 
 /** Maps an attunement-swap skill to the attunement it enters, or null for any other skill. */
 export function targetAttunement(skill: Skill): ElementalistAttunement | null {
-  const candidate = skill.name.replace(/ Attunement$/, '');
-  return ELEMENTALIST_ATTUNEMENTS.includes(candidate as ElementalistAttunement)
-    ? (candidate as ElementalistAttunement)
-    : null;
+  return (
+    ELEMENTALIST_ATTUNEMENTS.find((attunement) => ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement] === skill.id) ?? null
+  );
 }
 
 /** Applies alacrity's recharge scaling to an Elementalist mechanic duration. */
-export function elementalistAlacrityAdjustedDuration(context: ElementalistLifecycleContext, seconds: number): number {
+export function elementalistAlacrityAdjustedDuration(context: ElementalistCastContext, seconds: number): number {
   return context.config.boons?.alacrity ? seconds / 1.25 : seconds;
 }
 
 /** Resolves the effective attunement recharge after Elemental Enchantment and alacrity. */
-export function elementalistAttunementRechargeDuration(context: ElementalistLifecycleContext, seconds: number): number {
+export function elementalistAttunementRechargeDuration(context: ElementalistCastContext, seconds: number): number {
   let adjusted = seconds;
   if (hasTrait(context, 'Elemental Enchantment')) {
     adjusted *= balanceProfileValueFromContext(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85);
@@ -71,7 +71,7 @@ export function elementalistAttunementRechargeDuration(context: ElementalistLife
  * swap events, and fires the shared on-entry trait effects once combat started.
  */
 export function onAttunementComplete(
-  context: ElementalistLifecycleContext,
+  context: ElementalistCastContext,
   skill: Skill,
   target: ElementalistAttunement,
   transition: ElementalistAttunementTransition = {}
@@ -120,7 +120,7 @@ export function onAttunementComplete(
       let nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       // Fresh Air can pull Air's ready time in ahead of its scheduled recharge.
       if (attunement === 'Air' && hasTrait(context, 'Fresh Air')) {
-        const freshAirReadyAt = projectedFreshAirReadyAt(context as unknown as ElementalistCastContext, nextReadyAt);
+        const freshAirReadyAt = projectedFreshAirReadyAt(context as unknown as ElementalistPrecastContext, nextReadyAt);
         if (freshAirReadyAt != null) {
           nextReadyAt = Math.min(nextReadyAt, freshAirReadyAt);
         }

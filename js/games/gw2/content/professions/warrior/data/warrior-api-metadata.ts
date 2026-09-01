@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for warrior.
-// Snapshot: 2026-08-08. Run npm run update:warrior-data to refresh.
-// Simulator mechanics are maintained under warrior/mechanics/.
+// Snapshot: 2026-08-08. Run npm run update:profession-data -- --profession Warrior to refresh.
+// Simulator mechanics are maintained under warrior/core/ and warrior/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { WarriorSkill } from '#gw2/content/professions/warrior/types.js';

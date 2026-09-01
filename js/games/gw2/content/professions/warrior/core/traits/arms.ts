@@ -5,6 +5,8 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
@@ -12,6 +14,15 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
+import {
+  warriorActiveBuffStacks,
+  warriorBoonActive,
+  warriorEventSkill,
+  warriorTargetControlled,
+  warriorWieldingWeapon,
+  type WarriorModifierAttributes
+} from '#gw2/content/professions/warrior/core/traits/modifier-queries.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   WarriorCastContext,
   WarriorResolverContext,
@@ -280,3 +291,87 @@ export function applyFuriousBurst(context: WarriorCastContext, skill: WarriorSki
     duration: gw2SchedulerBoonDuration(context, skill, 'fury', Number(fury?.duration || 2.5))
   });
 }
+
+// Resolve Arms-owned attributes, including live signet state and critical-proc stacks.
+export function modifyWarriorArmsAttributes(
+  context: Gw2ModifierContext,
+  result: WarriorModifierAttributes,
+  staticRulesApplied: boolean
+): void {
+  const signetMastery = balanceProfileFromContext(context, PROFILE.signetMastery);
+  const furious = balanceProfileFromContext(context, PROFILE.furious);
+  const signetStacks = warriorActiveBuffStacks(context, 'signet-mastery', Number(signetMastery?.maximumStacks ?? 5));
+  if (hasTrait(context, TRAIT.SIGNET_MASTERY)) {
+    result.ferocity += signetStacks * Number(signetMastery?.attributeBonus ?? 100);
+  }
+
+  if (
+    hasTrait(context, TRAIT.DEEP_STRIKES) &&
+    warriorBoonActive(context, 'fury') &&
+    !(staticRulesApplied && Boolean(context.config?.boons?.fury))
+  ) {
+    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.deepStrikes)?.attributeBonus ?? 180);
+  }
+
+  if (hasTrait(context, TRAIT.BLADEMASTER) && warriorWieldingWeapon(context, 'Sword')) {
+    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.blademaster)?.attributeBonus ?? 120);
+  }
+
+  result.conditionDamage +=
+    warriorActiveBuffStacks(context, 'furious-surge', Number(furious?.maximumStacks ?? 25)) *
+    Number(furious?.attributeBonus ?? 15);
+  if (hasTrait(context, TRAIT.BURST_PRECISION) && warriorActiveBuffStacks(context, 'burst-precision', 1) > 0) {
+    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.burstPrecision)?.attributeBonus ?? 250);
+  }
+
+  if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
+    const bonus = Number(balanceProfileFromContext(context, PROFILE.signetOfFuryActive)?.attributeBonus ?? 360);
+    result.precision += bonus;
+    result.ferocity += bonus;
+  }
+
+  for (const [name, id, attribute] of [
+    ['Signet of Might', ID.SIGNET_OF_MIGHT, 'power'],
+    ['Signet of Fury', ID.SIGNET_OF_FURY, 'precision']
+  ] as const) {
+    if (!hasSelectedSkill(context, name)) continue;
+    const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
+    if (staticRulesApplied ? onCooldown : !onCooldown) {
+      const passiveBonus = Number(balanceProfileFromContext(context, PROFILE.signetPassives)?.attributeBonus ?? 180);
+      result[attribute] += (staticRulesApplied ? -1 : 1) * passiveBonus;
+    }
+  }
+}
+
+export const warriorArmsModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'warrior.furious-burst-fury-critical-chance',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 0.05,
+    when: (context) => hasTrait(context, TRAIT.FURIOUS_BURST) && warriorBoonActive(context, 'fury')
+  },
+  {
+    id: 'warrior.deep-strikes',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 0.05,
+    when: (context) => hasTrait(context, TRAIT.DEEP_STRIKES) && targetConditionActive(context, 'Bleeding')
+  },
+  {
+    id: 'warrior.unsuspecting-foe',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 0.25,
+    when: (context) => hasTrait(context, TRAIT.UNSUSPECTING_FOE) && warriorTargetControlled(context)
+  },
+  {
+    id: 'warrior.burst-precision',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 1,
+    when: (context) =>
+      hasTrait(context, TRAIT.BURST_PRECISION) &&
+      (Boolean(warriorEventSkill(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0)
+  }
+]);

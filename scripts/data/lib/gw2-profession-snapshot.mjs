@@ -337,14 +337,14 @@ export async function fetchProfessionSnapshot({
 
 // Creates a checked TypeScript module for a profession snapshot while keeping
 // the large generated arrays widened to their public contracts.
-export function serializeProfessionSnapshot({ professionName, snapshotDate, specializations, skills, refreshCommand }) {
+export function serializeProfessionSnapshot({ professionName, snapshotDate, specializations, skills }) {
   const id = professionName.toLowerCase();
-  const command = refreshCommand || `scripts/data/update-profession-api-data.mjs --profession ${professionName}`;
+  const command = `npm run update:profession-data -- --profession ${professionName}`;
 
   return [
     `// Generated Guild Wars 2 API metadata for ${id}.`,
     `// Snapshot: ${snapshotDate}. Run ${command} to refresh.`,
-    `// Simulator mechanics are maintained under ${id}/mechanics/.`,
+    `// Simulator mechanics are maintained under ${id}/core/ and ${id}/specializations/.`,
     '',
     `import type { Gw2ApiSpecialization, Gw2ApiTrait } from "#gw2/integrations/patches/authoring/api-metadata-types.js";`,
     `import type { ${professionName}Skill } from "#gw2/content/professions/${id}/types.js";`,
@@ -365,15 +365,13 @@ export async function writeProfessionSnapshot({
   professionName,
   snapshotDate = new Date().toISOString().slice(0, 10),
   specializations,
-  skills,
-  refreshCommand
+  skills
 }) {
   const source = serializeProfessionSnapshot({
     professionName,
     snapshotDate,
     specializations,
-    skills,
-    refreshCommand
+    skills
   });
 
   await mkdir(path.dirname(output), { recursive: true });

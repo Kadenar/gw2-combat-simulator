@@ -1059,6 +1059,9 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     const source = await readFile(output, 'utf8');
 
     assert.match(source, /Generated Guild Wars 2 API metadata for warrior/);
+    assert.match(source, /npm run update:profession-data -- --profession Warrior/);
+    assert.match(source, /warrior\/core\/ and warrior\/specializations\//);
+    assert.doesNotMatch(source, /warrior\/mechanics\//);
     assert.match(source, /import type \{ Gw2ApiSpecialization, Gw2ApiTrait \}/);
     assert.match(source, /export const DATA_SNAPSHOT: string = "2026-07-27"/);
     assert.match(source, /export const SPECIALIZATIONS: readonly WarriorApiSpecialization\[]/);
@@ -1111,6 +1114,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
       mesmer: [10197, 10200, 10201, 10203, 10236, 62573],
       necromancer: [10612, 40274, 42917],
       ranger: [12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256],
+      thief: [13020, 13035, 13096, 76784, 76808, 76879, 77361],
       warrior: [14368, 14403, 14413, 14479, 76769, 76934]
     });
 

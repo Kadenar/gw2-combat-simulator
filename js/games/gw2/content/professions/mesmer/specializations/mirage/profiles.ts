@@ -7,11 +7,9 @@ import {
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 
 import { MESMER_MIRAGE_AMBUSH_ATTACKS } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
-import type {
-  MesmerAmbushAttack,
-  MesmerAmbushStrike,
-  MesmerAttackStatus
-} from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerAttackStatus } from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerAmbushAttack, MesmerAmbushStrike } from '#gw2/content/professions/mesmer/types.js';
 
 export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({
   mechanics: 'mesmer.mirage.mechanics',

@@ -17,7 +17,7 @@ import type {
 import {
   CONJURED_WEAPONS,
   EVOKER_NO_CHARGE_SKILLS,
-  FULL_SPEAR_ETCHINGS
+  EVOKER_NO_CHARGE_SPEAR_SKILLS
 } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
@@ -75,8 +75,8 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
     Number(slot[1]) < 2 ||
     Number(slot[1]) > 5 ||
     CONJURED_WEAPONS.has(String(skill.skillWeapon || skill.weapon || '')) ||
-    EVOKER_NO_CHARGE_SKILLS.has(skill.name) ||
-    (skill.weapon === 'Spear' && (skill.name.startsWith('Lesser ') || FULL_SPEAR_ETCHINGS.has(skill.name)))
+    EVOKER_NO_CHARGE_SKILLS.has(skill.id) ||
+    (skill.weapon === 'Spear' && EVOKER_NO_CHARGE_SPEAR_SKILLS.has(skill.id))
   ) {
     return 0;
   }

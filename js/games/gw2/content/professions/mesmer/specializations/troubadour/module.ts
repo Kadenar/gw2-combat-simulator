@@ -1,4 +1,5 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { createMesmerModuleData } from '#gw2/content/professions/mesmer/catalog/module-data.js';
 import {
   troubadourAttributeRules,
@@ -17,7 +18,6 @@ import {
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/content/professions/mesmer/specializations/troubadour/skills/index.js';
 import { troubadourSkillHandlers } from '#gw2/content/professions/mesmer/specializations/troubadour/skills/execution.js';
-import { troubadourEventHandlers } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/state-events.js';
 import { TROUBADOUR_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
 
 export const troubadourModule = defineNativeModule({
@@ -41,7 +41,9 @@ export const troubadourModule = defineNativeModule({
       hooks: troubadourSchedulerHooks
     },
     resolution: {
-      hooks: { eventHandlers: troubadourEventHandlers }
+      hooks: {
+        eventHandlers: { 'mesmer.instrument': OBSERVABLE_EVENT_HANDLER }
+      }
     }
   },
   presentation: troubadourUi

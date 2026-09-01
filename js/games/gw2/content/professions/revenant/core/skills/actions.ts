@@ -1,6 +1,5 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 /**
  * Core Revenant action-handler map.
@@ -17,7 +16,7 @@ import type { RevenantCastContext, RevenantSkill } from '#gw2/content/profession
 export function performRevenantDodge(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
   Object.assign(state, spendEndurance(state, Number(skill.resourceCost || 0), context.start, state.maximumEndurance));
-  emitStateSnapshot(context, 'revenant', context.start, 'dodge', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, context.start, 'dodge');
 }
 
 /** Arms or consumes the Call to Anguish / Unyielding Impact flip. */
@@ -25,22 +24,10 @@ export function completeRevenantFollowup(context: RevenantCastContext, skill: Re
   const state = professionCoreState(context);
   if (skill.id === ID.CALL_TO_ANGUISH) {
     state.availableFlips[ID.UNYIELDING_IMPACT] = true;
-    emitStateSnapshot(
-      context,
-      'revenant',
-      context.effectiveEnd,
-      'unyielding-impact-ready',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, context.effectiveEnd, 'unyielding-impact-ready');
   } else if (skill.id === ID.UNYIELDING_IMPACT) {
     delete state.availableFlips[ID.UNYIELDING_IMPACT];
-    emitStateSnapshot(
-      context,
-      'revenant',
-      context.effectiveEnd,
-      'unyielding-impact-used',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, context.effectiveEnd, 'unyielding-impact-used');
   }
 }
 
@@ -55,5 +42,5 @@ export function gainAncientEchoEnergy(context: RevenantCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.energy = Math.min(state.maximumEnergy, state.energy + Number(context.skill.resourceGain || 0));
-  emitStateSnapshot(context, 'revenant', at, 'ancient-echo', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'ancient-echo');
 }

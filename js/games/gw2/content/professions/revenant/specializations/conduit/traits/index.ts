@@ -9,7 +9,7 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { revenantConduitFormIsActive } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
-import { applyCosmicWisdomAfterCast } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity-and-forms.js';
+import { applyCosmicWisdomAfterCast } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/forms.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {

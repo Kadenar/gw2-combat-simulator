@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for elementalist.
-// Snapshot: 2026-08-12. Run npm run update:elementalist-data to refresh.
-// Simulator mechanics are maintained under elementalist/mechanics/.
+// Snapshot: 2026-08-12. Run npm run update:profession-data -- --profession Elementalist to refresh.
+// Simulator mechanics are maintained under elementalist/core/ and elementalist/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { ElementalistSkill } from '#gw2/content/professions/elementalist/types.js';

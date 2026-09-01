@@ -4,15 +4,18 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { amalgamState } from '#gw2/content/professions/engineer/specializations/amalgam/state.js';
-import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
-import { AMALGAM_NEW_GENES_BOONS } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
+import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
+  AMALGAM_NEW_GENES_BOONS
+} from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
+import type { AmalgamMorphKind } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
 import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   EngineerCastContext,
@@ -34,13 +37,15 @@ interface MercurialTendenciesPayload extends SchedulerRecord {
   readonly sourceSkill?: string;
 }
 
-/** Resolves the equipped protocol IDs to unique Morph names for strain application. */
-function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
+const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE, ID.EVOLVE_ID_76651]);
+
+/** Resolves the equipped protocol IDs to unique stable Morph kinds for strain application. */
+function selectedMorphKinds(context: EngineerSchedulerContext): Set<AmalgamMorphKind> {
   return new Set(
     amalgamState
       .from(context)
-      .selectedMorphSkillIds.map((id) => context.catalog.skillsById.get(Number(id))?.name)
-      .filter((name): name is string => Boolean(name))
+      .selectedMorphSkillIds.map((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(Number(id)))
+      .filter((kind): kind is AmalgamMorphKind => Boolean(kind))
   );
 }
 
@@ -48,27 +53,27 @@ function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
  * Applies the strain mapped to a Morph name, emitting status effects immediately
  * while retaining timestamp-backed strains for later modifier and resolver checks.
  */
-function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string, at: number): void {
+function applyAmalgamStrain(context: EngineerSchedulerContext, morphKind: AmalgamMorphKind, at: number): void {
   const state = amalgamState.from(context);
   const strainDuration = balanceProfileValueFromContext(context, PROFILE.strains, 'durationMultiplier', 8);
   const buffs: AmalgamBuff[] = [];
-  if (morphName === 'Defensive Protocol: Protect') {
+  if (morphKind === 'protect') {
     buffs.push({
       kind: 'resistance',
       duration: strainDuration,
       sourceId: 'engineer.resiliant-strain',
       name: 'Resiliant Strain'
     });
-  } else if (morphName === 'Defensive Protocol: Cleanse') {
+  } else if (morphKind === 'cleanse') {
     buffs.push({
       kind: 'alacrity',
       duration: strainDuration,
       sourceId: 'engineer.replicating-strain',
       name: 'Replicating Strain'
     });
-  } else if (morphName === 'Defensive Protocol: Thorns') {
+  } else if (morphKind === 'thorns') {
     state.rapaciousUntil = Math.max(Number(state.rapaciousUntil || 0), at + strainDuration);
-  } else if (morphName === 'Offensive Protocol: Pierce') {
+  } else if (morphKind === 'pierce') {
     emitSkillControl(context, {
       at,
       source: 'engineer',
@@ -79,7 +84,7 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string
       controlKind: 'stun',
       duration: 2
     });
-  } else if (morphName === 'Offensive Protocol: Obliterate') {
+  } else if (morphKind === 'obliterate') {
     state.titanicUntil = Math.max(Number(state.titanicUntil || 0), at + strainDuration);
     buffs.push({
       kind: 'might',
@@ -88,7 +93,7 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string
       sourceId: 'engineer.titanic-strain',
       name: 'Titanic Strain'
     });
-  } else if (morphName === 'Offensive Protocol: Shred') {
+  } else if (morphKind === 'shred') {
     state.predatorUntil = Math.max(Number(state.predatorUntil || 0), at + strainDuration);
     buffs.push({
       kind: 'quickness',
@@ -102,7 +107,7 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string
       sourceId: 'engineer.predator-strain',
       name: 'Predator Strain'
     });
-  } else if (morphName === 'Offensive Protocol: Demolish') {
+  } else if (morphKind === 'demolish') {
     state.berserkerUntil = Math.max(Number(state.berserkerUntil || 0), at + strainDuration);
     buffs.push({
       kind: 'stability',
@@ -175,8 +180,9 @@ function scheduleThornsRetaliation(context: EngineerCastContext, skill: Engineer
 export function activateAmalgamMorph(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   const state = amalgamState.from(context);
+  const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
   // Apply protocol-owned state before any trait reactions inspect the cast.
-  if (skill.name === 'Defensive Protocol: Thorns') {
+  if (morphKind === 'thorns') {
     state.thornsUntil = Math.max(
       state.thornsUntil,
       at + balanceProfileValueFromContext(context, PROFILE.morphs, 'durationMultiplier', 6)
@@ -210,8 +216,8 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     });
   }
 
-  if (hasTrait(context.config, TRAIT.SILVER_LINING)) {
-    applyAmalgamStrain(context, skill.name, at);
+  if (morphKind && hasTrait(context.config, TRAIT.SILVER_LINING)) {
+    applyAmalgamStrain(context, morphKind, at);
   }
 
   // New Genes combines universal boons with one protocol-specific boon.
@@ -239,7 +245,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
         name: 'New Genes'
       }
     ];
-    const extra = AMALGAM_NEW_GENES_BOONS[skill.name];
+    const extra = morphKind ? AMALGAM_NEW_GENES_BOONS.get(morphKind) : undefined;
     if (extra) {
       buffs.push({
         ...extra,
@@ -266,7 +272,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     }
   }
 
-  emitStateSnapshot(context, 'engineer', at, 'amalgam-morph', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'amalgam-morph');
 }
 
 /** Activates Plasmatic State at its observed mid-cast packet timestamp. */
@@ -279,7 +285,7 @@ export function activatePlasmaticState(context: EngineerCastContext, _skill: Eng
     amalgamState.from(context).plasmaticStateUntil,
     at + balanceProfileValueFromContext(context, PROFILE.plasmaticState, 'durationMultiplier', 6)
   );
-  emitStateSnapshot(context, 'engineer', at, 'plasmatic-state', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'plasmatic-state');
 }
 
 /** Activates Evolved, grants selected strains, and resolves Evolve trait interactions. */
@@ -289,12 +295,12 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   // measured 640 ms Quickness animation.
   const at = context.start + castDuration * (520 / 640);
   const state = amalgamState.from(context);
-  const selected = selectedMorphNames(context);
+  const selected = selectedMorphKinds(context);
   state.evolvedUntil = at + balanceProfileValueFromContext(context, PROFILE.evolve, 'durationMultiplier', 8);
 
   if (!hasTrait(context.config, TRAIT.SILVER_LINING)) {
-    for (const morphName of selected) {
-      applyAmalgamStrain(context, morphName, at);
+    for (const morphKind of selected) {
+      applyAmalgamStrain(context, morphKind, at);
     }
   }
 
@@ -326,7 +332,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
     });
   }
 
-  emitStateSnapshot(context, 'engineer', at, 'evolve', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'evolve');
 }
 
 /** Queues Mercurial Tendencies checks for player control events while excluding summon-sourced control. */
@@ -369,7 +375,7 @@ export function handleMercurialTendencies(
   const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   for (const skillId of trackedIds) {
     const skill = context.catalog.skillsById.get(skillId);
-    if (skill?.name !== 'Evolve') continue;
+    if (!skill || !EVOLVE_SKILL_IDS.has(skill.id)) continue;
     reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
   }
 

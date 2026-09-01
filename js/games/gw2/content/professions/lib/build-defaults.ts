@@ -1,4 +1,4 @@
-import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/app/simulation/randomness.js';
+import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/simulation/randomness.js';
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/types.js';
 

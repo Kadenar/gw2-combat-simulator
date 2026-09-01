@@ -1,14 +1,16 @@
 import { guardianRadiantForgeEventHandlers } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
+import { reactToLuminaryJusticeHit } from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
 import {
   handleEffulgentActivated,
   handleEffulgentDetonate,
+  reactToEffulgentStrike
+} from '#gw2/content/professions/guardian/specializations/luminary/mechanics/stances.js';
+import {
   handleLightAuraDetonate,
   handleLightAuraGrant,
   handleLightFieldStart,
-  handleLightFinisher,
-  reactToEffulgentStrike,
-  reactToLuminaryJusticeHit
-} from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
+  handleLightFinisher
+} from '#gw2/content/professions/guardian/specializations/luminary/mechanics/light-fields.js';
 
 export const luminaryEventHandlers = Object.freeze({
   ...guardianRadiantForgeEventHandlers,

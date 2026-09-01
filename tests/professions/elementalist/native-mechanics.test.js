@@ -13,8 +13,14 @@ import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/ap
 import { applyElementalistBuildAttributeRules } from '#gw2/content/professions/elementalist/build/attributes.js';
 import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
 import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+import { targetAttunement } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
+import { createElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
+import { applyPistolState } from '#gw2/content/professions/elementalist/core/skills/pistol.js';
 import { elementalistCoreModifierRules } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import { availability as evokerAvailability } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/availability.js';
+import { createEvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
+import { weaverCastRules } from '#gw2/content/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 import { weaverModifierRules } from '#gw2/content/professions/elementalist/specializations/weaver/traits/modifiers.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/elementalist.js';
 
@@ -1704,6 +1710,50 @@ test('Evoker mechanics execute through native hooks', () => {
     result.procSteps.some((step) => step.skill === 'Electric Enchantment'),
     true
   );
+});
+
+test('Elementalist behavior follows skill IDs after display labels change', () => {
+  const fireAttunement = { ...elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT), name: 'Renamed attunement' };
+  const ignite = { ...elementalistCatalog.skillsById.get(ID.IGNITE), name: 'Renamed familiar' };
+  const state = createEvokerState({ evokerElement: 'Fire', initialEvokerCharges: 6 });
+  const context = {
+    state: {
+      profession: {
+        core: {},
+        specialization: { kind: 'Evoker', state }
+      }
+    },
+    start: 0,
+    epsilon: 1e-9,
+    commandIndex: 0,
+    config: { selectedTraitIds: [] }
+  };
+
+  assert.equal(targetAttunement(fireAttunement), 'Fire');
+  assert.deepEqual(evokerAvailability(context, ignite), { ready: true });
+  state.element = 'Water';
+  assert.equal(evokerAvailability(context, ignite).code, 'elementalist.evoker-element');
+
+  const unravel = { ...elementalistCatalog.skillsById.get(ID.UNRAVEL), name: 'Renamed unravel' };
+  assert.equal(
+    weaverCastRules.availability.handler({ config: { selectedTraitIds: [] } }, unravel).code,
+    'elementalist.weaver-elements-of-rage'
+  );
+
+  const core = createElementalistCoreState({ pistolBullets: { Earth: true, Air: true } });
+  const pistolContext = { state: { profession: { core } }, effectiveEnd: 1, config: { selectedTraitIds: [] } };
+  const shatteringStone = {
+    ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),
+    name: 'Renamed core pistol skill'
+  };
+  applyPistolState(pistolContext, shatteringStone);
+  assert.equal(core.shatteringStoneHitsRemaining, 3);
+
+  const purblindingPlasma = {
+    ...elementalistCatalog.skillsById.get(ID.PURBLINDING_PLASMA),
+    name: 'Renamed Weaver pistol skill'
+  };
+  assert.equal(weaverCastRules.modifyRechargeDuration({ ...pistolContext, skill: purblindingPlasma }, 15), 10);
 });
 
 test('Evoker weapon skills build familiar charges', () => {

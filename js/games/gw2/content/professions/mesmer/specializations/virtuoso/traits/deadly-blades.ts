@@ -12,9 +12,9 @@ import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics
 import type {
   MesmerCastContext,
   MesmerSchedulerContext,
-  MesmerSchedulerTask,
   MesmerShatterResolution
 } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerSchedulerTask } from '#gw2/content/professions/mesmer/state/types.js';
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
 export function resolveDeadlyBlades(context: MesmerCastContext, resolution: MesmerShatterResolution): void {

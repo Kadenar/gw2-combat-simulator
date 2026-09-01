@@ -2,12 +2,8 @@ import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
 import { replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
-import type {
-  BuildTemplatePreset,
-  BuildTemplateSection,
-  ProfessionAppState,
-  ProfessionApplicationBuild
-} from '#gw2/app/types.js';
+import type { BuildTemplatePreset, BuildTemplateSection, ProfessionAppState } from '#gw2/app/types.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 type TemplateLoadAction = 'build' | 'rotation' | 'template';
 type TemplateCategory = 'power' | 'condi' | 'other';
@@ -55,9 +51,15 @@ export function templateTileContent(preset: BuildTemplatePreset): {
   const detailsStart = weaponMatch?.index ?? preset.label.length;
   const name =
     category === 'other'
-      ? preset.label.slice(0, detailsStart).replace(/\s*-\s*$/, '').trim()
+      ? preset.label
+          .slice(0, detailsStart)
+          .replace(/\s*-\s*$/, '')
+          .trim()
       : `${category === 'condi' ? 'Condition' : 'Power'}${boon === 'none' ? '' : ` ${boon[0].toUpperCase()}${boon.slice(1)}`}`;
-  const roleSuffix = preset.label.slice(name.length, detailsStart).replace(/\s*-\s*$/, '').trim();
+  const roleSuffix = preset.label
+    .slice(name.length, detailsStart)
+    .replace(/\s*-\s*$/, '')
+    .trim();
   const weapons = (weaponMatch?.[1].match(/^\d+\s+Kits?$/i) ? roleSuffix : weaponMatch?.[1] || roleSuffix).replace(
     /\s*\/\s*/g,
     ' & '
@@ -68,9 +70,7 @@ export function templateTileContent(preset: BuildTemplatePreset): {
     name,
     weapons,
     dps:
-      Number.isFinite(benchmarkDps) && benchmarkDps > 0
-        ? `${Math.round(benchmarkDps).toLocaleString('en-US')} DPS`
-        : ''
+      Number.isFinite(benchmarkDps) && benchmarkDps > 0 ? `${Math.round(benchmarkDps).toLocaleString('en-US')} DPS` : ''
   };
 }
 
@@ -165,7 +165,8 @@ function applyTemplateFilter(
   const boonValue = container.querySelector<HTMLElement>('[data-template-boon-value]');
   const specializationValue = container.querySelector<HTMLElement>('[data-template-specialization-value]');
   if (roleValue) roleValue.textContent = filter === 'all' ? 'Any' : filter === 'condi' ? 'Condition' : 'Power';
-  if (boonValue) boonValue.textContent = boonFilter === 'all' ? 'Any' : boonFilter[0].toUpperCase() + boonFilter.slice(1);
+  if (boonValue)
+    boonValue.textContent = boonFilter === 'all' ? 'Any' : boonFilter[0].toUpperCase() + boonFilter.slice(1);
   if (specializationValue) specializationValue.textContent = specialization || 'Any';
 
   let visibleTemplates = 0;
@@ -206,10 +207,10 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string 
 }
 
 /**
- * @param {ProfessionApplicationBuild} build
+ * @param {Gw2ApplicationBuild} build
  * @returns {string}
  */
-function buildSignature(build: ProfessionApplicationBuild): string {
+function buildSignature(build: Gw2ApplicationBuild): string {
   return JSON.stringify(build);
 }
 
@@ -251,10 +252,10 @@ function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction):
 /**
  * @param {ProfessionAppState} app
  * @param {string} message
- * @param {ProfessionApplicationBuild} previousBuild
+ * @param {Gw2ApplicationBuild} previousBuild
  * @returns {void}
  */
-function showTemplateUndo(app: ProfessionAppState, message: string, previousBuild: ProfessionApplicationBuild): void {
+function showTemplateUndo(app: ProfessionAppState, message: string, previousBuild: Gw2ApplicationBuild): void {
   app.templateUndoBuild = previousBuild;
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
   if (!toast) return;

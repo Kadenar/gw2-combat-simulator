@@ -16,16 +16,13 @@ import {
   MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_TRAIT_DAMAGE
 } from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import type {
-  MesmerContinuumController,
-  MesmerRuntime,
-  MesmerSchedulerContext
-} from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 import {
   CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE,
   CHRONOMANCER_SHATTER_PROFILE_IDS
 } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
 import { mesmerProfiledShatters, mesmerProfiledTraitDamage } from '#gw2/content/professions/mesmer/core/profiles.js';
+import type { MesmerContinuumController } from '#gw2/content/professions/mesmer/specializations/chronomancer/types.js';
 
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([ID.SWAP_WEAPONS]);
 

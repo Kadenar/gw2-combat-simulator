@@ -1,6 +1,21 @@
 import type { HarbingerState, NecromancerConfig } from '#gw2/content/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
+/** Declares Harbinger's public compatibility fields and inactive values. */
+export const HARBINGER_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'blight',
+  'blightExpiries',
+  'cascadingCorruptionStacks',
+  'meltdownUntil'
+] as const satisfies readonly (keyof HarbingerState)[]);
+
+export const HARBINGER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<HarbingerState>> = Object.freeze({
+  blight: 0,
+  blightExpiries: [],
+  cascadingCorruptionStacks: 0,
+  meltdownUntil: 0
+});
+
 /** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
 export function createHarbingerState(config: NecromancerConfig = {}): HarbingerState {
   const initialBlight = Math.max(0, Math.min(25, Math.trunc(Number(config.initialBlight || 0))));

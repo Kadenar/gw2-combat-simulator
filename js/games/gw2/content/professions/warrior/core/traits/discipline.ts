@@ -2,10 +2,17 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
+import {
+  warriorBoonActive,
+  warriorEventSkill,
+  warriorTargetBoonCount
+} from '#gw2/content/professions/warrior/core/traits/modifier-queries.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { WarriorCastContext, WarriorSkill } from '#gw2/content/professions/warrior/types.js';
 
 // Refund the configured burst resource and emit Swiftness after Burst Precision is armed.
@@ -43,3 +50,30 @@ export function applyBurstMastery(
 export function applyVersatileRage(context: WarriorCastContext): void {
   if (hasTrait(context, TRAIT.VERSATILE_RAGE)) gainWarriorAdrenaline(context, 5);
 }
+
+export const warriorDisciplineModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'warrior.warriors-sprint',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    amount: 0.1,
+    when: (context) => hasTrait(context, TRAIT.WARRIORS_SPRINT) && warriorBoonActive(context, 'swiftness')
+  },
+  {
+    id: 'warrior.destruction-of-the-empowered',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: { damagePerBoon: 0.03 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) => 1 + warriorTargetBoonCount(context) * parameters.damagePerBoon,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.DESTRUCTION_OF_THE_EMPOWERED) && warriorTargetBoonCount(context) > 0
+  },
+  {
+    id: 'warrior.burst-mastery',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.15,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.BURST_MASTERY) && Boolean(warriorEventSkill(context)?.burst)
+  }
+]);

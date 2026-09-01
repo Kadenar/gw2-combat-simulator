@@ -8,7 +8,7 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { activeBoonStacks } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
@@ -145,7 +145,7 @@ function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Sched
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 function modifyScrapperMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
-  return context.skill?.name === 'Function Gyro' && hasTrait(context.config, TRAIT.EX_MACHINA)
+  return context.skill?.id === ID.FUNCTION_GYRO && hasTrait(context.config, TRAIT.EX_MACHINA)
     ? Math.max(2, Number(maximum || 0))
     : maximum;
 }

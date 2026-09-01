@@ -9,13 +9,15 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerInstrument,
   MesmerRuntime,
-  MesmerRuntimeState,
   MesmerShatter,
-  MesmerSkill,
-  MesmerTraitDamage
+  MesmerInstrument
 } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerRuntimeState } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerTraitDamage } from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 const CLARITY_DURATION = 15;
 const CLARITY_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png';

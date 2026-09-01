@@ -4,10 +4,18 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
+import {
+  warriorBoonActive,
+  warriorEventSkill,
+  warriorTargetControlled
+} from '#gw2/content/professions/warrior/core/traits/modifier-queries.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
@@ -95,3 +103,40 @@ export function applyCullTheWeak(context: WarriorSchedulerContext, event: Warrio
     duration: 3.5
   });
 }
+
+export const warriorDefenseModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'warrior.cull-the-weak',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.1,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.CULL_THE_WEAK) && targetConditionActive(context, 'Weakness')
+  },
+  {
+    id: 'warrior.merciless-hammer',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.25,
+    order: 100,
+    when: (context) =>
+      hasTrait(context, TRAIT.MERCILESS_HAMMER) &&
+      ['Hammer', 'Mace'].includes(
+        String(
+          context.event?.skillWeapon ||
+            warriorEventSkill(context)?.skillWeapon ||
+            warriorEventSkill(context)?.weapon ||
+            ''
+        )
+      ) &&
+      warriorTargetControlled(context)
+  },
+  {
+    id: 'warrior.stalwart-strength',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.1,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.STALWART_STRENGTH) && warriorBoonActive(context, 'stability')
+  }
+]);

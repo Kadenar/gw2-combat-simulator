@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for ranger.
-// Snapshot: 2026-08-08. Run npm run update:ranger-data to refresh.
-// Simulator mechanics are maintained under ranger/mechanics/.
+// Snapshot: 2026-08-08. Run npm run update:profession-data -- --profession Ranger to refresh.
+// Simulator mechanics are maintained under ranger/core/ and ranger/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { RangerSkill } from '#gw2/content/professions/ranger/types.js';

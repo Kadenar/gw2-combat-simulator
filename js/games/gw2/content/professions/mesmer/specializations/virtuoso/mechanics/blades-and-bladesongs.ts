@@ -7,7 +7,7 @@ import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics
 import { initializeVirtuosoRuntime } from '#gw2/content/professions/mesmer/specializations/virtuoso/mechanics/runtime.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
-import type { MesmerSchedulerContext, MesmerSchedulerTask } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 
 import {
   handleDeadlyBladesCriticalTask,
@@ -19,7 +19,10 @@ import {
   observeVirtuosoExpectedProcEvent
 } from '#gw2/content/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
-import type { MesmerPrecastContext, MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerPrecastContext } from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerSchedulerTask } from '#gw2/content/professions/mesmer/state/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 /** Requires at least one stocked blade before a Virtuoso bladesong can begin. */
 function virtuosoAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {

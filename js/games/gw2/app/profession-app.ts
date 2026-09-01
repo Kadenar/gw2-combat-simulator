@@ -26,11 +26,11 @@ import type {
   BaselineSimulationOutput,
   ProfessionChangeOptions,
   ProfessionAttributeData,
-  ProfessionApplicationBuild,
   ProfessionFeatureRunner,
   ProfessionRotationDragState,
   RotationActionOptions
 } from '#gw2/app/types.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
   isRunning: false,
@@ -38,9 +38,7 @@ const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
   run() {}
 });
 
-export class ProfessionApp
-  implements ProfessionAppState, ShellSession<ProfessionApplicationBuild, ProfessionAppResult>
-{
+export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2ApplicationBuild, ProfessionAppResult> {
   readonly gameId: string;
   readonly contentId: string;
   readonly adapter: Gw2AppAdapter;
@@ -48,7 +46,7 @@ export class ProfessionApp
   activeCatalog: ProfessionAppState['activeCatalog'];
   patchId: string;
   patchComparison: ProfessionAppState['patchComparison'];
-  build: ProfessionApplicationBuild;
+  build: Gw2ApplicationBuild;
   skills: ProfessionAppState['skills'];
   skillByName: ProfessionAppState['skillByName'];
   skillById: ProfessionAppState['skillById'];
@@ -71,7 +69,7 @@ export class ProfessionApp
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
-  templateUndoBuild: ProfessionApplicationBuild | null;
+  templateUndoBuild: Gw2ApplicationBuild | null;
   readonly modifierContributionRunner: ProfessionFeatureRunner;
   readonly randomDistributionRunner: ProfessionFeatureRunner;
   readonly relicComparisonRunner: ProfessionFeatureRunner;
@@ -128,7 +126,7 @@ export class ProfessionApp
     this.deferredRotationRenderRevision = null;
   }
 
-  get input(): ProfessionApplicationBuild {
+  get input(): Gw2ApplicationBuild {
     return this.build;
   }
 

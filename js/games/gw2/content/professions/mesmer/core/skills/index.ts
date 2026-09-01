@@ -4,7 +4,7 @@
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
-import type { MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
+
 import { MESMER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/slot-skills.js';
 import { MESMER_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/weapons/axe.js';
@@ -19,6 +19,8 @@ import { MESMER_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/content/professions/m
 import { MESMER_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/weapons/staff.js';
 import { MESMER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/weapons/sword.js';
 import { MESMER_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/weapons/torch.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   ...MESMER_PROFESSION_SKILLS_SKILL_MECHANICS,

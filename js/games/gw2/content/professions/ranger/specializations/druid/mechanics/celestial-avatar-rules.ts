@@ -210,7 +210,7 @@ export function druidCastAvailability(context: RangerPrecastContext, skill: Rang
     return deny(skill, 'ranger.avatar-inactive', 'enter Celestial Avatar first.');
   }
 
-  if (skill.name === 'Celestial Avatar') {
+  if (skill.id === ID.CELESTIAL_AVATAR) {
     if (state.celestialAvatarActive) {
       return deny(skill, 'ranger.avatar-active', 'Celestial Avatar is already active.');
     }
@@ -232,7 +232,7 @@ export function druidCastAvailability(context: RangerPrecastContext, skill: Rang
     }
   }
 
-  if (skill.name === 'Release Celestial Avatar' && !state.celestialAvatarActive) {
+  if (skill.id === ID.RELEASE_CELESTIAL_AVATAR && !state.celestialAvatarActive) {
     return deny(skill, 'ranger.avatar-inactive', 'Celestial Avatar is not active.');
   }
 

@@ -1,7 +1,6 @@
 import { conduitState } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import {
   emitSkillBuff,
@@ -10,12 +9,10 @@ import {
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
 /**
- * Conduit and Legendary Entity runtime mechanics.
+ * Conduit and Legendary Entity skill effects.
  *
- * Owns affinity gain, Entity skill packets, legend resonances, Numinous Gift,
- * Shared Wisdom additions, Release Potential variants, and Cosmic Wisdom
- * state. It also handles delayed affinity-hit tasks and exports the feature's
- * raw skill callbacks for composition by handlers.js.
+ * Owns Entity skill packets, legend resonances, Shared Wisdom additions,
+ * Release Potential variants, and Cosmic Wisdom activation.
  */
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/content/professions/revenant/data/legends.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -34,28 +31,17 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/revenant/data/ids.js';
-import { revenantConduitFormIsActive } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
-import type { BalanceProfile, SchedulerRecord, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import {
+  emitNuminousGift,
+  syncConduitEnergyCostOverrides
+} from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import type { SchedulerRecord, SkillEffect } from '#gw2/platform/engine/types.js';
 import type {
-  ConduitState,
   RevenantCastContext,
-  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/content/professions/revenant/types.js';
-
-// Union type allows the same helper functions to be called from both cast contexts (which have start/effectiveEnd)
-// and raw scheduler contexts (which do not), without requiring separate overloads.
-type RevenantMechanicContext = RevenantSchedulerContext & {
-  readonly start?: number;
-  readonly effectiveEnd?: number;
-  readonly skill?: RevenantSkill;
-};
-
-interface ConduitAffinityTaskPayload extends SchedulerRecord {
-  readonly amount: number;
-}
 
 function hasLegend(context: RevenantSchedulerContext, legendId: string): boolean {
   return professionCoreState(context).selectedLegendIds.includes(legendId);
@@ -123,173 +109,6 @@ function conduitSkillWeapon(context: RevenantSchedulerContext, skill: RevenantSk
   return skill.weapon || (skill.type === 'Profession' ? activeWeapon(context) : 'Unequipped');
 }
 
-export function emitDervishFormAttack(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-  { elite = false }: { readonly elite?: boolean } = {}
-): void {
-  const state = conduitState.from(context);
-  // Guard against non-Conduit builds calling this helper; specialization check is cheaper than checking the form alone.
-  if (
-    context.config.specialization !== 'Conduit' ||
-    state.conduitForm !== 'Dervish' ||
-    // Use context.start (cast begin) rather than effectiveEnd so the form check reflects the moment of triggering.
-    Number(state.cosmicWisdomUntil || 0) <= context.start
-  )
-    return;
-  const skillId = elite ? ID.FORM_OF_THE_DERVISH_ATTACK_ELITE : ID.FORM_OF_THE_DERVISH_ATTACK;
-  const attack =
-    context.catalog.skillsById.get(skillId) ||
-    ({ id: skillId, name: 'Form of the Dervish', type: 'Profession' } as RevenantSkill);
-  emitSkillDamage(context, attack, {
-    at: context.effectiveEnd,
-    source: 'revenant',
-    skillName: 'Form of the Dervish',
-    name: elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)',
-    coefficient: strikeCoefficient(effectByType(attack, 'strike')),
-    skillWeapon: 'Unequipped',
-    canCrit: null,
-    triggeredBy: skill.name,
-    metadata: { icon: attack.icon || '' }
-  });
-}
-
-/** Emits Form of the Assassin's one-second/legend-skill dagger strike. */
-export function emitLesserEnchantedDaggers(
-  context: RevenantSchedulerContext,
-  sourceSkill: RevenantSkill,
-  at: number
-): void {
-  if (!revenantConduitFormIsActive(conduitState.from(context), 'Assassin', at)) return;
-  const skill = context.catalog.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
-  if (!skill) return;
-  emitSkillDamage(context, skill, {
-    at,
-    source: 'revenant',
-    name: 'Lesser Enchanted Daggers',
-    coefficient: strikeCoefficient(effectByType(skill, 'strike')),
-    skillWeapon: 'Unequipped',
-    canCrit: null,
-    triggeredBy: sourceSkill.name,
-    metadata: { icon: skill.icon || '' }
-  });
-}
-
-/** Applies the active Assassin or Dervish form after a legend skill cast. */
-export function applyCosmicWisdomAfterCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  const at = context.effectiveEnd;
-  // Assassin form procs on any Assassin legend skill; Dervish form procs only on Entity legend skills.
-  if (skill.legendId === LEGEND.ASSASSIN && revenantConduitFormIsActive(conduitState.from(context), 'Assassin', at)) {
-    emitLesserEnchantedDaggers(context, skill, at);
-  }
-
-  if (skill.legendId !== LEGEND.ENTITY || !revenantConduitFormIsActive(conduitState.from(context), 'Dervish', at))
-    return;
-  emitDervishFormAttack(context, skill);
-  // Twin Moon Sweep is the only Entity skill that also triggers the elite Dervish attack.
-  if (([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001] as readonly number[]).includes(Number(skill.id))) {
-    emitDervishFormAttack(context, skill, { elite: true });
-  }
-}
-
-/** Adds capped Conduit affinity and snapshots the resource change. */
-export function gainConduitAffinity(context: RevenantMechanicContext, amount: number, reason: string): number {
-  if (context.config.specialization !== 'Conduit') return 0;
-  const state = conduitState.from(context);
-  const coreState = professionCoreState(context);
-  const affinityProfile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
-  const maximum = Math.max(1, Number(affinityProfile?.maximumStacks || 1));
-  state.affinityMaximum = maximum;
-  const previous = Number(state.affinity || 0);
-  state.affinity = Math.min(maximum, previous + Math.max(0, Number(amount || 0)));
-  if (
-    // Only fire the Expanded Consciousness pulse on the transition to maximum, not on every gain while already at max.
-    previous < maximum &&
-    state.affinity === maximum &&
-    hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)
-  ) {
-    const expanded = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness);
-    coreState.energy = Math.min(
-      coreState.maximumEnergy,
-      coreState.energy + Math.max(0, Number(expanded?.resourceGain || 0))
-    );
-  }
-
-  if (state.affinity !== previous) {
-    // Use cast-start time when available so the state event aligns with the skill timeline rather than the clock.
-    emitStateSnapshot(
-      context,
-      'revenant',
-      context.start ?? context.state.time,
-      reason,
-      snapshotRevenantState(context.state.profession)
-    );
-  }
-
-  return state.affinity - previous;
-}
-
-/** Refreshes Conduit-owned Energy overrides from patchable Mesmer profiles. */
-export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext): void {
-  const state = conduitState.from(context);
-  if (state.conduitForm !== 'Mesmer') {
-    state.energyCostOverrides = {};
-    return;
-  }
-
-  state.energyCostOverrides = {
-    [ID.BANISH_ENCHANTMENT]: Number(
-      balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment)?.energyCost || 0
-    ),
-    [ID.BANISH_ENCHANTMENT_ID_78587]: Number(
-      balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment)?.energyCost || 0
-    ),
-    [ID.CALL_TO_ANGUISH]: Number(
-      balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerCallToAnguish)?.energyCost || 0
-    ),
-    [ID.UNYIELDING_IMPACT]: Number(
-      balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerUnyieldingImpact)?.energyCost || 0
-    ),
-    [ID.EMBRACE_THE_DARKNESS]: Number(
-      balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerEmbraceTheDarkness)?.energyCost || 0
-    )
-  };
-}
-
-/** Resolves a delayed affinity gain scheduled for a qualifying hit. */
-export function handleConduitAffinityHit(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<ConduitAffinityTaskPayload>
-): void {
-  if (!task.payload) return;
-  gainConduitAffinity(context, task.payload.amount, 'enigmatic-connection-hit');
-}
-
-/** Emits Numinous Gift's base and equipped-legend boon profile. */
-export function emitNuminousGift(
-  context: RevenantMechanicContext,
-  skill: RevenantSkill,
-  options: { readonly allies?: boolean } = {}
-): void {
-  if (context.config.specialization !== 'Conduit') return;
-  const profile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift);
-  const recipients = options.allies ? 'allies' : 'self';
-  const selectedLegends = professionCoreState(context).selectedLegendIds;
-  for (const effect of profile?.effects || []) {
-    if (effect.type !== 'boon' || !effect.boon) continue;
-    const legendId = String(effect.metadata?.legendId || '');
-    if (legendId && !selectedLegends.includes(legendId)) continue;
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd ?? context.state.time,
-      name: `${skill.name} — ${effect.boon}`,
-      kind: effect.boon,
-      duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks || 1),
-      recipients
-    });
-  }
-}
-
 /** Emits Beguiling Haze or consumes one of its follow-up charges. */
 export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = conduitState.from(context);
@@ -333,13 +152,7 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
     }
   }
 
-  emitStateSnapshot(
-    context,
-    'revenant',
-    context.effectiveEnd,
-    'beguiling-haze',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, context.effectiveEnd, 'beguiling-haze');
 }
 
 /** Arms Beguiling Haze follow-up charges after the primary cast completes. */
@@ -379,13 +192,7 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
     }
   }
 
-  emitStateSnapshot(
-    context,
-    'revenant',
-    context.effectiveEnd,
-    'beguiling-haze-follow-up',
-    snapshotRevenantState(context.state.profession)
-  );
+  emitRevenantStateSnapshot(context, context.effectiveEnd, 'beguiling-haze-follow-up');
 }
 
 function activeSelfConditions(context: RevenantCastContext, at: number): number {
@@ -454,7 +261,7 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
     }
   }
 
-  emitStateSnapshot(context, 'revenant', at, 'hex-eater-vortex', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'hex-eater-vortex');
 }
 
 /** Resolves Gladiator's Defense and its legend/trait-dependent boons. */
@@ -804,7 +611,7 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
     ) || '';
   // Energy overrides must be applied immediately so the very next skill cast sees the correct cost.
   syncConduitEnergyCostOverrides(context);
-  emitStateSnapshot(context, 'revenant', at, 'cosmic-wisdom', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'cosmic-wisdom');
   // Numinous Gift fires on activation for the activating player (not allies); Found Purpose broadcasts to allies on swap.
   emitNuminousGift(context, context.skill);
 }

@@ -14,16 +14,14 @@ import {
   MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS,
   MESMER_MIRAGE_PEITHA_SKILLS
 } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
-import type {
-  MesmerMirageController,
-  MesmerRuntime,
-  MesmerSchedulerContext,
-  MesmerSkill
-} from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 import {
   MIRAGE_AMBUSH_PROFILE_IDS,
   mesmerProfiledAmbush
 } from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
+import type { MesmerMirageController } from '#gw2/content/professions/mesmer/specializations/mirage/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 /** Returns the controller installed only by the Mirage runtime. */
 export function mirageControllerFor(runtime: MesmerRuntime): MesmerMirageController {

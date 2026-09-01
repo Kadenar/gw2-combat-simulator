@@ -1,18 +1,13 @@
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  eventSkill as gw2EventSkill,
-  hasSelectedSkill,
-  targetConditionActive,
-  targetHealthFraction
-} from '#gw2/platform/combat/query/runtime-query.js';
+import { targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { warriorCastAvailability } from '#gw2/content/professions/warrior/core/mechanics/availability.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
+import {
+  warriorEventSkill,
+  type WarriorModifierAttributes
+} from '#gw2/content/professions/warrior/core/traits/modifier-queries.js';
 import {
   advanceWarriorTraits,
   applyWarriorWeaponSwapTraits,
@@ -20,7 +15,15 @@ import {
   completeWarriorSkill,
   handleWarriorArmsCriticalTask,
   initializeWarriorTraits,
-  observeWarriorEvent
+  modifyWarriorArmsAttributes,
+  modifyWarriorStrengthAttributes,
+  modifyWarriorTacticsAttributes,
+  observeWarriorEvent,
+  warriorArmsModifierRules,
+  warriorDefenseModifierRules,
+  warriorDisciplineModifierRules,
+  warriorStrengthModifierRules,
+  warriorTacticsModifierRules
 } from '#gw2/content/professions/warrior/core/traits/index.js';
 import { advanceWarriorResources } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { handleWarriorAdrenalineTask } from '#gw2/content/professions/warrior/resources.js';
@@ -31,89 +34,13 @@ import type {
   WarriorSchedulerContext,
   WarriorSkill
 } from '#gw2/content/professions/warrior/types.js';
-import type { WarriorCoreState } from '#gw2/content/professions/warrior/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
 export { snapshotWarriorState } from '#gw2/content/professions/warrior/state.js';
 
-function coreState(context: Gw2ModifierContext): Partial<WarriorCoreState> {
-  return readProfessionCoreState<WarriorCoreState>(context.runtime?.profession);
-}
-
-// Keeps Warrior skill typing local while sharing the GW2-wide skill-id fallback policy.
-const eventSkill = (context: Gw2ModifierContext): WarriorSkill | undefined => gw2EventSkill<WarriorSkill>(context);
-
-function targetControlled(context: Gw2ModifierContext): boolean {
-  return Boolean(
-    context.config?.target?.controlled ||
-    context.config?.target?.defiant ||
-    Number(coreState(context).targetControlledUntil || 0) > context.time
-  );
-}
-
-// Warrior modifiers historically read configured and live resolver boons only; timeline state must not change them.
-function boonActive(context: Gw2ModifierContext, boon: string): boolean {
-  if (context.config?.boons?.[boon]) return true;
-  return (context.runtime?.boons?.get(boon) || []).some(
-    (application) =>
-      application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
-  );
-}
-
-function activeBuffStacks(context: Gw2ModifierContext, kind: string, maximum: number): number {
-  const stacks = (context.runtime?.boons?.get(kind) || [])
-    .filter(
-      (application) =>
-        application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
-    )
-    .reduce((total, application) => total + application.stacks, 0);
-  return Math.min(maximum, stacks);
-}
-
-function activeBoonCount(context: Gw2ModifierContext): number {
-  return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
-}
-
-function targetBoonCount(context: Gw2ModifierContext): number {
-  const target = context.config?.target;
-  if (target?.boonless === true) return 0;
-  if (Array.isArray(target?.boons)) {
-    return new Set(target.boons.map(String)).size;
-  }
-
-  if (target?.boonCount != null) {
-    return Math.max(0, Math.trunc(Number(target.boonCount) || 0));
-  }
-
-  return target?.boonless === false ? 1 : 0;
-}
-
-// Test the active weapon set at query time, accounting for both hands and
-// projected set swaps used by modifier evaluation.
-function wieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
-  if (eventSkill(context)?.weapon === weapon) return true;
-  const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  const [configuredPrimary, configuredSecondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
-  const primary = String(configuredPrimary || '');
-  const secondary = String(configuredSecondary || '');
-  return primary === weapon || secondary === weapon;
-}
-
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
-  const result = { ...attributes } as SchedulerRecord & {
-    power: number;
-    precision: number;
-    ferocity: number;
-    conditionDamage: number;
-    expertise: number;
-    vitality: number;
-    healingPower: number;
-    concentration: number;
-  };
+  const result = { ...attributes } as WarriorModifierAttributes;
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  const signetMastery = balanceProfileFromContext(context, PROFILE.signetMastery);
-  const furious = balanceProfileFromContext(context, PROFILE.furious);
-  const signetStacks = activeBuffStacks(context, 'signet-mastery', Number(signetMastery?.maximumStacks ?? 5));
   result.power = Number(result.power || 0);
   result.precision = Number(result.precision || 0);
   result.ferocity = Number(result.ferocity || 0);
@@ -122,83 +49,11 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
   result.vitality = Number(result.vitality || 0);
   result.healingPower = Number(result.healingPower || 0);
   result.concentration = Number(result.concentration || 0);
-  // Attribute conversions read the gear-only pool. config.stats
-  // holds pre-boon gear attributes (might is baked into the seed's power, and
-  // live trait bonuses accrue on `result`), so this converts gear power only.
   const gearPower = Number(context.config?.stats?.power || 0);
-  if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
-    const profile = balanceProfileFromContext(context, PROFILE.pinnacleOfStrength);
-    result.power +=
-      Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
-      Number(profile?.attributeBonus ?? 10);
-  }
-
-  if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
-    const profile = balanceProfileFromContext(context, PROFILE.forcefulGreatsword);
-    result.power +=
-      Number(profile?.attributeBonus ?? 120) +
-      Number(wieldingWeapon(context, 'Greatsword')) * Number(profile?.weaponAttributeBonus ?? 120);
-  }
-
-  if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
-    result.concentration += Number(balanceProfileFromContext(context, PROFILE.roaringReveille)?.attributeBonus ?? 120);
-  }
-
-  if (hasTrait(context, TRAIT.SIGNET_MASTERY))
-    result.ferocity += signetStacks * Number(signetMastery?.attributeBonus ?? 100);
-  if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
-    // Static path bakes this from conversionPool in build-attributes; add no
-    // dynamic delta so might/signets never leak into the conversion.
-    const conversion = Number(balanceProfileFromContext(context, PROFILE.greatFortitude)?.attributeConversion ?? 0.1);
-    result.vitality += gearPower * conversion;
-    result.ferocity += gearPower * conversion;
-  }
-
-  if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
-    result.healingPower +=
-      gearPower * Number(balanceProfileFromContext(context, PROFILE.vigorousShouts)?.attributeConversion ?? 0.13);
-  }
-
-  if (
-    hasTrait(context, TRAIT.DEEP_STRIKES) &&
-    boonActive(context, 'fury') &&
-    !(staticRulesApplied && Boolean(context.config?.boons?.fury))
-  ) {
-    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.deepStrikes)?.attributeBonus ?? 180);
-  }
-
-  if (hasTrait(context, TRAIT.BLADEMASTER) && wieldingWeapon(context, 'Sword')) {
-    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.blademaster)?.attributeBonus ?? 120);
-  }
-
-  result.conditionDamage +=
-    activeBuffStacks(context, 'furious-surge', Number(furious?.maximumStacks ?? 25)) *
-    Number(furious?.attributeBonus ?? 15);
-  if (hasTrait(context, TRAIT.BURST_PRECISION) && activeBuffStacks(context, 'burst-precision', 1) > 0) {
-    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.burstPrecision)?.attributeBonus ?? 250);
-  }
-
-  if (activeBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const bonus = Number(balanceProfileFromContext(context, PROFILE.signetOfFuryActive)?.attributeBonus ?? 360);
-    result.precision += bonus;
-    result.ferocity += bonus;
-  }
-
-  for (const [name, id, attribute] of [
-    ['Signet of Might', ID.SIGNET_OF_MIGHT, 'power'],
-    ['Signet of Fury', ID.SIGNET_OF_FURY, 'precision']
-  ] as const) {
-    if (!hasSelectedSkill(context, name)) continue;
-    const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
-    if (staticRulesApplied ? onCooldown : !onCooldown) {
-      const passiveBonus = Number(balanceProfileFromContext(context, PROFILE.signetPassives)?.attributeBonus ?? 180);
-      const delta = staticRulesApplied ? -passiveBonus : passiveBonus;
-      // Signet power/precision toggles are real stat changes, but they are not
-      // part of the gear pool, so they no longer feed Great Fortitude /
-      // Wounding Precision conversions
-      result[attribute] += delta;
-    }
-  }
+  // Compose line-owned fragments against one mutable result so conversions keep their original source pools.
+  modifyWarriorStrengthAttributes(context, result, staticRulesApplied, gearPower);
+  modifyWarriorTacticsAttributes(context, result, staticRulesApplied, gearPower);
+  modifyWarriorArmsAttributes(context, result, staticRulesApplied);
 
   return result;
 }
@@ -212,7 +67,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
     when: (context) =>
-      eventSkill(context)?.name === 'Kill Shot' &&
+      warriorEventSkill(context)?.id === ID.KILL_SHOT &&
       (context.config?.target?.defiant === true || targetHealthFraction(context) < 0.5)
   },
   {
@@ -232,126 +87,12 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
           ? parameters.upperFactor
           : 1,
     order: 100,
-    when: (context) => eventSkill(context)?.id === ID.THROW_AXE
+    when: (context) => warriorEventSkill(context)?.id === ID.THROW_AXE
   },
-  {
-    id: 'warrior.pinnacle-critical-chance',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: 0.05,
-    when: (context) => hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)
-  },
-  {
-    id: 'warrior.berserkers-power',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    parameters: {
-      maximumStacks: 4,
-      damagePerStack: 0.0375
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      (context.timeline?.buffStacksAt('berserkers-power', context.time, 0, parameters.maximumStacks) ??
-        activeBuffStacks(context, 'berserkers-power', parameters.maximumStacks)) * parameters.damagePerStack,
-    when: (context) => hasTrait(context, TRAIT.BERSERKERS_POWER)
-  },
-  {
-    id: 'warrior.peak-performance',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    parameters: {
-      baseBonus: 0.05,
-      activeBonus: 0.1
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      parameters.baseBonus + (activeBuffStacks(context, 'peak-performance', 1) ? parameters.activeBonus : 0),
-    when: (context) => hasTrait(context, TRAIT.PEAK_PERFORMANCE)
-  },
-  {
-    id: 'warrior.empowered',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: { damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) => 1 + activeBoonCount(context) * parameters.damagePerBoon,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.EMPOWERED)
-  },
-  {
-    id: 'warrior.leg-specialist',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.05,
-    order: 100,
-    when: (context) =>
-      hasTrait(context, TRAIT.LEG_SPECIALIST) &&
-      ['Crippled', 'Chilled', 'Immobilized'].some((condition) => targetConditionActive(context, condition))
-  },
-  {
-    id: 'warrior.warriors-cunning',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.25,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.WARRIORS_CUNNING) && targetHealthFraction(context) > 0.8
-  },
-  {
-    id: 'warrior.cull-the-weak',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.1,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.CULL_THE_WEAK) && targetConditionActive(context, 'Weakness')
-  },
-  {
-    id: 'warrior.merciless-hammer',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.25,
-    order: 100,
-    when: (context) =>
-      hasTrait(context, TRAIT.MERCILESS_HAMMER) &&
-      ['Hammer', 'Mace'].includes(
-        String(context.event?.skillWeapon || eventSkill(context)?.skillWeapon || eventSkill(context)?.weapon || '')
-      ) &&
-      targetControlled(context)
-  },
-  {
-    id: 'warrior.stalwart-strength',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.1,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.STALWART_STRENGTH) && boonActive(context, 'stability')
-  },
-  {
-    id: 'warrior.furious-burst-fury-critical-chance',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: 0.05,
-    when: (context) => hasTrait(context, TRAIT.FURIOUS_BURST) && boonActive(context, 'fury')
-  },
-  {
-    id: 'warrior.deep-strikes',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: 0.05,
-    when: (context) => hasTrait(context, TRAIT.DEEP_STRIKES) && targetConditionActive(context, 'Bleeding')
-  },
-  {
-    id: 'warrior.unsuspecting-foe',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: 0.25,
-    when: (context) => hasTrait(context, TRAIT.UNSUSPECTING_FOE) && targetControlled(context)
-  },
-  {
-    id: 'warrior.burst-precision',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: 1,
-    when: (context) =>
-      hasTrait(context, TRAIT.BURST_PRECISION) &&
-      (Boolean(eventSkill(context)?.burst) || activeBuffStacks(context, 'burst-precision', 1) > 0)
-  },
+  ...warriorStrengthModifierRules,
+  ...warriorTacticsModifierRules,
+  ...warriorDefenseModifierRules,
+  ...warriorArmsModifierRules,
   {
     id: 'warrior.dagger-auto-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
@@ -359,7 +100,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.15,
     order: 100,
     when: (context) => {
-      const skillId = Number(eventSkill(context)?.id);
+      const skillId = Number(warriorEventSkill(context)?.id);
       return skillId === ID.PRECISE_CUT || skillId === ID.FOCUSED_SLASH;
     }
   },
@@ -369,7 +110,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 2,
     order: 100,
-    when: (context) => eventSkill(context)?.id === ID.WASTRELS_RUIN && context.config?.target?.defiant === true
+    when: (context) => warriorEventSkill(context)?.id === ID.WASTRELS_RUIN && context.config?.target?.defiant === true
   },
   {
     id: 'warrior.breaching-strike-boonless',
@@ -377,7 +118,8 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) => eventSkill(context)?.id === ID.BREACHING_STRIKE && context.config?.target?.boonless === true
+    when: (context) =>
+      warriorEventSkill(context)?.id === ID.BREACHING_STRIKE && context.config?.target?.boonless === true
   },
   {
     id: 'warrior.slicing-maelstrom-boonless',
@@ -385,32 +127,10 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) => eventSkill(context)?.id === ID.SLICING_MAELSTROM && context.config?.target?.boonless === true
+    when: (context) =>
+      warriorEventSkill(context)?.id === ID.SLICING_MAELSTROM && context.config?.target?.boonless === true
   },
-  {
-    id: 'warrior.warriors-sprint',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) => hasTrait(context, TRAIT.WARRIORS_SPRINT) && boonActive(context, 'swiftness')
-  },
-  {
-    id: 'warrior.destruction-of-the-empowered',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: { damagePerBoon: 0.03 } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) => 1 + targetBoonCount(context) * parameters.damagePerBoon,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.DESTRUCTION_OF_THE_EMPOWERED) && targetBoonCount(context) > 0
-  },
-  {
-    id: 'warrior.burst-mastery',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.BURST_MASTERY) && Boolean(eventSkill(context)?.burst)
-  }
+  ...warriorDisciplineModifierRules
 ]);
 
 // Apply the fixed weapon-swap recharge and multiplicative burst or weapon-trait

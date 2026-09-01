@@ -213,7 +213,10 @@ export function applyElementalistResolvedDamage(
   event: Gw2ResolverEvent,
   _details: NativeResolvedDamageDetails = {}
 ): void {
-  if (event.damageKind === 'field-tick' && PERSISTING_FLAMES_FIELD_SKILLS.has(elementalistSourceSkill(event))) {
+  if (
+    event.damageKind === 'field-tick' &&
+    PERSISTING_FLAMES_FIELD_SKILLS.has(Number(event.skillId ?? event.sourceId))
+  ) {
     grantPersistingFlames(context, event);
   }
 }

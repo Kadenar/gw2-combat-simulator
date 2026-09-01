@@ -3,7 +3,7 @@ import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { augmentSkill } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
 import type { RevenantCastContext } from '#gw2/content/professions/revenant/types.js';
-import { revenantConduitSkillHandlers } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity-and-forms.js';
+import { revenantConduitSkillHandlers } from '#gw2/content/professions/revenant/specializations/conduit/skills/effects.js';
 
 const handlers = Object.freeze({
   // Handlers select from declarative packets using live legend/affinity state.

@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { ThiefConfig, ThiefCoreState } from '#gw2/content/professions/thief/types.js';
@@ -6,8 +6,8 @@ import type { ThiefConfig, ThiefCoreState } from '#gw2/content/professions/thief
 export const THIEF_BASE_HEALTH = 1645;
 
 /** Detaches the composed runtime state before it crosses the scheduler event boundary. */
-export function snapshotThiefState(state: unknown): Record<string, unknown> {
-  return structuredClone(flattenProfessionState(state));
+export function snapshotThiefState<TState extends object = Record<string, unknown>>(state: unknown): TState {
+  return snapshotProfessionState<TState>(state);
 }
 
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
@@ -23,7 +23,7 @@ export function thiefBaseMaximumHealth(config: ThiefConfig = {}): number {
 }
 
 // Initialize bounded initiative and endurance plus complete stealth, venom,
-// weapon-chain, stolen-skill, and trait bookkeeping.
+// preparation, weapon-chain, stolen-skill, and trait bookkeeping.
 export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
   const maximumInitiative = hasTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
@@ -54,8 +54,16 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     spiderVenomCharges: 0,
     spiderVenomExpiresAt: 0,
     spiderVenomGeneration: 0,
+    skaleVenomCharges: 0,
+    skaleVenomExpiresAt: 0,
+    skaleVenomGeneration: 0,
+    devourerVenomCharges: 0,
+    devourerVenomExpiresAt: 0,
+    devourerVenomGeneration: 0,
     thousandNeedlesPrepared: false,
     thousandNeedlesArmedAt: 0,
+    pitfallPrepared: false,
+    pitfallArmedAt: 0,
     activeThievesGuild: null,
     assassinsSignetActiveUntil: 0,
     assassinsSignetPassiveDisabledUntil: 0,
@@ -91,8 +99,16 @@ export const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[]
   'spiderVenomCharges',
   'spiderVenomExpiresAt',
   'spiderVenomGeneration',
+  'skaleVenomCharges',
+  'skaleVenomExpiresAt',
+  'skaleVenomGeneration',
+  'devourerVenomCharges',
+  'devourerVenomExpiresAt',
+  'devourerVenomGeneration',
   'thousandNeedlesPrepared',
   'thousandNeedlesArmedAt',
+  'pitfallPrepared',
+  'pitfallArmedAt',
   'activeThievesGuild',
   'assassinsSignetActiveUntil',
   'assassinsSignetPassiveDisabledUntil',

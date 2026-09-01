@@ -121,6 +121,7 @@ const EFFECT_METADATA_FIELDS = new Set([
   'breakbar',
   'bonusDefianceBreak',
   'damageKind',
+  'packetKind',
   'flatDamage',
   'flatStrikeBase',
   'flatStrikePowerCoeff',

@@ -1,14 +1,13 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   gainThiefEndurance,
   gainThiefInitiative
 } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
-import { updateSpearChainState } from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+import { updateSpearChainState } from '#gw2/content/professions/thief/core/skills/spear-chain.js';
 import type { ThiefCastContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 // Extend stealth up to its cap unless Revealed blocks entry, firing enter-stealth
@@ -56,7 +55,7 @@ export function grantThiefStealth(
     });
   }
 
-  emitStateSnapshot(context, 'thief', at, 'stealth', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'stealth');
 }
 
 export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSkill): void {
@@ -92,12 +91,12 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
     if (flip?.flipParentId === skill.id) {
       state.availableFlips[flip.id] = at + Number(skill.flipDuration || (skill.dualWieldOpener ? 4 : 5));
-      emitStateSnapshot(context, 'thief', at, 'weapon-flip', snapshotThiefState(context.state.profession));
+      emitThiefStateSnapshot(context, at, 'weapon-flip');
     }
   }
 
   if (completed && skill.type === 'Weapon' && skill.flipParentId != null) {
     delete state.availableFlips[skill.id];
-    emitStateSnapshot(context, 'thief', at, 'weapon-flip-used', snapshotThiefState(context.state.profession));
+    emitThiefStateSnapshot(context, at, 'weapon-flip-used');
   }
 }

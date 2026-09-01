@@ -21,6 +21,7 @@ import type {
   ElementalistCastContext,
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import { emitElementalistProc } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   BASIC_FAMILIARS,
@@ -47,8 +48,8 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/
 
 // reads effects directly from the catalog so balance patches to those skills propagate without code changes
 function releaseElementalProcession(context: ElementalistCastContext, sourceSkill: Skill): void {
-  for (const name of ['Conflagration', 'Lightning Blitz', 'Seismic Impact']) {
-    const familiar = context.catalog.skillsByName.get(name);
+  for (const skillId of [ID.CONFLAGRATION, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT]) {
+    const familiar = context.catalog.skillsById.get(skillId);
     if (!familiar) continue;
     for (const rawEffect of familiar.effects || []) {
       const effect = rawEffect as SchedulerRecord;
@@ -65,10 +66,10 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
         if (effect.type === 'strike') {
           emitSkillDamage(context, {
             at,
-            source: name,
+            source: familiar.name,
             sourceId: familiar.id,
             actorType: 'player',
-            skillName: name,
+            skillName: familiar.name,
             skillId: familiar.id,
             coefficient: Number(tick.coefficient ?? effect.coefficient ?? 0),
             skillWeapon: 'Unequipped',
@@ -79,10 +80,10 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
         } else if (effect.type === 'condition') {
           emitSkillCondition(context, {
             at,
-            source: name,
+            source: familiar.name,
             sourceId: familiar.id,
             actorType: 'player',
-            skillName: name,
+            skillName: familiar.name,
             skillId: familiar.id,
             condition: String(tick.condition || effect.condition || ''),
             stacks: Number(tick.stacks ?? effect.stacks ?? 1),
@@ -93,10 +94,10 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
           context.emit({
             type: String(effect.type),
             at,
-            source: name,
+            source: familiar.name,
             sourceId: familiar.id,
             actorType: 'player',
-            skillName: name,
+            skillName: familiar.name,
             skillId: familiar.id,
             controlKind: metadata.controlKind,
             comboFinishers,
@@ -128,11 +129,11 @@ function cancelActivationEffects(context: ElementalistSchedulerContext, activati
  */
 export function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
-  const familiarElement = FAMILIAR_ELEMENTS[skill.name];
+  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   // non-concurrent commands anchor their own charge grant so a concurrent familiar can adopt it below
   if (context.command.concurrentOffsetMs == null) {
     const gain = weaponSkillChargeGain(context, skill, state);
-    const postFamiliarGain = gain > 0 ? gain : skill.name === 'Rejuvenate' ? state.maximumCharges : 0;
+    const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.maximumCharges : 0;
     state.concurrentParentAnchors.push({
       commandIndex: context.commandIndex,
       weaponChargeGain:
@@ -158,7 +159,7 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
         : null;
     // steal the parent command's charge grant so it doesn't reset before the basic familiar resets charges
     if (
-      BASIC_FAMILIARS.has(skill.name) &&
+      BASIC_FAMILIARS.has(skill.id) &&
       concurrentParent?.weaponChargeGain &&
       concurrentParent.weaponChargeGain.at <= context.start + context.epsilon
     ) {
@@ -169,32 +170,33 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
     state.activeFamiliarCast = {
       reservationId: context.reservationId,
       endsAt: context.effectiveEnd,
-      resetsCharges: BASIC_FAMILIARS.has(skill.name)
+      resetsCharges: BASIC_FAMILIARS.has(skill.id)
     };
   }
 
   // if the empowered familiar was recently cast and the basic fires within the window, the empowered effects are retroactively cancelled
-  const interrupt = FAMILIAR_INTERRUPT_WINDOWS[skill.name];
+  const interrupt = FAMILIAR_INTERRUPT_WINDOWS.get(skill.id);
   if (interrupt) {
     const [empoweredSkill, fallbackWindow] = interrupt;
     const window = balanceProfileValueFromContext(
       context,
-      FAMILIAR_PROFILE_BY_BASIC[skill.name],
+      FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
       'durationMultiplier',
       fallbackWindow
     );
-    const recent = state.lastEmpoweredFamiliarByBasic[skill.name];
-    if (recent?.skill === empoweredSkill && context.start - recent.start < window) {
+    const basicKey = String(skill.id);
+    const recent = state.lastEmpoweredFamiliarByBasic[basicKey];
+    if (recent?.skillId === empoweredSkill && context.start - recent.start < window) {
       cancelActivationEffects(context, recent.activationId, context.start);
       state.cancelledFamiliarActivations[context.reservationId] = true;
-      state.lastEmpoweredFamiliarByBasic[skill.name] = null;
+      state.lastEmpoweredFamiliarByBasic[basicKey] = null;
     }
   }
 
-  const basic = FAMILIAR_BASIC_BY_EMPOWERED[skill.name];
+  const basic = FAMILIAR_BASIC_BY_EMPOWERED.get(skill.id);
   if (basic) {
-    state.lastEmpoweredFamiliarByBasic[basic] = {
-      skill: skill.name,
+    state.lastEmpoweredFamiliarByBasic[String(basic)] = {
+      skillId: skill.id,
       activationId: context.reservationId,
       start: context.start
     };
@@ -214,7 +216,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     return;
   }
 
-  if (skill.name === 'Ignite') {
+  if (skill.id === ID.IGNITE) {
     // tier resets if unused for 15s; cycling through 4 tiers gives a short pulse on tier 1 to front-load damage
     if (
       context.start - state.igniteLastUsedAt >=
@@ -241,7 +243,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
   }
 
   // Fox's Fury picks one of three tiers from the might stacks held at cast start
-  if (skill.name === "Fox's Fury") {
+  if (skill.id === ID.FOXS_FURY) {
     const might = context.buffStacks('might', context.start);
     const threshold = balanceProfileValueFromContext(context, PROFILE.foxsFury, 'threshold', 10);
     const tier = might >= threshold * 2 ? 2 : might >= threshold ? 1 : 0;
@@ -323,26 +325,15 @@ function applyWeaponSkillRechargeMultiplier(context: ElementalistCastContext, mu
   }
 }
 
-/**
- * Settles a completed cast: the attunement transition, weapon charge accrual,
- * the familiar traits, the charge/empowered state machine, and the Evoker
- * utility skill payloads.
- */
-export function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
-  // Evoker supplies its trait-proc policy before Core's completion hook, while Core still owns the shared transition.
-  if (completeEvokerAttunement(context, skill)) {
-    (context as unknown as SchedulerRecord).elementalistAttunementHandled = true;
-  }
-
+// Familiar completions fan out through named steps so their ordering remains visible.
+function applyFamiliarTraitProcs(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
   const at = context.effectiveEnd;
-  const completesActiveFamiliar = state.activeFamiliarCast?.reservationId === context.reservationId;
-  grantWeaponSkillCharges(context, skill, state);
-  if (FAMILIAR_ELEMENTS[skill.name] && hasTrait(context, "Familiar's Prowess")) {
+  if (FAMILIAR_ELEMENTS.has(skill.id) && hasTrait(context, "Familiar's Prowess")) {
     grantFamiliarProwess(context, skill);
   }
 
-  const familiarElement = FAMILIAR_ELEMENTS[skill.name];
+  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (familiarElement && hasTrait(context, "Familiar's Blessing")) {
     const quick = familiarElement === 'Fire' || familiarElement === 'Air';
     const blessing = balanceProfileEffectFromContext(
@@ -377,8 +368,13 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       icon: ELECTRIC_ENCHANTMENT_ICON
     });
   }
+}
 
-  if (skill.name === 'Lightning Blitz') {
+function applyFamiliarSkillEffects(context: ElementalistCastContext, skill: Skill): void {
+  const state = evokerState.from(context);
+  const at = context.effectiveEnd;
+  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
+  if (skill.id === ID.LIGHTNING_BLITZ) {
     const stacks = balanceProfileValueFromContext(context, PROFILE.familiarUtility, 'resourceGain', 1);
     state.electricEnchantmentStacks += stacks;
     emitElementalistProc(context as never, {
@@ -396,7 +392,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
     materializeArmedElectricEnchantments(context, state);
   }
 
-  if (skill.name === 'Zap') {
+  if (skill.id === ID.ZAP) {
     const zap = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'buff', 0, 'Zap Window');
     emitSkillBuff(context, {
       at,
@@ -409,22 +405,26 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       duration: Number(zap?.duration ?? 5)
     });
   }
+}
 
+function settleFamiliarChargeState(context: ElementalistCastContext, skill: Skill): void {
+  const state = evokerState.from(context);
+  const at = context.effectiveEnd;
   // charge state machine: a basic familiar spends the whole bar and adds an
   // empowered stack (arming its flip skill after the profile delay), the empowered
   // form spends the stacks back to zero, and Rejuvenate refills the bar outright
-  if (BASIC_FAMILIARS.has(skill.name)) {
+  if (BASIC_FAMILIARS.has(skill.id)) {
     state.charges = 0;
     state.empowered = Math.min(
       balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3),
       state.empowered + 1
     );
-    const flip = FAMILIAR_FLIP_DELAYS[skill.name];
-    const empowered = flip ? context.catalog.skillsByName.get(flip[0]) : undefined;
+    const flip = FAMILIAR_FLIP_DELAYS.get(skill.id);
+    const empowered = flip ? context.catalog.skillsById.get(flip[0]) : undefined;
     if (flip && empowered) {
       const delay = balanceProfileValueFromContext(
         context,
-        FAMILIAR_PROFILE_BY_BASIC[skill.name],
+        FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
         'initialDelay',
         flip[1]
       );
@@ -435,26 +435,33 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
     }
 
     emitResource(context, skill, state);
-  } else if (FAMILIAR_ELEMENTS[skill.name]) {
+  } else if (FAMILIAR_ELEMENTS.has(skill.id)) {
     state.empowered = 0;
     emitResource(context, skill, state);
-  } else if (skill.name === 'Rejuvenate') {
+  } else if (skill.id === ID.REJUVENATE) {
     state.charges = state.maximumCharges;
     emitResource(context, skill, state);
   }
+}
 
+function releaseDeferredWeaponChargeGains(context: ElementalistCastContext, completesActiveFamiliar: boolean): void {
   // the blocking familiar cast is over: release the grants deferred past its charge reset
   if (completesActiveFamiliar) {
+    const state = evokerState.from(context);
     flushPendingWeaponChargeGains(context, state);
     state.activeFamiliarCast = null;
   }
+}
 
+function applyMeditationEffects(context: ElementalistCastContext, skill: Skill): void {
+  const state = evokerState.from(context);
+  const at = context.effectiveEnd;
   // remaining branches are the Evoker meditation utility payloads
-  if (skill.name === 'Elemental Procession') {
+  if (skill.id === ID.ELEMENTAL_PROCESSION) {
     releaseElementalProcession(context, skill);
   }
 
-  if (skill.name === "Hare's Agility") {
+  if (skill.id === ID.HARES_AGILITY) {
     const stacks = balanceProfileValueFromContext(context, PROFILE.familiarUtility, 'playerStacks', 5);
     state.electricEnchantmentStacks += stacks;
     emitElementalistProc(context as never, {
@@ -467,7 +474,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       icon: ELECTRIC_ENCHANTMENT_ICON
     });
     materializeArmedElectricEnchantments(context, state);
-  } else if (skill.name === "Toad's Fortitude" && state.element === 'Earth') {
+  } else if (skill.id === ID.TOADS_FORTITUDE && state.element === 'Earth') {
     const resistance = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Toad Resistance');
     emitSkillBuff(context, skill, {
       at,
@@ -479,7 +486,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       duration: Number(resistance?.duration ?? 4),
       skillName: skill.name
     });
-  } else if (skill.name === "Fox's Fury") {
+  } else if (skill.id === ID.FOXS_FURY) {
     const might = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Might');
     const fireMight = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Fire Bonus');
     const fury = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Fury');
@@ -507,11 +514,14 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       });
     }
   }
+}
 
+function applySpecializedElementsTrait(context: ElementalistCastContext, skill: Skill): void {
+  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   // Basic familiars retain 90% weapon recharge; empowered familiars retain
   // 67% and trigger the elemental entry effects.
   if (familiarElement && hasTrait(context, 'Specialized Elements')) {
-    const basic = BASIC_FAMILIARS.has(skill.name);
+    const basic = BASIC_FAMILIARS.has(skill.id);
     applyWeaponSkillRechargeMultiplier(
       context,
       balanceProfileValueFromContext(
@@ -525,4 +535,26 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       triggerSpecializedElementEntry(context, skill, familiarElement);
     }
   }
+}
+
+/**
+ * Settles a completed cast: the attunement transition, weapon charge accrual,
+ * the familiar traits, the charge/empowered state machine, and the Evoker
+ * utility skill payloads.
+ */
+export function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
+  // Evoker supplies its trait-proc policy before Core's completion hook, while Core still owns the shared transition.
+  if (completeEvokerAttunement(context, skill)) {
+    (context as unknown as SchedulerRecord).elementalistAttunementHandled = true;
+  }
+
+  const state = evokerState.from(context);
+  const completesActiveFamiliar = state.activeFamiliarCast?.reservationId === context.reservationId;
+  grantWeaponSkillCharges(context, skill, state);
+  applyFamiliarTraitProcs(context, skill);
+  applyFamiliarSkillEffects(context, skill);
+  settleFamiliarChargeState(context, skill);
+  releaseDeferredWeaponChargeGains(context, completesActiveFamiliar);
+  applyMeditationEffects(context, skill);
+  applySpecializedElementsTrait(context, skill);
 }

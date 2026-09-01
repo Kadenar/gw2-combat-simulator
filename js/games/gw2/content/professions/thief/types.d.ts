@@ -10,12 +10,17 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/types.js';
-import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2ApplicationBuild,
+  Gw2Build,
+  Gw2BuildSpecialization,
+  Gw2CanonicalBuild,
+  ProfessionBuildAssumptions
+} from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2HitResolutionContext, Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/types.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
-import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '#gw2/app/types.js';
 
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
 
@@ -37,7 +42,7 @@ export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
   initialShadowForce: number;
 }
 
-export interface ThiefApplicationBuild extends ProfessionApplicationBuild {
+export interface ThiefApplicationBuild extends Gw2ApplicationBuild {
   selectedDodge: ThiefDodge;
   initialInitiative: number;
   initialShadowForce: number;
@@ -89,8 +94,16 @@ export interface ThiefCoreState {
   spiderVenomCharges: number;
   spiderVenomExpiresAt: number;
   spiderVenomGeneration: number;
+  skaleVenomCharges: number;
+  skaleVenomExpiresAt: number;
+  skaleVenomGeneration: number;
+  devourerVenomCharges: number;
+  devourerVenomExpiresAt: number;
+  devourerVenomGeneration: number;
   thousandNeedlesPrepared: boolean;
   thousandNeedlesArmedAt: number;
+  pitfallPrepared: boolean;
+  pitfallArmedAt: number;
   activeThievesGuild: ThievesGuildState | null;
   assassinsSignetActiveUntil: number;
   assassinsSignetPassiveDisabledUntil: number;
@@ -287,6 +300,7 @@ export type ThiefSimulationEvent = SimulationEvent & {
   readonly reason?: string;
   readonly state?: Partial<ThiefState>;
   readonly triggeredByAlly?: number;
+  readonly venomProcEffectIndex?: number;
 };
 
 export type ThiefResolverEvent = Gw2ResolverEvent & {
@@ -296,6 +310,7 @@ export type ThiefResolverEvent = Gw2ResolverEvent & {
   readonly lifeSiphon?: boolean;
   readonly state?: Partial<ThiefState>;
   readonly triggeredByAlly?: number;
+  readonly venomProcEffectIndex?: number;
 };
 
 export type ThiefResolverContext = Gw2ResolverRuntime & {

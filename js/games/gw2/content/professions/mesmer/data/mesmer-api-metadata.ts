@@ -1,9 +1,10 @@
 // Generated Guild Wars 2 API metadata for mesmer.
-// Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Mesmer to refresh.
-// Simulator mechanics are maintained under mesmer/mechanics/.
+// Snapshot: 2026-07-25. Run npm run update:profession-data -- --profession Mesmer to refresh.
+// Simulator mechanics are maintained under mesmer/core/ and mesmer/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
-import type { MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 export type MesmerApiTrait = Gw2ApiTrait;
 export type MesmerApiSpecialization = Gw2ApiSpecialization;

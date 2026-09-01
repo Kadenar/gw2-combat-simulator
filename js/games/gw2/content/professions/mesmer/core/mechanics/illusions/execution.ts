@@ -6,15 +6,13 @@ import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipmen
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import type {
-  MesmerExpectedProcCandidate,
-  MesmerSchedulerContext,
-  MesmerSchedulerTask
-} from '#gw2/content/professions/mesmer/types.js';
+import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 import { createMesmerRuntime } from '#gw2/content/professions/mesmer/core/mechanics/illusions/controller.js';
 import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import { restartSignetIllusionsPassive } from '#gw2/content/professions/mesmer/core/skills/signets.js';
 import { triggerChaoticInterruption, triggerDazzling } from '#gw2/content/professions/mesmer/core/traits/index.js';
+import type { MesmerExpectedProcCandidate } from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerSchedulerTask } from '#gw2/content/professions/mesmer/state/types.js';
 
 /**
  * Initializes the per-simulation Mesmer runtime, weapon set, resource pool,

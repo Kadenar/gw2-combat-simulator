@@ -4,25 +4,9 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // The prepared field's five packets begin after the activation-to-damage delay observed in EVTC.
 const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
+const PITFALL_PULSE_OFFSETS_MS = [1000, 2000, 3000];
 
 export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.SCORPION_WIRE]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 1,
-    ammo: 2,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Scorpion Wire',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
-  },
   [ID.WITHDRAW]: {
     implemented: true,
     castTimeMs: 0,
@@ -32,11 +16,12 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.PREPARE_THOUSAND_NEEDLES]: {
     implemented: true,
-    handlerId: 'thief.prepare-thousand-needles',
+    handlerId: 'thief.prepare-trap',
     castTimeMs: 750,
     cooldown: 30,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
+    durationMultiplier: 3,
     effects: []
   },
   [ID.HIDE_IN_SHADOWS]: {
@@ -90,16 +75,9 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       }
     ]
   },
-  [ID.ROLL_FOR_INITIATIVE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 25,
-    initiativeCost: 0,
-    effects: []
-  },
   [ID.SPIDER_VENOM]: {
     implemented: true,
-    handlerId: 'thief.spider-venom',
+    handlerId: 'thief.venom',
     castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
@@ -148,31 +126,28 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.SKALE_VENOM]: {
     implemented: true,
+    handlerId: 'thief.venom',
     castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
     effects: [
       {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 10 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        type: 'buff',
+        kind: 'skale-venom',
+        duration: 24,
+        stacks: 4,
+        recipients: 'party'
       }
     ]
   },
   [ID.PREPARE_PITFALL]: {
     implemented: true,
+    handlerId: 'thief.prepare-trap',
     castTimeMs: 500,
     cooldown: 25,
+    rechargeAnchor: 'castStart',
     initiativeCost: 0,
+    durationMultiplier: 3,
     effects: []
   },
   [ID.SIGNET_OF_SHADOWS]: {
@@ -373,31 +348,17 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.DEVOURER_VENOM]: {
     implemented: true,
+    handlerId: 'thief.venom',
     castTimeMs: 0,
     cooldown: 40,
     initiativeCost: 0,
     effects: [
       {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.ICE_DRAKE_VENOM]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 36,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Chilled', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        type: 'buff',
+        kind: 'devourer-venom',
+        duration: 24,
+        stacks: 2,
+        recipients: 'party'
       }
     ]
   },
@@ -417,6 +378,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.PITFALL]: {
     implemented: true,
+    handlerId: 'thief.activate-trap',
     castTimeMs: 0,
     cooldown: 3,
     initiativeCost: 0,
@@ -431,22 +393,30 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
+        ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
         name: 'Pulse Damage',
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 2, duration: 6 }],
+        ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 2,
+          duration: 6
+        })),
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'control',
+        atMs: 0,
         actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         metadata: {
           controlKind: 'knockdown',
           duration: 3
@@ -456,7 +426,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.THOUSAND_NEEDLES]: {
     implemented: true,
-    handlerId: 'thief.thousand-needles',
+    handlerId: 'thief.activate-trap',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,

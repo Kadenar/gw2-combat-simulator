@@ -6,9 +6,8 @@ import {
   emitSkillControl,
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
 /**
  * Weapon-specific necromancer skill and scheduled-task handlers.
@@ -88,14 +87,7 @@ function addShards(
   at = context.effectiveEnd
 ): void {
   addSoulShards(professionCoreState(context), stacks, at);
-  emitStateSnapshot(
-    context,
-    'necromancer',
-    at,
-    reason || `${skill.name}-soul-shards`,
-    snapshotNecromancerState(context.state.profession),
-    { dedupeAcrossSourceIds: true }
-  );
+  emitNecromancerStateSnapshot(context, at, reason || `${skill.name}-soul-shards`, { dedupeAcrossSourceIds: true });
 }
 
 function deadlySlice(context: NecromancerCastContext, skill: NecromancerSkill): void {
@@ -217,14 +209,9 @@ function afterPerforateEffect(
 function completePerforate(context: NecromancerCastContext, _skill: NecromancerSkill, state: unknown): void {
   const perforateState = state as Partial<PerforateState> | null;
   if (perforateState?.interrupted) return;
-  emitStateSnapshot(
-    context,
-    'necromancer',
-    perforateState?.at ?? context.effectiveEnd,
-    'perforate',
-    snapshotNecromancerState(context.state.profession),
-    { dedupeAcrossSourceIds: true }
-  );
+  emitNecromancerStateSnapshot(context, perforateState?.at ?? context.effectiveEnd, 'perforate', {
+    dedupeAcrossSourceIds: true
+  });
 }
 
 // Consumes Distress's flip, refreshes Perforate, and applies the simulator's single-target shard bonus.

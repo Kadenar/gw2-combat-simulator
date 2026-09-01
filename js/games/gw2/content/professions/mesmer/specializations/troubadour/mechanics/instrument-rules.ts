@@ -13,12 +13,13 @@ import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics
 import type {
   MesmerCastContext,
   MesmerRechargeContext,
-  MesmerSchedulerContext,
-  MesmerSkill
+  MesmerSchedulerContext
 } from '#gw2/content/professions/mesmer/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 const EMPTY_EVENTS: readonly SimulationEvent[] = Object.freeze([]);
 const instrumentEventIndex = new WeakMap<readonly SimulationEvent[], readonly SimulationEvent[]>();

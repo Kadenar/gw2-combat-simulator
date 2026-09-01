@@ -1,9 +1,8 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import type {
@@ -120,7 +119,7 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
     context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
   }
 
-  emitStateSnapshot(context, 'revenant', at, 'facet-consumed', snapshotRevenantState(context.state.profession));
+  emitRevenantStateSnapshot(context, at, 'facet-consumed');
 }
 
 export function heraldFacetConsumeId(skill: RevenantSkill, activeLegendId: string): SkillId | undefined {

@@ -8,7 +8,7 @@
  * passes, which each build their own instance from the same factory.
  */
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { ElementalistConfig } from '#gw2/content/professions/elementalist/types.js';
+import type { ElementalistConfig } from '#gw2/content/professions/elementalist/build/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement
@@ -33,7 +33,10 @@ export interface EvokerState {
   igniteLastUsedAt: number;
   ignitePassiveReadyAt: number;
   // most recent empowered familiar cast per basic familiar, used to detect flip-interrupt windows
-  lastEmpoweredFamiliarByBasic: Record<string, { skill: string; activationId: string; start: number } | null>;
+  lastEmpoweredFamiliarByBasic: Record<
+    string,
+    { skillId: string | number; activationId: string; start: number } | null
+  >;
   // reservations whose own effects must be cancelled once their scheduling finishes
   cancelledFamiliarActivations: Record<string, boolean>;
   // keyed by commandIndex (not reservationId) because availability runs at command scheduling time, before the event fires

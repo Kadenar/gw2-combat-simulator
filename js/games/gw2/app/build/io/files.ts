@@ -1,6 +1,7 @@
 // File I/O utilities for import/export of builds and rotations.
 
-import type { BuildTemplatePreset, ProfessionApplicationBuild } from '#gw2/app/types.js';
+import type { BuildTemplatePreset } from '#gw2/app/types.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 interface FetchJsonAssetOptions {
   readonly optional?: boolean;
@@ -99,11 +100,11 @@ export function getRotationItems(payload: unknown): unknown[] | undefined {
 /**
  * Creates an exportable build payload without its rotation.
  *
- * @param {ProfessionApplicationBuild} build Build state to export.
- * @returns {Omit<ProfessionApplicationBuild, "rotation">} Shallow copy of the
+ * @param {Gw2ApplicationBuild} build Build state to export.
+ * @returns {Omit<Gw2ApplicationBuild, "rotation">} Shallow copy of the
  * build without the `rotation` property.
  */
-export function getBuildExportPayload(build: ProfessionApplicationBuild): Omit<ProfessionApplicationBuild, 'rotation'> {
+export function getBuildExportPayload(build: Gw2ApplicationBuild): Omit<Gw2ApplicationBuild, 'rotation'> {
   const { rotation: _rotation, ...payload } = build;
   return payload;
 }

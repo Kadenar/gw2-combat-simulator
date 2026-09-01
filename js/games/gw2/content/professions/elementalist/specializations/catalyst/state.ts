@@ -1,5 +1,5 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { ElementalistConfig } from '#gw2/content/professions/elementalist/types.js';
+import type { ElementalistConfig } from '#gw2/content/professions/elementalist/build/types.js';
 
 /** Default ceiling for the Jade Sphere energy resource before balance profiles retune it. */
 export const CATALYST_MAXIMUM_ENERGY = 30;

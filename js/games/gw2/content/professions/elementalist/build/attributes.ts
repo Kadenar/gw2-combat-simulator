@@ -7,7 +7,8 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { ElementalistBuildSpecialization } from '#gw2/content/professions/elementalist/types.js';
+
+import type { ElementalistBuildSpecialization } from '#gw2/content/professions/elementalist/build/types.js';
 
 /**
  * The Elementalist's profession-specific half of attribute calculation: it declares the

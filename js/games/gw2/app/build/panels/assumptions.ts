@@ -1,7 +1,7 @@
 import { escapeHtml as esc, option } from '#gw2/app/presentation/shared/html.js';
-import { assumptionControlsForSpecialization } from '#gw2/app/profession/assumptions.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/rotation/shared/icons.js';
-import { isSimulationRandomnessControl } from '#gw2/app/simulation/randomness.js';
+import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
+import { isSimulationRandomnessControl } from '#gw2/platform/simulation/randomness.js';
 import {
   normalizeTargetArmor,
   STACKING_TARGET_CONDITIONS,
@@ -10,12 +10,8 @@ import {
 } from '#gw2/app/build/panels/options.js';
 import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
 
-import type {
-  ProfessionAppState,
-  ProfessionAssumptionControl,
-  ProfessionAssumptionOption,
-  ProfessionBuildAssumptions
-} from '#gw2/app/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { ProfessionAssumptionControl, ProfessionAssumptionOption, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   ['fury', 'Fury'],

@@ -2,11 +2,11 @@
  * Virtuoso-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import type { MesmerShatter } from '#gw2/content/professions/mesmer/types.js';
 import type {
   MesmerPhantasmAttackTiming,
-  MesmerShatter,
   MesmerTraitDamage
-} from '#gw2/content/professions/mesmer/types.js';
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
 
 /**
  * Builds each blade tier's timed packets from its total strike coefficient.

@@ -1,7 +1,6 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
@@ -93,5 +92,5 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
   }
 
   // "dodge" cause lets downstream state subscribers (e.g. scrapper gyro checks) react post-dodge
-  emitStateSnapshot(context, 'engineer', at, 'dodge', snapshotEngineerState(context.state.profession));
+  emitEngineerStateSnapshot(context, at, 'dodge');
 }

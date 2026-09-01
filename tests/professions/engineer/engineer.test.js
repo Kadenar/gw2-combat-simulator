@@ -33,6 +33,8 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/cont
 import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
 import { engineerCoreModule } from '#gw2/content/professions/engineer/core/module.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerCoreCastAvailability } from '#gw2/content/professions/engineer/core/mechanics/availability.js';
+import { createEngineerCoreState } from '#gw2/content/professions/engineer/core/state.js';
 import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/index.js';
 import { amalgamModule } from '#gw2/content/professions/engineer/specializations/amalgam/module.js';
 import { AMALGAM_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
@@ -40,10 +42,17 @@ import { amalgamAttributeRules } from '#gw2/content/professions/engineer/special
 import { holosmithModule } from '#gw2/content/professions/engineer/specializations/holosmith/module.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
 import { holosmithProfileStrikeFactor } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { holosmithCastAvailability } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/availability.js';
+import { engineerPhotonForgeSkillHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { holosmithModifierRules } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { createHolosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
 import { mechanistModule } from '#gw2/content/professions/engineer/specializations/mechanist/module.js';
 import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/mechanist/profiles.js';
-import { engineerMechAttributes } from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
+import {
+  createMechanistState,
+  engineerMechAttributes
+} from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
+import { mechanistCastAvailability } from '#gw2/content/professions/engineer/specializations/mechanist/mechanics/availability.js';
 import { scrapperModule } from '#gw2/content/professions/engineer/specializations/scrapper/module.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
 import { scrapperSchedulerHooks } from '#gw2/content/professions/engineer/specializations/scrapper/traits/modifiers.js';
@@ -196,7 +205,7 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
   assert.equal(engineerCatalog.specializations.length, 9);
   assert.equal(engineerCatalog.traits.length, 108);
-  assert.ok(engineerCatalog.skills.length >= 236);
+  assert.ok(engineerCatalog.skills.length >= 233);
   for (const aliasId of [29591, 29991, 30881]) {
     assert.equal(engineerCatalog.skillsById.has(aliasId), false);
   }
@@ -205,7 +214,7 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   for (const omittedId of [
     5811, 5818, 5821, 5825, 5832, 5834, 5836, 5837, 5838, 5860, 5861, 5862, 5865, 5904, 5910, 5912, 5968, 5969, 5970,
     5972, 5973, 5983, 6077, 6078, 6084, 6088, 6089, 6090, 6093, 29522, 29722, 29739, 30101, 30725, 30828, 41218, 44646,
-    49097, 77018
+    12335, 12354, 12355, 12463, 49097, 77018
   ]) {
     assert.equal(engineerCatalog.skillsById.has(omittedId), false);
   }
@@ -252,7 +261,11 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
     'Eat Owl Egg',
     'Leafy Bandage',
     'Snowman Turret (skill)',
-    'Detonate Snowman Turret'
+    'Detonate Snowman Turret',
+    'Pain Transference',
+    'Invigorating Roar',
+    'Booby Trap (charr skill)',
+    'Vine Shield'
   ]) {
     assert.equal(engineerCatalog.skillsByName.has(omittedName), false);
   }
@@ -1313,6 +1326,65 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
   });
 
   assert.equal(amplified.endState.profession.heat, 0.3);
+});
+
+test('Holosmith Forge behavior follows skill IDs after display labels change', () => {
+  const state = createHolosmithState();
+  state.photonForgeActive = true;
+  const profession = { specialization: { kind: 'Holosmith', state } };
+  const engage = { ...engineerCatalog.skillsById.get(ID.ENGAGE_PHOTON_FORGE), name: 'Renamed forge entry' };
+
+  assert.equal(
+    holosmithCastAvailability(
+      { config: { specialization: 'Holosmith' }, state: { profession }, start: 0, epsilon: 1e-9 },
+      engage
+    ).code,
+    'engineer.forge-active'
+  );
+
+  const scheduled = [];
+  const corona = { ...engineerCatalog.skillsById.get(ID.CORONA_BURST), name: 'Renamed heat skill' };
+  engineerPhotonForgeSkillHandlers['engineer.heat'](
+    {
+      state: { profession },
+      start: 0,
+      effectiveEnd: 1.8,
+      fullEnd: 1.8,
+      epsilon: 1e-9,
+      tasks: { schedule: (task) => scheduled.push(task) }
+    },
+    corona
+  );
+  assert.equal(scheduled.length, 5);
+});
+
+test('Engineer availability follows skill IDs after display labels change', () => {
+  const core = createEngineerCoreState();
+  const coreContext = {
+    config: { specialization: 'Core' },
+    state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
+    start: 0,
+    epsilon: 1e-9
+  };
+
+  const artillery = { ...engineerCatalog.skillsById.get(ID.ELECTRIC_ARTILLERY), name: 'Renamed artillery' };
+  assert.equal(engineerCoreCastAvailability(coreContext, artillery).code, 'engineer.electric-artillery-inactive');
+
+  core.electricArtilleryAvailable = true;
+  const lightningRod = { ...engineerCatalog.skillsById.get(ID.LIGHTNING_ROD), name: 'Renamed rod' };
+  assert.equal(engineerCoreCastAvailability(coreContext, lightningRod).code, 'engineer.lightning-rod-active');
+
+  const mechanist = createMechanistState();
+  const mechanistContext = {
+    config: { specialization: 'Mechanist' },
+    state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Mechanist', state: mechanist } } }
+  };
+  const crashDown = { ...engineerCatalog.skillsById.get(ID.CRASH_DOWN), name: 'Renamed summon' };
+  assert.equal(mechanistCastAvailability(mechanistContext, crashDown).code, 'engineer.mech-active');
+
+  mechanist.mech.active = false;
+  const recall = { ...engineerCatalog.skillsById.get(ID.RECALL_MECH_ID_63300), name: 'Renamed recall' };
+  assert.equal(mechanistCastAvailability(mechanistContext, recall).code, 'engineer.mech-inactive');
 });
 
 test('Corona Burst heat persists outside Forge without causing Overheat', () => {

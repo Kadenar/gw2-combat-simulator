@@ -15,10 +15,8 @@ import type {
   BaselineSimulationOutput,
   BaselineSimulationRequest,
   ModifierContributionRequest,
-  ProfessionApplicationBuild,
   ProfessionAppState,
   ProfessionAttributeData,
-  ProfessionBuildAssumptions,
   ProfessionModifier,
   ProfessionRuntimeApi,
   ProfessionRuntimeOptions,
@@ -29,6 +27,7 @@ import type {
   RandomDistributionSummary,
   RelicComparisonJobRequest
 } from '#gw2/app/types.js';
+import type { Gw2ApplicationBuild, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.
@@ -72,7 +71,7 @@ export function createProfessionRuntime({
       .map((specialization) => specialization.name)
   );
 
-  function eliteSpecialization(build: ProfessionApplicationBuild): string {
+  function eliteSpecialization(build: Gw2ApplicationBuild): string {
     return build.specializations.find((specialization) => eliteNames.has(specialization.name))?.name || 'Core';
   }
 
@@ -132,7 +131,7 @@ export function createProfessionRuntime({
       return app.attributeData;
     }
 
-    let build: ProfessionApplicationBuild = app.build;
+    let build: Gw2ApplicationBuild = app.build;
     if (disabled?.type === 'Boon') {
       const key = disabled.name.toLowerCase();
       build = {

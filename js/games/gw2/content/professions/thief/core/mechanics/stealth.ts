@@ -1,9 +1,8 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import type {
@@ -52,7 +51,7 @@ function breakThiefStealth(context: ThiefSchedulerContext, skill: ThiefSkill, at
   state.stealthStartedAt = at;
   state.stealthUntil = at;
   if (!skill.preservesStealth) state.revealedUntil = at + 3;
-  emitStateSnapshot(context, 'thief', at, reason, snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, reason);
   return true;
 }
 
@@ -113,7 +112,7 @@ export function beginStealthAttack(context: ThiefPrecastContext, skill: ThiefSki
   state.stealthUntil = context.start;
   if (!skill.preservesStealth) state.revealedUntil = context.start + 3;
 
-  emitStateSnapshot(context, 'thief', context.start, 'stealth-attack', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.start, 'stealth-attack');
 }
 
 export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSkill): void {

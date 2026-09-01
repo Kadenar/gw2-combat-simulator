@@ -5,12 +5,13 @@ import {
   toApplicationBuild
 } from '#gw2/content/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '#gw2/app/types.js';
 import type {
   CatalystEmpowermentPool,
   ElementalistApplicationBuild
-} from '#gw2/content/professions/elementalist/types.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
-import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '#gw2/app/types.js';
+} from '#gw2/content/professions/elementalist/build/types.js';
 
 // Elemental Empowerment scales these six attributes, and only from the build's own
 // sources - buffs applied during the fight must not compound into the bonus.

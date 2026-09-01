@@ -6,16 +6,20 @@ import type {
   MesmerActivePrimaryWeapon,
   MesmerAddEvent,
   MesmerAddTraitProc,
+  MesmerRuntime
+} from '#gw2/content/professions/mesmer/types.js';
+import type {
   MesmerClone,
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
+  MesmerResourceController
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type {
   MesmerPendingResource,
   MesmerResourceCause,
-  MesmerResourceController,
   MesmerResourceDefinition,
-  MesmerRuntime,
   MesmerRuntimeState
-} from '#gw2/content/professions/mesmer/types.js';
+} from '#gw2/content/professions/mesmer/state/types.js';
 
 interface ResourceControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

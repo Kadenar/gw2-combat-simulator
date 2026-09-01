@@ -14,6 +14,7 @@ import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   PISTOL_NO_CONSUME,
   PISTOL_NO_GRANT,
@@ -43,9 +44,9 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
   // inline (immediate buff, aura, delayed strike, or armed follow-up state).
   if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(Number(skill.id))) {
     state.pistolBullets[element] = false;
-    if (skill.name === 'Raging Ricochet') {
+    if (skill.id === ID.RAGING_RICOCHET) {
       emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', 'Might', 1, 10, skill.name, skill.id);
-    } else if (skill.name === 'Searing Salvo') {
+    } else if (skill.id === ID.SEARING_SALVO) {
       const aura = balanceProfileEffectFromContext(context, PROFILE.searingSalvo, 'buff', 0, 'Fire');
       applyElementalistAura(context, {
         at,
@@ -54,7 +55,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         skillName: skill.name,
         sourceId: skill.id
       });
-    } else if (skill.name === 'Frozen Fusillade') {
+    } else if (skill.id === ID.FROZEN_FUSILLADE) {
       // The enhanced hit lands well after the cast, so it is scheduled as a
       // delayed strike plus its Bleeding rather than emitted at cast end.
       const delay = balanceProfileValueFromContext(context, PROFILE.frozenFusillade, 'initialDelay', 4);
@@ -83,12 +84,12 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         skill.name,
         skill.id
       );
-    } else if (skill.name === 'Dazing Discharge') {
+    } else if (skill.id === ID.DAZING_DISCHARGE) {
       // Arms a window that shortens the next pistol skill's recharge; the
       // reduction is consumed in `recharge.ts`.
       state.dazingDischargeUntil =
         at + balanceProfileValueFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier', 5);
-    } else if (skill.name === 'Shattering Stone') {
+    } else if (skill.id === ID.SHATTERING_STONE) {
       // Arms a limited number of player strikes inside a window; each armed hit
       // is converted to Bleeding by the event observer in `transient-state.ts`.
       state.shatteringStoneHitsRemaining = balanceProfileValueFromContext(
@@ -99,7 +100,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       );
       state.shatteringStoneUntil =
         at + balanceProfileValueFromContext(context, PROFILE.shatteringStone, 'durationMultiplier', 10);
-    } else if (skill.name === 'Boulder Blast') {
+    } else if (skill.id === ID.BOULDER_BLAST) {
       // The projectile finisher is a separate non-weapon activation from the
       // pistol strike, so downstream combo damage must not reuse its roll.
       emitSkillDamage(context, {

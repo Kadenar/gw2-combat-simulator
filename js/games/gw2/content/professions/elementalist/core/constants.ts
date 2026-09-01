@@ -44,21 +44,27 @@ export const PISTOL_NO_CONSUME = new Set<number>([ID.AERIAL_AGILITY, ID.AERIAL_A
 /** Pistol chain links that must never stock a new bullet of their element. */
 export const PISTOL_NO_GRANT = new Set<number>([ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH]);
 /** Fire-field skills whose field duration and tick packets Persisting Flames extends. */
-export const PERSISTING_FLAMES_FIELD_SKILLS = new Set([
-  'Lava Font',
-  'Pyroclastic Blast',
-  'Burning Retreat',
-  'Burning Speed',
-  'Flamewall',
-  'Wildfire',
-  'Flame Uprising',
-  'Ring of Fire'
+export const PERSISTING_FLAMES_FIELD_SKILLS = new Set<number>([
+  ID.LAVA_FONT,
+  ID.PYROCLASTIC_BLAST,
+  ID.BURNING_RETREAT,
+  ID.BURNING_SPEED,
+  ID.FLAMEWALL,
+  ID.WILDFIRE,
+  ID.FLAME_UPRISING,
+  ID.RING_OF_FIRE
 ]);
 /** Conjure utility skills, mapped to the bundle weapon they equip. */
 export const CONJURE_SKILLS: Readonly<Record<number, string>> = Object.freeze({
   [ID.CONJURE_FROST_BOW]: 'Frost Bow',
   [ID.CONJURE_LIGHTNING_HAMMER]: 'Lightning Hammer',
   [ID.CONJURE_FIERY_GREATSWORD]: 'Fiery Greatsword'
+});
+/** Synthetic pickup actions, keyed by stable action ID rather than their protocol label. */
+export const CONJURE_PICKUP_WEAPONS: Readonly<Record<number, string>> = Object.freeze({
+  [ID.PICK_UP_FROST_BOW]: 'Frost Bow',
+  [ID.PICK_UP_LIGHTNING_HAMMER]: 'Lightning Hammer',
+  [ID.PICK_UP_FIERY_GREATSWORD]: 'Fiery Greatsword'
 });
 /** Bundle weapon names, used to detect that a conjure is currently wielded. */
 export const CONJURED_WEAPONS = new Set(Object.values(CONJURE_SKILLS));
@@ -72,21 +78,33 @@ export const AURA_TRANSMUTE_SKILLS: Readonly<Record<number, string>> = Object.fr
 /** Spear etching progressions: the etching skill and its lesser/full payoff stages that share slot 5. */
 export const ETCHING_CHAINS = Object.freeze([
   {
+    etchingId: ID.ETCHING_VOLCANO,
+    lesserId: ID.LESSER_VOLCANO,
+    fullId: ID.VOLCANO,
     etching: 'Etching: Volcano',
     lesser: 'Lesser Volcano',
     full: 'Volcano'
   },
   {
+    etchingId: ID.ETCHING_JO_KULHLAUP,
+    lesserId: ID.LESSER_JO_KULHLAUP,
+    fullId: ID.JO_KULHLAUP,
     etching: 'Etching: Jökulhlaup',
     lesser: 'Lesser Jökulhlaup',
     full: 'Jökulhlaup'
   },
   {
+    etchingId: ID.ETCHING_DERECHO,
+    lesserId: ID.LESSER_DERECHO,
+    fullId: ID.DERECHO,
     etching: 'Etching: Derecho',
     lesser: 'Lesser Derecho',
     full: 'Derecho'
   },
   {
+    etchingId: ID.ETCHING_HABOOB,
+    lesserId: ID.LESSER_HABOOB,
+    fullId: ID.HABOOB,
     etching: 'Etching: Haboob',
     lesser: 'Lesser Haboob',
     full: 'Haboob'

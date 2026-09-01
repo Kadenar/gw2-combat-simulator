@@ -9,18 +9,11 @@
  */
 import {
   balanceProfileEffectFromContext,
-  balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import type {
-  AvailabilityResult,
-  ScheduledTask,
-  SchedulerRecord,
-  SimulationEvent,
-  Skill
-} from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, SchedulerRecord, SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ElementalistCastContext,
@@ -33,10 +26,9 @@ import {
 } from '#gw2/content/professions/elementalist/specializations/weaver/traits/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
-import { elementalistAlacrityAdjustedDuration } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import { triggerBountifulPower } from '#gw2/content/professions/elementalist/core/traits/index.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
-  ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
@@ -61,8 +53,18 @@ import {
   weaverHammerAvailability
 } from '#gw2/content/professions/elementalist/specializations/weaver/skills/hammer.js';
 import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+import {
+  applyWeaveSelfAttunement,
+  handleWeaveSelfActivation,
+  modifyWeaveSelfRechargeStart,
+  startWeaveSelfCast,
+  WEAVE_SELF_ACTIVATION_TASK
+} from '#gw2/content/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
+import {
+  handlePrimordialStanceTick,
+  schedulePrimordialStance
+} from '#gw2/content/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
-const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 
 // Seed the off-hand element from the build (falling back to the starting
@@ -91,7 +93,7 @@ function initialize(context: ElementalistSchedulerContext): void {
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
-  if (skill.name === 'Unravel' && !hasTrait(context, 'Elements of Rage')) {
+  if (skill.id === ID.UNRAVEL && !hasTrait(context, 'Elements of Rage')) {
     return {
       ready: false,
       retryAt: null,
@@ -143,7 +145,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
 
   // Tailored Victory is the Weave Self flipover and only exists while Perfect
   // Weave is up.
-  if (skill.name !== 'Tailored Victory') return { ready: true };
+  if (skill.id !== ID.TAILORED_VICTORY) return { ready: true };
   const state = weaverState.from(context);
   return state.perfectWeaveUntil > context.start + context.epsilon
     ? { ready: true }
@@ -192,25 +194,12 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   const sourceId = event.skillId ?? event.sourceId;
   const source = String(event.skillName || event.source || 'Attunement');
   const unravelActive = state.unravelUntil > at;
-  const weaveSelfActive = state.weaveSelfUntil > at;
 
   // While Unravel is active both hands follow the swap, so the recorded event
   // has to advertise the same element for the off hand.
   if (unravelActive) {
     state.secondaryAttunement = target;
     context.replaceEvent(event, { secondaryAttunement: target });
-  }
-
-  // Weave Self puts every attunement back on the profiled short delay after each
-  // swap, letting the four-element cycle be completed inside its window.
-  if (weaveSelfActive) {
-    const recharge = elementalistAlacrityAdjustedDuration(
-      context as never,
-      balanceProfileValueFromContext(context, PROFILE.resources, 'initialDelay', 2)
-    );
-    for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
-      setElementalistAttunementReadyAt(context, attunement, at + recharge);
-    }
   }
 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
@@ -227,46 +216,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     });
   }
 
-  // Track the elements this Weave Self has visited: Fire and Air additionally
-  // grant their damage buff for the remainder of the window, and visiting all
-  // four ends Weave Self early and opens Perfect Weave.
-  if (weaveSelfActive) {
-    const visited = new Set(state.weaveSelfVisited);
-    visited.add(target);
-    state.weaveSelfVisited = [...visited];
-    const remaining = Math.max(0, state.weaveSelfUntil - at);
-    if (target === 'Fire' || target === 'Air') {
-      emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
-        at,
-        source,
-        sourceId,
-        actorType: 'player',
-        kind: `weave self ${target.toLowerCase()}`,
-        stacks: 1,
-        duration: remaining,
-        skillName: source
-      });
-    }
-
-    if (visited.size >= ELEMENTALIST_ATTUNEMENTS.length) {
-      state.weaveSelfUntil = 0;
-      state.weaveSelfVisited = [];
-      const perfectWeaveDuration = balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', 10);
-      state.perfectWeaveUntil = at + perfectWeaveDuration;
-      for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
-        emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
-          at,
-          source,
-          sourceId,
-          actorType: 'player',
-          kind,
-          stacks: 1,
-          duration: perfectWeaveDuration,
-          skillName: source
-        });
-      }
-    }
-  }
+  applyWeaveSelfAttunement(context, at, target, source, sourceId);
 
   // Pre-combat setup swaps must not generate trait procs.
   if (at < Number(context.combatStartTime || 0) - context.epsilon) return;
@@ -287,33 +237,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   // A normal Weaver swap moves both hands and so counts as two attunement
   // changes; under Unravel the hands move together and it counts as one.
   triggerBountifulPower(context as never, at, unravelActive ? 1 : 2, sourceId);
-}
-
-// Weave Self takes effect partway through its cast, so its activation is
-// scheduled at the profiled fraction of the cast rather than at completion.
-function onCastStart(context: ElementalistCastContext, skill: Skill): void {
-  if (skill.name !== 'Weave Self') return;
-  const at =
-    context.start +
-    (context.fullEnd - context.start) *
-      balanceProfileValueFromContext(context, PROFILE.resources, 'firstPacketRatio', 0.65);
-  if (at > context.effectiveEnd + context.epsilon) return;
-  context.tasks.schedule({
-    type: WEAVE_SELF_ACTIVATION_TASK,
-    at,
-    ownerId: context.reservationId,
-    payload: { sourceId: skill.id }
-  });
-}
-
-// Weave Self starts its own recharge at that same partial-cast point.
-function modifyRechargeStart(context: ElementalistPrecastContext, rechargeStart: number): number {
-  if (context.skill.name !== 'Weave Self') return rechargeStart;
-  return (
-    context.start +
-    (rechargeStart - context.start) *
-      balanceProfileValueFromContext(context, PROFILE.resources, 'firstPacketRatio', 0.65)
-  );
 }
 
 // Commit dual-attunement transitions and stance progress at effectiveEnd, then
@@ -401,7 +324,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   // profiled window, emits the matching swap event itself, clears every
   // attunement recharge, and grants the element's boon (plus Elements of Rage
   // when the hands were previously split).
-  if (skill.name === 'Unravel') {
+  if (skill.id === ID.UNRAVEL) {
     const previousPrimary = core.primaryAttunement;
     const previousSecondary = state.secondaryAttunement;
     state.secondaryAttunement = core.primaryAttunement;
@@ -492,47 +415,10 @@ export const weaverSkillMechanicHandlers = Object.freeze({
   }
 });
 
-// Open the Weave Self window: seed the visited set with the current element,
-// clear any leftover Perfect Weave, and grant the fire/air buff when it starts
-// in one of those attunements.
-function handleWeaveSelfActivation(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
-  const state = weaverState.from(context);
-  const core = professionCoreState(context);
-  const at = task.at;
-  const sourceId = String(task.payload?.sourceId || 'weave-self');
-  const duration = balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 20);
-  state.weaveSelfUntil = at + duration;
-  state.weaveSelfVisited = [core.primaryAttunement];
-  state.perfectWeaveUntil = 0;
-  if (core.primaryAttunement === 'Fire') {
-    emitSkillBuff(context, elementalistEventSkill(context, 'Weave Self', sourceId), {
-      at,
-      source: 'Weave Self',
-      sourceId,
-      actorType: 'player',
-      kind: 'weave self fire',
-      stacks: 1,
-      duration,
-      skillName: 'Weave Self'
-    });
-  } else if (core.primaryAttunement === 'Air') {
-    emitSkillBuff(context, elementalistEventSkill(context, 'Weave Self', sourceId), {
-      at,
-      source: 'Weave Self',
-      sourceId,
-      actorType: 'player',
-      kind: 'weave self air',
-      stacks: 1,
-      duration,
-      skillName: 'Weave Self'
-    });
-  }
-}
-
 // Commit Weaver utility windows and schedule stance effects only after the
 // triggering cast reaches its required completion point.
 function afterCast(context: ElementalistCastContext, skill: Skill): void {
-  if (skill.name === 'Unravel') {
+  if (skill.id === ID.UNRAVEL) {
     const state = weaverState.from(context);
     const core = professionCoreState(context);
     state.unravelUntil =
@@ -548,86 +434,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
     return;
   }
 
-  // Primordial Stance is cataloged as fixed single-element pulses. Cancel those
-  // authored damage and condition events and remember each post-cast tick time,
-  // so the pulses can be re-emitted against the live attunement pair instead.
-  if (!skill.name.startsWith('Primordial Stance')) return;
-  const tickTimes = new Set<number>();
-  for (const event of context.events) {
-    if (event.activationId !== context.reservationId) continue;
-    if (event.type === 'condition') {
-      if (event.at > context.effectiveEnd + context.epsilon) {
-        tickTimes.add(event.at);
-      }
-
-      context.replaceEvent(event, {
-        type: 'marker',
-        cancelled: true,
-        detail: 'replaced by dynamic Primordial Stance attunements'
-      });
-    } else if (event.type === 'damage') {
-      context.replaceEvent(event, {
-        type: 'marker',
-        cancelled: true,
-        detail: 'replaced by chronological Primordial Stance pulses'
-      });
-    }
-  }
-
-  for (const at of tickTimes) {
-    context.tasks.schedule({
-      type: 'elementalist.primordial-stance',
-      at,
-      ownerId: context.reservationId,
-      payload: { sourceId: skill.id }
-    });
-  }
-}
-
-// Resolve one Primordial Stance pulse against the attunement pair that is live
-// when the tick lands: one strike plus the condition of each attuned element.
-function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
-  const core = professionCoreState(context);
-  const state = weaverState.from(context);
-  const sourceId = (task.payload?.sourceId || 'primordial-stance') as Skill['id'];
-  const attunements = state.secondaryAttunement
-    ? [core.primaryAttunement, state.secondaryAttunement]
-    : [core.primaryAttunement];
-  const effects: Readonly<Record<string, readonly [string, number, number]>> = {
-    Fire: ['Burning', 1, 2],
-    Water: ['Chilled', 1, 1],
-    Air: ['Vulnerability', 8, 3],
-    Earth: ['Bleeding', 2, 6]
-  };
-  emitSkillDamage(context, {
-    at: task.at,
-    source: 'elementalist',
-    sourceId,
-    actorType: 'player',
-    skillName: 'Primordial Stance',
-    skillId: sourceId,
-    coefficient: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.primordialStance, 'strike'),
-      'coefficient',
-      0.33
-    ),
-    skillWeapon: 'Unequipped',
-    damageKind: 'field-tick'
-  });
-  for (const attunement of attunements) {
-    const [condition, stacks, duration] = effects[attunement];
-    const effect = balanceProfileEffectFromContext(context, PROFILE.primordialStance, 'condition', 0, attunement);
-    emitSkillCondition(context, {
-      at: task.at,
-      source: 'Primordial Stance',
-      sourceId,
-      actorType: 'player',
-      skillName: 'Primordial Stance',
-      condition: String(effect?.condition || condition),
-      stacks: Number(effect?.stacks ?? stacks),
-      duration: Number(effect?.duration ?? duration)
-    });
-  }
+  schedulePrimordialStance(context, skill);
 }
 
 // Purblinding Plasma recharges faster while an Air bullet is loaded, and Flow
@@ -635,7 +442,7 @@ function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task:
 function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
   const skill = context.skill;
   let adjusted = duration;
-  if (skill.name === 'Purblinding Plasma' && professionCoreState(context).pistolBullets.Air) {
+  if (skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context).pistolBullets.Air) {
     adjusted *= balanceProfileValueFromContext(context, PROFILE.purblindingPlasma, 'rechargeMultiplier', 2 / 3);
   }
 
@@ -653,7 +460,7 @@ export const weaverCastRules = Object.freeze({
     order: 30,
     handler: availability
   },
-  modifyRechargeStart,
+  modifyRechargeStart: modifyWeaveSelfRechargeStart,
   modifyRechargeDuration
 });
 
@@ -676,7 +483,7 @@ export const weaverSchedulerHooks = Object.freeze({
   onCastStart: {
     id: 'elementalist.weaver-cast-start',
     order: 30,
-    handler: onCastStart
+    handler: startWeaveSelfCast
   },
   afterCast: {
     id: 'elementalist.weaver-after-cast',

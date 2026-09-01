@@ -11,11 +11,16 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/types.js';
-import type { Gw2Build, Gw2CanonicalBuild, Gw2NumericAttributes } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2ApplicationBuild,
+  Gw2Build,
+  Gw2CanonicalBuild,
+  Gw2NumericAttributes,
+  ProfessionBuildAssumptions
+} from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2HitResolutionContext, Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
-import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '#gw2/app/types.js';
 
 export interface EngineerSpecializationSelection {
   readonly name?: string;
@@ -36,7 +41,7 @@ export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
   selectedMorphSkillIds: number[];
 }
 
-export interface EngineerApplicationBuild extends ProfessionApplicationBuild {
+export interface EngineerApplicationBuild extends Gw2ApplicationBuild {
   initialHeat: number;
   selectedMorphSkillIds: number[];
 }
@@ -149,6 +154,7 @@ export interface EngineerSkill extends Skill {
   readonly paletteFlipSkillId?: SkillId | null;
   readonly flipParentName?: string;
   readonly simulatorExcluded?: boolean;
+  readonly toolbeltParentId?: SkillId | null;
   readonly toolbeltParentName?: string;
 }
 

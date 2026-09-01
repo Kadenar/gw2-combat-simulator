@@ -1,5 +1,5 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { ElementalistConfig } from '#gw2/content/professions/elementalist/types.js';
+import type { ElementalistConfig } from '#gw2/content/professions/elementalist/build/types.js';
 import {
   isElementalistAttunement,
   type ElementalistAttunement

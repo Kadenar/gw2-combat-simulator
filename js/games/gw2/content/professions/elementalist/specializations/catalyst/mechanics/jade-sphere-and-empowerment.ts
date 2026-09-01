@@ -29,7 +29,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { elementalistEventSkill } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { applyElementalistAura } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import type { ElementalistAttunement } from '#gw2/content/professions/elementalist/core/state.js';
-import type { CatalystEmpowermentPool } from '#gw2/content/professions/elementalist/types.js';
+
 import type {
   ElementalistCastContext,
   ElementalistPrecastContext,
@@ -44,6 +44,7 @@ import {
 import { catalystModifierRules } from '#gw2/content/professions/elementalist/specializations/catalyst/traits/modifiers.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
+import type { CatalystEmpowermentPool } from '#gw2/content/professions/elementalist/build/types.js';
 
 const SPHERE_COST = 10;
 const SPHERE_SPECIALIST_DURATION_MULTIPLIER = 1.5;
@@ -373,11 +374,9 @@ export const catalystSkillMechanicHandlers = Object.freeze({
   }): void => activateElementalCelerity(context, skill, at)
 });
 
-// Consume the canonical event stream to update Catalyst energy and trait state,
-// filtering packet ownership so multi-hit and generated effects do not double-proc.
-function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  const state = catalystState.from(context);
-  const core = professionCoreState(context);
+// Each event handler owns one Catalyst contract; the dispatcher below preserves
+// their scheduler order and the events that intentionally stop further handling.
+function applyEmpoweringAuras(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   // Every aura gained adds an Empowering Auras stack buff.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
     const duration = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
@@ -394,9 +393,12 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       skillName: source
     });
   }
+}
 
+function scheduleBaseElementalEmpowerment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   // Elemental Empowerment's baseline stacks begin at combat start; without an explicit
   // combat_start the first offensive player/summon event stands in for it.
+  const state = catalystState.from(context);
   const implicitCombatEvent =
     !context.hasExplicitCombatStart &&
     ['player', 'summon'].includes(String(event.actorType || '')) &&
@@ -410,7 +412,9 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       payload: { applicationAt: event.at }
     });
   }
+}
 
+function scheduleExternalElementalEmpowerment(context: ElementalistSchedulerContext, event: SimulationEvent): boolean {
   // Untracked empowerment buffs are folded into the timed stack list; buffs already
   // flagged as tracked were counted when this module emitted them.
   if (
@@ -428,9 +432,13 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
         stacks: Number(event.stacks || 1)
       }
     });
-    return;
+    return true;
   }
 
+  return false;
+}
+
+function applyElementalEpitomeAura(context: ElementalistSchedulerContext, event: SimulationEvent): boolean {
   // Elemental Epitome's other half: an aura gain also grants an empowerment stack.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Elemental Epitome')) {
     const empowerment = balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, 'Empowerment');
@@ -446,11 +454,16 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       duration: Number(empowerment?.duration ?? 15),
       skillName: source
     });
-    return;
+    return true;
   }
 
+  return false;
+}
+
+function applyEnergizedElements(context: ElementalistSchedulerContext, event: SimulationEvent): boolean {
   // Energized Elements refunds energy and grants fury on every attunement swap.
   if (event.type === 'elementalist.attunement' && hasTrait(context, 'Energized Elements')) {
+    const state = catalystState.from(context);
     const before = state.energy;
     const energyGain = balanceProfileValueFromContext(context, PROFILE.energizedElements, 'resourceGain', 2);
     state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
@@ -480,12 +493,18 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       });
     }
 
-    return;
+    return true;
   }
 
+  return false;
+}
+
+function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: SimulationEvent): boolean {
   // Combo finishers drive Elemental Epitome's aura and Elemental Synergy's payout,
   // each on its own per-attunement internal cooldown.
   if (event.type === 'combo') {
+    const state = catalystState.from(context);
+    const core = professionCoreState(context);
     const attunement = String(event.attunement || core.primaryAttunement) as ElementalistAttunement;
     if (
       hasTrait(context, 'Elemental Epitome') &&
@@ -542,9 +561,13 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       }
     }
 
-    return;
+    return true;
   }
 
+  return false;
+}
+
+function scheduleViciousEmpowerment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   // Player control effects and immobilize feed Vicious Empowerment through a task so
   // the internal cooldown is evaluated in scheduler order.
   const immobilize =
@@ -560,7 +583,9 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       payload: { applicationAt: event.at }
     });
   }
+}
 
+function scheduleCatalystEnergyHit(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   // Anything left that is a damaging non-summon hit earns energy; the task is attributed
   // to the owning activation.
   if (event.type !== 'damage' || event.actorType === 'summon' || !(Number(event.coefficient) > 0)) {
@@ -576,6 +601,19 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       skillName: String(event.skillName || 'Catalyst Energy')
     }
   });
+}
+
+// Consume the canonical event stream to update Catalyst energy and trait state,
+// filtering packet ownership so multi-hit and generated effects do not double-proc.
+function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
+  applyEmpoweringAuras(context, event);
+  scheduleBaseElementalEmpowerment(context, event);
+  if (scheduleExternalElementalEmpowerment(context, event)) return;
+  if (applyElementalEpitomeAura(context, event)) return;
+  if (applyEnergizedElements(context, event)) return;
+  if (applyCatalystComboTraits(context, event)) return;
+  scheduleViciousEmpowerment(context, event);
+  scheduleCatalystEnergyHit(context, event);
 }
 
 // Damaging hits restore energy, but an active Jade Sphere suppresses the gain unless

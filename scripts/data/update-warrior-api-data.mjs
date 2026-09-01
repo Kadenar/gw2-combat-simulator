@@ -5,7 +5,6 @@ import { updateProfessionApiData } from './update-profession-api-data.mjs';
 export async function updateWarriorApiData(options = {}) {
   const result = await updateProfessionApiData('Warrior', {
     ...options,
-    refreshCommand: 'npm run update:warrior-data',
     snapshotConfig: {
       excludedIds: [62857],
       skillOverrides: {

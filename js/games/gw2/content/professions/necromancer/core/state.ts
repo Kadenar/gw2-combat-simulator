@@ -3,6 +3,26 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/content/professions/necromancer/data/ids.js';
 import type { NecromancerConfig, NecromancerCoreState } from '#gw2/content/professions/necromancer/types.js';
 
+/** Declares the Core fields exposed by every Necromancer end-state projection. */
+export const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'lifeForce',
+  'resource',
+  'maximumLifeForce',
+  'maximumHealth',
+  'lifeForcePoolCapacity',
+  'activeShroud',
+  'shroudEnteredAt',
+  'soulShards',
+  'soulShardExpiries',
+  'carapaceExpiries',
+  'activeMinions',
+  'availableFlips',
+  'autoattackChains',
+  'selfConditions',
+  'lichEndsAt',
+  'dreadUntil'
+] as const satisfies readonly (keyof NecromancerCoreState)[]);
+
 export const NECROMANCER_BASE_HEALTH = 9212;
 
 /** Calculates maximum health after Core vitality traits that were not already applied by the build layer. */

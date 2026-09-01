@@ -1,9 +1,15 @@
 import {
-  flattenProfessionState,
   professionCoreState,
-  projectPublicProfessionState
+  projectPublicProfessionState,
+  restoreFlatProfessionState,
+  snapshotProfessionState
 } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import type {
+  ProfessionStateSnapshotEmissionContext,
+  StateSnapshotEmissionOptions
+} from '#gw2/platform/engine/events/state-snapshots.js';
+import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
 import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/engineer/core/state.js';
 import {
   AMALGAM_PUBLIC_END_STATE_KEYS,
@@ -26,7 +32,17 @@ import type {
 
 /** Aggregates Core and active-specialization state at the Engineer family boundary. */
 export function snapshotEngineerState(state: unknown): EngineerState {
-  return structuredClone(flattenProfessionState(state)) as unknown as EngineerState;
+  return snapshotProfessionState<EngineerState>(state);
+}
+
+/** Emits a complete Engineer snapshot with the family identity owned here. */
+export function emitEngineerStateSnapshot(
+  context: ProfessionStateSnapshotEmissionContext,
+  at: number,
+  reason: string,
+  options?: StateSnapshotEmissionOptions
+): SimulationEvent | null {
+  return emitStateSnapshot(context, 'engineer', at, reason, snapshotEngineerState(context.state.profession), options);
 }
 
 // The family boundary composes the public fragments declared by their semantic owners.
@@ -57,10 +73,7 @@ export function handleEngineerState(context: EngineerResolverContext, event: Eng
   const preserved = {
     traitProcReadyAt: core.traitProcReadyAt || {}
   };
-  for (const [key, value] of Object.entries(event.state || {})) {
-    const owner = Object.hasOwn(specialization, key) ? specialization : core;
-    (owner as SchedulerRecord)[key] = structuredClone(value);
-  }
+  restoreFlatProfessionState(core, specialization, event.state);
 
   Object.assign(core, preserved);
 }

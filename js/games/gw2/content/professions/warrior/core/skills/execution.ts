@@ -69,7 +69,7 @@ function adjustResourceSkillEffect(
   }
 
   const tier = burstTier(context, spent);
-  if (skill.name === 'Kill Shot') {
+  if (skill.id === ID.KILL_SHOT) {
     context.replaceEvent(event, {
       coefficient: [2.25, 2.75, 3.25][tier - 1],
       name: `Kill Shot — Level ${tier} Damage`
@@ -149,7 +149,10 @@ function adjustMightyThrowTarget(
   _skill: WarriorSkill,
   event: WarriorSimulationEvent
 ): void {
-  if (event.name === 'Mighty Throw — Shard Damage' && Math.max(1, Number(context.config.target?.count || 1)) === 1) {
+  if (
+    event.packetKind === 'warrior.mighty-throw-shard' &&
+    Math.max(1, Number(context.config.target?.count || 1)) === 1
+  ) {
     context.replaceEvent(event, {
       coefficient: 0,
       secondaryTargetOnly: true

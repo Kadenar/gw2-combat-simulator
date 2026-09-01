@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
-import { createFixedSlotLoadout } from '#gw2/app/profession/slot-loadout.js';
+import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
   validateProfessionAssumptions
-} from '#gw2/app/profession/assumptions.js';
+} from '#gw2/platform/builds/assumptions.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';

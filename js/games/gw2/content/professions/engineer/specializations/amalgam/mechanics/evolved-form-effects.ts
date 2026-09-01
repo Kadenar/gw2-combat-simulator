@@ -17,7 +17,7 @@ function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerReso
   // Rapacious Strain fires as an "effect" actor after player hits. Allow it
   // through so Carbolic Composition also procs on Rapacious damage.
   if (event.actorType === 'effect') {
-    return event.name === 'Rapacious Strain';
+    return event.sourceId === 'engineer.rapacious-strain';
   }
 
   const skill = resolverSkill(context, event.skillId);

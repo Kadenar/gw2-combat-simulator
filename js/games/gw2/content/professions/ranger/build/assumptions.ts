@@ -1,7 +1,7 @@
 import {
   createProfessionAssumptionControls,
   STANDARD_POSITION_ASSUMPTION_CONTROLS
-} from '#gw2/app/profession/assumptions.js';
+} from '#gw2/platform/builds/assumptions.js';
 
 const RANGER_POSITION_ASSUMPTION_CONTROLS = STANDARD_POSITION_ASSUMPTION_CONTROLS.filter(
   (control) => !['playerHealthPercent', 'targetDistance'].includes(control.key)

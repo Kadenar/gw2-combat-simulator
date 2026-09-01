@@ -1,4 +1,10 @@
 import { professionCoreState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import type {
+  ProfessionStateSnapshotEmissionContext,
+  StateSnapshotEmissionOptions
+} from '#gw2/platform/engine/events/state-snapshots.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import { snapshotThiefState, THIEF_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/thief/core/state.js';
 export { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import {
@@ -40,8 +46,18 @@ const INACTIVE_STATE_DEFAULTS: Readonly<Partial<ThiefState>> = Object.freeze({
   ...ANTIQUARY_INACTIVE_STATE_DEFAULTS
 });
 
+/** Emits a complete Thief snapshot while leaving generation reconciliation owner-local. */
+export function emitThiefStateSnapshot(
+  context: ProfessionStateSnapshotEmissionContext,
+  at: number,
+  reason: string,
+  options?: StateSnapshotEmissionOptions
+): SimulationEvent | null {
+  return emitStateSnapshot(context, 'thief', at, reason, snapshotThiefState(context.state.profession), options);
+}
+
 export function projectThiefEndState({ schedulerState }: ThiefEndStateProjectionOptions): Record<string, unknown> {
-  const state = snapshotThiefState(schedulerState.profession) as unknown as ThiefState;
+  const state = snapshotThiefState<ThiefState>(schedulerState.profession);
   return projectPublicProfessionState(state, THIEF_PUBLIC_END_STATE_KEYS, INACTIVE_STATE_DEFAULTS);
 }
 
@@ -63,7 +79,7 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
     const owner = ownerFor(generationField);
     const incomingGeneration = Number(incoming[generationField] || 0);
     const currentGeneration = Number(owner[generationField] || 0);
-    if (generationField === 'spiderVenomGeneration' && incomingGeneration < currentGeneration) {
+    if (generationField.endsWith('VenomGeneration') && incomingGeneration < currentGeneration) {
       preserved[generationField] = owner[generationField] || 0;
       if (Object.hasOwn(owner, chargesField)) preserved[chargesField] = owner[chargesField] || 0;
       if (Object.hasOwn(owner, expiresAtField)) preserved[expiresAtField] = owner[expiresAtField] || 0;

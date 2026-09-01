@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata for revenant.
-// Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Revenant to refresh.
-// Simulator mechanics are maintained under revenant/mechanics/.
+// Snapshot: 2026-07-28. Run npm run update:profession-data -- --profession Revenant to refresh.
+// Simulator mechanics are maintained under revenant/core/ and revenant/specializations/.
 
 import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
 import type { RevenantSkill } from '#gw2/content/professions/revenant/types.js';

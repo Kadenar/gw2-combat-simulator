@@ -45,11 +45,6 @@ function spellbreakerStateAt(context: Gw2ModifierContext): {
   );
 }
 
-function activePrimaryWeapon(context: Gw2ModifierContext): string {
-  const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  return String(gw2PrimaryWeapon(context.config, weaponSet) || '');
-}
-
 function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = { ...attributes } as SchedulerRecord & {
     power: number;
@@ -86,7 +81,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.SUN_AND_MOON_STYLE) &&
-      activePrimaryWeapon(context) === 'Dagger' &&
+      gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Dagger' &&
       context.config?.target?.boonless === true
   },
   {

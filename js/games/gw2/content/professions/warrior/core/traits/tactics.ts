@@ -4,9 +4,16 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
+import {
+  warriorActiveBoonCount,
+  type WarriorModifierAttributes
+} from '#gw2/content/professions/warrior/core/traits/modifier-queries.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
@@ -172,3 +179,50 @@ export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: n
     state.empowerAlliesNextAt += interval;
   }
 }
+
+// Resolve Tactics-owned attributes without hiding their formulas in the cross-line composer.
+export function modifyWarriorTacticsAttributes(
+  context: Gw2ModifierContext,
+  result: WarriorModifierAttributes,
+  staticRulesApplied: boolean,
+  gearPower: number
+): void {
+  if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
+    result.concentration += Number(balanceProfileFromContext(context, PROFILE.roaringReveille)?.attributeBonus ?? 120);
+  }
+
+  if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
+    result.healingPower +=
+      gearPower * Number(balanceProfileFromContext(context, PROFILE.vigorousShouts)?.attributeConversion ?? 0.13);
+  }
+}
+
+export const warriorTacticsModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'warrior.empowered',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: { damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) => 1 + warriorActiveBoonCount(context) * parameters.damagePerBoon,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.EMPOWERED)
+  },
+  {
+    id: 'warrior.leg-specialist',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.05,
+    order: 100,
+    when: (context) =>
+      hasTrait(context, TRAIT.LEG_SPECIALIST) &&
+      ['Crippled', 'Chilled', 'Immobilized'].some((condition) => targetConditionActive(context, condition))
+  },
+  {
+    id: 'warrior.warriors-cunning',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.25,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.WARRIORS_CUNNING) && targetHealthFraction(context) > 0.8
+  }
+]);

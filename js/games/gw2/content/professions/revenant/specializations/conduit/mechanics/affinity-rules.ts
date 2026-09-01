@@ -21,13 +21,13 @@ import {
 import { denySkillCast as denyRevenantSkill } from '#gw2/content/professions/lib/availability.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
 import {
-  completeBeguilingHaze,
   emitNuminousGift,
-  emitLesserEnchantedDaggers,
   gainConduitAffinity,
   handleConduitAffinityHit,
   syncConduitEnergyCostOverrides
-} from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity-and-forms.js';
+} from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import { emitLesserEnchantedDaggers } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/forms.js';
+import { completeBeguilingHaze } from '#gw2/content/professions/revenant/specializations/conduit/skills/effects.js';
 import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
 import { emitLegendInvocationProfile } from '#gw2/content/professions/revenant/core/traits/index.js';

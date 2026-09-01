@@ -7,7 +7,7 @@
  * Code looks values up through `balanceProfileValueFromContext`/`Effect`, with the
  * literal at the call site acting only as a fallback.
  */
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait

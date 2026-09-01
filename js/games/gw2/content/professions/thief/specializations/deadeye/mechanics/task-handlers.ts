@@ -1,5 +1,4 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 import type { ThiefScheduledTask, ThiefSchedulerContext } from '#gw2/content/professions/thief/types.js';
 import { deadeyeState } from '#gw2/content/professions/thief/specializations/deadeye/state.js';
 import { resolveDeadeyeMaliceHit } from '#gw2/content/professions/thief/specializations/deadeye/mechanics/malice.js';
@@ -19,7 +18,7 @@ export function expireDeadeyesMark(
   // Malice resets when the mark expires; a fresh Deadeye's Mark starts at 0 (or initialDeadeyeMalice if Malicious Intent is equipped)
   state.malice = 0;
   state.maleficentSevenTriggered = false;
-  emitStateSnapshot(context, 'thief', task.at, 'deadeyes-mark-expired', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, task.at, 'deadeyes-mark-expired');
 }
 
 export const deadeyeTaskHandlers = Object.freeze({

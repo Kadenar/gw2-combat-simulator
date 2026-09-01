@@ -1,6 +1,6 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
-import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/content/professions/thief/types.js';
+import { thiefUiState } from '#gw2/content/professions/thief/core/presentation.js';
+import type { ThiefSkill, ThiefUiContext } from '#gw2/content/professions/thief/types.js';
 
 const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
   ID.HAUNT_SHOT,
@@ -9,12 +9,6 @@ const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
   ID.ETERNAL_NIGHT,
   ID.MIND_SHOCK
 ]);
-
-// UI contexts may carry state in either shape depending on where the component is rendered;
-// flattenProfessionState normalizes both the live state path and the initial professionState path.
-function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
-  return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;
-}
 
 export const specterUi = Object.freeze({
   paletteGroups: () => [
@@ -53,7 +47,7 @@ export const specterUi = Object.freeze({
     }
   ],
   resourceViews: (context: ThiefUiContext) => {
-    const state = stateFrom(context);
+    const state = thiefUiState(context);
     return [
       {
         id: 'shadow-force',
@@ -75,7 +69,7 @@ export const specterUi = Object.freeze({
     ];
   },
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
-    const state = stateFrom(context);
+    const state = thiefUiState(context);
     if (skill.id === ID.ENTER_SHADOW_SHROUD) {
       const available = !state.shadowShroudActive && Number(state.shadowForce || 0) > 0;
       return {

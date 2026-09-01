@@ -10,7 +10,7 @@ import {
 import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
 import { specterUi } from '#gw2/content/professions/thief/specializations/specter/presentation.js';
 import { SPECTER_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/specter/skills/index.js';
-import { applyLarcenousTorment } from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud-effects.js';
+import { applyLarcenousTorment } from '#gw2/content/professions/thief/specializations/specter/traits/index.js';
 import { SPECTER_BALANCE_PROFILES } from '#gw2/content/professions/thief/specializations/specter/profiles.js';
 
 export const specterModule = defineNativeModule({

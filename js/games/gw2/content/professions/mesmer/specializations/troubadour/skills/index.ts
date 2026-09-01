@@ -4,7 +4,8 @@
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
-import type { MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 // Tales share one lifecycle trigger; their specialization resolver owns each Tale's distinct outcome.
 const TROUBADOUR_TALE_TRIGGERS = Object.freeze([

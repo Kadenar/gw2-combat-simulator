@@ -4,7 +4,7 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
@@ -177,7 +177,7 @@ export function elementalistAuraDuration(context: unknown, duration: number): nu
 
 // Clone only the final authored field packet and its attached conditions at the measured cadence.
 export function extendPersistingFlamesPackets(context: ElementalistLifecycleContext, skill: Skill): void {
-  if (!hasTrait(context, 'Persisting Flames') || !PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)) return;
+  if (!hasTrait(context, 'Persisting Flames') || !PERSISTING_FLAMES_FIELD_SKILLS.has(Number(skill.id))) return;
 
   const fieldPackets = context.events
     .filter(
@@ -213,7 +213,7 @@ export function extendPersistingFlamesField(context: ElementalistSchedulerContex
   if (
     event.type !== 'action' ||
     !hasTrait(context, 'Persisting Flames') ||
-    !PERSISTING_FLAMES_FIELD_SKILLS.has(String(event.skillName || event.name))
+    !PERSISTING_FLAMES_FIELD_SKILLS.has(Number(event.skillId ?? event.sourceId))
   )
     return;
   const field = context.events.find(

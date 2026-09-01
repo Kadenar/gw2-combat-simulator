@@ -7,7 +7,6 @@ import {
   handleRangerWinterBiteReady
 } from '#gw2/content/professions/ranger/core/mechanics/event-handlers.js';
 import {
-  rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction,
   reactToRangerCoreBuff,
   reactToRangerCoreControl,

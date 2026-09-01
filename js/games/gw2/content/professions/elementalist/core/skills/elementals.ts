@@ -37,8 +37,8 @@ import type {
 } from '#gw2/platform/engine/types.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistPrecastContext as ElementalistCastContext,
+  ElementalistCastContext,
+  ElementalistPrecastContext,
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
@@ -48,21 +48,21 @@ import {
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
+import {
+  elementalCommandName,
+  elementalForGlyphId,
+  elementalRuntimeProfile,
+  FLAME_BARRAGE_ID,
+  selectedElementalFromSkills,
+  STOMP_ID,
+  type ElementalImpact,
+  type ElementalKind
+} from '#gw2/content/professions/elementalist/core/skills/elemental-runtime-profile.js';
 
 export {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
-
-type ElementalKind = 'Fire' | 'Earth';
-type ElementalImpact =
-  | 'fireball'
-  | 'flame-burst'
-  | 'flame-barrage-projectile'
-  | 'flame-barrage-explosion'
-  | 'punch'
-  | 'enervating-punch'
-  | 'stomp';
 
 // Payload carried by every elemental scheduler task. The two generation stamps are the
 // staleness guard; `impact`/`hitIndex` identify which hit of an action is landing.
@@ -81,10 +81,10 @@ const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 const ELEMENTAL_EXPIRE_TASK = 'elementalist.elemental-expire';
 const ELEMENTAL_TASK_OWNER = 'elementalist.summoned-elemental';
 
-/** Fire Elemental's player-commanded flip skill; castable only while a Fire Elemental is live. */
-export const FLAME_BARRAGE_ID = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
-/** Earth Elemental's player-commanded flip skill; castable only while an Earth Elemental is live. */
-export const STOMP_ID = EARTH_ELEMENTAL_EVTC_PROFILE.stomp.skillId;
+export {
+  FLAME_BARRAGE_ID,
+  STOMP_ID
+} from '#gw2/content/professions/elementalist/core/skills/elemental-runtime-profile.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -99,13 +99,7 @@ function unavailable(reason: string, retryAt?: number): AvailabilityResult {
 // Which elemental the loadout has slotted (drives auto-summon). Bare "Glyph of
 // Elementals" is treated as the Fire variant.
 function selectedElemental(context: ElementalistSchedulerContext): ElementalKind | null {
-  const selected = selectedSkillNameSet(context.config.selectedSkills);
-  if (selected.has('Glyph of Elementals (Earth)')) return 'Earth';
-  if (selected.has('Glyph of Elementals') || selected.has('Glyph of Elementals (Fire)')) {
-    return 'Fire';
-  }
-
-  return null;
+  return selectedElementalFromSkills(selectedSkillNameSet(context.config.selectedSkills));
 }
 
 // Auto-summon is opt-out: on unless either config flag is explicitly false.
@@ -113,32 +107,23 @@ function automaticSummoningEnabled(context: ElementalistSchedulerContext): boole
   return context.config.autoSummonElemental !== false && context.config.autoSummonFireElemental !== false;
 }
 
-// Maps a cast skill to the elemental it summons (by id or name); null if not a glyph.
+// Maps a stable glyph skill ID to the elemental it summons; null for unrelated skills.
 function elementalForGlyph(skill: Skill): ElementalKind | null {
-  if (skill.id === ID.GLYPH_OF_ELEMENTALS_EARTH || skill.name === 'Glyph of Elementals (Earth)') {
-    return 'Earth';
-  }
-
-  if (skill.id === ID.GLYPH_OF_ELEMENTALS || skill.name === 'Glyph of Elementals') {
-    return 'Fire';
-  }
-
-  return null;
+  return elementalForGlyphId(skill.id);
 }
 
 // Resolves the catalog skill that owns an element, so auto-summon and post-expiry recharge
 // can act on the glyph even when it was never explicitly cast.
 function glyphSkillForElement(context: ElementalistSchedulerContext, element: ElementalKind): Skill | null {
   return (
-    context.catalog.skillsByName.get(element === 'Earth' ? 'Glyph of Elementals (Earth)' : 'Glyph of Elementals') ||
-    null
+    context.catalog.skillsById.get(element === 'Earth' ? ID.GLYPH_OF_ELEMENTALS_EARTH : ID.GLYPH_OF_ELEMENTALS) || null
   );
 }
 
 // The player-commanded flip skill name for an element (used to tag events as
 // player-commanded vs autonomous and to key availableFlips).
 function commandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
-  return element === 'Earth' ? 'Stomp' : 'Flame Barrage';
+  return elementalCommandName(element);
 }
 
 /**
@@ -377,7 +362,7 @@ function startStomp(context: ElementalistSchedulerContext, at: number): void {
 // own base attributes (not inherited player stats or profession modifiers) and a
 // fixed 5% crit / 150% crit damage, so its numbers are self-contained.
 function summonStrikeMetadata(element: ElementalKind, summonGeneration: number, baseDamage: number): SchedulerRecord {
-  const profile = element === 'Earth' ? EARTH_ELEMENTAL_EVTC_PROFILE : FIRE_ELEMENTAL_EVTC_PROFILE;
+  const profile = elementalRuntimeProfile(element);
   return {
     independentSummonStrike: true,
     summonInheritsAttributes: false,
@@ -490,7 +475,7 @@ function emitPlayerOwnedCondition(
 // Flame Burst shares Might to the 5-player party.
 function emitFlameBurstMight(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
-  const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals');
+  const sourceSkill = context.catalog.skillsById.get(ID.GLYPH_OF_ELEMENTALS);
   if (!sourceSkill) return;
   emitSkillBuff(context, {
     activationId: task.payload?.activationId,
@@ -512,7 +497,7 @@ function emitFlameBurstMight(context: ElementalistSchedulerContext, task: Schedu
 // Stomp shares Protection to the 5-player party.
 function emitStompProtection(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
-  const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals (Earth)');
+  const sourceSkill = context.catalog.skillsById.get(ID.GLYPH_OF_ELEMENTALS_EARTH);
   if (!sourceSkill) return;
   emitSkillBuff(context, {
     activationId: task.payload?.activationId,
@@ -739,7 +724,7 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
  * Cast-start hook: tags the glyph's action event with which element it summons so the
  * timeline and presentation layers can tell the two variants apart. No-op for other skills.
  */
-export function beginElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
+export function beginElementalistGlyphCast(context: ElementalistCastContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
   context.replaceEvent(context.action, { summonedElement: element });
@@ -756,7 +741,7 @@ function summonElemental(
   element: ElementalKind
 ): void {
   const state = professionCoreState(context);
-  const profile = element === 'Earth' ? EARTH_ELEMENTAL_EVTC_PROFILE : FIRE_ELEMENTAL_EVTC_PROFILE;
+  const profile = elementalRuntimeProfile(element);
   context.tasks.cancelOwner(ELEMENTAL_TASK_OWNER);
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
   state.summonedElemental = {
@@ -791,7 +776,7 @@ function summonElemental(
  * Cast-complete hook: spawns the elemental at cast end. Its attack loop starts immediately
  * unless the rotation is still pre-combat and waiting on an explicit combat-start event.
  */
-export function completeElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
+export function completeElementalistGlyphCast(context: ElementalistCastContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
   summonElemental(
@@ -807,10 +792,10 @@ export function completeElementalistGlyphCast(context: ElementalistLifecycleCont
  * Cast-complete hook for the player-commanded flip skills: pre-empts whatever the elemental
  * is doing and drives Flame Barrage / Stomp on the live companion.
  */
-export function completeElementalistElementalCommand(context: ElementalistLifecycleContext, skill: Skill): void {
-  if (skill.id === FLAME_BARRAGE_ID || skill.name === 'Flame Barrage') {
+export function completeElementalistElementalCommand(context: ElementalistCastContext, skill: Skill): void {
+  if (skill.id === FLAME_BARRAGE_ID) {
     startFlameBarrage(context, context.effectiveEnd);
-  } else if (skill.id === STOMP_ID || skill.name === 'Stomp') {
+  } else if (skill.id === STOMP_ID) {
     startStomp(context, context.effectiveEnd);
   }
 }
@@ -820,7 +805,7 @@ export function completeElementalistElementalCommand(context: ElementalistLifecy
  * strike as a bonus hit and is consumed there (see emitStrike); ignored with no elemental out.
  */
 export function armElementalistElementalLightningJolt(
-  context: ElementalistLifecycleContext,
+  context: ElementalistCastContext,
   skillId: number,
   coefficient: number
 ): void {
@@ -880,11 +865,11 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
  * blocked (with a retry time) while their elemental lives. Returns null for unrelated skills.
  */
 export function elementalistElementalAvailability(
-  context: ElementalistCastContext,
+  context: ElementalistPrecastContext,
   skill: Skill
 ): AvailabilityResult | null {
   const elemental = professionCoreState(context).summonedElemental;
-  if (skill.id === FLAME_BARRAGE_ID || skill.name === 'Flame Barrage') {
+  if (skill.id === FLAME_BARRAGE_ID) {
     const active = elemental.element === 'Fire' && elemental.activeUntil > context.start + context.epsilon;
     return active ||
       (elemental.activeUntil <= context.start + context.epsilon &&
@@ -894,7 +879,7 @@ export function elementalistElementalAvailability(
       : unavailable('an active Fire Elemental is required.');
   }
 
-  if (skill.id === STOMP_ID || skill.name === 'Stomp') {
+  if (skill.id === STOMP_ID) {
     const active = elemental.element === 'Earth' && elemental.activeUntil > context.start + context.epsilon;
     return active ||
       (elemental.activeUntil <= context.start + context.epsilon &&

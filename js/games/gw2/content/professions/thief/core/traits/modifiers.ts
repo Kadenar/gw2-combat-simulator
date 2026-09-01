@@ -17,7 +17,7 @@ import {
   advanceThiefCoreResources,
   completeThiefCoreResources,
   spendThiefCoreResources
-} from '#gw2/content/professions/thief/core/mechanics/initiative-and-endurance.js';
+} from '#gw2/content/professions/thief/core/mechanics/resources.js';
 import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import { updateThiefTraitCastState } from '#gw2/content/professions/thief/core/traits/index.js';
 import { updateThiefWeaponState } from '#gw2/content/professions/thief/core/mechanics/weapon-state.js';
@@ -76,7 +76,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: 1.5,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      context.event?.name === 'Vampiric Slash — Life Siphon' &&
+      context.event?.packetKind === 'thief.vampiric-slash-life-siphon' &&
       targetConditionActive(context, 'Vulnerability')
   },
   {
@@ -133,7 +133,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: 1.2,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      thiefEventSkill(context)?.name === 'Larcenous Strike' &&
+      thiefEventSkill(context)?.id === ID.LARCENOUS_STRIKE &&
       targetBoonless(context)
   },
   {

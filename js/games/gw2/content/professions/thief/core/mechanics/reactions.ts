@@ -6,14 +6,7 @@ import {
   thiefCoreCriticalReactions
 } from '#gw2/content/professions/thief/core/traits/index.js';
 
-export { handleThiefState } from '#gw2/content/professions/thief/state.js';
-export {
-  reactToThiefCoreBuff,
-  reactToThiefCoreCondition,
-  reactToThiefCoreDamage,
-  thiefCoreCriticalReactions
-} from '#gw2/content/professions/thief/core/traits/index.js';
-
+// Keep phase wiring here while behavior stays with its state and trait owners.
 export const thiefCoreEventHandlers = Object.freeze({
   'thief.state': handleThiefState
 });

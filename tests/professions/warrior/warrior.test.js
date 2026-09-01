@@ -29,6 +29,7 @@ import { warriorCoreModule } from '#gw2/content/professions/warrior/core/module.
 import { warriorAppAdapter } from '#gw2/content/professions/warrior/app/app-definition.js';
 import { createWarriorCoreState } from '#gw2/content/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/core/profiles.js';
+import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/skills/execution.js';
 import { DATA_SNAPSHOT } from '#gw2/content/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
@@ -43,7 +44,7 @@ import {
   dragonChargesToAdrenalineSpent,
   projectDragonCharges
 } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { advanceBladesworn } from '#gw2/content/professions/warrior/specializations/bladesworn/traits/index.js';
+import { advanceBladesworn } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
 import { createBladeswornState } from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 import { paragonModule } from '#gw2/content/professions/warrior/specializations/paragon/module.js';
@@ -1021,6 +1022,32 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   });
 
   assert.equal(multipleTargets.events.find((event) => event.name === 'Mighty Throw — Shard Damage').coefficient, 0.9);
+});
+
+test('Warrior execution follows stable skill and packet IDs after display labels change', () => {
+  const replacements = [];
+  const context = {
+    config: { selectedTraitIds: [], target: { count: 1 } },
+    epsilon: 1e-9,
+    replaceEvent: (_event, replacement) => replacements.push(replacement)
+  };
+  const killShot = { ...warriorCatalog.skillsById.get(ID.KILL_SHOT), name: 'Renamed burst skill' };
+  warriorCoreSkillHandlers['warrior.resource'].afterEffect(
+    context,
+    killShot,
+    { type: 'damage', coefficient: 1, at: 0, name: 'Renamed burst packet' },
+    { spent: 30, berserkersPowerGranted: false }
+  );
+  assert.equal(replacements.at(-1).coefficient, 3.25);
+
+  const mightyThrow = { ...warriorCatalog.skillsById.get(ID.MIGHTY_THROW), name: 'Renamed spear skill' };
+  warriorCoreSkillHandlers['warrior.mighty-throw'].afterEffect(context, mightyThrow, {
+    type: 'damage',
+    coefficient: 0.9,
+    name: 'Renamed shard packet',
+    packetKind: 'warrior.mighty-throw-shard'
+  });
+  assert.equal(replacements.at(-1).coefficient, 0);
 });
 
 test('Spellbreaker uses its reduced adrenaline cap for Full Counter', () => {

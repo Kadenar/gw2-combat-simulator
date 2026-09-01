@@ -13,9 +13,10 @@ import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-ev
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistPrecastContext as ElementalistCastContext
+  ElementalistCastContext,
+  ElementalistPrecastContext
 } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement,
@@ -36,8 +37,8 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/p
  * Returning true tells the scheduler this cast's packets were authored here, so
  * the skill's declarative effects are skipped.
  */
-export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext, skill: Skill): boolean {
-  if (skill.name !== 'Grand Finale') return false;
+export function scheduleGrandFinaleProfile(context: ElementalistCastContext, skill: Skill): boolean {
+  if (skill.id !== ID.GRAND_FINALE) return false;
   const state = professionCoreState(context);
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];
@@ -89,7 +90,7 @@ export function activeHammerOrbElements(state: ElementalistCoreState, at: number
 
 /** Core compatibility rule for spending an orb: only one matching the current primary attunement counts. */
 export function hammerOrbMatchesAttunement(
-  _context: ElementalistCastContext,
+  _context: ElementalistPrecastContext,
   state: ElementalistCoreState,
   element: ElementalistAttunement
 ): boolean {
@@ -103,7 +104,7 @@ export function hammerOrbMatchesAttunement(
  * Cast-completion owner of the orb timers and of the buff events that mirror
  * them on the log timeline.
  */
-export function applyHammerState(context: ElementalistLifecycleContext, skill: Skill): void {
+export function applyHammerState(context: ElementalistCastContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Hammer') return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -149,7 +150,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
 
   // Grand Finale clears the stored orbs and trims their buffs to just past the
   // cast instead of ending them instantly, so the finisher still reads as covered.
-  if (skill.name !== 'Grand Finale') return;
+  if (skill.id !== ID.GRAND_FINALE) return;
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];
     return expiresAt != null && expiresAt >= context.start;

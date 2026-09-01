@@ -1,10 +1,7 @@
 import { handleWarriorBoonRemoval } from '#gw2/content/professions/warrior/core/mechanics/event-handlers.js';
 import { reactToWarriorBuff, reactToWarriorDamage } from '#gw2/content/professions/warrior/core/traits/index.js';
 
-export { handleWarriorBoonRemoval } from '#gw2/content/professions/warrior/core/mechanics/event-handlers.js';
-export { warriorBoonRemovalCounts } from '#gw2/content/professions/warrior/core/mechanics/resolution-helpers.js';
-export { reactToWarriorBuff, reactToWarriorDamage } from '#gw2/content/professions/warrior/core/traits/index.js';
-
+// Keep phase wiring here while behavior stays with its mechanic and trait owners.
 export const warriorCoreEventHandlers = Object.freeze({
   'warrior.boon-removal': handleWarriorBoonRemoval
 });

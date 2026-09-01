@@ -6,6 +6,74 @@ export type Gw2NumericAttributes = Record<string, number>;
 
 export type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
 
+/** Build assumptions shared by profession definitions and application adapters. */
+export interface ProfessionBuildAssumptions extends SchedulerRecord {
+  might?: number;
+  fury?: boolean;
+  quickness?: boolean;
+  alacrity?: boolean;
+  protection?: boolean;
+  resolution?: boolean;
+  regeneration?: boolean;
+  swiftness?: boolean;
+  vigor?: boolean;
+  aegis?: boolean;
+  alliedPlayerCount?: number;
+  sharePlayerBoonsWithSummons?: boolean;
+  playerHealthPercent?: number;
+  targetDefiant?: boolean;
+  targetDistance?: number;
+  targetMoving?: boolean;
+  targetBoonless?: boolean;
+  targetSkillActivationsPerSecond?: number;
+  targetConditions?: Record<string, number | boolean>;
+  timeOfDay?: 'day' | 'night';
+}
+
+export interface ProfessionAssumptionOption {
+  readonly value: string;
+  readonly label: string;
+  readonly skillId?: number;
+  readonly icon?: string;
+}
+
+export interface ProfessionAssumptionControlInput {
+  readonly key?: unknown;
+  readonly label?: unknown;
+  readonly type?: unknown;
+  readonly defaultValue?: unknown;
+  readonly minimum?: unknown;
+  readonly maximum?: unknown;
+  readonly step?: unknown;
+  readonly options?: unknown;
+  readonly specializations?: unknown;
+  readonly section?: unknown;
+}
+
+export interface ProfessionAssumptionControlBase extends SchedulerRecord {
+  readonly key: string;
+  readonly label: string;
+  readonly defaultValue: unknown;
+  readonly specializations?: readonly string[];
+  readonly section?: string;
+}
+
+/** Validated control metadata keeps persistence logic independent from its UI renderer. */
+export type ProfessionAssumptionControl =
+  | (ProfessionAssumptionControlBase & {
+      readonly type: 'boolean';
+    })
+  | (ProfessionAssumptionControlBase & {
+      readonly type: 'number';
+      readonly minimum: number;
+      readonly maximum: number;
+      readonly step: number;
+    })
+  | (ProfessionAssumptionControlBase & {
+      readonly type: 'select';
+      readonly options: readonly ProfessionAssumptionOption[];
+    });
+
 /** Records which build-time attribute decisions are already reflected in a simulation config. */
 export interface Gw2AttributeProvenance {
   readonly professionStaticRulesApplied: boolean;

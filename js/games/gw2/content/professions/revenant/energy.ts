@@ -1,6 +1,5 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
 import { baseRevenantEnergyCost } from '#gw2/content/professions/revenant/core/mechanics/energy.js';
 import { applyConduitEnergyCostRules } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
@@ -44,12 +43,6 @@ export function spendRevenantEnergy(context: RevenantPrecastContext, skill: Reve
   const cost = effectiveRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);
   if (cost > 0) {
-    emitStateSnapshot(
-      context,
-      'revenant',
-      context.start,
-      'energy-spent',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, context.start, 'energy-spent');
   }
 }

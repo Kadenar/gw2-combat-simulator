@@ -1,6 +1,5 @@
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 /**
  * Revenant Energy and endurance lifecycle.
@@ -115,16 +114,10 @@ function advanceRevenantEnergyTick(
     state.activeUpkeeps = [];
     state.availableFlips = {};
     state.energyUpdatedAt = starvedAt;
-    emitStateSnapshot(
-      context,
-      'revenant',
-      starvedAt,
-      'upkeep-starved',
-      snapshotRevenantState(context.state.profession)
-    );
+    emitRevenantStateSnapshot(context, starvedAt, 'upkeep-starved');
     state.energy = regenerateRevenantEnergy(context, state, starvedAt, target, regeneration);
     state.energyUpdatedAt = target;
-    emitStateSnapshot(context, 'revenant', target, 'energy', snapshotRevenantState(context.state.profession));
+    emitRevenantStateSnapshot(context, target, 'energy');
     return;
   }
 
@@ -134,7 +127,7 @@ function advanceRevenantEnergyTick(
       : roundedResourceValue(Math.max(0, Math.min(state.maximumEnergy, state.energy + elapsed * rate)));
   state.energyUpdatedAt = target;
   if (state.energy !== previousEnergy) {
-    emitStateSnapshot(context, 'revenant', target, 'energy', snapshotRevenantState(context.state.profession));
+    emitRevenantStateSnapshot(context, target, 'energy');
   }
 }
 

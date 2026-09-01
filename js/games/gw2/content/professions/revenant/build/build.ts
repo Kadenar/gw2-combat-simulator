@@ -2,12 +2,11 @@ import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
-import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/content/professions/revenant/app/assumptions.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/content/professions/revenant/build/assumptions.js';
 import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/content/professions/revenant/data/ids.js';
-import { revenantLegendLoadout } from '#gw2/content/professions/revenant/app/legend-loadout.js';
+import { revenantLegendLoadout } from '#gw2/content/professions/revenant/build/legend-loadout.js';
 import type { RevenantCanonicalBuild } from '#gw2/content/professions/revenant/types.js';
-import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
 import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 
 /**
@@ -70,7 +69,7 @@ const revenantBuildCodec = createProfessionBuildCodec<RevenantCanonicalBuild>({
   schemaVersion: REVENANT_BUILD_SCHEMA_VERSION,
   catalog: revenantCatalog,
   createDefaults: createRevenantBuildDefaults,
-  slotLoadout: revenantLegendLoadout as unknown as Gw2SlotLoadout<RevenantCanonicalBuild>,
+  slotLoadout: revenantLegendLoadout,
   assumptionControls: REVENANT_ASSUMPTION_CONTROLS,
   // Legend resources and Vindicator choices use the same schema in both paths.
   extraFields: {

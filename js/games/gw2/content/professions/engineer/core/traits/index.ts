@@ -1,5 +1,6 @@
 /** Public Core Engineer trait dispatcher preserving cross-line reaction order. */
 import { resolverSkill } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
 import type {
   EngineerCastContext,
   EngineerResolverContext,
@@ -59,7 +60,7 @@ function isExplosion(context: EngineerResolverContext, event: EngineerResolverEv
   return Boolean(
     skill?.categories?.some((category) => String(category).toLowerCase() === 'explosion') ||
     skill?.kit === 'Grenade Kit' ||
-    skill?.name === 'Devastator'
+    skill?.id === ID.DEVASTATOR
   );
 }
 

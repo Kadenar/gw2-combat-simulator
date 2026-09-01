@@ -1,9 +1,9 @@
+import { emitThiefStateSnapshot } from '#gw2/content/professions/thief/state.js';
 /** Registers scheduler-phase skill activations for this module. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { deadeyeState } from '#gw2/content/professions/thief/specializations/deadeye/state.js';
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { completeStealWithStoredSkills } from '#gw2/content/professions/thief/core/mechanics/steal.js';
 import { emitStealTraitEffects } from '#gw2/content/professions/thief/core/traits/index.js';
 import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
@@ -20,7 +20,6 @@ import {
   initialDeadeyeMalice
 } from '#gw2/content/professions/thief/specializations/deadeye/traits/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
-import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
 import type { ThiefCastContext, ThiefSimulationEvent, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
@@ -54,7 +53,7 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
     ownerId: 'thief.deadeye-mark',
     payload: { generation: state.markGeneration }
   });
-  emitStateSnapshot(context, 'thief', at, 'deadeyes-mark', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, at, 'deadeyes-mark');
 }
 
 function prepareDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSkill): DeadeyeHandlerState {
@@ -147,7 +146,7 @@ function completeMercy(context: ThiefCastContext): void {
     context.effectiveEnd,
     'mercy'
   );
-  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'mercy', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'mercy');
 }
 
 function completeShadowFlare(context: ThiefCastContext): void {
@@ -155,31 +154,19 @@ function completeShadowFlare(context: ThiefCastContext): void {
   // Register Shadow Swap as an available flip for 4s; availability.ts gates the cast on this timestamp
   core.availableFlips[ID.SHADOW_SWAP] =
     context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.shadowFlare)?.durationMultiplier || 4);
-  emitStateSnapshot(
-    context,
-    'thief',
-    context.effectiveEnd,
-    'shadow-flare',
-    snapshotThiefState(context.state.profession)
-  );
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'shadow-flare');
 }
 
 function completeShadowSwap(context: ThiefCastContext): void {
   delete professionCoreState(context).availableFlips[ID.SHADOW_SWAP];
-  emitStateSnapshot(
-    context,
-    'thief',
-    context.effectiveEnd,
-    'shadow-swap',
-    snapshotThiefState(context.state.profession)
-  );
+  emitThiefStateSnapshot(context, context.effectiveEnd, 'shadow-swap');
 }
 
 function prepareShadowMeld(context: ThiefCastContext): void {
   const core = professionCoreState(context);
   // Shadow Meld cancels the Revealed debuff at cast start (not cast end) so the player re-enters stealth immediately
   core.revealedUntil = Math.min(core.revealedUntil, context.start);
-  emitStateSnapshot(context, 'thief', context.start, 'shadow-meld', snapshotThiefState(context.state.profession));
+  emitThiefStateSnapshot(context, context.start, 'shadow-meld');
 }
 
 function prepareDeadeyeSpearStealthAttack(context: ThiefCastContext, skill: ThiefSkill): DeadeyeHandlerState {

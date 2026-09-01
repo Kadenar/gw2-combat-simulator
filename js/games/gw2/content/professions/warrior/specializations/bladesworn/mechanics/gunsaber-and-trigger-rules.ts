@@ -26,7 +26,7 @@ import {
   completeBladeswornSkill,
   observeBladeswornEvent,
   trackBladeswornAmmoCast
-} from '#gw2/content/professions/warrior/specializations/bladesworn/traits/index.js';
+} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
 
 export { bladeswornSkillMechanicHandlers };
 

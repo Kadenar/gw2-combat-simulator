@@ -1,4 +1,4 @@
-import { createFixedSlotLoadout } from '#gw2/app/profession/slot-loadout.js';
+import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import { REVENANT_DECLARED_SKILLS } from '#gw2/content/professions/revenant/catalog/module-data.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -7,7 +7,9 @@ import {
 import { REVENANT_LEGEND_SPECIALIZATIONS } from '#gw2/content/professions/revenant/data/legends.js';
 import { HERALD_MECHANICS } from '#gw2/content/professions/revenant/specializations/herald/mechanics/facets.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';
-import type { SlotLoadoutContext } from '#gw2/app/profession/slot-loadout.js';
+import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
+import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
+import type { RevenantCanonicalBuild } from '#gw2/content/professions/revenant/types.js';
 
 export interface RevenantLegend {
   readonly id: string;
@@ -165,7 +167,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
   )
 );
 
-const baseRevenantLegendLoadout = createFixedSlotLoadout({
+const baseRevenantLegendLoadout = createFixedSlotLoadout<RevenantCanonicalBuild>({
   id: 'revenant-legends',
   label: 'Legends',
   entryLabel: 'Legend',
@@ -214,7 +216,7 @@ export const revenantLegendLoadout = Object.freeze({
       })
     }));
   }
-});
+}) satisfies Gw2SlotLoadout<RevenantCanonicalBuild>;
 
 export function revenantLegend(legendId: string): RevenantLegend | null {
   return REVENANT_LEGENDS.find((legend) => legend.id === legendId) || null;

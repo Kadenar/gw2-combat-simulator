@@ -1,6 +1,7 @@
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerState } from '#gw2/platform/engine/types.js';
-import type { MesmerRuntimeState } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerRuntimeState } from '#gw2/content/professions/mesmer/state/types.js';
 
 interface MesmerNumericResourceState {
   numericResource: number;

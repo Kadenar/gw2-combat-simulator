@@ -10,11 +10,12 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equi
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
-import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/content/professions/elementalist/app/assumptions.js';
+import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/content/professions/elementalist/build/assumptions.js';
 import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
-import type { ElementalistApplicationBuild, ElementalistCanonicalBuild } from '#gw2/content/professions/elementalist/types.js';
+
+import type { ElementalistApplicationBuild, ElementalistCanonicalBuild } from '#gw2/content/professions/elementalist/build/types.js';
 
 /** Bumped whenever the persisted build shape changes, so older saves are migrated on load. */
 export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 4;

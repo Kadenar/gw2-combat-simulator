@@ -4,8 +4,8 @@ import {
   SIMULATION_RANDOMNESS_MODES,
   normalizeSimulationRandomness
 } from '#kernel/core/simulation-random.js';
-import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
-import type { ProfessionAssumptionControl } from '#gw2/app/types.js';
+import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 
 export type SimulationRandomnessAssumptions = Record<string, unknown>;
 

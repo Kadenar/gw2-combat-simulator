@@ -5,7 +5,7 @@ import {
   necromancerTransformPaletteGroups,
   necromancerTransformSkillBarGroups
 } from '#gw2/content/professions/necromancer/core/presentation.js';
-import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
+import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import type { ProfessionResourceView, ProfessionUiContract, SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type { NecromancerUiContext } from '#gw2/content/professions/necromancer/types.js';
 

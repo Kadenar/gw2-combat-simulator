@@ -17,9 +17,10 @@ import type {
   MesmerCastContext,
   MesmerPrecastContext,
   MesmerRechargeContext,
-  MesmerSchedulerContext,
-  MesmerSkill
+  MesmerSchedulerContext
 } from '#gw2/content/professions/mesmer/types.js';
+
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js';
 
 type MirageSkillMechanicHandler = (invocation: {
   readonly context: MesmerSchedulerContext;

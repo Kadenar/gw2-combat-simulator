@@ -1,4 +1,5 @@
-import type { Gw2AppAdapter, ProfessionApplicationBuild } from '#gw2/app/types.js';
+import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 /**
  * Validates and returns an application state adapter.
@@ -24,10 +25,10 @@ function resolveAdapter(adapter: unknown): Gw2AppAdapter {
  * Creates fresh application build state from a profession's defaults.
  *
  * @param {Gw2AppAdapter} adapter Profession application adapter.
- * @returns {ProfessionApplicationBuild} Default application build.
+ * @returns {Gw2ApplicationBuild} Default application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function createDefaultBuild(adapter: Gw2AppAdapter): ProfessionApplicationBuild {
+export function createDefaultBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild {
   const resolved = resolveAdapter(adapter);
   return resolved.toApplicationBuild(resolved.profession.createBuildDefaults());
 }
@@ -39,10 +40,10 @@ export function createDefaultBuild(adapter: Gw2AppAdapter): ProfessionApplicatio
  * build.
  *
  * @param {Gw2AppAdapter} adapter Profession application adapter.
- * @returns {ProfessionApplicationBuild} Restored or default application build.
+ * @returns {Gw2ApplicationBuild} Restored or default application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function loadBuild(adapter: Gw2AppAdapter): ProfessionApplicationBuild {
+export function loadBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild {
   const resolved = resolveAdapter(adapter);
   try {
     const saved = JSON.parse(localStorage.getItem(resolved.storageKey) || 'null');
@@ -55,12 +56,12 @@ export function loadBuild(adapter: Gw2AppAdapter): ProfessionApplicationBuild {
 /**
  * Migrates and persists a build in browser storage.
  *
- * @param {ProfessionApplicationBuild} build Application build to persist.
+ * @param {Gw2ApplicationBuild} build Application build to persist.
  * @param {Gw2AppAdapter} adapter Profession application adapter.
  * @returns {void}
  * @throws {TypeError} When the adapter is invalid.
  */
-export function saveBuild(build: ProfessionApplicationBuild, adapter: Gw2AppAdapter): void {
+export function saveBuild(build: Gw2ApplicationBuild, adapter: Gw2AppAdapter): void {
   const resolved = resolveAdapter(adapter);
   const persisted = resolved.profession.migrateBuild(build);
   localStorage.setItem(resolved.storageKey, JSON.stringify(persisted));
@@ -71,10 +72,10 @@ export function saveBuild(build: ProfessionApplicationBuild, adapter: Gw2AppAdap
  *
  * @param {unknown} saved Build data to convert.
  * @param {Gw2AppAdapter} adapter Profession application adapter.
- * @returns {ProfessionApplicationBuild} Converted application build.
+ * @returns {Gw2ApplicationBuild} Converted application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function replaceBuild(saved: unknown, adapter: Gw2AppAdapter): ProfessionApplicationBuild {
+export function replaceBuild(saved: unknown, adapter: Gw2AppAdapter): Gw2ApplicationBuild {
   const resolved = resolveAdapter(adapter);
   return resolved.toApplicationBuild(saved);
 }
@@ -86,18 +87,18 @@ export function replaceBuild(saved: unknown, adapter: Gw2AppAdapter): Profession
  * rotation array, the replacement receives an empty rotation.
  *
  * @param {unknown} saved Imported build configuration.
- * @param {ProfessionApplicationBuild | null | undefined} currentBuild Current
+ * @param {Gw2ApplicationBuild | null | undefined} currentBuild Current
  * application build.
  * @param {Gw2AppAdapter} adapter Profession application adapter.
- * @returns {ProfessionApplicationBuild} Replacement build with the current
+ * @returns {Gw2ApplicationBuild} Replacement build with the current
  * rotation.
  * @throws {TypeError} When the adapter is invalid.
  */
 export function replaceBuildConfiguration(
   saved: unknown,
-  currentBuild: ProfessionApplicationBuild | null | undefined,
+  currentBuild: Gw2ApplicationBuild | null | undefined,
   adapter: Gw2AppAdapter
-): ProfessionApplicationBuild {
+): Gw2ApplicationBuild {
   const build = replaceBuild(saved, adapter);
   build.rotation = Array.isArray(currentBuild?.rotation) ? currentBuild.rotation : [];
   return build;
@@ -111,15 +112,15 @@ export function replaceBuildConfiguration(
  * the selected specialization before the first simulation.
  *
  * @param {readonly unknown[]} rotation Rotation entries to install.
- * @param {ProfessionApplicationBuild} currentBuild Build supplying specialization context.
+ * @param {Gw2ApplicationBuild} currentBuild Build supplying specialization context.
  * @param {Gw2AppAdapter} adapter Profession application adapter.
- * @returns {ProfessionApplicationBuild} Normalized build and rotation.
+ * @returns {Gw2ApplicationBuild} Normalized build and rotation.
  */
 export function replaceBuildRotation(
   rotation: readonly unknown[],
-  currentBuild: ProfessionApplicationBuild,
+  currentBuild: Gw2ApplicationBuild,
   adapter: Gw2AppAdapter
-): ProfessionApplicationBuild {
+): Gw2ApplicationBuild {
   return replaceBuild(
     {
       ...currentBuild,

@@ -1,13 +1,12 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { MesmerAddCondition, MesmerAddDamage } from '#gw2/content/professions/mesmer/types.js';
 import type {
-  MesmerAddCondition,
-  MesmerAddDamage,
   MesmerClone,
   MesmerCloneAttack,
   MesmerCloneAttackScheduler,
-  MesmerCloneAttackStep,
-  MesmerState
-} from '#gw2/content/professions/mesmer/types.js';
+  MesmerCloneAttackStep
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerState } from '#gw2/content/professions/mesmer/state/types.js';
 
 interface CloneAttackSchedulerOptions {
   readonly state: MesmerState;

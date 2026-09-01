@@ -13,6 +13,8 @@ import type {
   ThiefResolverEvent
 } from '#gw2/content/professions/thief/types.js';
 
+const VENOM_SKILL_IDS = new Set<number>([ID.SPIDER_VENOM, ID.SKALE_VENOM, ID.DEVOURER_VENOM]);
+
 /** Applies Shadow Arts effects without owning the base venom packet that triggers them. */
 export function applyHiddenThief(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.HIDDEN_THIEF)) return;
@@ -81,7 +83,11 @@ export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefR
 }
 
 export function applyAlliedLeechingVenoms(context: ThiefResolverContext, application: ThiefResolverEvent): void {
-  if (application.condition !== 'Poisoned' || application.skillId !== ID.SPIDER_VENOM || !application.triggeredByAlly)
+  if (
+    !application.triggeredByAlly ||
+    !VENOM_SKILL_IDS.has(Number(application.skillId)) ||
+    Number(application.venomProcEffectIndex || 0) !== 0
+  )
     return;
   applyLeechingVenoms(context, application);
 }

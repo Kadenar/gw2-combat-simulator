@@ -21,13 +21,22 @@ import type {
   GuardianUiContext
 } from '#gw2/content/professions/guardian/types.js';
 
+const LUMINARY_INTERNAL_EVENT_TYPES = new Set([
+  'guardian.effulgent-activated',
+  'guardian.effulgent-detonate',
+  'guardian.luminary.light-aura-detonate',
+  'guardian.luminary.light-aura-grant',
+  'guardian.luminary.light-field-start',
+  'guardian.luminary.light-finisher'
+]);
+
 function luminaryEventLogRow(
   _context: SchedulerRecord,
   event: GuardianResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   // null = suppress this event from the log entirely (internal bookkeeping
   // events that have no meaningful display for the user).
-  if (['guardian.effulgent-activated', 'guardian.effulgent-detonate'].includes(event.type)) return null;
+  if (LUMINARY_INTERNAL_EVENT_TYPES.has(event.type)) return null;
   // undefined = not handled here; let the default renderer decide.
   if (event.type !== 'guardian.radiant-forge-entered' && event.type !== 'guardian.radiant-forge-exited')
     return undefined;

@@ -1,5 +1,4 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 /**
  * Shared primitives for every necromancer skill handler.
@@ -12,7 +11,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
  * Handlers depend on this module; it must not depend on them.
  */
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
-import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 import { syncNecromancerResources } from '#gw2/content/professions/necromancer/core/state.js';
 import type {
   NecromancerCastContext,
@@ -110,7 +109,7 @@ export function gainNecromancerLifeForce(
   );
   syncNecromancerResources(state);
   if (state.lifeForce !== before && reason) {
-    emitStateSnapshot(context, 'necromancer', at, reason, snapshotNecromancerState(context.state.profession), {
+    emitNecromancerStateSnapshot(context, at, reason, {
       dedupeAcrossSourceIds: true
     });
   }

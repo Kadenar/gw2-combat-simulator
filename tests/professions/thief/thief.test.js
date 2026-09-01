@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter, professionRoute } from '#gw2/app/profession/registry.js';
-import { assumptionControlsForSpecialization } from '#gw2/app/profession/assumptions.js';
+import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -27,6 +27,7 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/thief/data/ids.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/content/professions/thief/core/skills/index.js';
+import { thiefCoreModifierRules } from '#gw2/content/professions/thief/core/traits/modifiers.js';
 import { thiefAppAdapter } from '#gw2/content/professions/thief/app/app-definition.js';
 import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
 import { daredevilModifierRules } from '#gw2/content/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
@@ -87,7 +88,7 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
   assert.equal(thiefCatalog.specializations.length, 9);
   assert.equal(thiefCatalog.traits.length, 108);
-  assert.ok(thiefCatalog.skills.length >= 256);
+  assert.ok(thiefCatalog.skills.length >= 249);
   assert.equal(thiefCatalog.skillsById.has(76550), false);
   assert.equal(thiefCatalog.skillsById.has(40436), true);
   assert.equal(thiefCatalog.skillsById.has(80278), false);
@@ -96,6 +97,10 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.equal(thiefCatalog.skillsByName.get("Death's Advance").id, 40436);
   assert.equal(thiefCatalog.skillsByName.get('Canach-Coin Toss').id, 77230);
   assert.equal(thiefCatalog.skillsByName.get('Death Blossom').initiativeCost, 4);
+  for (const excludedId of [13020, 13035, 13096, 76784, 76808, 76879, 77361]) {
+    assert.equal(thiefCatalog.skillsById.has(excludedId), false, String(excludedId));
+  }
+
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
   assert.equal(thiefCatalog.skillsById.get(13006).castTimeMs, 1560);
@@ -141,6 +146,10 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   );
   for (const excludedName of [
     'Deadly Strike',
+    'Emergency Jade Shield',
+    'Ice Drake Venom',
+    'Inquest Portal Device',
+    'Inquest Portal Device: Backfired',
     'Malicious Deadly Strike',
     'Malicious Ripper',
     'Prepare Seal Area',
@@ -150,8 +159,10 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
     'Shadow Refuge',
     'Shadow Return',
     'Shadowstep',
+    'Scorpion Wire',
     'Smoke Screen',
-    'The Ripper'
+    'The Ripper',
+    'Roll for Initiative'
   ]) {
     assert.equal(thiefCatalog.skillsByName.has(excludedName), false, excludedName);
   }
@@ -1121,6 +1132,40 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     ) < 1e-12
   );
   assert.ok(Math.abs(strike([TRAIT.TWIN_FANGS, TRAIT.FEROCIOUS_STRIKES]).criticalDamage - 1.5 * 1.07 * 1.1) < 1e-12);
+});
+
+test('Thief modifiers follow stable skill and packet IDs after display labels change', () => {
+  const vampiric = thiefCoreModifierRules.find((rule) => rule.id === 'thief.vampiric-slash-vulnerable');
+  assert.equal(
+    vampiric.when({
+      event: {
+        type: 'damage',
+        actorType: 'player',
+        name: 'Renamed life-siphon packet',
+        packetKind: 'thief.vampiric-slash-life-siphon'
+      },
+      config: { target: { conditions: { Vulnerability: true } } },
+      time: 0
+    }),
+    true
+  );
+
+  const larcenous = thiefCoreModifierRules.find((rule) => rule.id === 'thief.larcenous-strike-boonless');
+  assert.equal(
+    larcenous.when({
+      event: { type: 'damage', actorType: 'player', skillId: ID.LARCENOUS_STRIKE },
+      profession: {
+        catalog: {
+          skillsById: new Map([
+            [ID.LARCENOUS_STRIKE, { ...thiefCatalog.skillsById.get(ID.LARCENOUS_STRIKE), name: 'Renamed skill' }]
+          ])
+        }
+      },
+      config: { target: { boonless: true } },
+      time: 0
+    }),
+    true
+  );
 });
 
 test('Daredevil skills and endurance traits use configured values', () => {
@@ -2243,6 +2288,49 @@ test('Thief utility skills materialize their declarative pulse timelines', () =>
   );
 
   assert.deepEqual(pulseOffsets(needles, 'Thousand Needles', 'damage', null, 'start'), [0.28, 1.28, 2.28, 3.28, 4.28]);
+
+  const pitfall = simulate('Core', ['Prepare Pitfall', 'Pitfall', { name: '__wait', waitMs: 3000 }], {
+    selectedSkills: ['Prepare Pitfall']
+  });
+  const pitfallDamage = pitfall.events.filter((event) => event.type === 'damage' && event.skillName === 'Pitfall');
+  const pitfallControl = pitfall.events.find((event) => event.type === 'control' && event.skillName === 'Pitfall');
+
+  assert.equal(pitfall.steps.find((step) => step.skill === 'Pitfall').start, 3500);
+  assert.deepEqual(
+    pitfallDamage.map((event) => [Number((event.at - 3.5).toFixed(3)), event.coefficient]),
+    [
+      [0, 1.25],
+      [1, 0.5],
+      [2, 0.5],
+      [3, 0.5]
+    ]
+  );
+  assert.deepEqual(pulseOffsets(pitfall, 'Pitfall', 'condition', 'Vulnerability', 'start'), [1, 2, 3]);
+  assert.ok(
+    pitfall.events
+      .filter((event) => event.type === 'condition' && event.skillName === 'Pitfall')
+      .every((event) => event.stacks === 2 && event.duration === 6)
+  );
+  assert.equal(pitfallControl.controlKind, 'knockdown');
+  assert.equal(pitfallControl.duration, 3);
+});
+
+test('Pitfall placement recharge remains independent from its three-second trigger rearm', () => {
+  const prepareTimes = (result) =>
+    result.events
+      .filter((event) => event.type === 'action' && event.skillName === 'Prepare Pitfall')
+      .map((event) => event.at);
+  const early = simulate('Core', ['Prepare Pitfall', 'Pitfall', 'Prepare Pitfall'], {
+    selectedSkills: ['Prepare Pitfall']
+  });
+  const held = simulate('Core', ['Prepare Pitfall', { name: '__wait', waitMs: 24500 }, 'Pitfall', 'Prepare Pitfall'], {
+    selectedSkills: ['Prepare Pitfall']
+  });
+
+  assert.deepEqual(early.warnings, []);
+  assert.deepEqual(held.warnings, []);
+  assert.deepEqual(prepareTimes(early), [0, 25]);
+  assert.deepEqual(prepareTimes(held), [0, 28]);
 });
 
 test('Specter wells preserve one-second pulse intervals and ordered effects', () => {
@@ -2566,6 +2654,68 @@ test('Spider Venom grants six independent charges to the player and allies', () 
   );
 
   assert.equal(personalPoisons.length, 1);
+});
+
+test('Skale and Devourer Venom grant party charges that proc together on attacks', () => {
+  const result = simulate(
+    'Core',
+    ['Skale Venom', 'Devourer Venom', 'Heartseeker'],
+    {
+      selectedSkills: ['Skale Venom', 'Devourer Venom'],
+      allies: { count: 4, strikesPerSecond: 10 },
+      target: { conditions: {} }
+    },
+    observationTail(500)
+  );
+  const buff = (kind) => result.events.find((event) => event.type === 'buff' && event.kind === kind);
+  const venomConditions = (skillId, allied) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillId === skillId && Boolean(event.triggeredByAlly) === allied
+    );
+  const personalSkale = venomConditions(ID.SKALE_VENOM, false);
+  const personalDevourer = venomConditions(ID.DEVOURER_VENOM, false);
+
+  assert.deepEqual(
+    [buff('skale-venom'), buff('devourer-venom')].map((event) => [event.stacks, event.duration, event.recipientCount]),
+    [
+      [4, 24, 5],
+      [2, 24, 5]
+    ]
+  );
+  assert.deepEqual(
+    personalSkale.map((event) => [event.condition, event.stacks, event.naturalExpiresAt - event.at]),
+    [
+      ['Vulnerability', 1, 10],
+      ['Torment', 1, 3]
+    ]
+  );
+  assert.deepEqual(
+    personalDevourer.map((event) => [
+      event.condition,
+      event.stacks,
+      Number((event.naturalExpiresAt - event.at).toFixed(3))
+    ]),
+    [['Immobilized', 1, 1]]
+  );
+  assert.equal(venomConditions(ID.SKALE_VENOM, true).length, 32);
+  assert.equal(venomConditions(ID.DEVOURER_VENOM, true).length, 8);
+
+  const limited = simulate(
+    'Core',
+    ['Skale Venom', 'Devourer Venom', 'Double Strike', 'Wild Strike', 'Lotus Strike', 'Double Strike'],
+    {
+      selectedSkills: ['Skale Venom', 'Devourer Venom'],
+      target: { conditions: {} }
+    }
+  );
+  const personalProcs = (skillId) =>
+    limited.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillId === skillId && !event.triggeredByAlly
+    );
+
+  assert.deepEqual(limited.warnings, []);
+  assert.equal(personalProcs(ID.SKALE_VENOM).length, 8);
+  assert.equal(personalProcs(ID.DEVOURER_VENOM).length, 2);
 });
 
 test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic', () => {

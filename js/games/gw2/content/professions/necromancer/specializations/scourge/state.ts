@@ -2,6 +2,13 @@ import type { ScourgeState } from '#gw2/content/professions/necromancer/types.js
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { registerNecromancerStatePreserver } from '#gw2/content/professions/necromancer/core/mechanics/state-reconciliation.js';
 
+/** Declares Scourge's public compatibility field and inactive value. */
+export const SCOURGE_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'shades'
+] as const satisfies readonly (keyof ScourgeState)[]);
+
+export const SCOURGE_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<ScourgeState>> = Object.freeze({ shades: [] });
+
 /** Creates Scourge's timed shade and trait-cooldown runtime state. */
 export function createScourgeState(): ScourgeState {
   const state: ScourgeState = {
