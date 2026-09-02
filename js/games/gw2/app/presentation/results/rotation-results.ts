@@ -124,6 +124,7 @@ export interface RotationResultsModel {
   readonly conditionTotal?: ResultConditionTotal | null;
   readonly contributions?: readonly ResultContribution[];
   readonly contributionsStale?: boolean;
+  readonly contributionsError?: string;
   readonly randomDistribution?: ResultRandomDistribution | null;
   readonly randomDistributionRequested?: boolean;
   readonly randomDistributionStale?: boolean;
@@ -466,6 +467,7 @@ export function mountRotationResults(
   // Contributions compare reruns with one modifier disabled; the UI warns that invalid rotations skew results.
   const contributions = model.contributions || [];
   const contributionsStale = model.contributionsStale === true;
+  const contributionsError = String(model.contributionsError || '');
   const randomDistribution = model.randomDistribution || null;
   const randomDistributionRequested = model.randomDistributionRequested === true;
   const randomDistributionStale = model.randomDistributionStale === true;
@@ -673,7 +675,7 @@ export function mountRotationResults(
       : ''
   }
   ${
-    contributions.length || contributionsStale
+    contributions.length || contributionsStale || contributionsError
       ? `<div class="res-contributions">
     <h4>
       <span>Modifier Contributions</span>
@@ -698,7 +700,9 @@ export function mountRotationResults(
         })
         .join('')}
     </div>`
-        : '<div class="contrib-pending">Calculating modifier contributions…</div>'
+        : contributionsError
+          ? `<div class="contrib-pending contrib-error">${escapeHtml(contributionsError)}</div>`
+          : '<div class="contrib-pending">Calculating modifier contributions…</div>'
     }
   </div>`
       : ''

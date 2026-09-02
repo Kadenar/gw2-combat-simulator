@@ -964,6 +964,19 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
 });
 
+test('modifier contribution errors are visible and escaped', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    contributionsError: 'Comparison <failed>'
+  });
+
+  assert.match(container.innerHTML, /Modifier Contributions/);
+  assert.match(container.innerHTML, /class="contrib-pending contrib-error"/);
+  assert.match(container.innerHTML, /Comparison &lt;failed&gt;/);
+  assert.doesNotMatch(container.innerHTML, /Comparison <failed>/);
+});
+
 test('summary metrics render a clickable and escaped contributor disclosure', () => {
   const container = inertContainer();
 

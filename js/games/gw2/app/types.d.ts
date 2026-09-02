@@ -366,6 +366,7 @@ export interface ProfessionRotationDragState extends SchedulerRecord {
 export interface ProfessionAppResult extends Gw2SimulationResult {
   contributions?: ModifierContribution[];
   modifierContributionsStale?: boolean;
+  modifierContributionsError?: string;
   randomDistributionRequested?: boolean;
   randomDistributionStale?: boolean;
   randomDistributionTrials?: number;

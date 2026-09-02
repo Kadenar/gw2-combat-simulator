@@ -2149,6 +2149,10 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   font-size: 0.82rem;
 }
 
+.contrib-error {
+  color: #e58b70;
+}
+
 .contrib-table {
   display: flex;
   flex-direction: column;

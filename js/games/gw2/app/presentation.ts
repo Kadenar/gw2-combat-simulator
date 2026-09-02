@@ -139,6 +139,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
           : null,
         contributions,
         contributionsStale: result.modifierContributionsStale === true,
+        contributionsError: result.modifierContributionsError || '',
         ...randomDistributionModel(result),
         chartSeries: buildChartSeries(result),
         relicComparison: result.relicComparison || null,
