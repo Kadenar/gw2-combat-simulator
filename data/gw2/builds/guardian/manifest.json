@@ -79,7 +79,7 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 42006
+        "benchmarkDps": 41200
       },
       {
         "label": "Power (Greatsword / Longbow)",

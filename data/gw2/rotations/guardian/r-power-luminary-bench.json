@@ -1,434 +1,1034 @@
 {
   "rotation": [
     {
-      "name": "Radiant Courage",
-      "offset": 100
+      "type": "cast",
+      "skillId": 77073
     },
     {
-      "name": "Enter Radiant Forge"
+      "type": "cast",
+      "skillId": 76687
     },
     {
-      "name": "Daring Advance"
+      "type": "combat-start",
+      "concurrentOffsetMs": 680
     },
     {
-      "name": "__combat_start",
-      "offset": 900
+      "type": "cast",
+      "skillId": 77078
     },
     {
-      "name": "Piercing Stance"
+      "type": "cast",
+      "skillId": 76708
     },
     {
-      "name": "Luminous Staff"
+      "type": "cast",
+      "skillId": 76813,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Effulgent Stance",
-      "offset": 399
+      "type": "cast",
+      "skillId": 78837,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Radiant Justice",
-      "offset": 0
+      "type": "cast",
+      "skillId": 78514
     },
     {
-      "name": "Gleaming Blade"
+      "type": "cast",
+      "skillId": 76924
     },
     {
-      "name": "Radiant Resolve",
-      "offset": 0
+      "type": "cast",
+      "skillId": 77366
     },
     {
-      "name": "Lucent Thrust"
+      "type": "cast",
+      "skillId": 77339
     },
     {
-      "name": "Dazzling Hammer"
+      "type": "cast",
+      "skillId": 76910
     },
     {
-      "name": "Shining Spin"
+      "type": "cast",
+      "skillId": 76616
     },
     {
-      "name": "Exit Radiant Forge"
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Symbol of Luminance"
+      "type": "cast",
+      "skillId": 73132
     },
     {
-      "name": "Helio Rush"
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 320
     },
     {
-      "name": "Solar Storm"
+      "type": "cast",
+      "skillId": 73094
     },
     {
-      "name": "Gleaming Disc"
+      "type": "cast",
+      "skillId": 72978
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Symbol of Resolution"
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Whirling Wrath"
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 240
     },
     {
-      "name": "Leap of Faith"
+      "type": "cast",
+      "skillId": 9081
     },
     {
-      "name": "Strike"
+      "type": "cast",
+      "skillId": 9080
     },
     {
-      "name": "Vengeful Strike"
+      "type": "cast",
+      "skillId": 9137
     },
     {
-      "name": "Wrathful Strike"
+      "type": "cast",
+      "skillId": 9138
     },
     {
-      "name": "Strike"
+      "type": "cast",
+      "skillId": 9139
     },
     {
-      "name": "Vengeful Strike"
+      "type": "cast",
+      "skillId": 9137
     },
     {
-      "name": "Wrathful Strike"
+      "type": "cast",
+      "skillId": 9138
     },
     {
-      "name": "Piercing Stance"
+      "type": "cast",
+      "skillId": 9139
     },
     {
-      "name": "Enter Radiant Forge"
+      "type": "cast",
+      "skillId": 77078
     },
     {
-      "name": "Dazzling Hammer"
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Shining Spin"
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Exit Radiant Forge"
+      "type": "cast",
+      "skillId": 77339
     },
     {
-      "name": "Binding Blade"
+      "type": "cast",
+      "skillId": 76910
     },
     {
-      "name": "Whirling Wrath"
+      "type": "cast",
+      "skillId": 76616
     },
     {
-      "name": "Symbol of Resolution"
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Leap of Faith"
+      "type": "cast",
+      "skillId": 9147
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 9081
     },
     {
-      "name": "Gleaming Disc"
+      "type": "wait",
+      "durationMs": 160
     },
     {
-      "name": "Helio Rush"
+      "type": "cast",
+      "skillId": 9146
     },
     {
-      "name": "Daybreaking Slash"
+      "type": "cast",
+      "skillId": 9080
     },
     {
-      "name": "Radiant Justice",
-      "offset": 280
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Effulgent Stance",
-      "offset": 41
+      "type": "wait",
+      "durationMs": 160
     },
     {
-      "name": "Daybreaking Slash"
+      "type": "cast",
+      "skillId": 72978
     },
     {
-      "name": "Enter Radiant Forge"
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 320
     },
     {
-      "name": "Dazzling Hammer"
+      "type": "cast",
+      "skillId": 73055
     },
     {
-      "name": "Shining Spin"
+      "type": "cast",
+      "skillId": 78837,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Glaring Burst"
+      "type": "cast",
+      "skillId": 76813,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Glaring Burst"
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Glaring Burst"
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Glaring Burst"
+      "type": "cast",
+      "skillId": 77339
     },
     {
-      "name": "Glaring Burst"
+      "type": "cast",
+      "skillId": 76910
     },
     {
-      "name": "Luminous Staff"
+      "type": "cast",
+      "skillId": 76982
     },
     {
-      "name": "Piercing Stance"
+      "type": "cast",
+      "skillId": 76982
     },
     {
-      "name": "Gleaming Blade"
+      "type": "cast",
+      "skillId": 76982
     },
     {
-      "name": "Lucent Thrust"
+      "type": "cast",
+      "skillId": 76982
     },
     {
-      "name": "Dazzling Hammer"
+      "type": "cast",
+      "skillId": 76982,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Shining Spin"
+      "type": "cast",
+      "skillId": 76708
     },
     {
-      "name": "Exit Radiant Forge"
+      "type": "cast",
+      "skillId": 77078
     },
     {
-      "name": "Symbol of Luminance"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Helio Rush"
+      "type": "cast",
+      "skillId": 76924
     },
     {
-      "name": "Solar Storm"
+      "type": "cast",
+      "skillId": 77366
     },
     {
-      "name": "Gleaming Disc"
+      "type": "wait",
+      "durationMs": 240
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 77339
     },
     {
-      "name": "Symbol of Resolution"
+      "type": "cast",
+      "skillId": 76910
     },
     {
-      "name": "Whirling Wrath"
+      "type": "cast",
+      "skillId": 76616
     },
     {
-      "name": "Leap of Faith"
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Binding Blade"
+      "type": "cast",
+      "skillId": 73132
     },
     {
-      "name": "Radiant Resolve",
-      "offset": 400
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 320
     },
     {
-      "name": "Strike"
+      "type": "cast",
+      "skillId": 73094
     },
     {
-      "name": "Vengeful Strike"
+      "type": "cast",
+      "skillId": 72978
     },
     {
-      "name": "Wrathful Strike"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Strike"
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Vengeful Strike"
+      "type": "cast",
+      "skillId": 9146
     },
     {
-      "name": "Wrathful Strike"
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Effulgent Stance",
-      "offset": 318
+      "type": "cast",
+      "skillId": 9081
     },
     {
-      "name": "Radiant Justice",
-      "offset": 43
+      "type": "cast",
+      "skillId": 9080
     },
     {
-      "name": "Enter Radiant Forge"
+      "type": "cast",
+      "skillId": 9147
     },
     {
-      "name": "Dazzling Hammer"
+      "type": "cast",
+      "skillId": 78514,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Shining Spin"
+      "type": "cast",
+      "skillId": 9137
     },
     {
-      "name": "Exit Radiant Forge"
+      "type": "cast",
+      "skillId": 9138
     },
-    "Strike",
     {
-      "name": "Whirling Wrath"
+      "type": "cast",
+      "skillId": 9139
     },
     {
-      "name": "Symbol of Resolution"
+      "type": "cast",
+      "skillId": 9137
     },
     {
-      "name": "Leap of Faith"
+      "type": "cast",
+      "skillId": 9138
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 9139,
+      "interruptAfterMs": 640
     },
     {
-      "name": "Gleaming Disc"
+      "type": "cast",
+      "skillId": 76813,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Helio Rush"
+      "type": "cast",
+      "skillId": 78837,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Radiant Courage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Daybreaking Slash"
+      "type": "cast",
+      "skillId": 77339
     },
     {
-      "name": "Daybreaking Slash"
+      "type": "cast",
+      "skillId": 76910
     },
     {
-      "name": "Enter Radiant Forge"
+      "type": "cast",
+      "skillId": 76616
     },
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Luminous Staff",
-    "Piercing Stance",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Symbol of Luminance",
-    "Helio Rush",
-    "Solar Storm",
-    "Gleaming Disc",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Leap of Faith",
-    "Strike",
     {
-      "name": "Radiant Justice",
-      "offset": 157
+      "type": "cast",
+      "skillId": 9137
     },
     {
-      "name": "Effulgent Stance",
-      "offset": 42
+      "type": "wait",
+      "durationMs": 40
     },
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
     {
-      "name": "Radiant Resolve",
-      "offset": 242
+      "type": "cast",
+      "skillId": 9081
     },
-    "Piercing Stance",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Binding Blade",
-    "Whirling Wrath",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Swap Weapons",
-    "Gleaming Disc",
-    "Helio Rush",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Luminous Staff",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Daring Advance",
-    "Piercing Stance",
-    "Dazzling Hammer",
     {
-      "name": "Effulgent Stance",
-      "offset": 144
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Radiant Justice",
-      "offset": 7
+      "type": "cast",
+      "skillId": 9146
     },
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Symbol of Luminance",
-    "Helio Rush",
-    "Solar Storm",
-    "Gleaming Disc",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Leap of Faith",
-    "Binding Blade",
-    "Strike",
-    "Vengeful Strike",
     {
-      "name": "Radiant Courage",
-      "offset": 242
+      "type": "wait",
+      "durationMs": 40
     },
-    "Wrathful Strike",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Strike",
-    "Whirling Wrath",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Swap Weapons",
-    "Gleaming Disc",
-    "Helio Rush",
     {
-      "name": "Radiant Resolve",
-      "offset": 121
+      "type": "cast",
+      "skillId": 9080
     },
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
     {
-      "name": "Effulgent Stance",
-      "offset": 518
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Radiant Justice",
-      "offset": 0
+      "type": "wait",
+      "durationMs": 160
     },
-    "Glaring Burst",
-    "Luminous Staff",
-    "Piercing Stance",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Symbol of Luminance",
-    "Helio Rush",
-    "Solar Storm",
-    "Gleaming Disc",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Leap of Faith",
-    "Binding Blade"
+    {
+      "type": "cast",
+      "skillId": 72978
+    },
+    {
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 78358,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 76708
+    },
+    {
+      "type": "cast",
+      "skillId": 77078
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 76924
+    },
+    {
+      "type": "cast",
+      "skillId": 77366
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76616
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 73132
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 72940
+    },
+    {
+      "type": "cast",
+      "skillId": 73094
+    },
+    {
+      "type": "cast",
+      "skillId": 72978
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 9081
+    },
+    {
+      "type": "cast",
+      "skillId": 9080
+    },
+    {
+      "type": "cast",
+      "skillId": 9137
+    },
+    {
+      "type": "cast",
+      "skillId": 78837,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 76813,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 9138
+    },
+    {
+      "type": "cast",
+      "skillId": 9139
+    },
+    {
+      "type": "cast",
+      "skillId": 9137
+    },
+    {
+      "type": "cast",
+      "skillId": 9138
+    },
+    {
+      "type": "cast",
+      "skillId": 9139,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 78514,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 77078
+    },
+    {
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76616
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 9147
+    },
+    {
+      "type": "cast",
+      "skillId": 9081
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 9080
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 72978
+    },
+    {
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 76708
+    },
+    {
+      "type": "cast",
+      "skillId": 76924
+    },
+    {
+      "type": "cast",
+      "skillId": 77366
+    },
+    {
+      "type": "cast",
+      "skillId": 76687
+    },
+    {
+      "type": "cast",
+      "skillId": 77078
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76813,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 78837,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76616
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 73132
+    },
+    {
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 73094
+    },
+    {
+      "type": "cast",
+      "skillId": 72978
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 9081
+    },
+    {
+      "type": "cast",
+      "skillId": 9080
+    },
+    {
+      "type": "cast",
+      "skillId": 9147
+    },
+    {
+      "type": "cast",
+      "skillId": 9137
+    },
+    {
+      "type": "cast",
+      "skillId": 9138
+    },
+    {
+      "type": "cast",
+      "skillId": 78358,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 9139
+    },
+    {
+      "type": "cast",
+      "skillId": 9137
+    },
+    {
+      "type": "cast",
+      "skillId": 9138
+    },
+    {
+      "type": "cast",
+      "skillId": 9139
+    },
+    {
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76616
+    },
+    {
+      "type": "cast",
+      "skillId": 9137
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 9081
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 9146
+    },
+    {
+      "type": "cast",
+      "skillId": 9080
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 72978
+    },
+    {
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 78514,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 73055
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 77073,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 76982
+    },
+    {
+      "type": "cast",
+      "skillId": 78837,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 76813,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 76982,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 76708
+    },
+    {
+      "type": "cast",
+      "skillId": 77078
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 76924
+    },
+    {
+      "type": "cast",
+      "skillId": 77366
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 77339
+    },
+    {
+      "type": "cast",
+      "skillId": 76910
+    },
+    {
+      "type": "cast",
+      "skillId": 76616
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 73132
+    },
+    {
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 73094
+    },
+    {
+      "type": "cast",
+      "skillId": 72978
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 9081
+    },
+    {
+      "type": "cast",
+      "skillId": 9080
+    },
+    {
+      "type": "cast",
+      "skillId": 9147
+    }
   ]
 }
