@@ -94,7 +94,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
       mode: 'phantasm',
       count: 1
     },
-    // The phantasm is committed 720 ms into its measured 880 ms Quickness cast.
+    // Shared interrupt consumers use the fixed cutoff while the custom lifecycle retains the launched phantasm.
+    interruptCommitMs: 720,
     phantasmSummonProgress: 720 / 880,
     effects: [
       {

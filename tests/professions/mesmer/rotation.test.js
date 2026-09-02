@@ -685,6 +685,7 @@ test('Phantasmal Swordsman independently gates its summon and player hit', () =>
     result.events.find(
       (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman' && event.source === 'Player'
     )?.at;
+  const cancelled = (result) => result.events.find((event) => event.type === 'action')?.cancelled === true;
 
   const beforeSummon = interruptedAt(719);
   const summonOnly = interruptedAt(720);
@@ -692,9 +693,13 @@ test('Phantasmal Swordsman independently gates its summon and player hit', () =>
   const withPlayerHit = interruptedAt(760);
 
   assert.equal(summonedAt(beforeSummon), undefined);
+  assert.equal(cancelled(beforeSummon), true);
   assert.equal(summonedAt(summonOnly), 0.72);
+  assert.equal(cancelled(summonOnly), false);
   assert.equal(summonedAt(beforePlayerHit), 0.75);
+  assert.equal(cancelled(beforePlayerHit), false);
   assert.equal(summonedAt(withPlayerHit), 0.76);
+  assert.equal(cancelled(withPlayerHit), false);
   assert.equal(playerHitAt(summonOnly), undefined);
   assert.equal(playerHitAt(beforePlayerHit), undefined);
   assert.ok(Math.abs(playerHitAt(withPlayerHit) - 0.759) < 1e-12);
@@ -1119,9 +1124,15 @@ test('Phantasmal Warlock summons when shortened to 640ms', () => {
     );
   const summoned = (result) =>
     result.events.some((event) => event.type === 'mesmer.phantasm-summoned' && event.name === 'Phantasmal Warlock');
+  const cancelled = (result) => result.events.find((event) => event.type === 'action')?.cancelled === true;
 
-  assert.equal(summoned(simulate(639)), false);
-  assert.equal(summoned(simulate(640)), true);
+  const beforeCommit = simulate(639);
+  const atCommit = simulate(640);
+
+  assert.equal(summoned(beforeCommit), false);
+  assert.equal(cancelled(beforeCommit), true);
+  assert.equal(summoned(atCommit), true);
+  assert.equal(cancelled(atCommit), false);
 });
 
 test('corrected Mesmer skills use their measured Quickness cast times', () => {
