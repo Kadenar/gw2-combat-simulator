@@ -389,6 +389,27 @@ test('Necromancer multi-hit skills use their configured packet timings', () => {
   );
   assert.deepEqual(offsets(anguish, 'Anguish', ID.ANGUISH), [1360, 1520, 1560, 1640, 1680, 1720, 1760]);
   assert.deepEqual(offsets(wanderlust, 'Wanderlust', ID.WANDERLUST), [720, 2760, 3760, 4760, 5760]);
+  assert.deepEqual(offsets(wanderlust, 'Wanderlust', ID.WANDERLUST, 'condition'), [2760, 3760, 4760, 5760]);
+});
+
+test('Wanderlust Vulnerability affects only its final two field hits', () => {
+  const result = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 6000 }], {
+    initialResource: 100,
+    target: { armor: 2597, conditions: {} }
+  });
+  const fieldHits = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Spirit of Wanderlust - Initial Attack'
+  );
+  const vulnerability = result.events.find(
+    (event) => event.type === 'condition' && event.skillId === ID.WANDERLUST && event.condition === 'Vulnerability'
+  );
+
+  assert.equal(fieldHits.length, 4);
+  assert.equal(vulnerability.at, fieldHits[1].at);
+  assert.ok(fieldHits[1].eventOrder < vulnerability.eventOrder);
+  assert.ok(Math.abs(fieldHits[1].damage / fieldHits[0].damage - 1) < 1e-12);
+  assert.ok(Math.abs(fieldHits[2].damage / fieldHits[0].damage - 1.04) < 1e-12);
+  assert.ok(Math.abs(fieldHits[3].damage / fieldHits[0].damage - 1.04) < 1e-12);
 });
 
 test('Vital Draw grants nine percent life force for its three assumed hits', () => {
@@ -1388,7 +1409,7 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
       'Wanderlust',
       { type: 'wait', durationMs: 2000 },
       'Summon Spirits',
-      { type: 'wait', durationMs: 2000 }
+      { type: 'wait', durationMs: 3000 }
     ],
     {
       initialResource: 100,
@@ -1413,16 +1434,23 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
     (event) => event.type === 'damage' && event.name === 'Anguish' && event.metadata?.spiritAttackType === 'initial'
   );
   const wanderlustOpening = damage(ritualist, 'Wanderlust');
-  const wanderlustField = damage(ritualist, 'Spirit of Wanderlust - Initial Attack');
+  const wanderlustFields = ritualist.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Spirit of Wanderlust - Initial Attack'
+  );
 
   assert.equal(anguishHits.length, 7);
-  assert.ok(anguishHits.every((event) => event.coefficient === 0.375));
-  assert.ok(anguishHits.every((event) => event.skillWeapon === 'Scepter'));
-  assert.ok(anguishHits.every((event) => event.weaponStrengthProfileId === 'weapon.scepter'));
+  assert.ok(anguishHits.every((event) => event.coefficient === 0.355));
+  assert.ok(anguishHits.every((event) => event.weaponStrengthProfileId === 'transform.ritualist-shroud'));
+  assert.ok(anguishHits.every((event) => event.resolvedWeaponStrength === 1100));
+  assert.equal(new Set(anguishHits.map((event) => event.activationId)).size, 1);
   assert.equal(wanderlustOpening.skillWeapon, 'Scepter');
   assert.equal(wanderlustOpening.weaponStrengthProfileId, 'weapon.scepter');
-  assert.equal(wanderlustField.skillWeapon, 'Scepter');
-  assert.equal(wanderlustField.weaponStrengthProfileId, 'weapon.scepter');
+  assert.equal(wanderlustFields.length, 4);
+  assert.ok(wanderlustFields.every((event) => event.coefficient === 0.42));
+  assert.ok(wanderlustFields.every((event) => event.weaponStrengthProfileId === 'transform.ritualist-shroud'));
+  assert.ok(wanderlustFields.every((event) => event.resolvedWeaponStrength === 1100));
+  assert.equal(new Set(wanderlustFields.map((event) => event.activationId)).size, 1);
+  assert.notEqual(wanderlustFields[0].activationId, wanderlustOpening.activationId);
   assert.equal(damage(ritualist, 'Summon Spirits').skillWeapon, 'Unequipped');
 });
 
@@ -3496,12 +3524,12 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
 
   assert.equal(anguish.length, 7);
   assert.equal(
-    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.375),
+    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.355),
     true
   );
   assert.equal(lingering.length, 4);
   assert.equal(
-    lingering.every((event) => event.coefficient === 0.45),
+    lingering.every((event) => event.coefficient === 0.42),
     true
   );
   assert.ok(preservationAutos.length > 0);

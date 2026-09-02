@@ -43,6 +43,7 @@ import {
 
 const SPIRIT_ATTACK_TASK = 'necromancer.ritualist-spirit-attack';
 const SPIRIT_ATTACK_STOP_TASK = 'necromancer.ritualist-spirit-attack-stop';
+const RITUALIST_SHROUD_WEAPON_PROFILE = 'transform.ritualist-shroud';
 
 interface SpiritAttackTaskPayload extends SchedulerRecord {
   readonly skillId: SkillId;
@@ -141,7 +142,7 @@ function activePrimaryWeaponFields(context: NecromancerCastContext): Readonly<Sc
   };
 }
 
-// Stamp spirit packets with ownership plus summon strength unless a player weapon profile was supplied.
+// Stamp spirit packets with ownership plus summon strength unless an explicit strength profile was supplied.
 function spiritEventFields(
   context: NecromancerCastContext | NecromancerSchedulerContext,
   key: string,
@@ -319,7 +320,7 @@ function emitAnguishInitial(
   emitSkillCondition(context, skill, { at, condition: 'Vulnerability', stacks: 8, duration: 10 });
   const ticks = spirit.summonTicks;
   if (!ticks.length) throw new Error('Anguish requires an explicit initial strike timeline.');
-  // Painful Bond begins on the first barrage impact and shares the same authored hit schedule.
+  // Painful Bond begins on the first barrage impact; the barrage shares one fixed shroud-strength roll.
   emitPainfulBond(context, skill, at + Number(ticks[0].atMs) / 1000);
   for (const [index, tick] of ticks.entries()) {
     emitSkillDamage(context, skill, {
@@ -330,7 +331,7 @@ function emitAnguishInitial(
       coefficient: Number(tick.coefficient),
       ...spiritEventFields(context, 'anguish', 'initial', {
         anguishConditionalDamage: true,
-        ...activePrimaryWeaponFields(context),
+        weaponStrengthProfileId: RITUALIST_SHROUD_WEAPON_PROFILE,
         hitIndex: index + 1,
         totalHits: ticks.length
       })
@@ -357,6 +358,8 @@ function emitWanderlustInitial(
     ...activePrimaryWeaponFields(context)
   });
   const fieldAt = at + Number(spirit.lingeringTicks[0].atMs) / 1000;
+  // The field shares a fixed shroud-strength roll that is independent from the equipped-weapon opening roll.
+  const fieldActivationId = context.createActivationId('effect');
   for (const [index, tick] of spirit.lingeringTicks.entries()) {
     emitSkillDamage(context, skill, {
       at: at + Number(tick.atMs) / 1000,
@@ -365,7 +368,8 @@ function emitWanderlustInitial(
       source: 'Spirit',
       actorType: 'player',
       ...spiritEventFields(context, 'wanderlust', 'initial', {
-        ...activePrimaryWeaponFields(context),
+        activationId: fieldActivationId,
+        weaponStrengthProfileId: RITUALIST_SHROUD_WEAPON_PROFILE,
         hitIndex: index + 1,
         totalHits: spirit.lingeringTicks.length
       })
@@ -373,9 +377,9 @@ function emitWanderlustInitial(
   }
 
   emitSkillCondition(context, skill, { at: fieldAt, condition: 'Chilled', stacks: 1, duration: 2 });
-  // The lingering field applies its later conditions on their own observed offsets.
+  // Vulnerability lands after the second field hit, so only the final two packets benefit from it.
   emitSkillCondition(context, skill, {
-    at: fieldAt,
+    at: fieldAt + 1,
     source: 'Spirit',
     actorType: 'player',
     condition: 'Vulnerability',

@@ -44,15 +44,16 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         name: 'Anguish Autoattack'
       },
       {
+        // EVTC calibration identifies each player-owned barrage packet as a 0.355 coefficient strike.
         type: 'strike',
         ticks: [
-          { atMs: 800, coefficient: 0.375 },
-          { atMs: 960, coefficient: 0.375 },
-          { atMs: 1000, coefficient: 0.375 },
-          { atMs: 1080, coefficient: 0.375 },
-          { atMs: 1120, coefficient: 0.375 },
-          { atMs: 1160, coefficient: 0.375 },
-          { atMs: 1200, coefficient: 0.375 }
+          { atMs: 800, coefficient: 0.355 },
+          { atMs: 960, coefficient: 0.355 },
+          { atMs: 1000, coefficient: 0.355 },
+          { atMs: 1080, coefficient: 0.355 },
+          { atMs: 1120, coefficient: 0.355 },
+          { atMs: 1160, coefficient: 0.355 },
+          { atMs: 1200, coefficient: 0.355 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -95,8 +96,9 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         name: 'Wanderlust Initial Swing'
       },
       {
+        // The lingering field emits four independently timed 0.42 coefficient packets.
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 1.8 / 4 })),
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 0.42 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
