@@ -3,7 +3,7 @@ import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/c
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
@@ -21,7 +21,7 @@ import type {
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
   const maximum = Number(context.config.target?.health || 0);
   if (!(maximum > 0)) return false;
-  return combinedTargetDamage(context) > maximum * 0.5;
+  return targetHealthLoss(context.config, context) > maximum * 0.5;
 }
 
 export function applyReapersMight(

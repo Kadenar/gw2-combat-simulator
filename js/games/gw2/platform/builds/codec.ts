@@ -158,6 +158,14 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       // Any value other than exactly 2 collapses to 1.
       startingWeaponSet: Number(saved.startingWeaponSet) === 2 ? 2 : 1,
       targetHealth: Math.max(0, finiteNumber(saved.targetHealth ?? defaults.targetHealth, defaults.targetHealth)),
+      targetStartingHealthPercent: clamp(
+        finiteNumber(
+          saved.targetStartingHealthPercent ?? defaults.targetStartingHealthPercent,
+          defaults.targetStartingHealthPercent
+        ),
+        0,
+        100
+      ),
       targetArmor: Math.max(1, finiteNumber(saved.targetArmor ?? defaults.targetArmor, defaults.targetArmor)),
       rotation: normalizeRotation(saved.rotation, catalog)
     } as unknown as TBuild;
@@ -891,6 +899,14 @@ function validateCommonBuild(
 
   if (!Number.isFinite(Number(candidate.targetHealth)) || Number(candidate.targetHealth) < 0) {
     errors.push('targetHealth must be a non-negative number.');
+  }
+
+  if (
+    !Number.isFinite(Number(candidate.targetStartingHealthPercent)) ||
+    Number(candidate.targetStartingHealthPercent) < 0 ||
+    Number(candidate.targetStartingHealthPercent) > 100
+  ) {
+    errors.push('targetStartingHealthPercent must be between 0 and 100.');
   }
 
   if (!Number.isFinite(Number(candidate.targetArmor)) || Number(candidate.targetArmor) < 1) {

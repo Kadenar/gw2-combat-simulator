@@ -242,7 +242,7 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
   assert.equal(result.conditionDamage, 143.5);
 });
 
-function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0 } = {}) {
+function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, startingHealthFraction = 1 } = {}) {
   const stream = buildScheduledEventStream({
     events: [
       {
@@ -263,7 +263,7 @@ function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0 }
   return resolveTestGw2Stream({
     stream,
     config: {
-      target: targetHealth > 0 ? { health: targetHealth } : {},
+      target: targetHealth > 0 ? { health: targetHealth, startingHealthFraction } : {},
       sigilSets: [{ names: [] }]
     },
     traits: new Set(),
@@ -313,11 +313,16 @@ test('target death occurs on natural condition ticks rather than the observation
   const beforeNextTick = resolveBleedThrough(1.5, { targetHealth: 100 });
   const throughNextTick = resolveBleedThrough(2, { targetHealth: 100 });
   const throughNaturalRemainder = resolveBleedThrough(2, { duration: 1.5, targetHealth: 100 });
+  const halfHealthTarget = resolveBleedThrough(2, { targetHealth: 200, startingHealthFraction: 0.5 });
+  const deadTarget = resolveBleedThrough(2, { targetHealth: 100, startingHealthFraction: 0 });
   const remainderApplication = throughNaturalRemainder.resolvedEvents.find((event) => event.type === 'condition');
 
   assert.equal(beforeNextTick.deathTime, null);
   assert.ok(beforeNextTick.totalDamage < 100);
   assert.equal(throughNextTick.deathTime, 2);
+  assert.equal(halfHealthTarget.deathTime, 2);
+  assert.equal(deadTarget.deathTime, 0);
+  assert.equal(deadTarget.totalDamage, 0);
   assert.equal(throughNaturalRemainder.deathTime, 1.5);
   assert.deepEqual(
     remainderApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),

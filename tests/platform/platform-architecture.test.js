@@ -2049,8 +2049,21 @@ test('target-health coefficient modifiers are shared and resolve per hit', () =>
     }
   });
   const thresholdDamage = result.resolvedEvents.find((event) => event.skillId === 930035)?.damage;
+  const startingBelowHalf = simulateGw2({
+    profession,
+    rotation: ['Threshold Strike'],
+    config: {
+      target: {
+        health: openingDamage * 10,
+        startingHealthFraction: 0.49,
+        armor: 2597
+      }
+    }
+  });
+  const startingBelowHalfDamage = startingBelowHalf.resolvedEvents.find((event) => event.skillId === 930035)?.damage;
 
   assert.ok(Math.abs(thresholdDamage / openingDamage - 2) < 1e-12);
+  assert.ok(Math.abs(startingBelowHalfDamage / openingDamage - 2) < 1e-12);
 });
 
 test('the handler strategy contract accepts canonical Mesmer skill data', () => {
@@ -2697,12 +2710,14 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
 test('Mesmer build migrations produce validated schema version 3 data', () => {
   const migrated = migrateMesmerBuild({
     sigils: ['Force', 'Impact'],
+    targetStartingHealthPercent: 40,
     assumptions: { targetConditions: { Vulnerability: 10, Slow: true } },
     rotation: ['Mind Stab', { name: '__wait', waitMs: 125 }]
   });
 
   assert.equal(migrated.schemaVersion, BUILD_SCHEMA_VERSION);
   assert.equal(migrated.profession, 'mesmer');
+  assert.equal(migrated.targetStartingHealthPercent, 40);
   assert.equal(migrated.assumptions.targetConditions.Vulnerability, 10);
   assert.equal(migrated.assumptions.targetConditions.Slow, true);
   assert.deepEqual(migrated.rotation[0], {
@@ -2710,6 +2725,7 @@ test('Mesmer build migrations produce validated schema version 3 data', () => {
     skillId: mesmerCatalog.skillsByName.get('Mind Stab').id
   });
   assert.equal(validateMesmerBuild(migrated).valid, true);
+  assert.equal(migrateMesmerBuild({ targetStartingHealthPercent: 150 }).targetStartingHealthPercent, 100);
   assert.throws(() => migrateMesmerBuild({ profession: 'guardian' }), /Cannot load guardian/);
 });
 

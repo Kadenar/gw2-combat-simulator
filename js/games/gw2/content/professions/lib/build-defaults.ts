@@ -3,6 +3,7 @@ import { createDefaultTargetConditions } from '#gw2/platform/builds/default-targ
 import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/types.js';
 
 export const DEFAULT_TARGET_HEALTH = 4_000_000;
+export const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;
 export const DEFAULT_TARGET_ARMOR = 2597;
 export const DEFAULT_STARTING_WEAPON_SET = 1;
 
@@ -68,6 +69,7 @@ export interface CommonBuildDefaults {
   readonly assumptions: SchedulerRecord;
   readonly startingWeaponSet: number;
   readonly targetHealth: number;
+  readonly targetStartingHealthPercent: number;
   readonly targetArmor: number;
   readonly rotation: RotationCommand[];
 }
@@ -90,6 +92,7 @@ export function createCommonBuildDefaults({
     assumptions: createDefaultSimulationAssumptions(assumptions),
     startingWeaponSet,
     targetHealth,
+    targetStartingHealthPercent: DEFAULT_TARGET_STARTING_HEALTH_PERCENT,
     targetArmor,
     rotation: []
   };

@@ -102,7 +102,12 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     ...contribution,
     icon: resultSkillIcon(app, contribution)
   }));
-  const breakpoints = targetHealthBreakpointSnapshots(result, app.build.targetHealth);
+  const breakpoints = targetHealthBreakpointSnapshots(
+    result,
+    app.build.targetHealth,
+    undefined,
+    app.build.targetStartingHealthPercent
+  );
   app._skillBreakdownState = { skillRows };
 
   return {

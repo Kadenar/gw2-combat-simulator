@@ -7,12 +7,14 @@ import {
 } from '#gw2/content/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
 import { necromancerNativeModules } from '#gw2/content/professions/necromancer/modules.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from '#gw2/content/professions/necromancer/types.js';
 import { observeNecromancerAutoattackTransition } from '#gw2/content/professions/necromancer/core/skills/weapons.js';
 
 /** Finds the first exact damage boundary where the target falls below half health. */
-function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): number | null {
+function targetBelowHalfAt(result: Gw2SimulationResult, config: NecromancerConfig): number | null {
+  const targetHealth = Number(config.target?.health || 0);
   const damageByTime = new Map<number, number>();
   const addDamage = (at: number, damage: number): void => {
     const amount = Number(damage);
@@ -39,7 +41,8 @@ function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): n
     }
   }
 
-  let damage = 0;
+  let damage = targetHealthLoss(config, null);
+  if (damage > targetHealth * 0.5) return 0;
   for (const [at, amount] of [...damageByTime].sort((left, right) => left[0] - right[0])) {
     damage += amount;
     if (damage > targetHealth * 0.5) return at;
@@ -60,7 +63,7 @@ function refineNecromancerSchedulerConfig(
     (event) => event.type === 'action' && Number(event.skillId) === ID.GRAVEDIGGER
   );
   if (!hasGravediggerCast) return null;
-  const belowHalfAt = targetBelowHalfAt(result, targetHealth);
+  const belowHalfAt = targetBelowHalfAt(result, config);
   if (belowHalfAt == null) return null;
   const schedulerFeedback = config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
   const previous = Number(schedulerFeedback?.targetBelowHalfAt);

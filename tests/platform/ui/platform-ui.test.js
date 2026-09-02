@@ -524,6 +524,21 @@ test('target health breakpoints use cumulative damage and individual condition t
     snapshots.map((snapshot) => snapshot.dps),
     [500, 650, 650, 850 / 1.5]
   );
+  assert.deepEqual(
+    targetHealthBreakpointSnapshots(
+      {
+        dpsStartTime: 0,
+        resolvedEvents: [
+          { type: 'damage', at: 1, damage: 100 },
+          { type: 'damage', at: 2, damage: 100 }
+        ]
+      },
+      1000,
+      [80, 40, 20],
+      40
+    ).map(({ healthPercent, at }) => ({ healthPercent, at })),
+    [{ healthPercent: 20, at: 2 }]
+  );
   assert.deepEqual(targetHealthBreakpointSnapshots({}, 0), []);
 });
 

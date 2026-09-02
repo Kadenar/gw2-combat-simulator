@@ -12,7 +12,7 @@ import {
   isGw2PlayerActorEvent,
   isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
-import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import type {
@@ -467,10 +467,10 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
   Eagle: defineRelic({
     strikeMultiplier(ctx) {
-      // Activates when cumulative damage dealt (strike + condition) reaches
-      // 50% of target health — not remaining health; it's a threshold on total output.
+      // Activates once effective health loss, including missing starting health,
+      // reaches half of the target's maximum health.
       const targetHealth = Number(ctx.config.target?.health || 0);
-      return targetHealth > 0 && combinedTargetDamage(ctx) >= targetHealth * 0.5 ? 1.1 : 1;
+      return targetHealth > 0 && targetHealthLoss(ctx.config, ctx) >= targetHealth * 0.5 ? 1.1 : 1;
     }
   }),
 

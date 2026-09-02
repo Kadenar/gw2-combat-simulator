@@ -7,7 +7,7 @@ import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -35,7 +35,7 @@ import type {
 // Trigger Lesser Signet of Might on the first eligible post-half-health strike, reserving its ICD first.
 export function reactToWarriorDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   const targetHealth = Number(context.config.target?.health || 0);
-  const damageDone = combinedTargetDamage(context);
+  const damageDone = targetHealthLoss(context.config, context);
   const state = professionCoreState(context);
   if (
     event.actorType !== 'player' ||

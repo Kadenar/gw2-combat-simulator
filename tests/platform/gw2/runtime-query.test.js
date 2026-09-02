@@ -65,6 +65,15 @@ test('health fractions preserve explicit precedence and dynamic damage fallback'
     ),
     0.4
   );
+  assert.equal(
+    targetHealthFraction(
+      context({
+        config: { target: { health: 100, startingHealthFraction: 0.49 } },
+        runtime: { totals: { strike: 9, condition: 0 } }
+      })
+    ),
+    0.4
+  );
   assert.equal(targetHealthFraction(context()), 1);
   assert.equal(playerHealthFraction(context({ config: { playerHealthFraction: -0.2 } })), 0);
   assert.equal(playerHealthFraction(context({ config: { playerHealthFraction: 1.2 } })), 1);

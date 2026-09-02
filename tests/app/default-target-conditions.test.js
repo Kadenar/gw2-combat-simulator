@@ -33,6 +33,23 @@ test('profession adapters default to the shared target-condition factory', () =>
   assert.equal(mesmerAppAdapter.createDefaultTargetConditions, createDefaultTargetConditions);
 });
 
+test('simulation config carries the persisted target starting-health percentage', () => {
+  const build = createMesmerBuildDefaults();
+  build.targetStartingHealthPercent = 49;
+
+  const config = createGw2SimulationConfig({
+    app: {
+      build,
+      adapter: { assumptionControls: [] },
+      skillById: new Map()
+    },
+    attributeData: { attributes: {} },
+    specialization: 'Core'
+  });
+
+  assert.equal(config.target.startingHealthFraction, 0.49);
+});
+
 test('ally calculations always use one strike per second per ally', () => {
   const build = createMesmerBuildDefaults();
 

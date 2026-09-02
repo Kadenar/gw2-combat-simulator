@@ -98,10 +98,15 @@ export function resultSummaryMetrics(
 export function targetHealthBreakpointSnapshots(
   result: Gw2SimulationResult | null | undefined,
   targetHealth: unknown,
-  remainingHealthPercents: readonly number[] = [80, 60, 40, 20]
+  remainingHealthPercents: readonly number[] = [80, 60, 40, 20],
+  startingHealthPercent: unknown = 100
 ): TargetHealthBreakpointSnapshot[] {
   const health = Number(targetHealth || 0);
   if (!(health > 0)) return [];
+  const configuredStartingPercent = Number(startingHealthPercent);
+  const startingPercent = Number.isFinite(configuredStartingPercent)
+    ? Math.max(0, Math.min(100, configuredStartingPercent))
+    : 100;
 
   const damageByTime = new Map<number, { player: number; environment: number }>();
   const addDamage = (at: unknown, damage: unknown, owner: 'player' | 'environment'): void => {
@@ -133,11 +138,12 @@ export function targetHealthBreakpointSnapshots(
 
   const milestones = [...new Set(remainingHealthPercents)]
     .map(Number)
-    .filter((percent) => percent > 0 && percent < 100)
+    // Milestones already passed before combat do not belong on the damage timeline.
+    .filter((percent) => percent > 0 && percent < startingPercent)
     .sort((left, right) => right - left)
     .map((healthPercent) => ({
       healthPercent,
-      damageThreshold: health * (1 - healthPercent / 100)
+      damageThreshold: health * ((startingPercent - healthPercent) / 100)
     }));
   const snapshots: TargetHealthBreakpointSnapshot[] = [];
   const dpsStartTime = Math.max(0, Number(result?.dpsStartTime ?? result?.firstHitTime ?? 0));

@@ -25,6 +25,17 @@ export function combinedTargetDamage(state: Gw2TargetDamageState | null | undefi
   return playerDamageTotal(state) + environmentDamageTotal(state);
 }
 
+/** Includes health missing at combat start so every threshold uses the same effective loss. */
+export function targetHealthLoss(
+  config: Pick<Gw2Config, 'target'> | null | undefined,
+  state: Gw2TargetDamageState | null | undefined
+): number {
+  const maximum = Number(config?.target?.health || 0);
+  const configured = Number(config?.target?.startingHealthFraction);
+  const startingFraction = Number.isFinite(configured) ? clamp(configured, 0, 1) : 1;
+  return maximum * (1 - startingFraction) + combinedTargetDamage(state);
+}
+
 /** Resolves remaining target health from every damage owner, or null when health is unbounded. */
 export function remainingTargetHealthFraction(
   config: Pick<Gw2Config, 'target'> | null | undefined,
@@ -32,5 +43,5 @@ export function remainingTargetHealthFraction(
 ): number | null {
   const maximum = Number(config?.target?.health || 0);
   if (!(maximum > 0)) return null;
-  return clamp(1 - combinedTargetDamage(state) / maximum, 0, 1);
+  return clamp(1 - targetHealthLoss(config, state) / maximum, 0, 1);
 }

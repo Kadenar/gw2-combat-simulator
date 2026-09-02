@@ -192,7 +192,8 @@ export function renderAssumptions(app: ProfessionAppState): void {
               'target',
               'Target',
               `
-                <label class="boon-control">Target HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
+                <label class="boon-control">Maximum HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
+                <label class="boon-control">Starting health % <input id="target-starting-health-percent" type="number" min="0" max="100" step="1" value="${Number(app.build.targetStartingHealthPercent ?? 100)}"></label>
                 <label class="boon-control">Target armor
                     <select class="gear-select" id="target-armor-preset">
                         ${TARGET_ARMOR_OPTIONS.map(({ value, label }) =>
@@ -343,6 +344,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
   targetHealth.addEventListener('change', () => {
     app.build.targetHealth = Math.max(0, Number(targetHealth.value) || 0);
     targetHealth.value = String(app.build.targetHealth);
+    app.changed();
+  });
+  const targetStartingHealthPercent = requiredInput('target-starting-health-percent');
+  targetStartingHealthPercent.addEventListener('change', () => {
+    app.build.targetStartingHealthPercent = Math.max(0, Math.min(100, Number(targetStartingHealthPercent.value) || 0));
+    targetStartingHealthPercent.value = String(app.build.targetStartingHealthPercent);
     app.changed();
   });
   const targetArmorPresetSelect = requiredSelect('target-armor-preset');

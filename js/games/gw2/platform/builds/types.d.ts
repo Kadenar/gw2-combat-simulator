@@ -164,6 +164,7 @@ export interface Gw2CanonicalBuild extends SchedulerRecord {
   infusions: Gw2BuildInfusion[];
   startingWeaponSet: number;
   targetHealth: number;
+  targetStartingHealthPercent: number;
   targetArmor: number;
   rotation: import('#gw2/platform/engine/types.js').RotationCommand[];
   selectedSkillIds?: import('#gw2/platform/engine/types.js').SkillId[];
@@ -255,6 +256,7 @@ export interface Gw2ApplicationBuild extends SchedulerRecord {
   infusions: Gw2BuildInfusion[];
   startingWeaponSet: number;
   targetHealth: number;
+  targetStartingHealthPercent: number;
   targetArmor: number;
   rotation: import('#gw2/platform/engine/types.js').RotationCommand[];
 }

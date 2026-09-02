@@ -610,7 +610,8 @@ export function renderTimeline(app: ProfessionAppState): void {
     results,
     app.build.targetHealth,
     targetThresholds,
-    app.build.rotation.length
+    app.build.rotation.length,
+    app.build.targetStartingHealthPercent
   );
   const healthMarkersByIndex = new Map<number, typeof healthMarkers>();
   for (const marker of healthMarkers) {

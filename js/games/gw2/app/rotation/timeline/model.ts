@@ -296,7 +296,8 @@ export function targetHealthTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
   targetHealth: number,
   thresholds: readonly number[] = [],
-  rotationLength = 0
+  rotationLength = 0,
+  startingHealthPercent = 100
 ) {
   const percents = [...new Set(thresholds)]
     .map((threshold) => Number(threshold) * 100)
@@ -305,7 +306,7 @@ export function targetHealthTimelineMarkers(
   const steps = (result?.steps || [])
     .filter((step) => step.ri >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.ri - right.ri);
-  return targetHealthBreakpointSnapshots(result, targetHealth, percents).map((snapshot) => {
+  return targetHealthBreakpointSnapshots(result, targetHealth, percents, startingHealthPercent).map((snapshot) => {
     const start = Math.round(snapshot.at * 1000);
     const next = steps.find((step) => step.start >= start);
     return {

@@ -1,7 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { sortQueuedEvents, takeNextEvent } from '#kernel/events/queue.js';
 import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
-import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 
 import type {
   Gw2ResolverEvent,
@@ -102,6 +102,8 @@ export function runGw2ResolverEventLoop(
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
   let lethalActivationKey: string | null = null;
+  // A zero-health start is already lethal and must not grant a free opening hit.
+  if (targetHealthLoss(ctx.config, ctx) >= hp) ctx.deathTime = 0;
   sortQueuedEvents(queue);
 
   while (queue.length > 0) {
@@ -129,7 +131,7 @@ export function runGw2ResolverEventLoop(
       throw new Error(`No event handler registered for required type: ${event.type}`);
     }
 
-    if (ctx.deathTime == null && combinedTargetDamage(ctx) >= hp) {
+    if (ctx.deathTime == null && targetHealthLoss(ctx.config, ctx) >= hp) {
       ctx.deathTime = event.at;
       lethalActivationKey = combatActivationKey(event);
     }

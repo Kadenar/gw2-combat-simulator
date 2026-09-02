@@ -6,6 +6,7 @@ export type Gw2BuffAudience = 'all' | 'summon' | 'summon-trait';
 export interface Gw2TargetConfig extends SchedulerRecord {
   readonly conditions?: Readonly<Record<string, number | boolean>>;
   readonly health?: number;
+  readonly startingHealthFraction?: number;
   readonly armor?: number;
   readonly moving?: boolean;
   readonly confusionActivationsPerSecond?: number;

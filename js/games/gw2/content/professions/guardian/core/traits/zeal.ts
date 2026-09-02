@@ -5,7 +5,7 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';
@@ -200,7 +200,7 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
 export function reactToZealotsResolution(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = guardianResolverState(context);
   const targetHealth = Number(context.config.target?.health ?? 0);
-  const damageDone = combinedTargetDamage(context);
+  const damageDone = targetHealthLoss(context.config, context);
   if (
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||
