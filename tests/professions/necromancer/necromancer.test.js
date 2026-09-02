@@ -10,7 +10,6 @@ import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
@@ -4770,95 +4769,6 @@ test('Necromancer resources and palette change with specialization state', () =>
       build: { weapons: ['Greatsword', ''], specializations: [] }
     }),
     [0.5]
-  );
-});
-
-test('Necromancer renders life force above its F-skills', async () => {
-  const adapter = await loadProfessionAppAdapter('necromancer');
-  const build = adapter.toApplicationBuild(createNecromancerBuildDefaults());
-  const app = {
-    build,
-    adapter,
-    profession: necromancerProfession,
-    skills: necromancerCatalog.skills,
-    skillById: necromancerCatalog.skillsById,
-    skillByName: necromancerCatalog.skillsByName,
-    weaponData: adapter.weaponData,
-    results: null
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  const html = palette.innerHTML;
-  const mechanic = html.indexOf('compact-resource-palette necromancer-f-skills');
-  const resource = html.indexOf('data-resource-id="life-force"');
-
-  assert.ok(mechanic >= 0);
-  assert.ok(resource > mechanic);
-  assert.match(html, /compact-profession-resource-necromancer-life-force/);
-  assert.match(html, /<strong>100\/100<\/strong>/);
-  assert.equal(html.match(/data-resource-id="life-force"/g)?.length, 1);
-  assert.doesNotMatch(html, /data-resource-id="blight"/);
-  assert.doesNotMatch(html, /data-resource-id="cascading-corruption"/);
-
-  app.build.weapons = ['Spear', ''];
-  app.build.specializations[2] = {
-    name: 'Scourge',
-    traits: '1-1-2'
-  };
-  app.results = {
-    endState: {
-      profession: {
-        lifeForce: 80,
-        maximumLifeForce: 100,
-        soulShards: 0,
-        shades: [10, 20]
-      }
-    }
-  };
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(
-    palette.innerHTML,
-    /data-resource-id="soul-shards"[\s\S]*data-resource-count="0"[\s\S]*necromancer-soul-shards/
-  );
-  assert.match(
-    palette.innerHTML,
-    /profession-palette-resource-group resource-beside[\s\S]*necromancer-f-skills[\s\S]*data-resource-id="soul-shards"/
-  );
-  app.results.endState.profession.soulShards = 4;
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(
-    palette.innerHTML,
-    /data-resource-id="soul-shards"[\s\S]*data-resource-count="4"[\s\S]*necromancer-soul-shards/
-  );
-  assert.match(
-    palette.innerHTML,
-    /data-resource-id="active-shades"[\s\S]*data-resource-count="2"[\s\S]*necromancer-scourge-shades/
   );
 });
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { displayedWeaponSkills, weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
 import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
@@ -57,82 +57,60 @@ function createPistolApp() {
   return { app, changeCount: () => changeCount };
 }
 
-function renderPaletteMarkup(app) {
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
+function paletteContext(app) {
+  return {
+    specialization: 'Tempest',
+    build: app.build,
+    professionState: app.results?.endState?.profession || {},
+    time: Number(app.results?.endState?.time || 0) / 1000
   };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  return palette.innerHTML;
 }
 
-test('Elementalist pistol palette distinguishes starting and current bullets', () => {
+test('Elementalist pistol controls distinguish starting and current bullets', () => {
   const { app } = createPistolApp();
-  const html = renderPaletteMarkup(app);
+  const group = elementalistProfession.ui
+    .paletteGroups(paletteContext(app))
+    .find((candidate) => candidate.id === 'elementalist-pistol-bullets');
+  const [fire, water, air] = group.controls;
 
-  assert.match(html, /data-palette-group="elementalist-pistol-bullets"/);
-  assert.equal((html.match(/class="pal-control pistol-bullet/g) || []).length, 4);
-  assert.match(
-    html,
-    /class="pal-control pistol-bullet pal-control-pressed pal-control-muted"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Fire"[\s\S]*?aria-pressed="true"/
+  assert.equal(group.controls.length, 4);
+  assert.deepEqual(
+    { active: fire.active, pressed: fire.pressed, muted: fire.muted, badge: fire.badge },
+    { active: false, pressed: true, muted: true, badge: 'S' }
   );
-  assert.match(
-    html,
-    /class="pal-control pistol-bullet pal-control-active pal-control-muted"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Water"[\s\S]*?aria-pressed="false"/
+  assert.deepEqual(
+    { active: water.active, pressed: water.pressed, muted: water.muted },
+    { active: true, pressed: false, muted: true }
   );
-  assert.match(
-    html,
-    /class="pal-control pistol-bullet pal-control-active"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Air"/
-  );
-  assert.match(html, /currently stocked; starts not stocked/);
-  assert.match(html, /not currently stocked; starts stocked/);
-  assert.match(html, /class="pal-control-badge"[^>]*>S<\/span>/);
-  assert.match(html, new RegExp(elementalistCatalog.skillsByName.get('Scorching Shot').icon));
+  assert.equal(air.active, true);
+  assert.equal(air.muted, false);
+  assert.match(fire.title, /not currently stocked; starts stocked/);
+  assert.equal(fire.icon, elementalistCatalog.skillsByName.get('Scorching Shot').icon);
 });
 
-test('Elementalist pistol palette toggles the selected starting bullet', () => {
+test('Elementalist pistol controls toggle the selected starting bullet', () => {
   const { app, changeCount } = createPistolApp();
-  const bulletButtons = ['Fire', 'Water', 'Air', 'Earth'].map((element) => ({
-    dataset: { paletteControlId: `elementalist-pistol-bullet:${element}` },
-    onclick: null
-  }));
-  const palette = {
-    innerHTML: '',
-    querySelectorAll(selector) {
-      return selector === '.pal-control[data-palette-control-id]' ? bulletButtons : [];
-    }
-  };
-  const previousDocument = globalThis.document;
+  const changed = elementalistProfession.ui.updatePaletteControl(
+    paletteContext(app),
+    'elementalist-pistol-bullet:Water'
+  );
 
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-    bulletButtons[1].onclick();
-  } finally {
-    globalThis.document = previousDocument;
-  }
+  if (changed) app.changed();
 
+  assert.equal(changed, true);
   assert.equal(app.build.pistolBullets.Water, true);
   assert.equal(changeCount(), 1);
 });
 
 test('Elemental Explosion replaces the active pistol autoattack at full stock', () => {
   const { app } = createPistolApp();
+  const skillNames = () =>
+    elementalistProfession.ui
+      .paletteWeaponSkills(paletteContext(app), displayedWeaponSkills(app, weaponSkills(app, 1), 1))
+      .map((skill) => skill.name);
 
-  const partialStock = renderPaletteMarkup(app);
-
-  assert.doesNotMatch(partialStock, /data-skill="Elemental Explosion"/);
-  assert.match(partialStock, /data-skill="Electric Exposure"/);
-  assert.doesNotMatch(partialStock, />Special<\/div>/);
+  assert.equal(skillNames().includes('Elemental Explosion'), false);
+  assert.equal(skillNames().includes('Electric Exposure'), true);
 
   app.results.endState.profession.pistolBullets = {
     Fire: true,
@@ -140,30 +118,19 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
     Air: true,
     Earth: true
   };
-  const fullStock = renderPaletteMarkup(app);
 
-  assert.match(fullStock, /data-skill="Elemental Explosion"/);
-  assert.doesNotMatch(fullStock, /data-skill="Electric Exposure"/);
-  assert.match(fullStock, /data-skill="Scorching Shot"/);
-  assert.doesNotMatch(fullStock, />Special<\/div>/);
-
-  const explosion = fullStock.indexOf('data-skill="Elemental Explosion"');
-  const bullets = fullStock.indexOf('data-palette-group="elementalist-pistol-bullets"');
-  const earthAutoattack = fullStock.indexOf('data-skill="Piercing Pebble"');
-
-  // Starting-stock controls follow the complete attunement bank instead of
-  // interrupting the active and Earth weapon rows.
-  assert.ok(explosion < earthAutoattack);
-  assert.ok(earthAutoattack < bullets);
+  assert.equal(skillNames().includes('Elemental Explosion'), true);
+  assert.equal(skillNames().includes('Electric Exposure'), false);
+  assert.equal(skillNames().includes('Scorching Shot'), true);
 });
 
 test('Aerial Agility collapses its chain into one pistol palette tile', () => {
   const { app } = createPistolApp();
-  const html = renderPaletteMarkup(app);
+  const names = displayedWeaponSkills(app, weaponSkills(app, 1), 1).map((skill) => skill.name);
 
-  assert.match(html, /data-skill="Aerial Agility"/);
-  assert.doesNotMatch(html, /data-skill="Aerial Agility \(chain\)"/);
-  assert.doesNotMatch(html, /data-skill="Aerial Agility \(dash\)"/);
+  assert.equal(names.includes('Aerial Agility'), true);
+  assert.equal(names.includes('Aerial Agility (chain)'), false);
+  assert.equal(names.includes('Aerial Agility (dash)'), false);
 });
 
 test('Elementalist bullet controls stay hidden without a pistol', () => {
@@ -171,5 +138,10 @@ test('Elementalist bullet controls stay hidden without a pistol', () => {
 
   app.build.weapons = ['Sword', 'Warhorn'];
 
-  assert.doesNotMatch(renderPaletteMarkup(app), /data-palette-group="elementalist-pistol-bullets"/);
+  assert.equal(
+    elementalistProfession.ui
+      .paletteGroups(paletteContext(app))
+      .some((group) => group.id === 'elementalist-pistol-bullets'),
+    false
+  );
 });

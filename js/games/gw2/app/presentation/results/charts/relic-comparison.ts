@@ -244,3 +244,15 @@ export function bindRelicComparisonChartHover(
     tooltip.style.display = 'block';
   };
 }
+
+/** Mounts the existing SVG comparison chart as a bounded imperative React leaf. */
+export function mountRelicComparisonChart(
+  container: HTMLElement | null | undefined,
+  model: RelicComparisonModel,
+  options: RelicComparisonChartOptions = {}
+): (() => void) | null {
+  if (!container) return null;
+  container.innerHTML = relicComparisonChartSvg(model, options);
+  bindRelicComparisonChartHover(container, model, options);
+  return () => container.replaceChildren();
+}

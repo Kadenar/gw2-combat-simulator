@@ -49,7 +49,7 @@ The snapshot model and renderer live in:
 
 ```text
 js/games/gw2/app/rotation/state-snapshot/model.ts
-js/games/gw2/app/rotation/state-snapshot/view.ts
+js/games/gw2/app/rotation/state-snapshot/view.tsx
 ```
 
 The model uses `paletteEndState(app)` to obtain the state associated with the current rotation position. The view only

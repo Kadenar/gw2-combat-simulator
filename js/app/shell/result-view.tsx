@@ -1,6 +1,7 @@
-import { mountSimulationView } from '#ui/simulation-view.js';
+import { clearSimulationView, mountSimulationView } from '#ui/simulation-view.js';
+import { renderReact } from '#ui/react-root.js';
 import { updateFloatingDps } from '#app/shell/workspace.js';
-import type { SimulationViewModel } from '#app/shell/types.js';
+import type { SimulationEmptyViewModel, SimulationViewModel } from '#ui/simulation-view.js';
 
 export interface SimulationRenderState {
   readonly inputRevision: number;
@@ -14,6 +15,19 @@ function analysisViewIsActive(): boolean {
   const mountedView = body.dataset.simulatorView;
   if (mountedView) return mountedView === 'analysis';
   return document.defaultView?.location.hash === '#analysis';
+}
+
+/** Shows the framework-neutral empty state without handing React prebuilt HTML. */
+function AnalysisEmpty({ model }: { model: SimulationEmptyViewModel }) {
+  return (
+    <div className='analysis-empty-state'>
+      <strong>{model.title}</strong>
+      <span>
+        {model.message}
+        {model.link ? <a href={model.link.href}>{model.link.label}</a> : null}
+      </span>
+    </div>
+  );
 }
 
 /** Renders only shell-facing models; game resolver output never crosses this boundary. */
@@ -33,31 +47,22 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
   if (!element) return;
   if (!analysisViewIsActive()) {
     if (element.dataset) element.dataset.analysisStale = 'true';
-    if (viewModel.workspace) {
-      mountSimulationView(element, viewModel.workspace);
-    } else {
-      element.innerHTML = '';
-    }
-
+    if (viewModel.workspace) mountSimulationView(element, viewModel.workspace);
+    else clearSimulationView(element);
     return;
   }
 
   if (element.dataset) delete element.dataset.analysisStale;
+  const mirror = document.getElementById('analysis-dps-summary');
   if (!viewModel.analysis) {
-    viewModel.onAnalysisEmpty?.(element);
-    element.innerHTML = viewModel.analysisEmptyHtml || '';
-    const mirror = document.getElementById('analysis-dps-summary');
-    if (mirror) mirror.innerHTML = '';
+    if (viewModel.analysisEmpty) renderReact(element, <AnalysisEmpty model={viewModel.analysisEmpty} />);
+    else clearSimulationView(element);
+    clearSimulationView(mirror);
+    viewModel.afterAnalysisRender?.();
     return;
   }
 
   mountSimulationView(element, viewModel.analysis);
-  const mirror = document.getElementById('analysis-dps-summary');
-  if (mirror) {
-    mirror.innerHTML = '';
-    const summaryContent = summary?.querySelector('.res-summary');
-    if (summaryContent) mirror.appendChild(summaryContent.cloneNode(true));
-  }
-
-  viewModel.afterAnalysisRender?.(element);
+  mountSimulationView(mirror, viewModel.summary);
+  viewModel.afterAnalysisRender?.();
 }

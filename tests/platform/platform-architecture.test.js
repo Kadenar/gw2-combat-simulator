@@ -2825,7 +2825,13 @@ async function relativeModuleGraph(entryFiles) {
     if (visited.has(file)) continue;
     visited.add(file);
     const source = await readFile(file, 'utf8');
-    const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+    const syntax = ts.createSourceFile(
+      file,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.JS
+    );
     const specifiers = [];
     const visit = (node) => {
       if (
@@ -2868,15 +2874,18 @@ async function relativeModuleGraph(entryFiles) {
 
 async function sourceModulePath(file) {
   if (!file.endsWith('.js')) return file;
-  const typeScript = file.replace(/\.js$/, '.ts');
-
-  try {
-    await access(typeScript);
-
-    return typeScript;
-  } catch {
-    return file;
+  // Resolve runtime JS specifiers to either TypeScript source form so architecture checks include React modules.
+  for (const extension of ['.ts', '.tsx']) {
+    const typeScript = file.replace(/\.js$/, extension);
+    try {
+      await access(typeScript);
+      return typeScript;
+    } catch {
+      // Try the next supported source extension.
+    }
   }
+
+  return file;
 }
 
 test('native registry loaders do not pull another profession module graph', async () => {

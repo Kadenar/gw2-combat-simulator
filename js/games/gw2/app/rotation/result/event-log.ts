@@ -6,6 +6,7 @@ import {
   normalizeEventLogDescriptor
 } from '#gw2/app/presentation/results/event-log.js';
 import type { EventLogRow } from '#gw2/app/presentation/results/event-log.js';
+import { renderReact } from '#ui/react-root.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { professionEndState } from '#gw2/app/rotation/shared/context.js';
 import { effectName, resultCombatReferenceMs } from '#gw2/app/rotation/result/model.js';
@@ -227,7 +228,7 @@ export function renderEventLog(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-event-log');
   const result = app.results;
   if (!element || !app.build.rotation.length || !result) {
-    if (element) element.innerHTML = '';
+    if (element) renderReact(element, null);
     return;
   }
 

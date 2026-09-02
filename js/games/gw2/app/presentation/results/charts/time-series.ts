@@ -820,6 +820,7 @@ export function mountTimeSeriesCharts(
 ): {
   redraw: () => void;
   setSelectedSkill: (key: string | null) => void;
+  destroy: () => void;
 } | null {
   if (!container) return null;
   // A token makes a queued animation-frame redraw from an older mount harmless.
@@ -1118,5 +1119,12 @@ export function mountTimeSeriesCharts(
     redraw();
   };
 
-  return { redraw, setSelectedSkill };
+  // React leaf cleanup disconnects observers and invalidates queued redraws from this mount.
+  const destroy = (): void => {
+    if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+    activeMount.resizeObserver?.disconnect();
+    ACTIVE_MOUNTS.delete(container);
+  };
+
+  return { redraw, setSelectedSkill, destroy };
 }

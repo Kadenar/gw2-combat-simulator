@@ -1,4 +1,5 @@
 import stylistic from '@stylistic/eslint-plugin';
+import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 const packageAliasPattern = {
@@ -65,6 +66,39 @@ export default [
           blankLine: 'always',
           prev: 'block-like',
           next: '*'
+        }
+      ]
+    }
+  },
+
+  // React panels enforce the two hook contracts needed to keep local drafts and effects predictable.
+  {
+    files: ['**/*.tsx'],
+
+    plugins: {
+      'react-hooks': reactHooks
+    },
+
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn'
+    }
+  },
+
+  // React root descendants stay declarative; imperative leaves must live in non-React modules with explicit cleanup.
+  {
+    files: ['js/ui/**/*.tsx', 'js/app/**/*.tsx', 'js/games/gw2/app/**/*.tsx'],
+
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[property.name='innerHTML']",
+          message: 'React-owned TSX must render application data with JSX instead of innerHTML.'
+        },
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message: 'React-owned TSX must not use dangerouslySetInnerHTML for application data.'
         }
       ]
     }

@@ -686,12 +686,12 @@
 
 /* Weaver keeps its live weapon bar on the first row with attunements and
    utilities, while the persistent slot preview remains independent below. */
-.elementalist-theme .rotation-palette:has(.weaver-weapon-palette) {
+.elementalist-theme .rotation-palette:has(.custom-weapon-palette) {
   display: flex;
   flex-wrap: wrap;
 }
 
-.elementalist-theme .rotation-palette:has(.weaver-weapon-palette) > .weaver-top-palette {
+.elementalist-theme .rotation-palette:has(.custom-weapon-palette) > .custom-weapon-top-palette {
   display: flex;
   width: 100%;
   min-width: 0;
@@ -701,32 +701,32 @@
   gap: 6px;
 }
 
-.weaver-top-palette > .profession-palette-section {
+.custom-weapon-top-palette > .profession-palette-section {
   display: contents;
 }
 
-.weaver-top-palette > .utility-palette-group {
+.custom-weapon-top-palette > .utility-palette-group {
   min-width: 0;
 }
 
-.weaver-top-palette > .weaver-current-bar {
+.custom-weapon-top-palette > .custom-weapon-current-bar {
   width: max-content;
   max-width: 100%;
 }
 
-.elementalist-theme .weapon-palette-section:has(.weaver-weapon-palette) {
+.elementalist-theme .weapon-palette-section:has(.custom-weapon-palette) {
   width: 100%;
   flex: 0 0 100%;
   flex-wrap: wrap;
 }
 
-.elementalist-theme .weapon-palette-stack:has(> .weaver-weapon-palette) {
+.elementalist-theme .weapon-palette-stack:has(> .custom-weapon-palette) {
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
 }
 
-.weaver-weapon-palette {
+.custom-weapon-palette {
   display: grid;
   width: fit-content;
   max-width: 100%;
@@ -734,7 +734,7 @@
   gap: 6px;
 }
 
-.weaver-cooldown-toggle {
+.custom-weapon-cooldown-toggle {
   width: fit-content;
   color: #9999aa;
   font-size: 9px;
@@ -744,12 +744,12 @@
   text-transform: uppercase;
 }
 
-.weaver-cooldown-toggle:hover,
-.weaver-cooldown-toggle:focus-visible {
+.custom-weapon-cooldown-toggle:hover,
+.custom-weapon-cooldown-toggle:focus-visible {
   color: var(--text-bright);
 }
 
-.weaver-current-bar {
+.custom-weapon-current-bar {
   display: flex;
   min-width: 0;
   padding: 5px 7px;
@@ -760,7 +760,7 @@
   background: var(--bg-panel-alt);
 }
 
-.weaver-current-caption {
+.custom-weapon-current-caption {
   display: grid;
   min-width: 34px;
   flex: 0 0 34px;
@@ -772,76 +772,76 @@
   text-transform: uppercase;
 }
 
-.weaver-current-caption strong {
+.custom-weapon-current-caption strong {
   margin-top: 3px;
   color: #d7cbe7;
   font-size: 10px;
 }
 
-.weaver-current-composition,
-.weaver-current-cluster,
-.weaver-attunement-skills {
+.custom-weapon-current-composition,
+.custom-weapon-current-cluster,
+.custom-weapon-row-skills {
   display: flex;
   min-width: 0;
   align-items: center;
 }
 
-.weaver-current-composition {
+.custom-weapon-current-composition {
   gap: 7px;
 }
 
-.weaver-current-cluster,
-.weaver-attunement-skills {
+.custom-weapon-current-cluster,
+.custom-weapon-row-skills {
   gap: 3px;
 }
 
-.weaver-current-divider {
+.custom-weapon-current-divider {
   width: 1px;
   height: 31px;
   flex: 0 0 1px;
   background: #414154;
 }
 
-.weaver-skill-cell {
-  --weaver-tone: #a88be8;
+.custom-weapon-skill-cell {
+  --custom-weapon-tone: #a88be8;
   position: relative;
   min-width: 0;
 }
 
-.weaver-skill-cell[data-attunement='Fire'],
-.weaver-attunement-row[data-attunement='Fire'] {
-  --weaver-tone: #e85d24;
+.custom-weapon-skill-cell[data-variant='Fire'],
+.custom-weapon-row[data-variant='Fire'] {
+  --custom-weapon-tone: #e85d24;
 }
 
-.weaver-skill-cell[data-attunement='Water'],
-.weaver-attunement-row[data-attunement='Water'] {
-  --weaver-tone: #3aa4d8;
+.custom-weapon-skill-cell[data-variant='Water'],
+.custom-weapon-row[data-variant='Water'] {
+  --custom-weapon-tone: #3aa4d8;
 }
 
-.weaver-skill-cell[data-attunement='Air'],
-.weaver-attunement-row[data-attunement='Air'] {
-  --weaver-tone: #a86ad0;
+.custom-weapon-skill-cell[data-variant='Air'],
+.custom-weapon-row[data-variant='Air'] {
+  --custom-weapon-tone: #a86ad0;
 }
 
-.weaver-skill-cell[data-attunement='Earth'],
-.weaver-attunement-row[data-attunement='Earth'] {
-  --weaver-tone: #c88a2f;
+.custom-weapon-skill-cell[data-variant='Earth'],
+.custom-weapon-row[data-variant='Earth'] {
+  --custom-weapon-tone: #c88a2f;
 }
 
-.weaver-skill-cell[data-attunement*='+'] {
-  --weaver-tone: #b06de0;
+.custom-weapon-skill-cell[data-variant*='+'] {
+  --custom-weapon-tone: #b06de0;
 }
 
-.weaver-skill-cell.is-equipped .pal-skill {
-  --att-border: var(--weaver-tone) !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--weaver-tone) 65%, transparent);
+.custom-weapon-skill-cell.is-equipped .pal-skill {
+  --att-border: var(--custom-weapon-tone) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--custom-weapon-tone) 65%, transparent);
 }
 
-.weaver-skill-cell.is-static {
+.custom-weapon-skill-cell.is-static {
   cursor: default;
 }
 
-.weaver-skill-cell.is-static .pal-skill {
+.custom-weapon-skill-cell.is-static .pal-skill {
   --att-border: var(--border) !important;
   opacity: 1;
   border-radius: 2px;
@@ -852,19 +852,19 @@
   transition: none;
 }
 
-.weaver-skill-cell.is-static .pal-skill:hover {
+.custom-weapon-skill-cell.is-static .pal-skill:hover {
   opacity: 1;
   box-shadow: none;
   filter: none;
   transform: none;
 }
 
-.weaver-skill-cell.is-static .pal-skill img {
+.custom-weapon-skill-cell.is-static .pal-skill img {
   opacity: 0.62;
   filter: saturate(0.65) brightness(0.78);
 }
 
-.weaver-cooldown-bank {
+.custom-weapon-cooldown-bank {
   display: grid;
   grid-template-columns: repeat(3, max-content);
   width: max-content;
@@ -873,8 +873,8 @@
   gap: 6px;
 }
 
-.weaver-cooldown-lane,
-.weaver-extra-bank {
+.custom-weapon-cooldown-lane,
+.custom-weapon-extra-bank {
   min-width: 0;
   padding: 6px;
   border: 1px solid var(--border);
@@ -882,7 +882,7 @@
   background: rgba(9, 9, 16, 0.68);
 }
 
-.weaver-bank-title {
+.custom-weapon-bank-title {
   margin-bottom: 5px;
   color: #b3b3c1;
   font-size: 8px;
@@ -892,13 +892,13 @@
   text-transform: uppercase;
 }
 
-.weaver-bank-title span {
+.custom-weapon-bank-title span {
   margin-left: 3px;
   color: #737382;
   font-weight: 500;
 }
 
-.weaver-attunement-row {
+.custom-weapon-row {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   min-width: 0;
@@ -909,25 +909,25 @@
   border-radius: 4px;
 }
 
-.weaver-attunement-row + .weaver-attunement-row {
+.custom-weapon-row + .custom-weapon-row {
   margin-top: 2px;
 }
 
-.weaver-attunement-row.is-selected {
-  border-color: color-mix(in srgb, var(--weaver-tone) 48%, var(--border));
-  background: color-mix(in srgb, var(--weaver-tone) 8%, transparent);
+.custom-weapon-row.is-selected {
+  border-color: color-mix(in srgb, var(--custom-weapon-tone) 48%, var(--border));
+  background: color-mix(in srgb, var(--custom-weapon-tone) 8%, transparent);
 }
 
-.weaver-attunement-label,
-.weaver-slot-three-label {
-  color: var(--weaver-tone, var(--text-dim));
+.custom-weapon-row-label,
+.custom-weapon-middle-label {
+  color: var(--custom-weapon-tone, var(--text-dim));
   font-size: 7px;
   font-weight: 700;
   letter-spacing: 0.45px;
   text-transform: uppercase;
 }
 
-.weaver-slot-three-row {
+.custom-weapon-middle-row {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   min-width: 0;
@@ -935,75 +935,75 @@
   gap: 4px;
 }
 
-.weaver-slot-three-row + .weaver-slot-three-row {
+.custom-weapon-middle-row + .custom-weapon-middle-row {
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
 }
 
-.weaver-slot-three-label {
+.custom-weapon-middle-label {
   padding-top: 3px;
   color: #777786;
 }
 
-.weaver-slot-three-skills {
+.custom-weapon-middle-skills {
   display: grid;
   grid-template-columns: repeat(4, 42px);
   min-width: 0;
   gap: 3px;
 }
 
-.weaver-slot-three-row[data-weaver-variant='dual'] .weaver-slot-three-skills {
+.custom-weapon-middle-row[data-variant-group='mixed'] .custom-weapon-middle-skills {
   grid-template-columns: repeat(3, 42px);
 }
 
-.weaver-cooldown-bank .pal-skill.pal-context-disabled:has(.pal-cd) {
+.custom-weapon-cooldown-bank .pal-skill.pal-context-disabled:has(.pal-cd) {
   opacity: 0.72;
 }
 
-.weaver-cooldown-bank .pal-cd {
+.custom-weapon-cooldown-bank .pal-cd {
   color: #ffc46b;
 }
 
-.weaver-extra-bank {
+.custom-weapon-extra-bank {
   display: flex;
   align-items: center;
   gap: 7px;
 }
 
-.weaver-extra-bank .weaver-bank-title {
+.custom-weapon-extra-bank .custom-weapon-bank-title {
   margin: 0;
 }
 
 @container rotation-builder (max-width: 560px) {
-  .weaver-cooldown-bank {
+  .custom-weapon-cooldown-bank {
     grid-template-columns: repeat(2, max-content);
   }
 
-  .weaver-slot-three-bank {
+  .custom-weapon-middle-bank {
     grid-column: 1 / -1;
     grid-row: 1;
   }
 }
 
 @container rotation-builder (max-width: 470px) {
-  .weaver-current-bar {
+  .custom-weapon-current-bar {
     align-items: flex-start;
   }
 
-  .weaver-current-composition {
+  .custom-weapon-current-composition {
     flex-wrap: wrap;
   }
 
-  .weaver-current-divider {
+  .custom-weapon-current-divider {
     display: none;
   }
 
-  .weaver-cooldown-bank {
+  .custom-weapon-cooldown-bank {
     grid-template-columns: max-content;
   }
 
-  .weaver-slot-three-bank {
+  .custom-weapon-middle-bank {
     grid-column: auto;
   }
 }

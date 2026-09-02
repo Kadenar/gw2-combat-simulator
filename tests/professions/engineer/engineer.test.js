@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
-import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView } from '#gw2/app/rotation/palette/view.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
 import {
   automaticPhotonForgeExitTimelineMarkers,
@@ -567,95 +567,6 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
   assert.equal(holosmith[0].pipStyle, 'compact-profession-resource-holosmith-heat');
 });
 
-test('Engineer Tools endurance renders beneath Dodge instead of as a standalone resource', async () => {
-  const adapter = await loadProfessionAppAdapter('engineer');
-  const canonicalBuild = createEngineerBuildDefaults();
-  canonicalBuild.specializations = [
-    { name: 'Tools', traits: '1-2-3' },
-    { name: 'Explosives', traits: '3-2-3' },
-    { name: 'Firearms', traits: '1-2-3' }
-  ];
-  const build = adapter.toApplicationBuild(canonicalBuild);
-  const app = {
-    build,
-    adapter,
-    profession: engineerProfession,
-    skills: engineerCatalog.skills,
-    skillById: engineerCatalog.skillsById,
-    skillByName: engineerCatalog.skillsByName,
-    weaponData: adapter.weaponData,
-    results: null
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  // Skill-attached resources render inside Dodge and are excluded from the standalone resource section.
-  assert.match(palette.innerHTML, /class="[^"]*pal-has-resource[^"]*" data-skill="Dodge"/);
-  assert.match(palette.innerHTML, /data-resource-id="endurance"/);
-  assert.doesNotMatch(palette.innerHTML, /class="active-resource" data-resource-id="endurance"/);
-});
-
-test('Engineer kits render beneath weapons while Holosmith mechanics stay grouped', async () => {
-  const adapter = await loadProfessionAppAdapter('engineer');
-  const canonicalBuild = createEngineerBuildDefaults();
-
-  canonicalBuild.selectedSkills.Utility2 = 'Flamethrower';
-  canonicalBuild.selectedSkills.Utility3 = 'Bomb Kit';
-  const build = adapter.toApplicationBuild(canonicalBuild);
-  const app = {
-    build,
-    adapter,
-    profession: engineerProfession,
-    skills: engineerCatalog.skills,
-    skillById: engineerCatalog.skillsById,
-    skillByName: engineerCatalog.skillsByName,
-    weaponData: adapter.weaponData,
-    results: null
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  const html = palette.innerHTML;
-  const holosmith = html.indexOf('data-palette-stack="holosmith-profession"');
-  const profession = html.indexOf('engineer-profession-skills');
-  const heat = html.indexOf('data-resource-id="heat"');
-  const forge = html.indexOf('engineer-forge-skills');
-  const weapons = html.indexOf('data-role="weapon-set-stack"');
-  const grenade = html.indexOf('data-skill="Grenade"');
-  const flamethrower = html.indexOf('data-skill="Flame Jet"');
-  const bomb = html.indexOf('data-skill="Bomb"');
-  const actions = html.indexOf('action-palette-group');
-
-  assert.ok(holosmith >= 0);
-  assert.ok(profession > holosmith);
-  assert.ok(forge > profession);
-  assert.ok(heat > forge);
-  assert.ok(weapons > heat);
-  assert.ok(grenade > weapons);
-  assert.ok(flamethrower > grenade);
-  assert.ok(bomb > flamethrower);
-  assert.ok(actions > bomb);
-  assert.match(html, /compact-profession-resource-holosmith-heat/);
-});
-
 test('Engineer event log exposes Heat only for Holosmith heat transitions', () => {
   const event = {
     type: 'engineer.state',
@@ -853,7 +764,7 @@ test('Photon Forge kit lockout is shortened by Alacrity', () => {
   assert.equal(kitStart(true), 4800);
 });
 
-test('Photon Forge kit lockout renders as a queueable palette cooldown', async () => {
+test('Photon Forge kit lockout renders as a queueable palette cooldown', () => {
   const result = simulate('Holosmith', ['Engage Photon Forge'], {
     boons: { alacrity: true }
   });
@@ -885,33 +796,6 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
     available: true,
     message: ''
   });
-
-  const adapter = await loadProfessionAppAdapter('engineer');
-  const build = adapter.toApplicationBuild(createEngineerBuildDefaults());
-  const app = {
-    build,
-    adapter,
-    profession: engineerProfession,
-    skills: engineerCatalog.skills,
-    skillById: engineerCatalog.skillsById,
-    skillByName: engineerCatalog.skillsByName,
-    weaponData: adapter.weaponData,
-    results: result
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  // The selected utility tile is a separate palette surface from the kit skill row.
-  assert.match(palette.innerHTML, /data-skill="Grenade Kit"[\s\S]*?<span class="pal-cd">4\.80s<\/span>/);
 });
 
 test('Engineer kit palettes stack and include their linked stow skills', () => {

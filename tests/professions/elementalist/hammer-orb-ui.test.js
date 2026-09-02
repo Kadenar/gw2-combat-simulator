@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
 import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
@@ -41,28 +41,14 @@ function createHammerApp(hammerOrbs, time = 0) {
   };
 }
 
-function renderPaletteMarkup(app) {
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  return palette.innerHTML;
-}
-
 test('hammer orb generators remain visible while an orb is active', () => {
-  const html = renderPaletteMarkup(createHammerApp({ Fire: 15, Water: null, Air: null, Earth: null }));
+  const skillNames = weaponSkills(createHammerApp({ Fire: 15, Water: null, Air: null, Earth: null }), 1).map(
+    (skill) => skill.name
+  );
 
-  assert.match(html, /data-skill="Grand Finale"/);
+  assert.equal(skillNames.includes('Grand Finale'), true);
   for (const orbSkill of ['Flame Wheel', 'Icy Coil', 'Crescent Wind', 'Rocky Loop']) {
-    assert.match(html, new RegExp(`data-skill="${orbSkill}"`));
+    assert.equal(skillNames.includes(orbSkill), true);
   }
 });
 

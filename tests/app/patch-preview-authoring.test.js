@@ -488,7 +488,7 @@ test('patch authoring UI uses an official source and read-only overview', async 
     'utf8'
   );
   const simulatorSource = await readFile(
-    new URL('../../js/games/gw2/integrations/patches/view.ts', import.meta.url),
+    new URL('../../js/games/gw2/integrations/patches/view.tsx', import.meta.url),
     'utf8'
   );
 

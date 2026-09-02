@@ -22,11 +22,8 @@ import {
   displayedWeaponSkills,
   paletteActionSkills,
   weaponSkills,
-  weaponPaletteSectionHtml,
-  weaponPaletteStackHtml,
   weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
-import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { dragonChargeReleaseProjection } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import {
   groupConsecutiveProcSteps,
@@ -44,7 +41,6 @@ import {
 import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
 import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
-import { gw2SimulationPresentation } from '#gw2/app/presentation.js';
 import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
@@ -83,34 +79,6 @@ test('starting resource clamps cover every active resource view', () => {
     initialInitiative: 15,
     unchanged: 9
   });
-});
-
-test('15-pip initiative uses specialization-neutral rows', () => {
-  const html = activeResourceGroup({
-    adapter: { eliteSpecialization: () => 'Core' },
-    build: { initialResource: 15 },
-    profession: {
-      ui: {
-        resourceViews: () => [
-          {
-            id: 'resource',
-            maximum: 15,
-            value: 9,
-            pipRows: 2,
-            pipStyle: 'thief-initiative'
-          }
-        ]
-      }
-    },
-    results: { endState: { time: 0, profession: {} } }
-  });
-
-  const rowPipCounts = [
-    ...html.matchAll(/<span class="resource-pip-row">((?:<span class="active-resource-pip[^"]*"><\/span>)+)<\/span>/g)
-  ].map(([, pips]) => [...pips.matchAll(/active-resource-pip/g)].length);
-
-  assert.match(html, /class="active-resource-pips thief-initiative pip-rows-2 pip-count-15"/);
-  assert.deepEqual(rowPipCounts, [7, 8]);
 });
 
 test('specialization selection replaces another elite line and refreshes its resources', () => {
@@ -683,121 +651,22 @@ test('shared app metadata owns common attributes and target conditions', () => {
 
 test('timeline display checkboxes are owned by Simulation Config instead of the rotation output', async () => {
   const [displayControls, timelineView, timelineSize] = await Promise.all([
-    readFile(new URL('../../js/games/gw2/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/rotation/timeline/view.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/rotation/timeline/display-controls.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/rotation/timeline/view.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../../js/games/gw2/app/rotation/timeline/size.ts', import.meta.url), 'utf8')
   ]);
 
-  assert.match(displayControls, /summary\.textContent = 'Timeline Display'/);
-  assert.match(displayControls, /id: 'rotation-show-dead-time'/);
-  assert.match(displayControls, /label: 'Display idle time'/);
-  assert.match(displayControls, /id: 'rotation-overlay-sigil-procs'/);
-  assert.match(displayControls, /id: 'rotation-overlay-relic-procs'/);
-  assert.match(displayControls, /id: 'rotation-overlay-sovereign-of-light-procs'/);
-  assert.match(displayControls, /label: 'Overlay Sovereign of Light'/);
+  assert.match(displayControls, />Timeline Display<\/summary>/);
+  assert.match(displayControls, /id=['"]rotation-show-dead-time['"]/);
+  assert.match(displayControls, /label=['"]Display idle time['"]/);
+  assert.match(displayControls, /id=['"]rotation-overlay-sigil-procs['"]/);
+  assert.match(displayControls, /id=['"]rotation-overlay-relic-procs['"]/);
+  assert.match(displayControls, /id=['"]rotation-overlay-sovereign-of-light-procs['"]/);
+  assert.match(displayControls, /label=['"]Overlay Sovereign of Light['"]/);
   assert.match(displayControls, /activeSpecialization\(app\) === 'Luminary'/);
   assert.match(timelineView, /app\.overlaySovereignOfLightProcs/);
   assert.doesNotMatch(timelineView, /data-overlay-proc-type/);
   assert.doesNotMatch(timelineSize, /rotation-dead-time-control/);
-});
-
-test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
-  const results = {
-    innerHTML: '',
-    querySelector: () => null,
-    querySelectorAll: () => []
-  };
-  const summaryStrip = { ...results, innerHTML: '' };
-  const summaryMirror = { innerHTML: 'stale summary' };
-  const previousDocument = globalThis.document;
-
-  const mockDocument = {
-    getElementById: (id) =>
-      id === 'rotation-results'
-        ? results
-        : id === 'rotation-dps-summary'
-          ? summaryStrip
-          : id === 'analysis-dps-summary'
-            ? summaryMirror
-            : null
-  };
-  // Mirror the ownerDocument relationship that real result containers expose.
-  results.ownerDocument = mockDocument;
-  globalThis.document = mockDocument;
-  try {
-    const app = { build: { rotation: [] }, results: null };
-    gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(summaryStrip.innerHTML, /res-summary-placeholder/);
-  assert.deepEqual(
-    [...summaryStrip.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
-    ['Duration', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
-  );
-  assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 6);
-  assert.match(results.innerHTML, /No analysis yet/);
-  assert.equal(summaryMirror.innerHTML, '');
-});
-
-test('workspace renders RNG controls while detailed analysis stays lazy', () => {
-  const runButton = {};
-  const results = {
-    dataset: {},
-    innerHTML: '',
-    querySelector: (selector) => (selector === '[data-role="rng-run"]' ? runButton : null),
-    querySelectorAll: () => []
-  };
-  const summaryStrip = {
-    dataset: {},
-    innerHTML: '',
-    querySelector: () => null,
-    querySelectorAll: () => [],
-    toggleAttribute() {}
-  };
-  const previousDocument = globalThis.document;
-  let runCount = 0;
-  const mockDocument = {
-    body: { dataset: {} },
-    defaultView: { location: { hash: '#workspace' } },
-    addEventListener() {},
-    getElementById: (id) => (id === 'rotation-results' ? results : id === 'rotation-dps-summary' ? summaryStrip : null)
-  };
-  results.ownerDocument = mockDocument;
-  summaryStrip.ownerDocument = mockDocument;
-  globalThis.document = mockDocument;
-  try {
-    const app = {
-      build: { rotation: [{ type: 'cast', skillId: 'Strike' }], targetHealth: 0 },
-      buildRevision: 2,
-      resultRevision: 2,
-      results: {
-        duration: 1,
-        totalDamage: 100,
-        dps: 100,
-        strikeDamage: 100,
-        conditionDamage: 0,
-        randomDistributionRequested: true,
-        randomDistributionTrials: 500
-      },
-      runRandomDistribution() {
-        runCount += 1;
-      }
-    };
-    gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(results.innerHTML, /Randomized DPS range/);
-  assert.match(results.innerHTML, /Calculate range/);
-  assert.doesNotMatch(results.innerHTML, /Damage Breakdown|result-charts/);
-  assert.equal(results.dataset.analysisStale, 'true');
-  assert.equal(typeof runButton.onclick, 'function');
-  runButton.onclick();
-  assert.equal(runCount, 1);
-  assert.match(summaryStrip.innerHTML, /Baseline Player DPS/);
 });
 
 test('published simulation results refresh result-dependent palette state', async () => {
@@ -812,7 +681,7 @@ test('published simulation results refresh result-dependent palette state', asyn
 
 test('gear panel leaves current rotation DPS to the floating metric', async () => {
   const [gearPanel, professionApp] = await Promise.all([
-    readFile(new URL('../../js/games/gw2/app/build/panels/gear.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/build/panels/gear.tsx', import.meta.url), 'utf8'),
     readFile(new URL('../../js/games/gw2/app/profession-app.ts', import.meta.url), 'utf8')
   ]);
 
@@ -827,7 +696,7 @@ test('shared app and platform helpers are profession neutral', async () => {
     readFile(new URL('../../js/app/app.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/games/gw2/app/simulation/config.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/games/gw2/app/simulation/modifier-contribution-worker.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/presentation/results/rotation-results.ts', import.meta.url), 'utf8')
+    readFile(new URL('../../js/games/gw2/app/presentation/results/rotation-results.tsx', import.meta.url), 'utf8')
   ]);
   const professionTerms = professionRegistry.flatMap((entry) => [entry.id, entry.name]);
 
@@ -1553,15 +1422,6 @@ test('target-health timeline markers are inserted after the crossing hit', () =>
   assert.deepEqual(targetHealthTimelineMarkers(result, 1000, [], 3), []);
 });
 
-test('weapon-set palette groups render side by side in set order', () => {
-  const html = weaponPaletteStackHtml(['<div data-weapon-set="1">W1</div>', '<div data-weapon-set="2">W2</div>']);
-
-  assert.match(html, /data-role="weapon-set-stack"/);
-  assert.match(html, /flex-direction:row/);
-  assert.match(html, /flex-wrap:wrap/);
-  assert.equal(html.indexOf('data-weapon-set="1"') < html.indexOf('data-weapon-set="2"'), true);
-});
-
 test('weapon actions stay ordered beside the stacked weapon sets', () => {
   const mesmer = {
     profession: mesmerProfession,
@@ -1609,12 +1469,6 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
     paletteActionSkills(guardian).map((skill) => skill.name),
     ['Swap Weapons']
   );
-
-  const html = weaponPaletteSectionHtml(['<div>W1</div>', '<div>W2</div>'], '<div>Act</div>', '<div>Legends</div>');
-
-  assert.match(html, /data-role="weapon-palette-section"/);
-  assert.equal(html.indexOf('weapon-set-stack') < html.indexOf('Act'), true);
-  assert.equal(html.indexOf('Act') < html.indexOf('Legends'), true);
 });
 
 test('Engineer weapon swap stays visible as a state-gated kit exit', async () => {

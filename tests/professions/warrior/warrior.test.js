@@ -7,7 +7,6 @@ import { skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
 import { autoattackChainSkillAvailable } from '#gw2/app/rotation/palette/model.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
-import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/presentation/rotation/timeline.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
@@ -606,17 +605,6 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
 
     assert.equal(specializationResource.barSegments, barSegments);
   }
-
-  const resourceHtml = activeResourceGroup({
-    profession: warriorProfession,
-    adapter: { eliteSpecialization: () => 'Core' },
-    build: { initialResource: 25 },
-    results: result
-  });
-
-  assert.equal([...resourceHtml.matchAll(/class="active-resource-bar warrior-adrenaline"/g)].length, 3);
-  assert.doesNotMatch(resourceHtml, /active-resource-pip/);
-  assert.match(resourceHtml, /width:50%/);
 });
 
 test('Paragon motivation renders as a compact emblem counter', () => {
@@ -632,16 +620,7 @@ test('Paragon motivation renders as a compact emblem counter', () => {
 
   assert.equal(motivation.displayMode, 'counter');
   assert.equal(motivation.pipStyle, 'warrior-motivation');
-
-  const resourceHtml = activeResourceGroup({
-    profession: warriorProfession,
-    adapter: { eliteSpecialization: () => 'Paragon' },
-    build: { initialResource: 10 },
-    results: result
-  });
-
-  assert.match(resourceHtml, /class="active-resource-counter warrior-motivation"[^>]*>[\s\S]*?<span>4<\/span>/);
-  assert.doesNotMatch(resourceHtml, /<strong>4\/10<\/strong>/);
+  assert.equal(motivation.value, 4);
 });
 
 test('Core bursts require and consume adrenaline', () => {

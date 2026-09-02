@@ -1,6 +1,5 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { renderRotationHistoryControls } from '#gw2/app/rotation/editing/history.js';
-import { mountRotationHotkeys } from '#gw2/app/rotation/input/hotkeys.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderEventLog } from '#gw2/app/rotation/result/event-log.js';
@@ -17,7 +16,6 @@ export function renderRotationBuilder(app: ProfessionAppState): void {
 export function renderRotationEditor(app: ProfessionAppState): void {
   renderStartResource(app);
   renderPalette(app);
-  mountRotationHotkeys(document.getElementById('rotation-palette'), app.adapter.capabilities.keybindImport);
   renderTimeline(app);
   renderRotationStateSnapshot(app);
   renderRotationHistoryControls(app);
@@ -28,7 +26,6 @@ export function renderSimulationOutput(app: ProfessionAppState): void {
   // Resource limits and skill availability all come from the newly committed end state.
   renderStartResource(app);
   renderPalette(app);
-  mountRotationHotkeys(document.getElementById('rotation-palette'), app.adapter.capabilities.keybindImport);
   renderTimeline(app);
   renderRotationStateSnapshot(app);
   renderSimulationDetails(app);

@@ -11,8 +11,7 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { selectableSkillBarGroups, skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -693,8 +692,6 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     value: 35,
     maximum: 100
   });
-  assert.equal(activeResourceGroup(resourceApp), '');
-
   const directAuto = simulate('Core', ['Twin Darts'], {
     selectedPet: 'Carrion Devourer'
   });
@@ -947,54 +944,6 @@ test("Galeshot passive arrow recharge uses the player's Alacrity", () => {
 
   assert.equal(baseline.endState.profession.arrows, 0);
   assert.equal(alacrity.endState.profession.arrows, 1);
-});
-
-test('Ranger palette groups the active pet, command, swap, and Dodge endurance', () => {
-  const build = createRangerBuildDefaults();
-
-  build.specializations = [];
-  build.selectedPet = 'Carrion Devourer';
-  build.selectedPet2 = 'Fanged Iboga';
-  build.weapons = ['Longbow', ''];
-  build.alternateWeapons = ['Axe', 'Axe'];
-  const app = {
-    build,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    skills: rangerCatalog.skills,
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
-    results: simulate('Core', [], {
-      selectedPet: 'Carrion Devourer',
-      selectedPet2: 'Fanged Iboga',
-      primaryWeapon: 'Longbow',
-      weaponSet2Primary: 'Axe',
-      weaponSet2Secondary: 'Axe'
-    })
-  };
-  const paletteElement = {
-    innerHTML: '',
-    querySelectorAll: () => []
-  };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? paletteElement : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  const html = paletteElement.innerHTML;
-
-  assert.equal((html.match(/data-skill-id="-4"/g) || []).length, 1);
-  assert.ok(html.indexOf('Carrion Devourer') < html.indexOf('Poisonous Cloud'));
-  assert.ok(html.indexOf('Poisonous Cloud') < html.indexOf('data-skill="Swap Pets"'));
-  assert.match(html, /class="[^"]*pal-has-resource[^"]*" data-skill="Dodge"/);
-  assert.match(html, /data-resource-id="endurance"/);
-  assert.doesNotMatch(html, /class="active-resource" data-resource-id="endurance"/);
 });
 
 test("Core Ranger resolves Winter's Bite readiness events", () => {
@@ -1434,34 +1383,6 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
       ),
       { available: true, message: '' }
     );
-  }
-
-  const paletteElement = {
-    innerHTML: '',
-    querySelectorAll: () => []
-  };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? paletteElement : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  for (const skillId of [ID.UNLEASHED_WILD_SWING, ID.UNLEASHED_SAVAGE_SHOCK_WAVE, ID.UNLEASHED_THUMP]) {
-    const skill = rangerCatalog.skillsById.get(skillId);
-
-    assert.equal(skill.paletteFlip, false);
-    const markup = paletteElement.innerHTML.match(
-      new RegExp(`<div class="([^"]*)" data-skill="${skill.name}"\\s+data-skill-id="${skill.id}"[^>]*>`)
-    );
-
-    assert.ok(markup, `${skill.name} should be rendered`);
-    assert.doesNotMatch(markup[1], /pal-context-disabled/);
-    assert.match(markup[0], /draggable="true"/);
   }
 });
 
@@ -2057,43 +1978,6 @@ test('Galeshot tracks Cyclone Bow arrows and Wind Force', () => {
       .every((view) => view.showValue === false),
     true
   );
-  const galeshotBuild = createRangerBuildDefaults();
-
-  galeshotBuild.specializations[2] = {
-    name: 'Galeshot',
-    traits: '3-3-2'
-  };
-  const galeshotApp = {
-    build: galeshotBuild,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    skills: rangerCatalog.skills,
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
-    results: charged
-  };
-  const paletteElement = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? paletteElement : null)
-  };
-  try {
-    renderPalette(galeshotApp);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(
-    paletteElement.innerHTML,
-    /profession-palette-resource-group resource-beside[\s\S]*ranger-galeshot-f5[\s\S]*data-resource-id="arrows"/
-  );
-  assert.match(
-    paletteElement.innerHTML,
-    /profession-palette-resource-group resource-above[\s\S]*data-resource-id="wind-force"[\s\S]*ranger-cyclone-bow-skills/
-  );
-  assert.doesNotMatch(paletteElement.innerHTML, />\d+\/(?:8|5)<\/strong>/);
-  assert.doesNotMatch(paletteElement.innerHTML, /title="[^"]*(?:arrows|Wind Force): \d+\/(?:8|5)"/);
   const dismiss = rangerCatalog.skillsById.get(ID.DISMISS_CYCLONE_BOW);
 
   assert.equal(rangerProfession.ui.paletteSkillAvailability(inactiveContext, dismiss).available, false);

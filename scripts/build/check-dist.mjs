@@ -32,8 +32,11 @@ async function exists(file) {
   }
 }
 
-const sources = (await files(sourceRoot, ".ts"))
-  .filter((file) => !file.endsWith(".d.ts"));
+// React migration sources compile from both TypeScript extensions into the same JavaScript output shape.
+const sources = [
+  ...(await files(sourceRoot, ".ts")).filter((file) => !file.endsWith(".d.ts")),
+  ...(await files(sourceRoot, ".tsx")),
+];
 const missing = [];
 const duplicates = [];
 
@@ -41,9 +44,9 @@ for (const source of sources) {
   const relative = path.relative(sourceRoot, source);
   const output = path.join(
     buildRoot,
-    relative.replace(/\.ts$/, ".js"),
+    relative.replace(/\.tsx?$/, ".js"),
   );
-  const sibling = source.replace(/\.ts$/, ".js");
+  const sibling = source.replace(/\.tsx?$/, ".js");
 
   if (!(await exists(output))) missing.push(path.relative(root, output));
 
@@ -55,12 +58,11 @@ const stale = [];
 
 for (const output of outputs) {
   const relative = path.relative(buildRoot, output);
-  const source = path.join(
-    sourceRoot,
-    relative.replace(/\.js$/, ".ts"),
-  );
+  const sourceBase = path.join(sourceRoot, relative.replace(/\.js$/, ""));
 
-  if (!(await exists(source))) stale.push(path.relative(root, output));
+  if (!(await exists(`${sourceBase}.ts`)) && !(await exists(`${sourceBase}.tsx`))) {
+    stale.push(path.relative(root, output));
+  }
 }
 
 if (missing.length || duplicates.length || stale.length) {

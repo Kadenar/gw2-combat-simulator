@@ -12,7 +12,7 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 | Path                                  | Purpose                                                                                     |
 | ------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `js/kernel/`                          | Game-neutral clock, collections, randomness, event-stream, queue, and observation contracts |
-| `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                    |
+| `js/ui/`                              | Game-neutral view models, React mounting, and reusable UI/rotation primitives               |
 | `js/app/`                             | Game-neutral registry, bootstrap, worker harness, and shell                                 |
 | `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine     |
 | `js/games/gw2/content/professions/`   | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI        |
@@ -136,11 +136,11 @@ Examples include:
 state/persistence.ts
 state/skill-selection.ts
 io/files.ts
-panels/gear.ts
-panels/traits.ts
-panels/attributes.ts
-panels/skills.ts
-panels/assumptions.ts
+panels/gear.tsx
+panels/traits.tsx
+panels/attributes.tsx
+panels/skills.tsx
+panels/assumptions.tsx
 panels/presets.ts
 page-controls.ts
 ```
@@ -223,6 +223,24 @@ js/ui/
 
 Neutral UI owns stable summary, breakdown, timeline, effect-lane, warning, state-snapshot, and extension-panel models.
 GW2 adapts its existing output through `js/games/gw2/app/presentation.ts`.
+
+## Browser UI ownership
+
+The Vite templates own the static document and stable mount containers. React exclusively owns descendants of these
+dynamic surfaces:
+
+- build attributes, traits, skills, gear, and assumptions;
+- simulation summaries, warnings, tables, event logs, state snapshots, loop analysis, and patch preview;
+- the rotation palette, starting-resource controls, timeline, proc overlays, and timeline display controls.
+
+`js/ui/react-root.ts` is the only mounting bridge. Existing `renderX(app)` entry points locate a stable container and
+render the matching TSX component; imperative application code must not query or mutate that root's descendants.
+
+Canvas charts remain imperative leaves mounted from React refs with effect cleanup. Floating rotation editors remain
+separate imperative widgets outside the React roots. Profession presentation hooks return framework-neutral view data,
+and platform, engine, worker, persistence, and headless profession modules must not import React.
+
+See [REACT_MIGRATION.md](./REACT_MIGRATION.md) for the completed migration boundaries and testing rules.
 
 ---
 

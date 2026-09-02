@@ -3,7 +3,6 @@ import { createDefaultTargetConditions as createSharedDefaultTargetConditions } 
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { renderRotationBuilder } from '#gw2/app/rotation/index.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build-editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
@@ -13,11 +12,17 @@ import type {
   DefineProfessionAppOptions,
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
+  ProfessionAppState,
   ProfessionSkillAvailabilityContext,
   Gw2AppAdapter,
   ProfessionSlotLoadout
 } from '#gw2/app/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+
+/** Defers the browser-only rotation renderer so worker adapters never load React or DOM modules. */
+function renderRotationBuilder(app: ProfessionAppState): void {
+  void import('#gw2/app/rotation/index.js').then(({ renderRotationBuilder: render }) => render(app));
+}
 
 /**
  * Default availability rule for shared-shell profession skill selectors.

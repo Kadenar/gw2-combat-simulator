@@ -13,12 +13,6 @@ export function bindPageControls(app: ProfessionAppState): void {
     app.adapter.recalculate(app);
     app.renderAttributes();
   });
-  document.addEventListener('click', (event) => {
-    const target = event.target;
-    if (target instanceof Element && !target.closest('.skill-bar-slot, .skill-bar-inspection-slot')) {
-      document.querySelectorAll('.sbar-dropdown.open').forEach((drop) => drop.classList.remove('open'));
-    }
-  });
   requiredElement('btn-sim-clear').addEventListener('click', () => {
     app.build.rotation = [];
     app.changed(false);

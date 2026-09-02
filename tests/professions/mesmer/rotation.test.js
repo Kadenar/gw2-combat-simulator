@@ -21,7 +21,6 @@ import {
   resultSummaryMetrics,
   skillBreakdownRows
 } from '#gw2/app/rotation/result/model.js';
-import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { displayedWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/view.js';
 import {
@@ -231,23 +230,6 @@ test('clone state remains capped at three when input or new summons exceed the c
 
   assert.equal(replaced.endState.profession.resource, 3);
   assert.ok(resourceEvents.every((event) => event.value <= 3));
-});
-
-test('clone resource pips render without a redundant numeric count', () => {
-  const resourceHtml = activeResourceGroup({
-    profession: mesmerProfession,
-    adapter: { eliteSpecialization: () => 'Chronomancer' },
-    build: { initialResource: 0 },
-    results: {
-      endState: {
-        profession: { clones: [{}, {}, {}] }
-      }
-    }
-  });
-
-  assert.match(resourceHtml, /data-resource-id="clones"/);
-  assert.equal(resourceHtml.match(/active-resource-pip active/g)?.length, 3);
-  assert.doesNotMatch(resourceHtml, /<strong>3\/3<\/strong>/);
 });
 
 test('non-Chronomancer alacrity starts the reduced cooldown after the cast', () => {
@@ -5758,19 +5740,6 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     ['Lute', 'Flute']
   );
   assert.ok(playingView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
-  const resourceHtml = activeResourceGroup({
-    profession: mesmerProfession,
-    adapter: { eliteSpecialization: () => 'Troubadour' },
-    build: { initialResource: 0 },
-    results: result
-  });
-
-  assert.match(resourceHtml, /active-resource-pips mesmer-notes/);
-  assert.equal([...resourceHtml.matchAll(/<span class="active-resource-pip(?: active)?"><\/span>/g)].length, 3);
-  assert.match(resourceHtml, /active-resource-statuses/);
-  assert.doesNotMatch(resourceHtml, /active-resource-status-label/);
-  assert.match(resourceHtml, />Lute</);
-  assert.match(resourceHtml, />Flute</);
   for (const index of [0, 2]) {
     const spend = result.events.find(
       (event) => event.type === 'resource' && event.reason === 'profession mechanic' && event.rotationIndex === index

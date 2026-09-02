@@ -1,15 +1,9 @@
 import { targetHealthBreakpointSnapshots } from '#gw2/app/presentation/results/result-transform.js';
-import {
-  mountRotationResults,
-  SKILL_COLS,
-  type RotationResultsModel,
-  type RotationResultsOptions
-} from '#gw2/app/presentation/results/rotation-results.js';
+import type { RotationResultsModel, RotationResultsOptions } from '#gw2/app/presentation/results/rotation-results.js';
+import { SKILL_COLS } from '#gw2/app/presentation/results/result-columns.js';
 import { PLACEHOLDER_ICON, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
 import { analyzeRotationLoops } from '#gw2/app/rotation/result/loop-analysis.js';
-import { removeRotationLoopAnalysis, renderRotationLoopAnalysis } from '#gw2/app/rotation/result/loop-analysis-view.js';
-import { renderSimulationViewModel } from '#app/shell/result-view.js';
 import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/rotation/shared/icons.js';
@@ -48,6 +42,9 @@ const EMPTY_RESULT_METRICS = Object.freeze([
   { label: 'Condition', value: '—', className: 'condi' }
 ]);
 
+const loadRotationResultsView = () => import('#gw2/app/presentation/results/rotation-results.js');
+const loadShellResultView = () => import('#app/shell/result-view.js');
+
 /** Adapts the existing GW2 result surface as one explicit game-owned extension panel. */
 function gw2ResultView(model: RotationResultsModel, options?: RotationResultsOptions): SimulationViewSection {
   return {
@@ -55,11 +52,19 @@ function gw2ResultView(model: RotationResultsModel, options?: RotationResultsOpt
       {
         kind: 'extension',
         mount(container) {
-          mountRotationResults(container, model, options);
+          void loadRotationResultsView().then(({ mountRotationResults }) =>
+            mountRotationResults(container, model, options)
+          );
         }
       }
     ]
   };
+}
+
+/** Keeps the optional patch preview in its own stable root beside the main analysis results. */
+function renderPatchPreview(app: ProfessionAppState): void {
+  const container = document.getElementById('patch-comparison-results');
+  if (container) void app.adapter?.capabilities?.patchPreview?.render(container, app);
 }
 
 /** Projects RNG state independently so the workspace can render it without analysis tables. */
@@ -83,11 +88,12 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       workspace: null,
       analysis: null,
       floatingDps: null,
-      analysisEmptyHtml: `<div class="analysis-empty-state">
-        <strong>No analysis yet</strong>
-        <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
-      </div>`,
-      onAnalysisEmpty: removeRotationLoopAnalysis
+      analysisEmpty: {
+        title: 'No analysis yet',
+        message: 'Add skills to the rotation in the ',
+        link: { href: '#workspace', label: 'Workspace' }
+      },
+      afterAnalysisRender: () => renderPatchPreview(app)
     };
   }
 
@@ -160,6 +166,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
           defaultVisibleEffectLimit: 8,
           emptyEffectsText: 'No timed effects in this rotation'
         },
+        resultRevision: app.resultRevision,
         sortState: {
           column: app._skillSortCol,
           direction: app._skillSortDir
@@ -169,15 +176,14 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
           app._skillSortDir = nextState.direction;
         },
         onRunRandomDistribution: () => app.runRandomDistribution(),
+        loadLoopAnalysis: () => analyzeRotationLoops(app),
+        loopApp: app,
         ...(app.adapter?.capabilities?.relicComparison
           ? { onRunRelicComparison: () => app.runRelicComparison() }
           : null)
       }
     ),
-    afterAnalysisRender(container) {
-      renderRotationLoopAnalysis(container, app, analyzeRotationLoops(app));
-      void app.adapter?.capabilities?.patchPreview?.render(container, app);
-    }
+    afterAnalysisRender: () => renderPatchPreview(app)
   };
 }
 
@@ -185,9 +191,11 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
 export const gw2SimulationPresentation = Object.freeze({
   createViewModel: createGw2SimulationViewModel,
   render(app: ProfessionAppState, viewModel: SimulationViewModel) {
-    renderSimulationViewModel(viewModel, {
-      inputRevision: app.buildRevision,
-      outputRevision: app.resultRevision
-    });
+    void loadShellResultView().then(({ renderSimulationViewModel }) =>
+      renderSimulationViewModel(viewModel, {
+        inputRevision: app.buildRevision,
+        outputRevision: app.resultRevision
+      })
+    );
   }
 });

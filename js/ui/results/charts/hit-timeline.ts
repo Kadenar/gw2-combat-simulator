@@ -206,7 +206,7 @@ export function mountHitTimeline(
   container: HTMLElement | null | undefined,
   hits: readonly SkillHit[],
   { durationMs, color, label, height = 72, emptyText }: HitTimelineMountOptions
-): { redraw: () => void } | null {
+): { redraw: () => void; destroy: () => void } | null {
   if (!container) return null;
   ACTIVE_HIT_TIMELINE_MOUNTS.get(container)?.resizeObserver?.disconnect();
   const mountToken = {};
@@ -250,5 +250,12 @@ export function mountHitTimeline(
     activeMount.resizeObserver.observe(wrap);
   }
 
-  return { redraw };
+  // React leaf cleanup disconnects observers and prevents detached canvases from redrawing.
+  const destroy = (): void => {
+    if (ACTIVE_HIT_TIMELINE_MOUNTS.get(container)?.token !== mountToken) return;
+    activeMount.resizeObserver?.disconnect();
+    ACTIVE_HIT_TIMELINE_MOUNTS.delete(container);
+  };
+
+  return { redraw, destroy };
 }

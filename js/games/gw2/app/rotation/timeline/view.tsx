@@ -1,14 +1,20 @@
 import {
-  bindTimelineInteractions,
+  applyTimelineDrop,
+  clearTimelineDropIndicators,
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails,
   formatTimelineDuration,
   formatTimelineSkillTooltip,
+  getSkillDropInsertionIndex,
   rotationEntryName,
   timelineDeadTimeMarkers,
-  timelineSkillCastOrdinals
+  timelineSkillCastOrdinals,
+  updateSkillDropIndicator
 } from '#gw2/app/presentation/rotation/timeline.js';
+import { useEffect, useState } from 'react';
+import type { CSSProperties, DragEvent, ReactNode } from 'react';
+import { renderReact } from '#ui/react-root.js';
 import {
   activationDamageCommitMs,
   openActivationEditor,
@@ -16,12 +22,7 @@ import {
 } from '#gw2/app/presentation/rotation/editors/activation-editor.js';
 import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
 import { closeFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
-import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
-import {
-  mountRotationInsertionCursor,
-  rotationInsertionGapHtml,
-  rotationTimelineEntryHtml
-} from '#ui/rotation/insertion-cursor.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 import { activeSpecialization, professionEndState } from '#gw2/app/rotation/shared/context.js';
 import {
   ACTION_ICONS,
@@ -80,17 +81,6 @@ type TimelineItem = SchedulerRecord & {
   durationMs?: number;
 };
 
-export interface TimelineRowRender {
-  readonly key: string;
-  readonly html: string;
-}
-
-interface RetainedTimelineRow {
-  readonly html: string;
-  readonly node: HTMLElement;
-}
-
-const timelineRowsByRoot = new WeakMap<HTMLElement, Map<string, RetainedTimelineRow>>();
 const timelineCommandKeys = new WeakMap<object, number>();
 let nextTimelineCommandKey = 1;
 
@@ -101,41 +91,6 @@ function timelineCommandKey(command: RotationCommand): number {
   const key = nextTimelineCommandKey++;
   timelineCommandKeys.set(object, key);
   return key;
-}
-
-function createTimelineRow(root: HTMLElement, html: string): HTMLElement {
-  const template = root.ownerDocument.createElement('template');
-  template.innerHTML = html.trim();
-  const row = template.content.firstElementChild;
-  if (!(row instanceof HTMLElement)) throw new Error('Timeline row rendering produced no element.');
-  return row;
-}
-
-/** Reuses unchanged keyed rows and changes only DOM positions whose rendered HTML differs. */
-export function reconcileTimelineRows(
-  root: HTMLElement,
-  rows: readonly TimelineRowRender[],
-  createRow: (html: string) => HTMLElement = (html) => createTimelineRow(root, html)
-): void {
-  // Row replacement can activate browser scroll anchoring on the trailing insertion cursor,
-  // so retain the user's timeline viewport while updating the rendered rows.
-  const scrollTop = root.scrollTop;
-  const previous = timelineRowsByRoot.get(root) || new Map<string, RetainedTimelineRow>();
-  const next = new Map<string, RetainedTimelineRow>();
-  const nodes = rows.map(({ key, html }) => {
-    const retained = previous.get(key);
-    const entry = retained?.html === html ? retained : { html, node: createRow(html) };
-    next.set(key, entry);
-    return entry.node;
-  });
-
-  nodes.forEach((node, index) => {
-    const current = root.children[index] || null;
-    if (current !== node) root.insertBefore(node, current);
-  });
-  while (root.children.length > nodes.length) root.removeChild(root.lastElementChild!);
-  root.scrollTop = scrollTop;
-  timelineRowsByRoot.set(root, next);
 }
 
 // Projects canonical commands into the uniform fields needed by timeline rendering.
@@ -187,14 +142,16 @@ export function syncProcVisibility(app: ProfessionAppState, procSteps: readonly 
 }
 
 // Waits keep free millisecond durations; concurrent offsets use the activation editor's GW2 action-tick validation.
-function editRotationDuration(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editRotationDuration(
+  app: ProfessionAppState,
+  index: number,
+  event?: { readonly currentTarget: EventTarget | null }
+): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const eventTarget = event?.currentTarget;
-  const anchor =
-    (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(`#rotation-timeline .rot-wait-badge[data-idx="${index}"]`);
+  const anchor = eventTarget instanceof HTMLElement ? eventTarget : null;
   if (!anchor) return false;
 
   openDurationEditor({
@@ -220,16 +177,18 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
 // charge threshold at which the skill fires. releaseAtCharges == null means "wait
 // for maximum charges" (the default). insertionIndex lets the editor know where in
 // the rotation this cast falls so it can show available charge counts in context.
-function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editReleaseAtCharges(
+  app: ProfessionAppState,
+  index: number,
+  event?: { readonly currentTarget: EventTarget | null }
+): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
   if (!skill?.dragonSlash) return false;
   const eventTarget = event?.currentTarget;
-  const anchor =
-    (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(`#rotation-timeline .rot-charge-release-badge[data-idx="${index}"]`);
+  const anchor = eventTarget instanceof HTMLElement ? eventTarget : null;
   if (!anchor) return false;
   openDragonSlashReleaseEditor({
     app,
@@ -253,7 +212,11 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
 // instant skill during the previous cast. The simulated duration selects the
 // appropriate editor, including runtime instant-cast conversions. The anchor is
 // the whole .rot-skill card so the popover positions correctly.
-function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editRotationActivation(
+  app: ProfessionAppState,
+  index: number,
+  event?: { readonly currentTarget: EventTarget | null }
+): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
@@ -272,9 +235,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const behavior = isCombatStart || item.concurrentOffsetMs != null || fullCastMs === 0 ? 'concurrent' : 'interrupt';
   const eventTarget = event?.currentTarget;
   const eventElement = eventTarget instanceof HTMLElement ? eventTarget : null;
-  const anchor =
-    eventElement?.closest<HTMLElement>('.rot-skill') ||
-    document.querySelector<HTMLElement>(`#rotation-timeline .rot-skill[data-idx="${index}"]`);
+  const anchor = eventElement?.closest<HTMLElement>('.rot-skill') || null;
   if (!anchor) return false;
 
   openActivationEditor({
@@ -312,16 +273,18 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
 // Double Edge is a warrior skill with a random success/backfire outcome in-game;
 // the sim lets users pin the outcome so benchmarks are deterministic. Defaults to
 // "success" for any value other than the explicit "backfire" string, including unset.
-function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: Event): boolean {
+function editDoubleEdgeOutcome(
+  app: ProfessionAppState,
+  index: number,
+  event?: { readonly currentTarget: EventTarget | null }
+): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
   if (!hasConfigurableDoubleEdgeOutcome(skill)) return false;
   const eventTarget = event?.currentTarget;
-  const anchor =
-    (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(`#rotation-timeline .rot-double-edge-badge[data-idx="${index}"]`);
+  const anchor = eventTarget instanceof HTMLElement ? eventTarget : null;
   if (!anchor) return false;
   openDoubleEdgeEditor({
     anchor,
@@ -340,19 +303,13 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
   return false;
 }
 
-function paletteDragAnchor(name: string): HTMLElement | null {
-  return (
-    document.querySelector<HTMLElement>('#rotation-palette .pal-skill.dragging') ||
-    [...document.querySelectorAll<HTMLElement>('#rotation-palette .pal-skill[data-skill]')].find(
-      (element) => element.dataset.skill === name
-    ) ||
-    null
-  );
+function paletteDragAnchor(app: ProfessionAppState): HTMLElement | null {
+  const anchor = app.dragState?.anchor;
+  return anchor instanceof HTMLElement ? anchor : null;
 }
 
 function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractionOptions {
   return {
-    rotation: app.build.rotation,
     getDragState: () => app.dragState,
     setDragState: (value) => {
       app.dragState = value;
@@ -376,7 +333,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
       };
 
       if (name === '__wait') {
-        const anchor = paletteDragAnchor(name);
+        const anchor = paletteDragAnchor(app);
         if (!anchor) return null;
         openDurationEditor({
           anchor,
@@ -391,7 +348,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
       }
 
       if (skill?.dragonSlash) {
-        const anchor = paletteDragAnchor(name);
+        const anchor = paletteDragAnchor(app);
         if (!anchor) return null;
         openDragonSlashReleaseEditor({
           app,
@@ -408,7 +365,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
       }
 
       if (hasConfigurableDoubleEdgeOutcome(skill)) {
-        const anchor = paletteDragAnchor(name);
+        const anchor = paletteDragAnchor(app);
         if (!anchor) return null;
         openDoubleEdgeEditor({
           anchor,
@@ -425,18 +382,252 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
     onChanged: () => {
       app.rotationInsertionIndex = null;
       app.changed(false);
-    },
-    onRemove: (index) => app.build.rotation.splice(index, 1),
-    onTruncate: (index) => app.build.rotation.splice(index),
-    onEditActivation: (index, event) => editRotationActivation(app, index, event),
-    onEditReleaseAtCharges: (index, event) => editReleaseAtCharges(app, index, event),
-    onEditDoubleEdgeOutcome: (index, event) => editDoubleEdgeOutcome(app, index, event),
-    onEditWait: (index, event) => editRotationDuration(app, index, event)
+    }
   };
 }
 
+function setInsertionIndex(app: ProfessionAppState, index: number | null): void {
+  app.rotationInsertionIndex = index;
+  renderPalette(app);
+  renderTimeline(app);
+  renderRotationStateSnapshot(app);
+}
+
+function InsertionGap({ app, index }: { readonly app: ProfessionAppState; readonly index: number }) {
+  const activeIndex = app.rotationInsertionIndex ?? app.build.rotation.length;
+  const active = index === activeIndex;
+  return (
+    <button
+      type='button'
+      className={`rot-insertion-gap${active ? ' active' : ''}`}
+      data-insertion-index={index}
+      title={active ? `Insertion point at position ${index + 1}` : `Insert at position ${index + 1}`}
+      aria-label={active ? `Insertion point at position ${index + 1}` : `Set insertion point at position ${index + 1}`}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (index === activeIndex) return;
+        setInsertionIndex(app, index === app.build.rotation.length ? null : index);
+      }}
+    >
+      <span className='rot-insertion-arrow' aria-hidden='true'>
+        →
+      </span>
+      <span className='rot-insertion-marker' aria-hidden='true' />
+    </button>
+  );
+}
+
+function shouldIgnoreArrowKey(event: KeyboardEvent): boolean {
+  const target = event.target;
+  return target instanceof Element
+    ? Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"))
+    : false;
+}
+
+/** Keeps insertion-point keyboard navigation attached to the React timeline lifecycle. */
+function TimelineKeyboard({ app, root }: { readonly app: ProfessionAppState; readonly root: HTMLElement }) {
+  useEffect(() => {
+    const document = root.ownerDocument;
+    const scope = root.closest('.rotation-panel') || root;
+    const handleKeydown = (event: KeyboardEvent): void => {
+      const activeIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
+      if (event.key === 'Escape' && activeIndex !== null) {
+        setInsertionIndex(app, null);
+        return;
+      }
+
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      if (shouldIgnoreArrowKey(event) || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+      const focused = document.activeElement;
+      if (focused && focused !== document.body && !scope.contains(focused)) return;
+      const displayIndex = activeIndex ?? app.build.rotation.length;
+      const next = displayIndex + (event.key === 'ArrowLeft' ? -1 : 1);
+      if (next < 0 || next > app.build.rotation.length) return;
+      event.preventDefault();
+      setInsertionIndex(app, next === app.build.rotation.length ? null : next);
+      // Keep :focus-visible on the selected boundary so the old gap does not continue to look active.
+      root.querySelector<HTMLButtonElement>(`.rot-insertion-gap[data-insertion-index='${next}']`)?.focus();
+    };
+
+    const resetDrag = (): void => clearTimelineDropIndicators(root);
+    const handleDragOver = (event: globalThis.DragEvent): void => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!app.dragState || target?.closest('.rot-row-skills')) return;
+      event.preventDefault();
+      clearTimelineDropIndicators(root);
+      root.classList.add('drag-over-empty');
+    };
+
+    const handleDragLeave = (event: globalThis.DragEvent): void => {
+      if (event.target === root) root.classList.remove('drag-over-empty');
+    };
+
+    const handleDrop = (event: globalThis.DragEvent): void => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!app.dragState || target?.closest('.rot-row-skills')) return;
+      event.preventDefault();
+      clearTimelineDropIndicators(root);
+      applyTimelineDrop(timelineInteractionOptions(app), app.build.rotation.length);
+    };
+
+    document.addEventListener('keydown', handleKeydown);
+    root.addEventListener('timeline-drag-clear', resetDrag);
+    root.addEventListener('dragover', handleDragOver);
+    root.addEventListener('dragleave', handleDragLeave);
+    root.addEventListener('drop', handleDrop);
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+      root.removeEventListener('timeline-drag-clear', resetDrag);
+      root.removeEventListener('dragover', handleDragOver);
+      root.removeEventListener('dragleave', handleDragLeave);
+      root.removeEventListener('drop', handleDrop);
+    };
+  }, [app, root]);
+  return null;
+}
+
+function stopControlDrag(event: DragEvent<HTMLElement>): void {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+/** Keeps proc disclosure, filtering, and highlighting local while application visibility stays authoritative. */
+function ProcPanel({
+  app,
+  procSteps,
+  procColors,
+  formatTime
+}: {
+  readonly app: ProfessionAppState;
+  readonly procSteps: readonly Gw2ProcStep[];
+  readonly procColors: Readonly<Record<string, string>>;
+  readonly formatTime: (timeMs: number) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!procSteps.length) return null;
+  const visibility = app.procVisibility || new Set<string>();
+  const options = [...new Map(procSteps.map((proc) => [procFilterKey(proc), proc])).values()].sort((left, right) =>
+    procFilterLabel(left).localeCompare(procFilterLabel(right))
+  );
+  const groups = groupConsecutiveProcSteps(procSteps);
+  const groupKeys = new Set(groups.map((group) => group.key));
+  if (app.procHighlightKey && !groupKeys.has(app.procHighlightKey)) app.procHighlightKey = null;
+  return (
+    <details className='rotation-procs-wrap' open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
+      <summary>
+        Procs ({procSteps.length} activation{procSteps.length === 1 ? '' : 's'})
+      </summary>
+      <div className='rotation-procs-content'>
+        <details
+          className='proc-filter'
+          open={Boolean(app.procFilterOpen)}
+          onToggle={(event) => {
+            app.procFilterOpen = event.currentTarget.open;
+          }}
+        >
+          <summary title='Choose which proc types are shown'>
+            Visible{' '}
+            <span className='proc-filter-count'>
+              {options.filter((proc) => visibility.has(procFilterKey(proc))).length}/{options.length}
+            </span>
+          </summary>
+          <div className='proc-filter-menu'>
+            {options.map((proc) => {
+              const key = procFilterKey(proc);
+              return (
+                <label key={key} className='proc-filter-option'>
+                  <input
+                    type='checkbox'
+                    data-proc-key={key}
+                    checked={visibility.has(key)}
+                    onChange={(event) => {
+                      if (event.currentTarget.checked) visibility.add(key);
+                      else visibility.delete(key);
+                      if (!event.currentTarget.checked && app.rotationSkillHighlightKey === key) {
+                        app.rotationSkillHighlightKey = null;
+                      }
+
+                      app.procFilterOpen = true;
+                      renderTimeline(app);
+                    }}
+                  />
+                  <span>{procFilterLabel(proc)}</span>
+                </label>
+              );
+            })}
+          </div>
+        </details>
+        <div className='proc-icons-row'>
+          {groups.map((group, groupIndex) => {
+            const proc = group.steps[0];
+            if (!proc) return null;
+            const { key } = group;
+            const type =
+              proc.type === 'relic_proc'
+                ? 'Relic'
+                : proc.type === 'sigil_proc'
+                  ? 'Sigil'
+                  : proc.type === 'skill_proc'
+                    ? 'Skill'
+                    : 'Trait';
+            const time = formatTime(proc.start);
+            const count = group.steps.length;
+            const detail =
+              count === 1
+                ? [
+                    proc.skill,
+                    `${type} proc at ${time}`,
+                    proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
+                    proc.detail || ''
+                  ]
+                    .filter(Boolean)
+                    .join('\n')
+                : [
+                    proc.skill,
+                    `${type} proc x${count}`,
+                    ...group.steps.map((step, index) =>
+                      [
+                        `${index + 1}. ${formatTime(step.start)}`,
+                        step.sourceSkill ? `Triggered by ${step.sourceSkill}` : '',
+                        step.detail || ''
+                      ]
+                        .filter(Boolean)
+                        .join(' - ')
+                    )
+                  ].join('\n');
+            const active = app.procHighlightKey === key;
+            return (
+              <div
+                key={`${key}:${groupIndex}`}
+                className={`proc-icon${active ? ' proc-highlight' : app.procHighlightKey ? ' proc-faded' : ''}`}
+                data-proc-key={key}
+                hidden={!visibility.has(key)}
+                title={detail}
+                style={{ '--proc-color': procColors[proc.type] || '#9d7bd0' } as CSSProperties}
+                onClick={() => {
+                  app.procHighlightKey = active ? null : key;
+                  renderTimeline(app);
+                }}
+              >
+                <img src={resolveProcIcon(app, proc) || PLACEHOLDER_ICON} alt='' />
+                {procBadgeLabel(group.steps) ? <span className='proc-count'>{procBadgeLabel(group.steps)}</span> : null}
+                {procStackLabel(group.steps.at(-1) || proc) ? (
+                  <span className='proc-stack'>{procStackLabel(group.steps.at(-1) || proc)}</span>
+                ) : null}
+                <span className='proc-time'>{time}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </details>
+  );
+}
+
 export function renderTimeline(app: ProfessionAppState): void {
-  // Keyed reconciliation retains unchanged rows and may replace changed editor anchors.
+  // Closing editor leaves prevents stale anchors when a command is removed or moved.
   closeFloatingEditor();
   const element = document.getElementById('rotation-timeline');
   const procElement = document.getElementById('rotation-procs');
@@ -444,39 +635,21 @@ export function renderTimeline(app: ProfessionAppState): void {
   element.dataset.buildRevision = String(app.buildRevision);
   element.dataset.resultRevision = String(app.resultRevision);
   element.toggleAttribute('aria-busy', app.resultRevision !== app.buildRevision);
-  const procPanel = procElement?.querySelector<HTMLDetailsElement>('.rotation-procs-wrap') || null;
-  // Capture open state before rebuilding the proc panel so it stays open after rendering.
-  const procPanelWasOpen = procPanel?.open ?? false;
-  element.ondragover = null;
-  element.ondragleave = null;
-  element.ondrop = null;
   if (!app.build.rotation.length) {
     app.rotationSkillHighlightKey = null;
     element.classList.add('is-empty');
-    element.innerHTML = `<div class="rot-empty">
-            <strong>Build your rotation</strong>
-            <span>Click or drag skills from the palette above</span>
-        </div>`;
-    timelineRowsByRoot.delete(element);
-    if (procElement) procElement.innerHTML = '';
-    app.rotationInsertionIndex = mountRotationInsertionCursor({
-      root: element,
-      insertionIndex: app.rotationInsertionIndex,
-      rotationLength: 0,
-      onSelect(index) {
-        app.rotationInsertionIndex = index;
-        renderPalette(app);
-        renderTimeline(app);
-        renderRotationStateSnapshot(app);
-      },
-      onClear() {
-        app.rotationInsertionIndex = null;
-        renderPalette(app);
-        renderTimeline(app);
-        renderRotationStateSnapshot(app);
-      }
-    });
-    bindTimelineInteractions(element, timelineInteractionOptions(app));
+    app.rotationInsertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, 0);
+    renderReact(
+      element,
+      <>
+        <TimelineKeyboard app={app} root={element} />
+        <div className='rot-empty'>
+          <strong>Build your rotation</strong>
+          <span>Click or drag skills from the palette above</span>
+        </div>
+      </>
+    );
+    if (procElement) renderReact(procElement, null);
     return;
   }
 
@@ -620,22 +793,28 @@ export function renderTimeline(app: ProfessionAppState): void {
     healthMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const renderContinuumEnd = (marker: (typeof continuumEnds)[number]): string => {
+  const renderContinuumEnd = (marker: (typeof continuumEnds)[number]): ReactNode => {
     const time = formatTime(marker.start);
     const detail = [
       'Continuum Shift',
       `Continuum Split ended automatically at ${time}`,
       'Cooldown state restored'
     ].join('\n');
-    return `<div class="rot-skill rot-injected rot-automatic-transition" title="${esc(detail)}"
-            style="--att-border:#d6b46b">
-            <img src="${esc(ACTION_ICONS['Continuum Shift'])}" alt="" />
-            <span class="rot-injected-badge">AUTO</span>
-            <span class="rot-time">${time}</span>
-        </div>`;
+    return (
+      <div
+        key={`continuum:${marker.insertionIndex}:${marker.start}`}
+        className='rot-skill rot-injected rot-automatic-transition'
+        title={detail}
+        style={{ '--att-border': '#d6b46b' } as CSSProperties}
+      >
+        <img src={ACTION_ICONS['Continuum Shift']} alt='' />
+        <span className='rot-injected-badge'>AUTO</span>
+        <span className='rot-time'>{time}</span>
+      </div>
+    );
   };
 
-  const renderAutomaticPhotonForgeExit = (marker: (typeof automaticPhotonForgeExits)[number]): string => {
+  const renderAutomaticPhotonForgeExit = (marker: (typeof automaticPhotonForgeExits)[number]): ReactNode => {
     const time = formatTime(marker.start);
     const detail = ['Overheat', `Photon Forge ended automatically at ${time}`, 'Tool-belt cooldowns applied'].join(
       '\n'
@@ -644,27 +823,39 @@ export function renderTimeline(app: ProfessionAppState): void {
       app.activeCatalog.skillsByName.get('Deactivate Photon Forge')?.icon ||
       ACTION_ICONS['Deactivate Photon Forge'] ||
       PLACEHOLDER_ICON;
-    return `<div class="rot-skill rot-injected rot-automatic-transition" title="${esc(detail)}"
-            style="--att-border:#e5a72d">
-            <img src="${esc(icon)}" alt="" />
-            <span class="rot-injected-badge">AUTO</span>
-            <span class="rot-time">${time}</span>
-        </div>`;
+    return (
+      <div
+        key={`forge:${marker.insertionIndex}:${marker.start}`}
+        className='rot-skill rot-injected rot-automatic-transition'
+        title={detail}
+        style={{ '--att-border': '#e5a72d' } as CSSProperties}
+      >
+        <img src={icon} alt='' />
+        <span className='rot-injected-badge'>AUTO</span>
+        <span className='rot-time'>{time}</span>
+      </div>
+    );
   };
 
-  const renderAutomaticTomeStow = (marker: (typeof automaticTomeStows)[number]): string => {
+  const renderAutomaticTomeStow = (marker: (typeof automaticTomeStows)[number]): ReactNode => {
     const time = formatTime(marker.start);
     const detail = ['Stow Tome', `Tome closed automatically at ${time}`, 'No tome pages remaining'].join('\n');
     const icon = app.activeCatalog.skillsByName.get('Stow Tome')?.icon || ACTION_ICONS['Stow Tome'] || PLACEHOLDER_ICON;
-    return `<div class="rot-skill rot-injected" title="${esc(detail)}"
-            style="--att-border:#d6b46b">
-            <img src="${esc(icon)}" alt="" />
-            <span class="rot-injected-badge">AUTO</span>
-            <span class="rot-time">${time}</span>
-        </div>`;
+    return (
+      <div
+        key={`tome:${marker.insertionIndex}:${marker.start}`}
+        className='rot-skill rot-injected'
+        title={detail}
+        style={{ '--att-border': '#d6b46b' } as CSSProperties}
+      >
+        <img src={icon} alt='' />
+        <span className='rot-injected-badge'>AUTO</span>
+        <span className='rot-time'>{time}</span>
+      </div>
+    );
   };
 
-  const renderHealthMarker = (marker: (typeof healthMarkers)[number]): string => {
+  const renderHealthMarker = (marker: (typeof healthMarkers)[number]): ReactNode => {
     const time = formatTime(marker.start);
     const label = `${marker.healthPercent}%`;
     const detail = [
@@ -672,15 +863,21 @@ export function renderTimeline(app: ProfessionAppState): void {
       `At ${time}`,
       `${Math.round(marker.damage).toLocaleString()} cumulative damage`
     ].join('\n');
-    return `<div class="rot-skill rot-injected rot-health-marker"
-            title="${esc(detail)}" style="--att-border:#d96b6b">
-            <img src="${esc(COMBAT_START_ICON)}" alt="" />
-            <span class="rot-injected-badge">${esc(label)}</span>
-            <span class="rot-time">${time}</span>
-        </div>`;
+    return (
+      <div
+        key={`health:${marker.insertionIndex}:${marker.healthPercent}`}
+        className='rot-skill rot-injected rot-health-marker'
+        title={detail}
+        style={{ '--att-border': '#d96b6b' } as CSSProperties}
+      >
+        <img src={COMBAT_START_ICON} alt='' />
+        <span className='rot-injected-badge'>{label}</span>
+        <span className='rot-time'>{time}</span>
+      </div>
+    );
   };
 
-  const renderDeadTime = (marker: (typeof deadTimes)[number]): string => {
+  const renderDeadTime = (marker: (typeof deadTimes)[number]): ReactNode => {
     const duration = formatTimelineDuration(marker.durationMs);
     const detail =
       marker.reason === 'explicit-wait'
@@ -703,14 +900,21 @@ export function renderTimeline(app: ProfessionAppState): void {
               `Idle time: ${duration} wasted`,
               `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
             ].join('\n');
-    return `<div class="rot-skill rot-injected rot-dead-time" role="note"
-            aria-label="${esc(detail)}" title="${esc(detail)}">
-            <span class="rot-dead-time-label">Idle</span>
-            <strong class="rot-dead-time-duration">${esc(duration)}</strong>
-        </div>`;
+    return (
+      <div
+        key={`idle:${marker.insertionIndex}:${marker.start}:${marker.end}`}
+        className='rot-skill rot-injected rot-dead-time'
+        role='note'
+        aria-label={detail}
+        title={detail}
+      >
+        <span className='rot-dead-time-label'>Idle</span>
+        <strong className='rot-dead-time-duration'>{duration}</strong>
+      </div>
+    );
   };
 
-  const renderOverlayProcMarker = (marker: (typeof overlayProcMarkers)[number]): string => {
+  const renderOverlayProcMarker = (marker: (typeof overlayProcMarkers)[number]): ReactNode => {
     const key = procFilterKey(marker);
     const time = formatTime(marker.start);
     const icon = resolveProcIcon(app, marker) || PLACEHOLDER_ICON;
@@ -755,22 +959,48 @@ export function renderTimeline(app: ProfessionAppState): void {
                 .join(' - ')
             )
           ].join('\n');
-    return `<div class="rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}
-            title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
-            <img src="${esc(icon)}" alt="" />
-            ${expired ? '<span class="proc-expired-cross" aria-hidden="true"></span>' : ''}
-            ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
-            <span class="rot-injected-badge">${type.toUpperCase()}</span>
-            <span class="rot-time">${time}</span>
-        </div>`;
+    const activeHighlight = app.rotationSkillHighlightKey === key;
+    const hasHighlight = Boolean(app.rotationSkillHighlightKey);
+    return (
+      <div
+        key={`proc:${key}:${marker.start}:${expired}`}
+        className={`rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}${
+          activeHighlight ? ' skill-highlight' : hasHighlight ? ' skill-faded' : ''
+        }`}
+        data-proc-key={key}
+        data-skill-highlight-key={key}
+        hidden={!procVisibility.has(key)}
+        title={detail}
+        style={{ '--att-border': color, '--proc-color': color } as CSSProperties}
+        onClick={() => {
+          app.rotationSkillHighlightKey = activeHighlight ? null : key;
+          renderTimeline(app);
+        }}
+      >
+        <img src={icon} alt='' />
+        {expired ? <span className='proc-expired-cross' aria-hidden='true' /> : null}
+        {badgeLabel ? <span className='proc-count'>{badgeLabel}</span> : null}
+        <span className='rot-injected-badge'>{type.toUpperCase()}</span>
+        <span className='rot-time'>{time}</span>
+      </div>
+    );
   };
 
+  const availableHighlightKeys = new Set([
+    ...app.build.rotation.map(rotationSkillHighlightKey),
+    ...overlayProcMarkers.map(procFilterKey)
+  ]);
+  if (app.rotationSkillHighlightKey && !availableHighlightKeys.has(app.rotationSkillHighlightKey)) {
+    app.rotationSkillHighlightKey = null;
+  }
+
+  const interactions = timelineInteractionOptions(app);
   const timelineRows = rows.map((row, rowNumber) => {
     const weapons = row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
     const weaponLabel = row.weaponLine || weapons.filter(Boolean).join('/') || 'Unequipped';
     const rowLabel = row.weaponLine ? row.weaponLine.replace(/ Kit$/, '') : `W${row.weaponSet}`;
     const rowTitle = row.weaponLine ? `${row.weaponLine} weapon line` : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
-    const rowItems: string[] = [];
+    const rowItems: ReactNode[] = [];
     row.skills.forEach(({ entry, index }) => {
       for (const marker of overlayProcMarkersByIndex.get(index) || []) {
         rowItems.push(renderOverlayProcMarker(marker));
@@ -889,62 +1119,192 @@ export function renderTimeline(app: ProfessionAppState): void {
       // Casts and Combat Start share behavior editing; waits expose their duration through the same pencil affordance.
       const canEditActivation = (item.type === 'cast' && skill != null) || item.type === 'combat-start';
       const canEditWait = item.type === 'wait';
+      const skillHighlightActive = app.rotationSkillHighlightKey === highlightKey;
+      const anySkillHighlight = Boolean(app.rotationSkillHighlightKey);
       // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
-      const deadTimeHtml = (deadTimesByIndex.get(index) || []).map(renderDeadTime).join('');
       rowItems.push(
-        rotationTimelineEntryHtml(
-          index,
-          app.rotationInsertionIndex ?? app.build.rotation.length,
-          `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
-                    data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
-                    <img src="${esc(icon)}" alt="" />
-                    ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
-                    ${
-                      canEditActivation
-                        ? `<button type="button" class="rot-edit-activation" data-idx="${index}"
-                        title="Edit cast behavior" aria-label="Edit ${esc(display)} cast behavior" aria-haspopup="dialog">&#9998;</button>`
-                        : canEditWait
-                          ? `<button type="button" class="rot-edit-wait" data-idx="${index}"
-                        title="Edit wait duration" aria-label="Edit Wait duration" aria-haspopup="dialog">&#9998;</button>`
-                          : ''
-                    }
-                    <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
-                    ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
-                    ${
-                      // Dragon Slash's release badge already shows its charges and timestamp without covering the pencil.
-                      resourceSpend && !skill?.dragonSlash
-                        ? `<span class="rot-resource-spend-badge"
-                        title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>`
-                        : ''
-                    }
-                    ${time && item.concurrentOffsetMs == null && item.interruptAfterMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ''}
-                    ${
-                      item.concurrentOffsetMs != null
-                        ? `<span class="rot-offset-badge rot-timed-action-badge"
-                        title="Delay ${item.concurrentOffsetMs}ms; cast at ${esc(time)}">${esc(concurrentLabel)}</span>`
-                        : ''
-                    }
-                    ${
-                      item.interruptAfterMs != null
-                        ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge"
-                        data-idx="${index}" title="Interrupt after ${item.interruptAfterMs}ms; cast at ${esc(time)}">${esc(interruptLabel)}</span>`
-                        : ''
-                    }
-                    ${
-                      skill?.dragonSlash
-                        ? `<span class="rot-gapfill-badge rot-charge-release-badge rot-timed-action-badge"
-                        data-idx="${index}" title="Release at ${item.releaseAtCharges == null ? 'maximum' : item.releaseAtCharges} charges; cast at ${esc(time)}">${esc(chargeReleaseLabel)}</span>`
-                        : ''
-                    }
-                    ${
-                      hasConfigurableDoubleEdgeOutcome(skill)
-                        ? `<span class="rot-gapfill-badge rot-double-edge-badge rot-timed-action-badge"
-                        data-idx="${index}" title="Risky recast: ${esc(doubleEdgeOutcomeLabel(doubleEdgeOutcome))}">${esc(doubleEdgeLabel)}</span>`
-                        : ''
-                    }
-                    ${item.durationMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.durationMs}ms</span>` : ''}
-                </div>`
-        )
+        <div key={timelineCommandKey(entry)} className='rot-entry'>
+          <InsertionGap app={app} index={index} />
+          {(deadTimesByIndex.get(index) || []).map(renderDeadTime)}
+          <div
+            className={`rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${
+              invalid ? ' rot-invalid' : ''
+            }${chargeMismatch ? ' rot-charge-mismatch' : ''}${
+              skillHighlightActive ? ' skill-highlight' : anySkillHighlight ? ' skill-faded' : ''
+            }`}
+            draggable
+            data-idx={index}
+            data-skill-highlight-key={highlightKey}
+            title={`${skillTooltip}${titleSuffix}${resourceTitle}`}
+            style={{ '--att-border': '#9d7bd0' } as CSSProperties}
+            onClick={() => {
+              app.rotationSkillHighlightKey = skillHighlightActive ? null : highlightKey;
+              renderTimeline(app);
+            }}
+            onDragStart={(event) => {
+              app.dragState = { source: 'timeline', index };
+              event.currentTarget.classList.add('dragging');
+              event.dataTransfer.setData('text/plain', String(index));
+              event.dataTransfer.effectAllowed = 'move';
+            }}
+            onDragEnd={(event) => {
+              event.currentTarget.classList.remove('dragging');
+              app.dragState = null;
+              clearTimelineDropIndicators(element);
+            }}
+            onDragOver={(event) => {
+              if (!app.dragState) return;
+              event.preventDefault();
+              clearTimelineDropIndicators(element);
+              updateSkillDropIndicator(event.currentTarget, event.clientX);
+            }}
+            onDragLeave={(event) => event.currentTarget.classList.remove('drag-insert-before', 'drag-insert-after')}
+            onDrop={(event) => {
+              if (!app.dragState) return;
+              event.preventDefault();
+              event.stopPropagation();
+              const insertAt = getSkillDropInsertionIndex(event.currentTarget, event.clientX);
+              clearTimelineDropIndicators(element);
+              if (insertAt != null) applyTimelineDrop(interactions, insertAt);
+            }}
+          >
+            <img src={icon} alt='' />
+            {skill?.variantBadge ? (
+              <span className='skill-variant-badge rot-variant-badge'>{skill.variantBadge}</span>
+            ) : null}
+            {canEditActivation ? (
+              <button
+                type='button'
+                className='rot-edit-activation'
+                data-idx={index}
+                title='Edit cast behavior'
+                aria-label={`Edit ${display} cast behavior`}
+                aria-haspopup='dialog'
+                draggable={false}
+                onMouseDown={(event) => event.stopPropagation()}
+                onDragStart={stopControlDrag}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  editRotationActivation(app, index, event);
+                }}
+              >
+                ✎
+              </button>
+            ) : canEditWait ? (
+              <button
+                type='button'
+                className='rot-edit-wait'
+                data-idx={index}
+                title='Edit wait duration'
+                aria-label='Edit Wait duration'
+                aria-haspopup='dialog'
+                draggable={false}
+                onMouseDown={(event) => event.stopPropagation()}
+                onDragStart={stopControlDrag}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  editRotationDuration(app, index, event);
+                }}
+              >
+                ✎
+              </button>
+            ) : null}
+            <button
+              type='button'
+              className='rot-x'
+              title='Remove (Shift: remove this and everything after)'
+              aria-label={`Remove ${display}`}
+              draggable={false}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onDragStart={stopControlDrag}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                if (event.shiftKey) app.build.rotation.splice(index);
+                else app.build.rotation.splice(index, 1);
+                app.rotationInsertionIndex = null;
+                app.changed(false);
+              }}
+            >
+              ×
+            </button>
+            {invalid ? (
+              <span className='rot-invalid-badge' title='Invalid — not simulated'>
+                ✕
+              </span>
+            ) : null}
+            {resourceSpend && !skill?.dragonSlash ? (
+              <span className='rot-resource-spend-badge' title={resourceLabel} aria-label={resourceLabel}>
+                {resourceShortLabel}
+              </span>
+            ) : null}
+            {time && item.concurrentOffsetMs == null && item.interruptAfterMs == null && !skill?.dragonSlash ? (
+              <span className='rot-time'>{time}</span>
+            ) : null}
+            {item.concurrentOffsetMs != null ? (
+              <span
+                className='rot-offset-badge rot-timed-action-badge'
+                title={`Delay ${item.concurrentOffsetMs}ms; cast at ${time}`}
+              >
+                {concurrentLabel}
+              </span>
+            ) : null}
+            {item.interruptAfterMs != null ? (
+              <span
+                className='rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge'
+                data-idx={index}
+                title={`Interrupt after ${item.interruptAfterMs}ms; cast at ${time}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  editRotationActivation(app, index, event);
+                }}
+              >
+                {interruptLabel}
+              </span>
+            ) : null}
+            {skill?.dragonSlash ? (
+              <span
+                className='rot-gapfill-badge rot-charge-release-badge rot-timed-action-badge'
+                data-idx={index}
+                title={`Release at ${item.releaseAtCharges == null ? 'maximum' : item.releaseAtCharges} charges; cast at ${time}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  editReleaseAtCharges(app, index, event);
+                }}
+              >
+                {chargeReleaseLabel}
+              </span>
+            ) : null}
+            {hasConfigurableDoubleEdgeOutcome(skill) ? (
+              <span
+                className='rot-gapfill-badge rot-double-edge-badge rot-timed-action-badge'
+                data-idx={index}
+                title={`Risky recast: ${doubleEdgeOutcomeLabel(doubleEdgeOutcome)}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  editDoubleEdgeOutcome(app, index, event);
+                }}
+              >
+                {doubleEdgeLabel}
+              </span>
+            ) : null}
+            {item.durationMs != null ? (
+              <span
+                className='rot-gapfill-badge rot-wait-badge'
+                data-idx={index}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  editRotationDuration(app, index, event);
+                }}
+              >
+                ⌛{item.durationMs}ms
+              </span>
+            ) : null}
+          </div>
+        </div>
       );
     });
     for (const marker of automaticPhotonForgeExitsByRow.get(rowNumber) || []) {
@@ -957,9 +1317,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         rowItems.push(renderOverlayProcMarker(marker));
       }
 
-      rowItems.push(
-        rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length)
-      );
+      rowItems.push(<InsertionGap key='trailing-insertion' app={app} index={app.build.rotation.length} />);
       for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
         rowItems.push(renderHealthMarker(marker));
       }
@@ -978,7 +1336,6 @@ export function renderTimeline(app: ProfessionAppState): void {
       }
     }
 
-    const skills = rowItems.join('');
     const finalSkill = row.skills.at(-1);
     const insertAt = finalSkill ? finalSkill.index + 1 : 0;
     const firstCommand = row.skills[0]?.entry;
@@ -987,196 +1344,52 @@ export function renderTimeline(app: ProfessionAppState): void {
       : `${row.weaponSet}:${row.weaponLine || ''}:empty:${rowNumber}`;
     return {
       key: rowKey,
-      html: `<div class="rot-row" style="--row-color:#9d7bd0">
-            <div class="rot-row-label" title="${esc(rowTitle)}">${esc(rowLabel)}</div>
-            <div class="rot-row-skills" data-insert-idx="${insertAt}">${skills}</div>
-        </div>`
+      node: (
+        <div key={rowKey} className='rot-row' style={{ '--row-color': '#9d7bd0' } as CSSProperties}>
+          <div className='rot-row-label' title={rowTitle}>
+            {rowLabel}
+          </div>
+          <div
+            className='rot-row-skills'
+            data-insert-idx={insertAt}
+            onDragOver={(event) => {
+              const target = event.target instanceof Element ? event.target : null;
+              if (!app.dragState || target?.closest('.rot-skill')) return;
+              event.preventDefault();
+              clearTimelineDropIndicators(element);
+              event.currentTarget.classList.add('drag-over');
+            }}
+            onDragLeave={(event) => {
+              if (event.target === event.currentTarget) event.currentTarget.classList.remove('drag-over');
+            }}
+            onDrop={(event) => {
+              const target = event.target instanceof Element ? event.target : null;
+              if (!app.dragState || target?.closest('.rot-skill')) return;
+              event.preventDefault();
+              event.stopPropagation();
+              clearTimelineDropIndicators(element);
+              applyTimelineDrop(interactions, insertAt);
+            }}
+          >
+            {rowItems}
+          </div>
+        </div>
+      )
     };
   });
 
-  if (procSteps.length) {
-    const procOptions = [...new Map(procSteps.map((proc) => [procFilterKey(proc), proc])).values()].sort((a, b) =>
-      procFilterLabel(a).localeCompare(procFilterLabel(b))
+  app.rotationInsertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
+  renderReact(
+    element,
+    <>
+      <TimelineKeyboard app={app} root={element} />
+      {timelineRows.map((row) => row.node)}
+    </>
+  );
+  if (procElement) {
+    renderReact(
+      procElement,
+      <ProcPanel app={app} procSteps={procSteps} procColors={procColors} formatTime={formatTime} />
     );
-    const visibleProcCount = procOptions.filter((proc) => procVisibility.has(procFilterKey(proc))).length;
-    const procs = groupConsecutiveProcSteps(procSteps)
-      .map((group) => {
-        const proc = group.steps[0];
-        if (!proc) return '';
-        const { key } = group;
-        const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
-        const type =
-          proc.type === 'relic_proc'
-            ? 'Relic'
-            : proc.type === 'sigil_proc'
-              ? 'Sigil'
-              : proc.type === 'skill_proc'
-                ? 'Skill'
-                : 'Trait';
-        const time = formatTime(proc.start);
-        const count = group.steps.length;
-        const badgeLabel = procBadgeLabel(group.steps);
-        const stackLabel = procStackLabel(group.steps.at(-1) || proc);
-        const detail =
-          count === 1
-            ? [
-                proc.skill,
-                `${type} proc at ${time}`,
-                proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
-                proc.detail || ''
-              ]
-                .filter(Boolean)
-                .join('\n')
-            : [
-                proc.skill,
-                `${type} proc x${count}`,
-                ...group.steps.map((step, index) =>
-                  [
-                    `${index + 1}. ${formatTime(step.start)}`,
-                    step.sourceSkill ? `Triggered by ${step.sourceSkill}` : '',
-                    step.detail || ''
-                  ]
-                    .filter(Boolean)
-                    .join(' - ')
-                )
-              ].join('\n');
-        return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'} title="${esc(detail)}"
-                style="--proc-color:${procColors[proc.type] || '#9d7bd0'}">
-                <img src="${esc(icon)}" alt="" />
-                ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
-                ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ''}
-                <span class="proc-time">${time}</span>
-            </div>`;
-      })
-      .join('');
-    if (procElement)
-      procElement.innerHTML = `<details class="rotation-procs-wrap"${procPanelWasOpen ? ' open' : ''}>
-            <summary>Procs (${procSteps.length} activation${procSteps.length === 1 ? '' : 's'})</summary>
-            <div class="rotation-procs-content">
-                <details class="proc-filter"${app.procFilterOpen ? ' open' : ''}>
-                    <summary title="Choose which proc types are shown">Visible <span class="proc-filter-count">${visibleProcCount}/${procOptions.length}</span></summary>
-                    <div class="proc-filter-menu">
-                        ${procOptions
-                          .map((proc) => {
-                            const key = procFilterKey(proc);
-                            return `<label class="proc-filter-option">
-                                <input type="checkbox" data-proc-key="${esc(key)}"${procVisibility.has(key) ? ' checked' : ''}>
-                                <span>${esc(procFilterLabel(proc))}</span>
-                            </label>`;
-                          })
-                          .join('')}
-                    </div>
-                </details>
-                <div class="proc-icons-row">${procs}</div>
-            </div>
-        </details>`;
-  } else if (procElement) procElement.innerHTML = '';
-  reconcileTimelineRows(element, timelineRows);
-  app.rotationInsertionIndex = mountRotationInsertionCursor({
-    root: element,
-    insertionIndex: app.rotationInsertionIndex,
-    rotationLength: app.build.rotation.length,
-    onSelect(index) {
-      app.rotationInsertionIndex = index;
-      renderPalette(app);
-      renderTimeline(app);
-      renderRotationStateSnapshot(app);
-    },
-    onClear() {
-      app.rotationInsertionIndex = null;
-      renderPalette(app);
-      renderTimeline(app);
-      renderRotationStateSnapshot(app);
-    }
-  });
-
-  const applySkillHighlight = (): void => {
-    const skills = [...element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]')];
-    const key = app.rotationSkillHighlightKey;
-    const active = !!key && skills.some((skill) => skill.dataset.skillHighlightKey === key);
-    if (!active) app.rotationSkillHighlightKey = null;
-    skills.forEach((skill) => {
-      const match = active && skill.dataset.skillHighlightKey === key;
-      skill.classList.toggle('skill-highlight', match);
-      skill.classList.toggle('skill-faded', active && !match);
-    });
-  };
-
-  element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
-    if (skill.dataset.highlightBound === 'true') return;
-    skill.dataset.highlightBound = 'true';
-    skill.addEventListener('click', () => {
-      const key = skill.dataset.skillHighlightKey;
-      app.rotationSkillHighlightKey = app.rotationSkillHighlightKey === key ? null : key;
-      applySkillHighlight();
-    });
-  });
-  applySkillHighlight();
-
-  const procFilter = procElement?.querySelector<HTMLDetailsElement>('.proc-filter') || null;
-  const activeProcVisibility = app.procVisibility || new Set();
-  if (procFilter && procElement) {
-    procFilter.addEventListener('toggle', () => {
-      app.procFilterOpen = procFilter.open;
-    });
-    // Proc filter toggles update DOM visibility directly rather than re-rendering,
-    // keeping the panel open and avoiding an expensive full timeline rebuild.
-    procFilter.querySelectorAll('input[data-proc-key]').forEach((input) => {
-      if (!(input instanceof HTMLInputElement)) return;
-      input.addEventListener('change', () => {
-        const key = input.dataset.procKey || '';
-        if (input.checked) activeProcVisibility.add(key);
-        else activeProcVisibility.delete(key);
-
-        if (!input.checked && app.rotationSkillHighlightKey === key) {
-          app.rotationSkillHighlightKey = null;
-          applySkillHighlight();
-        }
-
-        app.procFilterOpen = true;
-        procElement.querySelectorAll('.proc-icon[data-proc-key]').forEach((procIcon) => {
-          if (!(procIcon instanceof HTMLElement)) return;
-          procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
-        });
-        element.querySelectorAll('.rot-proc-overlay[data-proc-key]').forEach((procIcon) => {
-          if (!(procIcon instanceof HTMLElement)) return;
-          procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
-        });
-        const count = procFilter.querySelector('.proc-filter-count');
-        if (count) {
-          const visible = procFilter.querySelectorAll('input[data-proc-key]:checked').length;
-          const total = procFilter.querySelectorAll('input[data-proc-key]').length;
-          count.textContent = `${visible}/${total}`;
-        }
-      });
-    });
   }
-
-  const procIconsRow = procElement?.querySelector<HTMLElement>('.proc-icons-row') || null;
-  if (procIconsRow) {
-    const applyProcHighlight = (): void => {
-      const icons = [...procIconsRow.querySelectorAll('.proc-icon[data-proc-key]')];
-      const key = app.procHighlightKey;
-      const active = !!key && icons.some((icon) => icon instanceof HTMLElement && icon.dataset.procKey === key);
-      if (!active) app.procHighlightKey = null;
-      icons.forEach((icon) => {
-        if (!(icon instanceof HTMLElement)) return;
-        const match = active && icon.dataset.procKey === key;
-        icon.classList.toggle('proc-highlight', match);
-        icon.classList.toggle('proc-faded', active && !match);
-      });
-    };
-
-    procIconsRow.querySelectorAll('.proc-icon[data-proc-key]').forEach((icon) => {
-      if (!(icon instanceof HTMLElement)) return;
-      icon.addEventListener('click', () => {
-        const key = icon.dataset.procKey;
-        app.procHighlightKey = app.procHighlightKey === key ? null : key;
-        applyProcHighlight();
-      });
-    });
-    applyProcHighlight();
-  }
-
-  bindTimelineInteractions(element, timelineInteractionOptions(app));
 }

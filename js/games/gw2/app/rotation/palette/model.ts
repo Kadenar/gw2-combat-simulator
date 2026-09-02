@@ -479,29 +479,6 @@ export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1):
   });
 }
 
-export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
-  const content = groups.filter(Boolean).join('');
-  if (!content) return '';
-  return (
-    `<div class="weapon-palette-stack" data-role="weapon-set-stack" ` +
-    `style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:6px">${content}</div>`
-  );
-}
-
-export function weaponPaletteSectionHtml(
-  weaponGroups: readonly string[] = [],
-  actionGroup = '',
-  trailingGroup = ''
-): string {
-  const weapons = weaponPaletteStackHtml(weaponGroups);
-  if (!weapons && !actionGroup && !trailingGroup) return '';
-  return (
-    `<div class="weapon-palette-section" data-role="weapon-palette-section" ` +
-    `style="display:flex;align-items:flex-start;gap:6px">` +
-    `${weapons}${actionGroup}${trailingGroup}</div>`
-  );
-}
-
 export function autoattackChainSkillAvailable(skill: Skill, chainState: SchedulerRecord = {}): boolean {
   if (!skill.chainRoot) return true;
   const chainRoot = String(skill.chainRoot);

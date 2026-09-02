@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
@@ -64,52 +63,6 @@ test('Catalyst energy exposes its native compact-bar styling hook', () => {
   assert.equal(energy.id, 'catalyst-energy');
   assert.equal(energy.displayMode, 'bar');
   assert.equal(energy.pipStyle, 'compact-profession-resource-catalyst-energy');
-});
-
-test('Elementalist utilities render beside profession controls before weapons', () => {
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...elementalistProfession.createBuildDefaults(),
-    specializations: [
-      { name: 'Fire', traits: '1-1-1' },
-      { name: 'Air', traits: '1-1-1' },
-      { name: 'Catalyst', traits: '1-1-1' }
-    ]
-  });
-  const app = {
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    skills: elementalistProfession.catalog.skills,
-    skillByName: elementalistProfession.catalog.skillsByName,
-    skillById: elementalistProfession.catalog.skillsById,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: null
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  const attunements = palette.innerHTML.indexOf('elementalist-attunement-palette');
-  const catalyst = palette.innerHTML.indexOf('elementalist-catalyst-spheres');
-  const energy = palette.innerHTML.indexOf('<strong>30/30</strong>');
-  const utilities = palette.innerHTML.indexOf('utility-palette-group');
-  const weapons = palette.innerHTML.indexOf('weapon-palette-section');
-
-  assert.match(palette.innerHTML, /<strong>30\/30<\/strong>/);
-  assert.ok(attunements >= 0);
-  assert.ok(catalyst >= 0);
-  assert.ok(catalyst < energy);
-  assert.ok(energy < attunements);
-  assert.ok(utilities > attunements);
-  assert.ok(weapons > utilities);
 });
 
 test('Catalyst sphere palette availability reflects attunement and energy', () => {

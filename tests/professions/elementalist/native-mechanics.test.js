@@ -6,8 +6,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
+import { paletteSkillView } from '#gw2/app/rotation/palette/view.js';
 import { paletteActionSkills, rotationSelectedSlotSkills, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/content/professions/elementalist/build/attributes.js';
@@ -583,106 +582,6 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
   );
 });
 
-test('Weaver palette composes the active bar and preserves every slot-three cooldown', () => {
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...elementalistProfession.createBuildDefaults(),
-    weapons: ['Sword', 'Warhorn'],
-    alternateWeapons: ['', ''],
-    startAttunement: 'Fire',
-    secondaryAttunement: 'Water',
-    specializations: [
-      { name: 'Fire', traits: '1-1-1' },
-      { name: 'Air', traits: '1-1-1' },
-      { name: 'Weaver', traits: '1-1-1' }
-    ]
-  });
-  const app = {
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: {
-      endState: {
-        activeWeaponSet: 1,
-        time: 0,
-        cooldowns: {
-          'Pyro Vortex': { remaining: 3400, readyAt: 3400 }
-        },
-        profession: {
-          primaryAttunement: 'Fire',
-          secondaryAttunement: 'Water',
-          autoattackChains: {}
-        }
-      }
-    }
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(palette.innerHTML, /data-role="weaver-current-bar"/);
-  assert.match(
-    palette.innerHTML,
-    /<details class="weaver-weapon-palette"[^>]*data-palette-storage-key="gw2-weaver-cooldowns-expanded" open>/
-  );
-  assert.match(palette.innerHTML, /<summary class="weaver-cooldown-toggle">All weapon skill cooldowns<\/summary>/);
-  assert.match(palette.innerHTML, /data-role="weaver-primary-bank"/);
-  assert.match(palette.innerHTML, /data-role="weaver-slot-three-bank"/);
-  assert.match(palette.innerHTML, /data-role="weaver-secondary-bank"/);
-  assert.match(
-    palette.innerHTML,
-    /data-role="weaver-top-palette"[\s\S]*?data-role="profession-palette-section"[\s\S]*?data-role="weaver-current-bar"[\s\S]*?utility-palette-group[\s\S]*?data-role="weapon-palette-section"/
-  );
-
-  const currentStart = palette.innerHTML.indexOf('data-role="weaver-current-bar"');
-  const currentEnd = palette.innerHTML.indexOf('utility-palette-group', currentStart);
-  const bankStart = palette.innerHTML.indexOf('data-role="weaver-cooldown-bank"');
-  const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
-
-  assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 5);
-  assert.doesNotMatch(currentHtml, /data-palette-static="true"/);
-  assert.match(currentHtml, /data-skill="Fire Strike"/);
-  assert.doesNotMatch(currentHtml, /data-skill="Fire Swipe"/);
-  assert.doesNotMatch(currentHtml, /data-skill="Searing Slash"/);
-  assert.deepEqual(
-    [...currentHtml.matchAll(/data-attunement="([^"]+)"/g)].map((match) => match[1]),
-    ['Fire', 'Fire', 'Fire+Water', 'Water', 'Water']
-  );
-
-  const bankHtml = [...palette.innerHTML.matchAll(/<section class="weaver-cooldown-lane[^>]*>[\s\S]*?<\/section>/g)]
-    .map((match) => match[0])
-    .join('');
-
-  assert.equal((bankHtml.match(/class="weaver-cooldown-lane/g) || []).length, 3);
-  const bankSkillCount = (bankHtml.match(/class="pal-skill/g) || []).length;
-
-  assert.equal((bankHtml.match(/data-palette-static="true"/g) || []).length, bankSkillCount);
-  assert.doesNotMatch(bankHtml, /draggable="true"/);
-  assert.doesNotMatch(bankHtml, /data-hotkey-action=/);
-  assert.doesNotMatch(bankHtml, /weaver-skill-cell is-equipped/);
-
-  const sameStart = palette.innerHTML.indexOf('data-weaver-variant="same"');
-  const dualStart = palette.innerHTML.indexOf('data-weaver-variant="dual"');
-  const secondaryStart = palette.innerHTML.indexOf('data-role="weaver-secondary-bank"');
-  const sameHtml = palette.innerHTML.slice(sameStart, dualStart);
-  const dualHtml = palette.innerHTML.slice(dualStart, secondaryStart);
-
-  assert.equal((sameHtml.match(/class="pal-skill/g) || []).length, 4);
-  assert.equal((dualHtml.match(/class="pal-skill/g) || []).length, 6);
-  assert.match(dualHtml, /data-skill="Pyro Vortex"[\s\S]*?<span class="pal-cd">3\.40s<\/span>/);
-});
-
 test('weapon bar excludes dual attacks outside Weaver', () => {
   const dual = elementalistCatalog.skillsByName.get('Twin Strike');
   const matches = elementalistProfession.ui.weaponSkillMatchesSet;
@@ -700,108 +599,6 @@ test('weapon bar excludes dual attacks outside Weaver', () => {
       build: {}
     }),
     true
-  );
-});
-
-test('starting attunement controls render catalog icons', () => {
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...elementalistProfession.createBuildDefaults(),
-    specializations: [
-      { name: 'Fire', traits: '1-1-1' },
-      { name: 'Air', traits: '1-1-1' },
-      { name: 'Weaver', traits: '1-1-1' }
-    ]
-  });
-  const app = {
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    results: null,
-    changed() {}
-  };
-  const selector = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'start-att-selector' ? selector : null)
-  };
-  try {
-    renderStartResource(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  for (const name of ['Fire', 'Water', 'Air', 'Earth']) {
-    const icon = elementalistCatalog.skillsByName.get(`${name} Attunement`).icon;
-
-    assert.ok(icon);
-    assert.equal(selector.innerHTML.split(icon).length - 1, 2);
-  }
-
-  assert.match(selector.innerHTML, /Primary attunement/);
-  assert.match(selector.innerHTML, /Secondary attunement/);
-});
-
-test('rotation palette exposes each attunement as an action', () => {
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...elementalistProfession.createBuildDefaults(),
-    alternateWeapons: ['', ''],
-    specializations: [
-      { name: 'Fire', traits: '1-1-1' },
-      { name: 'Air', traits: '1-1-1' },
-      { name: 'Arcane', traits: '1-1-1' }
-    ]
-  });
-  const app = {
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: null
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(palette.innerHTML, />Attune</);
-  for (const [name, badge] of [
-    ['Fire', 'F'],
-    ['Water', 'W'],
-    ['Air', 'A'],
-    ['Earth', 'E']
-  ]) {
-    assert.match(palette.innerHTML, new RegExp(`data-skill="${name} Attunement"`));
-    assert.match(
-      palette.innerHTML,
-      new RegExp(`data-skill="${name} Attunement"[\\s\\S]*?pal-variant-badge">${badge}<`)
-    );
-  }
-
-  assert.match(palette.innerHTML, /data-skill="Air Attunement"[^>]*draggable="true"/);
-
-  app.build.specializations[2] = { name: 'Tempest', traits: '1-1-1' };
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.ok(
-    palette.innerHTML.indexOf('data-skill="Overload Air"') < palette.innerHTML.indexOf('data-skill="Air Attunement"')
   );
 });
 
@@ -938,42 +735,22 @@ test('Evoker layers familiar charges beside F5', () => {
   assert.equal(charges.pipStyle, 'elementalist-evoker-air-2');
   assert.equal(charges.showValue, false);
 
-  const resourceHtml = activeResourceGroup({
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    results: { endState: { profession: professionState } }
+  const [basicReady] = elementalistProfession.ui.resourceViews({
+    ...context,
+    professionState: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 }
+  });
+  const [empoweredReady] = elementalistProfession.ui.resourceViews({
+    ...context,
+    professionState: { ...professionState, charges: 4, empowered: 3 }
   });
 
-  assert.match(resourceHtml, /data-resource-id="evoker-charges"/);
-  assert.match(resourceHtml, /data-resource-count="4"/);
-  assert.match(resourceHtml, /active-resource-pips elementalist-evoker-air-2/);
-  assert.doesNotMatch(resourceHtml, /<strong>4\/6<\/strong>/);
-
-  const basicReadyHtml = activeResourceGroup({
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    results: {
-      endState: { profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 } }
-    }
-  });
-  const empoweredReadyHtml = activeResourceGroup({
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    results: {
-      endState: { profession: { ...professionState, charges: 4, empowered: 3 } }
-    }
-  });
-
-  assert.match(basicReadyHtml, /data-resource-count="6"/);
-  assert.match(basicReadyHtml, /active-resource-pips elementalist-evoker-air-0-ready/);
-  assert.match(empoweredReadyHtml, /data-resource-count="4"/);
-  assert.match(empoweredReadyHtml, /active-resource-pips elementalist-evoker-air-3/);
+  assert.equal(basicReady.value, 6);
+  assert.equal(basicReady.pipStyle, 'elementalist-evoker-air-0-ready');
+  assert.equal(empoweredReady.value, 4);
+  assert.equal(empoweredReady.pipStyle, 'elementalist-evoker-air-3');
 });
 
-test('Evoker renders stacked starting controls for basic and empowered charges', () => {
+test('Evoker exposes basic and empowered starting charges', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
     specializations: [
@@ -982,43 +759,8 @@ test('Evoker renders stacked starting controls for basic and empowered charges',
       { name: 'Evoker', traits: '1-1-1' }
     ]
   });
-  const app = {
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    results: null,
-    changed() {}
-  };
-  const selector = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'start-att-selector' ? selector : null)
-  };
-  try {
-    renderStartResource(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  const basicControls = selector.innerHTML.match(/data-resource-key="initialEvokerCharges"/g) || [];
-  const empoweredControls = selector.innerHTML.match(/data-resource-key="initialEvokerEmpowered"/g) || [];
-  const activeBasicControls =
-    selector.innerHTML.match(
-      /class="resource-pip active"[^>]*data-count="\d" data-resource-key="initialEvokerCharges"/g
-    ) || [];
-  const activeEmpoweredControls =
-    selector.innerHTML.match(
-      /class="resource-pip active"[^>]*data-count="\d" data-resource-key="initialEvokerEmpowered"/g
-    ) || [];
-
   assert.equal(build.initialEvokerCharges, 6);
   assert.equal(build.initialEvokerEmpowered, 0);
-  assert.match(selector.innerHTML, /class="start-resource-controls"/);
-  assert.equal(basicControls.length, 6);
-  assert.equal(empoweredControls.length, 3);
-  assert.equal(activeBasicControls.length, 6);
-  assert.equal(activeEmpoweredControls.length, 0);
 
   const resources = elementalistProfession.ui.resourceViews({
     build: { ...build, initialEvokerCharges: 4, initialEvokerEmpowered: 2 },
@@ -3129,49 +2871,10 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   assert.equal(resolvedBarrages[0].damage, resolvedBarrages[1].damage);
   assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
 
-  const armedResult = runNative({
-    lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Glyph of Elementals', 1000],
-    startAttunement: 'Air'
-  });
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...elementalistProfession.createBuildDefaults(),
-    specializations: [
-      { name: 'Fire', traits: '1-1-1' },
-      { name: 'Air', traits: '1-1-1' },
-      { name: 'Arcane', traits: '1-1-1' }
-    ]
-  });
-  const app = {
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: armedResult
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.doesNotMatch(palette.innerHTML, /data-skill="Glyph of Elementals"/);
-  assert.match(palette.innerHTML, /class="pal-skill" data-skill="Flame Barrage"[\s\S]*?draggable="true"/);
   assert.equal(
     elementalistCatalog.skillsByName.get('Flame Barrage').icon,
     'https://render.guildwars2.com/file/64A5054179704B60614F90964DE1FB3D39AEC972/867446.png'
   );
-  assert.match(palette.innerHTML, /64A5054179704B60614F90964DE1FB3D39AEC972/);
-  assert.doesNotMatch(palette.innerHTML, /011D983FEAFB946EF0F45E7F290838CFA31D63D0/);
 });
 
 test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () => {
@@ -3376,51 +3079,45 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
     ['Dodge']
   );
 
-  const renderResult = (result) => {
-    app.results = result;
-    const palette = { innerHTML: '', querySelectorAll: () => [] };
-    const previousDocument = globalThis.document;
-
-    globalThis.document = {
-      getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-    };
-    try {
-      renderPalette(app);
-    } finally {
-      globalThis.document = previousDocument;
-    }
-
-    return palette.innerHTML;
+  const groupSkillNames = (result) => {
+    const professionState = result?.endState?.profession || {};
+    return elementalistProfession.ui
+      .paletteGroups({
+        specialization: 'Core',
+        build: app.build,
+        professionState,
+        time: Number(result?.endState?.time || 0) / 1000
+      })
+      .flatMap((group) => group.skillIds || [])
+      .map((skillId) => elementalistCatalog.skillsById.get(skillId)?.name);
   };
 
-  const initialHtml = renderResult(null);
-
-  assert.match(initialHtml, /data-skill="Dodge"/);
-  assert.doesNotMatch(initialHtml, /data-skill="__drop_bundle"/);
-  assert.doesNotMatch(initialHtml, /data-skill="__pickup_/);
-
-  const equippedHtml = renderResult(
-    runNative({
-      lines: [['Fire'], ['Air'], ['Arcane']],
-      rotation: ['Conjure Frost Bow'],
-      selectedSkills
-    })
+  assert.equal(
+    groupSkillNames(null).some((name) => name?.startsWith('__')),
+    false
   );
 
-  assert.match(equippedHtml, /data-skill="Frost Volley"/);
-  assert.match(equippedHtml, /data-skill="__drop_bundle"/);
-  assert.doesNotMatch(equippedHtml, /data-skill="__pickup_/);
-  assert.doesNotMatch(equippedHtml, /data-skill="Flame Uprising"/);
+  const equipped = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Conjure Frost Bow'],
+    selectedSkills
+  });
+  const equippedNames = groupSkillNames(equipped);
 
-  const pickupHtml = renderResult(
-    runNative({
-      lines: [['Fire'], ['Air'], ['Arcane']],
-      rotation: ['Conjure Frost Bow', '__drop_bundle'],
-      selectedSkills
-    })
+  assert.equal(equippedNames.includes('Frost Volley'), true);
+  assert.equal(equippedNames.includes('__drop_bundle'), true);
+  assert.equal(
+    equippedNames.some((name) => name?.startsWith('__pickup_')),
+    false
   );
 
-  assert.match(pickupHtml, /data-skill="__pickup_Frost Bow"/);
-  assert.doesNotMatch(pickupHtml, /data-skill="__drop_bundle"/);
-  assert.match(pickupHtml, /data-skill="Flame Uprising"/);
+  const dropped = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Conjure Frost Bow', '__drop_bundle'],
+    selectedSkills
+  });
+  const droppedNames = groupSkillNames(dropped);
+
+  assert.equal(droppedNames.includes('__pickup_Frost Bow'), true);
+  assert.equal(droppedNames.includes('__drop_bundle'), false);
 });

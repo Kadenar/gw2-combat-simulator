@@ -10,10 +10,11 @@
     "noUnusedParameters": true,
     "skipLibCheck": true,
     "noEmitOnError": true,
+    "jsx": "react-jsx",
     "declaration": false,
     "sourceMap": false,
     "removeComments": false
   },
-  "include": ["js/**/*.ts"],
+  "include": ["js/**/*.ts", "js/**/*.tsx"],
   "exclude": ["dist", "node_modules"]
 }

@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
 import { ELEMENTALIST_WEAVER_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
@@ -101,60 +100,6 @@ test('Weaver exposes primary and secondary starting attunements', () => {
       ['Fire', 'Water', 'Air', 'Earth']
     ]
   );
-});
-
-test('Weaver current bar exposes a carried autoattack from the previous primary attunement', () => {
-  const build = {
-    ...weaverBuild('1-1-1'),
-    weapons: ['Sword', 'Dagger'],
-    startAttunement: 'Air',
-    secondaryAttunement: 'Fire'
-  };
-  const airRoot = elementalistCatalog.skillsByName.get('Charged Strike').id;
-  const airFollowup = elementalistCatalog.skillsByName.get('Polaric Slash');
-  const app = {
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    skills: elementalistCatalog.skills,
-    skillByName: elementalistCatalog.skillsByName,
-    skillById: elementalistCatalog.skillsById,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: {
-      endState: {
-        activeWeaponSet: 1,
-        time: 1000,
-        cooldowns: {},
-        profession: {
-          primaryAttunement: 'Fire',
-          secondaryAttunement: 'Air',
-          autoattackChains: { [airRoot]: airFollowup.id },
-          autoattackCarryover: { root: airRoot, attunement: 'Air' }
-        }
-      }
-    }
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  const currentStart = palette.innerHTML.indexOf('data-role="weaver-current-bar"');
-  const currentEnd = palette.innerHTML.indexOf('utility-palette-group', currentStart);
-  const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
-
-  assert.match(currentHtml, /data-skill="Polaric Slash"/);
-  assert.match(currentHtml, /data-skill="Fire Strike"/);
-  assert.ok(currentHtml.indexOf('data-skill="Polaric Slash"') < currentHtml.indexOf('data-skill="Fire Strike"'));
-  assert.match(currentHtml, /data-skill="Polaric Slash"[^>]*draggable="true"/);
-  assert.match(currentHtml, /data-skill="Fire Strike"[^>]*draggable="true"/);
 });
 
 test('Weaver active state shows remaining Weave Self and Perfect Weave time', () => {

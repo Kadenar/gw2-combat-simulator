@@ -18,33 +18,21 @@ import {
   chartValueAt,
   mountTimeSeriesCharts
 } from '#gw2/app/presentation/results/charts/time-series.js';
-import { eventLogCsv, mountEventLog } from '#gw2/app/presentation/results/event-log.js';
-import {
-  bindPaletteInteractions,
-  paletteGroupHtml,
-  paletteSkillHtml,
-  virtualPaletteSkillHtml
-} from '#gw2/app/presentation/rotation/palette.js';
+import { eventLogCsv } from '#gw2/app/presentation/results/event-log.js';
 import { escapeHtml, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
-import {
-  normalizeRotationInsertionIndex,
-  rotationInsertionGapHtml,
-  rotationTimelineEntryHtml
-} from '#ui/rotation/insertion-cursor.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 import {
   resultSummaryMetrics,
   targetHealthBreakpointSnapshots
 } from '#gw2/app/presentation/results/result-transform.js';
 import {
   dismissResultMetricDetails,
-  mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
   sortResultRows
 } from '#gw2/app/presentation/results/rotation-results.js';
-import { mountRotationWarnings } from '#ui/results/rotation-warnings.js';
 import {
-  bindTimelineInteractions,
+  applyTimelineDrop,
   formatTimelineCastDetails,
   formatTimelineDuration,
   formatTimelineSkillTooltip,
@@ -186,18 +174,6 @@ test('rotation insertion cursors validate positions and expose accessible gaps',
   assert.equal(normalizeRotationInsertionIndex(1.5, 3), null);
   assert.equal(normalizeRotationInsertionIndex(null, 3), null);
   assert.equal(normalizeRotationInsertionIndex(undefined, 3), null);
-
-  assert.match(rotationInsertionGapHtml(2, 2), /class="rot-insertion-gap active"/);
-  assert.match(rotationInsertionGapHtml(2, null), /Insert at position 3/);
-  const entryHtml = rotationTimelineEntryHtml(
-    2,
-    null,
-    '<div class="rot-dead-time">Dead</div><div class="rot-skill">Skill</div>'
-  );
-  assert.match(
-    entryHtml,
-    /class="rot-entry"[\s\S]*data-insertion-index="2"[\s\S]*class="rot-dead-time"[\s\S]*class="rot-skill"/
-  );
 });
 
 test('timeline cast details preserve millisecond wait boundaries', () => {
@@ -754,34 +730,6 @@ test('chart canvases stay fluid when their initial container width is unavailabl
   assert.equal(effectsCanvas.style.width, '100%');
 });
 
-test('result charts reuse the target-health DPS snapshot breakpoints', () => {
-  const chartContainer = inertContainer();
-  const container = {
-    innerHTML: '',
-    querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null),
-    querySelectorAll: () => []
-  };
-
-  mountRotationResults(container, {
-    breakpoints: [
-      { healthPercent: 80, dps: 1200, elapsed: 1, damage: 1200 },
-      { healthPercent: 60, dps: 1400, elapsed: 2, damage: 2800 }
-    ],
-    chartSeries: {
-      durationMs: 3000,
-      dps: [{ t: 0, v: 0 }],
-      effects: {},
-      cumulativeDamage: [
-        { t: 0, v: 0 },
-        { t: 3000, v: 4000 }
-      ]
-    }
-  });
-
-  assert.match(chartContainer.innerHTML, /data-chart-phase="100-80"[\s\S]*?aria-pressed="false"/);
-  assert.match(chartContainer.innerHTML, /data-chart-phase="80-60"[\s\S]*?aria-pressed="false"/);
-});
-
 test('result sorting handles defaults, numeric directions, strings, and cycling', () => {
   assert.deepEqual(
     SKILL_COLS.map((column) => column.key),
@@ -826,180 +774,6 @@ test('result sorting handles defaults, numeric directions, strings, and cycling'
   });
 });
 
-test('shared results render summaries, totals, contributions, and icons', () => {
-  const container = inertContainer();
-  const resolved = [];
-
-  mountRotationResults(
-    container,
-    {
-      metrics: [
-        { label: 'Player DPS', value: '1,234', className: 'dps' },
-        { label: 'Environment Damage', value: '50', className: 'environment', group: 'target' },
-        { label: 'Target Damage', value: '1,284', className: 'target-damage', group: 'target' }
-      ],
-      breakpoints: [{ healthPercent: 80, dps: 1234, elapsed: 3.25 }],
-      skillColumns: [
-        { key: 'name', label: 'Skill', numeric: false },
-        { key: 'total', label: 'Total', numeric: true }
-      ],
-      skillRows: [
-        { name: 'Low', total: 10 },
-        { name: 'High', total: 20 }
-      ],
-      conditions: [{ name: 'Burn <hot>', damage: 25, dps: 5, averageStacks: 1.25 }],
-      conditionTotal: { label: 'Total Conditions', damage: 25, dps: 5 },
-      contributions: [
-        {
-          name: 'Bonus',
-          dpsIncrease: 12,
-          pctIncrease: 1.5,
-          icon: 'bonus.png'
-        },
-        {
-          name: 'Noise',
-          dpsIncrease: -0.1,
-          pctIncrease: -0.001
-        },
-        {
-          name: 'Penalty',
-          dpsIncrease: -12,
-          pctIncrease: -1.5
-        }
-      ],
-      contributionsStale: true,
-      randomDistributionRequested: true,
-      randomDistribution: {
-        trials: 500,
-        mean: 1234,
-        p01: 1000,
-        p10: 1100,
-        p50: 1225,
-        p90: 1350,
-        p99: 1500,
-        explanation: {
-          cohortPercent: 10,
-          lowDpsMean: 1040,
-          highDpsMean: 1460,
-          drivers: [
-            {
-              id: 'critical:illusion',
-              label: 'Illusion critical hits',
-              category: 'critical',
-              unit: 'count',
-              lowAverage: 18.2,
-              overallAverage: 21.5,
-              highAverage: 25.4,
-              delta: 7.2,
-              correlation: 0.84,
-              estimatedDpsDelta: 360
-            }
-          ]
-        }
-      }
-    },
-    {
-      resolveSkillIcon: (row) => {
-        resolved.push(row.name);
-
-        return `icon-${row.name}.png`;
-      }
-    }
-  );
-
-  assert.match(container.innerHTML, /res-summary/);
-  assert.equal((container.innerHTML.match(/res-stat-target-start/g) || []).length, 1);
-  assert.match(container.innerHTML, /<details class="res-dps-snapshots">/);
-  assert.match(container.innerHTML, /DPS snapshots/);
-  assert.doesNotMatch(container.innerHTML, /res-breakpoints/);
-  assert.match(container.innerHTML, /80%<\/b> target health/);
-  assert.match(container.innerHTML, />1,234</);
-  assert.match(container.innerHTML, /at 3\.25s/);
-  assert.ok(container.innerHTML.indexOf('High') < container.innerHTML.indexOf('Low'));
-  assert.match(container.innerHTML, /Total Conditions/);
-  assert.equal((container.innerHTML.match(/class="res-breakdown-section"/g) || []).length, 1);
-  assert.doesNotMatch(container.innerHTML, /res-section-title"><svg/);
-  assert.ok(container.innerHTML.indexOf('Damage Breakdown') < container.innerHTML.indexOf('Conditions'));
-  assert.match(container.innerHTML, /\+12/);
-  assert.match(container.innerHTML, /\+1\.50%/);
-  assert.match(
-    container.innerHTML,
-    /Noise<\/span>\s*<span class="contrib-val">0<\/span>\s*<span class="contrib-pct">0\.00%/
-  );
-  assert.match(
-    container.innerHTML,
-    /Penalty<\/span>\s*<span class="contrib-val">-12<\/span>\s*<span class="contrib-pct">-1\.50%/
-  );
-  assert.doesNotMatch(container.innerHTML, /-0(?:\.00)?%?/);
-  assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
-  assert.match(container.innerHTML, /contrib-status/);
-  assert.match(container.innerHTML, /Recalculating/);
-  assert.match(container.innerHTML, /disabling each modifier and rerunning the simulation/);
-  assert.match(container.innerHTML, /misleading if doing so breaks the rotation/);
-  assert.match(container.innerHTML, /Randomized DPS range/);
-  assert.match(container.innerHTML, /Recalculate/);
-  assert.match(container.innerHTML, /500 simulations/);
-  assert.match(container.innerHTML, /Rare low outcome/);
-  assert.match(container.innerHTML, /About 1 in 100 runs are lower/);
-  assert.match(container.innerHTML, /Rare high outcome/);
-  assert.match(container.innerHTML, /About 1 in 100 runs are higher/);
-  assert.match(container.innerHTML, /1,100&ndash;1,350/);
-  assert.match(container.innerHTML, /What was different in the highest-DPS simulations\?/);
-  assert.match(container.innerHTML, /50 highest vs 50 lowest/);
-  assert.match(container.innerHTML, /The 50 highest-DPS simulations averaged 1,460 DPS/);
-  assert.match(container.innerHTML, /The 50 lowest-DPS simulations averaged 1,040 DPS/);
-  assert.match(container.innerHTML, /Illusion critical hits/);
-  assert.match(container.innerHTML, /Highest-DPS group: 25\.4 average per simulation/);
-  assert.match(container.innerHTML, /Lowest-DPS group: 18\.2 average per simulation/);
-  assert.match(container.innerHTML, /\+7\.2/);
-  assert.match(container.innerHTML, /difference/);
-  assert.match(container.innerHTML, /&asymp; \+360 DPS/);
-  assert.match(container.innerHTML, /estimated DPS difference/);
-  assert.match(container.innerHTML, /single-variable trend estimates/);
-  assert.match(container.innerHTML, /averages across each group/);
-  assert.match(container.innerHTML, /do not add them together/);
-  assert.ok(container.innerHTML.indexOf('DPS snapshots') < container.innerHTML.indexOf('Randomized DPS range'));
-  assert.deepEqual(resolved, ['High', 'Low']);
-
-  assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
-});
-
-test('modifier contribution errors are visible and escaped', () => {
-  const container = inertContainer();
-
-  mountRotationResults(container, {
-    contributionsError: 'Comparison <failed>'
-  });
-
-  assert.match(container.innerHTML, /Modifier Contributions/);
-  assert.match(container.innerHTML, /class="contrib-pending contrib-error"/);
-  assert.match(container.innerHTML, /Comparison &lt;failed&gt;/);
-  assert.doesNotMatch(container.innerHTML, /Comparison <failed>/);
-});
-
-test('summary metrics render a clickable and escaped contributor disclosure', () => {
-  const container = inertContainer();
-
-  mountRotationResults(container, {
-    metrics: [
-      {
-        label: 'Total Idle Time',
-        value: '650ms',
-        details: [
-          { label: 'Idle time between skills', value: '250ms' },
-          { label: "Skill cancelled '<Mind Stab>'", value: '400ms' }
-        ]
-      }
-    ]
-  });
-
-  assert.match(container.innerHTML, /<details class="res-metric-info">/);
-  assert.match(container.innerHTML, /aria-label="Show Total Idle Time breakdown"/);
-  assert.match(container.innerHTML, /Idle time between skills/);
-  assert.match(container.innerHTML, /Skill cancelled '&lt;Mind Stab&gt;'/);
-  assert.doesNotMatch(container.innerHTML, /Skill cancelled '<Mind Stab>'/);
-});
-
 test('summary metric disclosures stay open for internal clicks and dismiss on click away', () => {
   const inside = {};
   const outside = {};
@@ -1017,337 +791,22 @@ test('summary metric disclosures stay open for internal clicks and dismiss on cl
   assert.equal(clickedDetails.open, false);
 });
 
-test('summary metric click-away dismissal binds before the native details click toggle', () => {
-  const eventTypes = [];
-  const ownerDocument = {
-    addEventListener: (type) => eventTypes.push(type),
-    querySelectorAll: () => []
-  };
-  const container = { ...inertContainer(), ownerDocument };
-
-  mountRotationResults(container, { metrics: [] });
-
-  assert.deepEqual(eventTypes, ['pointerdown']);
-});
-
-test('skill damage rows group player damage before owned entities', () => {
-  const container = inertContainer();
-
-  mountRotationResults(container, {
-    skillColumns: [
-      { key: 'name', label: 'Skill', numeric: false },
-      { key: 'strike', label: 'Strike', numeric: true },
-      {
-        key: 'condition',
-        label: 'Condition',
-        numeric: true,
-        className: 'condi'
-      },
-      { key: 'total', label: 'Total', numeric: true, className: 'total' },
-      { key: 'dps', label: 'DPS', numeric: true, className: 'dps' }
-    ],
-    skillRows: [
-      {
-        name: 'Player Low',
-        strike: 6,
-        condition: 4,
-        total: 10,
-        dps: 2,
-        group: 'Player'
-      },
-      {
-        name: 'Entity High',
-        strike: 75,
-        condition: 25,
-        total: 100,
-        dps: 20,
-        group: 'Entities'
-      },
-      {
-        name: 'Player High',
-        strike: 15,
-        condition: 5,
-        total: 20,
-        dps: 4,
-        group: 'Player'
-      },
-      {
-        name: 'Entity Low',
-        strike: 30,
-        condition: 20,
-        total: 50,
-        dps: 10,
-        group: 'Entities'
-      }
-    ]
-  });
-
-  const html = container.innerHTML;
-  const playerGroup = html.indexOf('data-skill-group="Player"');
-  const entityGroup = html.indexOf('data-skill-group="Entities"');
-
-  assert.ok(playerGroup >= 0);
-  assert.ok(entityGroup > playerGroup);
-  assert.ok(html.indexOf('Player High') < html.indexOf('Player Low'));
-  assert.ok(html.indexOf('Player Low') < entityGroup);
-  assert.ok(html.indexOf('Entity High') < html.indexOf('Entity Low'));
-  assert.match(html, /aria-label="Player Strike: 21">21</);
-  assert.match(html, /aria-label="Player Condition: 9">9</);
-  assert.match(html, /aria-label="Player Total: 30">30</);
-  assert.match(html, /aria-label="Player DPS: 6">6</);
-  assert.match(html, /aria-label="Entities Strike: 105">105</);
-  assert.match(html, /aria-label="Entities Condition: 45">45</);
-  assert.match(html, /aria-label="Entities Total: 150">150</);
-  assert.match(html, /aria-label="Entities DPS: 30">30</);
-});
-
-test('randomized DPS range waits for its calculate button', () => {
-  const runButton = {};
-  const container = {
-    ...inertContainer(),
-    querySelector: (selector) => (selector === '[data-role="rng-run"]' ? runButton : null)
-  };
-  let runCount = 0;
-
-  mountRotationResults(
-    container,
-    {
-      metrics: [],
-      randomDistributionRequested: true,
-      randomDistributionTrials: 500
-    },
-    {
-      onRunRandomDistribution() {
-        runCount += 1;
-      }
-    }
-  );
-
-  assert.match(container.innerHTML, /weapon strength and supported random procs/);
-  assert.match(container.innerHTML, /500 simulations/);
-  assert.match(container.innerHTML, /Calculate range/);
-  assert.equal(typeof runButton.onclick, 'function');
-  runButton.onclick();
-  assert.equal(runCount, 1);
-});
-
-test('randomized DPS range renders completed simulations and percentage progress', () => {
-  const container = inertContainer();
-
-  mountRotationResults(container, {
-    metrics: [],
-    randomDistributionRequested: true,
-    randomDistributionStale: true,
-    randomDistributionTrials: 500,
-    randomDistributionProgress: {
-      completed: 125,
-      total: 500,
-      percent: 25
-    }
-  });
-
-  assert.match(container.innerHTML, /role="progressbar"/);
-  assert.match(container.innerHTML, /aria-valuenow="25"/);
-  assert.match(container.innerHTML, /style="width: 25%"/);
-  assert.match(container.innerHTML, /125 \/ 500 simulations \(25%\)/);
-});
-
-test('rotation warnings render a collapsed count and escaped details', () => {
-  const container = inertContainer();
-
-  mountRotationWarnings(container, [
-    { time: '1.25s', message: 'Unsafe <script>' },
-    { time: '2.50s', message: 'Missing resource' }
-  ]);
-
-  assert.match(container.innerHTML, /<details class="rotation-warnings-wrap">/);
-  assert.doesNotMatch(container.innerHTML, /rotation-warnings-wrap" open/);
-  assert.match(container.innerHTML, /Warnings \(2\)/);
-  assert.match(container.innerHTML, /rotation-warning-time">1\.25s/);
-  assert.match(container.innerHTML, /rotation-warning-time">2\.50s/);
-  assert.match(container.innerHTML, /Unsafe &lt;script&gt;/);
-  assert.doesNotMatch(container.innerHTML, /Unsafe <script>/);
-  assert.match(container.innerHTML, /Missing resource/);
-
-  mountRotationWarnings(container, ['Still unsafe'], { open: true });
-  assert.match(container.innerHTML, /rotation-warnings-wrap" open/);
-
-  mountRotationWarnings(container, []);
-  assert.equal(container.innerHTML, '');
-});
-
-test('palette primitives escape values and render state, ammo, cooldowns, and groups', () => {
-  const html = paletteSkillHtml({
-    name: 'Skill"><bad>',
-    skillId: 12345,
-    title: 'Title"><bad>',
-    icon: 'icon" onerror="bad',
-    variantBadge: '<MAX>',
-    color: '#abc',
-    disabled: true,
-    draggable: true,
-    cooldownLabel: '<5s',
-    ammo: { current: 1, maximum: 2, pips: [true, false] },
-    resource: {
-      id: 'endurance',
-      label: 'Current endurance: 50/100',
-      value: 50,
-      maximum: 100
-    }
-  });
-
-  assert.match(html, /pal-disabled/);
-  assert.match(html, /draggable="false"/);
-  assert.match(html, /1\/2/);
-  assert.equal((html.match(/pal-ammo-pip filled/g) || []).length, 1);
-  assert.match(html, /&lt;5s/);
-  assert.match(paletteSkillHtml({ name: 'Missing icon' }), /src="data:image\/svg\+xml/);
-  assert.match(html, /data-skill-id="12345"/);
-  assert.match(html, /skill-variant-badge pal-variant-badge/);
-  assert.match(html, /pal-has-resource/);
-  assert.match(html, /data-resource-id="endurance"/);
-  assert.match(html, /style="width:50%"/);
-  assert.match(html, /aria-valuenow="50"/);
-  assert.match(html, /&lt;MAX&gt;/);
-  assert.doesNotMatch(html, /<bad>/);
-  assert.doesNotMatch(html, /onerror="bad"/);
-  assert.match(paletteSkillHtml({ name: 'Reserved', concealed: true }), /pal-concealed/);
-
-  const virtualView = {
-    name: 'Wait',
-    title: 'Wait',
-    icon: 'wait.png'
-  };
-  const virtual = virtualPaletteSkillHtml(virtualView);
-
-  assert.match(virtual, /draggable="true"/);
-  assert.match(
-    paletteGroupHtml({
-      label: '<Group>',
-      statusIcon: {
-        icon: 'pet.png',
-        label: 'Fanged Iboga',
-        title: 'Active pet: Fanged Iboga'
-      },
-      skills: [{ ...virtualView, virtual: true }]
-    }),
-    /&lt;Group&gt;/
-  );
-  assert.match(
-    paletteGroupHtml({
-      label: 'Pet',
-      statusIcon: {
-        icon: 'pet.png',
-        label: 'Fanged Iboga',
-        title: 'Active pet: Fanged Iboga'
-      },
-      skills: [virtualView]
-    }),
-    /Active pet: Fanged Iboga/
-  );
-  assert.match(
-    paletteGroupHtml({
-      id: 'resource-controls',
-      label: 'Resource',
-      controls: [
-        {
-          id: 'resource"><bad>',
-          label: 'Resource control',
-          icon: 'resource.png',
-          color: '#abc',
-          className: 'resource-control',
-          active: true,
-          pressed: true,
-          muted: true,
-          badge: 'S'
-        }
-      ]
-    }),
-    /data-palette-group="resource-controls"[\s\S]*class="pal-control resource-control pal-control-active pal-control-pressed pal-control-muted"[\s\S]*data-palette-control-id="resource&quot;&gt;&lt;bad&gt;"[\s\S]*class="pal-control-badge"/
-  );
-  assert.match(
-    paletteGroupHtml({
-      label: 'Reserved',
-      className: 'pal-group-concealed',
-      skills: [virtualView]
-    }),
-    /pal-group pal-group-concealed/
-  );
-});
-
-test('palette controls delegate neutral control identities', () => {
-  const control = {
-    dataset: { paletteControlId: 'profession-resource:one' },
-    onclick: null
-  };
-  let activated = '';
-
-  bindPaletteInteractions(
-    {
-      querySelectorAll(selector) {
-        return selector === '.pal-control[data-palette-control-id]' ? [control] : [];
-      }
-    },
-    {
-      onControlActivate(id) {
-        activated = id;
-      }
-    }
-  );
-
-  control.onclick({});
-  assert.equal(activated, 'profession-resource:one');
-});
-
-test('palette disclosures restore and persist their visibility', () => {
-  const writes = [];
-  const disclosure = {
-    dataset: { paletteStorageKey: 'palette-panel-open' },
-    open: true,
-    ontoggle: null
-  };
-
-  bindPaletteInteractions({
-    ownerDocument: {
-      defaultView: {
-        localStorage: {
-          getItem: () => 'false',
-          setItem: (key, value) => writes.push([key, value])
-        }
-      }
-    },
-    querySelectorAll(selector) {
-      return selector === 'details[data-palette-storage-key]' ? [disclosure] : [];
-    }
-  });
-
-  assert.equal(disclosure.open, false);
-  disclosure.open = true;
-  disclosure.ontoggle();
-  assert.deepEqual(writes, [['palette-panel-open', 'true']]);
-});
-
 test('timeline canonical entries expose stable presentation names', () => {
   assert.equal(rotationEntryName({ type: 'cast', skillId: 'One' }), 'One');
   assert.equal(rotationEntryName({ type: 'wait', durationMs: 50 }), '__wait');
 });
 
-test('timeline binding inserts palette entries and drop positions use tile halves', () => {
+test('timeline drops insert palette entries and drop positions use tile halves', () => {
   let dragState = { source: 'palette', name: 'New', skillId: 12345 };
   let changes = 0;
   const rotation = [{ type: 'cast', skillId: 'A' }];
-  const root = {
-    classList: { add() {}, remove() {} },
-    querySelectorAll: () => []
-  };
   const insertEntries = (entries, insertAt) => {
     if (!entries.length) return false;
     rotation.splice(insertAt, 0, ...entries);
     return true;
   };
 
-  const binding = bindTimelineInteractions(root, {
-    rotation,
+  const options = {
     getDragState: () => dragState,
     setDragState: (value) => {
       dragState = value;
@@ -1362,9 +821,9 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     onChanged: () => {
       changes += 1;
     }
-  });
+  };
 
-  assert.equal(binding.applyDrop(1), true);
+  assert.equal(applyTimelineDrop(options, 1), true);
   assert.deepEqual(rotation, [
     { type: 'cast', skillId: 'A' },
     { type: 'cast', skillId: 12345, interruptAfterMs: 100 }
@@ -1373,8 +832,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
   assert.equal(changes, 1);
 
   dragState = { source: 'palette', name: 'Macro' };
-  const macroBinding = bindTimelineInteractions(root, {
-    rotation,
+  const macroOptions = {
     getDragState: () => dragState,
     setDragState: (value) => {
       dragState = value;
@@ -1388,9 +846,9 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     onChanged: () => {
       changes += 1;
     }
-  });
+  };
 
-  assert.equal(macroBinding.applyDrop(1), true);
+  assert.equal(applyTimelineDrop(macroOptions, 1), true);
   assert.deepEqual(rotation, [
     { type: 'cast', skillId: 'A' },
     { type: 'cast', skillId: 10 },
@@ -1411,90 +869,8 @@ test('timeline binding inserts palette entries and drop positions use tile halve
   assert.equal(getSkillDropInsertionIndex({ dataset: { idx: '' } }, 0), null);
 });
 
-test('timeline binding routes the wait pencil to duration editing', () => {
-  let editedIndex = null;
-  let propagationStopped = false;
-  const waitPencil = { dataset: { idx: '2' } };
-  const root = {
-    classList: { add() {}, remove() {} },
-    querySelectorAll(selector) {
-      return selector === '.rot-edit-wait, .rot-wait-badge' ? [waitPencil] : [];
-    }
-  };
-
-  // The pencil opens the editor without reporting a completed timeline mutation until Apply is used.
-  bindTimelineInteractions(root, {
-    rotation: [],
-    getDragState: () => null,
-    setDragState() {},
-    moveEntry: () => false,
-    insertEntries: () => false,
-    onEditWait(index) {
-      editedIndex = index;
-      return false;
-    }
-  });
-  waitPencil.onclick({
-    stopPropagation() {
-      propagationStopped = true;
-    }
-  });
-
-  assert.equal(editedIndex, 2);
-  assert.equal(propagationStopped, true);
-});
-
 test('event log CSV escapes cells', () => {
   const rows = [{ at: 0, type: 'action', description: 'CAST Quote "skill"' }];
 
   assert.match(eventLogCsv(rows), /"CAST Quote ""skill"""/);
-});
-
-test('event-log mounting filters rows, escapes descriptions, and configures filename', () => {
-  let html = '';
-  let mounted = false;
-  const container = {
-    get innerHTML() {
-      return html;
-    },
-    set innerHTML(value) {
-      html = value;
-      mounted = true;
-    },
-    querySelector(selector) {
-      if (!mounted && selector.includes('event-log-details')) return { open: true };
-
-      return null;
-    },
-    querySelectorAll(selector) {
-      if (!mounted && selector.includes(':checked')) {
-        return [{ dataset: { filterId: 'kept' } }];
-      }
-
-      return [];
-    }
-  };
-
-  mountEventLog(
-    container,
-    [
-      { at: 0, type: 'one', description: 'Keep <safe>', keep: true },
-      { at: 1, type: 'two', description: 'Drop me', keep: false }
-    ],
-    {
-      filename: 'custom"name.csv',
-      filters: [
-        {
-          id: 'kept',
-          label: 'Kept only',
-          predicate: (row) => row.keep
-        }
-      ]
-    }
-  );
-
-  assert.match(html, /Keep &lt;safe&gt;/);
-  assert.doesNotMatch(html, /Drop me/);
-  assert.match(html, /data-filename="custom&quot;name\.csv"/);
-  assert.match(html, /log-filter-kept/);
 });

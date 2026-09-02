@@ -1,6 +1,7 @@
 import { createReadStream, readFileSync } from 'node:fs';
 import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 // The game-owned manifest is the one source for namespaced runtime data and temporary public aliases.
@@ -183,6 +184,7 @@ export default defineConfig(({ command, mode }) => ({
   base: command === 'serve' ? '/' : './',
   publicDir: false,
   plugins: [
+    react(),
     renderProfessionPages(),
     copyRuntimeData(),
     serveRuntimeData(),

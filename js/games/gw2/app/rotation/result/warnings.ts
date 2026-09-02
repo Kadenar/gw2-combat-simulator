@@ -47,8 +47,6 @@ export function rotationWarningItems(result: Gw2SimulationResult | null | undefi
 export function renderWarnings(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-warnings');
   if (!element) return;
-  const details = element.querySelector<HTMLDetailsElement>('.rotation-warnings-wrap');
-  const wasOpen = details?.open ?? false;
   const warnings = app.build.rotation.length && app.results ? rotationWarningItems(app.results) : [];
-  mountRotationWarnings(element, warnings, { open: wasOpen });
+  mountRotationWarnings(element, warnings);
 }

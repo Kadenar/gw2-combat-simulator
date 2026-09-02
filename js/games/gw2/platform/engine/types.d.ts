@@ -869,23 +869,30 @@ export interface ProfessionPaletteSkillRenderOptions {
   readonly view?: SchedulerRecord;
 }
 
-export type ProfessionPaletteSkillRenderer = (skill: Skill, options?: ProfessionPaletteSkillRenderOptions) => string;
-
 export type ProfessionWeaponPaletteRenderContext = SchedulerRecord & {
   readonly skills: readonly Skill[];
   readonly autoattackChains: SchedulerRecord;
   readonly isSkillAvailable: (skill: Skill) => boolean;
   readonly unavailableMessage: (skill: Skill) => string;
-  readonly renderSkill: ProfessionPaletteSkillRenderer;
 };
 
 export interface ProfessionWeaponPaletteView {
-  readonly weaponGroupsHtml: readonly string[];
-  readonly activeWeaponHtml?: string;
-  readonly primaryClassName?: string;
-  readonly primaryRole?: string;
-  readonly placeUtilityInPrimary?: boolean;
-  readonly placeActionsInPrimary?: boolean;
+  readonly storageKey: string;
+  readonly primaryLabel: string;
+  readonly secondaryLabel: string;
+  readonly primarySkills: readonly Skill[];
+  readonly slotThreeSkills: readonly Skill[];
+  readonly secondarySkills: readonly Skill[];
+  readonly primaryRows: readonly ProfessionWeaponPaletteRow[];
+  readonly sameMiddleSkills: readonly Skill[];
+  readonly mixedMiddleSkills: readonly Skill[];
+  readonly secondaryRows: readonly ProfessionWeaponPaletteRow[];
+  readonly extraSkills: readonly Skill[];
+}
+
+export interface ProfessionWeaponPaletteRow {
+  readonly label: string;
+  readonly skills: readonly Skill[];
 }
 
 export interface ProfessionPaletteActionIdentity {

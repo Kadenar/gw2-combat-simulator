@@ -22,7 +22,7 @@ import {
   reduceRotationWorkspaceState,
   updateFloatingDps
 } from '#app/shell/workspace.js';
-import { currentTimelineResults, reconcileTimelineRows } from '#gw2/app/rotation/timeline/view.js';
+import { currentTimelineResults } from '#gw2/app/rotation/timeline/view.js';
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
@@ -39,93 +39,6 @@ function storageRoot(initialValues = {}) {
     }
   };
 }
-
-test('keyed timeline reconciliation retains unchanged rows and replaces changed rows', () => {
-  const root = {
-    children: [],
-    get lastElementChild() {
-      return this.children.at(-1) || null;
-    },
-    insertBefore(node, before) {
-      const existingIndex = this.children.indexOf(node);
-
-      if (existingIndex >= 0) this.children.splice(existingIndex, 1);
-      const index = before == null ? this.children.length : this.children.indexOf(before);
-      this.children.splice(index, 0, node);
-    },
-    removeChild(node) {
-      this.children.splice(this.children.indexOf(node), 1);
-    }
-  };
-  let created = 0;
-  const createRow = (html) => ({ html, instance: ++created });
-
-  reconcileTimelineRows(
-    root,
-    [
-      { key: 'a', html: 'A' },
-      { key: 'b', html: 'B' }
-    ],
-    createRow
-  );
-  const originalA = root.children[0];
-  const originalB = root.children[1];
-
-  reconcileTimelineRows(
-    root,
-    [
-      { key: 'a', html: 'A' },
-      { key: 'b', html: 'B changed' },
-      { key: 'c', html: 'C' }
-    ],
-    createRow
-  );
-  assert.equal(root.children[0], originalA);
-  assert.notEqual(root.children[1], originalB);
-  assert.equal(created, 4);
-
-  const retainedC = root.children[2];
-  reconcileTimelineRows(
-    root,
-    [
-      { key: 'c', html: 'C' },
-      { key: 'a', html: 'A' }
-    ],
-    createRow
-  );
-  assert.deepEqual(root.children, [retainedC, originalA]);
-  assert.equal(created, 4, 'reordering retained keys creates no DOM rows');
-});
-
-test('timeline reconciliation preserves its scroll position while replacing rows', () => {
-  const root = {
-    children: [],
-    scrollTop: 120,
-    get lastElementChild() {
-      return this.children.at(-1) || null;
-    },
-    insertBefore(node, before) {
-      const existingIndex = this.children.indexOf(node);
-
-      if (existingIndex >= 0) this.children.splice(existingIndex, 1);
-      const index = before == null ? this.children.length : this.children.indexOf(before);
-      this.children.splice(index, 0, node);
-      this.scrollTop = 999;
-    },
-    removeChild(node) {
-      this.children.splice(this.children.indexOf(node), 1);
-      this.scrollTop = 999;
-    }
-  };
-  const createRow = (html) => ({ html });
-
-  reconcileTimelineRows(root, [{ key: 'row', html: 'before' }], createRow);
-  assert.equal(root.scrollTop, 120);
-
-  root.scrollTop = 48;
-  reconcileTimelineRows(root, [{ key: 'row', html: 'after' }], createRow);
-  assert.equal(root.scrollTop, 48);
-});
 
 test('timeline timings use only results produced for the current build revision', () => {
   const staleResults = { steps: [{ ri: 0, skill: 'Negative Bash', start: 0, end: 0, fullCastMs: 0 }] };

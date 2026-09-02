@@ -23,7 +23,6 @@ import {
   saveRotationHotkeysEnabled
 } from '#gw2/app/rotation/input/hotkeys.js';
 import { gw2KeyboardCode, gw2MouseCode, parseGw2HotkeyBindingsXml } from '#gw2/integrations/keybinds/parser.js';
-import { paletteSkillHtml } from '#gw2/app/presentation/rotation/palette.js';
 
 test('rotation hotkeys default to the Guild Wars 2 skill-bar keys', () => {
   assert.deepEqual(defaultRotationHotkeyBindings(), {
@@ -236,13 +235,4 @@ test('GW2 key codes use browser physical-key names and invalid XML is rejected',
   assert.equal(gw2MouseCode('4'), 'Mouse5');
   assert.equal(gw2MouseCode('5'), null);
   assert.throws(() => parseGw2HotkeyBindingsXml('<settings />'), /not a Guild Wars 2 InputBindings/);
-});
-
-test('palette skills expose their logical hotkey action', () => {
-  const html = paletteSkillHtml({
-    name: 'Test skill',
-    hotkeyAction: 'weapon-2'
-  });
-
-  assert.match(html, /data-hotkey-action="weapon-2"/);
 });

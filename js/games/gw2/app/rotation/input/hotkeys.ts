@@ -86,6 +86,8 @@ interface RotationHotkeyController {
   button: HTMLButtonElement | null;
   dialog: HTMLDialogElement | null;
   keybindImport?: RotationHotkeyImport;
+  activate: (action: RotationHotkeyAction, event: KeyboardEvent | PointerEvent) => boolean;
+  refresh: () => void;
 }
 
 const actionIds = new Set<string>(ROTATION_HOTKEY_ACTIONS.map((action) => action.id));
@@ -358,51 +360,19 @@ function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
   return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
 }
 
-function currentHotkeyTarget(root: HTMLElement, action: RotationHotkeyAction): HTMLElement | null {
-  const candidates = [...root.querySelectorAll<HTMLElement>('.pal-skill[data-hotkey-action]')].filter(
-    (candidate) => candidate.dataset.hotkeyAction === action
-  );
-  return (
-    candidates.find(
-      (candidate) =>
-        !candidate.classList.contains('pal-context-disabled') && !candidate.classList.contains('pal-concealed')
-    ) || null
-  );
-}
-
 function activateRotationHotkey(controller: RotationHotkeyController, event: KeyboardEvent): void {
   if (shouldIgnoreHotkey(event)) return;
   const action = activeRotationHotkeyAction(controller.bindings, event, controller.active);
   if (!action) return;
-  const target = currentHotkeyTarget(controller.root, action);
-  const MouseEventConstructor = controller.root.ownerDocument.defaultView?.MouseEvent;
-  if (!target || !MouseEventConstructor) return;
-  event.preventDefault();
   if (event.repeat) return;
-  target.dispatchEvent(
-    new MouseEventConstructor('click', {
-      bubbles: true,
-      cancelable: true,
-      shiftKey: event.shiftKey && !controller.bindings[action].includes('Shift+')
-    })
-  );
+  if (controller.activate(action, event)) event.preventDefault();
 }
 
 /** Activates standard browser Mouse 4/5 events while the pointer remains over the active rotation palette. */
 function activateRotationMouseHotkey(controller: RotationHotkeyController, event: PointerEvent): void {
   const action = activeRotationMouseHotkeyAction(controller.bindings, event, controller.active);
   if (!action) return;
-  const target = currentHotkeyTarget(controller.root, action);
-  const MouseEventConstructor = controller.root.ownerDocument.defaultView?.MouseEvent;
-  if (!target || !MouseEventConstructor) return;
-  event.preventDefault();
-  target.dispatchEvent(
-    new MouseEventConstructor('click', {
-      bubbles: true,
-      cancelable: true,
-      shiftKey: event.shiftKey && !controller.bindings[action].includes('Shift+')
-    })
-  );
+  if (controller.activate(action, event)) event.preventDefault();
 }
 
 function hotkeyFieldsHtml(): string {
@@ -463,22 +433,6 @@ function ensureStyles(document: Document): void {
     @media (max-width:700px) { .rotation-hotkey-groups { grid-template-columns:1fr; } }
   `;
   document.head.append(style);
-}
-
-function refreshHotkeyBadges(controller: RotationHotkeyController): void {
-  for (const skill of controller.root.querySelectorAll<HTMLElement>('.pal-skill[data-hotkey-action]')) {
-    const action = skill.dataset.hotkeyAction as RotationHotkeyAction;
-    const code = controller.bindings[action];
-    skill.querySelector('.pal-hotkey')?.remove();
-    skill.removeAttribute('aria-keyshortcuts');
-    if (!controller.enabled || !code) continue;
-    const badge = skill.ownerDocument.createElement('span');
-    badge.className = 'pal-hotkey';
-    badge.textContent = formatRotationHotkeyBadge(code);
-    badge.setAttribute('aria-hidden', 'true');
-    skill.append(badge);
-    skill.setAttribute('aria-keyshortcuts', formatRotationHotkey(code));
-  }
 }
 
 function populateDialog(controller: RotationHotkeyController, bindings = controller.bindings): void {
@@ -670,7 +624,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
     saveRotationHotkeyBindings(bindings);
     saveRotationHotkeysEnabled(enabled);
     setRotationHotkeysActive(controller, false);
-    refreshHotkeyBadges(controller);
+    controller.refresh();
     dialog.close();
   });
   dialog.addEventListener('close', () => setRotationHotkeysActive(controller, false));
@@ -721,8 +675,13 @@ function ensureControls(controller: RotationHotkeyController): void {
   setRotationHotkeysActive(controller, controller.active);
 }
 
-/** Mounts document-level keyboard and side-mouse handlers and refreshes palette badges. */
-export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: RotationHotkeyImport): void {
+/** Mounts document-level keyboard and side-mouse handlers while React owns palette targets and badges. */
+export function mountRotationHotkeys(
+  root: HTMLElement | null,
+  keybindImport?: RotationHotkeyImport,
+  activate: RotationHotkeyController['activate'] = () => false,
+  refresh: RotationHotkeyController['refresh'] = () => undefined
+): void {
   if (!root) return;
   const document = root.ownerDocument;
   const scope = root.closest<HTMLElement>('.rotation-panel') || root;
@@ -736,7 +695,9 @@ export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: R
       active: false,
       button: null,
       dialog: null,
-      keybindImport
+      keybindImport,
+      activate,
+      refresh
     };
     controllers.set(document, controller);
     document.addEventListener('pointerdown', (event) => {
@@ -772,10 +733,11 @@ export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: R
     controller.root = root;
     controller.scope = scope;
     controller.keybindImport = keybindImport;
+    controller.activate = activate;
+    controller.refresh = refresh;
   }
 
   ensureStyles(document);
   ensureControls(controller);
   setRotationHotkeysActive(controller, controller.active);
-  refreshHotkeyBadges(controller);
 }

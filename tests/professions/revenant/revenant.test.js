@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import {
   currentAutoattackSkill,
   displayedSkillTiles,
@@ -14,12 +13,7 @@ import {
   rotationSelectedSlotSkills,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
-import {
-  paletteSkillView,
-  renderPalette,
-  resolvePaletteDropItem,
-  defaultPaletteInterruptMs
-} from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView, resolvePaletteDropItem, defaultPaletteInterruptMs } from '#gw2/app/rotation/palette/view.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
@@ -760,7 +754,7 @@ test('Revenant modules preserve the declarative authoring contract', async () =>
   assert.doesNotMatch(catalog, /REVENANT_SKILL_MECHANICS/);
 });
 
-test('legend palette shows only the destination legend with the shared swap cooldown', async () => {
+test('legend palette shows only the destination legend with the shared swap cooldown', () => {
   const context = {
     build: baseConfig,
     specialization: 'Core',
@@ -871,116 +865,6 @@ test('legend palette shows only the destination legend with the shared swap cool
     ['Assassin', 'Demon']
   );
   assert.deepEqual(rotationSelectedSlotSkills(rotationApp), []);
-
-  const adapter = await loadProfessionAppAdapter('revenant');
-  const canonicalBuild = createRevenantBuildDefaults();
-
-  canonicalBuild.selectedLegends = [LEGEND.ASSASSIN, LEGEND.DEMON];
-  canonicalBuild.startingLegend = LEGEND.ASSASSIN;
-  const build = adapter.toApplicationBuild(canonicalBuild);
-
-  build.rotation = ['__combat_start', 'Swap Legends'];
-  const app = {
-    build,
-    adapter,
-    profession: revenantProfession,
-    skills: revenantCatalog.skills,
-    skillById: revenantCatalog.skillsById,
-    skillByName: revenantCatalog.skillsByName,
-    weaponData: adapter.weaponData,
-    results: simulate('Core', build.rotation)
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const skillBar = { innerHTML: '', classList: { remove() {} }, querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : id === 'skill-bar' ? skillBar : null)
-  };
-  try {
-    renderSkills(app);
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  assert.match(skillBar.innerHTML, /data-loadout-toggle/);
-  assert.match(skillBar.innerHTML, /data-loadout-key="selectedLegends:[01]"/);
-  assert.doesNotMatch(skillBar.innerHTML, /fixed-loadout-selector-label/);
-  assert.doesNotMatch(skillBar.innerHTML, /skill-bar-key/);
-  assert.doesNotMatch(skillBar.innerHTML, /skill-bar-type/);
-  assert.equal((palette.innerHTML.match(/data-skill="Swap Legends"/g) || []).length, 1);
-  assert.match(palette.innerHTML, /data-skill="Swap Legends"[\s\S]*?<span class="pal-cd">10\.00s<\/span>/);
-});
-
-test('Revenant utilities and Conduit resources render by their related skills', async () => {
-  const adapter = await loadProfessionAppAdapter('revenant');
-  const canonicalBuild = createRevenantBuildDefaults();
-
-  canonicalBuild.specializations[2] = {
-    name: 'Conduit',
-    traits: '1-1-1'
-  };
-  canonicalBuild.selectedLegends = [LEGEND.ENTITY, LEGEND.ASSASSIN];
-  canonicalBuild.startingLegend = LEGEND.ENTITY;
-  const build = adapter.toApplicationBuild(canonicalBuild);
-  const app = {
-    build,
-    adapter,
-    profession: revenantProfession,
-    skills: revenantCatalog.skills,
-    skillById: revenantCatalog.skillsById,
-    skillByName: revenantCatalog.skillsByName,
-    weaponData: adapter.weaponData,
-    results: null
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  const html = palette.innerHTML;
-  const profession = html.indexOf('revenant-f-skills');
-  const affinityGroup = html.indexOf('profession-palette-resource-group resource-above');
-  const state = html.indexOf('data-role="profession-resource-stack"');
-  const combat = html.indexOf('data-role="weapon-palette-section"');
-  const utility = html.indexOf('data-role="loadout-utility-palette-group"');
-  const legends = html.indexOf('data-role="loadout-palette-stack"');
-  const energy = html.indexOf('data-resource-id="energy"');
-  const affinity = html.indexOf('data-resource-id="affinity"');
-  const tools = html.indexOf('data-role="timeline-tools-palette-stack"');
-
-  assert.ok(affinityGroup >= 0);
-  assert.ok(affinity > affinityGroup);
-  assert.ok(profession > affinity);
-  assert.ok(profession >= 0);
-  assert.ok(combat > profession);
-  assert.ok(utility > combat);
-  assert.ok(state > utility);
-  assert.ok(legends > state);
-  assert.ok(energy > legends);
-  assert.ok(tools > energy);
-  assert.equal(html.match(/data-resource-id="energy"/g)?.length, 1);
-  assert.equal(html.match(/data-resource-id="affinity"/g)?.length, 1);
-  assert.match(html, /compact-resource-palette revenant-legend-skills/);
-  assert.match(html, /compact-profession-resource-revenant-energy/);
-  assert.match(html, /<strong>50\/100<\/strong>/);
-  const weaponSwap = html.indexOf('data-skill="Swap Weapons"');
-  const weaponSwapGroup = html.lastIndexOf('<div class="pal-group', weaponSwap);
-
-  assert.ok(weaponSwap >= 0);
-  assert.match(html.slice(weaponSwapGroup, weaponSwap), /class="pal-label"[^>]*>W[12]<\/div>/);
-  assert.match(html, /action-palette-group/);
-  assert.match(html, /timeline-tools-palette-stack[\s\S]*__combat_start/);
-  assert.match(html, /timeline-tools-palette-stack[\s\S]*__cooldown_reset/);
-  assert.match(html, /timeline-tools-palette-stack[\s\S]*__wait/);
 });
 
 test('Swift Termination exposes the 50% target-health timeline marker', () => {

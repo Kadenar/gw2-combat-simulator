@@ -36,6 +36,10 @@ body[data-profession][data-simulator-view='workspace'] .analysis-view-heading {
   display: none;
 }
 
+body[data-profession][data-simulator-view='workspace'] .patch-comparison-results {
+  display: none;
+}
+
 body[data-profession][data-simulator-view='workspace'] #rotation-results > :not(.rng-distribution) {
   display: none;
 }
@@ -1379,7 +1383,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 }
 
 @container rotation-builder (min-width: 701px) {
-  body[data-profession] .rotation-palette:not(:has(.weaver-weapon-palette)) {
+  body[data-profession] .rotation-palette:not(:has(.custom-weapon-palette)) {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
@@ -1432,7 +1436,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 
 @container rotation-builder (min-width: 701px) {
   .elementalist-theme
-    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .rotation-palette:not(:has(.custom-weapon-palette))
     .weapon-palette-section
     > .weapon-palette-stack:not(.loadout-palette-stack) {
     flex: 1 1 700px;
@@ -1445,7 +1449,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   }
 
   .elementalist-theme
-    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .rotation-palette:not(:has(.custom-weapon-palette))
     .weapon-palette-section
     > .weapon-palette-stack:not(.loadout-palette-stack)
     > .pal-group {
@@ -1454,7 +1458,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   }
 
   .elementalist-theme
-    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .rotation-palette:not(:has(.custom-weapon-palette))
     .weapon-palette-section
     > .weapon-palette-stack:not(.loadout-palette-stack)
     > .pal-group
@@ -1465,7 +1469,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 
 @container rotation-builder (max-width: 700px) {
   .elementalist-theme
-    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .rotation-palette:not(:has(.custom-weapon-palette))
     .weapon-palette-section
     > .weapon-palette-stack:not(.loadout-palette-stack) {
     flex-direction: column !important;
@@ -1779,6 +1783,8 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   right: -2px;
   width: 14px;
   height: 14px;
+  padding: 0;
+  border: 0;
   background: var(--condi);
   color: #fff;
   font-size: 10px;

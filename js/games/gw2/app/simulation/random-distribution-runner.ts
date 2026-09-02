@@ -92,19 +92,8 @@ export class RandomDistributionRunner {
         percent
       };
 
-      // Progress updates only touch the indicator. Remounting the full
-      // result view would repeatedly rebuild tables and charts.
-      const indicator = document.querySelector('#rotation-results [data-role="rng-progress"]');
-      if (!indicator) return;
-      indicator.setAttribute('aria-valuenow', String(Math.round(percent)));
-      const bar = indicator.querySelector<HTMLElement>('[data-role="rng-progress-bar"]');
-      if (bar) bar.style.width = `${percent}%`;
-      const label = indicator.querySelector('[data-role="rng-progress-label"]');
-      if (label) {
-        label.textContent = `${Math.round(
-          completed
-        ).toLocaleString()} / ${Math.round(total).toLocaleString()} simulations (${Math.round(percent)}%)`;
-      }
+      // Route progress through the retained presentation entry point so React remains the sole result-subtree owner.
+      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
     };
 
     const applyDistribution = (distribution: RandomDistributionSummary): void => {
