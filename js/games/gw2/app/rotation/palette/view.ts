@@ -16,6 +16,7 @@ import {
   openActivationEditor
 } from '#gw2/app/presentation/rotation/editors/activation-editor.js';
 import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
+import { resultCombatReferenceMs } from '#gw2/app/rotation/result/model.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
@@ -242,7 +243,10 @@ export function paletteSkillView(
       : ammoDisplay
         ? `${ammoDisplay.label}${ammo?.remaining ? ` · next charge in ${seconds(Number(ammo.remaining))}` : ''}`
         : remaining
-          ? `Remaining: ${cooldownLabel} · available at ${seconds(readyAt)}`
+          ? `Remaining: ${cooldownLabel} · available at ${seconds(
+              // Show absolute scheduler deadlines on the combat-relative rotation clock.
+              readyAt - resultCombatReferenceMs(app.results)
+            )}`
           : 'Available now',
     gw2ApiText(skill.description)
   ]

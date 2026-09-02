@@ -334,6 +334,20 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
   assert.equal(view.disabled, true);
 });
 
+test('cooldown tooltip reports availability relative to combat start', async () => {
+  const profession = await loadProfession('necromancer');
+  const skill = profession.catalog.skillsByName.get('Wanderlust');
+  const app = projectionApp(profession, {
+    time: 14.84,
+    cooldowns: {
+      Wanderlust: { remaining: 8160, readyAt: 23000 }
+    }
+  });
+  app.results.events = [{ type: 'combat_start', at: 10 }];
+
+  assert.match(paletteSkillView(app, skill).title, /Remaining: 8\.16s · available at 13s/);
+});
+
 test('ammo tile cooldown tracks the next charge while another charge remains', async () => {
   const profession = await loadProfession('mesmer');
   const skill = profession.catalog.skillsByName.get('Split Second');
