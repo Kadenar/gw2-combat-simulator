@@ -32,6 +32,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
 export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   Object.freeze({
     id: ID.SWAP_WEAPONS,
+    // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     handlerId: 'thief.weapon-swap',
     name: 'Swap Weapons',
     description: 'Swap equipped weapon sets.',
@@ -46,6 +47,7 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   }),
   Object.freeze({
     id: ID.DODGE,
+    // Custom: Spends endurance and applies Thief dodge traits; see `core/skills/dodge.ts`.
     handlerId: 'thief.dodge',
     name: 'Dodge',
     description: 'Perform the selected thief dodge.',

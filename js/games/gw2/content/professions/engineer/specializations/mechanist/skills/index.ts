@@ -31,6 +31,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
   },
   [ID.CRASH_DOWN]: {
     implemented: true,
+    // Custom: Summons the mech and starts its autonomous attack loop; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.mech-summon',
     castTimeMs: 750,
     cooldown: 50,
@@ -55,6 +56,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
   },
   [ID.RECALL_MECH]: {
     implemented: true,
+    // Custom: Stops the active mech attack loop and recalls it; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.mech-recall',
     castTimeMs: 750,
     cooldown: 10,
@@ -65,6 +67,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
   },
   [ID.OVERCLOCK_SIGNET]: {
     implemented: true,
+    // Custom: Resets mech command cooldowns and schedules Overclock behavior; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.overclock-signet',
     castTimeMs: 0,
     cooldown: 90,
@@ -393,6 +396,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
   },
   [ID.RECALL_MECH_ID_63300]: {
     implemented: true,
+    // Custom: Stops the active mech attack loop and recalls it; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.mech-recall',
     castTimeMs: 750,
     cooldown: 10,

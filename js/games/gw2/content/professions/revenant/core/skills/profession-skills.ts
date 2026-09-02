@@ -61,6 +61,7 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.ANCIENT_ECHO]: {
     implemented: true,
+    // Custom: Restores energy using the active legend's amount; see `core/skills/actions.ts`.
     handlerId: 'revenant.ancient-echo',
     castTimeMs: 500,
     cooldown: 20,

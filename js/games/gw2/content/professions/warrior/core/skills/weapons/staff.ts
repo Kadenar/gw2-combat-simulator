@@ -31,6 +31,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 10,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {
@@ -56,6 +57,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     implemented: true,
     quicknessCastTimeMs: 500,
     adrenalineGain: 5,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {

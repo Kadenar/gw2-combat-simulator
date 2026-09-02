@@ -103,6 +103,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
   },
   [ID.ELITE_MORTAR_KIT]: {
     implemented: true,
+    // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
     cooldown: 0,
@@ -159,6 +160,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS: readonly Skill[] = Object.f
     icon: 'https://render.guildwars2.com/file/' + '7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Elite',
     slot: 'Elite',
+    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-stow',
     kit: 'Elite Mortar Kit',
     paletteFlip: false,

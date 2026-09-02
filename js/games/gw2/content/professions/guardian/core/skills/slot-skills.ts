@@ -95,6 +95,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.RENEWED_FOCUS]: {
     implemented: true,
     castTimeMs: 2000,
+    // Custom: Refreshes all virtue cooldowns and readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.renewed-focus',
     effects: []
   },

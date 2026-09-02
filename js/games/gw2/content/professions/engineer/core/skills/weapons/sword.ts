@@ -84,6 +84,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.GLEAM_SABER_ID_70771]: {
     implemented: true,
+    // Custom: Recharges the other sword skills after the cast; see `core/skills/sword.ts`.
     handlerId: 'engineer.gleam-saber',
     quicknessCastTimeMs: 720,
     cooldown: 0,

@@ -66,6 +66,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ],
     quicknessCastTimeMs: 333,
+    // Custom: Arms Blood Thirst charges after the shot; see `core/skills/execution.ts`.
     handlerId: 'ranger.crippling-shot'
   },
   [ID.CONCUSSION_SHOT]: {

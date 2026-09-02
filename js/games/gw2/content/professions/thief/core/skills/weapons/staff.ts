@@ -54,6 +54,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.HOOK_STRIKE]: {
     implemented: true,
+    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     quicknessCastTimeMs: 640,
     cooldown: 1,

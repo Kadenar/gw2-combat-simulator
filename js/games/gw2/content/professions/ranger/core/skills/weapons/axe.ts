@@ -96,6 +96,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       }
     ],
     quicknessCastTimeMs: 520,
+    // Custom: Arms the Winter's Bite follow-up state; see `core/skills/execution.ts`.
     handlerId: 'ranger.winters-bite',
     missileHits: 1
   },

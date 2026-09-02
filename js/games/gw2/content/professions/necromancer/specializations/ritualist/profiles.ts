@@ -25,7 +25,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     pulseInterval: 4,
     initialDelay: 7.36,
     lifeForceDrain: 3,
-    rechargeOffsetMs: 4140,
+    resummonedSpiritAttackDelayMs: 4140,
     weaponStrength: 1056,
     effects: []
   },
@@ -46,17 +46,16 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       {
         type: 'strike',
         ticks: [
-          { atMs: 800, coefficient: 0.5 },
-          { atMs: 960, coefficient: 0.5 },
-          { atMs: 1000, coefficient: 0.5 },
-          { atMs: 1080, coefficient: 0.5 },
-          { atMs: 1120, coefficient: 0.5 },
-          { atMs: 1160, coefficient: 0.5 },
-          { atMs: 1200, coefficient: 0.5 }
+          { atMs: 800, coefficient: 0.375 },
+          { atMs: 960, coefficient: 0.375 },
+          { atMs: 1000, coefficient: 0.375 },
+          { atMs: 1080, coefficient: 0.375 },
+          { atMs: 1120, coefficient: 0.375 },
+          { atMs: 1160, coefficient: 0.375 },
+          { atMs: 1200, coefficient: 0.375 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        weaponStrength: 805,
         actorType: 'player',
         name: 'Anguish Initial Barrage'
       },

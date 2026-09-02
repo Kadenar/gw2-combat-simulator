@@ -5,6 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
@@ -54,6 +55,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.RESIST_THE_DARKNESS]: {
     implemented: true,
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
@@ -63,6 +65,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.PROTECTIVE_SOLACE]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 5,
@@ -74,6 +77,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.ENCHANTED_DAGGERS]: {
     implemented: true,
+    // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `core/skills/assassin.ts`.
     handlerId: 'revenant.enchanted-daggers',
     castTimeMs: 500,
     cooldown: 30,
@@ -103,6 +107,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.RELEASE_HAMMERS]: {
     implemented: true,
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
@@ -120,6 +125,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.IMPOSSIBLE_ODDS]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
@@ -354,6 +360,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.EMBRACE_THE_DARKNESS]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     quicknessCastTimeMs: 440,
     cooldown: 3,
@@ -389,6 +396,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.RELINQUISH_POWER]: {
     implemented: true,
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
@@ -492,6 +500,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.PROTECTIVE_SOLACE_ID_29310]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 5,
@@ -570,6 +579,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.VENGEFUL_HAMMERS_ID_56752]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,

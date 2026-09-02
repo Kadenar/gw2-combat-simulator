@@ -8,6 +8,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [],
     quicknessCastTimeMs: 667,
     categories: ['Command'],
+    // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
   },
   [ID.WE_SHALL_RETURN]: {
@@ -16,6 +17,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [],
     quicknessCastTimeMs: 667,
     categories: ['Command'],
+    // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
   },
   [ID.CHANT_OF_RECUPERATION]: {
@@ -26,6 +28,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     burstTier: 1,
     burst: true,
     categories: ['Burst', 'Chant'],
+    // Custom: Applies chant trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.chant'
   },
   [ID.FIND_THEIR_WEAKNESS]: {
@@ -52,6 +55,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ],
     quicknessCastTimeMs: 333,
     categories: ['Command'],
+    // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
   },
   [ID.ON_YOUR_KNEES]: {
@@ -78,6 +82,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ],
     quicknessCastTimeMs: 167,
     categories: ['Command'],
+    // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
   },
   [ID.CHANT_OF_FREEDOM]: {
@@ -88,6 +93,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     burstTier: 1,
     burst: true,
     categories: ['Burst', 'Chant'],
+    // Custom: Applies chant trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.chant'
   },
   [ID.CHANT_OF_ACTION]: {
@@ -98,6 +104,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     burstTier: 1,
     burst: true,
     categories: ['Burst', 'Chant'],
+    // Custom: Applies chant trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.chant'
   }
 });

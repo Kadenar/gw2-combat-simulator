@@ -155,6 +155,7 @@ const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
 export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BEGUILING_HAZE_ID_76805]: {
     implemented: true,
+    // Custom: Selects initial/follow-up packets and charge state from affinity; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.beguiling-haze',
     castTimeMs: 250,
     cooldown: 10,
@@ -182,6 +183,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.TWIN_MOON_SWEEP]: {
     implemented: true,
+    // Custom: Materializes affinity-dependent strikes and state changes; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.twin-moon-sweep',
     quicknessCastTimeMs: 920,
     cooldown: 3,
@@ -201,6 +203,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.TWIN_MOON_SWEEP_ID_77001]: {
     implemented: true,
+    // Custom: Materializes affinity-dependent strikes and state changes; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.twin-moon-sweep',
     quicknessCastTimeMs: 920,
     cooldown: 3,
@@ -243,6 +246,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.BEGUILING_HAZE]: {
     implemented: true,
+    // Custom: Selects initial/follow-up packets and charge state from affinity; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.beguiling-haze',
     castTimeMs: 250,
     cooldown: 10,
@@ -255,6 +259,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.HEX_EATER_VORTEX]: {
     implemented: true,
+    // Custom: Materializes affinity-dependent pulses and charge consumption; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.hex-eater-vortex',
     quicknessCastTimeMs: 526,
     cooldown: 5,
@@ -264,6 +269,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.GLADIATORS_DEFENSE]: {
     implemented: true,
+    // Custom: Materializes affinity-dependent packets and defense state; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.gladiators-defense',
     castTimeMs: 40,
     defaultInterruptMs: 40,
@@ -274,6 +280,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.COSMIC_WISDOM]: {
     implemented: true,
+    // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.cosmic-wisdom',
     castTimeMs: 0,
     cooldown: 20,
@@ -305,6 +312,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.RELEASE_POTENTIAL_MONK]: {
     implemented: true,
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     castTimeMs: 500,
     cooldown: 10,
@@ -316,6 +324,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
     implemented: true,
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     quicknessCastTimeMs: 440,
     cooldown: 10,
@@ -360,6 +369,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
     implemented: true,
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     quicknessCastTimeMs: 680,
     cooldown: 10,
@@ -405,6 +415,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
     implemented: true,
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     quicknessCastTimeMs: 740,
     cooldown: 10,
@@ -441,6 +452,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
     implemented: true,
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     castTimeMs: 750,
     cooldown: 10,

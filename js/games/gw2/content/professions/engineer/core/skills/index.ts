@@ -57,6 +57,7 @@ const extraSkills: Skill[] = [
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
     type: 'Action',
     slot: 'Action',
+    // Custom: Spends endurance and emits the Engineer dodge state; see `core/skills/dodge.ts`.
     handlerId: 'engineer.dodge',
     // Quickness does not shorten the fixed evade animation recorded for ordinary dodge rolls.
     unaffectedByQuickness: true,
@@ -72,6 +73,7 @@ const extraSkills: Skill[] = [
     icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     type: 'Action',
     slot: 'Action',
+    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-stow',
     castTimeMs: 0,
     cooldown: 0,

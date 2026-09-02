@@ -102,6 +102,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       }
     ],
     adrenalineGain: 30,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource',
     effects: []
   },
@@ -144,6 +145,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 7,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {
@@ -219,6 +221,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     quicknessCastTimeMs: 350,
     dualWieldCastTimeMs: 280,
     adrenalineGain: 30,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {

@@ -372,6 +372,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     quicknessCastTimeMs: 600,
     cooldown: 18,
     skillFamily: 'Meditation',
+    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
     implemented: true,
     effects: []
@@ -386,6 +387,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 20,
     resourceGain: 50,
     skillFamily: 'Meditation',
+    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
     implemented: true,
     effects: [
@@ -421,6 +423,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     quicknessCastTimeMs: 640,
     cooldown: 15,
     skillFamily: 'Meditation',
+    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
     implemented: true,
     effects: [
@@ -460,6 +463,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     quicknessCastTimeMs: 600,
     cooldown: 60,
     skillFamily: 'Meditation',
+    // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
     implemented: true,
     effects: []

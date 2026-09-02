@@ -128,6 +128,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.CUNNING_SALVO]: {
     implemented: true,
+    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 500,
     cooldown: 1,

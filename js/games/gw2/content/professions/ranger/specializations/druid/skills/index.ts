@@ -22,6 +22,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     implemented: true,
     castTimeMs: 0,
     effects: [],
+    // Custom: Leaves Celestial Avatar and updates its state; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-exit'
   },
   [ID.GLYPH_OF_THE_STARS]: {
@@ -33,12 +34,14 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     implemented: true,
     castTimeMs: 0,
     effects: [],
+    // Custom: Enters Celestial Avatar and initializes its astral-force state; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-enter'
   },
   [ID.COSMIC_RAY]: {
     implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
+    // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.SEED_OF_LIFE]: {
@@ -53,6 +56,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     cooldown: 4,
     castTimeMs: 0,
     canCastConcurrently: true,
+    // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.LUNAR_IMPACT]: {
@@ -74,6 +78,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     cooldown: 8,
     // Match the measured Quickness animation from the condition Druid EVTC.
     quicknessCastTimeMs: 920,
+    // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.REJUVENATING_TIDES]: {
@@ -93,6 +98,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       }
     ],
     quicknessCastTimeMs: 480,
+    // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.NATURAL_CONVERGENCE]: {
@@ -187,6 +193,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     recharge: 10,
     cooldown: 10,
     quicknessCastTimeMs: 2080,
+    // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   }
 });

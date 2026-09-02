@@ -103,6 +103,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     quicknessCastTimeMs: 1040,
     cooldown: 20,
     skillFamily: 'Shout',
+    // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
     handlerId: 'elementalist.tempest-shout',
     implemented: true,
     effects: []
@@ -117,6 +118,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     cooldown: 25,
     aura: 'Fire|4',
     skillFamily: 'Shout',
+    // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
     handlerId: 'elementalist.tempest-shout',
     implemented: true,
     effects: [
@@ -179,6 +181,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     cooldown: 30,
     aura: 'Magnetic|4',
     skillFamily: 'Shout',
+    // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
     handlerId: 'elementalist.tempest-shout',
     implemented: true,
     effects: [

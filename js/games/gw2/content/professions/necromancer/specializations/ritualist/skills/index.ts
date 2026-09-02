@@ -15,6 +15,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 0,
     effects: [],
     usableInShroud: true,
+    // Custom: Emits party Aegis, Resistance, and Stability, then restores life force; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.innervate'
   },
   [ID.SUMMON_SPIRITS]: {
@@ -26,6 +27,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'ritualist',
     shroudSlot: 5,
     specialization: 'Ritualist',
+    // Custom: Commands each available spirit's coordinated attack and updates its busy state; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.ritualist'
   },
   [ID.PRESERVATION]: {
@@ -37,6 +39,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'ritualist',
     shroudSlot: 4,
     specialization: 'Ritualist',
+    // Custom: Summons Preservation, grants party Protection/Vigor, and schedules autoattacks; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.ritualist'
   },
   [ID.INNERVATE_WANDERLUST]: {
@@ -44,6 +47,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 0,
     effects: [],
     usableInShroud: true,
+    // Custom: Emits Wanderlust's Fear, then restores life force; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.innervate'
   },
   [ID.NIGHTMARE_WEAPON]: {
@@ -59,6 +63,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
+    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/skills/weapon-spells.ts`.
     handlerId: 'necromancer.weapon-spell'
   },
   [ID.WEAPON_OF_WARDING]: {
@@ -80,6 +85,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'ritualist',
     shroudSlot: 2,
     specialization: 'Ritualist',
+    // Custom: Summons Anguish, emits its opening barrage, tracks its busy window, and schedules autoattacks; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.ritualist'
   },
   [ID.EXIT_RITUALISTS_SHROUD]: {
@@ -89,6 +95,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     cooldown: 0,
     specialization: 'Ritualist',
     shroudExit: 'ritualist',
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   },
   [ID.XINRAES_WEAPON]: {
@@ -110,6 +117,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'ritualist',
     shroudSlot: 3,
     specialization: 'Ritualist',
+    // Custom: Summons Wanderlust, emits its opening/lingering sequence, and schedules autoattacks; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.ritualist'
   },
   [ID.SPLINTER_WEAPON]: {
@@ -125,6 +133,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
+    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/skills/weapon-spells.ts`.
     handlerId: 'necromancer.weapon-spell'
   },
   [ID.INNERVATE_ANGUISH]: {
@@ -136,6 +145,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       { type: 'boon', boon: 'fury', duration: 5, stacks: 1 }
     ],
     usableInShroud: true,
+    // Custom: Emits Anguish's strike and party Might/Fury, then restores life force; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.innervate'
   },
   [ID.WEAPON_OF_REMEDY]: {
@@ -159,6 +169,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'ritualist',
     shroudSlot: 1,
     specialization: 'Ritualist',
+    // Custom: Emits the equipped-weapon strike with damage scaled by active spirits; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.ritualist'
   },
   [ID.RITUALISTS_SHROUD]: {
@@ -170,6 +181,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroudEntry: 'ritualist',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   },
   [ID.RESILIENT_WEAPON]: {
@@ -185,6 +197,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
+    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/skills/weapon-spells.ts`.
     handlerId: 'necromancer.weapon-spell'
   }
 });

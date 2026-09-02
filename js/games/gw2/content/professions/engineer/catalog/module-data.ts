@@ -213,6 +213,7 @@ function normalizeMechanics(
           id,
           {
             ...linkedMechanic,
+            // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
             handlerId: 'engineer.amalgam-morph'
           }
         ];

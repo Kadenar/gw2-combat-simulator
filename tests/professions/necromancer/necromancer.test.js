@@ -1385,6 +1385,8 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
       'Essence Blast',
       'Anguish',
       { type: 'wait', durationMs: 1200 },
+      'Wanderlust',
+      { type: 'wait', durationMs: 2000 },
       'Summon Spirits',
       { type: 'wait', durationMs: 2000 }
     ],
@@ -1407,7 +1409,20 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
     'Unequipped'
   );
   assert.equal(damage(ritualist, 'Essence Blast').skillWeapon, 'Scepter');
-  assert.equal(damage(ritualist, 'Anguish').skillWeapon, 'Unequipped');
+  const anguishHits = ritualist.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Anguish' && event.metadata?.spiritAttackType === 'initial'
+  );
+  const wanderlustOpening = damage(ritualist, 'Wanderlust');
+  const wanderlustField = damage(ritualist, 'Spirit of Wanderlust - Initial Attack');
+
+  assert.equal(anguishHits.length, 7);
+  assert.ok(anguishHits.every((event) => event.coefficient === 0.375));
+  assert.ok(anguishHits.every((event) => event.skillWeapon === 'Scepter'));
+  assert.ok(anguishHits.every((event) => event.weaponStrengthProfileId === 'weapon.scepter'));
+  assert.equal(wanderlustOpening.skillWeapon, 'Scepter');
+  assert.equal(wanderlustOpening.weaponStrengthProfileId, 'weapon.scepter');
+  assert.equal(wanderlustField.skillWeapon, 'Scepter');
+  assert.equal(wanderlustField.weaponStrengthProfileId, 'weapon.scepter');
   assert.equal(damage(ritualist, 'Summon Spirits').skillWeapon, 'Unequipped');
 });
 
@@ -3481,7 +3496,7 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
 
   assert.equal(anguish.length, 7);
   assert.equal(
-    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.5 && event.weaponStrength === 805),
+    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.375),
     true
   );
   assert.equal(lingering.length, 4);

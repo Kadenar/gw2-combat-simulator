@@ -4,6 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: {
     implemented: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 2875,
     cooldown: 0,
@@ -50,6 +51,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.METAL_LEGION_GUITAR_ID_76591]: {
     implemented: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 2000,
     cooldown: 0,
@@ -90,6 +92,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.FORGED_SURFER_DASH_ID_76633]: {
     implemented: true,
     movementSkill: true,
+    // Custom: Replaces the cast with its task-driven movement/strike sequence; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.forged-surfer',
     castTimeMs: 300,
     cooldown: 0,
@@ -135,6 +138,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.HOLO_DANCER_DECOY]: {
     implemented: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 850,
     cooldown: 0,
@@ -184,6 +188,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.EXALTED_HAMMER_ID_76702]: {
     implemented: true,
     movementSkill: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 0,
     cooldown: 0,
@@ -208,6 +213,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.STONE_SUMMIT_CANNON]: {
     implemented: true,
+    // Custom: Chooses success/backfire and materializes the selected outcome; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 780,
@@ -253,6 +259,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
     implemented: true,
     movementSkill: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 1000,
     cooldown: 1,
@@ -278,6 +285,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.CHAK_SHIELD]: {
     implemented: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 0,
     cooldown: 0,
@@ -306,6 +314,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.ANTIVENOM_DRAUGHT]: {
     implemented: true,
+    // Custom: Chooses success/backfire and materializes the selected outcome; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 750,
@@ -317,6 +326,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
     implemented: true,
     movementSkill: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 330,
     cooldown: 1,
@@ -370,6 +380,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.RESHUFFLE]: {
     implemented: true,
+    // Custom: Randomizes/refills the Antiquary artifact hand; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.reshuffle',
     castTimeMs: 0,
     cooldown: 5,
@@ -386,6 +397,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.SUMMON_KRYPTIS_TURRET_ID_77192]: {
     implemented: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 660,
     cooldown: 0,
@@ -503,6 +515,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.CANACH_COIN_TOSS_ID_77230]: {
     implemented: true,
+    // Custom: Chooses success/backfire and materializes the selected outcome; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 0,
@@ -513,6 +526,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.SKRITT_SCUFFLE]: {
     implemented: true,
+    // Custom: Replaces the cast with the delayed Skritt Scuffle sequence; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.skritt-scuffle',
     castTimeMs: 840,
     cooldown: 50,
@@ -537,6 +551,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.MISTBURN_MORTAR]: {
     implemented: true,
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     // Measured Quickness timings make artifact use reserve the same cast-lane time seen in EVTC.
     quicknessCastTimeMs: 600,
@@ -570,6 +585,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     implemented: true,
     stealTraitSkill: true,
     movementSkill: true,
+    // Custom: Runs steal traits, pilfers artifacts, and applies swipe traits; see `antiquary/skills/execution.ts`.
     handlerId: 'thief.skritt-swipe',
     quicknessCastTimeMs: 200,
     cooldown: 25,

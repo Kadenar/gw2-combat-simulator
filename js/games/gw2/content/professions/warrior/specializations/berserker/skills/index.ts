@@ -43,6 +43,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ],
     quicknessCastTimeMs: 960,
     adrenalineGain: 10,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.GUN_FLAME]: {
@@ -69,6 +70,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.SKULL_GRINDER]: {
@@ -108,6 +110,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.ARC_DIVIDER]: {
@@ -126,6 +129,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.SCORCHED_EARTH]: {
@@ -184,6 +188,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.WILD_BLOW]: {
@@ -210,6 +215,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ],
     quicknessCastTimeMs: 600,
     adrenalineGain: 5,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.SHATTERING_BLOW]: {
@@ -239,6 +245,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ],
     quicknessCastTimeMs: 520,
     adrenalineGain: 5,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.BERSERK]: {
@@ -248,6 +255,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     adrenalineCost: 30,
     burstTier: 3,
     adrenalineGain: 10,
+    // Custom: Spends adrenaline, enters Berserk, and applies entry traits; see `berserker/skills/execution.ts`.
     handlerId: 'warrior.berserk'
   },
   [ID.BLOOD_RECKONING]: {
@@ -256,6 +264,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     quicknessCastTimeMs: 280,
     dualWieldCastTimeMs: 240,
     adrenalineGain: 10,
+    // Custom: Applies adrenaline gain and resets all primal-burst cooldowns; see `berserker/skills/execution.ts`.
     handlerId: 'warrior.blood-reckoning'
   },
   [ID.OUTRAGE]: {
@@ -264,6 +273,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [],
     adrenalineGain: 10,
     stunbreak: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.HEAD_BUTT]: {
@@ -290,6 +300,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
     selfStunMs: 1000,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.FLAMING_FLURRY]: {
@@ -362,6 +373,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.DECAPITATE]: {
@@ -387,6 +399,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.RUPTURING_SMASH]: {
@@ -425,6 +438,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.BURNING_SHACKLES]: {
@@ -447,6 +461,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.WILD_WHIRL]: {
@@ -473,6 +488,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.SLICING_MAELSTROM]: {
@@ -490,6 +506,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.RAMPART_SPLITTER]: {
@@ -512,6 +529,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.WILD_THROW]: {
@@ -557,6 +575,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     burstTier: 1,
     burst: true,
     primalBurst: true,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource'
   }
 });

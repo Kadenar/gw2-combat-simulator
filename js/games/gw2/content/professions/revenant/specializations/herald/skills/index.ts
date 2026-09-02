@@ -16,6 +16,7 @@ const TRUE_NATURE_SHARED_COOLDOWN = 20;
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
@@ -30,6 +31,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.FACET_OF_ELEMENTS]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
@@ -44,6 +46,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.GAZE_OF_DARKNESS]: {
     implemented: true,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     castTimeMs: 0,
     cooldown: 15,
@@ -74,6 +77,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.ELEMENTAL_BLAST]: {
     implemented: true,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 12,
@@ -135,6 +139,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.FACET_OF_LIGHT]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 250,
     cooldown: 0,
@@ -149,6 +154,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.INFUSE_LIGHT]: {
     implemented: true,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     castTimeMs: 0,
     cooldown: 30,
@@ -159,6 +165,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.FACET_OF_CHAOS]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
@@ -173,6 +180,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.CHAOTIC_RELEASE]: {
     implemented: true,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 600,
     cooldown: 20,
@@ -210,6 +218,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.BURST_OF_STRENGTH]: {
     implemented: true,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 840,
     cooldown: 12,
@@ -238,6 +247,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.FACET_OF_DARKNESS]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
@@ -252,6 +262,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.FACET_OF_NATURE]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
@@ -275,6 +286,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -294,6 +306,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -312,6 +325,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -334,6 +348,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -345,6 +360,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,

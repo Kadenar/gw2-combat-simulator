@@ -20,6 +20,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.KNEEL]: {
     implemented: true,
+    // Custom: Enters Kneel and exposes kneeling rifle skills; see `core/skills/actions.ts`.
     handlerId: 'thief.kneel',
     castTimeMs: 500,
     cooldown: 0.5,
@@ -59,6 +60,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.FREE_ACTION]: {
     implemented: true,
+    // Custom: Leaves Kneel and restores standing rifle skills; see `core/skills/actions.ts`.
     handlerId: 'thief.free-action',
     castTimeMs: 0,
     cooldown: 0,
@@ -246,6 +248,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.DEATHS_JUDGMENT]: {
     implemented: true,
+    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 500,
     cooldown: 1,

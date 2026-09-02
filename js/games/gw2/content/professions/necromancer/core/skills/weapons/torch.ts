@@ -27,6 +27,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
         controlKind: 'control'
       }
     ],
+    // Custom: Grants party Might scaled by the target's condition count; see `core/skills/weapons.ts`.
     handlerId: 'necromancer.oppressive-collapse'
   },
   [ID.HARROWING_WAVE]: {

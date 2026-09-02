@@ -62,6 +62,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     implemented: true,
     castTimeMs: 0,
     effects: [],
+    // Custom: Opens the Vulture Stance proc window with stance-duration traits; see `soulbeast/skills/execution.ts`.
     handlerId: 'ranger.vulture-stance'
   },
   [ID.PRIMAL_CRY]: {
@@ -316,6 +317,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     paletteTileId: BEASTMODE_PALETTE_TILE,
     paletteTileOrder: 1,
     effects: [],
+    // Custom: Enters Beastmode, disables the pet actor, and applies toggle traits; see `soulbeast/skills/execution.ts`.
     handlerId: 'ranger.beastmode-enter'
   },
   [ID.LEAVE_BEASTMODE]: {
@@ -324,6 +326,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     paletteTileId: BEASTMODE_PALETTE_TILE,
     paletteTileOrder: 2,
     effects: [],
+    // Custom: Leaves Beastmode, restores the pet actor, and applies toggle traits; see `soulbeast/skills/execution.ts`.
     handlerId: 'ranger.beastmode-exit'
   },
   [ID.DEFY_PAIN]: {
@@ -581,6 +584,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     implemented: true,
     effects: [],
     quicknessCastTimeMs: 360,
+    // Custom: Opens the One Wolf Pack proc window with stance-duration traits; see `soulbeast/skills/execution.ts`.
     handlerId: 'ranger.one-wolf-pack'
   },
   [ID.CHARGE]: {

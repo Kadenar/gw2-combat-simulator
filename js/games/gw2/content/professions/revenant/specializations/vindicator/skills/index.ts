@@ -25,6 +25,7 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.URN_OF_SAINT_VIKTOR]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 2,
@@ -128,6 +129,7 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.ALLIANCE_TACTICS]: {
     implemented: true,
+    // Custom: Swaps Alliance stance and its active skill set; see `vindicator/mechanics/dodge.ts`.
     handlerId: 'revenant.alliance-tactics',
     castTimeMs: 0,
     cooldown: 3,
@@ -170,6 +172,7 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.ENERGY_MELD]: {
     implemented: true,
+    // Custom: Restores endurance and applies Vindicator trait adjustments; see `vindicator/mechanics/dodge.ts`.
     handlerId: 'revenant.energy-meld',
     quicknessCastTimeMs: 440,
     cooldown: 20,
@@ -367,6 +370,7 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.ENERGY_MELD_ID_72058]: {
     implemented: true,
+    // Custom: Restores endurance and applies Vindicator trait adjustments; see `vindicator/mechanics/dodge.ts`.
     handlerId: 'revenant.energy-meld',
     quicknessCastTimeMs: 440,
     cooldown: 20,

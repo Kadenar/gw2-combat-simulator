@@ -27,6 +27,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.DEVASTATOR]: {
     implemented: true,
+    // Custom: Schedules Devastator's delayed follow-up strike; see `core/skills/spear.ts`.
     handlerId: 'engineer.devastator',
     castTimeMs: 1000,
     unaffectedByQuickness: true,
@@ -58,6 +59,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ROILING_SKIES]: {
     implemented: true,
+    // Custom: Schedules Roiling Skies' delayed control packet; see `core/skills/spear.ts`.
     handlerId: 'engineer.roiling-skies',
     castTimeMs: 1000,
     cooldown: 15,
@@ -108,6 +110,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.LIGHTNING_ROD]: {
     implemented: true,
+    // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/skills/spear.ts`.
     handlerId: 'engineer.lightning-rod',
     castTimeMs: 400,
     unaffectedByQuickness: true,
@@ -166,6 +169,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.CONDUIT_SURGE]: {
     implemented: true,
+    // Custom: Schedules the delayed Conduit Surge sequence; see `core/skills/spear.ts`.
     handlerId: 'engineer.conduit-surge',
     castTimeMs: 520,
     unaffectedByQuickness: true,
@@ -182,6 +186,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ELECTRIC_ARTILLERY]: {
     implemented: true,
+    // Custom: Consumes Lightning Rod charges and schedules Electric Artillery; see `core/skills/spear.ts`.
     handlerId: 'engineer.electric-artillery',
     quicknessCastTimeMs: 520,
     cooldown: 1,

@@ -68,6 +68,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.EXIT_RADIANT_FORGE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-forge',
     effects: []
   },
@@ -94,6 +95,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.LUMINOUS_STAFF]: {
     implemented: true,
     quicknessCastTimeMs: 560,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     // Luminous Staff's symbol creates a four-second Light field on its first pulse.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 440, startAnchor: 'castStart' }],
@@ -116,6 +118,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.SHINING_SPIN]: {
     implemented: true,
     quicknessCastTimeMs: 480,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
       {
@@ -129,6 +132,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.GLEAMING_BLADE]: {
     implemented: true,
     quicknessCastTimeMs: 840,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
       {
@@ -142,6 +146,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.BRILLIANT_SLAM]: {
     implemented: true,
     quicknessCastTimeMs: 480,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
       {
@@ -154,6 +159,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.GLARING_BURST]: {
     implemented: true,
     quicknessCastTimeMs: 600,
+    // Custom: Builds Glaring Burst packets from live Radiant Forge state; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.glaring-burst',
     // The replacement strike lands at 480 ms and remains committed when the
     // action lane is released at the observed 520 ms cancel point.
@@ -163,6 +169,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.ENTER_RADIANT_FORGE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-forge',
     // Entry stays reusable while the forge is active; its final recharge starts on exit.
     mechanicTriggers: [
@@ -196,12 +203,14 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.RESTORATIVE_GLOW]: {
     implemented: true,
     quicknessCastTimeMs: 560,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: []
   },
   [ID.RADIANT_BULWARK]: {
     implemented: true,
     castTimeMs: 2000,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: []
   },
@@ -223,6 +232,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.DAZZLING_HAMMER]: {
     implemented: true,
     quicknessCastTimeMs: 480,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
       {
@@ -244,6 +254,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.LUCENT_THRUST]: {
     implemented: true,
     quicknessCastTimeMs: 440,
+    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
       {
@@ -272,18 +283,21 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   [ID.RADIANT_COURAGE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.RADIANT_RESOLVE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.RADIANT_JUSTICE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   }

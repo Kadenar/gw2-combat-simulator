@@ -22,6 +22,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ],
     // Dark Pact grants 5% life force only after ripping a boon; its impact handler owns the self-bleed and immobilize.
     lifeForceGain: 5,
+    // Custom: Applies self-bleeding and target immobilize only after the first hit; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.dark-pact'
   },
   [ID.NECROTIC_SLASH]: {
@@ -75,6 +76,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         duration: 6
       }
     ],
+    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.ENFEEBLING_BLOOD]: {
@@ -119,6 +121,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         persistsAfterInterrupt: true
       }
     ],
+    // Custom: Applies Life Siphon's self-bleeding on its first resolved hit; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.life-siphon'
   }
 });

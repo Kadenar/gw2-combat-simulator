@@ -8,6 +8,7 @@ import {
 import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/content/professions/necromancer/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
@@ -58,7 +59,6 @@ interface SpiritDefinition {
   readonly attackCoefficient: number;
   readonly attackWeaponStrength?: number;
   readonly summonTicks: readonly SpiritStrikeTick[];
-  readonly summonWeaponStrength?: number;
   readonly lingeringTicks: readonly SpiritStrikeTick[];
   readonly activeTicks: readonly SpiritStrikeTick[];
   readonly activeDuration: number;
@@ -120,22 +120,28 @@ function spiritDefinition(
     attackCoefficient: Number(autoattack?.coefficient || 0),
     attackWeaponStrength: Number(profile.weaponStrength || 0),
     summonTicks: ticks(initial),
-    summonWeaponStrength: Number(initial?.weaponStrength || 0),
     lingeringTicks: key === 'wanderlust' ? ticks(lingering) : [],
     activeTicks: ticks(active),
     activeDuration: Number(active?.duration || 0)
   };
 }
 
-// Resolve the cast-time weapon used by player-owned spirit packets, including incomplete-loadout fallback.
 function activePrimaryWeapon(context: NecromancerCastContext): string {
-  // Player-owned spirit skill packets inherit the weapon selected at cast time,
-  // with the existing set-1 fallback retained for incomplete sandbox configs.
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
   return String(gw2PrimaryWeapon(context.config, weaponSet) || gw2PrimaryWeapon(context.config, 1) || '');
 }
 
-// Stamp spirit packets with stable ownership, attack classification, and summon weapon strength.
+// Snapshot the equipped main-hand profile so delayed player-owned spirit packets keep their cast-time weapon roll.
+function activePrimaryWeaponFields(context: NecromancerCastContext): Readonly<SchedulerRecord> {
+  const skillWeapon = activePrimaryWeapon(context) || 'Unequipped';
+  const weaponStrengthProfileId = weaponStrengthProfileForName(skillWeapon)?.id;
+  return {
+    skillWeapon,
+    ...(weaponStrengthProfileId ? { weaponStrengthProfileId } : {})
+  };
+}
+
+// Stamp spirit packets with ownership plus summon strength unless a player weapon profile was supplied.
 function spiritEventFields(
   context: NecromancerCastContext | NecromancerSchedulerContext,
   key: string,
@@ -146,7 +152,13 @@ function spiritEventFields(
   return {
     summonKind: 'spirit',
     summonOwner: `spirit:${key}`,
-    weaponStrength: Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048),
+    ...(fields.weaponStrengthProfileId
+      ? {}
+      : {
+          weaponStrength: Number(
+            balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048
+          )
+        }),
     ...fields,
     metadata: {
       spirit: key,
@@ -162,9 +174,9 @@ function spiritEventFields(
 function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState, at: number): number {
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
-    // First summon in the rotation picks the delay (shorter after a re-summon due to in-game animation timing)
+    // Establish the shared cadence with the measured fresh- or re-summon attack delay.
     const delay = state.resummonedSpiritAutoCycle
-      ? Number(resources?.rechargeOffsetMs || 4140) / 1000
+      ? Number(resources?.resummonedSpiritAttackDelayMs || 4140) / 1000
       : Number(resources?.initialDelay || 7.36);
     state.spiritAutoAnchorAt = at + delay;
     state.resummonedSpiritAutoCycle = false;
@@ -318,7 +330,7 @@ function emitAnguishInitial(
       coefficient: Number(tick.coefficient),
       ...spiritEventFields(context, 'anguish', 'initial', {
         anguishConditionalDamage: true,
-        weaponStrength: spirit.summonWeaponStrength,
+        ...activePrimaryWeaponFields(context),
         hitIndex: index + 1,
         totalHits: ticks.length
       })
@@ -342,7 +354,7 @@ function emitWanderlustInitial(
   emitSkillDamage(context, skill, {
     at: context.start + Number(swing.atMs) / 1000,
     coefficient: Number(swing.coefficient),
-    skillWeapon: activePrimaryWeapon(context)
+    ...activePrimaryWeaponFields(context)
   });
   const fieldAt = at + Number(spirit.lingeringTicks[0].atMs) / 1000;
   for (const [index, tick] of spirit.lingeringTicks.entries()) {
@@ -353,6 +365,7 @@ function emitWanderlustInitial(
       source: 'Spirit',
       actorType: 'player',
       ...spiritEventFields(context, 'wanderlust', 'initial', {
+        ...activePrimaryWeaponFields(context),
         hitIndex: index + 1,
         totalHits: spirit.lingeringTicks.length
       })

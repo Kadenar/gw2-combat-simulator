@@ -407,6 +407,7 @@ export interface Skill extends CatalogSkill {
   readonly mechanicTriggers?: readonly SkillMechanicTrigger[];
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
   readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
+  /** Dispatches stateful or phase-specific behavior to the matching entry in the active module's `mechanics.execution.skillHandlers`. */
   readonly handlerId?: string;
   readonly parentId?: SkillId;
   readonly flipParentId?: SkillId | null;

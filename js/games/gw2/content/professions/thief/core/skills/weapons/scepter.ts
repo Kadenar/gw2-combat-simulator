@@ -284,6 +284,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.SHADOWSQUALL]: {
     implemented: true,
+    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     quicknessCastTimeMs: 1960,
     cooldown: 0,

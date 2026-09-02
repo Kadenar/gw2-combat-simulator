@@ -58,6 +58,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
 const extraSkills: readonly Skill[] = [
   {
     id: ID.SWAP_WEAPONS,
+    // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     handlerId: 'revenant.weapon-swap',
     name: 'Swap Weapons',
     description: 'Swap equipped weapon sets.',
@@ -72,6 +73,7 @@ const extraSkills: readonly Skill[] = [
   },
   {
     id: ID.SWAP_LEGENDS,
+    // Custom: Switches legends, resets energy, and updates legend state; see `core/skills/actions.ts`.
     handlerId: 'revenant.legend-swap',
     name: 'Swap Legends',
     description: 'Invoke the other selected legend and reset energy.',
@@ -86,6 +88,7 @@ const extraSkills: readonly Skill[] = [
   },
   {
     id: ID.DODGE,
+    // Custom: Spends endurance and emits Revenant dodge state; see `core/skills/actions.ts`.
     handlerId: 'revenant.dodge',
     name: 'Dodge',
     description: 'Perform the selected dodge.',

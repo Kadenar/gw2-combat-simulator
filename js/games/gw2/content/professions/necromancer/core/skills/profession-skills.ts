@@ -29,6 +29,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     shroudEntry: 'death',
     shroudProfileId: PROFILE.shroud,
     minimumShroudLifeForcePercent: 10,
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   },
   [ID.END_DEATH_SHROUD]: {
@@ -37,6 +38,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: [],
     cooldown: 0,
     shroudExit: 'death',
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   },
   [ID.DOOM]: {
@@ -159,6 +161,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     shroud: 'death',
     shroudSlot: 2,
     specialization: '',
+    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/skills/flip-handlers.ts`.
     handlerId: 'necromancer.flip'
   },
   [ID.GRIM_SPECTER]: {
@@ -236,6 +239,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         controlKind: 'fear'
       }
     ],
+    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/skills/flip-handlers.ts`.
     handlerId: 'necromancer.flip'
   },
   [ID.DEATHLY_CLAWS]: {
@@ -299,6 +303,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         name: 'Unstable Horror - Explosion'
       }
     ],
+    // Custom: Summons the temporary minions and schedules their attacks/expiry; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.summon-madness'
   },
   [ID.DHUUMFIRE_BLAST]: {

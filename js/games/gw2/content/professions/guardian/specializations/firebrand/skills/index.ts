@@ -5,6 +5,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.SCORCHED_AFTERMATH]: {
     implemented: true,
     quicknessCastTimeMs: 920,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -96,6 +97,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.IGNITING_BURST]: {
     implemented: true,
     quicknessCastTimeMs: 480,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -121,6 +123,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.RADIANT_RECOVERY]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
@@ -136,6 +139,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.STALWART_STAND]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -172,6 +176,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.SEARING_SPELL]: {
     implemented: true,
     quicknessCastTimeMs: 680,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -197,6 +202,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.STOW_TOME]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Closes the active tome and updates tome state; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.stow-tome',
     effects: []
   },
@@ -227,18 +233,21 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.TOME_OF_RESOLVE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.VALIANT_BULWARK]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.DARING_CHALLENGE]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -272,6 +281,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.SHINING_RIVER]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -316,6 +326,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.TOME_OF_COURAGE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
@@ -333,12 +344,14 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.TOME_OF_COURAGE_ID_42371]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.HEATED_REBUKE]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -360,12 +373,14 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.ASHES_OF_THE_JUST]: {
     implemented: true,
     quicknessCastTimeMs: 880,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.ETERNAL_OASIS]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
@@ -387,6 +402,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.UNFLINCHING_CHARGE]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -423,12 +439,14 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.TOME_OF_JUSTICE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.UNBROKEN_LINES]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {
@@ -457,6 +475,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.DESERT_BLOOM]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
@@ -487,6 +506,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.AZURE_SUN]: {
     implemented: true,
     castTimeMs: 250,
+    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
       {

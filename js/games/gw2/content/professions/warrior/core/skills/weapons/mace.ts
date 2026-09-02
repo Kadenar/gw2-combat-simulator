@@ -93,6 +93,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 5,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {
@@ -141,6 +142,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 5,
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {

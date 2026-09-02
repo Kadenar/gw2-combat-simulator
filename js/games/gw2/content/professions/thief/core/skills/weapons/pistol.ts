@@ -184,6 +184,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SNEAK_ATTACK]: {
     implemented: true,
+    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 1000,
     cooldown: 1,

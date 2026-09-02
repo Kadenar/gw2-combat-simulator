@@ -69,6 +69,7 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
 export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ICERAZORS_IRE]: {
     implemented: true,
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 520,
     unaffectedByQuickness: true,
@@ -119,6 +120,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.DARKRAZORS_DARING]: {
     implemented: true,
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 500,
     unaffectedByQuickness: true,
@@ -159,6 +161,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.DISMISS_LIEUTENANT_SOULCLEAVE]: {
     implemented: true,
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
@@ -215,6 +218,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.RAZORCLAWS_RAGE]: {
     implemented: true,
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 500,
     cooldown: 15,
@@ -224,6 +228,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.HEROIC_COMMAND]: {
     implemented: true,
+    // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.heroic-command',
     castTimeMs: 500,
     cooldown: 10,
@@ -240,6 +245,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.ORDERS_FROM_ABOVE]: {
     implemented: true,
+    // Custom: Builds Orders from Above boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.orders-from-above',
     castTimeMs: 0,
     cooldown: 20,
@@ -260,6 +266,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.BREAKRAZORS_BASTION]: {
     implemented: true,
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 750,
     cooldown: 30,
@@ -269,6 +276,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.SOULCLEAVES_SUMMIT]: {
     implemented: true,
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 500,
     cooldown: 3,

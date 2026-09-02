@@ -6,6 +6,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     quicknessCastTimeMs: 560,
     cooldown: 20,
+    // Custom: Tracks the tether, decorates its strike, and schedules justice pulses; see `dragonhunter/skills/execution.ts`.
     handlerId: 'guardian.dragonhunter-justice',
     // The completed tether activation exposes Hunter's Verdict for the tether window.
     mechanicTriggers: [
@@ -42,6 +43,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   [ID.SHIELD_OF_COURAGE]: {
     implemented: true,
     castTimeMs: 0,
+    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
@@ -49,6 +51,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     castTimeMs: 0,
     cooldown: 25,
+    // Custom: Runs the core virtue transition plus Dragonhunter virtue traits; see `dragonhunter/skills/execution.ts`.
     handlerId: 'guardian.dragonhunter-virtue',
     effects: []
   },
@@ -113,6 +116,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     castTimeMs: 0,
     cooldown: 40,
+    // Custom: Breaks the active Spear of Justice tether and cancels later pulses; see `dragonhunter/skills/execution.ts`.
     handlerId: 'guardian.hunters-verdict',
     effects: [
       {

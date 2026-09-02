@@ -104,7 +104,8 @@ export function minionDefinitionForSkill(
     damagePerCoefficient: Number(profile.damagePerCoefficient || 0),
     criticalChance: Number(profile.criticalChance || 0),
     criticalDamage: Number(profile.criticalDamage || 0),
-    commandRecoveryDelay: profile.rechargeOffsetMs == null ? undefined : Number(profile.rechargeOffsetMs) / 1000,
+    commandRecoveryDelay:
+      profile.commandRecoveryDelayMs == null ? undefined : Number(profile.commandRecoveryDelayMs) / 1000,
     attacks: ordinary.map(toAttack),
     alternateEvery: Number(profile.alternateEvery || 0),
     alternateAttacks: alternate.map(toAttack)

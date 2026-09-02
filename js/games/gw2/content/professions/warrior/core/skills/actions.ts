@@ -46,6 +46,7 @@ export const WARRIOR_DODGE: Skill = Object.freeze({
   rechargeAnchor: 'castStart',
   implemented: true,
   simulatorExcluded: false,
+  // Custom: Spends endurance and applies Reckless Dodge; see `core/skills/execution.ts`.
   handlerId: 'warrior.dodge',
   effects: []
 });
@@ -69,6 +70,7 @@ export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze({
   rechargeAnchor: 'castStart',
   implemented: true,
   simulatorExcluded: false,
+  // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
   handlerId: 'warrior.weapon-swap',
   effects: []
 });

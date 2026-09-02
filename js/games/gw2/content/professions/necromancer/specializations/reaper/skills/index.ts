@@ -100,6 +100,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     shroud: 'reaper',
     shroudSlot: 3,
     specialization: 'Reaper',
+    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/skills/flip-handlers.ts`.
     handlerId: 'necromancer.flip'
   },
   [ID.CHILLED_TO_THE_BONE]: {
@@ -282,6 +283,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         }
       }
     ],
+    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.RISE]: {
@@ -304,6 +306,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     shroudEntry: 'reaper',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   },
   [ID.DEATHS_CHARGE]: {
@@ -353,6 +356,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     cooldown: 0,
     specialization: 'Reaper',
     shroudExit: 'reaper',
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   }
 });

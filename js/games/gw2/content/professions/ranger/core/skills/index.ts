@@ -236,6 +236,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: 'castStart',
     cooldown: 0,
     implemented: true,
+    // Custom: Spends endurance and applies Ranger dodge traits; see `core/skills/execution.ts`.
     handlerId: 'ranger.dodge',
     effects: []
   },
@@ -251,6 +252,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: 'castStart',
     cooldown: 20,
     implemented: true,
+    // Custom: Switches pet slots and applies pet-swap traits; see `core/skills/execution.ts`.
     handlerId: 'ranger.pet-swap',
     effects: []
   },
@@ -265,6 +267,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: 'castStart',
     cooldown: 10,
     implemented: true,
+    // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     handlerId: 'ranger.weapon-swap',
     effects: []
   }

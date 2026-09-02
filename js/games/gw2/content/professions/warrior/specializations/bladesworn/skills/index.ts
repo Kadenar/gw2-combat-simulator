@@ -7,6 +7,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     implemented: true,
     castTimeMs: 0,
     effects: [],
+    // Custom: Equips Gunsaber and updates bundle/weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.gunsaber-enter'
   },
   [ID.DRAGON_TRIGGER]: {
@@ -14,6 +15,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [],
     castTimeMs: 0,
     canCastConcurrently: false,
+    // Custom: Enters Dragon Trigger and starts charge/flow state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.dragon-trigger'
   },
   [ID.ELECTRIC_FENCE]: {
@@ -33,6 +35,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     cooldown: 0,
     castTimeMs: 0,
     effects: [],
+    // Custom: Stows Gunsaber and restores weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.gunsaber-exit'
   },
   [ID.TACTICAL_RELOAD]: {
@@ -136,6 +139,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ammoCastLockout: 1,
     effects: [],
     quicknessCastTimeMs: 600,
+    // Custom: Arms cartridge charges consumed by later explosions; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.overcharged-cartridges'
   },
   // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
@@ -236,6 +240,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     quicknessCastTimeMs: 681,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
+    // Custom: Materializes Artillery Slash's charge-scaled projectile sequence; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.artillery-slash'
   },
   [ID.CYCLONE_TRIGGER]: {
@@ -296,6 +301,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 1.16,
     dragonSlashMaximumCoefficient: 20.4,
+    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.dragon-slash'
   },
   [ID.DRAGON_SLASH_BOOST]: {
@@ -309,6 +315,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 0.92,
     dragonSlashMaximumCoefficient: 16.3,
+    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.dragon-slash'
   },
   [ID.DRAGON_SLASH_REACH]: {
@@ -321,6 +328,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 0.56,
     dragonSlashMaximumCoefficient: 10.21,
+    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.dragon-slash'
   },
   [ID.FLICKER_STEP]: {

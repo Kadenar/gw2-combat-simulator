@@ -67,6 +67,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
   [ID.DEFENSIVE_PROTOCOL_THORNS]: {
     implemented: true,
     countsAsToolbeltSkill: true,
+    // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.amalgam-morph',
     castTimeMs: 0,
     cooldown: 20,
@@ -84,6 +85,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
   [ID.EVOLVE]: {
     implemented: true,
     countsAsToolbeltSkill: true,
+    // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
     quicknessCastTimeMs: 640,
     cooldown: 40,
@@ -93,6 +95,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
   [ID.EVOLVE_ID_76651]: {
     implemented: true,
     countsAsToolbeltSkill: true,
+    // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
     quicknessCastTimeMs: 640,
     cooldown: 40,
@@ -612,6 +615,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
   [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: {
     implemented: true,
     countsAsToolbeltSkill: true,
+    // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.amalgam-morph',
     castTimeMs: 0,
     cooldown: 20,
@@ -635,6 +639,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
   [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: {
     implemented: true,
     countsAsToolbeltSkill: true,
+    // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.amalgam-morph',
     castTimeMs: 0,
     cooldown: 20,
@@ -660,6 +665,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
   [ID.PLASMATIC_STATE]: {
     implemented: true,
     interruptCommitMs: 0,
+    // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.plasmatic-state',
     quicknessCastTimeMs: PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS,
     cooldown: 25,

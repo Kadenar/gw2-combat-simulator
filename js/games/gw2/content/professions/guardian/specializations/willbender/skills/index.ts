@@ -28,6 +28,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.CRASHING_COURAGE]: {
     implemented: true,
     quicknessCastTimeMs: 680,
+    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/skills/execution.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: [
       {
@@ -140,6 +141,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 520,
     unaffectedByQuickness: true,
     ammoCastLockout: 0.5,
+    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/skills/execution.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: []
   },
@@ -177,6 +179,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     implemented: true,
     quicknessCastTimeMs: 480,
     rechargeAnchor: 'castStart',
+    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/skills/execution.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: [
       {

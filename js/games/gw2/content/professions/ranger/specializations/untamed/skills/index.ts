@@ -66,6 +66,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 1,
     effects: [],
+    // Custom: Transfers Unleash state to the ranger and may open an ambush window; see `untamed/skills/execution.ts`.
     handlerId: 'ranger.unleash-ranger'
   },
   [ID.EXPLODING_SPORES]: {
@@ -100,6 +101,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     quicknessCastTimeMs: 480,
+    // Custom: Chooses Might or Protection from the captured Unleash state; see `untamed/skills/execution.ts`.
     handlerId: 'ranger.exploding-spores'
   },
   [ID.FORESTS_FORTIFICATION]: {
@@ -146,6 +148,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         actorType: 'summon'
       }
     ],
+    // Custom: Applies pet-attributed Vulnerability only to defiant targets; see `untamed/skills/execution.ts`.
     handlerId: 'ranger.venomous-outburst'
   },
   [ID.RENDING_VINES]: {
@@ -195,6 +198,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 2,
     effects: [],
+    // Custom: Transfers Unleash state to the pet; see `untamed/skills/execution.ts`.
     handlerId: 'ranger.unleash-pet'
   },
   [ID.RELENTLESS_WHIRL]: {
@@ -251,6 +255,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     quicknessCastTimeMs: 1560,
+    // Custom: Consumes the current unleashed-ambush window; see `untamed/skills/execution.ts`.
     handlerId: 'ranger.unleashed-ambush'
   },
   [ID.DEFT_STRIKE]: {
@@ -302,6 +307,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     quicknessCastTimeMs: 960,
+    // Custom: Consumes the current unleashed-ambush window; see `untamed/skills/execution.ts`.
     handlerId: 'ranger.unleashed-ambush'
   }
 });

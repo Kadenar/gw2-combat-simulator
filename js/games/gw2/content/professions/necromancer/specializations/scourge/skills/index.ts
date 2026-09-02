@@ -15,6 +15,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [],
     specialization: 'Scourge',
     lifeForceCost: 21,
+    // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade'
   },
   [ID.SERPENT_SIPHON]: {
@@ -34,6 +35,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 8
       }
     ],
+    // Custom: Applies barrier-triggered Scourge traits; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.barrier'
   },
   [ID.GHASTLY_BREACH]: {
@@ -89,6 +91,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 8
       }
     ],
+    // Custom: Applies barrier-triggered Scourge traits; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.barrier'
   },
   [ID.SAND_CASCADE]: {
@@ -97,6 +100,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [],
     specialization: 'Scourge',
     lifeForceCost: 27,
+    // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade'
   },
   [ID.GARISH_PILLAR]: {
@@ -105,6 +109,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [],
     specialization: 'Scourge',
     lifeForceCost: 40,
+    // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade'
   },
   [ID.DESERT_SHROUD]: {
@@ -113,6 +118,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [],
     specialization: 'Scourge',
     lifeForceCost: 50,
+    // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade',
     flipSkillId: null
   },
@@ -124,6 +130,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammo: 3,
     ammoRecharge: 15,
     specialization: 'Scourge',
+    // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade'
   },
   [ID.SANDSTORM_SHROUD]: {
@@ -132,6 +139,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [],
     specialization: 'Scourge',
     lifeForceCost: 35,
+    // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade',
     flipParentId: null
   }

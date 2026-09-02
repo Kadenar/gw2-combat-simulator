@@ -13,6 +13,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
+    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.PUTRID_EXPLOSION]: {
@@ -30,6 +31,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'summon'
       }
     ],
+    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion-command'
   },
   [ID.SUMMON_BONE_MINIONS]: {
@@ -37,6 +39,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
+    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.BLOOD_IS_POWER]: {
@@ -58,6 +61,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast'
       }
     ],
+    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.corruption'
   },
   // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
@@ -104,12 +108,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     implemented: true,
     castTimeMs: 1000,
     effects: [],
+    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.CONSUME_CONDITIONS]: {
     implemented: true,
     castTimeMs: 1000,
     effects: [],
+    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.corruption'
   },
   [ID.PLAGUELANDS]: {
@@ -256,6 +262,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         persistsAfterInterrupt: true
       }
     ],
+    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.corruption'
   },
   [ID.LICH_FORM]: {
@@ -264,12 +271,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [],
     lifeForceGain: 15,
     cooldown: 120,
+    // Custom: Enters or exits Lich Form and updates transform state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.lich'
   },
   [ID.PLAGUE_SIGNET]: {
     implemented: true,
     castTimeMs: 0,
     effects: [],
+    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.RIGOR_MORTIS]: {
@@ -319,6 +328,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'summon'
       }
     ],
+    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion-command'
   },
   [ID.TASTE_OF_DEATH]: {
@@ -327,6 +337,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     minionKey: 'blood-fiend',
     consumes: 1,
     effects: [],
+    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion-command'
   },
   [ID.SPECTRAL_ARMOR]: {
@@ -344,6 +355,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
+    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.HAUNT]: {
@@ -370,6 +382,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'summon'
       }
     ],
+    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion-command'
   },
   [ID.WELL_OF_DARKNESS]: {
@@ -507,6 +520,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 1000,
     effects: [],
     rechargeOnMinionDeath: true,
+    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.CHARGE]: {
@@ -521,6 +535,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         controlKind: 'knockdown'
       }
     ],
+    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion-command'
   },
   [ID.SPECTRAL_WALK]: {
@@ -550,6 +565,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         duration: 2
       }
     ],
+    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.corruption'
   },
   [ID.SIGNET_OF_VAMPIRISM]: {

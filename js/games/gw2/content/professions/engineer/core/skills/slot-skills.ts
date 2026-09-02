@@ -6,6 +6,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HEALING_TURRET]: {
     implemented: true,
+    // Custom: Arms this skill's follow-up palette flip; see `core/skills/flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     castTimeMs: 750,
@@ -41,6 +42,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.DETONATE_HEALING_TURRET]: {
     implemented: true,
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/skills/flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Healing Turret',
     castTimeMs: 0,
@@ -70,6 +72,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.THROW_MINE]: {
     implemented: true,
+    // Custom: Arms this skill's follow-up palette flip; see `core/skills/flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 500,
@@ -78,6 +81,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.DETONATE]: {
     implemented: true,
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/skills/flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Throw Mine',
     castTimeMs: 0,

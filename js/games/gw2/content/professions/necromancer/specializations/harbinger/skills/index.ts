@@ -17,6 +17,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     blightCost: 5,
     blightGain: 10,
     effects: [{ type: 'strike', coefficient: 0.8, hits: 1 }],
+    // Custom: Materializes elixir boons, Blight, and trait-dependent ground effects; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_RISK]: {
@@ -35,6 +36,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       { type: 'boon', boon: 'fury', stacks: 1, duration: 10 }
     ],
     cooldown: 20,
+    // Custom: Materializes elixir boons, Blight, and trait-dependent ground effects; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.elixir'
   },
   [ID.VORACIOUS_ARC]: {
@@ -47,6 +49,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'harbinger',
     shroudSlot: 4,
     specialization: 'Harbinger',
+    // Custom: Consumes live Blight to materialize the skill's scaled packets; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.blight-skill'
   },
   [ID.EXIT_HARBINGER_SHROUD]: {
@@ -56,6 +59,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     cooldown: 0,
     specialization: 'Harbinger',
     shroudExit: 'harbinger',
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   },
   [ID.VITAL_DRAW]: {
@@ -100,6 +104,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroudEntry: 'harbinger',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 0,
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
   },
   [ID.TAINTED_BOLTS]: {
@@ -181,6 +186,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'harbinger',
     shroudSlot: 2,
     specialization: 'Harbinger',
+    // Custom: Replaces the base hit with Doom Approaches' multi-hit sequence when selected; see `harbinger/skills/dark-barrage.ts`.
     handlerId: 'necromancer.dark-barrage'
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
@@ -192,6 +198,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       { type: 'strike', coefficient: 0.8, hits: 1 },
       { type: 'blind', duration: 0 }
     ],
+    // Custom: Materializes elixir boons, Blight, and trait-dependent ground effects; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_AMBITION]: {
@@ -214,6 +221,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
       { type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 }
     ],
+    // Custom: Materializes elixir boons, Blight, and trait-dependent ground effects; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_ANGUISH]: {
@@ -228,6 +236,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
       { type: 'boon', boon: 'swiftness', stacks: 1, duration: 10 }
     ],
+    // Custom: Materializes elixir boons, Blight, and trait-dependent ground effects; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_PROMISE]: {
@@ -239,6 +248,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       { type: 'strike', coefficient: 0.8, hits: 1 },
       { type: 'condition', condition: 'Poisoned', stacks: 3, duration: 5 }
     ],
+    // Custom: Materializes elixir boons, Blight, and trait-dependent ground effects; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.elixir'
   },
   [ID.DEVOURING_CUT]: {
@@ -253,6 +263,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'harbinger',
     shroudSlot: 3,
     specialization: 'Harbinger',
+    // Custom: Consumes live Blight to materialize the skill's scaled packets; see `harbinger/mechanics/blight.ts`.
     handlerId: 'necromancer.blight-skill'
   }
 });

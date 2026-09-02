@@ -138,6 +138,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SURPRISE_SHOT]: {
     implemented: true,
+    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 250,
     cooldown: 1,

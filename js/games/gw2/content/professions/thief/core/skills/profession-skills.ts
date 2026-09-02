@@ -5,6 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.THROW_GUNK]: {
     implemented: true,
+    // Custom: Consumes the currently stored stolen skill; see `core/mechanics/steal.ts`.
     handlerId: 'thief.stolen-skill',
     castTimeMs: 500,
     cooldown: 0,
@@ -188,6 +189,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.CONSUME_PLASMA]: {
     implemented: true,
+    // Custom: Consumes the currently stored stolen skill; see `core/mechanics/steal.ts`.
     handlerId: 'thief.stolen-skill',
     castTimeMs: 1000,
     cooldown: 0,
@@ -699,6 +701,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WHIRLING_AXE]: {
     implemented: true,
+    // Custom: Consumes the currently stored stolen skill; see `core/mechanics/steal.ts`.
     handlerId: 'thief.stolen-skill',
     castTimeMs: 3250,
     cooldown: 0,
@@ -749,6 +752,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     implemented: true,
     stealTraitSkill: true,
     movementSkill: true,
+    // Custom: Runs steal traits, grants a stored stolen skill, and updates steal state; see `core/mechanics/steal.ts`.
     handlerId: 'thief.steal',
     castTimeMs: 0,
     cooldown: 25,
