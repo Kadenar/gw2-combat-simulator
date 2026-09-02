@@ -816,6 +816,49 @@ test('uses an overlapping weapon swap as the Helio Rush cancel boundary', () => 
   );
 });
 
+test('uses Forge entry as a cancel boundary only for weapon skills', () => {
+  const report = reportFixture(
+    'Luminary',
+    [
+      { id: 72_940, skills: [{ castTime: 0, duration: 435, timeGained: 985 }] },
+      {
+        id: 77_073,
+        skills: [
+          { castTime: 316, duration: 0, timeGained: 0 },
+          { castTime: 1_500, duration: 0, timeGained: 0 }
+        ]
+      },
+      {
+        id: 77_339,
+        skills: [
+          { castTime: 435, duration: 480, timeGained: 0 },
+          { castTime: 1_600, duration: 480, timeGained: 0 }
+        ]
+      },
+      { id: 9_168, skills: [{ castTime: 1_000, duration: 600, timeGained: 0 }] }
+    ],
+    {
+      s72940: { name: 'Helio Rush' },
+      s77073: { name: 'Enter Radiant Forge', isInstantCast: true },
+      s77339: { name: 'Dazzling Hammer' },
+      s9168: { name: 'Sword of Justice' }
+    },
+    3_000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  const helioIndex = result.rotation.findIndex((command) => command.name === 'Helio Rush');
+  const sword = result.rotation.find((command) => command.name === 'Sword of Justice');
+
+  assert.deepEqual(result.rotation.slice(helioIndex, helioIndex + 4), [
+    { name: 'Helio Rush', skillId: 72_940, interruptMs: 320 },
+    { name: 'Enter Radiant Forge', skillId: 77_073 },
+    { name: '__wait', waitMs: 120 },
+    { name: 'Dazzling Hammer', skillId: 77_339 }
+  ]);
+  assert.equal('interruptMs' in sword, false);
+});
+
 test('preserves observed Daybreaking Slash ticks between commit and full cast', () => {
   const report = reportFixture(
     'Luminary',

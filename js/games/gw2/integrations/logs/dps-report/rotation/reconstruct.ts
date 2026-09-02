@@ -296,18 +296,21 @@ function instantReplayAction(action: DpsReportResolvedAction): boolean {
   return action.status === 'instant' || action.end <= action.start || Number(action.skill?.castTimeMs) === 0;
 }
 
-/** Uses an overlapping weapon swap as the safe cancellation boundary of the active reported cast. */
-function applyWeaponSwapInterrupts(actions: readonly DpsReportResolvedAction[]): DpsReportResolvedAction[] {
+/** Uses weapon swaps, plus Forge entry for weapon skills, as safe cancellation boundaries. */
+function applyCastInterrupts(actions: readonly DpsReportResolvedAction[]): DpsReportResolvedAction[] {
   const replay = [...actions];
-  for (let swapIndex = 0; swapIndex < replay.length; swapIndex += 1) {
-    const swap = replay[swapIndex];
-    if (!swap.isSwap || normalized(swap.rawName) !== 'weapon swap') continue;
+  for (let boundaryIndex = 0; boundaryIndex < replay.length; boundaryIndex += 1) {
+    const boundary = replay[boundaryIndex];
+    const weaponSwap = boundary.isSwap && normalized(boundary.rawName) === 'weapon swap';
+    const forgeEntry = normalized(boundary.name) === 'enter radiant forge';
+    if (!weaponSwap && !forgeEntry) continue;
 
-    for (let castIndex = swapIndex - 1; castIndex >= 0; castIndex -= 1) {
+    for (let castIndex = boundaryIndex - 1; castIndex >= 0; castIndex -= 1) {
       const cast = replay[castIndex];
       if (instantReplayAction(cast)) continue;
-      if (cast.end <= swap.start) break;
-      const interruptMs = observedCommittedInterruptMs(cast.skill, swap.start - cast.start);
+      if (cast.end <= boundary.start) break;
+      if (forgeEntry && normalized(cast.skill?.type) !== 'weapon') break;
+      const interruptMs = observedCommittedInterruptMs(cast.skill, boundary.start - cast.start);
       if (interruptMs != null) replay[castIndex] = { ...cast, replayInterruptMs: interruptMs };
       break;
     }
@@ -511,7 +514,7 @@ export function reconstructDpsReportWithProfile(
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig
   });
-  const resolved = applyWeaponSwapInterrupts(
+  const resolved = applyCastInterrupts(
     professionActions
       .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
       .map(applyRetainedCastLockout)
