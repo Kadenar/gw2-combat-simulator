@@ -110,8 +110,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SWORD_OF_JUSTICE]: {
     implemented: true,
-    // Store the measured Quickness cast and derive the 900ms unquickened baseline.
     quicknessCastTimeMs: 600,
+    // Can be interrupted at 400ms but retains lockout
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 1,
     ammo: 3,
     ammoRecharge: 15,
