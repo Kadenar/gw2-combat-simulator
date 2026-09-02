@@ -219,83 +219,37 @@
   justify-self: stretch;
 }
 
-.profession-loadout-theme .engineer-amalgam-protocols .skill-bar-inspection-skills {
+.profession-loadout-theme .skill-bar-inspection.engineer-amalgam-protocols {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 10px;
-  width: 100%;
 }
 
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot {
-  display: grid;
-  justify-items: center;
+.profession-loadout-theme .engineer-amalgam-protocol {
   min-width: 0;
 }
 
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot .sbar-icon {
-  position: relative;
+/* Center protocol names over their icons without the shared header marker shifting the text. */
+.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-label {
+  justify-content: center;
+  text-align: center;
+  border-bottom: 0;
+}
+
+.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-label::before {
+  content: none;
+}
+
+.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-skills {
+  justify-content: center;
+  width: 100%;
+}
+
+.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-slot .sbar-icon {
   width: 62px;
   height: 62px;
-  border-color: var(--inspection-color);
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
-}
-
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot :is(.skill-bar-key, .skill-bar-type) {
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot .skill-bar-key {
-  position: relative;
-  margin-top: 5px;
-  color: #c4c4cc;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12px;
-}
-
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot .skill-bar-key::after {
-  position: absolute;
-  bottom: -7px;
-  left: 50%;
-  width: 1px;
-  height: 5px;
-  background: var(--border-light);
-  content: '';
-}
-
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot .skill-bar-type {
-  margin-top: 7px;
-  padding-top: 5px;
-  color: #777785;
-  font-size: 9px;
-  letter-spacing: 0.6px;
-  line-height: 1;
-  text-transform: uppercase;
-  border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
-}
-
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot .sbar-icon-arrow {
-  position: absolute;
-  right: 2px;
-  bottom: 2px;
-  z-index: 2;
-  display: grid;
-  width: 17px;
-  height: 15px;
-  color: #e7e7ed;
-  font-size: 8px;
-  line-height: 1;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 3px;
-  background: rgba(5, 5, 10, 0.82);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  place-items: center;
-}
-
-.profession-loadout-theme .engineer-amalgam-protocols .labeled-skill-bar-slot > .sbar-arrow {
-  display: none;
 }
 
 .profession-loadout-theme .skill-bar-inspection-chain-step .skill-bar-inspection-slot.child-skill .sbar-icon {
@@ -304,7 +258,7 @@
 }
 
 .skills-section
-  :is(.skill-bar-selected .skill-bar-slot, .engineer-amalgam-protocols .labeled-skill-bar-slot)
+  :is(.skill-bar-selected .skill-bar-slot, .engineer-amalgam-protocol .skill-bar-inspection-slot)
   .sbar-icon {
   cursor: pointer;
   transition:
@@ -315,7 +269,7 @@
 }
 
 .skills-section
-  :is(.skill-bar-selected .skill-bar-slot, .engineer-amalgam-protocols .labeled-skill-bar-slot):hover
+  :is(.skill-bar-selected .skill-bar-slot, .engineer-amalgam-protocol .skill-bar-inspection-slot):hover
   .sbar-icon {
   border-color: color-mix(in srgb, var(--accent) 82%, white);
   box-shadow:
@@ -323,12 +277,6 @@
     0 6px 14px rgba(0, 0, 0, 0.55);
   filter: brightness(1.08);
   transform: translateY(-2px);
-}
-
-.skills-section
-  :is(.skill-bar-selected .skill-bar-slot, .engineer-amalgam-protocols .labeled-skill-bar-slot):hover
-  .sbar-icon-arrow {
-  background: color-mix(in srgb, var(--accent) 75%, #101018);
 }
 
 /* Keep build-selectable skills beside the fixed-width traits column. */
@@ -379,8 +327,8 @@
   height: 52px;
 }
 
-/* Ranger pet selectors share one row; Hammer choices span beneath them when equipped. */
-.selectable-skills-bar .ranger-build-selections {
+/* Build-changing profession selectors sit below the standard slot skills. */
+.selectable-skills-bar .profession-build-selections {
   min-width: 0;
   padding-top: 16px;
   border-top: 1px solid var(--border);

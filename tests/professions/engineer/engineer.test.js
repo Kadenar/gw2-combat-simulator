@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
+import { selectableSkillBarGroups } from '#gw2/app/build/panels/skills.js';
 import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
 import {
@@ -2347,31 +2347,33 @@ test('Amalgam exposes only persisted F2-F4 morph choices', () => {
 
   assert.deepEqual(
     groups.map((group) => group.label),
-    ['F Skills', 'Protocols']
+    ['F Skills', 'Shred', 'Protect', 'Demolish']
   );
   assert.deepEqual(
     groups[0].skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
     ['Regenerating Mist', 'Evolve']
   );
-  const protocolSelections = groups[1].selections;
+  const protocolGroups = groups.slice(1);
+  const protocolSelections = protocolGroups.flatMap((group) => group.selections);
 
   assert.deepEqual(
     protocolSelections.map((selection) => engineerCatalog.skillsById.get(selection.skillId).name),
     ['Offensive Protocol: Shred', 'Defensive Protocol: Protect', 'Offensive Protocol: Demolish']
   );
-  assert.equal(groups[1].className, 'engineer-amalgam-protocols');
-  assert.deepEqual(
-    protocolSelections.map((selection) => [selection.keyLabel, selection.typeLabel]),
-    [
-      ['F2', 'Protocol'],
-      ['F3', 'Protocol'],
-      ['F4', 'Protocol']
-    ]
-  );
+  assert.ok(protocolGroups.every((group) => group.layout === 'engineer-amalgam-protocols'));
+  assert.ok(protocolSelections.every((selection) => !selection.keyLabel && !selection.typeLabel));
   assert.ok(
     protocolSelections.every(
       (selection) => selection.selectionKey === 'selectedMorphSkillIds' && selection.optionSkillIds.length === 7
     )
+  );
+  assert.deepEqual(
+    selectableSkillBarGroups('engineer', groups).map((group) => group.id),
+    [
+      'engineer-amalgam-protocol-2-selection',
+      'engineer-amalgam-protocol-3-selection',
+      'engineer-amalgam-protocol-4-selection'
+    ]
   );
 });
 

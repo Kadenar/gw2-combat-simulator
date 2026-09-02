@@ -61,11 +61,11 @@ function amalgamProfessionSkills(context: EngineerUiContext): (SkillId | null)[]
   return [engineerToolbeltSkillIds(context)[0], ...selectedMorphIds(context).slice(0, 3), namedSkillId('Evolve')];
 }
 
-/** Builds Amalgam's configurable F2-F4 protocol group while leaving F1 and F5 fixed. */
+/** Builds one named selector per configurable protocol while leaving F1 and F5 fixed. */
 function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(context);
-  // Build one selector per configurable protocol slot, retaining only selections valid for that slot.
-  const selections = [2, 3, 4].flatMap((slot) => {
+  // Match pet selectors with concise selected-name headers while dropdowns retain the full protocol names.
+  const protocolGroups = [2, 3, 4].flatMap((slot): ProfessionSkillBarGroup[] => {
     const options = amalgamProtocolOptions(slot);
     const selected = Number(selectedMorphIds(context)[slot - 2]);
     if (options.some((skill) => skill.id === selected)) skillIds[slot - 1] = selected;
@@ -73,12 +73,20 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
     if (skillId == null || !options.length) return [];
     return [
       {
-        skillId,
-        optionSkillIds: options.map((skill) => skill.id),
-        selectionKey: 'selectedMorphSkillIds',
-        selectionIndex: slot - 2,
-        keyLabel: `F${slot}`,
-        typeLabel: 'Protocol'
+        id: `engineer-amalgam-protocol-${slot}-selection`,
+        label: engineerSkillsById.get(skillId)?.name.replace(/^(?:Offensive|Defensive) Protocol: /, '') || 'Protocol',
+        skillIds: [],
+        color: '#67aa87',
+        className: 'engineer-amalgam-protocol',
+        layout: 'engineer-amalgam-protocols',
+        selections: [
+          {
+            skillId,
+            optionSkillIds: options.map((skill) => skill.id),
+            selectionKey: 'selectedMorphSkillIds',
+            selectionIndex: slot - 2
+          }
+        ]
       }
     ];
   });
@@ -97,18 +105,7 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
           }
         ]
       : []),
-    ...(selections.length
-      ? [
-          {
-            id: 'engineer-skill-bar-protocols',
-            label: 'Protocols',
-            skillIds: [],
-            color: '#67aa87',
-            className: 'engineer-amalgam-protocols',
-            selections
-          }
-        ]
-      : [])
+    ...protocolGroups
   ];
 }
 

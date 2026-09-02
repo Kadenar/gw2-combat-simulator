@@ -5,20 +5,21 @@ import type { ProfessionSkillBarGroup, SchedulerRecord, Skill, SkillId } from '#
 import type { ProfessionAppState, ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '#gw2/app/types.js';
 import { requiredElement } from '#ui/shared/dom.js';
 
-const RANGER_BUILD_SELECTION_GROUP_IDS = new Set([
-  'ranger-pet-1-selection',
-  'ranger-pet-2-selection',
-  'ranger-hammer-selection'
+const BUILD_SELECTION_GROUP_IDS = new Set([
+  'engineer:engineer-amalgam-protocol-2-selection',
+  'engineer:engineer-amalgam-protocol-3-selection',
+  'engineer:engineer-amalgam-protocol-4-selection',
+  'ranger:ranger-pet-1-selection',
+  'ranger:ranger-pet-2-selection',
+  'ranger:ranger-hammer-selection'
 ]);
 
-/** Retains only profession groups that change build state after removing mechanic previews. */
+/** Retains only profession groups that change build state, including Amalgam protocols and Ranger loadout choices. */
 export function selectableSkillBarGroups(
   professionId: string,
   groups: readonly ProfessionSkillBarGroup[]
 ): ProfessionSkillBarGroup[] {
-  return professionId === 'ranger'
-    ? groups.filter((group) => RANGER_BUILD_SELECTION_GROUP_IDS.has(String(group.id)))
-    : [];
+  return groups.filter((group) => BUILD_SELECTION_GROUP_IDS.has(`${professionId}:${String(group.id)}`));
 }
 
 /** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
@@ -222,7 +223,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
   </div>`;
 }
 
-/** Renders build-selectable slot skills plus Ranger pets/hammer or Revenant legends. */
+/** Renders slot skills plus profession-specific build selectors or Revenant legends. */
 export function renderSkills(app: ProfessionAppState): void {
   const spec = app.adapter.eliteSpecialization(app.build);
   const skillBar = requiredElement('skill-bar');
@@ -241,10 +242,10 @@ export function renderSkills(app: ProfessionAppState): void {
     professionState: app.results?.endState?.profession,
     traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
   };
-  const inspectionGroups =
-    app.profession.id === 'ranger'
-      ? selectableSkillBarGroups('ranger', app.profession.ui.skillBarGroups?.(context) || [])
-      : [];
+  const inspectionGroups = selectableSkillBarGroups(
+    app.profession.id,
+    app.profession.ui.skillBarGroups?.(context) || []
+  );
   skillBar.classList.toggle('has-inspection', inspectionGroups.length > 0);
 
   const slots: readonly (readonly [string, string])[] = [
@@ -275,15 +276,17 @@ export function renderSkills(app: ProfessionAppState): void {
   const inspectionLayout = inspectionGroups.find((group) => group.layout)?.layout || '';
 
   const selectedSkillsHtml = `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>`;
-  const rangerSelectionsHtml = `<div class="skill-bar-inspection${
+  const professionSelectionsHtml = `<div class="skill-bar-inspection${
     inspectionLayout ? ` ${esc(inspectionLayout)}` : ''
   }"${inspectionLayout ? ` data-layout="${esc(inspectionLayout)}"` : ''}>${inspectionGroups
     .map((group) => multiSelectionInspectionGroupHtml(app, group))
     .join('')}</div>`;
 
-  // Ranger pet and Hammer selections remain build inputs; static profession mechanics do not.
+  // Keep build-changing profession selectors while omitting static mechanic previews.
   skillBar.innerHTML = `${selectedSkillsHtml}${
-    inspectionGroups.length ? `<section class="ranger-build-selections">${rangerSelectionsHtml}</section>` : ''
+    inspectionGroups.length
+      ? `<section class="profession-build-selections">${professionSelectionsHtml}</section>`
+      : ''
   }`;
 
   // Wire dropdown selection for the standard heal, utility, and elite slots.
