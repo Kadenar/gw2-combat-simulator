@@ -4,6 +4,22 @@ import type {
   ProfessionAssumptionOption
 } from '#gw2/platform/builds/types.js';
 
+const COMMON_BOOLEAN_ASSUMPTION_DEFAULTS: Readonly<Record<string, boolean>> = Object.freeze({
+  fury: false,
+  quickness: false,
+  alacrity: false,
+  protection: false,
+  resolution: false,
+  regeneration: false,
+  swiftness: false,
+  vigor: false,
+  aegis: false,
+  sharePlayerBoonsWithSummons: true,
+  targetDefiant: true,
+  targetMoving: false,
+  targetBoonless: false
+});
+
 /**
  * Standard positioning and health assumptions available to professions.
  */
@@ -123,6 +139,38 @@ export function assumptionControlsForSpecialization(
   );
 }
 
+/** Keeps malformed shared boolean assumptions from becoming enabled through JavaScript truthiness. */
+export function normalizeCommonAssumptions(
+  assumptions: Record<string, unknown> = {},
+  defaults: Record<string, unknown> = {}
+): Record<string, unknown> {
+  const result = { ...assumptions };
+  for (const [key, fallback] of Object.entries(COMMON_BOOLEAN_ASSUMPTION_DEFAULTS)) {
+    const hasSavedValue = Object.hasOwn(assumptions, key);
+    if (!hasSavedValue && !Object.hasOwn(defaults, key)) continue;
+    const value = hasSavedValue ? assumptions[key] : defaults[key];
+    result[key] = typeof value === 'boolean' ? value : typeof defaults[key] === 'boolean' ? defaults[key] : fallback;
+  }
+
+  return result;
+}
+
+/** Reports non-boolean shared flags before runtime configuration can coerce them. */
+export function validateCommonAssumptions(assumptions: unknown): string[] {
+  if (!assumptions || typeof assumptions !== 'object' || Array.isArray(assumptions)) {
+    return ['assumptions must be an object.'];
+  }
+
+  const errors: string[] = [];
+  for (const key of Object.keys(COMMON_BOOLEAN_ASSUMPTION_DEFAULTS)) {
+    if (Object.hasOwn(assumptions, key) && typeof (assumptions as Record<string, unknown>)[key] !== 'boolean') {
+      errors.push(`assumptions.${key} must be boolean.`);
+    }
+  }
+
+  return errors;
+}
+
 export function normalizeProfessionAssumptions(
   assumptions: Record<string, unknown> = {},
   controls: ReadonlyArray<ProfessionAssumptionControl> = []
@@ -131,7 +179,12 @@ export function normalizeProfessionAssumptions(
   for (const control of controls) {
     const value = assumptions[control.key] ?? control.defaultValue;
     if (control.type === 'boolean') {
-      result[control.key] = Boolean(value);
+      result[control.key] =
+        typeof assumptions[control.key] === 'boolean'
+          ? assumptions[control.key]
+          : typeof control.defaultValue === 'boolean'
+            ? control.defaultValue
+            : false;
     } else if (control.type === 'number') {
       const number = Number(value);
       const finite = Number.isFinite(number) ? number : Number(control.defaultValue || 0);

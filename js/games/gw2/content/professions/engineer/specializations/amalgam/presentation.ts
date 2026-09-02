@@ -1,4 +1,4 @@
-import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
+import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/content/professions/engineer/build/assumptions.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
@@ -33,16 +33,6 @@ const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
   ['Defensive Protocol: Thorns', 4],
   ['Defensive Protocol: Cleanse', 5],
   ['Defensive Protocol: Protect', 6]
-]);
-
-const AMALGAM_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([
-  {
-    key: 'inDamagingField',
-    label: 'In damaging field',
-    type: 'boolean',
-    defaultValue: false,
-    specializations: ['Amalgam']
-  }
 ]);
 
 /** Returns the catalog-backed Morph choices for a mechanic slot in stable UI order. */
@@ -213,7 +203,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 export const amalgamUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
     event?.type === 'engineer.state' ? null : undefined,
-  assumptionControls: AMALGAM_ASSUMPTION_CONTROLS,
+  assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
   rotationStateSnapshot: amalgamStateSnapshot,
   skillBarGroups: amalgamSkillBarGroups,
   updateSkillBarSelection: updateAmalgamSkillBarSelection,

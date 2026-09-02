@@ -2,6 +2,7 @@ import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
+import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/content/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import type { RotationCommand, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
@@ -142,6 +143,7 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   schemaVersion: ENGINEER_BUILD_SCHEMA_VERSION,
   catalog: engineerCatalog,
   createDefaults: createEngineerBuildDefaults,
+  assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
   // Heat normalization and validation share this one persisted-field contract.
   extraFields: {
     initialHeat: {

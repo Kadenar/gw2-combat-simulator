@@ -733,6 +733,30 @@ test('Engineer defaults migrate and validate morph branch choices', () => {
   );
 });
 
+test('Engineer build imports do not coerce string booleans to true', () => {
+  const defaults = createEngineerBuildDefaults();
+  const migrated = migrateEngineerBuild({
+    ...defaults,
+    assumptions: {
+      ...defaults.assumptions,
+      targetMoving: 'false',
+      inDamagingField: 'false'
+    }
+  });
+  const invalid = {
+    ...defaults,
+    assumptions: {
+      ...defaults.assumptions,
+      targetMoving: 'false',
+      inDamagingField: 'false'
+    }
+  };
+
+  assert.equal(migrated.assumptions.targetMoving, false);
+  assert.equal(migrated.assumptions.inDamagingField, false);
+  assert.equal(validateEngineerBuild(invalid).valid, false);
+});
+
 test('Amalgam protocol IDs survive application build conversion', () => {
   const defaults = createEngineerBuildDefaults();
   const application = toApplicationBuild({

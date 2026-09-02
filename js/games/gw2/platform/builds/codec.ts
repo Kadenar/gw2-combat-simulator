@@ -8,6 +8,7 @@ import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
 import { clamp, finiteNumber } from '#gw2/platform/combat/numeric.js';
 import { boundedInteger, boundedNumber, enumValue } from '#gw2/platform/builds/normalization.js';
+import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { CanonicalCatalog, SchedulerRecord, Skill, SkillId } from '#gw2/platform/engine/types.js';
 import type {
@@ -103,7 +104,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       migrations
     });
     const defaults = createDefaults();
-    const assumptions = plainObject(saved.assumptions);
+    const assumptions = normalizeCommonAssumptions(plainObject(saved.assumptions), plainObject(defaults.assumptions));
     // Only inherit saved targetConditions when the key is explicitly present;
     // a partial assumptions object must not silently drop target condition defaults.
     const targetConditions = Object.hasOwn(assumptions, 'targetConditions')
@@ -759,6 +760,7 @@ function validateCommonBuild(
   }
 
   const candidate = build as Gw2CanonicalBuild;
+  errors.push(...validateCommonAssumptions(candidate.assumptions));
   if (candidate.profession !== professionId) {
     errors.push(`profession must be ${professionId}.`);
   }
