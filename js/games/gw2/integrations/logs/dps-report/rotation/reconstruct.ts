@@ -272,7 +272,7 @@ function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportRes
 /** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
 function replayActionEnd(action: DpsReportResolvedAction, completeReportedAftercast = false): number {
   if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
-  // A profession-proven combat marker inside an opening cast must use the
+  // A packet-proven combat marker inside an opening cast must use the
   // simulator's cast lane, not EI's slightly shorter animation observation.
   if (action.combatStartOverride != null) {
     const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
@@ -361,6 +361,27 @@ function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedA
         ? Math.min(expectedDurationMs, runtimeDurationMs)
         : expectedDurationMs;
   return actualDurationMs >= commitmentDurationMs * AUTOATTACK_COMMIT_FRACTION;
+}
+
+/** Keeps a pre-phase cast's explicit opening strike from landing before reconstructed combat begins. */
+function alignOpeningStrikeCombatStart(
+  actions: readonly DpsReportResolvedAction[],
+  sourceCombatStart: number
+): DpsReportResolvedAction[] {
+  return actions.map((action) => {
+    if (action.inference != null || action.start > sourceCombatStart || action.end < sourceCombatStart) return action;
+    const strikeOffset = firstStrikePacketOffsetMs(action.skill, quicknessReferenceCastTimeMs(action.skill), {
+      explicitOnly: true
+    });
+    if (strikeOffset == null || action.start + strikeOffset >= sourceCombatStart) return action;
+
+    const strikeAt = action.start + strikeOffset;
+    const existingOverride = Number(action.combatStartOverride);
+    return {
+      ...action,
+      combatStartOverride: Number.isFinite(existingOverride) ? Math.min(existingOverride, strikeAt) : strikeAt
+    };
+  });
 }
 
 function buildRotation(
@@ -514,14 +535,17 @@ export function reconstructDpsReportWithProfile(
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig
   });
-  const resolved = applyCastInterrupts(
-    professionActions
-      .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
-      .map(applyRetainedCastLockout)
-      .sort(compareResolvedActions)
-      // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
-      .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
-      .filter((action) => autoattackCommitted(report, action))
+  const resolved = alignOpeningStrikeCombatStart(
+    applyCastInterrupts(
+      professionActions
+        .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
+        .map(applyRetainedCastLockout)
+        .sort(compareResolvedActions)
+        // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
+        .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
+        .filter((action) => autoattackCommitted(report, action))
+    ),
+    phase.start
   );
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');

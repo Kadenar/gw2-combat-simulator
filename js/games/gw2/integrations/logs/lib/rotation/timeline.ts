@@ -16,7 +16,7 @@ export interface ReplayTimelineAction {
   /** Replays observed overlap while retaining this action as the scheduler's next relative-offset anchor. */
   readonly concurrentTimeline?: boolean;
   readonly followingWaitMs?: number;
-  /** Profession evidence may place combat before a source phase/EVTC boundary so an opening hit remains observable. */
+  /** Opening-hit evidence may place combat before a source phase/EVTC boundary so its damage remains observable. */
   readonly combatStartOverride?: number;
 }
 
@@ -47,7 +47,7 @@ function observedAftercastWaitMs(action: ReplayTimelineAction, replayEnd: number
   return excessMs > OBSERVED_CAST_TOLERANCE_MS ? excessMs : 0;
 }
 
-/** Applies the earliest profession-proven combat boundary without moving a later source boundary forward. */
+/** Applies the earliest proven combat boundary without moving a later source boundary forward. */
 export function replayCombatStart(
   actions: readonly { readonly combatStartOverride?: number }[],
   sourceCombatStart: number | null
@@ -135,7 +135,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const overlapping = at < blockingEnd - timingToleranceMs;
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
-        // Keep a profession-proven observation boundary exact so action-frame rounding cannot move it past an opener.
+        // Keep a packet-proven observation boundary exact so action-frame rounding cannot move it past an opener.
         const offset = preserveCombatStartOffset ? at - previousCastStart : quantizeMs(at - previousCastStart);
         rotation.push({ name: '__combat_start', offset });
       } else {

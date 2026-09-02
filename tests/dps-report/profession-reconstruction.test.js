@@ -4,6 +4,7 @@ import test from 'node:test';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
+import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
 import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
 import { thiefCatalog } from '#gw2/content/professions/thief/catalog.js';
 import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
@@ -688,7 +689,10 @@ test('recovers alacrity Luminary opening state and retains only physical weapon 
   );
   const catalog = {
     skills: [
-      skill(76687, 'Daring Advance', { castTimeMs: 1_000 }),
+      skill(76687, 'Daring Advance', {
+        castTimeMs: 1_000,
+        effects: [{ type: 'strike', ticks: [{ atMs: 680 }], timingAnchor: 'castStart', timingScale: 'fixed' }]
+      }),
       skill(76708, 'Luminous Staff', { quicknessCastTimeMs: 560, radiantForgeSkill: true }),
       skill(78837, 'Radiant Justice', { castTimeMs: 0 }),
       skill(76813, 'Effulgent Stance', { castTimeMs: 0 }),
@@ -711,7 +715,7 @@ test('recovers alacrity Luminary opening state and retains only physical weapon 
     { name: 'Radiant Courage', skillId: 78358 },
     { name: 'Enter Radiant Forge', skillId: 77073 },
     { name: 'Daring Advance', skillId: 76687 },
-    { name: '__combat_start', offset: 681 }
+    { name: '__combat_start', offset: 680 }
   ]);
   assert.equal(result.rotation.filter((command) => command.name === 'Swap Weapons').length, 1);
   assert.equal(
@@ -729,7 +733,7 @@ test('recovers alacrity Luminary opening state and retains only physical weapon 
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
 
-test('places dps.report combat start before both opening Symbol of Luminance packets', () => {
+test('aligns dps.report combat start with an opening Symbol of Luminance packet', () => {
   const report = reportFixture(
     'Luminary',
     [{ id: 73_132, skills: [{ castTime: -361, duration: 444, timeGained: 0 }] }],
@@ -741,8 +745,18 @@ test('places dps.report combat start before both opening Symbol of Luminance pac
 
   assert.deepEqual(result.rotation, [
     { name: 'Symbol of Luminance', skillId: 73_132 },
-    { name: '__combat_start', offset: 359 }
+    { name: '__combat_start', offset: 360 }
   ]);
+  const simulation = simulateGw2({
+    profession: guardianProfession,
+    rotation: result.rotation,
+    config: defaultSimulationConfig({ specialization: 'Luminary', primaryWeapon: 'Spear' }),
+    mode: 'sequence'
+  });
+
+  assert.ok(
+    simulation.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial')
+  );
 });
 
 test('keeps near-nominal Glaring Burst report casts at their 600 ms runtime', () => {

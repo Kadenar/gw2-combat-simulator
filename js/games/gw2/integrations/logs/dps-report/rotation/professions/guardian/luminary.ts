@@ -1,13 +1,11 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
-import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
 } from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const EFFULGENT_DAMAGE_SIGNAL_ID = 76730;
-const SYMBOL_OF_LUMINANCE_ID = 73132;
 
 function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
   return findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
@@ -62,27 +60,6 @@ function inferredAction(
   };
 }
 
-/** Moves combat just before an opening Symbol packet that EI placed before the phase boundary. */
-function alignOpeningSymbolCombatStart(
-  context: DpsReportProfessionReconstructionContext,
-  actions: readonly DpsReportRecordedAction[]
-): DpsReportRecordedAction[] {
-  const opening = actions
-    .filter(
-      (action) =>
-        action.rawSkillId === SYMBOL_OF_LUMINANCE_ID &&
-        action.start <= context.phase.start &&
-        context.phase.start <= action.end
-    )
-    .sort((left, right) => right.start - left.start)[0];
-  if (!opening) return [...actions];
-  const strikeOffset = firstStrikePacketOffsetMs(actionSkill(opening, context), undefined, { explicitOnly: true });
-  if (strikeOffset == null || opening.start + strikeOffset >= context.phase.start) return [...actions];
-
-  const combatStartOverride = Math.max(opening.start, opening.start + strikeOffset - 1);
-  return actions.map((action) => (action === opening ? { ...action, combatStartOverride } : action));
-}
-
 /** Recovers Luminary's opening Forge state and rejects EI's internal transition/proc signals. */
 export function reconstructLuminaryDpsReportActions(
   context: DpsReportProfessionReconstructionContext
@@ -91,7 +68,7 @@ export function reconstructLuminaryDpsReportActions(
     (action) =>
       action.rawSkillId !== EFFULGENT_DAMAGE_SIGNAL_ID && normalized(action.rawName) !== 'effulgent stance (damage)'
   );
-  const actions = alignOpeningSymbolCombatStart(context, normalizeWeaponTransitions(context, withoutProc));
+  const actions = normalizeWeaponTransitions(context, withoutProc);
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const anchor = sorted[0];
   if (!anchor) return [];
