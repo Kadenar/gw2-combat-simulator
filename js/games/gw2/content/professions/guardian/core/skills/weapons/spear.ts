@@ -106,6 +106,14 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         name: 'Symbol of Luminance',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
+      },
+      {
+        // The knockback belongs to the initial impact, not the recurring symbol pulses.
+        type: 'control',
+        controlKind: 'knockback',
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   }

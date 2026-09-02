@@ -758,6 +758,25 @@ test('Spear Symbol of Luminance keeps all spear skills illuminated while active'
   );
 });
 
+test('Spear Symbol of Luminance knocks back on its initial hit', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Luminance'],
+    config: { ...config, primaryWeapon: 'Spear' }
+  });
+  const initialHit = result.events.find(
+    (event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial'
+  );
+  const controls = result.events.filter(
+    (event) => event.type === 'control' && event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_LUMINANCE
+  );
+
+  assert.ok(initialHit);
+  assert.equal(controls.length, 1);
+  assert.equal(controls[0].controlKind, 'knockback');
+  assert.equal(controls[0].at, initialHit.at);
+});
+
 test('Guardian spear coefficients and repeated pulses stay per-hit', () => {
   const spearConfig = {
     ...config,
@@ -3314,7 +3333,11 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   const unavailable = simulateGw2({
     profession: guardianProfession,
     rotation: ['Dazzling Hammer'],
-    config: { ...config, specialization: 'Luminary' }
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
   });
   const result = simulateGw2({
     profession: guardianProfession,
@@ -4145,6 +4168,36 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
     [[4000, 'Effulgent Stance', '10/10 stacks']]
   );
   assert.ok(effulgent.procSteps.some((step) => step.skill === 'Relic of the Claw' && step.start === 4000));
+});
+
+test('off-target Luminary precasts retain setup without damaging the target', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Enter Radiant Forge',
+      { name: 'Luminous Staff', offTarget: true },
+      { name: 'Dazzling Hammer', offTarget: true },
+      { type: 'wait', durationMs: 4000 }
+    ],
+    config: { ...config, specialization: 'Luminary' }
+  });
+  const precastSkillIds = new Set([GUARDIAN_SKILL_IDS.LUMINOUS_STAFF, GUARDIAN_SKILL_IDS.DAZZLING_HAMMER]);
+
+  assert.equal(
+    result.resolvedEvents.some((event) => precastSkillIds.has(event.skillId) && event.type === 'damage'),
+    false
+  );
+  assert.equal(
+    result.resolvedEvents.some((event) => event.name === 'Sovereign of Light'),
+    false
+  );
+  assert.equal(
+    result.events.filter((event) => event.kind === 'resolution' && event.skillId === GUARDIAN_SKILL_IDS.LUMINOUS_STAFF)
+      .length,
+    4
+  );
+  assert.equal(result.endState.profession.radiantWeapon, 'hammer');
+  assert.ok(result.endState.profession.lightAuraUntil > 0);
 });
 
 test('Luminary hidden actions replay exact EVTC opening-state durations', () => {

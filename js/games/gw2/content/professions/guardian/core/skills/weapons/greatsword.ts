@@ -144,16 +144,13 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         // Tether pulses are non-critical power strikes, so they remain in strike totals.
         flatStrikeBase: 160,
         flatStrikePowerCoeff: 0.3
-      },
-      {
-        type: 'control',
-        controlKind: 'control'
       }
     ]
   },
   [ID.PULL]: {
     implemented: true,
     castTimeMs: 750,
+    // Binding Blade only tethers; its armed Pull flip owns the control event that can trigger control relics.
     effects: [
       {
         type: 'control',
