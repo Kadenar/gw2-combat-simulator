@@ -12,6 +12,7 @@ import {
   quicknessRuntimeDurationMs,
   skillForAction
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -38,13 +39,6 @@ interface EvokerChargeGrant {
   readonly eventIndex: number;
   readonly gain: number;
   readonly fillsCharges: boolean;
-}
-
-function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
-      ?.sourceInstance ?? null
-  );
 }
 
 function calcifyEffectCommitted(context: EvtcProfessionReconstructionContext, start: number, end: number): boolean {

@@ -7,6 +7,7 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import { reconstructEvokerActions } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/evoker.js';
+import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -85,13 +86,6 @@ function isCompletedAnimationStop(event: ParsedEvtcEvent): boolean {
     event.value > 0 &&
     (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP || event.stateChange === EVTC_STATE_CHANGE.NONE) &&
     (event.activation === EVTC_ACTIVATION.CANCEL_FIRE || event.activation === EVTC_ACTIVATION.RESET)
-  );
-}
-
-function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
-      ?.sourceInstance ?? null
   );
 }
 

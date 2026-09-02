@@ -17,6 +17,7 @@ import {
   findOpeningPrecast,
   selectedSkill
 } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
+import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 
 const COMMANDS: ReadonlyMap<number, EngineerActionIdentity> = new Map([
   [63121, { name: 'Jade Mortar', skillId: 63121 }],
@@ -32,13 +33,6 @@ const OPENING_WEAPONS: ReadonlyMap<string, EngineerActionIdentity> = new Map([
   ['Glue Shot', { name: 'Glue Shot', skillId: 5830 }],
   ['Net Shot', { name: 'Net Shot', skillId: 6004 }]
 ]);
-
-function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
-      ?.sourceInstance ?? null
-  );
-}
 
 function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const instance = playerInstance(context);

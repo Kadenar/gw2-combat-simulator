@@ -9,6 +9,7 @@ import {
   hasRecordedAction,
   INSTANT_SIGNAL_WINDOW_MS
 } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/shared.js';
+import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 
 const MANIFEST_SAND_SHADE = Object.freeze({
   name: 'Manifest Sand Shade',
@@ -43,13 +44,6 @@ const SAND_SHADE_INITIAL_BUFF = 45079;
 const NEFARIOUS_FAVOR_SIGNAL = 46808;
 const DESERT_SHROUD_PULSE_SIGNAL = 46726;
 const DESERT_SHROUD_PULSE_WINDOW_MS = 1500;
-
-function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
-  return (
-    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
-      ?.sourceInstance ?? null
-  );
-}
 
 function recordedDuration(
   context: EvtcProfessionReconstructionContext,
