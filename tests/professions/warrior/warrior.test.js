@@ -2223,7 +2223,7 @@ test('Bladesworn gunsaber skills expose icons and current PvE ammo', () => {
   );
 });
 
-test('Bladesworn gunsaber packets use the requested coefficients and explosion tag', () => {
+test('Bladesworn gunsaber packets use the requested coefficients and explosion tags', () => {
   const result = simulate(
     'Bladesworn',
     [
@@ -2245,9 +2245,22 @@ test('Bladesworn gunsaber packets use the requested coefficients and explosion t
     damage.map((event) => Number(event.coefficient.toFixed(6))),
     [0.9, 0.255, 1.1, 0.255, 1.35, 0.408, 0.8, 0.4, 0.4, 0.4, 2.5, 0.5]
   );
-  assert.equal(
-    damage.every((event) => event.damageKind === 'explosion'),
-    true
+  assert.deepEqual(
+    damage.map((event) => event.damageKind),
+    [
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'explosion',
+      undefined,
+      'explosion',
+      'explosion',
+      'explosion',
+      undefined,
+      'explosion'
+    ]
   );
   assert.equal(
     result.resolvedEvents
@@ -2516,23 +2529,26 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
 });
 
 test('Overcharged Cartridges buffs explosion damage and burning', () => {
-  const strikeDamage = (result) =>
+  // Mixed-packet skills prove Cartridges modifies only their explicitly tagged secondary explosions.
+  const strikeDamage = (result, damageKind) =>
     result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillId === ID.SWIFT_CUT)
+      .filter(
+        (event) => event.type === 'damage' && event.skillId === ID.BLOOMING_FIRE && event.damageKind === damageKind
+      )
       .reduce((sum, event) => sum + event.damage, 0);
-  const base = simulate('Bladesworn', [ID.UNSHEATHE_GUNSABER, ID.SWIFT_CUT], {
+  const base = simulate('Bladesworn', [ID.UNSHEATHE_GUNSABER, ID.BLOOMING_FIRE], {
     initialResource: 100,
     stats: { precision: 0, ferocity: 0 },
     target: { conditions: {} }
   });
-  const overcharged = simulate('Bladesworn', [ID.OVERCHARGED_CARTRIDGES, ID.UNSHEATHE_GUNSABER, ID.SWIFT_CUT], {
+  const overcharged = simulate('Bladesworn', [ID.OVERCHARGED_CARTRIDGES, ID.UNSHEATHE_GUNSABER, ID.BLOOMING_FIRE], {
     initialResource: 100,
     stats: { precision: 0, ferocity: 0 },
     target: { conditions: {} }
   });
   const supercharged = simulate(
     'Bladesworn',
-    [ID.OVERCHARGED_CARTRIDGES, ID.OVERCHARGED_CARTRIDGES, ID.UNSHEATHE_GUNSABER, ID.SWIFT_CUT],
+    [ID.OVERCHARGED_CARTRIDGES, ID.OVERCHARGED_CARTRIDGES, ID.UNSHEATHE_GUNSABER, ID.BLOOMING_FIRE],
     {
       initialResource: 100,
       stats: { precision: 0, ferocity: 0 },
@@ -2540,15 +2556,17 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
     }
   );
 
-  assert.ok(Math.abs(strikeDamage(overcharged) / strikeDamage(base) - 1.15) < 1e-9);
-  assert.ok(Math.abs(strikeDamage(supercharged) / strikeDamage(base) - 1.2) < 1e-9);
+  assert.ok(Math.abs(strikeDamage(overcharged) / strikeDamage(base) - 1) < 1e-9);
+  assert.ok(Math.abs(strikeDamage(supercharged) / strikeDamage(base) - 1) < 1e-9);
+  assert.ok(Math.abs(strikeDamage(overcharged, 'explosion') / strikeDamage(base, 'explosion') - 1.15) < 1e-9);
+  assert.ok(Math.abs(strikeDamage(supercharged, 'explosion') / strikeDamage(base, 'explosion') - 1.2) < 1e-9);
   assert.deepEqual(
     overcharged.events.filter((event) => event.condition === 'Burning').map((event) => event.duration),
-    [3, 3]
+    [3, 3, 3]
   );
   assert.deepEqual(
     supercharged.events.filter((event) => event.condition === 'Burning').map((event) => event.duration),
-    [5, 5]
+    [5, 5, 5]
   );
 
   const roarBase = simulate('Bladesworn', [ID.DRAGONS_ROAR], {
@@ -2817,7 +2835,7 @@ test('Bladesworn ammunition and explosion traits retain stack chronology', () =>
     result.events.some((event) => event.type === 'proc' && event.sourceId === TRAIT.LUSH_FOREST),
     true
   );
-  assert.equal(result.events.filter((event) => event.kind === 'guns-and-glory').at(-1).duration, 12);
+  assert.equal(result.events.filter((event) => event.kind === 'guns-and-glory').at(-1).duration, 9);
 });
 
 test('Strength and Tactics traits react to dodge, burst, cripple, and control', () => {

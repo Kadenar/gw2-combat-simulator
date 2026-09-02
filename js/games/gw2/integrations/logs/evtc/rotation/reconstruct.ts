@@ -878,7 +878,9 @@ function buildRotation(
     quantizeMs: quantizeGw2ActionTimingMs,
     replayEnd: replayActionEnd,
     hasObservedCastTime: (action) =>
-      action.status !== 'unknown' && (action.evidence === 'animation' || action.evidence === 'legacy-activation'),
+      action.suppressFollowingWait !== true &&
+      action.status !== 'unknown' &&
+      (action.evidence === 'animation' || action.evidence === 'legacy-activation'),
     commandFor: actionCommand,
     canEmit: (action) => action.skill != null || action.rawName === 'Swap Weapons' || isDodgeName(action.rawName),
     // Continuum Split must stay anchored at its recorded cast boundary so its cooldown snapshot uses the EVTC order.

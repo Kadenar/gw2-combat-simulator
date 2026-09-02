@@ -6,7 +6,7 @@
         "label": "Power (Sword / Pistol)",
         "build": "data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json",
         "rotation": "data/gw2/rotations/warrior/r-power-bladesworn-sword-pistol-bench.json",
-        "benchmarkDps": 41913,
+        "benchmarkDps": 41719,
         "upToDate": true
       }
     ]

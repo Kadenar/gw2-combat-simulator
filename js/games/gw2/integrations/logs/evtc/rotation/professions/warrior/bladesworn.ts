@@ -107,6 +107,15 @@ function bladeswornPrecasts(
     detectedWarriorCorePrecast(context, 'mending');
   if (!firstTrigger || !hasInitialSequence) return [];
 
+  const recordedRoar = actions
+    .filter(
+      (action) =>
+        (action.rawSkillId === DRAGONS_ROAR.skillId || action.canonicalSkillId === DRAGONS_ROAR.skillId) &&
+        action.start <= firstTrigger.start &&
+        Math.abs(action.end - firstTrigger.start) <= SIGNAL_WINDOW_MS
+    )
+    .sort((left, right) => Math.abs(left.end - firstTrigger.start) - Math.abs(right.end - firstTrigger.start))[0];
+  // Anchor inferred setup before a recorded Dragon's Roar so the initial-state signature cannot duplicate its animation.
   const identities: readonly WarriorActionIdentity[] = [
     UNSHEATHE_GUNSABER,
     BREAK_STEP,
@@ -117,9 +126,9 @@ function bladeswornPrecasts(
     WARRIOR_CORE_ACTIONS.mending,
     FLOW_STABILIZER,
     OVERCHARGED_CARTRIDGES,
-    DRAGONS_ROAR
+    ...(recordedRoar ? [] : [DRAGONS_ROAR])
   ];
-  return sequentialInitialActions(context, identities, firstTrigger.start, -4000);
+  return sequentialInitialActions(context, identities, recordedRoar?.start ?? firstTrigger.start, -4000);
 }
 
 /**
@@ -139,6 +148,17 @@ function removeAutomaticDragonTriggerUnsheathes(
         (action.rawSkillId === UNSHEATHE_GUNSABER.skillId || action.canonicalSkillId === UNSHEATHE_GUNSABER.skillId) &&
         triggers.some((trigger) => Math.abs(trigger.start - action.start) <= SIGNAL_WINDOW_MS)
       )
+  );
+}
+
+/** Lets the simulator's Dragon Slash availability replay charge time instead of emitting a duplicate EVTC wait. */
+function suppressDragonTriggerChargeWaits(
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  return actions.map((action) =>
+    action.rawSkillId === DRAGON_TRIGGER.skillId || action.canonicalSkillId === DRAGON_TRIGGER.skillId
+      ? { ...action, suppressFollowingWait: true }
+      : action
   );
 }
 
@@ -249,7 +269,7 @@ export function reconstructBladeswornActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const normalized = removeAutomaticDragonTriggerUnsheathes(actions);
+  const normalized = suppressDragonTriggerChargeWaits(removeAutomaticDragonTriggerUnsheathes(actions));
   return [
     ...bladeswornPrecasts(context, normalized),
     ...normalized,

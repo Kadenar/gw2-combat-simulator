@@ -27,6 +27,7 @@ export interface EvtcRecordedRotationAction {
   readonly forceCompleteReplay?: boolean;
   readonly independentTimeline?: boolean;
   readonly concurrentTimeline?: boolean;
+  /** Keeps the observed action boundary for offsets without replaying its duration as a separate wait. */
   readonly suppressFollowingWait?: boolean;
   /** Earlier combat boundary inferred from profession-specific opening-hit evidence. */
   readonly combatStartOverride?: number;

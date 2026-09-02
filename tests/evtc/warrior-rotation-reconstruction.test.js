@@ -243,6 +243,7 @@ test('reconstructs Bladesworn precasts, mechanics, and bundle weapon casts', () 
     initialBuff(68_126),
     initialBuff(76_513),
     initialBuff(46_853),
+    ...animation(62_800, 523, 1_084, { modern: true }),
     event({ time: 1_000, stateChange: 1 }),
     ...animation(62_803, 1_084, 2_084, { modern: true }),
     event({
@@ -332,9 +333,19 @@ test('reconstructs Bladesworn precasts, mechanics, and bundle weapon casts', () 
     "Dragon's Roar"
   ]);
   assert.equal(names.filter((name) => name === 'Unsheathe Gunsaber').length, 1);
+  assert.equal(names.filter((name) => name === "Dragon's Roar").length, 1);
+  assert.equal(result.actions.find((action) => action.name === "Dragon's Roar").evidence, 'animation');
   for (const name of ['Dragon Trigger', 'Triggerguard', 'Flicker Step', 'Dragon Slash—Force', 'Blooming Fire']) {
     assert.equal(names.includes(name), true, name);
   }
+
+  const triggerIndex = result.rotation.findIndex((command) => command.name === 'Dragon Trigger');
+  const slashIndex = result.rotation.findIndex((command) => command.name === 'Dragon Slash—Force');
+  assert.equal(
+    result.rotation.slice(triggerIndex + 1, slashIndex).some((command) => command.name === '__wait'),
+    false,
+    'Dragon Trigger charge time is handled by Dragon Slash availability'
+  );
 
   assert.equal(result.actions.find((action) => action.name === 'Blooming Fire').status, 'interrupted');
 });

@@ -103,11 +103,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let activeCastEnd = origin;
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
-  let pendingAftercastWaitMs = 0;
+  let pendingAftercast: { until: number; progressedTo: number } | null = null;
 
   const appendPendingAftercastWait = (): void => {
-    if (pendingAftercastWaitMs > 0) rotation.push({ name: '__wait', waitMs: pendingAftercastWaitMs });
-    pendingAftercastWaitMs = 0;
+    if (!pendingAftercast) return;
+    const waitMs = quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo);
+    if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
+    pendingAftercast = null;
   };
 
   const appendObservedIdle = (nextActionAt: number): void => {
@@ -116,8 +118,10 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const retainedTimingJitter =
       retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
     const waitMs = quantizeWaitMs(observedGapMs);
-    const aftercastWaitMs = pendingAftercastWaitMs;
-    pendingAftercastWaitMs = 0;
+    const aftercastWaitMs = pendingAftercast
+      ? quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo)
+      : 0;
+    pendingAftercast = null;
     // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
     // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
     const totalWaitMs = aftercastWaitMs + (!retainedTimingJitter && waitMs > minimumWaitMs ? waitMs : 0);
@@ -177,6 +181,15 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       appendObservedIdle(at);
     }
 
+    // Concurrent actions advance the replay clock through an observed excess-cast interval, so only its remainder waits.
+    if (pendingAftercast && concurrent) {
+      const runtimeEnd = at + quicknessReferenceCastTimeMs(action.skill);
+      pendingAftercast.progressedTo = Math.min(
+        pendingAftercast.until,
+        Math.max(pendingAftercast.progressedTo, runtimeEnd)
+      );
+    }
+
     rotation.push(command);
     if (action.followingWaitMs && action.followingWaitMs > 0) {
       rotation.push({ name: '__wait', waitMs: quantizeWaitMs(action.followingWaitMs) });
@@ -184,7 +197,10 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     const aftercastWaitMs = observedAftercastWaitMs(action, actionReplayEnd);
     if (!concurrent && policy.hasObservedCastTime?.(action) !== false && aftercastWaitMs > 0) {
-      pendingAftercastWaitMs = quantizeWaitMs(aftercastWaitMs);
+      pendingAftercast = {
+        until: actionReplayEnd,
+        progressedTo: actionReplayEnd - aftercastWaitMs
+      };
     }
 
     if (independent) {

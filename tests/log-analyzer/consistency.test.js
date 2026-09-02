@@ -172,6 +172,30 @@ test('the shared timeline preserves explicit aftercast mismatches without adding
   assert.equal(waitFor(800, { ...fixtureSkill, slot: 'Weapon_1' }), 0);
 });
 
+test('the shared timeline subtracts concurrent progress from an observed instant-skill channel', () => {
+  const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0, quicknessCastTimeMs: 0 };
+  const channel = { ...instant, id: 2_001, name: 'Channel' };
+  const actions = [
+    { start: 0, end: 1_200, eventIndex: 0, skill: channel, name: channel.name, skillId: channel.id },
+    { start: 360, end: 360, eventIndex: 1, skill: instant, name: instant.name, skillId: instant.id },
+    { start: 400, end: 400, eventIndex: 2, skill: instant, name: instant.name, skillId: instant.id },
+    { start: 640, end: 640, eventIndex: 3, skill: instant, name: instant.name, skillId: instant.id },
+    { start: 1_200, end: 1_600, eventIndex: 4, skill: fixtureSkill, name: fixtureSkill.name, skillId: fixtureSkill.id }
+  ];
+
+  const rotation = buildReplayTimeline(actions, 0, null, {
+    commandFor: ({ name, skillId }) => ({ name, skillId })
+  });
+
+  assert.deepEqual(rotation.slice(0, 5), [
+    { name: 'Channel', skillId: 2_001 },
+    { name: 'Instant', skillId: 2_000, offset: 360 },
+    { name: 'Instant', skillId: 2_000, offset: 40 },
+    { name: 'Instant', skillId: 2_000, offset: 240 },
+    { name: '__wait', waitMs: 560 }
+  ]);
+});
+
 test('the shared player selector applies explicit matching and evidence ties consistently', () => {
   const players = [
     { id: 'a', recordedActionCount: 3 },

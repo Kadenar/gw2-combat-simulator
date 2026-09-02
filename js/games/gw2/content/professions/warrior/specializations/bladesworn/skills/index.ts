@@ -138,6 +138,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     quicknessCastTimeMs: 600,
     handlerId: 'warrior.overcharged-cartridges'
   },
+  // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
   [ID.SWIFT_CUT]: {
     implemented: true,
     effects: [
@@ -145,15 +146,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'strike',
         name: 'Swift Cut — Blade',
         coefficient: 0.9,
-        hits: 1,
-        damageKind: 'explosion'
+        hits: 1
       },
       {
         type: 'strike',
         name: 'Swift Cut — Shot',
         coefficient: 0.75 * 0.34,
-        hits: 1,
-        damageKind: 'explosion'
+        hits: 1
       }
     ],
     quicknessCastTimeMs: 639,
@@ -167,15 +166,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'strike',
         name: 'Steel Divide — Blade',
         coefficient: 1.1,
-        hits: 1,
-        damageKind: 'explosion'
+        hits: 1
       },
       {
         type: 'strike',
         name: 'Steel Divide — Shot',
         coefficient: 0.75 * 0.34,
-        hits: 1,
-        damageKind: 'explosion'
+        hits: 1
       }
     ],
     quicknessCastTimeMs: 602,
@@ -189,8 +186,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'strike',
         name: 'Explosive Thrust — Blade',
         coefficient: 1.35,
-        hits: 1,
-        damageKind: 'explosion'
+        hits: 1
       },
       {
         type: 'strike',
@@ -215,8 +211,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'strike',
         name: 'Blooming Fire — Blade',
         coefficient: 0.8,
-        hits: 1,
-        damageKind: 'explosion'
+        hits: 1
       },
       {
         type: 'strike',
@@ -253,8 +248,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       {
         type: 'strike',
         coefficient: 2.5,
-        hits: 1,
-        damageKind: 'explosion'
+        hits: 1
       },
       {
         type: 'boon',
