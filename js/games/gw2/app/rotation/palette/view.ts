@@ -222,8 +222,9 @@ export function paletteSkillView(
   const recharge =
     maximumAmmo && Number(skill.ammoRecharge || 0) > 0 ? Number(skill.ammoRecharge) : Number(skill.cooldown || 0);
   const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
-  // Keep the next ammo recharge visible even while another charge leaves the skill usable.
-  const cooldownLabel = ammo?.remaining ? seconds(Number(ammo.remaining)) : remaining ? seconds(remaining) : '';
+  // Keep the next recharge visible and use one hundredths-precision value for the badge and remaining tooltip.
+  const cooldownLabel =
+    ammo?.remaining || remaining ? `${(Number(ammo?.remaining || remaining) / 1000).toFixed(2)}s` : '';
   const unavailable = remaining > 0 || !contextAvailable;
   const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
@@ -235,13 +236,13 @@ export function paletteSkillView(
     hasEnergyCost ? `Energy cost: ${energyCost}` : '',
     recharge ? `${maximumAmmo ? 'Count recharge' : 'Cooldown'}: ${recharge}s` : '',
     !contextAvailable
-      ? [contextMessage || 'Unavailable in the current state', remaining ? `Remaining: ${seconds(remaining)}` : '']
+      ? [contextMessage || 'Unavailable in the current state', remaining ? `Remaining: ${cooldownLabel}` : '']
           .filter(Boolean)
           .join(' · ')
       : ammoDisplay
         ? `${ammoDisplay.label}${ammo?.remaining ? ` · next charge in ${seconds(Number(ammo.remaining))}` : ''}`
         : remaining
-          ? `Remaining: ${seconds(remaining)} · available at ${seconds(readyAt)}`
+          ? `Remaining: ${cooldownLabel} · available at ${seconds(readyAt)}`
           : 'Available now',
     gw2ApiText(skill.description)
   ]

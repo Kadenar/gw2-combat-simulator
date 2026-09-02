@@ -429,12 +429,14 @@ function ensureStyles(document: Document): void {
   const style = document.createElement('style');
   style.id = 'rotation-hotkey-styles';
   style.textContent = `
-    .pal-hotkey { position:absolute; z-index:4; top:1px; right:1px; box-sizing:border-box;
+    .pal-hotkey { position:absolute; z-index:4; top:-13px; right:1px; box-sizing:border-box;
       min-width:12px; max-width:calc(100% - 2px); padding:1px 3px; overflow:hidden;
       border:1px solid rgba(255,255,255,.65); border-radius:3px; background:rgba(12,14,20,.9);
       color:#fff; font-size:8px; font-weight:800; line-height:10px; text-align:center;
       text-overflow:ellipsis; white-space:nowrap;
       text-shadow:0 1px 2px #000; pointer-events:none; }
+    /* Let active hotkey badges sit just above the tile without moving its cooldown or clipping the badge. */
+    .pal-skill:has(> .pal-hotkey) { overflow:visible; }
     .rotation-panel:not(.rotation-hotkeys-active) .pal-hotkey { opacity:.45; }
     .rotation-hotkey-dialog { position:fixed; inset:0; width:min(720px, calc(100vw - 32px));
       max-height:calc(100vh - 32px); margin:auto; padding:0; overflow:auto;

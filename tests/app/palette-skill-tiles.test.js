@@ -329,7 +329,8 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
   const view = paletteSkillView(app, skill, true);
 
   assert.equal(skill.name, 'Rock Barrier');
-  assert.equal(view.cooldownLabel, '8.0s');
+  assert.equal(view.cooldownLabel, '8.00s');
+  assert.match(view.title, /Remaining: 8\.00s/);
   assert.equal(view.disabled, true);
 });
 
@@ -345,7 +346,7 @@ test('ammo tile cooldown tracks the next charge while another charge remains', a
   });
   const view = paletteSkillView(app, skill, true);
 
-  assert.equal(view.cooldownLabel, '3.0s');
+  assert.equal(view.cooldownLabel, '3.00s');
   assert.equal(view.disabled, false);
   assert.match(view.title, /next charge in 3\.0s/);
 });

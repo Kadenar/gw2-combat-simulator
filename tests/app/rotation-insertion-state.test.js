@@ -59,7 +59,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
       icon: 'test.png',
       cooldown: 5
     }).cooldownLabel,
-    '3.8s'
+    '3.80s'
   );
   assert.equal(previewCount, 1);
 
