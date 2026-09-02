@@ -44,7 +44,8 @@ export function createDefaultSimulationAssumptions(overrides: ProfessionAssumpti
     swiftness: true,
     vigor: true,
 
-    aegis: false,
+    // Benchmark builds assume the standard golem boon set, including permanent Aegis.
+    aegis: true,
 
     targetMoving: false,
     targetBoonless: true,
