@@ -218,8 +218,23 @@ function resolveAction(
 
 /** Returns a safe, action-tick-aligned observed duration only when the skill declares its commit contract. */
 function observedInterruptMs(action: DpsReportResolvedAction): number | null {
-  // The report duration is authoritative once it falls within the skill's declared commit/full-cast bounds.
-  return observedCommittedInterruptMs(action.skill, action.end - action.start);
+  const sourceDurationMs = action.end - action.start;
+  const observedMs = observedCommittedInterruptMs(action.skill, sourceDurationMs);
+  if (observedMs != null || action.status === 'interrupted') return observedMs;
+
+  const commitMs = Number(action.skill?.interruptCommitMs);
+  const quantizedDurationMs = quantizeGw2ActionTimingMs(sourceDurationMs);
+  // EI reduced-aftercast rows can end just before the packet-backed commit, so clamp only nearby completed casts.
+  if (
+    quantizedDurationMs > 0 &&
+    Number.isFinite(commitMs) &&
+    quantizedDurationMs < commitMs &&
+    commitMs - quantizedDurationMs <= 2 * GW2_ACTION_TICK_MS
+  ) {
+    return observedCommittedInterruptMs(action.skill, commitMs);
+  }
+
+  return null;
 }
 
 function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCommand {

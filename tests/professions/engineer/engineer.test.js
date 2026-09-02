@@ -856,7 +856,7 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
   });
   assert.equal(view.disabled, true);
   assert.equal(view.contextDisabled, false);
-  assert.equal(view.cooldownLabel, '4.8s');
+  assert.equal(view.cooldownLabel, '4.80s');
   assert.deepEqual(engineerProfession.ui.paletteSkillAvailability({ ...context, time: 4.8 }, kit), {
     available: true,
     message: ''
@@ -887,7 +887,7 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
   }
 
   // The selected utility tile is a separate palette surface from the kit skill row.
-  assert.match(palette.innerHTML, /data-skill="Grenade Kit"[\s\S]*?<span class="pal-cd">4\.8s<\/span>/);
+  assert.match(palette.innerHTML, /data-skill="Grenade Kit"[\s\S]*?<span class="pal-cd">4\.80s<\/span>/);
 });
 
 test('Engineer kit palettes stack and include their linked stow skills', () => {

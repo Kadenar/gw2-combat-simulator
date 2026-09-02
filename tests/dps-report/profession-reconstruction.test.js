@@ -138,7 +138,13 @@ test('recovers a Troubadour opener and replays a committed short Harp cast', () 
         targetDamageDist: [[[{ id: 62_607, connectedHits: 8 }]]],
         rotation: [
           { id: 10_174, skills: [{ castTime: 0, duration: 800, timeGained: 0 }] },
-          { id: 76_960, skills: [{ castTime: 880, duration: 434, timeGained: 883 }] },
+          {
+            id: 76_960,
+            skills: [
+              { castTime: 880, duration: 434, timeGained: 883 },
+              { castTime: 3_000, duration: 434, timeGained: -1 }
+            ]
+          },
           { id: 62_560, skills: [{ castTime: 1393, duration: 440, timeGained: 0 }] },
           {
             id: 29_578,
@@ -167,7 +173,13 @@ test('recovers a Troubadour opener and replays a committed short Harp cast', () 
     result.actions.filter((action) => action.inferred).map((action) => action.name),
     ['Mimic', 'Unstable Bladestorm']
   );
-  assert.equal(result.rotation.find((command) => command.name === 'Harmonious Harp')?.interruptMs, 480);
+  // Reduced aftercast may snap to the declared commit, but an explicitly interrupted cast must not.
+  assert.deepEqual(
+    result.rotation
+      .filter((command) => command.name === 'Harmonious Harp')
+      .map((command) => command.interruptMs ?? null),
+    [480, null]
+  );
   const swordsmanIndex = result.rotation.findIndex((command) => command.name === 'Phantasmal Swordsman');
   assert.equal(result.rotation[swordsmanIndex + 1]?.name, 'Harmonious Harp');
   assert.equal(result.rotation[swordsmanIndex + 2]?.name, 'Bladecall');
@@ -452,7 +464,7 @@ test('recovers report-omitted Antiquary Caltrops, Needles, and Chak Shield from 
   assert.equal(inferred.filter((action) => action.name === 'Thousand Needles').length, 2);
   assert.deepEqual(
     inferred.filter((action) => action.name === 'Chak Shield').map((action) => action.timestampMs),
-    [39_750, 60_750]
+    [39_900, 60_900]
   );
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Caltrops.*Thousand Needles.*Chak Shield/);
 });
@@ -544,7 +556,7 @@ test('does not add waits for retained cast lockout already modeled by the skill'
   assert.deepEqual(result.rotation[1], { name: 'Fan of Fire', skillId: 14_519, interruptMs: 320 });
 });
 
-test('uses rounded EI cast durations only when skill commit metadata makes them safe', () => {
+test('uses rounded EI cast durations and nearby commit points only when metadata makes them safe', () => {
   const report = reportFixture(
     'Berserker',
     [
@@ -576,7 +588,7 @@ test('uses rounded EI cast durations only when skill commit metadata makes them 
   const gash = result.rotation.find((command) => command.name === 'Gash');
 
   assert.equal(fanCommands[0].interruptMs, 320);
-  assert.equal('interruptMs' in fanCommands[1], false);
+  assert.equal(fanCommands[1].interruptMs, 240);
   assert.equal(fanCommands[2].interruptMs, 240);
   assert.equal('interruptMs' in gash, false);
 });

@@ -814,7 +814,7 @@ test('legend palette shows only the destination legend with the shared swap cool
       cooldown.message,
       cooldown.retryAt
     ).cooldownLabel,
-    '9.0s'
+    '9.00s'
   );
   const swappedGroup = revenantProfession.ui
     .paletteGroups({
@@ -910,7 +910,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.doesNotMatch(skillBar.innerHTML, /skill-bar-key/);
   assert.doesNotMatch(skillBar.innerHTML, /skill-bar-type/);
   assert.equal((palette.innerHTML.match(/data-skill="Swap Legends"/g) || []).length, 1);
-  assert.match(palette.innerHTML, /data-skill="Swap Legends"[\s\S]*?<span class="pal-cd">10s<\/span>/);
+  assert.match(palette.innerHTML, /data-skill="Swap Legends"[\s\S]*?<span class="pal-cd">10\.00s<\/span>/);
 });
 
 test('Revenant utilities and Conduit resources render by their related skills', async () => {

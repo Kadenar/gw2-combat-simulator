@@ -126,10 +126,10 @@ test('Tempest overload singularity delays a newly entered attunement but not the
   });
   assert.equal(enteredView.disabled, true);
   assert.equal(enteredView.contextDisabled, false);
-  assert.equal(enteredView.cooldownLabel, '4.8s');
+  assert.equal(enteredView.cooldownLabel, '4.80s');
   assert.match(
     paletteHtml(enteredApp),
-    /class="pal-skill pal-disabled" data-skill="Overload Fire"[\s\S]*?<span class="pal-cd">4\.8s<\/span>/
+    /class="pal-skill pal-disabled" data-skill="Overload Fire"[\s\S]*?<span class="pal-cd">4\.80s<\/span>/
   );
 
   const unbuffedApp = createTempestApp(['Fire Attunement'], { alacrity: false });
@@ -161,7 +161,7 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
 
   assert.equal(view.disabled, true);
   assert.equal(view.contextDisabled, false);
-  assert.equal(view.cooldownLabel, '0.1s');
+  assert.equal(view.cooldownLabel, '0.10s');
   assert.doesNotMatch(paletteHtml(nearlyReadyApp), /pal-context-disabled[^>]*data-skill="Overload Fire"/);
 
   const queuedApp = createTempestApp(['Fire Attunement', 4700, 'Overload Fire']);
@@ -187,6 +187,6 @@ test('Tempest overload palette shows its active cooldown after use', () => {
   const view = paletteSkillView(app, air, availability.available, availability.message);
 
   assert.equal(view.disabled, true);
-  assert.equal(view.cooldownLabel, '16s');
-  assert.match(view.title, /Remaining: 16s/);
+  assert.equal(view.cooldownLabel, '16.00s');
+  assert.match(view.title, /Remaining: 16\.00s/);
 });

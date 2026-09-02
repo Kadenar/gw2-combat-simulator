@@ -286,7 +286,13 @@ test('Combustive Shot scales its pulses and field with adrenaline', async () => 
     );
     assert.deepEqual(
       result.events
-        .filter((event) => event.type === 'condition' && event.activationId === action.activationId)
+        // Trait procs inherit activation provenance; this contract covers only Combustive Shot's authored packets.
+        .filter(
+          (event) =>
+            event.type === 'condition' &&
+            event.activationId === action.activationId &&
+            event.sourceId === ID.COMBUSTIVE_SHOT
+        )
         .map((event) => [Math.round((event.at - action.at) * 1000), event.stacks, event.duration]),
       expectedOffsets.map((offset) => [offset, 1, 5])
     );

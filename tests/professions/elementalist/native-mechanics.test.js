@@ -680,7 +680,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
 
   assert.equal((sameHtml.match(/class="pal-skill/g) || []).length, 4);
   assert.equal((dualHtml.match(/class="pal-skill/g) || []).length, 6);
-  assert.match(dualHtml, /data-skill="Pyro Vortex"[\s\S]*?<span class="pal-cd">3\.4s<\/span>/);
+  assert.match(dualHtml, /data-skill="Pyro Vortex"[\s\S]*?<span class="pal-cd">3\.40s<\/span>/);
 });
 
 test('weapon bar excludes dual attacks outside Weaver', () => {
@@ -1113,7 +1113,7 @@ test('core attunements enforce and report their individual recharge', () => {
   );
 
   assert.equal(waterView.disabled, true);
-  assert.equal(waterView.cooldownLabel, '8.5s');
+  assert.equal(waterView.cooldownLabel, '8.50s');
 });
 
 test('Ride the Lightning receives its on-hit cooldown reduction', () => {
