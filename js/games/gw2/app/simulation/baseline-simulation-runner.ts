@@ -72,11 +72,13 @@ export class BaselineSimulationRunner {
       return;
     }
 
-    const worker = this.worker || this.createWorker();
+    let worker = this.worker;
     try {
+      // Worker construction can be blocked by browser policy; failures use the same cleanup path as postMessage errors.
+      worker ||= this.createWorker();
       worker.postMessage(job);
     } catch (error) {
-      worker.terminate();
+      worker?.terminate();
       if (this.worker === worker) this.worker = null;
       this.finish(job, { requestId: job.requestId, revision: job.revision, error });
     }

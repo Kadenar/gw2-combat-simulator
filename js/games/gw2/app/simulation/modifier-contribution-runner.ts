@@ -30,9 +30,13 @@ export class ModifierContributionRunner {
     const requestId = ++this.requestId;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
-    const failContributions = (): void => {
+    const failContributions = (error: unknown): void => {
       if (requestId !== this.requestId || !app.results) return;
+      // Failed comparisons must not make carried values from the prior build look current.
+      app.results.contributions = undefined;
       app.results.modifierContributionsStale = false;
+      app.results.modifierContributionsError =
+        error instanceof Error ? error.message : String(error || 'Modifier contribution calculation failed.');
       app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
     };
 
@@ -40,16 +44,22 @@ export class ModifierContributionRunner {
     this.batch.begin(requestId, failContributions);
 
     if (!app.build.rotation.length || !app.results) {
-      if (app.results) app.results.modifierContributionsStale = false;
+      if (app.results) {
+        app.results.modifierContributionsStale = false;
+        app.results.modifierContributionsError = '';
+      }
+
       return;
     }
 
     app.results.modifierContributionsStale = true;
+    app.results.modifierContributionsError = '';
     const request = app.adapter.modifierContributionRequest(app);
     const applyContributions = (contributions: ModifierContribution[]): void => {
       if (requestId !== this.requestId || !app.results) return;
       app.results.contributions = contributions;
       app.results.modifierContributionsStale = false;
+      app.results.modifierContributionsError = '';
       app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
     };
 
@@ -100,8 +110,8 @@ export class ModifierContributionRunner {
 
       try {
         applyContributions(app.adapter.calculateModifierContributions(request));
-      } catch {
-        failContributions();
+      } catch (error) {
+        failContributions(error);
       }
     };
 

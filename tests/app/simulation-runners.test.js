@@ -200,6 +200,68 @@ test('rotation-only changes paint the builder once with their matching result', 
   assert.equal(app.deferredRotationRenderRevision, null);
 });
 
+test('build edits continue when browser storage rejects writes', (t) => {
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const storageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  t.after(() => {
+    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
+    else delete globalThis.document;
+    if (storageDescriptor) Object.defineProperty(globalThis, 'localStorage', storageDescriptor);
+    else delete globalThis.localStorage;
+  });
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { body: { dataset: {} } }
+  });
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      setItem() {
+        throw new DOMException('Storage is full.', 'QuotaExceededError');
+      }
+    }
+  });
+
+  let scheduledRevision = null;
+  const profession = {
+    ui: {},
+    migrateBuild: (build) => build
+  };
+  const adapter = {
+    profession,
+    storageKey: 'fixture-build',
+    toApplicationBuild: (build) => build,
+    eliteSpecialization: () => 'Core',
+    slotLoadout: { normalizeBuild: () => ({}) },
+    recalculate() {},
+    buildEditor: {}
+  };
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    initialRenderGeneration: 0,
+    deferredRotationRenderRevision: null,
+    build: { rotation: [], selectedSkills: {} },
+    buildRevision: 0,
+    simulationStatus: 'idle',
+    simulationError: '',
+    results: null,
+    profession,
+    adapter,
+    activeCatalog: {},
+    skillByName: new Map(),
+    skills: [],
+    baselineSimulationRunner: {
+      schedule(revision) {
+        scheduledRevision = revision;
+      }
+    }
+  });
+
+  assert.doesNotThrow(() => app.changed(false));
+  assert.equal(app.buildRevision, 1);
+  assert.equal(scheduledRevision, 1);
+  assert.equal(app.simulationStatus, 'queued');
+});
+
 test('baseline runner publishes only the newest revision and reuses one worker', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
@@ -276,11 +338,87 @@ test('baseline runner publishes only the newest revision and reuses one worker',
   assert.equal(workers.length, 1, 'the persistent worker handles both jobs');
 });
 
+test('baseline runner recovers after Worker construction fails', (t) => {
+  runTimersImmediately(t);
+  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  t.after(() => {
+    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
+    else delete globalThis.Worker;
+  });
+
+  let attempts = 0;
+  const workers = [];
+  class RecoveringWorker {
+    constructor() {
+      attempts += 1;
+      if (attempts === 1) throw new DOMException('Worker blocked.', 'SecurityError');
+      this.listeners = new Map();
+      this.messages = [];
+      workers.push(this);
+    }
+
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+
+    postMessage(message) {
+      this.messages.push(message);
+    }
+
+    terminate() {}
+
+    respond(message) {
+      this.listeners.get('message')?.({ data: message });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', {
+    configurable: true,
+    writable: true,
+    value: RecoveringWorker
+  });
+
+  const failures = [];
+  const published = [];
+  const app = {
+    buildRevision: 1,
+    simulationStatus: 'idle',
+    simulationError: '',
+    adapter: {
+      baselineSimulationRequest() {
+        return {
+          gameId: 'gw2',
+          contentId: 'engineer',
+          rotation: [],
+          baseConfig: {},
+          selectedPatchId: 'current'
+        };
+      }
+    },
+    publishBaselineSimulation(output, revision) {
+      published.push([output.result.id, revision]);
+    },
+    failBaselineSimulation(error, revision) {
+      failures.push([error.name, revision]);
+    }
+  };
+  const runner = new BaselineSimulationRunner(app);
+
+  runner.schedule(1);
+  app.buildRevision = 2;
+  runner.schedule(2);
+
+  assert.deepEqual(failures, [['SecurityError', 1]]);
+  assert.equal(attempts, 2);
+  assert.equal(workers[0].messages.length, 1);
+  workers[0].respond({ requestId: 2, revision: 2, output: { result: { id: 'new' }, patchComparison: null } });
+  assert.deepEqual(published, [['new', 2]]);
+});
+
 test('modifier fallback clears stale state when calculation fails', (t) => {
   runTimersImmediately(t);
   let renderCount = 0;
   const results = {
-    contributions: [],
+    contributions: [{ id: 'old', name: 'Old', dpsIncrease: 1, pctIncrease: 1 }],
     modifierContributionsStale: false
   };
   const app = {
@@ -303,6 +441,8 @@ test('modifier fallback clears stale state when calculation fails', (t) => {
 
   assert.doesNotThrow(() => runner.schedule());
   assert.equal(results.modifierContributionsStale, false);
+  assert.equal(results.contributions, undefined);
+  assert.equal(results.modifierContributionsError, 'Contribution calculation failed.');
   assert.equal(renderCount, 1);
 });
 
