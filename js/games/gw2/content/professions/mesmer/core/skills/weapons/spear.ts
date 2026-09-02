@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PHANTASMAL_LANCER]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
@@ -52,7 +51,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     }
   },
   [ID.MENTAL_COLLAPSE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
@@ -71,7 +69,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PSYSTRIKE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
@@ -90,7 +87,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MIND_THE_GAP]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
@@ -115,7 +111,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MIND_PIERCE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
@@ -134,7 +129,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.IMAGINARY_INVERSION]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
@@ -154,7 +148,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PSYCUT]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',

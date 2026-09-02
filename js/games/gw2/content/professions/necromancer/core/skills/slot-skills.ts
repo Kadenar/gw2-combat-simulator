@@ -4,12 +4,10 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_BLOOD]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: []
   },
   [ID.SUMMON_BONE_FIEND]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
@@ -17,7 +15,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion'
   },
   [ID.PUTRID_EXPLOSION]: {
-    implemented: true,
     castTimeMs: 500,
     minionKey: 'bone-minion',
     consumes: 1,
@@ -35,7 +32,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.SUMMON_BONE_MINIONS]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
@@ -43,7 +39,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion'
   },
   [ID.BLOOD_IS_POWER]: {
-    implemented: true,
     quicknessCastTimeMs: 880,
     // Blood Is Power cannot cancel its remaining aftercast, so importers and the scheduler retain the full cast lane.
     retainsCastLockoutAfterInterrupt: true,
@@ -66,7 +61,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
   [ID.WELL_OF_CORRUPTION]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -80,7 +74,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WELL_OF_SUFFERING]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -105,14 +98,12 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SUMMON_BLOOD_FIEND]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [],
     // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.CONSUME_CONDITIONS]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [],
     // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
@@ -120,7 +111,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PLAGUELANDS]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -266,7 +256,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.corruption'
   },
   [ID.LICH_FORM]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [],
     lifeForceGain: 15,
@@ -275,14 +264,12 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.lich'
   },
   [ID.PLAGUE_SIGNET]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.RIGOR_MORTIS]: {
-    implemented: true,
     castTimeMs: 0,
     minionKey: 'bone-fiend',
     controlWindow: 4,
@@ -332,7 +319,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.TASTE_OF_DEATH]: {
-    implemented: true,
     castTimeMs: 1000,
     minionKey: 'blood-fiend',
     consumes: 1,
@@ -341,7 +327,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.SPECTRAL_ARMOR]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -351,7 +336,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SUMMON_SHADOW_FIEND]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
@@ -359,7 +343,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion'
   },
   [ID.HAUNT]: {
-    implemented: true,
     castTimeMs: 0,
     minionKey: 'shadow-fiend',
     impactDelay: 2,
@@ -387,7 +370,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WELL_OF_DARKNESS]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -425,7 +407,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.WELL_OF_POWER]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -435,7 +416,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SIGNET_OF_UNDEATH]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -447,7 +427,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceGain: 0
   },
   [ID.SPECTRAL_GRASP]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -461,7 +440,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceGain: 15
   },
   [ID.SIGNET_OF_SPITE]: {
-    implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -516,7 +494,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SUMMON_FLESH_GOLEM]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [],
     rechargeOnMinionDeath: true,
@@ -524,7 +501,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion'
   },
   [ID.CHARGE]: {
-    implemented: true,
     castTimeMs: 1000,
     minionKey: 'flesh-golem',
     effects: [
@@ -539,7 +515,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.SPECTRAL_WALK]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -550,12 +525,10 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceGain: 4
   },
   [ID.SPECTRAL_RECALL]: {
-    implemented: true,
     castTimeMs: 500,
     effects: []
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -569,7 +542,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.corruption'
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
-    implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {

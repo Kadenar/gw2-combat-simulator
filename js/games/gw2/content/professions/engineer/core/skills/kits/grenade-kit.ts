@@ -8,7 +8,6 @@ const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Grenade Kit. */
 export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.GRENADE_KIT]: {
-    implemented: true,
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
@@ -17,7 +16,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kitName: 'Grenade Kit'
   },
   [ID.POISON_GRENADE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
@@ -54,7 +52,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.SHRAPNEL_GRENADE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 5,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
@@ -90,7 +87,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.FLASH_GRENADE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 10,
     effects: [
@@ -117,7 +113,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.FREEZE_GRENADE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
@@ -153,7 +148,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.GRENADE_BARRAGE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 25,
     effects: [
@@ -172,7 +166,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     toolbeltParentName: 'Grenade Kit'
   },
   [ID.GRENADE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 0,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
@@ -205,7 +198,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.STOW_GRENADE_KIT]: {
-    implemented: true,
     // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-stow',
     paletteFlip: false,

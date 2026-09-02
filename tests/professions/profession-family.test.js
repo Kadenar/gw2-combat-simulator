@@ -330,15 +330,13 @@ const coreSkill = Object.freeze({
   id: 1,
   name: 'Core Skill',
   castTimeMs: 0,
-  effects: [],
-  implemented: true
+  effects: []
 });
 const eliteSkill = Object.freeze({
   id: 2,
   name: 'Elite Skill',
   castTimeMs: 0,
   effects: [],
-  implemented: true,
   specialization: 'Elite'
 });
 const familyCatalog = createCanonicalCatalog({

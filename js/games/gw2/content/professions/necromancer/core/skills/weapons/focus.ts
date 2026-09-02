@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SPINAL_SHIVERS]: {
-    implemented: true,
     quicknessCastTimeMs: 800,
     effects: [
       {
@@ -41,7 +40,6 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SOUL_GRASP]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {

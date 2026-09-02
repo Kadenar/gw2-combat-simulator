@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VENOMOUS_VOLLEY]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 3,
@@ -30,7 +29,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.SPINNING_AXE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -53,7 +51,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.HARROWING_STORM]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -70,7 +67,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     requiredOffHand: 'Dagger'
   },
   [ID.RECALL_AXES]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -87,7 +83,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     requiredOffHand: false
   },
   [ID.ORCHESTRATED_ASSAULT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -104,7 +99,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     requiredOffHand: 'Pistol'
   },
   [ID.SPINNING_AXE_ID_71967]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -127,7 +121,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.CUNNING_SALVO]: {
-    implemented: true,
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 500,

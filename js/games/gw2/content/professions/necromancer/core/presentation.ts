@@ -44,7 +44,7 @@ export function necromancerUiSpecialization(context: NecromancerUiContext = {}):
   return context.specialization || context.config?.specialization || 'Core';
 }
 
-// Build a stable shroud bar from implemented skills, ordering slots before flip
+// Build a stable shroud bar from available skills, ordering slots before flip
 // children and optionally collapsing chains to their castable roots.
 function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
   return necromancerCatalog.skills
@@ -52,7 +52,6 @@ function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
       const chain = necromancerCatalog.autoattackChainPositions.get(Number(skill.id));
       return (
         skill.shroud === shroud &&
-        skill.implemented &&
         !skill.simulatorExcluded &&
         (includeFlips || skill.flipParentId == null) &&
         (includeFlips || !chain || chain.root === skill.id)

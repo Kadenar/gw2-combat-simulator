@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DOUBLE_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
@@ -23,7 +22,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.BACKSTAB]: {
-    implemented: true,
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     quicknessCastTimeMs: 320,
@@ -44,7 +42,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     stealthAttack: true
   },
   [ID.DEATH_BLOSSOM]: {
-    implemented: true,
     movementSkill: true,
     quicknessCastTimeMs: 1040,
     cooldown: 0,
@@ -85,7 +82,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Dagger'
   },
   [ID.DANCING_DAGGER]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     cooldown: 0,
     initiativeCost: 3,
@@ -115,7 +111,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SHADOW_SHOT]: {
-    implemented: true,
     movementSkill: true,
     shadowstepSkill: true,
     castTimeMs: 0,
@@ -140,7 +135,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Pistol'
   },
   [ID.WILD_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     // Wild Strike commits its strike and bleeding on the ~160 ms impact before the chain animation ends.
     interruptCommitMs: 160,
@@ -166,7 +160,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.HEARTSEEKER]: {
-    implemented: true,
     movementSkill: true,
     quicknessCastTimeMs: 600,
     cooldown: 0,
@@ -195,7 +188,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.LOTUS_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     interruptCommitMs: 280,
     cooldown: 0,
@@ -219,7 +211,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TWISTING_FANGS]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -244,7 +235,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: false
   },
   [ID.CLOAK_AND_DAGGER]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 0,
     initiativeCost: 5,

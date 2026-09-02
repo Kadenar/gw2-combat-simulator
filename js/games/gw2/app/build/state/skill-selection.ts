@@ -48,7 +48,6 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
     const current = app.skillByName.get(app.build.selectedSkills[slot]);
     const allowed =
       current &&
-      current.implemented !== false &&
       current.type === type &&
       isSlotSkillSelectable(app, current, spec) &&
       (!current.specialization || current.specialization === spec) &&
@@ -60,7 +59,6 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
       app.build.selectedSkills[slot] =
         app.skills.find(
           (skill) =>
-            skill.implemented !== false &&
             skill.type === type &&
             isSlotSkillSelectable(app, skill, spec) &&
             (!skill.specialization || skill.specialization === spec) &&

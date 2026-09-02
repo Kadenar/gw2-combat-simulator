@@ -35,8 +35,6 @@ export function guardianBuildAvailability(
   context: GuardianAvailabilityContext,
   skill: GuardianSkill
 ): Readonly<AvailabilityResult> {
-  if (!skill.implemented)
-    return denySkillCast(skill, 'guardian.not-implemented', 'it is not implemented by the simulator.');
   const specialization = selectedGuardianSpecialization(context) || 'Core';
   if (skill.type !== 'Weapon' && skill.specialization && specialization !== skill.specialization) {
     return denySkillCast(skill, 'guardian.specialization', `requires the ${skill.specialization} specialization.`);

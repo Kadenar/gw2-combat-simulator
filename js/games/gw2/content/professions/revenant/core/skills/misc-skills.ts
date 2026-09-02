@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DOME_OF_THE_MISTS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 20,
     energyCost: 0,
@@ -19,7 +18,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.IGNITING_BRAND]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 12,
     energyCost: 10,
@@ -41,7 +39,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SPEAR_OF_ANGUISH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 0,
@@ -70,7 +67,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.FRIGID_DISCHARGE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 10,
@@ -92,7 +88,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DEVOUR_BRAND]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 10,
@@ -107,7 +102,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.VENOMOUS_SPHERE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 8,
     energyCost: 5,
@@ -129,7 +123,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.RAPID_ASSAULT]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 5,
     energyCost: 5,
@@ -152,7 +145,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.RIFT_CONTAINMENT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 20,
     energyCost: 20,
@@ -171,14 +163,12 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.HEALING_ORB]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.RITE_OF_THE_GREAT_DWARF_TRAIT_SKILL]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 45,
     energyCost: 0,
@@ -186,7 +176,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.VENGEFUL_SNOWBALLS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 45,
     energyCost: 0,
@@ -201,7 +190,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.ESSENCE_SAP_DOPPELGANGER]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     energyCost: 0,
@@ -223,7 +211,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CALL_OF_THE_DWARF]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -245,14 +232,12 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CALL_OF_THE_CENTAUR]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.CALL_OF_THE_ASSASSIN]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -286,7 +271,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CALL_OF_THE_DEMON]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -315,21 +299,18 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.UNCHAINED_DESOLATION]: {
-    implemented: true,
     castTimeMs: 2000,
     cooldown: 5,
     energyCost: 0,
     effects: []
   },
   [ID.LEGENDARY_PRISONER_STANCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.RIFT_OF_PAIN]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 8,
     energyCost: 5,
@@ -357,7 +338,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MISTSFIRE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 0,
@@ -407,7 +387,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.RECKONING_BLAST]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 15,
     energyCost: 10,
@@ -464,7 +443,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PORTAL_FIRE]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 6,
     energyCost: 5,
@@ -515,7 +493,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TORRENTIAL_MISTS]: {
-    implemented: true,
     castTimeMs: 2000,
     cooldown: 20,
     energyCost: 20,
@@ -569,7 +546,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.INVOKE_TORMENT]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -591,7 +567,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PHANTOMS_ONSLAUGHT_ID_62713]: {
-    implemented: true,
     quicknessCastTimeMs: 438,
     dashTimeMs: 38,
     hitDelayMs: 400,
@@ -623,14 +598,12 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.OTHERWORLDLY_ATTRACTION_ALLY]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 10,
     effects: []
   },
   [ID.OTHERWORLDLY_ATTRACTION_ENEMY]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 10,
@@ -645,7 +618,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.BLITZ_MINES]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -674,7 +646,6 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.REPLENISHING_DESPAIR_TRAIT_SKILL]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

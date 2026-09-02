@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIND_SLASH]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
@@ -23,7 +22,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 540
   },
   [ID.MIND_GASH]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
@@ -42,7 +40,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MIND_SPIKE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
@@ -62,7 +59,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.ILLUSIONARY_LEAP]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
@@ -84,7 +80,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PHANTASMAL_SWORDSMAN]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
@@ -138,7 +133,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 1320
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
@@ -162,7 +156,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     interruptCommitMs: 100
   },
   [ID.BLURRED_FRENZY]: {
-    implemented: true,
     interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Sword',
@@ -182,7 +175,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.BLADE_LEAP]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Sword',
     specialization: 'Troubadour',

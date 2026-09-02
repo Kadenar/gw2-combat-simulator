@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   assembleNativeApplicationCatalog,
+  createNativeModuleData,
   nativeSkillRuntimeOwner
 } from '#gw2/integrations/patches/authoring/catalog.js';
 import { onResolvedCriticalHit, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
@@ -16,7 +17,6 @@ const skill = (id, name, extra = {}) =>
   Object.freeze({
     id,
     name,
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     ...extra
@@ -54,6 +54,28 @@ const eliteModule = () =>
     state: { scheduler: () => ({ eliteValue: 2 }) },
     mechanics: { execution: { skillHandlers: { 'test.elite': replaceHandler } } }
   });
+
+test('native module data admits only mechanics-backed metadata and explicit extra skills', () => {
+  const data = createNativeModuleData({
+    id: 'Core',
+    generatedSkills: [skill(1, 'Authored'), skill(2, 'Metadata only')],
+    sharedExtraSkills: [skill(3, 'Authored supplemental'), skill(4, 'Metadata-only supplemental')],
+    skillMechanics: {
+      1: { effects: [] },
+      3: { effects: [] }
+    },
+    extraSkills: [skill(5, 'Explicit extra')]
+  });
+
+  assert.deepEqual(
+    data.generatedSkills.map(({ id }) => id),
+    [1]
+  );
+  assert.deepEqual(
+    data.extraSkills.map(({ id }) => id),
+    [3, 5]
+  );
+});
 
 test('module-first assembly derives application and active runtime catalogs', () => {
   const modules = [coreModule(), eliteModule()];

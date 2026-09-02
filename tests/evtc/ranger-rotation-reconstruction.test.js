@@ -89,7 +89,6 @@ function skill(id, name, extras = {}) {
     slot: 'Profession_1',
     castTimeMs: 0,
     effects: [],
-    implemented: true,
     ...extras
   };
 }

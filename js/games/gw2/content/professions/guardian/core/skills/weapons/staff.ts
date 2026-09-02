@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BOLT_OF_WRATH]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -15,7 +14,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.HOLY_STRIKE]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {
@@ -26,7 +24,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SYMBOL_OF_SWIFTNESS]: {
-    implemented: true,
     castTimeMs: 750,
     // The symbol creates its four-second Light field when the cast completes.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
@@ -40,17 +37,14 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.LINE_OF_WARDING]: {
-    implemented: true,
     castTimeMs: 750,
     effects: []
   },
   [ID.EMPOWER]: {
-    implemented: true,
     castTimeMs: 750,
     effects: []
   },
   [ID.SEEKING_JUDGMENT]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -61,7 +55,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SEARING_LIGHT]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {

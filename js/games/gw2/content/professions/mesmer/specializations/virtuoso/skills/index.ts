@@ -7,7 +7,6 @@ import type { SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.THOUSAND_CUTS]: {
-    implemented: true,
     type: 'Elite',
     weapon: '',
     specialization: 'Virtuoso',
@@ -68,7 +67,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.SWORD_OF_DECIMATION]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
@@ -87,7 +85,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.BLADE_RENEWAL]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
@@ -101,7 +98,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: []
   },
   [ID.RAIN_OF_SWORDS]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
@@ -136,7 +132,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.TWIN_BLADE_RESTORATION]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: 'Virtuoso',
@@ -156,7 +151,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.BLADETURN_REQUIEM]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
@@ -172,7 +166,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: []
   },
   [ID.BLADESONG_DISSONANCE]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
@@ -188,7 +181,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: []
   },
   [ID.BLADESONG_SORROW]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
@@ -204,7 +196,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: []
   },
   [ID.BLADESONG_HARMONY]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
@@ -220,7 +211,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: []
   },
   [ID.BLADESONG_DISTORTION]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',

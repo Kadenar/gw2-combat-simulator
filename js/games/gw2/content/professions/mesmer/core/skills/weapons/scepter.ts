@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CONFUSING_IMAGES]: {
-    implemented: true,
     interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Scepter',
@@ -39,7 +38,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     pulseCount: 7
   },
   [ID.ILLUSIONARY_COUNTER]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
@@ -50,7 +48,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 120
   },
   [ID.ETHER_BOLT]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
@@ -76,7 +73,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 660
   },
   [ID.ETHER_BLAST]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
@@ -102,7 +98,6 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ETHER_CLONE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',

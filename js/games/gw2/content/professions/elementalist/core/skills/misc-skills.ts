@@ -38,7 +38,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -62,7 +61,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1600,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -105,7 +103,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -178,7 +175,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 2360,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       strikeTimeline(FROST_STORM_STRIKE_TICKS, CAST_SCALED_PACKET_TIMING),
       conditionTimeline(
@@ -201,7 +197,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1120,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -252,7 +247,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 0,
     nextChainId: ID.STATIC_SWING,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -277,7 +271,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 0,
     nextChainId: ID.THUNDERCLAP,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -302,7 +295,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 0,
     nextChainId: ID.LIGHTNING_SWING,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -342,7 +334,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 960,
     cooldown: 8,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -384,7 +375,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 960,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -427,7 +417,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 920,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [strikeTimeline(INVOKE_LIGHTNING_STRIKE_TICKS, CAST_SCALED_PACKET_TIMING)]
   },
   // Lays a 4s Lightning combo field that opens at cast end (not cast start), and lands two
@@ -449,7 +438,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -504,7 +492,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 2160,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -563,7 +550,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 720,
     cooldown: 5,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -620,7 +606,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1320,
     cooldown: 5,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       strikeTimeline(FIERY_WHIRL_STRIKE_TICKS, {
         ...CAST_SCALED_PACKET_TIMING,
@@ -652,7 +637,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1280,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -677,7 +661,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 760,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -702,12 +685,11 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     unaffectedByQuickness: true,
     cooldown: 0,
     skillFamily: 'Dodge',
-    implemented: true,
     effects: []
   },
   // --- Trait pseudo-skills -----------------------------------------------------
   // Catalog placeholders for the trait-proc versions of these skills. All are
-  // `implemented: false` / `simulatorExcluded` / not slot-selectable, so they stay out of skill
+  // `simulatorExcluded` / not slot-selectable, so they stay out of skill
   // selection and the rotation palette; their packets are recorded for reference only.
   [ID.FLAME_BURST_TRAIT]: {
     name: 'Flame Burst (trait)',
@@ -719,7 +701,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
-    implemented: false,
     effects: [
       {
         type: 'strike',
@@ -758,7 +739,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
-    implemented: false,
     effects: []
   },
   [ID.BLINDING_FLASH_TRAIT]: {
@@ -771,7 +751,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
-    implemented: false,
     effects: [
       {
         type: 'blind',
@@ -793,7 +772,6 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
-    implemented: false,
     effects: [
       {
         type: 'strike',

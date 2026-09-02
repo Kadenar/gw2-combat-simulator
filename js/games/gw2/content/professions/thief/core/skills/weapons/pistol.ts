@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BOLA_SHOT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -34,7 +33,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SHADOW_STRIKE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 4,
@@ -67,7 +65,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Dagger'
   },
   [ID.UNLOAD]: {
-    implemented: true,
     quicknessCastTimeMs: 1320,
     cooldown: 0,
     initiativeCost: 3,
@@ -94,7 +91,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Pistol'
   },
   [ID.HEAD_SHOT]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 4,
@@ -110,7 +106,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.VITAL_SHOT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -133,7 +128,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.REPEATER]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 0,
     initiativeCost: 3,
@@ -158,7 +152,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: false
   },
   [ID.BLACK_POWDER]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 6,
@@ -183,7 +176,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SNEAK_ATTACK]: {
-    implemented: true,
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 1000,
@@ -210,7 +202,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     stealthAttack: true
   },
   [ID.REPEATER_ID_59526]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 0,
     initiativeCost: 2,

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SYMBOL_OF_VENGEANCE]: {
-    implemented: true,
     quicknessCastTimeMs: 800,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 680, startAnchor: 'castStart' }],
@@ -73,7 +72,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SEARING_SLASH]: {
-    implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -94,7 +92,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.BLEEDING_EDGE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     effects: [
       {
@@ -115,7 +112,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CORE_CLEAVE]: {
-    implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -136,7 +132,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.BLAZING_EDGE]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {

@@ -59,7 +59,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     quicknessCastTimeMs: 840,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -102,7 +101,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -138,7 +136,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     quicknessCastTimeMs: 440,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -189,7 +186,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   [ID.CYCLONE]: {
@@ -202,7 +198,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     quicknessCastTimeMs: 800,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -258,7 +253,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     quicknessCastTimeMs: 440,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: LIGHTNING_ORB_STRIKE_TICK_LAYERS.flatMap((ticks) => [
       strikeTimeline(ticks, { timingAnchor: 'castStart', timingScale: 'cast' }),
       conditionTimeline(
@@ -284,7 +278,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 30,
     aura: 'Magnetic|4',
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -309,7 +302,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     quicknessCastTimeMs: 840,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

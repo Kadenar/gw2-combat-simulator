@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ETHER_FEAST]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: '',
@@ -13,7 +12,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.MIRROR]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: '',
@@ -22,7 +20,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.MIRROR_IMAGES]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -36,7 +33,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.MANTRA_OF_PAIN]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -45,7 +41,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.MANTRA_OF_RECOVERY]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: '',
@@ -54,7 +49,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.SIGNET_OF_DOMINATION]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -63,7 +57,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -73,7 +66,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.MASS_INVISIBILITY]: {
-    implemented: true,
     type: 'Elite',
     weapon: '',
     specialization: '',
@@ -82,7 +74,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -98,7 +89,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -122,7 +112,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 1140
   },
   [ID.FEEDBACK]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -132,7 +121,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.TIME_WARP]: {
-    implemented: true,
     type: 'Elite',
     weapon: '',
     specialization: '',
@@ -141,7 +129,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.PHANTASMAL_DEFENDER]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',
@@ -165,7 +152,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 770
   },
   [ID.SIGNET_OF_THE_ETHER]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: '',
@@ -183,7 +169,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 919
   },
   [ID.SIGNET_OF_HUMILITY]: {
-    implemented: true,
     type: 'Elite',
     weapon: '',
     specialization: '',
@@ -192,7 +177,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.MIMIC]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: '',

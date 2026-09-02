@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SYMBOL_OF_BLADES]: {
-    implemented: true,
     castTimeMs: 250,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 250, startAnchor: 'castStart' }],
@@ -27,7 +26,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SWORD_OF_WRATH]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -38,7 +36,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SWORD_ARC]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -49,7 +46,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ZEALOTS_DEFENSE]: {
-    implemented: true,
     castTimeMs: 3000,
     effects: [
       {
@@ -61,7 +57,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SWORD_WAVE]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -73,7 +68,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.EXECUTIONERS_CALLING]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {
@@ -91,7 +85,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ADVANCING_STRIKE]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {

@@ -68,7 +68,6 @@ const extraSkills: readonly Skill[] = [
     castTimeMs: 0,
     cooldown: 10,
     rechargeAnchor: 'castStart',
-    implemented: true,
     effects: []
   },
   {
@@ -83,7 +82,6 @@ const extraSkills: readonly Skill[] = [
     castTimeMs: 0,
     cooldown: 10,
     resourceGain: 50,
-    implemented: true,
     effects: []
   },
   {
@@ -98,7 +96,6 @@ const extraSkills: readonly Skill[] = [
     castTimeMs: 0,
     cooldown: 0,
     resourceCost: 50,
-    implemented: true,
     effects: []
   }
 ];

@@ -36,7 +36,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -76,7 +75,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     nextChainId: ID.TRANSMUTE_FIRE,
     aura: 'Fire|4',
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   // Consumes the Fire Aura for a strike, Burning, and five Might, then flips back to Fire Shield; the
@@ -92,7 +90,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 10,
     nextChainId: ID.FIRE_SHIELD,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -142,7 +139,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 440,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -182,7 +178,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -225,7 +220,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   // Pure crowd control: a control application with no strike, so it contributes no damage.
@@ -239,7 +233,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 560,
     cooldown: 40,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'control',
@@ -262,7 +255,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 0,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -310,7 +302,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 3800,
     cooldown: 50,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   }
 });

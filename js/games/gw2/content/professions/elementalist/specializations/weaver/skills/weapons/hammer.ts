@@ -36,7 +36,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -91,7 +90,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -146,7 +144,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -201,7 +198,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -256,7 +252,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -311,7 +306,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

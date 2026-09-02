@@ -5,7 +5,7 @@ import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 
-const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extras });
+const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
 // These fixtures isolate the EI signals needed for each Elementalist recovery rule.
 function reportFixture(profession, rotation, skillMap, extras = {}) {

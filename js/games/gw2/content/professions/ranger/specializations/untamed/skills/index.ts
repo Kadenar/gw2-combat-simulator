@@ -8,7 +8,6 @@ const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
 export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENVELOPING_HAZE]: {
     interruptCommitMs: 0,
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -48,12 +47,10 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.NATURES_BINDING]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.UNLEASH_RANGER]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
@@ -70,7 +67,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'ranger.unleash-ranger'
   },
   [ID.EXPLODING_SPORES]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -105,7 +101,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'ranger.exploding-spores'
   },
   [ID.FORESTS_FORTIFICATION]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -129,7 +124,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 667
   },
   [ID.VENOMOUS_OUTBURST]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -152,7 +146,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'ranger.venomous-outburst'
   },
   [ID.RENDING_VINES]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -180,12 +173,10 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.PERILOUS_GIFT]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.UNLEASH_PET]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
@@ -202,7 +193,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'ranger.unleash-pet'
   },
   [ID.RELENTLESS_WHIRL]: {
-    implemented: true,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -259,7 +249,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'ranger.unleashed-ambush'
   },
   [ID.DEFT_STRIKE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

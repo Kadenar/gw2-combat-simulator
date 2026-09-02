@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SPIKE_TRAP]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -21,12 +20,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.TROLL_UNGUENT]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.HEALING_SPRING]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -39,7 +36,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.SIGNET_OF_THE_WILD]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -66,7 +62,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.FROST_TRAP]: {
     interruptCommitMs: 440,
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -103,7 +98,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.STORM_SPIRIT]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -127,7 +121,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 167
   },
   [ID.STONE_SPIRIT]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -152,7 +145,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.VIPERS_NEST]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -189,7 +181,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.FROST_SPIRIT]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -213,7 +204,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 167
   },
   [ID.SUN_SPIRIT]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -240,7 +230,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'ranger.sun-spirit'
   },
   [ID.FLAME_TRAP]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -258,7 +247,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.MUDDY_TERRAIN]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -276,7 +264,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.STRENGTH_OF_THE_PACK]: {
-    implemented: true,
     effects: [
       {
         type: 'buff',
@@ -309,7 +296,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 667
   },
   [ID.SHARPENING_STONE]: {
-    implemented: true,
     effects: [],
     castTimeMs: 0,
     canCastConcurrently: true,
@@ -317,7 +303,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'ranger.sharpening-stone'
   },
   [ID.SPIRIT_OF_NATURE]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -330,7 +315,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.ENTANGLE]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -373,7 +357,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.SOLAR_FLARE]: {
     // The API exposes a generic missing-icon asset, so pin the wiki's dedicated icon for result rows.
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Solar_Flare.png',
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -385,7 +368,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.CALL_LIGHTNING]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -396,7 +378,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.QUAKE]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -414,17 +395,14 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.COLD_SNAP]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.NATURES_RENEWAL]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.PROTECT_ME]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -436,7 +414,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.GUARD]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -448,14 +425,12 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.SIC_EM]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     // Custom: Applies the pet-only Sic Em damage window when a pet is active; see `core/skills/execution.ts`.
     handlerId: 'ranger.sic-em'
   },
   [ID.WATER_SPIRIT]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -473,12 +448,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.AQUA_SURGE]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.WE_HEAL_AS_ONE]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',

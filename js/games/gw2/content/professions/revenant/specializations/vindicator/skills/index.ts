@@ -14,7 +14,6 @@ export const VINDICATOR_BALANCE_PROFILE_IDS = Object.freeze({
 
 export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SELFLESS_SPIRIT]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 10,
     ammo: 5,
@@ -24,7 +23,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'kurzick'
   },
   [ID.URN_OF_SAINT_VIKTOR]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -37,7 +35,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'kurzick'
   },
   [ID.SAINTS_SHIELD]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -51,7 +48,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     ]
   },
   [ID.DEATH_DROP]: {
-    implemented: true,
     castTimeMs: 200,
     unaffectedByQuickness: true,
     cooldown: 0,
@@ -75,7 +71,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     ]
   },
   [ID.BATTLE_DANCE]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 3,
     energyCost: 15,
@@ -97,7 +92,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'kurzick'
   },
   [ID.SELFISH_SPIRIT]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 10,
     ammo: 4,
@@ -128,7 +122,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'luxon'
   },
   [ID.ALLIANCE_TACTICS]: {
-    implemented: true,
     // Custom: Swaps Alliance stance and its active skill set; see `vindicator/mechanics/dodge.ts`.
     handlerId: 'revenant.alliance-tactics',
     castTimeMs: 0,
@@ -137,7 +130,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: []
   },
   [ID.DROP_URN_OF_SAINT_VIKTOR]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 1,
     energyCost: 0,
@@ -164,14 +156,12 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     legendId: 'LegendaryAlliance'
   },
   [ID.LEGENDARY_ALLIANCE_STANCE_ID_62749]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.ENERGY_MELD]: {
-    implemented: true,
     // Custom: Restores endurance and applies Vindicator trait adjustments; see `vindicator/mechanics/dodge.ts`.
     handlerId: 'revenant.energy-meld',
     quicknessCastTimeMs: 440,
@@ -181,7 +171,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: []
   },
   [ID.AWAKENING]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 10,
     energyCost: 15,
@@ -203,7 +192,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'kurzick'
   },
   [ID.NOMADS_ADVANCE]: {
-    implemented: true,
     castTimeMs: 960,
     unaffectedByQuickness: true,
     cooldown: 3,
@@ -228,7 +216,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'luxon'
   },
   [ID.IMPERIAL_IMPACT]: {
-    implemented: true,
     castTimeMs: 200,
     unaffectedByQuickness: true,
     cooldown: 0,
@@ -257,7 +244,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     ]
   },
   [ID.REAVERS_RAGE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 10,
     energyCost: 15,
@@ -292,7 +278,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'luxon'
   },
   [ID.TREE_SONG]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 3,
     energyCost: 15,
@@ -308,7 +293,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'kurzick'
   },
   [ID.SPEAR_OF_ARCHEMORUS]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     cooldown: 12,
     energyCost: 20,
@@ -333,7 +317,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'luxon'
   },
   [ID.SCAVENGER_BURST]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 3,
     energyCost: 15,
@@ -369,7 +352,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     allianceSide: 'luxon'
   },
   [ID.ENERGY_MELD_ID_72058]: {
-    implemented: true,
     // Custom: Restores endurance and applies Vindicator trait adjustments; see `vindicator/mechanics/dodge.ts`.
     handlerId: 'revenant.energy-meld',
     quicknessCastTimeMs: 440,
@@ -379,7 +361,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: []
   },
   [ID.CALL_OF_THE_ALLIANCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -395,7 +376,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     ]
   },
   [ID.LEGENDARY_ALLIANCE_STANCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

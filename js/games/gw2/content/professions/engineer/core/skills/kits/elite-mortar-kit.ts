@@ -5,7 +5,6 @@ import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Elite Mortar Kit. */
 export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_SHELL]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     cooldown: 24,
     comboFields: [
@@ -21,7 +20,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.FLASH_SHELL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 20,
     effects: [
@@ -40,7 +38,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.ENDOTHERMIC_SHELL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     effects: [
@@ -62,7 +59,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.MORTAR_SHOT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     effects: [
@@ -77,7 +73,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.ORBITAL_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 880,
     cooldown: 40,
     comboFinishers: [
@@ -102,7 +97,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     mechanicSlot: 5
   },
   [ID.ELITE_MORTAR_KIT]: {
-    implemented: true,
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
@@ -112,7 +106,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
   },
   [ID.POISON_GAS_SHELL]: {
     interruptCommitMs: 0,
-    implemented: true,
     // Use the measured Quickness animation so the poison field and its pulses start at the observed time.
     quicknessCastTimeMs: 560,
     cooldown: 10,
@@ -167,7 +160,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS: readonly Skill[] = Object.f
     slotSelectable: false,
     castTimeMs: 0,
     cooldown: 0,
-    implemented: true,
     effects: []
   }
 ]);

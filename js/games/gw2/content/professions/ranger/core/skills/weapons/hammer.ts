@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HAMMER_STRIKE]: {
-    implemented: true,
     interruptCommitMs: 360,
     effects: [
       {
@@ -18,7 +17,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   },
   [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
     interruptCommitMs: 520,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -35,7 +33,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 560
   },
   [ID.UNLEASHED_OVERBEARING_SMASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -61,7 +58,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 960
   },
   [ID.UNLEASHED_THUMP]: {
-    implemented: true,
     interruptCommitMs: 800,
     effects: [
       {
@@ -92,7 +88,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 960
   },
   [ID.HAMMER_SLAM]: {
-    implemented: true,
     interruptCommitMs: 320,
     effects: [
       {
@@ -105,7 +100,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 640
   },
   [ID.UNLEASHED_WILD_SWING]: {
-    implemented: true,
     interruptCommitMs: 400,
     effects: [
       {
@@ -119,7 +113,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 480
   },
   [ID.HEAVY_SMASH]: {
-    implemented: true,
     interruptCommitMs: 320,
     effects: [
       {
@@ -132,7 +125,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 440
   },
   [ID.WILD_SWING]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -150,7 +142,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 480
   },
   [ID.THUMP]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -170,7 +161,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 960
   },
   [ID.OVERBEARING_SMASH]: {
-    implemented: true,
     interruptCommitMs: 240,
     effects: [
       {
@@ -205,7 +195,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 960
   },
   [ID.SAVAGE_SHOCK_WAVE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

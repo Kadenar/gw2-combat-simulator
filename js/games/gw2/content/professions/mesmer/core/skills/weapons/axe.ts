@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIRROR_STRIKES]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
@@ -36,7 +35,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ]
   },
   [ID.AXES_OF_SYMMETRY]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
@@ -62,7 +60,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 1000
   },
   [ID.LACERATING_CHOP]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
@@ -87,7 +84,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 430
   },
   [ID.ETHEREAL_CHOP]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
@@ -112,7 +108,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ]
   },
   [ID.LINGERING_THOUGHTS]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
@@ -160,7 +155,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   },
   // Non-Mirage Axe variants retain separate IDs so their conditions and finishers resolve independently.
   [ID.TROUBADOUR_LINGERING_THOUGHTS]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Troubadour',
@@ -206,7 +200,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 920
   },
   [ID.TROUBADOUR_AXES_OF_SYMMETRY]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Troubadour',

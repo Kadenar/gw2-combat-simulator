@@ -7,7 +7,6 @@ const OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS = 3;
 
 export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PATH_OF_GLUTTONY]: {
-    implemented: true,
     quicknessCastTimeMs: 760,
     comboFinishers: [
       {
@@ -26,7 +25,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.HUNGERING_MAELSTROM]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 640,
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     effects: [
@@ -47,7 +45,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ENERVATION_ECHO]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -58,7 +55,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.DEATHLY_ENERVATION]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -76,7 +72,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.GORGE]: {
-    implemented: true,
     quicknessCastTimeMs: 760,
     comboFinishers: [
       {
@@ -94,7 +89,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RAVENOUS_WAVE]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     flipDuration: 3,
     effects: [
@@ -107,7 +101,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     lifeForceGain: 12
   },
   [ID.SATIATE]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {
@@ -126,7 +119,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.CONSUME]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -156,7 +148,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ENERVATION_BLADE]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     effects: [
       {
@@ -167,7 +158,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.DEVOURING_VISAGE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     effects: [
@@ -189,7 +179,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     lifeForceGain: 10
   },
   [ID.GORMANDIZE]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {

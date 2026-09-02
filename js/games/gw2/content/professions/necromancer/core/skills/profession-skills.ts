@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LIFE_BLAST]: {
-    implemented: true,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -22,7 +21,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     flipSkillId: null
   },
   [ID.DEATH_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -33,7 +31,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.shroud'
   },
   [ID.END_DEATH_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
@@ -42,7 +39,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.shroud'
   },
   [ID.DOOM]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -62,7 +58,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     specialization: ''
   },
   [ID.LIFE_TRANSFER]: {
-    implemented: true,
     quicknessCastTimeMs: 2920,
     effects: [
       {
@@ -134,7 +129,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     lifeForceGain: 9
   },
   [ID.DARK_PATH]: {
-    implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -165,7 +159,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.flip'
   },
   [ID.GRIM_SPECTER]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {
@@ -226,7 +219,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     ]
   },
   [ID.RIPPLE_OF_HORROR]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -243,7 +235,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.flip'
   },
   [ID.DEATHLY_CLAWS]: {
-    implemented: true,
     castTimeMs: 1100,
     effects: [
       {
@@ -260,7 +251,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     ]
   },
   [ID.LICHS_GAZE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -279,7 +269,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     cooldown: 8
   },
   [ID.SUMMON_MADNESS]: {
-    implemented: true,
     castTimeMs: 1500,
     summons: 8,
     summonInterval: 1,
@@ -307,7 +296,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.summon-madness'
   },
   [ID.DHUUMFIRE_BLAST]: {
-    implemented: true,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -331,7 +319,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     simulatorExcluded: true
   },
   [ID.TAINTED_SHACKLES]: {
-    implemented: true,
     castTimeMs: 250,
     effects: [
       {
@@ -372,12 +359,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     specialization: ''
   },
   [ID.MARCH_OF_UNDEATH]: {
-    implemented: true,
     castTimeMs: 0,
     effects: []
   },
   [ID.DARK_PURSUIT]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     type: 'Profession',

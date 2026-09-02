@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GUNSTINGER]: {
-    implemented: true,
     ammo: 0,
     ammoRecharge: 0,
     cooldown: 15,
@@ -38,7 +37,6 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DRAGONS_ROAR]: {
-    implemented: true,
     ammo: 6,
     ammoRecharge: 5,
     cooldown: 5,

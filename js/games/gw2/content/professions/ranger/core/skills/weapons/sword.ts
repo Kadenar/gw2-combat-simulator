@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SLASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -15,7 +14,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 480
   },
   [ID.CRIPPLING_THRUST]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -32,7 +30,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 320
   },
   [ID.PRECISION_SWIPE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -50,7 +47,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 600
   },
   [ID.SERPENTS_STRIKE]: {
-    implemented: true,
     evades: true,
     effects: [
       {
@@ -87,7 +83,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 1000
   },
   [ID.POUNCE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

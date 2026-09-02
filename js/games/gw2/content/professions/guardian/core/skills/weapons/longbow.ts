@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 // Packet offsets are the canonical Quickness timings measured from EVTC animation starts.
 export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DEFLECTING_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -24,7 +23,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.SYMBOL_OF_ENERGY]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     // The symbol creates its four-second Light field with the initial impact.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
@@ -51,7 +49,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.TRUE_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     effects: [
       {
@@ -63,7 +60,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.PUNCTURE_SHOT]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [
       {
@@ -75,7 +71,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.HUNTERS_WARD]: {
-    implemented: true,
     quicknessCastTimeMs: 720,
     effects: [
       {

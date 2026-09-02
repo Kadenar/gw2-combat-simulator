@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIELD_OF_THE_MISTS]: {
     interruptCommitMs: 0,
-    implemented: true,
     castTimeMs: 750,
     cooldown: 12,
     energyCost: 10,
@@ -46,7 +45,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.PHASE_SMASH]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 8,
     energyCost: 5,
@@ -76,7 +74,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.DROP_THE_HAMMER]: {
     interruptCommitMs: 0,
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     energyCost: 10,
@@ -112,7 +109,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.COALESCENCE_OF_RUIN]: {
     interruptCommitMs: 0,
-    implemented: true,
     castTimeMs: 750,
     cooldown: 4,
     energyCost: 5,
@@ -141,7 +137,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAMMER_BOLT]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     energyCost: 0,

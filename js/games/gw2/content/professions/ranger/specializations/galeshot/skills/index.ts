@@ -7,13 +7,11 @@ const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
 
 export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WHIRLWIND]: {
-    implemented: true,
     evades: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.MISTRAL]: {
-    implemented: true,
     quicknessCastTimeMs: 320,
     effects: [],
     arrowsRestored: 1,
@@ -21,7 +19,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'ranger.mistral'
   },
   [ID.SUMMON_CYCLONE_BOW]: {
-    implemented: true,
     castTimeMs: 0,
     paletteTileId: CYCLONE_BOW_PALETTE_TILE,
     paletteTileOrder: 1,
@@ -31,7 +28,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.PERFECT_STORM]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -65,7 +61,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'ranger.galeshot-arrows'
   },
   [ID.WIND_SHEAR]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -82,7 +77,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 333
   },
   [ID.DISMISS_CYCLONE_BOW]: {
-    implemented: true,
     castTimeMs: 0,
     paletteTileId: CYCLONE_BOW_PALETTE_TILE,
     paletteTileOrder: 2,
@@ -91,7 +85,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'ranger.cyclone-bow-exit'
   },
   [ID.PIERCING_GALES]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -116,12 +109,10 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     missileHits: 5
   },
   [ID.SOOTHING_BREEZE]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.KEEN_SHOT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -135,7 +126,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.HAWKEYE]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -154,7 +144,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 880
   },
   [ID.BLUSTER]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -174,7 +163,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     windForceApplyMs: 480
   },
   [ID.FLEETING_ZEPHYR]: {
-    implemented: true,
     evades: true,
     effects: [
       {
@@ -198,7 +186,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     windForceApplyMs: 240
   },
   [ID.QUARRYS_PERIL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -225,7 +212,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.PELT]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -243,7 +229,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     windForceApplyMs: 280
   },
   [ID.SUPERSONIC_ARROW]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

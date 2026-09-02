@@ -46,7 +46,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 10,
     ammo: 2,
     armedAtStart: true,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -77,7 +76,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       atMs: 360
     },
     flipDuration: 2,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -103,7 +101,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     flipDuration: 5,
     flipDelay: 0,
-    implemented: true,
     effects: []
   },
   [ID.COUNTER_BLADE]: {
@@ -111,7 +108,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     flipDuration: 3,
     flipDelay: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -130,7 +126,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     flipDuration: 5,
     flipDelay: 1,
-    implemented: true,
     effects: []
   },
   [ID.DIMENSIONAL_APERTURE]: {
@@ -140,7 +135,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     flipDuration: 3,
     flipDelay: 0,
     parentCooldownIncrease: 0.5,
-    implemented: true,
     effects: []
   },
   [ID.ABSTRACTION]: {
@@ -149,7 +143,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     flipDuration: 2,
     flipDelay: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -174,7 +167,6 @@ export const MESMER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
-    implemented: true,
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);

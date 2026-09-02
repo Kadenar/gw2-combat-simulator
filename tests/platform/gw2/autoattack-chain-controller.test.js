@@ -8,7 +8,6 @@ import { replaceAutoattackChains, resetAutoattackChains } from '#gw2/platform/sk
 const skill = (id, name, extra = {}) => ({
   id,
   name,
-  implemented: true,
   castTimeMs: 0,
   effects: [],
   ...extra

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DRAKES_SWIPE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -15,7 +14,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 333
   },
   [ID.FALCONS_STOOP]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -32,7 +30,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 500
   },
   [ID.PANTHERS_PROWL]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -44,7 +41,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 333
   },
   [ID.WARCLAWS_ENGAGE]: {
-    implemented: true,
     evades: true,
     effects: [
       {
@@ -56,7 +52,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 500
   },
   [ID.CHEETAHS_STRIKE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -73,7 +68,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 500
   },
   [ID.MONGOOSES_FRENZY]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -91,7 +85,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 667
   },
   [ID.WYVERNS_LASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

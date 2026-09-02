@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LEAP_OF_FAITH]: {
-    implemented: true,
     quicknessCastTimeMs: 720,
     effects: [
       {
@@ -19,7 +18,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.WHIRLING_WRATH]: {
-    implemented: true,
     interruptMode: 'per-packet',
     // The catalog derives the unquickened cast from this measured Quickness duration.
     quicknessCastTimeMs: 1480,
@@ -50,7 +48,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.GREAT_SWORD_STRIKE]: {
-    implemented: true,
     castTimeMs: 600,
     // Strike has no cancellable tail: its packet commits on the 400 ms
     // Quickness action boundary.
@@ -65,7 +62,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.GREAT_SWORD_VENGEFUL_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     // The packet commits at 400 ms, but cancelling there retains the full
     // 600 ms action lockout observed in the combat log.
@@ -81,7 +77,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.GREAT_SWORD_WRATHFUL_STRIKE]: {
-    implemented: true,
     castTimeMs: 1000,
     // Damage lands at 440 ms; the 520 ms safe cancel still keeps the full
     // 680 ms Quickness action lane occupied.
@@ -97,7 +92,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.SYMBOL_OF_RESOLUTION]: {
-    implemented: true,
     castTimeMs: 320,
     unaffectedByQuickness: true,
     // The symbol commits at 240 ms but may occupy the action lane through 320 ms, so imported tick timings
@@ -124,7 +118,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.BINDING_BLADE]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -148,7 +141,6 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PULL]: {
-    implemented: true,
     castTimeMs: 750,
     // Binding Blade only tethers; its armed Pull flip owns the control event that can trigger control relics.
     effects: [

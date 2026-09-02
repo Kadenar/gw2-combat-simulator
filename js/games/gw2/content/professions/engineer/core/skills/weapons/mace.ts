@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines Engineer mace skill damage, conditions, boons, control, and combo behavior. */
 export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MACE_SMASH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     effects: [
@@ -26,7 +25,6 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ENERGIZING_SLAM]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 6,
     effects: [
@@ -66,7 +64,6 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.MACE_BLAST]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     // Mace Blast is both an Explosion for Engineer traits and a leap combo finisher.
@@ -96,7 +93,6 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.MACE_STRIKE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     effects: [
@@ -117,7 +113,6 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ROCKET_FIST_PROTOTYPE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 12,
     effects: [

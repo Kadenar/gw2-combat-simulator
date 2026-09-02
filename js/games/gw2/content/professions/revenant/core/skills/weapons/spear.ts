@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ABYSSAL_FIRE]: {
-    implemented: true,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/skills/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     simulatorExcluded: true,
@@ -39,7 +38,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ABYSSAL_BLITZ]: {
     interruptCommitMs: 0,
-    implemented: true,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/skills/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 520,
@@ -104,7 +102,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ABYSSAL_BLOT]: {
     interruptCommitMs: 0,
-    implemented: true,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/skills/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 800,
@@ -177,7 +174,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ABYSSAL_FORCE]: {
     interruptCommitMs: 0,
-    implemented: true,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/skills/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 520,
@@ -214,7 +210,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ABYSSAL_STRIKE]: {
-    implemented: true,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/skills/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 520,
@@ -252,7 +247,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ABYSSAL_RAZE]: {
-    implemented: true,
     // Custom: Consumes Crushing Abyss stacks and materializes the scaled raze packets; see `core/skills/spear.ts`.
     handlerId: 'revenant.abyssal-raze',
     quicknessCastTimeMs: 600,

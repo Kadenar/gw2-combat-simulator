@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines non-Holosmith Engineer sword timing, damage, conditions, boons, and combo behavior. */
 export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RADIANT_ARC_ID_69565]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 14,
     comboFinishers: [
@@ -39,7 +38,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SUN_RIPPER_ID_69906]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     effects: [
@@ -61,7 +59,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SUN_EDGE_ID_70514]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
@@ -83,7 +80,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.GLEAM_SABER_ID_70771]: {
-    implemented: true,
     // Custom: Recharges the other sword skills after the cast; see `core/skills/sword.ts`.
     handlerId: 'engineer.gleam-saber',
     quicknessCastTimeMs: 720,
@@ -100,7 +96,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.REFRACTION_CUTTER_ID_71121]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     cooldown: 6,
     effects: [

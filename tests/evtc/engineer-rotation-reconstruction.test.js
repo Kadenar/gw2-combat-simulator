@@ -47,7 +47,6 @@ function skill(id, name, overrides = {}) {
     castTimeMs: 0,
     quicknessCastTimeMs: 0,
     effects: [],
-    implemented: true,
     ...overrides
   };
 }

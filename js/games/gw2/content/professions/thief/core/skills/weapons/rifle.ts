@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DEATHS_ADVANCE]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 2,
@@ -19,7 +18,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     kneelSkill: true
   },
   [ID.KNEEL]: {
-    implemented: true,
     // Custom: Enters Kneel and exposes kneeling rifle skills; see `core/skills/actions.ts`.
     handlerId: 'thief.kneel',
     castTimeMs: 500,
@@ -28,7 +26,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: []
   },
   [ID.DEADLY_AIM]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
@@ -59,7 +56,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     kneelSkill: true
   },
   [ID.FREE_ACTION]: {
-    implemented: true,
     // Custom: Leaves Kneel and restores standing rifle skills; see `core/skills/actions.ts`.
     handlerId: 'thief.free-action',
     castTimeMs: 0,
@@ -76,7 +72,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     kneelSkill: true
   },
   [ID.BRUTAL_AIM]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -106,7 +101,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SKIRMISHERS_SHOT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 3,
@@ -135,7 +129,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DEATHS_RETREAT]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 4,
@@ -158,7 +151,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DOUBLE_TAP]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 4,
@@ -180,7 +172,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SPOTTERS_SHOT]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 3,
@@ -216,7 +207,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     kneelSkill: true
   },
   [ID.THREE_ROUND_BURST]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 0,
     initiativeCost: 4,
@@ -239,7 +229,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     kneelSkill: true
   },
   [ID.SNIPERS_COVER]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 4,
@@ -247,7 +236,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     kneelSkill: true
   },
   [ID.DEATHS_JUDGMENT]: {
-    implemented: true,
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 500,

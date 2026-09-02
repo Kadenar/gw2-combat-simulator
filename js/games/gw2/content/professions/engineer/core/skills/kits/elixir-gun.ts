@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines the Elixir Gun equip action and packet-level palette mechanics, including fields and finishers. */
 export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_GUN]: {
-    implemented: true,
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
@@ -14,7 +13,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kitName: 'Elixir Gun'
   },
   [ID.TRANQUILIZER_DART]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     comboFinishers: [
@@ -52,7 +50,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.GLOB_SHOT]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 8,
     effects: [
@@ -87,7 +84,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.ACID_BOMB]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 12,
     comboFields: [
@@ -125,7 +121,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.SUPER_ELIXIR]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 16,
     comboFields: [
@@ -140,7 +135,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.FUMIGATE]: {
-    implemented: true,
     castTimeMs: 2250,
     cooldown: 12,
     effects: [
@@ -180,7 +174,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.HEALING_MIST]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 20,
     effects: [
@@ -194,14 +187,12 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     toolbeltParentName: 'Elixir Gun'
   },
   [ID.SUPER_ELIXIR_CHAIN_SKILL]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
     kit: 'Elixir Gun'
   },
   [ID.STOW_ELIXIR_GUN]: {
-    implemented: true,
     // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-stow',
     paletteFlip: false,

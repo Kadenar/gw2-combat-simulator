@@ -25,7 +25,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.CONFLAGRATION,
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -67,7 +66,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.IGNITE,
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -109,7 +107,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.BUOYANT_DELUGE,
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -144,7 +141,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       }
     ],
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'control',
@@ -169,7 +165,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.LIGHTNING_BLITZ,
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -197,7 +192,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.ZAP,
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -279,7 +273,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.SEISMIC_IMPACT,
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -316,7 +309,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.CALCIFY,
     skillFamily: 'Familiar',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -374,7 +366,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
-    implemented: true,
     effects: []
   },
   [ID.HARES_AGILITY]: {
@@ -389,7 +380,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -425,7 +415,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -465,7 +454,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
     handlerId: 'elementalist.evoker-meditation',
-    implemented: true,
     effects: []
   },
   [ID.REJUVENATE]: {
@@ -477,7 +465,6 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     quicknessCastTimeMs: 600,
     cooldown: 18,
     skillFamily: 'Meditation',
-    implemented: true,
     effects: []
   }
 });

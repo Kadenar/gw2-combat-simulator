@@ -1,10 +1,6 @@
 import { createNativeModuleData } from '#gw2/integrations/patches/authoring/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import {
-  createFlipParentMap,
-  createSpecializationSkillOwners,
-  defineProfessionWeapons
-} from '#gw2/content/professions/lib/catalog-data.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/content/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/content/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/thief/data/thief-api-metadata.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
@@ -232,7 +228,6 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
 
 const generated: readonly ThiefSkill[] = generatedSource.map((skill) => ({
   ...normalize(skill),
-  implemented: false,
   effects: [],
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
     ? {
@@ -278,8 +273,6 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309
   ]
 });
-
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh',
@@ -332,7 +325,6 @@ export function createThiefModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }

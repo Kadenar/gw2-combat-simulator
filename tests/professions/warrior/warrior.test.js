@@ -141,10 +141,6 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
   assert.equal(warriorCatalog.skillsByName.get('Path to Victory').id, ID.PATH_TO_VICTORY_ID_71932);
   assert.equal(warriorCatalog.skillsByName.get("Harrier's Toss").id, ID.HARRIERS_TOSS);
   assert.equal(
-    warriorCatalog.skills.every((skill) => skill.implemented || skill.simulatorExcluded),
-    true
-  );
-  assert.equal(
     warriorCatalog.skills.every((skill) => !Object.hasOwn(skill, 'recharge')),
     true
   );

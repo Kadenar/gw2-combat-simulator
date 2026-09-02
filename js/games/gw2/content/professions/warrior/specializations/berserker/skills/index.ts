@@ -3,7 +3,6 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/i
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
-    implemented: true,
     movementSkill: true,
     comboFinishers: [
       {
@@ -47,7 +46,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.GUN_FLAME]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -74,7 +72,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.SKULL_GRINDER]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -114,7 +111,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.ARC_DIVIDER]: {
-    implemented: true,
     skillWeapon: 'Greatsword',
     effects: [
       {
@@ -134,7 +130,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.SCORCHED_EARTH]: {
     interruptCommitMs: 0,
-    implemented: true,
     skillWeapon: 'Longbow',
     comboFields: [
       {
@@ -192,7 +187,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.WILD_BLOW]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -219,7 +213,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.SHATTERING_BLOW]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -249,7 +242,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.BERSERK]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     adrenalineCost: 30,
@@ -259,7 +251,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.berserk'
   },
   [ID.BLOOD_RECKONING]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 280,
     dualWieldCastTimeMs: 240,
@@ -268,7 +259,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.blood-reckoning'
   },
   [ID.OUTRAGE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     adrenalineGain: 10,
@@ -277,7 +267,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.HEAD_BUTT]: {
-    implemented: true,
     movementSkill: true,
     effects: [
       {
@@ -304,7 +293,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.FLAMING_FLURRY]: {
-    implemented: true,
     skillWeapon: 'Sword',
     // Flaming Flurry safely commits by its final 1560ms packet; per-packet
     // interruptions retain only the strike and burning packets already fired.
@@ -377,7 +365,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.DECAPITATE]: {
-    implemented: true,
     skillWeapon: 'Axe',
     cooldown: 0,
     effects: [
@@ -403,7 +390,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.RUPTURING_SMASH]: {
-    implemented: true,
     movementSkill: true,
     skillWeapon: 'Hammer',
     cooldown: 5,
@@ -442,7 +428,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.BURNING_SHACKLES]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -465,7 +450,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.WILD_WHIRL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -492,7 +476,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.SLICING_MAELSTROM]: {
-    implemented: true,
     cooldown: 5,
     effects: [
       {
@@ -510,7 +493,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.RAMPART_SPLITTER]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -533,7 +515,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.WILD_THROW]: {
-    implemented: true,
     interruptMode: 'per-packet',
     skillWeapon: 'Spear',
     effects: [

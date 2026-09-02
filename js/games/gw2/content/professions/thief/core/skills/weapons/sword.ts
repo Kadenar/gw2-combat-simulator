@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LARCENOUS_STRIKE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 1,
@@ -22,7 +21,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     requiredOffHand: 'Dagger'
   },
   [ID.SLICE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -38,7 +36,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.INFILTRATORS_STRIKE]: {
-    implemented: true,
     movementSkill: true,
     castTimeMs: 0,
     cooldown: 0,
@@ -68,7 +65,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.FLANKING_STRIKE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -86,7 +82,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     requiredOffHand: 'Dagger'
   },
   [ID.SLASH]: {
-    implemented: true,
     castTimeMs: 625,
     cooldown: 0,
     initiativeCost: 0,
@@ -102,7 +97,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.STAB]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -120,7 +114,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     requiredOffHand: false
   },
   [ID.TACTICAL_STRIKE]: {
-    implemented: true,
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 525,
@@ -153,7 +146,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     stealthAttack: true
   },
   [ID.CRIPPLING_STRIKE]: {
-    implemented: true,
     castTimeMs: 775,
     cooldown: 0,
     initiativeCost: 0,
@@ -183,14 +175,12 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.INFILTRATORS_RETURN]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 2,
     effects: []
   },
   [ID.FLAWLESS_EXECUTION]: {
-    implemented: true,
     interruptMode: 'per-packet',
     castTimeMs: 2100,
     cooldown: 0,

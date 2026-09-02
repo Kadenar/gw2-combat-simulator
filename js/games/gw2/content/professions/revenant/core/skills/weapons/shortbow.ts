@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BLOODBANE_PATH]: {
-    implemented: true,
     interruptMode: 'per-packet',
     castTimeMs: 760,
     unaffectedByQuickness: true,
@@ -33,7 +32,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SHATTERSHOT]: {
-    implemented: true,
     castTimeMs: 480,
     unaffectedByQuickness: true,
     interruptCommitMs: 400,
@@ -67,7 +65,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SCORCHRAZOR]: {
-    implemented: true,
     castTimeMs: 520,
     cooldown: 12,
     energyCost: 16,
@@ -99,7 +96,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SEVENSHOT]: {
-    implemented: true,
     castTimeMs: 440,
     unaffectedByQuickness: true,
     cooldown: 7,
@@ -147,7 +143,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SPIRITCRUSH]: {
-    implemented: true,
     castTimeMs: 400,
     unaffectedByQuickness: true,
     cooldown: 9,

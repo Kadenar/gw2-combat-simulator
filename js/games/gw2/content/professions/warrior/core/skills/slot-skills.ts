@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.THROW_BOLAS]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -15,7 +14,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SIGNET_OF_RAGE]: {
-    implemented: true,
     quicknessCastTimeMs: 167,
     dualWieldCastTimeMs: 160,
     effects: [
@@ -40,12 +38,10 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SHAKE_IT_OFF]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: []
   },
   [ID.STOMP]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -66,7 +62,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.HEALING_SIGNET]: {
-    implemented: true,
     quicknessCastTimeMs: 833,
     effects: [
       {
@@ -78,19 +73,16 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.ENDURE_PAIN]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: []
   },
   [ID.MENDING]: {
-    implemented: true,
     cooldown: 12,
     quicknessCastTimeMs: 920,
     categories: ['Physical'],
     effects: []
   },
   [ID.TO_THE_LIMIT]: {
-    implemented: true,
     cooldown: 24,
     quicknessCastTimeMs: 680,
     // The heal restores two dodge bars when its cast completes.
@@ -107,7 +99,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: []
   },
   [ID.SIGNET_OF_MIGHT]: {
-    implemented: true,
     cooldown: 20,
     quicknessCastTimeMs: 333,
     effects: [
@@ -120,7 +111,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BANNER_OF_STRENGTH]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -142,7 +132,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BERSERKER_STANCE]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 7,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
@@ -157,7 +146,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BANNER_OF_DISCIPLINE]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -186,7 +174,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BANNER_OF_TACTICS]: {
-    implemented: true,
     quicknessCastTimeMs: 167,
     effects: [
       {
@@ -204,7 +191,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.FEAR_ME]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -216,7 +202,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SIGNET_OF_FURY]: {
-    implemented: true,
     cooldown: 16,
     quicknessCastTimeMs: 350,
     dualWieldCastTimeMs: 280,
@@ -236,7 +221,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BALANCED_STANCE]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -254,7 +238,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BATTLE_STANDARD]: {
-    implemented: true,
     quicknessCastTimeMs: 1333,
     effects: [
       {
@@ -283,7 +266,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.RAMPAGE]: {
-    implemented: true,
     quicknessCastTimeMs: 667,
     effects: [
       {
@@ -301,7 +283,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.KICK]: {
-    implemented: true,
     quicknessCastTimeMs: 842,
     effects: [
       {
@@ -320,7 +301,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BULLS_CHARGE]: {
-    implemented: true,
     // Bull's Charge is a fixed 640 ms cast: unaffected by Quickness and, per the
     // exclusion set below, by Dual Wielding.
     castTimeMs: 640,
@@ -346,7 +326,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BANNER_OF_DEFENSE]: {
-    implemented: true,
     quicknessCastTimeMs: 167,
     effects: [
       {
@@ -364,7 +343,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.ON_MY_MARK]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -376,7 +354,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DEFIANT_STANCE]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: []
   }

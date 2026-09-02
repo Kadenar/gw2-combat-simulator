@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines Engineer rifle packet timing, projectile, movement, damage, and control behavior. */
 export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RIFLE_BURST]: {
-    implemented: true,
     // Rifle Burst is a channel: interruption retains landed packets and cancels only its future packet.
     quicknessCastTimeMs: 640,
     cooldown: 0,
@@ -42,7 +41,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.NET_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 570,
     cooldown: 9,
     effects: [
@@ -72,7 +70,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.JUMP_SHOT]: {
-    implemented: true,
     castTimeMs: 1000,
     unaffectedByQuickness: true,
     cooldown: 18,
@@ -103,7 +100,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.BLUNDERBUSS]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     cooldown: 6,
     effects: [
@@ -134,7 +130,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.OVERCHARGED_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     cooldown: 14,
     effects: [
@@ -156,7 +151,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RIFLE_BURST_GRENADE]: {
-    implemented: true,
     simulatorExcluded: true,
     castTimeMs: 0,
     cooldown: 0,

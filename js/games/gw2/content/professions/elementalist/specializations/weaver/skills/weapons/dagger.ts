@@ -40,7 +40,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -68,7 +67,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -118,7 +116,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 920,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -181,7 +178,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 280,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -270,7 +266,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 1000,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -308,7 +303,6 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

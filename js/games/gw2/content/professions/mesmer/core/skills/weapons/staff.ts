@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHAOS_STORM]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
@@ -43,7 +42,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 480
   },
   [ID.PHANTASMAL_WARLOCK]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
@@ -81,7 +79,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 840
   },
   [ID.WINDS_OF_CHAOS]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
@@ -119,7 +116,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 760
   },
   [ID.PHASE_RETREAT]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
@@ -133,7 +129,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: []
   },
   [ID.CHAOS_ARMOR]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',

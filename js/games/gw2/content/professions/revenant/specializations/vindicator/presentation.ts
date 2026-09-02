@@ -39,8 +39,7 @@ export function vindicatorDodgeAutoPaletteSkill(context: SchedulerRecord): Skill
     type: 'Action',
     slot: 'Action',
     // castTimeMs: 0 so the palette does not show a cast-time ring around this synthetic entry.
-    castTimeMs: 0,
-    implemented: true
+    castTimeMs: 0
   };
 }
 

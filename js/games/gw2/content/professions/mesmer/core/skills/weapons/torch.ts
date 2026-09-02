@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PHANTASMAL_MAGE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Torch',
     specialization: '',
@@ -68,7 +67,6 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 760
   },
   [ID.THE_PRESTIGE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Torch',
     specialization: '',

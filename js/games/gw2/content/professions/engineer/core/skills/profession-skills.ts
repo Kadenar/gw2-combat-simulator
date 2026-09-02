@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines Core toolbelt skill fragments and their parent-slot relationships. */
 export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MINE_FIELD]: {
-    implemented: true,
     // Custom: Defers precast mines to combat start and applies detonation traits; see `core/skills/execution.ts`.
     handlerId: 'engineer.mine-field',
     quicknessCastTimeMs: 920,
@@ -37,7 +36,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Throw Mine'
   },
   [ID.DETONATE_MINE_FIELD]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -61,7 +59,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Throw Mine'
   },
   [ID.REGENERATING_MIST]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 18,
     effects: [
@@ -76,7 +73,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     mechanicSlot: 1
   },
   [ID.CONFUSING_SPEECH]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 45,
     effects: [
@@ -91,7 +87,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Technobabble'
   },
   [ID.VENT_RADIATION]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 45,
     effects: [
@@ -106,7 +101,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Radiation Field'
   },
   [ID.HIDDEN_PISTOLS]: {
-    implemented: true,
     castTimeMs: 1750,
     cooldown: 30,
     effects: [
@@ -121,7 +115,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Hidden Pistol'
   },
   [ID.THROW_VINE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 45,
     effects: [
@@ -142,7 +135,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Seed Turret'
   },
   [ID.STATIC_SHOCK]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: 480,
@@ -170,7 +162,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     mechanicSlot: 1
   },
   [ID.MED_PACK_DROP]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 50,
     effects: [],

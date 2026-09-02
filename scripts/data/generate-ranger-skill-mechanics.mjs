@@ -423,7 +423,6 @@ export async function generateRangerSkillMechanics({ skills: apiSkills }) {
       effects: effectsFor(raw, petSkill)
     };
     const mechanics = normalizeCastTiming({
-      implemented: true,
       ...base,
       ...(castTimeMs > 0 ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) } : {}),
       ...(petSkill ? { petSkill: true } : {}),
@@ -472,7 +471,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     quicknessCastTimeMs: 440,
     rechargeAnchor: "castStart",
     cooldown: 15,
-    implemented: true,
     effects: [
       {
         type: "strike",
@@ -506,7 +504,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     unaffectedByQuickness: true,
     rechargeAnchor: "castStart",
     cooldown: 0,
-    implemented: true,
     handlerId: "ranger.dodge",
     effects: [],
   },
@@ -521,7 +518,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: "castStart",
     cooldown: 20,
-    implemented: true,
     handlerId: "ranger.pet-swap",
     effects: [],
   },
@@ -535,7 +531,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: "castStart",
     cooldown: 10,
-    implemented: true,
     handlerId: "ranger.weapon-swap",
     effects: [],
   },

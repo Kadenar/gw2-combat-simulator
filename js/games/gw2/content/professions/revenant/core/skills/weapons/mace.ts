@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MANIFEST_TOXIN]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     interruptCommitMs: 440,
     cooldown: 0,
@@ -31,7 +30,6 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ANGUISH_SWIPE]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     cooldown: 0,
     energyCost: 0,
@@ -54,7 +52,6 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.MISERY_SWIPE]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     interruptCommitMs: 280,
     cooldown: 0,
@@ -78,7 +75,6 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ECHOING_ERUPTION]: {
-    implemented: true,
     quicknessCastTimeMs: 960,
     cooldown: 8,
     ammo: 0,
@@ -126,7 +122,6 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SEARING_FISSURE]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     interruptCommitMs: 480,
     cooldown: 3,

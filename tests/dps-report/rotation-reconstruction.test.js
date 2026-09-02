@@ -13,7 +13,7 @@ import {
 } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 
-const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extras });
+const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
 // The fixture is intentionally minimal: it exercises report contracts without
 // pinning the supplied benchmark's full rotation or aggregate report shape.

@@ -34,7 +34,6 @@ interface NativeModuleDataSelection {
   readonly autoattackChains?: NativeAutoattackChains;
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
   readonly specializationOnlySkillIds?: readonly SkillId[];
-  readonly specializationOnlySkillOwners?: Readonly<Record<string, string>>;
 }
 
 // Resolves which module owns an entity by matching its .specialization field
@@ -63,21 +62,15 @@ export function createNativeModuleData({
   weaponHands = {},
   autoattackChains,
   skillNameOverrides,
-  specializationOnlySkillIds = [],
-  specializationOnlySkillOwners = {}
+  specializationOnlySkillIds = []
 }: NativeModuleDataSelection): NativeModuleCatalogData {
-  const forced = new Set(specializationOnlySkillIds.map(String));
-  const ownsSkill = (skill: Skill): boolean => {
-    // specializationOnlySkillOwners can pin specific skill IDs to a module,
-    // overriding the automatic elite-spec-name-based ownership resolution.
-    const forcedOwner = specializationOnlySkillOwners[String(skill.id)];
-    if (forcedOwner) return forcedOwner === id;
-    if (forced.has(String(skill.id))) return true;
-    return canonicalModuleName(skill, specializations) === id;
-  };
-
-  const generated = generatedSkills.filter(ownsSkill);
-  const sharedExtra = sharedExtraSkills.filter(ownsSkill);
+  // Treat authored mechanics as the support allowlist so raw API metadata cannot
+  // enter the simulator merely because a new skill is absent from an exclusion list.
+  // The declaration owns admission because API specialization labels can be stale.
+  const authoredSkillIds = new Set(Object.keys(skillMechanics));
+  const isAuthored = (skill: Skill): boolean => authoredSkillIds.has(String(skill.id));
+  const generated = generatedSkills.filter(isAuthored);
+  const sharedExtra = sharedExtraSkills.filter(isAuthored);
   const generatedIds = new Set(generated.map((skill) => String(skill.id)));
   // Restrict skillOverrides to skills this module actually owns — prevents one
   // module from patching another module's generated skills.

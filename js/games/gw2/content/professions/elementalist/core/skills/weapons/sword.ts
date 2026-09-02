@@ -45,7 +45,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.FIRE_SWIPE,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -71,7 +70,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.SEARING_SLASH,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -97,7 +95,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.FIRE_STRIKE,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -146,7 +143,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -210,7 +206,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 440,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -250,7 +245,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.CLAPOTIS,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -276,7 +270,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.BREAKING_WAVE,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -302,7 +295,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.SEICHE,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -336,7 +328,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -371,7 +362,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -407,7 +397,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.POLARIC_SLASH,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -433,7 +422,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.CALL_LIGHTNING,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -471,7 +459,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.CHARGED_STRIKE,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -529,7 +516,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 440,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -596,7 +582,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 16,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       strikeTimeline(QUANTUM_STRIKE_TICKS, { timingAnchor: 'castStart', timingScale: 'cast' }),
       conditionTimeline(
@@ -621,7 +606,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.CRYSTALLINE_STRIKE,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -661,7 +645,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.CRYSTALLINE_SUNDER,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -701,7 +684,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     nextChainId: ID.CRYSTAL_SLASH,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -754,7 +736,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 1000,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -816,7 +797,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 1400,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       strikeTimeline(
         RUST_FRENZY_TICKS.map((atMs) => ({ atMs, coefficient: 0.33 })),

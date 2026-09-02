@@ -21,7 +21,6 @@ const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 // Amalgam's F2-F5 mechanics replace tool-belt slots, so their own metadata opts them into Tools trait interactions.
 export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.OFFENSIVE_PROTOCOL_SHRED]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 760,
     cooldown: 20,
@@ -57,7 +56,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 4
   },
   [ID.SYMBIOTIC_SHIELDING]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 25,
     effects: [],
@@ -65,7 +63,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 1
   },
   [ID.DEFENSIVE_PROTOCOL_THORNS]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.amalgam-morph',
@@ -83,7 +80,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 4
   },
   [ID.EVOLVE]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
@@ -93,7 +89,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 5
   },
   [ID.EVOLVE_ID_76651]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
@@ -104,7 +99,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 5
   },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
     cooldown: 20,
@@ -145,7 +139,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 3
   },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 800,
     cooldown: 20,
@@ -169,7 +162,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 4
   },
   [ID.DEFENSIVE_PROTOCOL_CLEANSE]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 0,
     cooldown: 20,
@@ -184,19 +176,16 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 4
   },
   [ID.MITOTIC_STATE]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 20,
     effects: []
   },
   [ID.LOCKED]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []
   },
   [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 0,
     cooldown: 20,
@@ -211,7 +200,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 2
   },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 800,
     cooldown: 20,
@@ -235,7 +223,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 2
   },
   [ID.OFFENSIVE_PROTOCOL_PIERCE]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 1000,
     cooldown: 20,
@@ -264,7 +251,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 2
   },
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 760,
     cooldown: 20,
@@ -300,7 +286,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 3
   },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 800,
     cooldown: 20,
@@ -324,7 +309,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 3
   },
   [ID.LIQUID_STATE]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 20,
     effects: [
@@ -353,7 +337,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     ]
   },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
     cooldown: 20,
@@ -394,7 +377,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 2
   },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
     cooldown: 20,
@@ -435,7 +417,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 4
   },
   [ID.DEFENSIVE_PROTOCOL_PROTECT]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 1500,
     cooldown: 20,
@@ -443,7 +424,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 2
   },
   [ID.FLUX_STATE]: {
-    implemented: true,
     quicknessCastTimeMs: 640,
     cooldown: 50,
     effects: [
@@ -493,7 +473,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     ]
   },
   [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 1000,
     cooldown: 20,
@@ -522,7 +501,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 3
   },
   [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 1000,
     cooldown: 20,
@@ -551,7 +529,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 4
   },
   [ID.SOLID_STATE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 25,
     effects: [
@@ -577,7 +554,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     ]
   },
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 760,
     cooldown: 20,
@@ -613,7 +589,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 2
   },
   [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.amalgam-morph',
@@ -631,13 +606,11 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 3
   },
   [ID.LOCKED_ID_77107]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []
   },
   [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.amalgam-morph',
@@ -655,7 +628,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 2
   },
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 1500,
     cooldown: 20,
@@ -663,7 +635,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 3
   },
   [ID.PLASMATIC_STATE]: {
-    implemented: true,
     interruptCommitMs: 0,
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.plasmatic-state',
@@ -698,7 +669,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     ]
   },
   [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 0,
     cooldown: 20,
@@ -713,7 +683,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 3
   },
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     castTimeMs: 1500,
     cooldown: 20,
@@ -721,7 +690,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     mechanicSlot: 4
   },
   [ID.LOCKED_ID_77388]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []

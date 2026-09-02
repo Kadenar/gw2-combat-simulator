@@ -8,7 +8,6 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECONSTRUCTION_FIELD]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     cooldown: 25,
     comboFields: [
@@ -32,14 +31,12 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     mechanicSlot: 1
   },
   [ID.BYPASS_COATING]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 20,
     effects: [],
     toolbeltParentName: 'Blast Gyro Tag'
   },
   [ID.SHREDDER_GYRO]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     cooldown: 20,
     effects: [
@@ -54,7 +51,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     ]
   },
   [ID.MEDIC_GYRO]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     cooldown: 20,
     comboFields: [
@@ -69,13 +65,11 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     effects: []
   },
   [ID.SNEAK_GYRO]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 45,
     effects: []
   },
   [ID.SPARE_CAPACITOR]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 24,
     effects: [
@@ -91,7 +85,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     toolbeltParentName: 'Shredder Gyro'
   },
   [ID.BLAST_GYRO]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 15,
     effects: [
@@ -118,7 +111,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     ]
   },
   [ID.FUNCTION_GYRO]: {
-    implemented: true,
     // Function Gyro occupies Scrapper's F5 but still triggers toolbelt traits.
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 280,
@@ -135,7 +127,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     mechanicSlot: 5
   },
   [ID.FUNCTION_GYRO_TOOL_BELT_SKILL]: {
-    implemented: true,
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 280,
     cooldown: 25,
@@ -151,13 +142,11 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     mechanicSlot: 5
   },
   [ID.FUNCTION_GYRO_ID_72103]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     effects: []
   },
   [ID.FUNCTION_GYRO_ID_72114]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     effects: []

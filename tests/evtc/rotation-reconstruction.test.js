@@ -153,8 +153,7 @@ const catalog = {
       type: 'Weapon',
       slot: 'Weapon_2',
       castTimeMs: 800,
-      effects: [],
-      implemented: true
+      effects: []
     },
     {
       id: 2_000,
@@ -162,8 +161,7 @@ const catalog = {
       type: 'Profession',
       slot: 'Profession_3',
       castTimeMs: 0,
-      effects: [{ type: 'strike', atMs: 0 }],
-      implemented: true
+      effects: [{ type: 'strike', atMs: 0 }]
     },
     {
       id: 3_000,
@@ -171,8 +169,7 @@ const catalog = {
       type: 'Utility',
       slot: 'Utility',
       castTimeMs: 500,
-      effects: [],
-      implemented: true
+      effects: []
     },
     {
       id: -3,
@@ -180,8 +177,7 @@ const catalog = {
       type: 'Action',
       slot: 'Action',
       castTimeMs: 0,
-      effects: [],
-      implemented: true
+      effects: []
     }
   ]
 };
@@ -374,8 +370,7 @@ test('does not add EVTC idle time after a weapon-swap-cancelled retained cast', 
     quicknessCastTimeMs: 600,
     interruptCommitMs: 360,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [],
-    implemented: true
+    effects: []
   };
   const nextSkill = {
     id: 4_101,
@@ -383,8 +378,7 @@ test('does not add EVTC idle time after a weapon-swap-cancelled retained cast', 
     type: 'Weapon',
     slot: 'Weapon_3',
     quicknessCastTimeMs: 400,
-    effects: [],
-    implemented: true
+    effects: []
   };
   const fixture = log({
     skills: [
@@ -421,8 +415,7 @@ test('preserves cancelled autoattacks and their recorded timeline without artifi
     slot: 'Weapon_1',
     castTimeMs: 840,
     quicknessCastTimeMs: 560,
-    effects: [],
-    implemented: true
+    effects: []
   };
   const fixture = log({
     skills: [{ id: autoattack.id, name: autoattack.name }],
@@ -583,6 +576,33 @@ test('uses rounded EVTC timing when it reaches the engine interrupt cutoff', () 
   assert.deepEqual(result.warnings, []);
 });
 
+test('replays a completed cast only through its committed aftercast boundary', () => {
+  const fixture = log({
+    events: [
+      event({ time: 1_000, stateChange: 67, skillId: 1_000, value: 800 }),
+      event({ time: 1_400, target: 0x2000n, skillId: 1_000, value: 100 }),
+      event({ time: 1_437, stateChange: 68, skillId: 1_000, value: 437, activation: 3 })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        {
+          ...catalog.skills[0],
+          quicknessCastTimeMs: 800,
+          interruptCommitMs: 400,
+          effects: [{ type: 'strike', atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }]
+        }
+      ]
+    },
+    { includeCombatStart: false, inferInstantCasts: false }
+  );
+
+  assert.equal(result.actions[0].status, 'reduced');
+  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 440 }]);
+});
+
 test('right-aligns damage-inferred ammo flips within an active cast', () => {
   const fixture = log({
     skills: [...log().skills, { id: 4_000, name: 'Ammo Flip' }],
@@ -618,8 +638,7 @@ test('right-aligns damage-inferred ammo flips within an active cast', () => {
         ammo: 2,
         flipParentId: 4_001,
         canCastConcurrently: true,
-        effects: [{ type: 'strike', atMs: 0 }],
-        implemented: true
+        effects: [{ type: 'strike', atMs: 0 }]
       }
     ]
   };
@@ -738,8 +757,7 @@ test('resolves Weaponmaster skills owned by another specialization', () => {
         slot: 'Weapon_4',
         specialization: 'Scourge',
         castTimeMs: 650,
-        effects: [],
-        implemented: true
+        effects: []
       }
     ]
   });
@@ -796,8 +814,7 @@ test('reconstructs Harbinger Shroud entry and exit from buff transitions', () =>
         slot: 'Profession_1',
         specialization: 'Harbinger',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 62_540,
@@ -806,8 +823,7 @@ test('reconstructs Harbinger Shroud entry and exit from buff transitions', () =>
         slot: 'Profession_1',
         specialization: 'Harbinger',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       },
       catalog.skills.at(-1)
     ]
@@ -880,8 +896,7 @@ test('reconstructs a Soul Barbs shroud precast and Harbinger starting Blight', (
         slot: type === 'Profession' ? 'Profession_1' : 'Weapon_4',
         specialization: type === 'Profession' ? 'Harbinger' : 'Scourge',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       }))
     },
     { inferInstantCasts: false }
@@ -964,8 +979,7 @@ test('reconstructs Plague Signet once per passive-buff removal', () => {
           type: 'Utility',
           slot: 'Utility_2',
           castTimeMs: 0,
-          effects: [],
-          implemented: true
+          effects: []
         }
       ]
     },
@@ -1044,8 +1058,7 @@ test('places Plague Signet after an overlapping Blood Is Power cast completes', 
           castTimeMs: 880,
           quicknessCastTimeMs: 880,
           retainsCastLockoutAfterInterrupt: true,
-          effects: [],
-          implemented: true
+          effects: []
         },
         {
           id: 10_562,
@@ -1053,8 +1066,7 @@ test('places Plague Signet after an overlapping Blood Is Power cast completes', 
           type: 'Utility',
           slot: 'Utility_2',
           castTimeMs: 0,
-          effects: [],
-          implemented: true
+          effects: []
         }
       ]
     },
@@ -1125,8 +1137,7 @@ test('uses the default Quickness cast when EVTC timing is below the commit cutof
               timingAnchor: 'castStart',
               timingScale: 'fixed'
             }
-          ],
-          implemented: true
+          ]
         }
       ]
     },
@@ -1185,8 +1196,7 @@ test('accepts EVTC timing at the commit frame and rejects timing below it', () =
           slot: 'Weapon_2',
           quicknessCastTimeMs: 920,
           interruptCommitMs: 800,
-          effects: [],
-          implemented: true
+          effects: []
         },
         {
           id: 10_706,
@@ -1195,8 +1205,7 @@ test('accepts EVTC timing at the commit frame and rejects timing below it', () =
           slot: 'Weapon_2',
           quicknessCastTimeMs: 840,
           interruptCommitMs: 638,
-          effects: [],
-          implemented: true
+          effects: []
         }
       ]
     },
@@ -1281,8 +1290,7 @@ test('reconstructs Distress from its consumed availability buff', () => {
         type: 'Weapon',
         slot: 'Weapon_4',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       }
     ]
   });
@@ -1420,8 +1428,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
         type: 'Heal',
         slot: 'Heal',
         castTimeMs: 1_000,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 10_646,
@@ -1429,8 +1436,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
         type: 'Elite',
         slot: 'Elite',
         castTimeMs: 1_000,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 10_541,
@@ -1438,8 +1444,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
         type: 'Utility',
         slot: 'Utility',
         castTimeMs: 500,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 77_238,
@@ -1448,8 +1453,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
         slot: 'Profession_1',
         specialization: 'Ritualist',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 76_933,
@@ -1458,8 +1462,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
         slot: 'Profession_1',
         specialization: 'Ritualist',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 76_864,
@@ -1468,8 +1471,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
         slot: 'Weapon_2',
         specialization: 'Ritualist',
         castTimeMs: 560,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 76_961,
@@ -1478,8 +1480,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
         slot: 'Weapon_3',
         specialization: 'Ritualist',
         castTimeMs: 760,
-        effects: [],
-        implemented: true
+        effects: []
       }
     ]
   });
@@ -1545,8 +1546,7 @@ test('reconstructs Ritualist Summon Spirits and innervates from effects', () => 
           slot: 'Weapon_5',
           specialization: 'Ritualist',
           castTimeMs: 0,
-          effects: [],
-          implemented: true
+          effects: []
         },
         {
           id: 77_003,
@@ -1555,8 +1555,7 @@ test('reconstructs Ritualist Summon Spirits and innervates from effects', () => 
           slot: 'Profession_2',
           specialization: 'Ritualist',
           castTimeMs: 0,
-          effects: [],
-          implemented: true
+          effects: []
         },
         {
           id: 76_732,
@@ -1565,8 +1564,7 @@ test('reconstructs Ritualist Summon Spirits and innervates from effects', () => 
           slot: 'Profession_3',
           specialization: 'Ritualist',
           castTimeMs: 0,
-          effects: [],
-          implemented: true
+          effects: []
         }
       ]
     },
@@ -1733,8 +1731,7 @@ test('reconstructs Scourge shade skills and Shadow Fiend Haunt', () => {
         specialization: type === 'Profession' ? 'Scourge' : '',
         castTimeMs,
         ...(id === 44_946 ? { quicknessCastTimeMs: 480 } : {}),
-        effects: [],
-        implemented: true
+        effects: []
       }))
     },
     { inferInstantCasts: false }
@@ -1965,8 +1962,7 @@ test('reconstructs Reaper shroud and truncated opening precasts', () => {
         specialization: type === 'Profession' ? 'Reaper' : '',
         castTimeMs,
         ...(id === 29_740 ? { quicknessCastTimeMs: 520 } : {}),
-        effects: [],
-        implemented: true
+        effects: []
       }))
     },
     { inferInstantCasts: false }
@@ -2050,8 +2046,7 @@ test('normalizes Necromancer autoattack packets after chain resets', () => {
       slot: type === 'Weapon' ? 'Weapon_1' : 'Utility',
       specialization,
       castTimeMs: 100,
-      effects,
-      implemented: true
+      effects
     }))
   };
 
@@ -2079,6 +2074,74 @@ test('normalizes Necromancer autoattack packets after chain resets', () => {
     result.warnings.some((warning) => warning.includes('interrupted cast')),
     false
   );
+});
+
+test('turns a completed no-hit Necromancer autoattack into observed idle time', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 76,
+        character: 'Fixture Ritualist'
+      }
+    ],
+    skills: [
+      { id: 4_000, name: 'Before' },
+      { id: 4_001, name: 'No-hit Autoattack' },
+      { id: 4_002, name: 'After' }
+    ],
+    events: [
+      event({ time: 1_000, stateChange: 67, skillId: 4_000, value: 300 }),
+      event({ time: 1_200, stateChange: 68, skillId: 4_000, value: 200, activation: 3 }),
+      event({ time: 1_200, stateChange: 67, skillId: 4_001, value: 900 }),
+      event({ time: 1_443, stateChange: 68, skillId: 4_001, value: 243, activation: 3 }),
+      event({ time: 1_443, stateChange: 67, skillId: 4_002, value: 360 }),
+      event({ time: 1_683, stateChange: 68, skillId: 4_002, value: 240, activation: 3 })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        {
+          id: 4_000,
+          name: 'Before',
+          type: 'Utility',
+          slot: 'Utility',
+          quicknessCastTimeMs: 200,
+          effects: []
+        },
+        {
+          id: 4_001,
+          name: 'No-hit Autoattack',
+          type: 'Weapon',
+          slot: 'Weapon_1',
+          quicknessCastTimeMs: 600,
+          effects: [{ type: 'strike', atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }]
+        },
+        {
+          id: 4_002,
+          name: 'After',
+          type: 'Utility',
+          slot: 'Utility',
+          quicknessCastTimeMs: 240,
+          effects: []
+        }
+      ]
+    },
+    { includeCombatStart: false, inferInstantCasts: false }
+  );
+
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    ['Before', 'After']
+  );
+  assert.deepEqual(result.rotation, [
+    { name: 'Before', skillId: 4_000 },
+    { name: '__wait', waitMs: 240 },
+    { name: 'After', skillId: 4_002 }
+  ]);
 });
 
 test('reconstructs Spellbreaker precasts and collapses internal Warrior animations', () => {
@@ -2218,7 +2281,6 @@ test('reconstructs Spellbreaker precasts and collapses internal Warrior animatio
       quicknessCastTimeMs,
       castTimeMs,
       effects,
-      implemented: true,
       ...([80_247, 42_745, 14_518].includes(id)
         ? {
             dualWieldCastTimeMs: id === 80_247 ? 720 : id === 42_745 ? 240 : 400
@@ -2309,8 +2371,7 @@ test('reconstructs Paragon precasts from initial Warrior buffs', () => {
       slot,
       castTimeMs: quicknessCastTimeMs,
       quicknessCastTimeMs,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 
@@ -2519,7 +2580,6 @@ test('reconstructs Galeshot bundle, pet, and Path of Scars mechanics', () => {
       castTimeMs: quicknessCastTimeMs,
       quicknessCastTimeMs,
       effects: [],
-      implemented: true,
       ...([12_675, 45_262].includes(id)
         ? {
             petSkill: true,
@@ -2701,8 +2761,7 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
       slot,
       castTimeMs: quicknessCastTimeMs,
       quicknessCastTimeMs,
-      effects,
-      implemented: true
+      effects
     }))
   };
 
@@ -2797,8 +2856,7 @@ test('packs initial Renegade summons against the first cast and chains later con
       slot,
       castTimeMs: quicknessCastTimeMs,
       quicknessCastTimeMs,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 
@@ -2869,8 +2927,7 @@ test('does not duplicate a truncated Revenant weapon precast recovered by the ge
       slot: 'Weapon_2',
       castTimeMs: 600,
       quicknessCastTimeMs: 600,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 
@@ -2915,8 +2972,7 @@ test('preserves cancelled Revenant autoattacks and per-packet cast timing', () =
         castTimeMs: 480,
         quicknessCastTimeMs: 480,
         interruptCommitMs: 400,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 40_175,
@@ -2926,8 +2982,7 @@ test('preserves cancelled Revenant autoattacks and per-packet cast timing', () =
         castTimeMs: 760,
         quicknessCastTimeMs: 760,
         interruptMode: 'per-packet',
-        effects: [],
-        implemented: true
+        effects: []
       }
     ]
   };
@@ -3027,8 +3082,7 @@ test('reconstructs Herald initial facets and later facet activations', () => {
       slot,
       castTimeMs: quicknessCastTimeMs,
       quicknessCastTimeMs,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 
@@ -3140,8 +3194,7 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
           ? [{ type: 'strike', atMs: 280 }]
           : id === 28409
             ? [{ type: 'strike', atMs: 640, timingAnchor: 'castEnd' }]
-            : [],
-      implemented: true
+            : []
     }))
   };
 
@@ -3202,8 +3255,7 @@ test('recovers a truncated Spiritcrush precast for non-Herald Revenants', () => 
         slot: 'Weapon_4',
         castTimeMs: 400,
         quicknessCastTimeMs: 400,
-        effects: [{ type: 'strike', atMs: 1_320 }],
-        implemented: true
+        effects: [{ type: 'strike', atMs: 1_320 }]
       }
     ]
   };
@@ -3268,8 +3320,7 @@ test('reconstructs Bladesworn Gunsaber unsheathe and sheathe transitions', () =>
         type: 'Profession',
         slot: 'Profession_1',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 62_861,
@@ -3277,8 +3328,7 @@ test('reconstructs Bladesworn Gunsaber unsheathe and sheathe transitions', () =>
         type: 'Profession',
         slot: 'Profession_1',
         castTimeMs: 0,
-        effects: [],
-        implemented: true
+        effects: []
       },
       catalog.skills.at(-1)
     ]
@@ -3331,8 +3381,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
         type: 'Profession',
         slot: 'Profession_1',
         castTimeMs: 842,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 80_203,
@@ -3340,8 +3389,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
         type: 'Profession',
         slot: 'Profession_1',
         castTimeMs: 440,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 69_297,
@@ -3349,8 +3397,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
         type: 'Profession',
         slot: 'Profession_1',
         castTimeMs: 840,
-        effects: [],
-        implemented: true
+        effects: []
       },
       {
         id: 80_252,
@@ -3358,8 +3405,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
         type: 'Profession',
         slot: 'Profession_1',
         castTimeMs: 440,
-        effects: [],
-        implemented: true
+        effects: []
       }
     ]
   };
@@ -3580,8 +3626,7 @@ test('reconstructs Thief Antiquary buff, precast, and animation-only mechanics',
       castTimeMs,
       quicknessCastTimeMs: castTimeMs,
       cooldown,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 
@@ -3665,8 +3710,7 @@ test('infers resource-only Canach tosses from sustained Antiquary bursts', () =>
       slot,
       castTimeMs,
       quicknessCastTimeMs: castTimeMs,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 
@@ -3743,8 +3787,7 @@ test('assigns every Antiquary Cannon outcome from its own EVTC packet signature'
         slot: 'Utility',
         castTimeMs: 500,
         quicknessCastTimeMs: 500,
-        effects: [],
-        implemented: true
+        effects: []
       }
     ]
   };
@@ -3849,8 +3892,7 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
       castTimeMs,
       quicknessCastTimeMs: castTimeMs,
       effects,
-      ...(id === 13_004 ? { interruptCommitMs: 0 } : {}),
-      implemented: true
+      ...(id === 13_004 ? { interruptCommitMs: 0 } : {})
     }))
   };
 
@@ -4010,8 +4052,7 @@ test('reconstructs Deadeye mark, Mercy, Kneel, and Shadow Swap signals', () => {
       slot,
       castTimeMs,
       quicknessCastTimeMs: castTimeMs,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 
@@ -4111,8 +4152,7 @@ test('reconstructs Specter shroud, swaps, aliases, and opening precasts', () => 
       slot,
       castTimeMs,
       quicknessCastTimeMs: castTimeMs,
-      effects: [],
-      implemented: true
+      effects: []
     }))
   };
 

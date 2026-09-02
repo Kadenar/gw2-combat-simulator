@@ -1,5 +1,8 @@
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import {
+  committedActionsFromStrikePackets,
+  quicknessRuntimeDurationMs
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -61,14 +64,15 @@ export function normalizeNecromancerAutoattackChains(
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)
     .flatMap((action) => {
       const position = positions.get(action.rawSkillId);
+      const skill = findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
+      const endedBeforeCompletion = action.end - action.start + 75 < quicknessRuntimeDurationMs(skill);
       if (
-        action.status === 'interrupted' &&
+        (action.status === 'interrupted' || endedBeforeCompletion) &&
         (position != null || isWeaponAutoattack(context, action)) &&
         !committed.has(action)
       ) {
-        // Arc records canceled auto packets as casts even though no strike
-        // completed. Replaying them reserves time and advances the simulator
-        // away from the rotation that actually executed.
+        // Arc may label a shortened autoattack completed even though it produced no strike; its elapsed time is
+        // reconstructed as idle instead of a full simulator cast so later actions retain their observed timing.
         activeChainIndex = null;
         expectedActionIndex = 0;
         return [];

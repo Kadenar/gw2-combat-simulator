@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MACE_SMASH]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -15,7 +14,6 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MACE_BASH]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -26,7 +24,6 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PULVERIZE]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -43,7 +40,6 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TREMOR]: {
-    implemented: true,
     // Tremor refreshes Crushing Blow when its cast completes.
     mechanicTriggers: [
       {
@@ -74,7 +70,6 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.POMMEL_BASH]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -90,7 +85,6 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.COUNTERBLOW]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
@@ -110,7 +104,6 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CRUSHING_BLOW]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     dualWieldCastTimeMs: 400,
     interruptCommitMs: 440,
@@ -139,7 +132,6 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TACTICAL_BLOW]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.

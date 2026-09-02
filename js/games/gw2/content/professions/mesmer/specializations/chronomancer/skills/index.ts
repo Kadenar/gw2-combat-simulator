@@ -9,7 +9,6 @@ import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js'
 
 export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_PRECOGNITION]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
@@ -18,7 +17,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     effects: []
   },
   [ID.CONTINUUM_SPLIT]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
@@ -34,7 +32,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     effects: []
   },
   [ID.WELL_OF_SENILITY]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
@@ -53,7 +50,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.WELL_OF_ETERNITY]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: 'Chronomancer',
@@ -62,7 +58,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     effects: []
   },
   [ID.GRAVITY_WELL]: {
-    implemented: true,
     type: 'Elite',
     weapon: '',
     specialization: 'Chronomancer',
@@ -118,7 +113,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.WELL_OF_CALAMITY]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
@@ -187,7 +181,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.WELL_OF_ACTION]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
@@ -223,7 +216,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.TIME_SINK]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
@@ -239,7 +231,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     effects: []
   },
   [ID.REWINDER]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
@@ -255,7 +246,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     effects: []
   },
   [ID.SPLIT_SECOND]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Chronomancer',
@@ -288,7 +278,6 @@ export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly Skill[] = Object.freeze(
     rechargeAnchor: 'castStart',
     cooldown: 0,
     specialization: 'Chronomancer',
-    implemented: true,
     // Manual Continuum Shift restores the captured state when the action completes.
     mechanicTriggers: [
       {

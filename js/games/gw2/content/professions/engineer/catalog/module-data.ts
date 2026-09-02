@@ -1,10 +1,6 @@
 import { createNativeModuleData } from '#gw2/integrations/patches/authoring/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import {
-  createFlipParentMap,
-  createSpecializationSkillOwners,
-  defineProfessionWeapons
-} from '#gw2/content/professions/lib/catalog-data.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/content/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/content/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/engineer/data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/engineer/data/engineer-supplemental-skills.js';
@@ -115,7 +111,6 @@ const generated: readonly Skill[] = generatedSource.map((skill) => ({
   ...skill,
   cooldown: gw2BaseRecharge(skill),
   flipParentId: flipParentById.get(skill.id) ?? null,
-  implemented: false,
   effects: [],
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
     ? {
@@ -162,8 +157,6 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   Mechanist: [ID.CRASH_DOWN, ID.RECALL_MECH, ID.MECH_SUPPORT_DEPTH_CHARGES],
   Amalgam: [ID.EVOLVE, ID.EVOLVE_ID_76651, ID.LOCKED, ID.LOCKED_ID_77107, ID.LOCKED_ID_77388]
 });
-
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPON_DATA = defineProfessionWeapons({
   Hammer: '2h',
@@ -245,7 +238,6 @@ export function createEngineerModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core' ? WEAPON_DATA : {}),
     ...(autoattackChains ? { autoattackChains } : {}),
     ...(skillNameOverrides ? { skillNameOverrides } : {})

@@ -655,7 +655,6 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
     const handler = handlerId(identity, raw);
     const unaffectedByQuickness = QUICKNESS_UNAFFECTED_SKILL_IDS.has(identity.id);
     const mechanics = {
-      implemented: true,
       ...(unaffectedByQuickness
         ? { castTimeMs, unaffectedByQuickness: true }
         : castTimeMs > 0

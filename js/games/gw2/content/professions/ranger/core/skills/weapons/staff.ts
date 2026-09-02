@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SUBLIME_CONVERSION]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -16,7 +15,6 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 333
   },
   [ID.ANCESTRAL_GRACE]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -28,7 +26,6 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 833
   },
   [ID.VINE_SURGE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -39,7 +36,6 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 500
   },
   [ID.SOLAR_BEAM]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -50,7 +46,6 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 833
   },
   [ID.ASTRAL_WISP]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333
   }

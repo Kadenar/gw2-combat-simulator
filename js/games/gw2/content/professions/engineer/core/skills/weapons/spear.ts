@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines Engineer spear fragments and binds stateful spear skills to their execution handlers. */
 export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PUNCTURING_JAB]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
@@ -26,7 +25,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DEVASTATOR]: {
-    implemented: true,
     // Custom: Schedules Devastator's delayed follow-up strike; see `core/skills/spear.ts`.
     handlerId: 'engineer.devastator',
     castTimeMs: 1000,
@@ -58,7 +56,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ROILING_SKIES]: {
-    implemented: true,
     // Custom: Schedules Roiling Skies' delayed control packet; see `core/skills/spear.ts`.
     handlerId: 'engineer.roiling-skies',
     castTimeMs: 1000,
@@ -81,7 +78,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.AMPLIFYING_SLICE]: {
-    implemented: true,
     quicknessCastTimeMs: 640,
     cooldown: 0,
     effects: [
@@ -109,7 +105,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.LIGHTNING_ROD]: {
-    implemented: true,
     // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/skills/spear.ts`.
     handlerId: 'engineer.lightning-rod',
     castTimeMs: 400,
@@ -118,7 +113,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: []
   },
   [ID.FOCUSED_DEVASTATION]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -140,7 +134,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RENDING_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     cooldown: 0,
     effects: [
@@ -168,7 +161,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.CONDUIT_SURGE]: {
-    implemented: true,
     // Custom: Schedules the delayed Conduit Surge sequence; see `core/skills/spear.ts`.
     handlerId: 'engineer.conduit-surge',
     castTimeMs: 520,
@@ -185,7 +177,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: []
   },
   [ID.ELECTRIC_ARTILLERY]: {
-    implemented: true,
     // Custom: Consumes Lightning Rod charges and schedules Electric Artillery; see `core/skills/spear.ts`.
     handlerId: 'engineer.electric-artillery',
     quicknessCastTimeMs: 520,

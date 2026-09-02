@@ -3,7 +3,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.IMPACT_STRIKE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 25,
     initiativeCost: 0,
@@ -25,7 +24,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.FINISHING_BLOW]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 0,
     initiativeCost: 0,
@@ -41,7 +39,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.UPPERCUT]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -63,7 +60,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.IMPAIRING_DAGGERS]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     cooldown: 15,
     initiativeCost: 0,
@@ -104,7 +100,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.CHANNELED_VIGOR]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     cooldown: 20,
     initiativeCost: 0,
@@ -112,7 +107,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: []
   },
   [ID.REFLEXIVE_STRIKE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -134,7 +128,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.DISTRACTING_DAGGERS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     ammo: 3,
@@ -157,14 +150,12 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.BANDITS_DEFENSE]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 16,
     initiativeCost: 0,
     effects: []
   },
   [ID.PALM_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     initiativeCost: 0,
@@ -197,7 +188,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.PULMONARY_IMPACT_TRAIT_SKILL]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -213,7 +203,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.FIST_FLURRY]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 16,
     initiativeCost: 0,
@@ -242,7 +231,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.BOUND]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -258,7 +246,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.DASH_TRAIT_SKILL]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -272,7 +259,6 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.IMPALING_LOTUS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,

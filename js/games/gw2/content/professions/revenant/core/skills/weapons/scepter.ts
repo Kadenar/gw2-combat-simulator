@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BLOSSOMING_AURA]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 8,
     energyCost: 10,
@@ -37,14 +36,12 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.DEACTIVATE_OTHERWORLDLY_BOND]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.ACERBIC_CUT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 0,
@@ -65,7 +62,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.SERENE_SLASH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 0,
@@ -80,7 +76,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.MOTIVATING_WHIRL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 0,
@@ -95,7 +90,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.OTHERWORLDLY_BOND]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 8,
     energyCost: 5,
@@ -136,7 +130,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.DETONATE_BLOSSOMING_AURA]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

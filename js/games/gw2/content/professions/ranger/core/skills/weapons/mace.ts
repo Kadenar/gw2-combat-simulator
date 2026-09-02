@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WILD_STRIKES]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -21,7 +20,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 1167
   },
   [ID.CULTIVATE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -44,7 +42,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.THISTLEGUARD]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -61,7 +58,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.OAKEN_CUDGEL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -78,7 +74,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.FLOURISH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -102,7 +97,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.BURGEON]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -113,7 +107,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.GERMINATE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

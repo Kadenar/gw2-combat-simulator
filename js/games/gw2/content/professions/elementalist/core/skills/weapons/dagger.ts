@@ -30,7 +30,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 720,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -55,7 +54,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1360,
     cooldown: 5,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -100,7 +98,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -170,7 +167,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -209,7 +205,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 560,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -235,7 +230,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 360,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -300,7 +294,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1360,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -367,7 +360,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -418,7 +410,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     nextChainId: ID.TRANSMUTE_FROST,
     aura: 'Frost|10',
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   // Consumes the Frost Aura and flips the slot back to Frost Aura; the `aura-transmute` marker keeps
@@ -434,7 +425,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 10,
     nextChainId: ID.FROST_AURA,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -471,7 +461,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 960,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   // Two-hit auto-attack landing inside a single cast.
@@ -485,7 +474,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -522,7 +510,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 360,
     cooldown: 8,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -582,7 +569,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     nextChainId: ID.TRANSMUTE_LIGHTNING,
     aura: 'Shocking|10',
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   // Consumes the Shocking Aura for a crit-capable strike plus a crowd-control application, then flips back.
@@ -597,7 +583,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 10,
     nextChainId: ID.SHOCKING_AURA,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -632,7 +617,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 120,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -657,7 +641,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 880,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         // Updraft's launch registers a 0-damage strike, which is what lets it
@@ -703,7 +686,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -744,7 +726,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 880,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -836,7 +817,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -883,7 +863,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 680,
     cooldown: 16,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -927,7 +906,6 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 960,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

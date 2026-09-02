@@ -17,7 +17,6 @@ const TROUBADOUR_TALE_TRIGGERS = Object.freeze([
 
 export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.TROUBADOUR_BLADECALL]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: 'Troubadour',
@@ -75,7 +74,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     castTimeMs: 660
   },
   [ID.LIVELY_LUTE]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
@@ -84,7 +82,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
@@ -98,7 +95,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: 'Troubadour',
@@ -108,7 +104,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.FLUSTERING_FLUTE]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
@@ -117,7 +112,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.TALE_OF_THE_SOULKEEPER]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
@@ -128,7 +122,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.CRESCENDO]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
@@ -138,7 +131,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.HARMONIOUS_HARP]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
@@ -149,7 +141,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
-    implemented: true,
     type: 'Elite',
     weapon: '',
     specialization: 'Troubadour',
@@ -159,7 +150,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
@@ -213,7 +203,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     ]
   },
   [ID.HARMONIOUS_HARP_ALTERNATE]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
@@ -224,7 +213,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.DEAFENING_DRUM]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
@@ -233,7 +221,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
@@ -244,7 +231,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     effects: []
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
@@ -271,7 +257,6 @@ export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: 'castStart',
     cooldown: 10,
     ammo: 2,
-    implemented: true,
     // Mayhem reacts to the completed dodge rather than a Core Mesmer skill-id branch.
     mechanicTriggers: [
       {

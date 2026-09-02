@@ -4,7 +4,6 @@ import type { HolosmithSkillFragment } from '#gw2/content/professions/engineer/s
 export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
   [ID.RADIANT_ARC]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 12,
     comboFinishers: [
@@ -40,7 +39,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.SUN_EDGE]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
@@ -62,7 +60,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.REFRACTION_CUTTER]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     cooldown: 6,
     effects: [
@@ -112,7 +109,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.REFRACTION_CUTTER_BLADE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -142,7 +138,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.SUN_RIPPER]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     effects: [
@@ -164,7 +159,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.GLEAM_SABER]: {
-    implemented: true,
     // Custom: Recharges the other sword skills after the cast; see `core/skills/sword.ts`.
     handlerId: 'engineer.gleam-saber',
     quicknessCastTimeMs: 720,
@@ -181,7 +175,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.COOLANT_BLAST]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 20,
     effects: [
@@ -195,7 +188,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.LAUNCH_WALL]: {
-    implemented: true,
     // Custom: Consumes the armed follow-up flip and related trait effects; see `core/skills/flips.ts`.
     handlerId: 'engineer.consume-flip',
     quicknessCastTimeMs: 520,
@@ -216,7 +208,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.DEACTIVATE_PHOTON_FORGE]: {
-    implemented: true,
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.photon-forge-exit',
     castTimeMs: 0,
@@ -228,7 +219,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     mechanicSlot: 5
   },
   [ID.FLASH_CUTTER_STORM]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 560,
@@ -261,7 +251,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.PRIME_LIGHT_BEAM]: {
-    implemented: true,
     quicknessCastTimeMs: 1160,
     cooldown: 60,
     effects: [
@@ -293,7 +282,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.BRIGHT_SLASH_STORM]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 520,
@@ -325,7 +313,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.HOLOGRAPHIC_SHOCKWAVE]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     castTimeMs: 750,
@@ -349,7 +336,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.LASER_DISK]: {
-    implemented: true,
     quicknessCastTimeMs: 960,
     cooldown: 30,
     effects: [
@@ -367,7 +353,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.ENGAGE_PHOTON_FORGE]: {
-    implemented: true,
     // Custom: Enters Photon Forge and starts its heat lifecycle; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.photon-forge-enter',
     castTimeMs: 0,
@@ -379,7 +364,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     mechanicSlot: 5
   },
   [ID.HOLO_LEAP]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     castTimeMs: 750,
@@ -403,7 +387,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.VENT_EXHAUST]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     // Vent Exhaust owns both its combat packets and the heat it vents; Thermal Release Valve only invokes it.
@@ -428,7 +411,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     ]
   },
   [ID.PHOTON_WALL]: {
-    implemented: true,
     // Custom: Arms this skill's follow-up palette flip; see `core/skills/flips.ts`.
     handlerId: 'engineer.arm-flip',
     quicknessCastTimeMs: 400,
@@ -437,13 +419,11 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: []
   },
   [ID.OVERHEAT]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []
   },
   [ID.LIGHT_STRIKE_STORM]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 360,
@@ -472,13 +452,11 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.HOLOFORGE_OVERHEATED]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []
   },
   [ID.CORONA_BURST]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 480,
@@ -579,7 +557,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.LIGHT_STRIKE]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 360,
@@ -600,7 +577,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
-    implemented: true,
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.photon-forge-exit',
     castTimeMs: 0,
@@ -612,7 +588,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     mechanicSlot: 5
   },
   [ID.BRIGHT_SLASH]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 520,
@@ -630,7 +605,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.PHOTON_BLITZ]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 1320,
@@ -684,7 +658,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.FLASH_CUTTER]: {
-    implemented: true,
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 520,
@@ -703,7 +676,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     forgeSkill: true
   },
   [ID.BLADE_BURST]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 20,
     effects: [
@@ -726,7 +698,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     toolbeltParentName: 'Laser Disk'
   },
   [ID.CAUTERIZE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 30,
     effects: [
@@ -742,7 +713,6 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     mechanicSlot: 1
   },
   [ID.PARTICLE_ACCELERATOR]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 8,
     effects: [

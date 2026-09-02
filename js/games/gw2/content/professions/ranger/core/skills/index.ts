@@ -49,7 +49,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 5,
     flipParentId: ID.MONGOOSES_FRENZY,
     stealthAttack: true,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -82,7 +81,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 7,
     flipParentId: ID.FALCONS_STOOP,
     stealthAttack: true,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -119,7 +117,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     flipParentId: ID.WARCLAWS_ENGAGE,
     stealthAttack: true,
     evades: true,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -152,7 +149,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 20,
     flipParentId: ID.PANTHERS_PROWL,
     stealthAttack: true,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -186,7 +182,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     quicknessCastTimeMs: 440,
     rechargeAnchor: 'castStart',
     cooldown: 15,
-    implemented: true,
     missileHits: 2,
     // Both range variants share the same weapon-slot recharge after completion.
     mechanicTriggers: [
@@ -235,7 +230,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     unaffectedByQuickness: true,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    implemented: true,
     // Custom: Spends endurance and applies Ranger dodge traits; see `core/skills/execution.ts`.
     handlerId: 'ranger.dodge',
     effects: []
@@ -251,7 +245,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    implemented: true,
     // Custom: Switches pet slots and applies pet-swap traits; see `core/skills/execution.ts`.
     handlerId: 'ranger.pet-swap',
     effects: []
@@ -266,7 +259,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
-    implemented: true,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     handlerId: 'ranger.weapon-swap',
     effects: []

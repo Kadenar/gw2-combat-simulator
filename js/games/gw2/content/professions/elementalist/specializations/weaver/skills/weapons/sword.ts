@@ -14,7 +14,6 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 640,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -79,7 +78,6 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 560,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -319,7 +317,6 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 400,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -404,7 +401,6 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -458,7 +454,6 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 1400,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -785,7 +780,6 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 720,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

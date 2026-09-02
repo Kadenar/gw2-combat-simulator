@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HAMMER_SWING]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -16,7 +15,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.STAGGERING_BLOW]: {
-    implemented: true,
     cooldown: 18,
     quicknessCastTimeMs: 480,
     effects: [
@@ -44,7 +42,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.HAMMER_BASH]: {
-    implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -56,7 +53,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.HAMMER_SMASH]: {
-    implemented: true,
     interruptCommitMs: 320,
     quicknessCastTimeMs: 440,
     effects: [
@@ -69,7 +65,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.FIERCE_BLOW]: {
-    implemented: true,
     interruptCommitMs: 600,
     cooldown: 6,
     quicknessCastTimeMs: 880,
@@ -91,7 +86,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.HAMMER_SHOCK]: {
-    implemented: true,
     cooldown: 8,
     quicknessCastTimeMs: 600,
     effects: [
@@ -110,7 +104,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.BACKBREAKER]: {
-    implemented: true,
     cooldown: 25,
     // Backbreaker refreshes Fierce Blow when its cast completes.
     mechanicTriggers: [

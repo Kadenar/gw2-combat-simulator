@@ -77,7 +77,6 @@ function skill(id, name, type, slot, quicknessCastTimeMs, options = {}) {
     castTimeMs: quicknessCastTimeMs,
     quicknessCastTimeMs,
     effects: [],
-    implemented: true,
     ...options
   };
 }
@@ -659,8 +658,7 @@ test('preserves Warrior weapon stows and cancelled autoattack inputs', () => {
     castTimeMs: 80,
     unaffectedByQuickness: true,
     interruptCommitMs: 0,
-    effects: [],
-    implemented: true
+    effects: []
   };
   const fixture = warriorLog(
     18,

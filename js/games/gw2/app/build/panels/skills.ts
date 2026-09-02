@@ -28,7 +28,6 @@ export function availableSlotSkills(app: ProfessionAppState, type: string): Skil
   const byDisplayName = new Map<string, Skill>();
   for (const skill of app.skills) {
     if (
-      skill.implemented === false ||
       skill.type !== type ||
       !isSlotSkillSelectable(app, skill, spec) ||
       (skill.specialization && skill.specialization !== spec) ||

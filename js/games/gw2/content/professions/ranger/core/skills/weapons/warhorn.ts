@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HUNTERS_CALL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -22,7 +21,6 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillF
     quicknessCastTimeMs: 667
   },
   [ID.CALL_OF_THE_WILD]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',

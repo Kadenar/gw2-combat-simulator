@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BLAZE_BREAKER]: {
-    implemented: true,
     cooldown: 12,
     comboFinishers: [
       {
@@ -40,7 +39,6 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.FLAMES_OF_WAR]: {
     interruptCommitMs: 0,
-    implemented: true,
     cooldown: 20,
     comboFields: [
       {

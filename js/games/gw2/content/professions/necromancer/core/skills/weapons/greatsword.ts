@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DUSK_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -18,7 +17,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   [ID.GRASPING_DARKNESS]: {
     interruptCommitMs: 0,
     commitAtMs: 180,
-    implemented: true,
     quicknessCastTimeMs: 520,
     lifeForceOnHit: 10,
     effects: [
@@ -54,7 +52,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.NIGHTFALL]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 480,
     lifeForcePerPulse: 7,
     effects: [
@@ -95,8 +92,9 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     handlerId: 'necromancer.nightfall'
   },
   [ID.CHILLING_SCYTHE]: {
-    implemented: true,
     quicknessCastTimeMs: 920,
+    // Once the strike lands, the next skill may safely cancel the remaining Chilling Scythe aftercast.
+    interruptCommitMs: 720,
     effects: [
       {
         type: 'strike',
@@ -120,8 +118,9 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     handlerId: 'necromancer.chilling-scythe'
   },
   [ID.GRAVEDIGGER]: {
-    implemented: true,
     quicknessCastTimeMs: 1080,
+    // Once the strike lands, weapon swaps may safely cancel the remaining Gravedigger aftercast.
+    interruptCommitMs: 840,
     // Completing Gravedigger resets its recharge once the target is below half health.
     mechanicTriggers: [
       {
@@ -147,7 +146,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ]
   },
   [ID.FADING_TWILIGHT]: {
-    implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -160,7 +158,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     lifeForceGain: 2
   },
   [ID.DEATH_SPIRAL]: {
-    implemented: true,
     quicknessCastTimeMs: 720,
     effects: [
       {

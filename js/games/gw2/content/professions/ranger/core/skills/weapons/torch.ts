@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BONFIRE]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -47,7 +46,6 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.THROW_TORCH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

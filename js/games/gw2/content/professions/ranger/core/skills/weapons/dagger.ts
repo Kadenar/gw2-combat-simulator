@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CRIPPLING_TALON]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -27,7 +26,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 360
   },
   [ID.STALKERS_STRIKE]: {
-    implemented: true,
     evades: true,
     effects: [
       {
@@ -46,7 +44,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 760
   },
   [ID.LEADING_SWIPE]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -63,7 +60,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 320
   },
   [ID.SERPENT_STAB]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -80,7 +76,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 280
   },
   [ID.DOUBLE_ARC]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -103,7 +98,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     handlerId: 'ranger.poisonous-strikes'
   },
   [ID.DEADLY_DELIVERY]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -132,7 +126,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 440
   },
   [ID.GROUNDWORK_GOUGE]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -149,7 +142,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     quicknessCastTimeMs: 280
   },
   [ID.INSTINCTIVE_ENGAGE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

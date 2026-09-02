@@ -30,7 +30,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 880,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -86,7 +85,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 920,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -158,7 +156,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 920,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -253,7 +250,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -315,7 +311,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -658,7 +653,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

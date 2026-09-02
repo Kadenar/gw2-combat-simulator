@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BANISH]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {
@@ -19,7 +18,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAMMER_SWING]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -30,7 +28,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAMMER_BASH]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -41,7 +38,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SYMBOL_OF_PROTECTION]: {
-    implemented: true,
     castTimeMs: 500,
     comboFields: [
       {
@@ -69,7 +65,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.MIGHTY_BLOW]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {
@@ -87,7 +82,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.RING_OF_WARDING]: {
-    implemented: true,
     castTimeMs: 750,
     // Ring is represented only by the five-second Light field relevant to combo resolution.
     comboFields: [
@@ -101,7 +95,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: []
   },
   [ID.ZEALOTS_EMBRACE]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {
@@ -118,7 +111,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.GLACIAL_BLOW]: {
-    implemented: true,
     castTimeMs: 750,
     effects: [
       {

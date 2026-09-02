@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.UNRELENTING_ASSAULT]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 12,
     energyCost: 15,
@@ -26,7 +25,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DEATHSTRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 720,
     cooldown: 15,
     rechargeAnchor: 'castStart',
@@ -61,7 +59,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SHACKLING_WAVE]: {
-    implemented: true,
     quicknessCastTimeMs: 800,
     cooldown: 15,
     energyCost: 10,
@@ -106,7 +103,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DEATHSTRIKE_ID_28625]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -121,7 +117,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RIFT_SLASH]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     energyCost: 0,
@@ -146,7 +141,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.PREPARATION_THRUST]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     cooldown: 0,
     energyCost: 0,
@@ -169,7 +163,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.CHILLING_ISOLATION]: {
-    implemented: true,
     castTimeMs: 680,
     unaffectedByQuickness: true,
     interruptCommitMs: 420,
@@ -204,7 +197,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.BRUTAL_BLADE]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     cooldown: 0,
     energyCost: 0,

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TIDES_OF_TIME]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Shield',
     specialization: 'Chronomancer',
@@ -22,7 +21,6 @@ export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ECHO_OF_MEMORY]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Shield',
     specialization: 'Chronomancer',

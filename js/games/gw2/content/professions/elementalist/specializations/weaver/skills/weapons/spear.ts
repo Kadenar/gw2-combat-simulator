@@ -32,7 +32,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     cooldown: 15,
     aura: 'Fire|3',
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -60,7 +59,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 0,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -108,7 +106,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -170,7 +167,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -226,7 +222,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -260,7 +255,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

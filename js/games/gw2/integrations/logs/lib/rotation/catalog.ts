@@ -27,8 +27,7 @@ function bestCandidate(candidates: readonly Skill[], profile: RotationProfession
       .sort(
         (left, right) =>
           activeSpecializationScore(right, profile) - activeSpecializationScore(left, profile) ||
-          Number(left.parentId != null) - Number(right.parentId != null) ||
-          Number(right.implemented === true) - Number(left.implemented === true)
+          Number(left.parentId != null) - Number(right.parentId != null)
       )[0] || null
   );
 }

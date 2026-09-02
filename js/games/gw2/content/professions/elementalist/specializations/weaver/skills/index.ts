@@ -42,7 +42,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 20,
     resourceGain: 50,
     skillFamily: 'Stance',
-    implemented: true,
     effects: []
   },
   // The four Primordial Stance variants are authored with static per-element
@@ -60,7 +59,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     ammo: 2,
     ammoRecharge: 20,
     skillFamily: 'Stance',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -157,7 +155,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     ammo: 2,
     ammoRecharge: 20,
     skillFamily: 'Stance',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -254,7 +251,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     ammo: 2,
     ammoRecharge: 20,
     skillFamily: 'Stance',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -351,7 +347,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     ammo: 2,
     ammoRecharge: 20,
     skillFamily: 'Stance',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -449,7 +444,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     nextChainId: ID.TAILORED_VICTORY,
     skillFamily: 'Stance',
     preservesAutoattackChain: true,
-    implemented: true,
     effects: []
   },
   [ID.TAILORED_VICTORY]: {
@@ -462,7 +456,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 0,
     nextChainId: ID.WEAVE_SELF,
     skillFamily: 'Stance',
-    implemented: true,
     // Tailored Victory consumes the Perfect Weave flip window when it completes.
     mechanicTriggers: [
       {
@@ -503,7 +496,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     quicknessCastTimeMs: 0,
     cooldown: 25,
     skillFamily: 'Stance',
-    implemented: true,
     effects: []
   },
   [ID.FERVENT_STANCE]: {
@@ -515,7 +507,6 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     quicknessCastTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Stance',
-    implemented: true,
     // Fervent Stance arms its dual-attack might window after completion.
     mechanicTriggers: [
       {

@@ -54,7 +54,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 960,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -102,7 +101,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -175,7 +173,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 360,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -232,7 +229,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -354,7 +350,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 2640,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       strikeTimeline(METEOR_SHOWER_STRIKE_TICKS, {
         timingAnchor: 'castStart',
@@ -372,7 +367,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 840,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -398,7 +392,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 520,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -454,7 +447,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   // Ice field for combo purposes; only the initial Chilled application is emitted.
@@ -476,7 +468,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -512,7 +503,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -536,7 +526,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 840,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -561,7 +550,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 1000,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -594,7 +582,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'control',
@@ -616,7 +603,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -659,7 +645,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -713,7 +698,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 880,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -761,7 +745,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 840,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -826,7 +809,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     nextChainId: ID.TRANSMUTE_EARTH,
     aura: 'Magnetic|4',
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: []
   },
   [ID.TRANSMUTE_EARTH]: {
@@ -840,7 +822,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 10,
     nextChainId: ID.MAGNETIC_AURA,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -874,7 +855,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 720,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'control',
@@ -897,7 +877,6 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

@@ -32,7 +32,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 640,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -125,7 +124,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -182,7 +180,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 480,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -239,7 +236,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 880,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -278,7 +274,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 480,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -344,7 +339,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 560,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

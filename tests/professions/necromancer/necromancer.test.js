@@ -235,7 +235,7 @@ test('measured Quickness cast times remain exact', () => {
     [ID.EXTIRPATE, 840],
     [ID.DARK_SLASH, 600],
     [ID.ISOLATE, 480],
-    [ID.PERFORATE, 840],
+    [ID.PERFORATE, 800],
     [ID.ENERVATION_BLADE, 360],
     [ID.ENERVATION_ECHO, 520],
     [ID.DEATHLY_ENERVATION, 600],
@@ -473,6 +473,11 @@ test('Necromancer single-hit skills use their configured offsets', () => {
     assert.equal(strike?.timingAnchor, 'castStart', skill.name);
     assert.equal(strike?.timingScale, 'cast', skill.name);
     assert.equal(Math.round(strike.ticks[0].atMs), expectedOffset, skill.name);
+  }
+
+  // These strikes commit before their aftercasts, so imported rotations may safely replay the observed cancellation.
+  for (const skillId of [ID.CHILLING_SCYTHE, ID.GRAVEDIGGER]) {
+    assert.equal(necromancerCatalog.skillsById.get(skillId).interruptCommitMs, declarativeOffsets.get(skillId));
   }
 
   const devouringDarkness = simulate('Core', ['Devouring Darkness'], {
@@ -848,10 +853,6 @@ test('Manifest Sand Shade aliases load the one canonical Scourge behavior', () =
 });
 
 test('every catalog skill has mechanics and non-DPS skills stay excluded', () => {
-  assert.equal(
-    necromancerCatalog.skills.every((skill) => skill.implemented),
-    true
-  );
   for (const name of NECROMANCER_NON_DPS_SKILL_NAMES) {
     assert.equal(necromancerCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
   }

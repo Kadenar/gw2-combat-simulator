@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CRY_OF_FRUSTRATION]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: '',
@@ -20,7 +19,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     effects: []
   },
   [ID.MIND_WRACK]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: '',
@@ -36,7 +34,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     effects: []
   },
   [ID.DISTORTION]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: '',
@@ -52,7 +49,6 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     effects: []
   },
   [ID.DIVERSION]: {
-    implemented: true,
     type: 'Profession',
     weapon: '',
     specialization: '',

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.OPPRESSIVE_COLLAPSE]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -31,7 +30,6 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.oppressive-collapse'
   },
   [ID.HARROWING_WAVE]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SLASH_ID_12474]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -15,7 +14,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 333
   },
   [ID.HILT_BASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -31,7 +29,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 333
   },
   [ID.SLICE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -42,7 +39,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 333
   },
   [ID.ENDURING_SWING]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -53,7 +49,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 500
   },
   [ID.SWOOP]: {
-    implemented: true,
     evades: true,
     effects: [
       {
@@ -70,12 +65,10 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 500
   },
   [ID.COUNTERATTACK]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 2000
   },
   [ID.COUNTERATTACK_KICK]: {
-    implemented: true,
     evades: true,
     effects: [
       {
@@ -92,7 +85,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 333
   },
   [ID.MAUL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -114,7 +106,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 333
   },
   [ID.MAUL_ID_46629]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

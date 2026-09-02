@@ -6,7 +6,6 @@ const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';
 
 export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SIPHON]: {
-    implemented: true,
     stealTraitSkill: true,
     // Siphon adds Lead Attacks and Sleight of Hand reductions instead of multiplying them.
     stealRechargeMode: 'additive',
@@ -26,7 +25,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.ENTER_SHADOW_SHROUD]: {
-    implemented: true,
     // Custom: Enters Shadow Shroud and starts shadow-force drain; see `specter/mechanics/shadow-shroud.ts`.
     handlerId: 'thief.shadow-shroud-enter',
     castTimeMs: 0,
@@ -37,7 +35,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: []
   },
   [ID.ETERNAL_NIGHT]: {
-    implemented: true,
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/skills/execution.ts`.
     handlerId: 'thief.shadow-shroud-skill',
     quicknessCastTimeMs: 740,
@@ -80,7 +77,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     shadowShroudSkill: true
   },
   [ID.GRASPING_SHADOWS]: {
-    implemented: true,
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/skills/execution.ts`.
     handlerId: 'thief.shadow-shroud-skill',
     quicknessCastTimeMs: 240,
@@ -120,7 +116,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     shadowShroudSkill: true
   },
   [ID.DAWNS_REPOSE]: {
-    implemented: true,
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/skills/execution.ts`.
     handlerId: 'thief.shadow-shroud-skill',
     quicknessCastTimeMs: 520,
@@ -152,7 +147,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     shadowShroudSkill: true
   },
   [ID.WELL_OF_SILENCE]: {
-    implemented: true,
     movementSkill: true,
     castTimeMs: 500,
     cooldown: 25,
@@ -167,7 +161,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.MIND_SHOCK]: {
-    implemented: true,
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/skills/execution.ts`.
     handlerId: 'thief.shadow-shroud-skill',
     quicknessCastTimeMs: 360,
@@ -214,7 +207,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     shadowShroudSkill: true
   },
   [ID.EXIT_SHADOW_SHROUD]: {
-    implemented: true,
     // Custom: Leaves Shadow Shroud and stops its drain; see `specter/mechanics/shadow-shroud.ts`.
     handlerId: 'thief.shadow-shroud-exit',
     castTimeMs: 0,
@@ -225,7 +217,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: []
   },
   [ID.SHADOWFALL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 75,
     initiativeCost: 0,
@@ -254,7 +245,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   },
   [ID.WELL_OF_SORROW]: {
     interruptCommitMs: 0,
-    implemented: true,
     movementSkill: true,
     shadowstepSkill: true,
     quicknessCastTimeMs: 600,
@@ -287,7 +277,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.WELL_OF_GLOOM]: {
-    implemented: true,
     movementSkill: true,
     castTimeMs: 1000,
     cooldown: 20,
@@ -304,7 +293,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   },
   [ID.WELL_OF_TEARS]: {
     interruptCommitMs: 0,
-    implemented: true,
     movementSkill: true,
     shadowstepSkill: true,
     quicknessCastTimeMs: 600,
@@ -324,7 +312,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   },
   [ID.WELL_OF_BOUNTY]: {
     interruptCommitMs: 0,
-    implemented: true,
     movementSkill: true,
     shadowstepSkill: true,
     quicknessCastTimeMs: 400,
@@ -384,7 +371,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.HAUNT_SHOT]: {
-    implemented: true,
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/skills/execution.ts`.
     handlerId: 'thief.shadow-shroud-skill',
     quicknessCastTimeMs: 640,

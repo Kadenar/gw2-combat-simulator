@@ -24,13 +24,11 @@ function mechCommand(fragment: SkillFragment): SkillFragment {
 
 export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECTIFIER_SIGNET]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 30,
     effects: []
   },
   [ID.CRASH_DOWN]: {
-    implemented: true,
     // Custom: Summons the mech and starts its autonomous attack loop; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.mech-summon',
     castTimeMs: 750,
@@ -55,7 +53,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 4
   },
   [ID.RECALL_MECH]: {
-    implemented: true,
     // Custom: Stops the active mech attack loop and recalls it; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.mech-recall',
     castTimeMs: 750,
@@ -66,7 +63,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 4
   },
   [ID.OVERCLOCK_SIGNET]: {
-    implemented: true,
     // Custom: Resets mech command cooldowns and schedules Overclock behavior; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.overclock-signet',
     castTimeMs: 0,
@@ -74,13 +70,11 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: []
   },
   [ID.SHIFT_SIGNET]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 25,
     effects: []
   },
   [ID.SUPERCONDUCTING_SIGNET]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 30,
     effects: [
@@ -119,7 +113,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     ]
   },
   [ID.JADE_MORTAR]: mechCommand({
-    implemented: true,
     interruptCommitMs: 0,
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.JADE_MORTAR] * 1000,
     // Issuing the command starts recharge even though the mech remains busy
@@ -158,7 +151,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 3
   }),
   [ID.BARRIER_BURST]: mechCommand({
-    implemented: true,
     castTimeMs: 3750,
     cooldown: 30,
     effects: [
@@ -178,7 +170,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 3
   }),
   [ID.AERIAL_SUPPORT]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -192,7 +183,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     ]
   },
   [ID.ROCKET_PUNCH_MECH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 5,
     effects: [
@@ -220,7 +210,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     ]
   },
   [ID.SPARK_REVOLVER]: mechCommand({
-    implemented: true,
     interruptCommitMs: 0,
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.SPARK_REVOLVER] * 1000,
     rechargeAnchor: 'castStart',
@@ -252,7 +241,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 1
   }),
   [ID.SKY_CIRCUS]: mechCommand({
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 30,
     effects: [
@@ -288,7 +276,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 3
   }),
   [ID.FORCE_SIGNET]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 30,
     effects: [
@@ -308,13 +295,11 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     ]
   },
   [ID.BARRIER_SIGNET]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 30,
     effects: []
   },
   [ID.HEAVY_SMASH_MECH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     effects: [
@@ -328,13 +313,11 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     ]
   },
   [ID.JADE_ENERGY_SHOT]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []
   },
   [ID.TWIN_STRIKE_MECH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     effects: [
@@ -349,7 +332,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     ]
   },
   [ID.CRISIS_ZONE]: mechCommand({
-    implemented: true,
     castTimeMs: 0,
     cooldown: 30,
     effects: [
@@ -381,7 +363,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 2
   }),
   [ID.HARD_STRIKE]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     effects: [
@@ -395,7 +376,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     ]
   },
   [ID.RECALL_MECH_ID_63300]: {
-    implemented: true,
     // Custom: Stops the active mech attack loop and recalls it; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.mech-recall',
     castTimeMs: 750,
@@ -404,7 +384,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 4
   },
   [ID.ROLLING_SMASH]: mechCommand({
-    implemented: true,
     castTimeMs: 750,
     cooldown: 20,
     effects: [
@@ -426,7 +405,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 1
   }),
   [ID.CORE_REACTOR_SHOT]: mechCommand({
-    implemented: true,
     interruptCommitMs: 0,
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.CORE_REACTOR_SHOT] * 1000,
     rechargeAnchor: 'castStart',
@@ -455,13 +433,11 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 2
   }),
   [ID.JADE_ENERGY_SHOT_ID_63348]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []
   },
   [ID.EXPLOSIVE_KNUCKLE]: mechCommand({
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     effects: [
@@ -484,7 +460,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 1
   }),
   [ID.DISCHARGE_ARRAY]: mechCommand({
-    implemented: true,
     castTimeMs: 0,
     cooldown: 30,
     effects: [
@@ -536,7 +511,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     mechanicSlot: 2
   }),
   [ID.JADE_BUSTER_CANNON]: {
-    implemented: true,
     simulatorExcluded: true,
     castTimeMs: 3250,
     cooldown: 1,
@@ -565,7 +539,6 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     toolbeltParentName: 'Overclock Signet'
   },
   [ID.MECH_SUPPORT_DEPTH_CHARGES]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 25,
     effects: [

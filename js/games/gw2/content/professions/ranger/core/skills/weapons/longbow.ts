@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BARRAGE]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -33,7 +32,6 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
     quicknessCastTimeMs: 1880
   },
   [ID.RAPID_FIRE]: {
-    implemented: true,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -66,7 +64,6 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
     missileHits: 10
   },
   [ID.LONG_RANGE_SHOT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -86,7 +83,6 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
     missileHits: 1
   },
   [ID.POINT_BLANK_SHOT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -109,7 +105,6 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
     missileHits: 1
   },
   [ID.HUNTERS_SHOT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

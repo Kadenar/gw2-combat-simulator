@@ -29,7 +29,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     // EVTC damage lands 520ms after activation; once the projectile reaches that
     // commit point, preserve its impact even if the remaining animation is cancelled.
     interruptCommitMs: 520,
@@ -58,7 +57,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 560,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -105,7 +103,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 360,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     // Seethe empowers the next qualifying spear hit after completion.
     mechanicTriggers: [
       {
@@ -147,7 +144,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -182,7 +178,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -208,7 +203,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -290,7 +284,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -324,7 +317,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -350,7 +342,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 840,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -439,7 +430,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 800,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     // Ripple empowers the next qualifying spear recharge after completion.
     mechanicTriggers: [
       {
@@ -460,7 +450,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -502,7 +491,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [],
     elementalistStateMachine: 'spear-etching'
   },
@@ -516,7 +504,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -542,7 +529,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -568,7 +554,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     // EVTC damage lands 520ms after activation; once the projectile reaches that
     // commit point, preserve its strike and vulnerability if the animation is cancelled.
     interruptCommitMs: 520,
@@ -614,7 +599,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 560,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -753,7 +737,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     // Energize guarantees the next qualifying spear critical hit after completion.
     mechanicTriggers: [
       {
@@ -785,7 +768,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -849,7 +831,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -874,7 +855,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -909,7 +889,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -944,7 +923,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -983,7 +961,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1030,7 +1007,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 200,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     // Harden adds control to the next qualifying spear hit after completion.
     mechanicTriggers: [
       {
@@ -1051,7 +1027,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 680,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1113,7 +1088,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [],
     elementalistStateMachine: 'spear-etching'
   },
@@ -1127,7 +1101,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1176,7 +1149,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

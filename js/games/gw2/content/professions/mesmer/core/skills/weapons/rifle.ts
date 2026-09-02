@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRIENDLY_FIRE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
@@ -22,7 +21,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.JOURNEY]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
@@ -44,7 +42,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.INSPIRING_IMAGERY]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
@@ -53,7 +50,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: []
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',
@@ -77,7 +73,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SINGULARITY_SHOT]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',

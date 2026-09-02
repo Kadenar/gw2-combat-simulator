@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.EVISCERATE]: {
-    implemented: true,
     cooldown: 8,
     castTimeMs: 0,
     adrenalineCost: 10,
@@ -28,7 +27,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ARCING_SLICE]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -57,7 +55,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.EARTHSHAKER]: {
-    implemented: true,
     skillWeapon: 'Hammer',
     cooldown: 8,
     quicknessCastTimeMs: 1000,
@@ -92,7 +89,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.KILL_SHOT]: {
-    implemented: true,
     skillWeapon: 'Rifle',
     comboFinishers: [
       {
@@ -118,7 +114,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SKULL_CRACK]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -134,7 +129,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.WHIRLING_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
@@ -151,7 +145,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.COMBUSTIVE_SHOT]: {
     interruptCommitMs: 0,
-    implemented: true,
     comboFields: [
       {
         ownerId: 'warrior',
@@ -170,7 +163,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: []
   },
   [ID.FORCEFUL_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 1167,
     adrenalineCost: 10,
     burstTier: 1,
@@ -187,7 +179,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.BREACHING_STRIKE]: {
-    implemented: true,
     interruptCommitMs: 758,
     skillWeapon: 'Dagger',
     comboFinishers: [
@@ -225,7 +216,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PATH_TO_VICTORY]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -245,7 +235,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PATH_TO_VICTORY_ID_71932]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -267,7 +256,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PATH_TO_VICTORY_ID_71950]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -287,7 +275,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HARRIERS_TOSS_ID_73006]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -307,7 +294,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HARRIERS_TOSS]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -329,7 +315,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HARRIERS_TOSS_ID_73042]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
@@ -349,7 +334,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.BLOODTHIRSTER]: {
-    implemented: true,
     skillWeapon: 'Sword',
     quicknessCastTimeMs: 500,
     dualWieldCastTimeMs: 400,

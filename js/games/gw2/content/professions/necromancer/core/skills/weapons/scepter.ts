@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GRASPING_DEAD]: {
-    implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -22,7 +21,6 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PUTRID_CURSE]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -46,7 +44,6 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.BLOOD_CURSE]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {
@@ -64,7 +61,6 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.RENDING_CURSE]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -82,7 +78,6 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.FEAST_OF_CORRUPTION]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -101,7 +96,6 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     flipSkillId: null
   },
   [ID.DEVOURING_DARKNESS]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [],
     lifeForceGain: 8,

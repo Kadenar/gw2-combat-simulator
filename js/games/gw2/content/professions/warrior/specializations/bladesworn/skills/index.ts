@@ -4,14 +4,12 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     // Custom: Equips Gunsaber and updates bundle/weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.gunsaber-enter'
   },
   [ID.DRAGON_TRIGGER]: {
-    implemented: true,
     effects: [],
     castTimeMs: 0,
     canCastConcurrently: false,
@@ -19,7 +17,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'warrior.dragon-trigger'
   },
   [ID.ELECTRIC_FENCE]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -31,7 +28,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     quicknessCastTimeMs: 333
   },
   [ID.SHEATHE_GUNSABER]: {
-    implemented: true,
     cooldown: 0,
     castTimeMs: 0,
     effects: [],
@@ -39,7 +35,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'warrior.gunsaber-exit'
   },
   [ID.TACTICAL_RELOAD]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 552,
     // Tactical Reload restores Bladesworn ammo and opens its reload window on completion.
@@ -51,7 +46,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.DRAGONSPIKE_MINE]: {
-    implemented: true,
     movementSkill: true,
     // Dragonspike Mine refreshes Dragon Trigger when its cast completes.
     mechanicTriggers: [
@@ -83,7 +77,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     quicknessCastTimeMs: 641
   },
   [ID.FLOW_STABILIZER]: {
-    implemented: true,
     castTimeMs: 0,
     // Flow Stabilizer opens its passive-flow window and grants its conditional flow on completion.
     mechanicTriggers: [
@@ -108,7 +101,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.COMBAT_STIMULANT]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -132,7 +124,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     quicknessCastTimeMs: 500
   },
   [ID.OVERCHARGED_CARTRIDGES]: {
-    implemented: true,
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
@@ -144,7 +135,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
   [ID.SWIFT_CUT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -164,7 +154,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     skillWeapon: 'Gunsaber'
   },
   [ID.STEEL_DIVIDE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -184,7 +173,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     skillWeapon: 'Gunsaber'
   },
   [ID.EXPLOSIVE_THRUST]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -205,7 +193,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     skillWeapon: 'Gunsaber'
   },
   [ID.BLOOMING_FIRE]: {
-    implemented: true,
     ammo: 2,
     ammoRecharge: 10,
     cooldown: 10,
@@ -231,7 +218,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     skillWeapon: 'Gunsaber'
   },
   [ID.ARTILLERY_SLASH]: {
-    implemented: true,
     ammo: 2,
     ammoRecharge: 15,
     cooldown: 15,
@@ -244,7 +230,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'warrior.artillery-slash'
   },
   [ID.CYCLONE_TRIGGER]: {
-    implemented: true,
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
@@ -267,7 +252,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     skillWeapon: 'Gunsaber'
   },
   [ID.BREAK_STEP]: {
-    implemented: true,
     movementSkill: true,
     ammo: 2,
     ammoRecharge: 20,
@@ -292,7 +276,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     skillWeapon: 'Gunsaber'
   },
   [ID.DRAGON_SLASH_FORCE]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 1039,
     burst: true,
@@ -305,7 +288,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'warrior.dragon-slash'
   },
   [ID.DRAGON_SLASH_BOOST]: {
-    implemented: true,
     movementSkill: true,
     effects: [],
     quicknessCastTimeMs: 333,
@@ -319,7 +301,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'warrior.dragon-slash'
   },
   [ID.DRAGON_SLASH_REACH]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     burst: true,
@@ -332,7 +313,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'warrior.dragon-slash'
   },
   [ID.FLICKER_STEP]: {
-    implemented: true,
     ammo: 3,
     ammoRecharge: 20,
     cooldown: 20,
@@ -345,7 +325,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     skillWeapon: 'Gunsaber'
   },
   [ID.TRIGGERGUARD]: {
-    implemented: true,
     ammo: 2,
     ammoRecharge: 30,
     cooldown: 30,

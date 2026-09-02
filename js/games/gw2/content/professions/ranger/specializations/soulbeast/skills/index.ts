@@ -7,7 +7,6 @@ const BEASTMODE_PALETTE_TILE = 'ranger-soulbeast-beastmode-toggle';
 
 export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.NARCOTIC_SPORES]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -31,7 +30,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.SMOKE_ASSAULT]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -59,14 +57,12 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.VULTURE_STANCE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     // Custom: Opens the Vulture Stance proc window with stance-duration traits; see `soulbeast/skills/execution.ts`.
     handlerId: 'ranger.vulture-stance'
   },
   [ID.PRIMAL_CRY]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -96,7 +92,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 833
   },
   [ID.BITE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -107,7 +102,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.WORLDLY_IMPACT]: {
-    implemented: true,
     interruptCommitMs: 520,
     effects: [
       {
@@ -120,7 +114,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 680
   },
   [ID.RAIN_OF_SPIKES]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -137,7 +130,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.MAUL_ID_41406]: {
-    implemented: true,
     interruptCommitMs: 400,
     effects: [
       {
@@ -159,12 +151,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 560
   },
   [ID.DEVOURER_RETREAT]: {
-    implemented: true,
     castTimeMs: 0,
     effects: []
   },
   [ID.KICK]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -181,7 +171,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.CHOMP]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -192,7 +181,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TAIL_SWIPE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -209,7 +197,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.DARK_WATER]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -220,7 +207,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.WING_BUFFET]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -231,7 +217,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.QUICKENING_SCREECH]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -243,7 +228,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.PROTECTION]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -255,7 +239,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.CHARGING_BITE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -273,7 +256,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.WORLDLY_IMPACT_ID_42809]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -284,7 +266,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 500
   },
   [ID.BRUTAL_CHARGE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -295,7 +276,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TAKEDOWN]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -312,7 +292,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.BEASTMODE]: {
-    implemented: true,
     castTimeMs: 0,
     paletteTileId: BEASTMODE_PALETTE_TILE,
     paletteTileOrder: 1,
@@ -321,7 +300,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'ranger.beastmode-enter'
   },
   [ID.LEAVE_BEASTMODE]: {
-    implemented: true,
     castTimeMs: 0,
     paletteTileId: BEASTMODE_PALETTE_TILE,
     paletteTileOrder: 2,
@@ -330,12 +308,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'ranger.beastmode-exit'
   },
   [ID.DEFY_PAIN]: {
-    implemented: true,
     castTimeMs: 0,
     effects: []
   },
   [ID.TAIL_LASH]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -346,7 +322,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.BITE_ID_43136]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -357,7 +332,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.HEALING_CLOUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -369,7 +343,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.PRELUDE_LASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -385,7 +358,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 167
   },
   [ID.FRENZIED_ATTACK]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -403,7 +375,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.POISON_GAS]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -415,7 +386,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.PHOTOSYNTHESIZE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -427,7 +397,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.CRIPPLING_LEAP]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -444,7 +413,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.CALL_LIGHTNING_ID_43788]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -462,7 +430,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.ENTANGLING_WEB]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -473,12 +440,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.FEAR]: {
-    implemented: true,
     castTimeMs: 0,
     effects: []
   },
   [ID.CRIPPLING_ANGUISH]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -501,7 +466,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.MAUL_ID_44514]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -519,12 +483,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.HARMONIC_CRY]: {
-    implemented: true,
     castTimeMs: 0,
     effects: []
   },
   [ID.SPIRITUAL_REPRIEVE]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -536,7 +498,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     quicknessCastTimeMs: 667
   },
   [ID.CHOMP_ID_44885]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -547,12 +508,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.BEAR_STANCE]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500
   },
   [ID.SWOOP_ID_44991]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -569,7 +528,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.SHARPEN_SPINES]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -581,14 +539,12 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.ONE_WOLF_PACK]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 360,
     // Custom: Opens the One Wolf Pack proc window with stance-duration traits; see `soulbeast/skills/execution.ts`.
     handlerId: 'ranger.one-wolf-pack'
   },
   [ID.CHARGE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -606,12 +562,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.UNFLINCHING_FORTITUDE]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 167
   },
   [ID.TAIL_LASH_ID_46386]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -628,7 +582,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.BRUTAL_CHARGE_ID_46432]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -643,12 +596,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.ETERNAL_BOND]: {
-    implemented: true,
     castTimeMs: 0,
     effects: []
   },
   [ID.DASH]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -659,7 +610,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.SLAM]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -670,7 +620,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.UNDEAD_PLAGUE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -687,7 +636,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.HEAVY_SHOT]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -698,7 +646,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.PHASE_POUNCE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -716,7 +663,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.LEY_LINE_VORTEX]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -734,7 +680,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.LUNGE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -751,7 +696,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.ELECTROCUTE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -768,7 +712,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.SPIT_GOOP]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -785,7 +728,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TORMENTING_VISIONS]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -809,7 +751,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.STARING_VOID]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -826,7 +767,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.BATTLE_MAUL]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -843,7 +783,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.BOP]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -854,7 +793,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.BUMBLE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -865,7 +803,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.STINGING_SORROW]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -883,7 +820,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.LEAPING_LIZARD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -900,7 +836,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.SAURIAN_MIGHT]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -917,7 +852,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TAIL_WHIP]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -934,7 +868,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.JET]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {

@@ -20,7 +20,6 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
     cooldown: 0,
     canCastConcurrently: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: []
   },
   [ID.WATER_ATTUNEMENT]: {
@@ -33,7 +32,6 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
     cooldown: 0,
     canCastConcurrently: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: []
   },
   [ID.AIR_ATTUNEMENT]: {
@@ -46,7 +44,6 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
     cooldown: 0,
     canCastConcurrently: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: []
   },
   [ID.EARTH_ATTUNEMENT]: {
@@ -59,7 +56,6 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
     cooldown: 0,
     canCastConcurrently: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: []
   }
 });

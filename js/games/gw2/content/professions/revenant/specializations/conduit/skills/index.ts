@@ -154,7 +154,6 @@ const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
 
 export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BEGUILING_HAZE_ID_76805]: {
-    implemented: true,
     // Custom: Selects initial/follow-up packets and charge state from affinity; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.beguiling-haze',
     castTimeMs: 250,
@@ -167,7 +166,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     legendId: 'LegendaryEntity'
   },
   [ID.FORM_OF_THE_DERVISH_ATTACK]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -182,7 +180,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.TWIN_MOON_SWEEP]: {
-    implemented: true,
     // Custom: Materializes affinity-dependent strikes and state changes; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.twin-moon-sweep',
     quicknessCastTimeMs: 920,
@@ -202,7 +199,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     legendId: 'LegendaryEntity'
   },
   [ID.TWIN_MOON_SWEEP_ID_77001]: {
-    implemented: true,
     // Custom: Materializes affinity-dependent strikes and state changes; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.twin-moon-sweep',
     quicknessCastTimeMs: 920,
@@ -222,7 +218,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     legendId: 'LegendaryEntity'
   },
   [ID.SHIELDING_HANDS]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 30,
     energyCost: 5,
@@ -230,7 +225,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     legendId: 'LegendaryEntity'
   },
   [ID.FORM_OF_THE_DERVISH_ATTACK_ELITE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -245,7 +239,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.BEGUILING_HAZE]: {
-    implemented: true,
     // Custom: Selects initial/follow-up packets and charge state from affinity; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.beguiling-haze',
     castTimeMs: 250,
@@ -258,7 +251,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     legendId: 'LegendaryEntity'
   },
   [ID.HEX_EATER_VORTEX]: {
-    implemented: true,
     // Custom: Materializes affinity-dependent pulses and charge consumption; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.hex-eater-vortex',
     quicknessCastTimeMs: 526,
@@ -268,7 +260,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     legendId: 'LegendaryEntity'
   },
   [ID.GLADIATORS_DEFENSE]: {
-    implemented: true,
     // Custom: Materializes affinity-dependent packets and defense state; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.gladiators-defense',
     castTimeMs: 40,
@@ -279,7 +270,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     legendId: 'LegendaryEntity'
   },
   [ID.COSMIC_WISDOM]: {
-    implemented: true,
     // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.cosmic-wisdom',
     castTimeMs: 0,
@@ -296,7 +286,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.DWARVEN_RETRIBUTION]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -311,7 +300,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.RELEASE_POTENTIAL_MONK]: {
-    implemented: true,
     // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     castTimeMs: 500,
@@ -323,7 +311,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
-    implemented: true,
     // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     quicknessCastTimeMs: 440,
@@ -368,7 +355,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
-    implemented: true,
     // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     quicknessCastTimeMs: 680,
@@ -414,7 +400,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
-    implemented: true,
     // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     quicknessCastTimeMs: 740,
@@ -451,7 +436,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
-    implemented: true,
     // Custom: Selects and materializes the affinity-specific release profile; see `conduit/skills/effects.ts`.
     handlerId: 'revenant.release-potential',
     castTimeMs: 750,
@@ -468,7 +452,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.LESSER_ENCHANTED_DAGGERS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     energyCost: 0,
@@ -483,28 +466,24 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.LEGENDARY_ENTITY_STANCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.PAIN_ABSORPTION_ID_78505]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 0,
     effects: []
   },
   [ID.BANISH_ENCHANTMENT_ID_78587]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 0,
     effects: []
   },
   [ID.EMPOWERING_MISERY_ID_78681]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 30,
     energyCost: 0,

@@ -2,7 +2,6 @@ import { createNativeModuleData } from '#gw2/integrations/patches/authoring/cata
 import {
   createFlipParentMap,
   createSpecializationSkillIds,
-  createSpecializationSkillOwners,
   defineProfessionWeapons
 } from '#gw2/content/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/content/professions/lib/catalog-data.js';
@@ -84,7 +83,6 @@ const generated: readonly Skill[] = Object.freeze(
             patchAuthoringExcluded: true
           }
         : {}),
-      implemented: false,
       effects: []
     };
   })
@@ -98,8 +96,6 @@ const SPECIALIZATION_MECHANICS = Object.freeze({
 });
 
 const SPECIALIZATION_ONLY_SKILLS = createSpecializationSkillIds(SPECIALIZATION_MECHANICS);
-
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh+oh',
@@ -151,7 +147,6 @@ export function createWarriorModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core'
       ? {
           skillNameOverrides: WARRIOR_NATIVE_CATALOG_OPTIONS.skillNameOverrides

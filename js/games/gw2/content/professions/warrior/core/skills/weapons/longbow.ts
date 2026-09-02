@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ARCING_ARROW]: {
-    implemented: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -31,7 +30,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.DUAL_SHOT]: {
-    implemented: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -54,7 +52,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.PIN_DOWN]: {
-    implemented: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -85,7 +82,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SMOLDERING_ARROW]: {
-    implemented: true,
     ammo: 3,
     ammoRecharge: 16,
     ammoCastLockout: 0.5,
@@ -122,7 +118,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     // remaining animation as aftercast for ordinary cast-time skills.
     interruptCommitMs: 240,
     retainsCastLockoutAfterInterrupt: true,
-    implemented: true,
     effects: [
       {
         type: 'strike',

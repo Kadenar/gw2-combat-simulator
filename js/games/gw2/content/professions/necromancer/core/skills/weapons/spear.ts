@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.EXTIRPATE]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     effects: [
       {
@@ -51,7 +50,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.extirpate'
   },
   [ID.DARK_SLASH]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -63,7 +61,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ADDLE]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     effects: [
       {
@@ -78,7 +75,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.addle'
   },
   [ID.DEADLY_SLICE]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -92,7 +88,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.deadly-slice'
   },
   [ID.SINISTER_STAB]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     effects: [
       {
@@ -117,9 +112,9 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.sinister-stab'
   },
   [ID.PERFORATE]: {
-    implemented: true,
     interruptMode: 'per-packet',
-    quicknessCastTimeMs: 840,
+    // The measured Quickness cast ends one 40 ms action tick after its final packet.
+    quicknessCastTimeMs: 800,
     effects: [
       {
         type: 'strike',
@@ -168,7 +163,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.perforate'
   },
   [ID.ISOLATE]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -198,7 +192,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     flipActivationAtMs: 660
   },
   [ID.DISTRESS]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     // Custom: Consumes the flip, refreshes Perforate, and grants Soul Shards; see `core/skills/weapons.ts`.

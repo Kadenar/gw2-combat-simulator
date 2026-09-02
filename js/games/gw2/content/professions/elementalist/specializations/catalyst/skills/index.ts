@@ -28,7 +28,6 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       }
     ],
     skillFamily: 'Jade Sphere',
-    implemented: true,
     effects: CATALYST_JADE_SPHERE_EFFECTS[ID.DEPLOY_JADE_SPHERE_FIRE]
   },
   [ID.DEPLOY_JADE_SPHERE_WATER]: {
@@ -50,7 +49,6 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       }
     ],
     skillFamily: 'Jade Sphere',
-    implemented: true,
     effects: CATALYST_JADE_SPHERE_EFFECTS[ID.DEPLOY_JADE_SPHERE_WATER]
   },
   [ID.DEPLOY_JADE_SPHERE_AIR]: {
@@ -72,7 +70,6 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       }
     ],
     skillFamily: 'Jade Sphere',
-    implemented: true,
     effects: CATALYST_JADE_SPHERE_EFFECTS[ID.DEPLOY_JADE_SPHERE_AIR]
   },
   [ID.DEPLOY_JADE_SPHERE_EARTH]: {
@@ -94,7 +91,6 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       }
     ],
     skillFamily: 'Jade Sphere',
-    implemented: true,
     effects: CATALYST_JADE_SPHERE_EFFECTS[ID.DEPLOY_JADE_SPHERE_EARTH]
   },
   [ID.RELENTLESS_FIRE]: {
@@ -107,7 +103,6 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     cooldown: 20,
     skillFamily: 'Augment',
     preservesAutoattackChain: true,
-    implemented: true,
     // Relentless Fire opens its damage window when the augment completes.
     mechanicTriggers: [
       {
@@ -126,7 +121,6 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     quicknessCastTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
-    implemented: true,
     // Shattering Ice opens its proc window when the augment completes.
     mechanicTriggers: [
       {
@@ -146,7 +140,6 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     quicknessCastTimeMs: 240,
     cooldown: 90,
     skillFamily: 'Augment',
-    implemented: true,
     // Elemental Celerity refreshes the active attunement and grants sphere boons on completion.
     mechanicTriggers: [
       {

@@ -63,7 +63,6 @@ const extraSkills: Skill[] = [
     unaffectedByQuickness: true,
     castTimeMs: 800,
     cooldown: 0,
-    implemented: true,
     effects: []
   },
   {
@@ -78,7 +77,6 @@ const extraSkills: Skill[] = [
     castTimeMs: 0,
     cooldown: 0,
     rechargeAnchor: 'castStart',
-    implemented: true,
     effects: []
   }
 ];

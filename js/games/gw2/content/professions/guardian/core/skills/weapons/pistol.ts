@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.JURISDICTION]: {
-    implemented: true,
     quicknessCastTimeMs: 800,
     cooldown: 20,
     effects: [
@@ -30,7 +29,6 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAIL_OF_JUSTICE]: {
-    implemented: true,
     quicknessCastTimeMs: 1120,
     cooldown: 10,
     ammo: 2,
@@ -74,7 +72,6 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.PEACEKEEPER]: {
-    implemented: true,
     quicknessCastTimeMs: 1040,
     cooldown: 6,
     rechargeAnchor: 'castStart',
@@ -121,7 +118,6 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SYMBOL_OF_IGNITION]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     comboFields: [
       {
@@ -154,7 +150,6 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROUGH_THE_HEART]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {

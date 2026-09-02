@@ -26,7 +26,7 @@ export function defaultIsSkillAvailable(
   skill: Skill,
   { specialization }: ProfessionSkillAvailabilityContext = {}
 ): boolean {
-  if (skill.implemented === false || skill.simulatorExcluded) return false;
+  if (skill.simulatorExcluded) return false;
   if (skill.type === 'Weapon') return true;
   return !skill.specialization || skill.specialization === specialization;
 }

@@ -35,7 +35,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Arcane',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -66,7 +65,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 440,
     cooldown: 20,
     skillFamily: 'Signet',
-    implemented: true,
     effects: []
   },
   [ID.GLYPH_OF_ELEMENTAL_HARMONY]: {
@@ -77,7 +75,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 800,
     cooldown: 20,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -105,7 +102,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     ammo: 3,
     ammoRecharge: 20,
     skillFamily: 'Arcane',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -136,7 +132,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Arcane',
-    implemented: true,
     effects: []
   },
   [ID.ARCANE_WAVE]: {
@@ -149,7 +144,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     ammo: 2,
     ammoRecharge: 25,
     skillFamily: 'Arcane',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -193,7 +187,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 480,
     cooldown: 60,
     skillFamily: 'Conjure',
-    implemented: true,
     effects: []
   },
   [ID.CONJURE_LIGHTNING_HAMMER]: {
@@ -204,7 +197,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 880,
     cooldown: 60,
     skillFamily: 'Conjure',
-    implemented: true,
     effects: []
   },
   // --- Glyph of Elemental Power (one variant per attunement) --------------------
@@ -220,7 +212,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -258,7 +249,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: []
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_AIR]: {
@@ -270,7 +260,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -303,7 +292,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: []
   },
   // --- Glyph of Storms (one variant per attunement) ------------------------------
@@ -319,7 +307,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1120,
     cooldown: 25,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -354,7 +341,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1120,
     cooldown: 30,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [
       strikeTimeline(GLYPH_OF_STORMS_WATER_STRIKE_TICKS, CAST_SCALED_PACKET_TIMING),
       conditionTimeline(
@@ -379,7 +365,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1120,
     cooldown: 60,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: GLYPH_OF_STORMS_AIR_STRIKE_TICK_LAYERS.flatMap((ticks) => [
       strikeTimeline(ticks, CAST_SCALED_PACKET_TIMING),
       conditionTimeline(
@@ -404,7 +389,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1120,
     cooldown: 40,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -451,7 +435,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 520,
     cooldown: 12,
     skillFamily: 'Signet',
-    implemented: true,
     // Activating the signet disables its passive until recharge unless Written in Stone preserves it.
     mechanicTriggers: [
       {
@@ -495,7 +478,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 520,
     cooldown: 15,
     skillFamily: 'Signet',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -548,7 +530,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1160,
     cooldown: 180,
     skillFamily: 'Conjure',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -590,7 +571,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 0,
     cooldown: 190,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [],
     elementalistStateMachine: 'summoned-elemental'
   },
@@ -602,7 +582,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 0,
     cooldown: 190,
     skillFamily: 'Glyph',
-    implemented: true,
     effects: [],
     elementalistStateMachine: 'summoned-elemental'
   },
@@ -617,7 +596,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Cantrip',
-    implemented: true,
     effects: [
       {
         type: 'condition',

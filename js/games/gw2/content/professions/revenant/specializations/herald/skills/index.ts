@@ -15,7 +15,6 @@ const TRUE_NATURE_SHARED_COOLDOWN = 20;
 
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -30,7 +29,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     upkeepConsumeId: ID.BURST_OF_STRENGTH
   },
   [ID.FACET_OF_ELEMENTS]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -45,7 +43,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     upkeepConsumeId: ID.ELEMENTAL_BLAST
   },
   [ID.GAZE_OF_DARKNESS]: {
-    implemented: true,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     castTimeMs: 0,
@@ -76,7 +73,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.ELEMENTAL_BLAST]: {
-    implemented: true,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
@@ -138,7 +134,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.FACET_OF_LIGHT]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 250,
@@ -153,7 +148,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     upkeepConsumeId: ID.INFUSE_LIGHT
   },
   [ID.INFUSE_LIGHT]: {
-    implemented: true,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     castTimeMs: 0,
@@ -164,7 +158,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.FACET_OF_CHAOS]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -179,7 +172,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     upkeepConsumeId: ID.CHAOTIC_RELEASE
   },
   [ID.CHAOTIC_RELEASE]: {
-    implemented: true,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 600,
@@ -217,7 +209,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.BURST_OF_STRENGTH]: {
-    implemented: true,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 840,
@@ -246,7 +237,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.FACET_OF_DARKNESS]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -261,7 +251,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     upkeepConsumeId: ID.GAZE_OF_DARKNESS
   },
   [ID.FACET_OF_NATURE]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -283,7 +272,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     }
   },
   [ID.TRUE_NATURE]: {
-    implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -303,7 +291,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.TRUE_NATURE_ID_51675]: {
-    implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -322,7 +309,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.TRUE_NATURE_ID_51696]: {
-    implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -345,7 +331,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.TRUE_NATURE_ID_51713]: {
-    implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -357,7 +342,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.TRUE_NATURE_ID_51714]: {
-    implemented: true,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -376,14 +360,12 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     consume: true
   },
   [ID.LEGENDARY_DRAGON_STANCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.CALL_OF_THE_DRAGON]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

@@ -69,7 +69,6 @@ function catalogSkill(id, name, type = 'Profession', extras = {}) {
     castTimeMs: 0,
     quicknessCastTimeMs: 0,
     effects: [],
-    implemented: true,
     ...extras
   };
 }

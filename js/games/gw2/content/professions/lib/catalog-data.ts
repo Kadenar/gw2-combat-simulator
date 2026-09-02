@@ -115,23 +115,3 @@ export function createSpecializationSkillIds<TMechanic>(
     )
   );
 }
-
-/**
- * Creates the reverse specialization ownership lookup expected by
- * createNativeModuleData:
- *
- *   skill id -> specialization name
- */
-export function createSpecializationSkillOwners(
-  skillsBySpecialization: Readonly<Record<string, readonly SkillId[]>>
-): Readonly<Record<string, string>> {
-  const owners: Record<string, string> = {};
-
-  for (const [owner, skillIds] of Object.entries(skillsBySpecialization)) {
-    for (const skillId of skillIds) {
-      owners[String(skillId)] = owner;
-    }
-  }
-
-  return Object.freeze(owners);
-}

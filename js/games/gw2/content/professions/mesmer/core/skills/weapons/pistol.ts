@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PHANTASMAL_DUELIST]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Pistol',
     specialization: '',
@@ -69,7 +68,6 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 840
   },
   [ID.MAGIC_BULLET]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Pistol',
     specialization: '',

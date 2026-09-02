@@ -219,9 +219,7 @@ function assertUiContracts(entry, profession, specialization) {
     assert.equal(typeof profession.ui[callback], 'function', `${entry.id} ui.${callback}`);
   }
 
-  const sampleSkill = profession.catalog.skills.find(
-    (skill) => skill.implemented !== false && !skill.simulatorExcluded
-  );
+  const sampleSkill = profession.catalog.skills.find((skill) => !skill.simulatorExcluded);
 
   if (sampleSkill) {
     const availability = profession.ui.paletteSkillAvailability(context, sampleSkill);
@@ -314,10 +312,6 @@ test('profession registry entries conform to the shared contracts', async () => 
       assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
       assert.equal('activation' in skill, false, skill.name);
       assert.equal('castTime' in skill, false, skill.name);
-
-      if (!skill.simulatorExcluded) {
-        assert.equal(skill.implemented, true, skill.name);
-      }
 
       if (skill.handlerId) {
         const handler = profession.catalog.skillHandlers.get(skill.handlerId);
@@ -657,7 +651,6 @@ test('native build codecs share version, schema, and sanitization behavior', asy
     const lockedSlotSkill = profession.catalog.skills.find(
       (skill) =>
         ['Heal', 'Utility', 'Elite'].includes(skill.type) &&
-        skill.implemented &&
         !skill.simulatorExcluded &&
         skill.flipParentId == null &&
         skill.specialization &&

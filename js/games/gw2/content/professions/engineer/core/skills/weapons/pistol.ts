@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines Engineer pistol projectile timing, damage, condition, and combo behavior. */
 export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRAGMENTATION_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     cooldown: 0,
     comboFinishers: [
@@ -41,7 +40,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.POISON_DART_VOLLEY]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 8,
     // Poison Dart Volley is a channel: interruption retains landed darts and cancels only its future packets.
@@ -72,7 +70,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.STATIC_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 320,
     cooldown: 12,
     effects: [
@@ -98,7 +95,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.GLUE_SHOT]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     cooldown: 20,
     duration: 5,
@@ -140,7 +136,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.BLOWTORCH]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     interruptCommitMs: 360,
     cooldown: 12,

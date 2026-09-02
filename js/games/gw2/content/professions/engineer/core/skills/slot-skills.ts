@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines Core heal, utility, elite, turret, and palette-follow-up skill fragments. */
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HEALING_TURRET]: {
-    implemented: true,
     // Custom: Arms this skill's follow-up palette flip; see `core/skills/flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
@@ -21,7 +20,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SUPPLY_CRATE]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 75,
     effects: [
@@ -41,7 +39,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
-    implemented: true,
     // Custom: Consumes the armed follow-up flip and related trait effects; see `core/skills/flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Healing Turret',
@@ -58,7 +55,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CLEANSING_BURST]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     effects: [
@@ -71,7 +67,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.THROW_MINE]: {
-    implemented: true,
     // Custom: Arms this skill's follow-up palette flip; see `core/skills/flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE,
@@ -80,7 +75,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     rechargeAnchor: 'castStart'
   },
   [ID.DETONATE]: {
-    implemented: true,
     // Custom: Consumes the armed follow-up flip and related trait effects; see `core/skills/flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Throw Mine',
@@ -111,7 +105,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DEPLOY_MINE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     effects: [
@@ -131,7 +124,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PLAGUE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 105,
     effects: [
@@ -158,13 +150,11 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.A_E_D]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 24,
     effects: []
   },
   [ID.DETONATE_SUPPLY_CRATE_TURRETS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 25,
     effects: [
@@ -178,13 +168,11 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.OVERCHARGE_SUPPLY_CRATE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     effects: []
   },
   [ID.THROW_MINE_ID_30337]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 12,
     effects: [
@@ -204,7 +192,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DEPLOY_MINE_ID_30893]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     effects: [

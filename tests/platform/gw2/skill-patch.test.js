@@ -20,7 +20,6 @@ function fixtureCatalog() {
       {
         id: 1,
         name: 'Aggregate Skill',
-        implemented: true,
         castTimeMs: 1000,
         cooldown: 10,
         resourceGain: 50,
@@ -38,7 +37,6 @@ function fixtureCatalog() {
       {
         id: 2,
         name: 'Timeline Skill',
-        implemented: true,
         castTimeMs: 1000,
         effects: [
           {
@@ -74,7 +72,6 @@ function fixtureCatalog() {
       {
         id: 3,
         name: 'Untouched Skill',
-        implemented: true,
         castTimeMs: 0,
         effects: []
       }
@@ -451,7 +448,6 @@ test('native professions keep live and lazy preview catalogs side by side', () =
         {
           id: 1,
           name: 'Previewed Skill',
-          implemented: true,
           type: 'Utility',
           castTimeMs: 0,
           effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
@@ -537,7 +533,6 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
         {
           id: 1,
           name: 'Core Skill',
-          implemented: true,
           effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
         }
       ]
@@ -551,7 +546,6 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
         {
           id: 2,
           name: 'Elite Skill',
-          implemented: true,
           effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
         }
       ],
@@ -613,7 +607,6 @@ test('native professions compile preview modifier rules in isolated runtimes', (
         {
           id: 10,
           name: 'Modifier Strike',
-          implemented: true,
           type: 'Utility',
           castTimeMs: 0,
           cooldown: 10,

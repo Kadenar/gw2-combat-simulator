@@ -30,7 +30,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 650,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -74,7 +73,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 480,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -113,7 +111,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -215,7 +212,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -302,7 +298,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -420,7 +415,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 1320,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    implemented: true,
     effects: [
       {
         type: 'strike',

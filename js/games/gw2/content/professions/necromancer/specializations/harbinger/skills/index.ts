@@ -12,7 +12,6 @@ import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professio
 
 export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_OF_BLISS]: {
-    implemented: true,
     castTimeMs: 500,
     blightCost: 5,
     blightGain: 10,
@@ -21,7 +20,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_RISK]: {
-    implemented: true,
     // Risk occupies the same 680 ms Quickness cast lane as the other thrown Harbinger elixirs.
     quicknessCastTimeMs: 680,
     // The projectile releases at 440 ms, so canceling the remaining animation retains its later impact.
@@ -40,7 +38,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.elixir'
   },
   [ID.VORACIOUS_ARC]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     blightCost: 5,
     effects: [{ type: 'strike', coefficient: 1.4, hits: 1 }],
@@ -53,7 +50,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.blight-skill'
   },
   [ID.EXIT_HARBINGER_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
@@ -63,7 +59,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.shroud'
   },
   [ID.VITAL_DRAW]: {
-    implemented: true,
     quicknessCastTimeMs: 800,
     effects: [
       {
@@ -96,7 +91,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     specialization: 'Harbinger'
   },
   [ID.HARBINGER_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -108,7 +102,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.shroud'
   },
   [ID.TAINTED_BOLTS]: {
-    implemented: true,
     dhuumfireDuration: 1,
     quicknessCastTimeMs: 600,
     effects: [
@@ -148,7 +141,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     specialization: 'Harbinger'
   },
   [ID.DARK_BARRAGE]: {
-    implemented: true,
     quicknessCastTimeMs: 920,
     // Dark Barrage is a channel: interruption keeps each landed volley while 800 ms remains the full-damage cutoff.
     interruptMode: 'per-packet',
@@ -190,7 +182,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.dark-barrage'
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
-    implemented: true,
     castTimeMs: 500,
     blightCost: 5,
     blightGain: 10,
@@ -202,7 +193,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_AMBITION]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     // The thrown elixir commits on its 400 ms impact frame, allowing the remaining animation to be canceled.
     interruptCommitMs: 400,
@@ -225,7 +215,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_ANGUISH]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     blightCost: 5,
     blightGain: 10,
@@ -240,7 +229,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_PROMISE]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     blightCost: 5,
     blightGain: 10,
@@ -252,7 +240,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.elixir'
   },
   [ID.DEVOURING_CUT]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     // Devouring Cut lands at its 400 ms commit frame while retaining a 480 ms default cast.
     interruptCommitMs: 400,

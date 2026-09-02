@@ -11,7 +11,6 @@ import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professio
 
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     usableInShroud: true,
@@ -19,7 +18,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.innervate'
   },
   [ID.SUMMON_SPIRITS]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     type: 'Profession',
@@ -31,7 +29,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.ritualist'
   },
   [ID.PRESERVATION]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [],
     type: 'Profession',
@@ -43,7 +40,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.ritualist'
   },
   [ID.INNERVATE_WANDERLUST]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     usableInShroud: true,
@@ -51,7 +47,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.innervate'
   },
   [ID.NIGHTMARE_WEAPON]: {
-    implemented: true,
     quicknessCastTimeMs: 240,
     effects: [
       {
@@ -67,7 +62,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.weapon-spell'
   },
   [ID.WEAPON_OF_WARDING]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -77,7 +71,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.ANGUISH]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     effects: [],
     type: 'Profession',
@@ -89,7 +82,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.ritualist'
   },
   [ID.EXIT_RITUALISTS_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
@@ -99,7 +91,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.shroud'
   },
   [ID.XINRAES_WEAPON]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [
       {
@@ -109,7 +100,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.WANDERLUST]: {
-    implemented: true,
     quicknessCastTimeMs: 760,
     effects: [],
     type: 'Profession',
@@ -121,7 +111,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.ritualist'
   },
   [ID.SPLINTER_WEAPON]: {
-    implemented: true,
     quicknessCastTimeMs: 240,
     effects: [
       {
@@ -137,7 +126,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.weapon-spell'
   },
   [ID.INNERVATE_ANGUISH]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       { type: 'strike', coefficient: 1.3, hits: 1 },
@@ -149,12 +137,10 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.innervate'
   },
   [ID.WEAPON_OF_REMEDY]: {
-    implemented: true,
     castTimeMs: 500,
     effects: []
   },
   [ID.ESSENCE_BLAST]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -173,7 +159,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.ritualist'
   },
   [ID.RITUALISTS_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -185,7 +170,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.shroud'
   },
   [ID.RESILIENT_WEAPON]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [
       {

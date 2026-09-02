@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIGHTY_ROAR]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -19,13 +18,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FORAGE_ROCK]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true
   },
   [ID.RENDING_POUNCE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -48,7 +45,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.INTIMIDATING_HOWL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -62,20 +58,17 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.SHAKE_IT_OFF]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.PURGE_CONDITIONS]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.POISONOUS_CLOUD]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -126,7 +119,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.REGENERATE]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -141,7 +133,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FIRE_BREATH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -164,7 +155,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.BOIL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -178,7 +168,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.CHILLING_HOWL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -200,7 +189,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ICY_POUNCE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -223,7 +211,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ICY_BITE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -245,7 +232,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.BLINDING_SLASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -260,13 +246,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.STALK]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.INSECT_SWARM]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -289,7 +273,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.POISON_CLOUD]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -304,7 +287,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.PROTECTING_SCREECH]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -319,13 +301,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ICY_SCREECH]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.DAZING_SCREECH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -339,7 +319,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.DAZING_SCREECH_ID_12709]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -353,7 +332,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FURIOUS_SCREECH]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -368,7 +346,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FROST_BREATH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -391,7 +368,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FROST_NOVA]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -413,7 +389,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.LIGHTNING_BREATH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -428,7 +403,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ELECTROCUTE_ID_12699]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -442,7 +416,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.POISON_CLOUD_ID_12687]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -464,7 +437,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.POISONOUS_MAUL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -486,7 +458,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FEEDING_FRENZY]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -509,7 +480,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.REGENERATE_ID_12717]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -524,7 +494,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ENFEEBLING_MAUL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -546,7 +515,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ENFEEBLING_ROAR]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -568,7 +536,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ICY_ROAR]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -590,7 +557,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.ICY_MAUL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -612,7 +578,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.RENDING_MAUL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -635,7 +600,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.POISON_CLOUD_ID_12702]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -657,7 +621,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.POISON_BARBS]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -679,13 +642,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.LASHTAIL_VENOM]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.RENDING_BARBS]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -708,13 +669,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.HOWL_OF_THE_PACK]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 1000,
     petSkill: true
   },
   [ID.TERRIFYING_HOWL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -728,7 +687,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.CHILLING_SLASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -751,7 +709,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.BRASH_SLASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -774,7 +731,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.DEADLY_VENOM]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -789,13 +745,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.PARALYZING_VENOM]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.WEAKENING_VENOM]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -826,25 +780,21 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FORAGE_SCALE]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true
   },
   [ID.FORAGE_FEATHERS]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true
   },
   [ID.FORAGE_SWORD]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true
   },
   [ID.STUNNING_RUSH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -858,7 +808,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.CHILLING_WHIRL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -881,7 +830,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.IMMOBILIZING_WHIRL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -896,7 +844,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.LACERATING_SLASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -927,7 +874,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.SONIC_SHRIEK]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -958,19 +904,16 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.SONIC_BARRIER]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.SMOKE_CLOUD]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 500,
     petSkill: true
   },
   [ID.FURIOUS_POUNCE]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -992,7 +935,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FELINE_SLASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1007,7 +949,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FELINE_BITE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1030,7 +971,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.FELINE_MAUL]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1056,7 +996,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.LIGHTNING_ASSAULT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1070,7 +1009,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.CONSUMING_FLAME]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1092,7 +1030,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.SPIKE_BARRAGE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1115,7 +1052,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.SAVANNAH_STRIKE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1138,7 +1074,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.BLINDING_ROAR]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1154,7 +1089,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.JACARANDAS_EMBRACE]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1199,7 +1133,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.JACARANDA_ROOT_SLAP]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1216,7 +1149,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.JACARANDA_CALL_LIGHTNING]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1249,7 +1181,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.HEAD_TOSS]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1264,7 +1195,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.FANG_GRAPPLE]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1299,7 +1229,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.GUARDIANS_ROAR]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -1314,7 +1243,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.BLOODTHIRSTY_CHARGE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1336,7 +1264,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.GALE_BREATH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1350,7 +1277,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.HUNKER_DOWN]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -1365,7 +1291,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.DIMENSION_BREACH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1379,7 +1304,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.LEY_ENERGY_PULSE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1393,7 +1317,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.PANOPTICON]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1407,13 +1330,11 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.RALLYING_ROAR]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.HONEY_TOSS]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1443,7 +1364,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.PIERCING_SHRIEK]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1465,7 +1385,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.INNOCENT_DISPLAY]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -1481,7 +1400,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.TWIN_DARTS]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1523,7 +1441,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.PET_TAIL_LASH]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1547,7 +1464,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.CONSUMING_BITE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1562,7 +1478,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.CRIPPLING_ANGUISH_PET]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1594,7 +1509,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.NARCOTIC_SPORES_PET]: {
     interruptCommitMs: 0,
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -1635,7 +1549,6 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     petSkill: true
   },
   [ID.SPIT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

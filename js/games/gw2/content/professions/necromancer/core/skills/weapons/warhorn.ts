@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WAIL_OF_DOOM]: {
-    implemented: true,
     quicknessCastTimeMs: 1000,
     effects: [
       {
@@ -14,7 +13,6 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.LOCUST_SWARM]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {

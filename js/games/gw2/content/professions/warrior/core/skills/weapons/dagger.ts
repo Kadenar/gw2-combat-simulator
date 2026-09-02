@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.KEEN_STRIKE]: {
-    implemented: true,
     interruptCommitMs: 280,
     quicknessCastTimeMs: 440,
     dualWieldCastTimeMs: 320,
@@ -27,7 +26,6 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.FOCUSED_SLASH]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     dualWieldCastTimeMs: 240,
     effects: [
@@ -40,7 +38,6 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.PRECISE_CUT]: {
-    implemented: true,
     quicknessCastTimeMs: 320,
     dualWieldCastTimeMs: 240,
     effects: [
@@ -53,7 +50,6 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.WASTRELS_RUIN]: {
-    implemented: true,
     cooldown: 12,
     quicknessCastTimeMs: 400,
     dualWieldCastTimeMs: 320,
@@ -66,7 +62,6 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DISRUPTING_STAB]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     dualWieldCastTimeMs: 320,
     effects: [
@@ -86,7 +81,6 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.HUSHBLADE]: {
-    implemented: true,
     ammo: 2,
     ammoRecharge: 12,
     cooldown: 12,
@@ -106,7 +100,6 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.AURA_SLICER]: {
-    implemented: true,
     castTimeMs: 750,
     unaffectedByQuickness: true,
     effects: [

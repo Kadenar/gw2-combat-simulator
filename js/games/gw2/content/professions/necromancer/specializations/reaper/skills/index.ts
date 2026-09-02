@@ -11,7 +11,6 @@ import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/
 
 export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.YOU_ARE_ALL_WEAKLINGS]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -26,7 +25,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     ]
   },
   [ID.LIFE_REND]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     effects: [
       {
@@ -42,7 +40,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     specialization: 'Reaper'
   },
   [ID.LIFE_SLASH]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -59,7 +56,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     specialization: 'Reaper'
   },
   [ID.NOTHING_CAN_SAVE_YOU]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -76,7 +72,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     ]
   },
   [ID.TERRIFY]: {
-    implemented: true,
     quicknessCastTimeMs: 320,
     effects: [
       {
@@ -92,7 +87,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     cooldown: 0
   },
   [ID.INFUSING_TERROR]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     type: 'Profession',
@@ -104,7 +98,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     handlerId: 'necromancer.flip'
   },
   [ID.CHILLED_TO_THE_BONE]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [
       {
@@ -126,7 +119,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     ]
   },
   [ID.LIFE_REAP]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     effects: [
       {
@@ -144,7 +136,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     specialization: 'Reaper'
   },
   [ID.YOUR_SOUL_IS_MINE]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [
       {
@@ -157,7 +148,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.SOUL_SPIRAL]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 2160,
     effects: [
       {
@@ -217,7 +207,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 1320,
     // EVTC places the strike and first Chill at 840 ms, followed by four fixed one-second field pulses.
     effects: [
@@ -267,7 +256,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     specialization: 'Reaper'
   },
   [ID.SUFFER]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -287,7 +275,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.RISE]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -298,7 +285,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     ]
   },
   [ID.REAPERS_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -310,7 +296,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     handlerId: 'necromancer.shroud'
   },
   [ID.DEATHS_CHARGE]: {
-    implemented: true,
     quicknessCastTimeMs: 1200,
     effects: [
       {
@@ -350,7 +335,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     specialization: 'Reaper'
   },
   [ID.EXIT_REAPERS_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 0,

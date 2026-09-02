@@ -33,7 +33,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_FIRE]
   },
   // Overload Water is modeled for its cast time, recharge, and trait triggers only: its healing
@@ -51,7 +50,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_WATER]
   },
   [ID.OVERLOAD_AIR]: {
@@ -75,7 +73,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_AIR]
   },
   [ID.OVERLOAD_EARTH]: {
@@ -91,7 +88,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     rechargeAnchor: 'castEnd',
     overload: true,
     skillFamily: 'Attunement',
-    implemented: true,
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_EARTH]
   },
   [ID.WASH_THE_PAIN_AWAY]: {
@@ -105,7 +101,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
     handlerId: 'elementalist.tempest-shout',
-    implemented: true,
     effects: []
   },
   [ID.FEEL_THE_BURN]: {
@@ -120,7 +115,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
     handlerId: 'elementalist.tempest-shout',
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -183,7 +177,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
     handlerId: 'elementalist.tempest-shout',
-    implemented: true,
     effects: [
       {
         type: 'strike',

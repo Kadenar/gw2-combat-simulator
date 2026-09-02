@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SURGE_OF_THE_MISTS]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 20,
     energyCost: 15,
@@ -29,7 +28,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.REJUVENATING_ASSAULT]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 0,
     energyCost: 0,
@@ -45,7 +43,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.MENDERS_REBUKE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 5,
     energyCost: 5,
@@ -67,7 +64,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RAPID_SWIPE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 0,
@@ -82,7 +78,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.WARDING_RIFT]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 12,
     energyCost: 10,
@@ -101,14 +96,12 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RENEWING_WAVE]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 15,
     energyCost: 15,
     effects: []
   },
   [ID.FORCEFUL_BASH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 0,

@@ -68,7 +68,6 @@ export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     flipParent: 'Glyph of Elementals',
     castTimeMs: 0,
     slotSelectable: false,
-    implemented: true,
     simulatorExcluded: false,
     effects: []
   },
@@ -93,7 +92,6 @@ export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     flipParent: 'Glyph of Elementals (Earth)',
     castTimeMs: 0,
     slotSelectable: false,
-    implemented: true,
     simulatorExcluded: false,
     effects: []
   },
@@ -114,7 +112,6 @@ export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     nextChainId: null,
     flipSkillId: null,
     castTimeMs: 0,
-    implemented: true,
     simulatorExcluded: false,
     paletteAction: false,
     effects: []
@@ -141,7 +138,6 @@ export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     flipSkillId: null,
     castTimeMs: 300,
     unaffectedByQuickness: true,
-    implemented: true,
     simulatorExcluded: false,
     paletteAction: false,
     effects: []

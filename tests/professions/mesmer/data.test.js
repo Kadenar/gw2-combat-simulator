@@ -351,14 +351,11 @@ test('Mesmer and Guardian API catalogs use the same skill record shape', () => {
 
 test('Mesmer mechanics are the sole simulation source and use stable skill ids', () => {
   assert.equal(
-    Object.entries(MESMER_SKILL_MECHANICS).every(
-      ([id, mechanics]) => Number.isInteger(Number(id)) && mechanics.implemented === true
-    ),
+    Object.keys(MESMER_SKILL_MECHANICS).every((id) => Number.isInteger(Number(id))),
     true
   );
   for (const skill of SKILLS) {
     assert.ok(MESMER_SKILL_MECHANICS[skill.id], `${skill.name} is missing authoritative simulation mechanics`);
-    assert.equal(MESMER_SKILL_MECHANICS[skill.id]?.implemented, true, skill.name);
   }
 
   assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].quicknessCastTimeMs, 760);
@@ -383,11 +380,7 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
   assert.equal(SHATTERS[ID.BLADESONG_HARMONY].minimumResource, 1);
 });
 
-test('every Mesmer catalog skill is explicitly implemented', () => {
-  assert.equal(
-    mesmerCatalog.skills.every((skill) => skill.implemented === true),
-    true
-  );
+test('every Mesmer catalog skill exposes normalized effects', () => {
   assert.equal(
     mesmerCatalog.skills.every((skill) => Array.isArray(skill.effects)),
     true

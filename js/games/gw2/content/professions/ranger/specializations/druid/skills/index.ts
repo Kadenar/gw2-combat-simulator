@@ -4,48 +4,40 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GLYPH_OF_THE_TIDES]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333
   },
   [ID.GLYPH_OF_ALIGNMENT]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333
   },
   [ID.GLYPH_OF_REJUVENATION]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333
   },
   [ID.RELEASE_CELESTIAL_AVATAR]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     // Custom: Leaves Celestial Avatar and updates its state; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-exit'
   },
   [ID.GLYPH_OF_THE_STARS]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 667
   },
   [ID.CELESTIAL_AVATAR]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     // Custom: Enters Celestial Avatar and initializes its astral-force state; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-enter'
   },
   [ID.COSMIC_RAY]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333,
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.SEED_OF_LIFE]: {
-    implemented: true,
     effects: [
       {
         type: 'blind',
@@ -60,7 +52,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.LUNAR_IMPACT]: {
-    implemented: true,
     effects: [
       {
         type: 'control',
@@ -82,7 +73,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.REJUVENATING_TIDES]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -102,7 +92,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.NATURAL_CONVERGENCE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',

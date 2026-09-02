@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RIFLE_BUTT]: {
-    implemented: true,
     // Rifle Butt uses its successful-hit recharge and reloads the rest of the rifle kit on completion.
     cooldown: 12,
     mechanicTriggers: [
@@ -27,7 +26,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.VOLLEY]: {
-    implemented: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -47,7 +45,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.FIERCE_SHOT]: {
-    implemented: true,
     // Rifle projectile finishers stay declarative so each emitted shot uses the shared combo scheduler.
     comboFinishers: [
       {
@@ -73,7 +70,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.EXPLOSIVE_SHELL]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -97,7 +93,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.BRUTAL_SHOT]: {
-    implemented: true,
     comboFinishers: [
       {
         ownerId: 'warrior',

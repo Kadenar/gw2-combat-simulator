@@ -16,8 +16,7 @@ const fixtureSkill = {
   slot: 'Weapon_2',
   castTimeMs: 600,
   quicknessCastTimeMs: 400,
-  effects: [],
-  implemented: true
+  effects: []
 };
 const catalog = { skills: [fixtureSkill] };
 

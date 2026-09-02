@@ -1,10 +1,6 @@
 import { createNativeModuleData } from '#gw2/integrations/patches/authoring/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import {
-  createFlipParentMap,
-  createSpecializationSkillOwners,
-  defineProfessionWeapons
-} from '#gw2/content/professions/lib/catalog-data.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/content/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/content/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/guardian/data/guardian-api-metadata.js';
 import { GUARDIAN_BUNDLE_SKILLS } from '#gw2/content/professions/guardian/data/guardian-bundle-skills.js';
@@ -106,7 +102,6 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
           patchAuthoringExcluded: true
         }
       : {}),
-    implemented: false,
     effects: []
   };
 });
@@ -123,8 +118,6 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   ],
   Luminary: [ID.EXIT_RADIANT_FORGE, ID.ENTER_RADIANT_FORGE, ID.RADIANT_COURAGE, ID.RADIANT_RESOLVE, ID.RADIANT_JUSTICE]
 });
-
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh',
@@ -159,7 +152,6 @@ export function createGuardianModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core' ? WEAPON_DATA : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -25,7 +24,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.FORCED_ENGAGEMENT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     energyCost: 10,
@@ -54,7 +52,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.RESIST_THE_DARKNESS]: {
-    implemented: true,
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
@@ -64,7 +61,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDemon'
   },
   [ID.PROTECTIVE_SOLACE]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -76,7 +72,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryCentaur'
   },
   [ID.ENCHANTED_DAGGERS]: {
-    implemented: true,
     // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `core/skills/assassin.ts`.
     handlerId: 'revenant.enchanted-daggers',
     castTimeMs: 500,
@@ -106,7 +101,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryAssassin'
   },
   [ID.RELEASE_HAMMERS]: {
-    implemented: true,
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
@@ -116,7 +110,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.NATURAL_HARMONY]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 2,
     energyCost: 20,
@@ -124,7 +117,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryCentaur'
   },
   [ID.IMPOSSIBLE_ODDS]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -149,7 +141,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryAssassin'
   },
   [ID.PAIN_ABSORPTION]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     energyCost: 30,
@@ -176,7 +167,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDemon'
   },
   [ID.ENERGY_EXPULSION]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 2,
     energyCost: 35,
@@ -197,7 +187,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryCentaur'
   },
   [ID.SOOTHING_STONE]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 30,
     energyCost: 5,
@@ -213,7 +202,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BANISH_ENCHANTMENT]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 20,
@@ -260,14 +248,12 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDemon'
   },
   [ID.DIMINISH_SOLACE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 0,
     effects: []
   },
   [ID.PURIFYING_ESSENCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 25,
@@ -276,7 +262,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.CALL_TO_ANGUISH]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 820,
     cooldown: 3,
     energyCost: 30,
@@ -314,7 +299,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDemon'
   },
   [ID.RITE_OF_THE_GREAT_DWARF]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 0,
     energyCost: 40,
@@ -322,7 +306,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.EMPOWERING_MISERY]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 30,
     energyCost: 5,
@@ -337,7 +320,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDemon'
   },
   [ID.PHASE_TRAVERSAL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 5,
     energyCost: 30,
@@ -359,7 +341,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryAssassin'
   },
   [ID.EMBRACE_THE_DARKNESS]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     quicknessCastTimeMs: 440,
@@ -395,7 +376,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDemon'
   },
   [ID.RELINQUISH_POWER]: {
-    implemented: true,
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
@@ -405,7 +385,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryAssassin'
   },
   [ID.JADE_WINDS]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 10,
     energyCost: 35,
@@ -428,7 +407,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryAssassin'
   },
   [ID.VENTARIS_WILL]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0.25,
     energyCost: 0,
@@ -436,7 +414,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryCentaur'
   },
   [ID.INSPIRING_REINFORCEMENT]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 10,
     energyCost: 30,
@@ -476,7 +453,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.PROJECT_TRANQUILITY]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 2,
     energyCost: 0,
@@ -484,7 +460,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryCentaur'
   },
   [ID.RIPOSTING_SHADOWS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 30,
@@ -499,7 +474,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryAssassin'
   },
   [ID.PROTECTIVE_SOLACE_ID_29310]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -511,7 +485,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryCentaur'
   },
   [ID.JADE_WINDS_ID_31294]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 10,
     energyCost: 35,
@@ -534,7 +507,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryAssassin'
   },
   [ID.SOOTHING_STONE_ID_56661]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 30,
     energyCost: 5,
@@ -549,7 +521,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.FORCED_ENGAGEMENT_ID_56662]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     energyCost: 10,
@@ -578,7 +549,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.VENGEFUL_HAMMERS_ID_56752]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
@@ -599,7 +569,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.RITE_OF_THE_GREAT_DWARF_ID_56773]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 0,
     energyCost: 40,
@@ -607,7 +576,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.INSPIRING_REINFORCEMENT_ID_56841]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 10,
     energyCost: 30,
@@ -643,7 +611,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     legendId: 'LegendaryDwarf'
   },
   [ID.UNYIELDING_IMPACT]: {
-    implemented: true,
     quicknessCastTimeMs: 920,
     cooldown: 0,
     energyCost: 5,

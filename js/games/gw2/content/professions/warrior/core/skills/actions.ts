@@ -21,7 +21,6 @@ export const WARRIOR_WEAPON_STOW: Skill = Object.freeze({
   castTimeMs: 80,
   unaffectedByQuickness: true,
   interruptCommitMs: 0,
-  implemented: true,
   simulatorExcluded: false,
   effects: []
 });
@@ -44,7 +43,6 @@ export const WARRIOR_DODGE: Skill = Object.freeze({
   castTimeMs: 800,
   unaffectedByQuickness: true,
   rechargeAnchor: 'castStart',
-  implemented: true,
   simulatorExcluded: false,
   // Custom: Spends endurance and applies Reckless Dodge; see `core/skills/execution.ts`.
   handlerId: 'warrior.dodge',
@@ -68,7 +66,6 @@ export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze({
   flipSkillId: null,
   castTimeMs: 0,
   rechargeAnchor: 'castStart',
-  implemented: true,
   simulatorExcluded: false,
   // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
   handlerId: 'warrior.weapon-swap',

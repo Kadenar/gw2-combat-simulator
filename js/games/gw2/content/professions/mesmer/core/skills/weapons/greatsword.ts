@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIND_STAB]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',
@@ -23,7 +22,6 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 480
   },
   [ID.SPATIAL_SURGE]: {
-    implemented: true,
     interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -47,7 +45,6 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     pulseCount: 3
   },
   [ID.ILLUSIONARY_WAVE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',
@@ -66,7 +63,6 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PHANTASMAL_BERSERKER]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',
@@ -102,7 +98,6 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 840
   },
   [ID.MIRROR_BLADE]: {
-    implemented: true,
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',

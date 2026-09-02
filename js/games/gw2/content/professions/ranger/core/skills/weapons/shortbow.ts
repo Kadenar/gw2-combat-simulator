@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.POISON_VOLLEY]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -22,7 +21,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 167
   },
   [ID.CROSSFIRE]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -39,7 +37,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 333
   },
   [ID.CRIPPLING_SHOT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -70,7 +67,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     handlerId: 'ranger.crippling-shot'
   },
   [ID.CONCUSSION_SHOT]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -92,7 +88,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     quicknessCastTimeMs: 167
   },
   [ID.QUICK_SHOT]: {
-    implemented: true,
     evades: true,
     effects: [
       {

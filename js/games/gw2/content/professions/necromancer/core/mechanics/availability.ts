@@ -223,10 +223,6 @@ export function necromancerBuildAvailability(
   skill: NecromancerSkill
 ): Readonly<AvailabilityResult> {
   // Reject catalog and specialization mismatches before evaluating trait replacements.
-  if (!skill.implemented) {
-    return deny(skill, 'necromancer.not-implemented', 'it is not implemented by the simulator.');
-  }
-
   if (skill.simulatorExcluded) {
     return deny(skill, 'necromancer.simulator-excluded', 'it is excluded from simulation.');
   }

@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENTANGLING_ASP]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     quicknessCastTimeMs: 520,
@@ -37,7 +36,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SHATTERING_ASSAULT]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     quicknessCastTimeMs: 640,
@@ -61,7 +59,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DISTRACTING_THROW]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     quicknessCastTimeMs: 360,
@@ -99,7 +96,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.UNSUSPECTING_STRIKE]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     castTimeMs: 750,
@@ -131,14 +127,12 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SHADOW_VEIL]: {
-    implemented: true,
     castTimeMs: 2000,
     cooldown: 0,
     initiativeCost: 3,
     effects: []
   },
   [ID.ASHEN_ASSAULT]: {
-    implemented: true,
     preservesStealth: true,
     spearStealthAttack: true,
     // Custom: Selects the stealth spear chain, then consumes stealth on completion; see `core/skills/spear-chain.ts`.
@@ -192,7 +186,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     stealthAttack: true
   },
   [ID.MANTIS_STING]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     quicknessCastTimeMs: 400,
@@ -224,7 +217,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.VAMPIRIC_SLASH]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     castTimeMs: 500,
@@ -260,7 +252,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.FALLING_SPIDER]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     quicknessCastTimeMs: 600,
@@ -299,7 +290,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BARBED_SPEAR]: {
-    implemented: true,
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/skills/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     castTimeMs: 750,

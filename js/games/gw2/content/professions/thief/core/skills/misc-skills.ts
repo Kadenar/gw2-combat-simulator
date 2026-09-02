@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SHADOW_ASSAULT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 5,
@@ -23,7 +22,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.FLANKING_DIVE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 3,
@@ -47,7 +45,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.TOW_LINE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -82,7 +79,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.PIERCING_SHOT]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 0,
@@ -105,7 +101,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.DELUGE]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 0,
     initiativeCost: 5,
@@ -121,7 +116,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.ESCAPE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -152,7 +146,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.CRIPPLING_SHOT_THIEF_HARPOON_GUN_SKILL]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 4,
@@ -175,7 +168,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.INK_SHOT]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 5,
@@ -195,7 +187,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.SMOKE_TRAIL]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -209,7 +200,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.STAB_THIEF_SPEAR_SKILL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -225,7 +215,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.JAB_THIEF_SKILL]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -241,7 +230,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.POISON_TIP_STRIKE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -264,7 +252,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.NINE_TAILED_STRIKE]: {
-    implemented: true,
     castTimeMs: 1500,
     cooldown: 0,
     initiativeCost: 5,
@@ -298,14 +285,12 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.BREAK_STANCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 2,
     effects: []
   },
   [ID.LESSER_CALTROPS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -327,14 +312,12 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.ICE_WURM_VENOM_TRAP]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 45,
     initiativeCost: 0,
     effects: []
   },
   [ID.LESSER_HASTE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 60,
     initiativeCost: 0,
@@ -360,7 +343,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.TRAIL_OF_KNIVES_DOPPELGANGER]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 0,
@@ -383,14 +365,12 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.SOHOTHIN_BLOSSOM]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 5,
     initiativeCost: 0,
     effects: []
   },
   [ID.THROW_GUNK_ID_45094]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -406,14 +386,12 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.LIFT_PIN]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
     effects: []
   },
   [ID.HOOKED_SPEAR]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 3,
@@ -436,7 +414,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.BURST_OF_SHADOWS]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 1,
     initiativeCost: 0,
@@ -456,7 +433,6 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.LIFT_PIN_HERO_CHALLENGE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,

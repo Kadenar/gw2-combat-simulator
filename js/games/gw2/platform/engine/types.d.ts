@@ -424,7 +424,6 @@ export interface Skill extends CatalogSkill {
   readonly resource?: unknown;
   /** Amount of the resource selected by the consuming profession mechanic. */
   readonly resourceGain?: number;
-  readonly implemented?: boolean;
 }
 
 /**

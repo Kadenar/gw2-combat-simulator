@@ -1,10 +1,6 @@
 import { createNativeModuleData } from '#gw2/integrations/patches/authoring/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import {
-  createFlipParentMap,
-  createSpecializationSkillOwners,
-  defineProfessionWeapons
-} from '#gw2/content/professions/lib/catalog-data.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/content/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/content/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/necromancer/data/necromancer-api-metadata.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
@@ -69,7 +65,6 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
           patchAuthoringExcluded: true
         }
       : {}),
-    implemented: false,
     effects: []
   };
 });
@@ -78,8 +73,6 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
   Scourge: [ID.MANIFEST_SAND_SHADE]
 });
-
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh',
@@ -141,7 +134,6 @@ export function createNecromancerModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core' ? WEAPON_DATA : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });

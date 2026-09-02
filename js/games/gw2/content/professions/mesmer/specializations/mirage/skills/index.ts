@@ -9,7 +9,6 @@ import type { MesmerSkill } from '#gw2/content/professions/mesmer/data/types.js'
 
 export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.FALSE_OASIS]: {
-    implemented: true,
     type: 'Heal',
     weapon: '',
     specialization: 'Mirage',
@@ -28,7 +27,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     effects: []
   },
   [ID.CRYSTAL_SANDS]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
@@ -64,7 +62,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     ]
   },
   [ID.MIRAGE_ADVANCE]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
@@ -82,7 +79,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     ]
   },
   [ID.SAND_THROUGH_GLASS]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
@@ -99,7 +95,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     effects: []
   },
   [ID.ILLUSIONARY_AMBUSH]: {
-    implemented: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
@@ -115,7 +110,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     effects: []
   },
   [ID.JAUNT]: {
-    implemented: true,
     type: 'Elite',
     weapon: '',
     specialization: 'Mirage',
@@ -146,56 +140,48 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
     quicknessCastTimeMs: 720,
     cooldown: 1,
     ambush: true,
-    implemented: true,
     effects: []
   },
   [ID.ETHER_BARRAGE]: {
     castTimeMs: 1500,
     cooldown: 1,
     ambush: true,
-    implemented: true,
     effects: []
   },
   [ID.SPLIT_SURGE]: {
     quicknessCastTimeMs: 960,
     cooldown: 0.5,
     ambush: true,
-    implemented: true,
     effects: []
   },
   [ID.IMAGINARY_AXES]: {
     quicknessCastTimeMs: 440,
     cooldown: 1,
     ambush: true,
-    implemented: true,
     effects: []
   },
   [ID.MIRAGE_THRUST]: {
     quicknessCastTimeMs: 500,
     cooldown: 1,
     ambush: true,
-    implemented: true,
     effects: []
   },
   [ID.PHANTOM_RAZOR]: {
     quicknessCastTimeMs: 600,
     cooldown: 1,
     ambush: true,
-    implemented: true,
     effects: []
   },
   [ID.EFFERVESCENCE]: {
     quicknessCastTimeMs: 166.666666667,
     cooldown: 1,
     ambush: true,
-    implemented: true,
     effects: []
   },
   [ID.FRACTURED_GLASS]: {
     quicknessCastTimeMs: 880,
     cooldown: 1,
     ambush: true,
-    implemented: true,
     effects: []
   }
 });
@@ -214,7 +200,6 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: 'castStart',
     cooldown: 10,
     ammo: 2,
-    implemented: true,
     // Mirage dodge grants cloak and resolves dodge-triggered Mirage traits at completion.
     mechanicTriggers: [
       {
@@ -234,7 +219,6 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     specialization: 'Mirage',
     castTimeMs: 0,
     cooldown: 0,
-    implemented: true,
     // Picking up the action consumes the available ground mirror at cast completion.
     mechanicTriggers: [
       {

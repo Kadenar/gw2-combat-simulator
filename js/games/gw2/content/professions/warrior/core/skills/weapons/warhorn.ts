@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHARGE]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -22,7 +21,6 @@ export const WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.CALL_OF_VALOR]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {

@@ -1,10 +1,6 @@
 import { createNativeModuleData } from '#gw2/integrations/patches/authoring/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import {
-  createFlipParentMap,
-  createSpecializationSkillOwners,
-  defineProfessionWeapons
-} from '#gw2/content/professions/lib/catalog-data.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/content/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/content/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/ranger/data/ranger-api-metadata.js';
 import { RANGER_PET_SKILLS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
@@ -72,8 +68,6 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   Galeshot: GALESHOT_PROFESSION_SKILLS
 });
 
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
-
 // Normalize generated Ranger skill metadata and handler defaults before the
 // catalog freezes specialization module data.
 function normalize(skill: RangerSkill): RangerSkill {
@@ -113,7 +107,6 @@ const generated = allSkills.map((skill) => ({
         patchAuthoringExcluded: true
       }
     : {}),
-  implemented: false,
   effects: []
 }));
 
@@ -145,7 +138,6 @@ export function createRangerModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }

@@ -68,7 +68,6 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
 
 export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ICERAZORS_IRE]: {
-    implemented: true,
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 520,
@@ -119,7 +118,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.DARKRAZORS_DARING]: {
-    implemented: true,
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 500,
@@ -160,7 +158,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.DISMISS_LIEUTENANT_SOULCLEAVE]: {
-    implemented: true,
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
@@ -171,7 +168,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.CITADEL_BOMBARDMENT]: {
-    implemented: true,
     castTimeMs: 600,
     unaffectedByQuickness: true,
     cooldown: 15,
@@ -217,7 +213,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ]
   },
   [ID.RAZORCLAWS_RAGE]: {
-    implemented: true,
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 500,
@@ -227,7 +222,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.HEROIC_COMMAND]: {
-    implemented: true,
     // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.heroic-command',
     castTimeMs: 500,
@@ -244,7 +238,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ]
   },
   [ID.ORDERS_FROM_ABOVE]: {
-    implemented: true,
     // Custom: Builds Orders from Above boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.orders-from-above',
     castTimeMs: 0,
@@ -265,7 +258,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ]
   },
   [ID.BREAKRAZORS_BASTION]: {
-    implemented: true,
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 750,
@@ -275,7 +267,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.SOULCLEAVES_SUMMIT]: {
-    implemented: true,
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 500,
@@ -289,7 +280,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.ICERAZORS_IRE_ID_72359]: {
-    implemented: true,
     simulatorExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
@@ -343,7 +333,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.RAZORCLAWS_RAGE_ID_72363]: {
-    implemented: true,
     simulatorExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
@@ -365,7 +354,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.DARKRAZORS_DARING_ID_72366]: {
-    implemented: true,
     simulatorExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
@@ -409,7 +397,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.BREAKRAZORS_BASTION_ID_72389]: {
-    implemented: true,
     simulatorExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
@@ -420,14 +407,12 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     legendId: 'LegendaryRenegade'
   },
   [ID.LEGENDARY_RENEGADE_STANCE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: []
   },
   [ID.CALL_OF_THE_RENEGADE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -456,7 +441,6 @@ function triggeredRenegadeAction(skill: Skill): Skill {
     slot: 'Action',
     slotSelectable: false,
     specialization: 'Renegade',
-    implemented: true,
     simulatorExcluded: true,
     cooldown: 0,
     effects: [],

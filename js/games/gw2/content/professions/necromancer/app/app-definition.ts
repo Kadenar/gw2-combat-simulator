@@ -28,7 +28,7 @@ export const necromancerAppAdapter = defineProfessionApp({
   },
   // Keep trait-replaced scepter skills mutually exclusive in the browser catalog.
   isSkillAvailable(skill, context = {}) {
-    if (skill.implemented === false || skill.simulatorExcluded) return false;
+    if (skill.simulatorExcluded) return false;
     const lingeringCurse = getActiveTraits(context.build?.specializations || []).some(
       (trait) => trait.name === 'Lingering Curse'
     );

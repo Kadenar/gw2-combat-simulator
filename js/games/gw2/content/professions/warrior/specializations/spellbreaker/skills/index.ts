@@ -3,7 +3,6 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/i
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SILENCER]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -25,7 +24,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.EARTHSHAKER_ID_40601]: {
-    implemented: true,
     skillWeapon: 'Hammer',
     cooldown: 8,
     effects: [
@@ -60,12 +58,10 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.NATURAL_HEALING]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 667
   },
   [ID.SKULL_CRACK_ID_41110]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -86,7 +82,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.BOON_CRUSHER]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -103,7 +98,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.FORCEFUL_SHOT_ID_41330]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -119,7 +113,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.WOUNDING_STRIKE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -147,7 +140,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.WHIRLING_STRIKE_ID_41746]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -168,7 +160,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.IMMINENT_THREAT]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -183,7 +174,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.ARCING_SLICE_ID_42707]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -212,7 +202,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.COMBUSTIVE_SHOT_ID_42803]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -235,7 +224,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.BREAK_ENCHANTMENTS]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -253,7 +241,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 167
   },
   [ID.FLEETING_STABILITY]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -274,7 +261,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.EVISCERATE_ID_43566]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -296,12 +282,10 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.SIGHT_BEYOND_SIGHT]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 333
   },
   [ID.FULL_COUNTER]: {
-    implemented: true,
     // The counterattack only occurs after absorbing an incoming attack. The
     // benchmark target never attacks, so activation alone has no effects.
     effects: [],
@@ -313,7 +297,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.full-counter'
   },
   [ID.DISSONANCE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -335,7 +318,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
     interruptCommitMs: 0,
-    implemented: true,
     comboFields: [
       {
         ownerId: 'warrior',
@@ -369,7 +351,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 1000
   },
   [ID.FEATHERFOOT_GRACE]: {
-    implemented: true,
     effects: [
       {
         type: 'boon',
@@ -387,7 +368,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 333
   },
   [ID.MAGEHUNTER_STRIKE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [
       {
@@ -403,7 +383,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.PATH_TO_VICTORY_ID_72089]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -425,7 +404,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.HARRIERS_TOSS_ID_73014]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',

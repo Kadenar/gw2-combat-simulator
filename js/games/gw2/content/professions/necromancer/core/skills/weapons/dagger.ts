@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DARK_PACT]: {
-    implemented: true,
     quicknessCastTimeMs: 680,
     effects: [
       {
@@ -26,7 +25,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     handlerId: 'necromancer.dark-pact'
   },
   [ID.NECROTIC_SLASH]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     effects: [
       {
@@ -38,7 +36,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.NECROTIC_STAB]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     effects: [
       {
@@ -51,7 +48,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     lifeForceGain: 4
   },
   [ID.NECROTIC_BITE]: {
-    implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -63,7 +59,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     lifeForceGain: 8
   },
   [ID.DEATHLY_SWARM]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -80,7 +75,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.ENFEEBLING_BLOOD]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     // The ground packet launches by 638 ms and must survive a weapon-swap cancel until its delayed impact.
     interruptCommitMs: 638,
@@ -110,7 +104,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.LIFE_SIPHON]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 560,
     effects: [
       {

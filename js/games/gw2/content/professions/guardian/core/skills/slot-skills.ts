@@ -4,22 +4,18 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RECEIVE_THE_LIGHT]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: []
   },
   [ID.ADVANCE]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.SAVE_YOURSELVES]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.BANE_SIGNET]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -34,12 +30,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SHELTER]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: []
   },
   [ID.HAMMER_OF_WISDOM]: {
-    implemented: true,
     castTimeMs: 250,
     effects: [
       {
@@ -54,12 +48,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SANCTUARY]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.SIGNET_OF_WRATH]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 18,
     effects: [
@@ -83,34 +75,28 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.HOLD_THE_LINE]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.STAND_YOUR_GROUND]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.RENEWED_FOCUS]: {
-    implemented: true,
     castTimeMs: 2000,
     // Custom: Refreshes all virtue cooldowns and readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.renewed-focus',
     effects: []
   },
   [ID.SIGNET_OF_RESOLVE]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: []
   },
   [ID.SIGNET_OF_MERCY]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.SWORD_OF_JUSTICE]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     // Can be interrupted at 400ms but retains lockout
     interruptCommitMs: 400,
@@ -142,12 +128,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.BOW_OF_TRUTH]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.PURGING_FLAMES]: {
-    implemented: true,
     quicknessCastTimeMs: 320,
     cooldown: 20,
     comboFields: [
@@ -207,12 +191,10 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MERCIFUL_INTERVENTION]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.JUDGES_INTERVENTION]: {
-    implemented: true,
     castTimeMs: 250,
     effects: [
       {
@@ -229,27 +211,22 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CONTEMPLATION_OF_PURITY]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.WALL_OF_REFLECTION]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.HALLOWED_GROUND]: {
-    implemented: true,
     castTimeMs: 250,
     effects: []
   },
   [ID.LITANY_OF_WRATH]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: []
   },
   [ID.FEEL_MY_WRATH]: {
-    implemented: true,
     quicknessCastTimeMs: 400,
     cooldown: 30,
     effects: [

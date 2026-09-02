@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TRICK_SHOT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -27,7 +26,6 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.CHOKING_GAS]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 4,
@@ -56,7 +54,6 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.INFILTRATORS_ARROW]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 6,
@@ -68,7 +65,6 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.CLUSTER_BOMB]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 3,
@@ -91,7 +87,6 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DETONATE_CLUSTER]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 0,
@@ -114,7 +109,6 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DISABLING_SHOT]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 4,
@@ -137,7 +131,6 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SURPRISE_SHOT]: {
-    implemented: true,
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
     castTimeMs: 250,

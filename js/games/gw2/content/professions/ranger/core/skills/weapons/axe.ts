@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RICOCHET]: {
-    implemented: true,
     interruptCommitMs: 320,
     effects: [
       {
@@ -35,7 +34,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     missileHits: 1
   },
   [ID.SPLITBLADE]: {
-    implemented: true,
     interruptCommitMs: 480,
     effects: [
       {
@@ -73,7 +71,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     missileHits: 5
   },
   [ID.WINTERS_BITE]: {
-    implemented: true,
     interruptCommitMs: 360,
     effects: [
       {
@@ -102,7 +99,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.PATH_OF_SCARS]: {
     interruptCommitMs: 360,
-    implemented: true,
     // Both range variants share the same weapon-slot recharge after completion.
     mechanicTriggers: [
       {
@@ -141,7 +137,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     missileHits: 2
   },
   [ID.WHIRLING_DEFENSE]: {
-    implemented: true,
     interruptMode: 'per-packet',
     effects: [
       {

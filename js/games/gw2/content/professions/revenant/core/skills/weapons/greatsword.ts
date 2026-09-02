@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIST_SLASH]: {
-    implemented: true,
     castTimeMs: 600,
     unaffectedByQuickness: true,
     cooldown: 0,
@@ -28,7 +27,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.MIST_UNLEASHED]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     cooldown: 3,
     energyCost: 5,
@@ -51,7 +49,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.ARCING_MISTS]: {
-    implemented: true,
     castTimeMs: 680,
     unaffectedByQuickness: true,
     cooldown: 0,
@@ -82,7 +79,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.TRUE_STRIKE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     energyCost: 0,
@@ -97,7 +93,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
-    implemented: true,
     quicknessCastTimeMs: 438,
     dashTimeMs: 38,
     hitDelayMs: 400,
@@ -129,7 +124,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.MIST_SWING]: {
-    implemented: true,
     castTimeMs: 400,
     unaffectedByQuickness: true,
     cooldown: 0,
@@ -145,7 +139,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.IMPERIAL_GUARD]: {
-    implemented: true,
     castTimeMs: 2000,
     unaffectedByQuickness: true,
     defaultInterruptMs: 80,
@@ -154,7 +147,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: []
   },
   [ID.ETERNITYS_REQUIEM]: {
-    implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 15,
     energyCost: 10,

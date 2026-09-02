@@ -48,7 +48,6 @@ export const NECROMANCER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
-    implemented: true,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     handlerId: 'necromancer.weapon-swap',
     effects: []
@@ -62,7 +61,6 @@ export const NECROMANCER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Profession_1',
     castTimeMs: 0,
     cooldown: 0,
-    implemented: true,
     // Custom: Enters or exits Lich Form and updates transform state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.lich',
     flipParentId: ID.LICH_FORM,

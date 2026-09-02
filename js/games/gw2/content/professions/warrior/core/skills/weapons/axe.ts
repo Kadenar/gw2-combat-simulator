@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHOP]: {
-    implemented: true,
     quicknessCastTimeMs: 167,
     effects: [
       {
@@ -15,7 +14,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DOUBLE_CHOP]: {
-    implemented: true,
     quicknessCastTimeMs: 167,
     effects: [
       {
@@ -33,7 +31,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.TRIPLE_CHOP]: {
-    implemented: true,
     quicknessCastTimeMs: 1000,
     effects: [
       {
@@ -51,7 +48,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.THROW_AXE]: {
-    implemented: true,
     ammo: 2,
     ammoRecharge: 10,
     cooldown: 10,
@@ -73,7 +69,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.WHIRLING_AXE]: {
-    implemented: true,
     interruptMode: 'per-packet',
     cooldown: 15,
     quicknessCastTimeMs: 2500,
@@ -99,7 +94,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DUAL_STRIKE]: {
-    implemented: true,
     cooldown: 12,
     castTimeMs: 500,
     dualWieldCastTimeMs: 400,
@@ -125,7 +119,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.CYCLONE_AXE]: {
-    implemented: true,
     cooldown: 6,
     quicknessCastTimeMs: 400,
     dualWieldCastTimeMs: 280,

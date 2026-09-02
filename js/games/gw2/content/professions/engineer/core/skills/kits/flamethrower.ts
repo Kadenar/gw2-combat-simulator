@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Flamethrower. */
 export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.FLAMETHROWER]: {
-    implemented: true,
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
@@ -14,7 +13,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kitName: 'Flamethrower'
   },
   [ID.FLAME_JET]: {
-    implemented: true,
     castTimeMs: 2570,
     cooldown: 0,
     effects: [
@@ -37,7 +35,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.NAPALM]: {
-    implemented: true,
     quicknessCastTimeMs: 1760,
     cooldown: 25,
     // Napalm fires independent volleys, so interruption retains only packets launched before the cutoff.
@@ -86,7 +83,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.AIR_BLAST]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     cooldown: 15,
     effects: [
@@ -107,7 +103,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.FLAME_BLAST]: {
-    implemented: true,
     quicknessCastTimeMs: 800,
     cooldown: 6,
     // Flame Blast launches its blast finisher around 480 ms, but a committed cancel keeps the serial lane locked through the full animation.
@@ -144,7 +139,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.STOW_FLAMETHROWER]: {
-    implemented: true,
     // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-stow',
     paletteFlip: false,
@@ -154,7 +148,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.SMOKE_VENT]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 15,
     effects: [
@@ -166,7 +159,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     toolbeltParentName: 'Flamethrower'
   },
   [ID.STOKE_THE_FLAMES]: {
-    implemented: true,
     quicknessCastTimeMs: 440,
     cooldown: 20,
     comboFields: [

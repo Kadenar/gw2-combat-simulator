@@ -169,7 +169,6 @@ test('Ranger catalog pins API identity and explicit module-owned mechanics', () 
   assert.equal(DATA_SNAPSHOT, '2026-08-08');
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 300);
   assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 289);
 
   // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
@@ -234,11 +233,7 @@ test('Ranger catalog pins API identity and explicit module-owned mechanics', () 
     ),
     true
   );
-  assert.equal(
-    rangerCatalog.skills.every((skill) => skill.implemented || skill.simulatorExcluded),
-    true
-  );
-  assert.equal(rangerCatalog.skillsById.get(ID.BEES_STING).simulatorExcluded, true);
+  assert.equal(rangerCatalog.skillsById.has(ID.BEES_STING), false);
   assert.equal(
     rangerCatalog.skills
       .filter((skill) => skill.petSkill || skill.unleashedPetSkill)

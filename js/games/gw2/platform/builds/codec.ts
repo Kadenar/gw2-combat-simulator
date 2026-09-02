@@ -469,7 +469,7 @@ function selectableSlotSkill(
   selectedSpecializations: ReadonlySet<string> | null = null
 ): boolean {
   return Boolean(
-    skill?.implemented &&
+    skill &&
     skill.slotSelectable !== false &&
     !skill.simulatorExcluded &&
     skill.type === type &&

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LINE_BREAKER]: {
-    implemented: true,
     quicknessCastTimeMs: 1167,
     effects: [
       {
@@ -28,7 +27,6 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.DEFIANT_ROAR]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 10,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
@@ -43,7 +41,6 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.REVERSE_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -54,7 +51,6 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.VALIANT_LEAP]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
@@ -80,7 +76,6 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.BALANCED_STRIKE]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -91,7 +86,6 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SNAP_PULL]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -112,7 +106,6 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.INSPIRING_WHIRL]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {

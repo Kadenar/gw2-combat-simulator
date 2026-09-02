@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Bomb Kit. */
 export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.BOMB_KIT]: {
-    implemented: true,
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
@@ -15,7 +14,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.BIG_OL_BOMB]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 20,
     comboFinishers: [
@@ -52,7 +50,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.GALVANIC_BOMB]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 16,
     comboFinishers: [
@@ -95,7 +92,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     kit: 'Bomb Kit'
   },
   [ID.FIRE_BOMB]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     interruptCommitMs: 400,
     cooldown: 8,
@@ -144,7 +140,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     kit: 'Bomb Kit'
   },
   [ID.SMOKE_BOMB_ENGINEER_SKILL]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 20,
     effects: [
@@ -157,7 +152,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.BOMB]: {
     interruptCommitMs: 0,
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     effects: [
@@ -175,7 +169,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     kit: 'Bomb Kit'
   },
   [ID.STOW_BOMB_KIT]: {
-    implemented: true,
     // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     handlerId: 'engineer.kit-stow',
     paletteFlip: false,
@@ -186,7 +179,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.MAGNETIC_BOMB]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 20,
     effects: [

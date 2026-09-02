@@ -3,7 +3,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SPEAR_OF_JUSTICE]: {
-    implemented: true,
     quicknessCastTimeMs: 560,
     cooldown: 20,
     // Custom: Tracks the tether, decorates its strike, and schedules justice pulses; see `dragonhunter/skills/execution.ts`.
@@ -25,7 +24,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.PURIFICATION]: {
-    implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -41,14 +39,12 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.SHIELD_OF_COURAGE]: {
-    implemented: true,
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.WINGS_OF_RESOLVE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 25,
     // Custom: Runs the core virtue transition plus Dragonhunter virtue traits; see `dragonhunter/skills/execution.ts`.
@@ -56,7 +52,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: []
   },
   [ID.DRAGONS_MAW]: {
-    implemented: true,
     castTimeMs: 660,
     effects: [
       {
@@ -87,7 +82,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.PROCESSION_OF_BLADES]: {
-    implemented: true,
     castTimeMs: 660,
     effects: [
       {
@@ -102,7 +96,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.FRAGMENTS_OF_FAITH]: {
-    implemented: true,
     castTimeMs: 250,
     effects: [
       {
@@ -113,7 +106,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.HUNTERS_VERDICT]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 40,
     // Custom: Breaks the active Spear of Justice tether and cancels later pulses; see `dragonhunter/skills/execution.ts`.

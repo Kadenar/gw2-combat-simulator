@@ -12,7 +12,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 
-const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extras });
+const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
 // These fixtures keep only the cast dependencies needed to prove each
 // profession hook without pinning either supplied report's full rotation.

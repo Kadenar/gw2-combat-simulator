@@ -10,7 +10,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.NEFARIOUS_FAVOR]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
@@ -19,7 +18,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.shade'
   },
   [ID.SERPENT_SIPHON]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -39,7 +37,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.barrier'
   },
   [ID.GHASTLY_BREACH]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [
       {
@@ -63,7 +60,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.DESICCATE]: {
-    implemented: true,
     castTimeMs: 500,
     effects: [
       {
@@ -81,7 +77,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     lifeForceGain: 12
   },
   [ID.SAND_FLARE]: {
-    implemented: true,
     castTimeMs: 1000,
     effects: [
       {
@@ -95,7 +90,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.barrier'
   },
   [ID.SAND_CASCADE]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
@@ -104,7 +98,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.shade'
   },
   [ID.GARISH_PILLAR]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
@@ -113,7 +106,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.shade'
   },
   [ID.DESERT_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
@@ -123,7 +115,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     flipSkillId: null
   },
   [ID.MANIFEST_SAND_SHADE]: {
-    implemented: true,
     quicknessCastTimeMs: 480,
     effects: [],
     cooldown: 15,
@@ -134,7 +125,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.shade'
   },
   [ID.SANDSTORM_SHROUD]: {
-    implemented: true,
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',

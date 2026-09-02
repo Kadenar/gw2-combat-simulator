@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.THROW_GUNK]: {
-    implemented: true,
     // Custom: Consumes the currently stored stolen skill; see `core/mechanics/steal.ts`.
     handlerId: 'thief.stolen-skill',
     castTimeMs: 500,
@@ -22,7 +21,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.BONE_CRACK]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 0,
@@ -44,7 +42,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.BRANCH_BASH]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -60,7 +57,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.BRANCH_LEAP]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -76,14 +72,12 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.DRINK_STOLEN_SKILL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
     effects: []
   },
   [ID.THROW_CHAIN]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -106,7 +100,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.CLUB_SHOCK_WAVE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -128,7 +121,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_CORAL_SHARD]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -158,7 +150,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_CRYSTAL_SHARD_STOLEN_SKILL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -188,7 +179,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.CONSUME_PLASMA]: {
-    implemented: true,
     // Custom: Consumes the currently stored stolen skill; see `core/mechanics/steal.ts`.
     handlerId: 'thief.stolen-skill',
     castTimeMs: 1000,
@@ -270,14 +260,12 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.EAT_EGG]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
     effects: []
   },
   [ID.THROW_FEATHERS]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 6,
     initiativeCost: 0,
@@ -295,7 +283,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_GEAR_STOLEN_SKILL]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 0,
@@ -317,7 +304,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.ICE_SHARD_STAB]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -340,7 +326,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_LAVA_ROCK]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -363,7 +348,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.MACE_HEAD_CRACK]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 0,
@@ -379,7 +363,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SHOOT_RIFLE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -408,7 +391,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_ROCK_STOLEN_SKILL_KNOCKDOWN]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 0,
@@ -430,7 +412,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.RUSTY_SCRAP_STRIKE]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -467,7 +448,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_SCALE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -504,7 +484,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.USE_SCEPTER]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -541,7 +520,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HEALING_SEED]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 15,
     initiativeCost: 0,
@@ -555,14 +533,12 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SKULL_FEAR]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
     effects: []
   },
   [ID.USE_STAFF]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -599,7 +575,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.TOOTH_STAB]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -622,7 +597,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.BLINDING_TUFT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -640,7 +614,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.EXPLODING_VENOM_SACK]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -655,7 +628,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_VINE_STOLEN_SKILL]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -678,7 +650,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_ROCK_STOLEN_SKILL_DAZE]: {
-    implemented: true,
     castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 0,
@@ -700,7 +671,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.WHIRLING_AXE]: {
-    implemented: true,
     // Custom: Consumes the currently stored stolen skill; see `core/mechanics/steal.ts`.
     handlerId: 'thief.stolen-skill',
     castTimeMs: 3250,
@@ -718,7 +688,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.WHIRLING_STRIKE]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -734,7 +703,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_NET]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -749,7 +717,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.STEAL]: {
-    implemented: true,
     stealTraitSkill: true,
     movementSkill: true,
     // Custom: Runs steal traits, grants a stored stolen skill, and updates steal state; see `core/mechanics/steal.ts`.
@@ -760,7 +727,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: []
   },
   [ID.STEAL_ID_13109]: {
-    implemented: true,
     movementSkill: true,
     castTimeMs: 0,
     cooldown: 25,
@@ -768,7 +734,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: []
   },
   [ID.THROW_GUNK_ID_16460]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -784,7 +749,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.ESSENCE_SAP]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -807,7 +771,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SOUL_STONE_VENOM]: {
-    implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -823,7 +786,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.DETONATE_PLASMA]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -899,7 +861,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_MAGNETIC_BOMB]: {
-    implemented: true,
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
@@ -924,7 +885,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.UNSTABLE_ARTIFACT]: {
-    implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 0,
@@ -947,7 +907,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_ENCHANTED_ICE]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -975,7 +934,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_UNSTABLE_REAGENT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -1004,14 +962,12 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.BLESSING_SEED]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
     effects: []
   },
   [ID.DRINK_AMBROSIA]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
@@ -1037,7 +993,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.TIME_IN_A_BOTTLE]: {
-    implemented: true,
     castTimeMs: 1250,
     cooldown: 0,
     initiativeCost: 0,
@@ -1057,7 +1012,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_CURSED_ARTIFACT]: {
-    implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,

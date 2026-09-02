@@ -159,7 +159,6 @@ function selectableCandidates(
     (skill) =>
       Number(skill.loadoutSkillId ?? skill.id) === skillId &&
       skill.type === type &&
-      skill.implemented !== false &&
       skill.slotSelectable !== false &&
       skill.flipParentId == null &&
       (!skill.specialization || selectedSpecializations.has(skill.specialization))

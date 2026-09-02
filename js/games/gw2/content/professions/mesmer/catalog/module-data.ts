@@ -1,5 +1,5 @@
 import { createNativeModuleData } from '#gw2/integrations/patches/authoring/catalog.js';
-import { createSpecializationSkillOwners, defineProfessionWeapons } from '#gw2/content/professions/lib/catalog-data.js';
+import { defineProfessionWeapons } from '#gw2/content/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/content/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/mesmer/data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/mesmer/data/mesmer-supplemental-skills.js';
@@ -18,7 +18,6 @@ import type { NativeCatalogOptions } from '#gw2/integrations/patches/authoring/m
 
 const generated: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS].map((skill) => ({
   ...skill,
-  implemented: false,
   effects: []
 }));
 
@@ -37,8 +36,6 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   ],
   Troubadour: [ID.TROUBADOUR_BLADECALL, ID.DODGE_TROUBADOUR]
 });
-
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh',
@@ -134,7 +131,6 @@ export function createMesmerModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }

@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HAMSTRING]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 400,
     dualWieldCastTimeMs: 320,
     effects: [
@@ -33,7 +32,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SEVER_ARTERY]: {
-    implemented: true,
     quicknessCastTimeMs: 360,
     dualWieldCastTimeMs: 280,
     effects: [
@@ -52,7 +50,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.GASH]: {
-    implemented: true,
     quicknessCastTimeMs: 520,
     dualWieldCastTimeMs: 360,
     // Gash lands its strike at 280ms, but the activation is not safely
@@ -75,7 +72,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SAVAGE_LEAP]: {
-    implemented: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -106,12 +102,10 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.RIPOSTE]: {
-    implemented: true,
     quicknessCastTimeMs: 1500,
     effects: []
   },
   [ID.IMPALE]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -138,7 +132,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.RIP]: {
-    implemented: true,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -155,7 +148,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ADRENALINE_RUSH]: {
-    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineGain: 3,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
@@ -170,7 +162,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.REND]: {
     interruptCommitMs: 0,
-    implemented: true,
     quicknessCastTimeMs: 960,
     dualWieldCastTimeMs: 720,
     effects: [

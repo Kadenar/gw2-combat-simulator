@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WE_WILL_NEVER_YIELD]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 667,
     categories: ['Command'],
@@ -12,7 +11,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'warrior.command'
   },
   [ID.WE_SHALL_RETURN]: {
-    implemented: true,
     cooldown: 20,
     effects: [],
     quicknessCastTimeMs: 667,
@@ -21,7 +19,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'warrior.command'
   },
   [ID.CHANT_OF_RECUPERATION]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 167,
     adrenalineCost: 10,
@@ -32,7 +29,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'warrior.chant'
   },
   [ID.FIND_THEIR_WEAKNESS]: {
-    implemented: true,
     cooldown: 15,
     effects: [
       {
@@ -59,7 +55,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'warrior.command'
   },
   [ID.ON_YOUR_KNEES]: {
-    implemented: true,
     cooldown: 15,
     effects: [
       {
@@ -86,7 +81,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'warrior.command'
   },
   [ID.CHANT_OF_FREEDOM]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 167,
     adrenalineCost: 10,
@@ -97,7 +91,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'warrior.chant'
   },
   [ID.CHANT_OF_ACTION]: {
-    implemented: true,
     effects: [],
     quicknessCastTimeMs: 167,
     adrenalineCost: 10,
