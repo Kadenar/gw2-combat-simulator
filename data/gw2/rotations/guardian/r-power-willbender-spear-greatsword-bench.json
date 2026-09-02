@@ -4,232 +4,856 @@
     "benchmarkDurationSeconds": 93.362,
     "benchmarkDamage": 3986756,
     "benchmarkDps": 42702.127,
-    "simulatedDps": 42975.39215058954,
-    "timingSource": "ArcDPS EVTC animation activations and weapon swaps",
+    "simulatedDps": 42687.53533494931,
+    "timingSource": "ArcDPS EVTC animation activations, state changes, direct instant-skill effects, and weapon swaps",
     "castTimeQuantizationMs": 40,
-    "note": "Sword of Justice is inferred as a pre-cast from its four opening damage packets. Rushing Justice begins 209 ms before combat; paired Rushing Justice and Daybreaking Slash animation records are represented as one simulator cast each. Cancelled autoattacks are omitted and their elapsed animation time is represented as waits."
+    "note": "Direct EVTC reconstruction retains observed waits and committed interrupt timings so the saved replay preserves the benchmark's damage window."
   },
   "rotation": [
-    "Sword of Justice",
+    {
+      "name": "Flowing Resolve",
+      "skillId": 62603
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
     {
       "name": "Rushing Justice",
-      "skillId": 62668,
-      "offset": 441
+      "skillId": 62668
     },
     {
       "name": "__combat_start",
-      "offset": 209
+      "offset": 160
     },
-    "Symbol of Luminance",
-    "Helio Rush",
-    "Gleaming Disc",
-    "Solar Storm",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Leap of Faith",
+    {
+      "name": "Symbol of Luminance",
+      "skillId": 73132
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 320
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 240
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
     {
       "name": "Crashing Courage",
       "skillId": 62648
     },
-    "Binding Blade",
-    "Flash Combo",
-    "Symbol of Resolution",
-    "Sword of Justice",
-    "Whirling Wrath",
+    {
+      "name": "Binding Blade",
+      "skillId": 9147
+    },
+    {
+      "name": "Flash Combo",
+      "skillId": 62608
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Sword of Justice",
-    "Leap of Faith",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Swap Weapons",
-    "Helio Rush",
-    "Solar Storm",
-    "Flowing Resolve",
-    "Gleaming Disc",
-    "Symbol of Luminance",
-    "Sword of Justice",
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Strike",
+      "skillId": 9137
+    },
+    {
+      "name": "Vengeful Strike",
+      "skillId": 9138
+    },
+    {
+      "name": "Wrathful Strike",
+      "skillId": 9139,
+      "interruptMs": 520
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 240
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 360
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
+    {
+      "name": "Flowing Resolve",
+      "skillId": 62603
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
+    {
+      "name": "Symbol of Luminance",
+      "skillId": 73132
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Helio Rush",
-    "Heaven's Palm",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Helio Rush",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Flowing Resolve",
-    "Gleaming Disc",
-    "Helio Rush",
-    "Solar Storm",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 360
+    },
+    {
+      "name": "Heaven's Palm",
+      "skillId": 62561
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 520
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 400
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 360
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 480
+    },
+    {
+      "name": "Flowing Resolve",
+      "skillId": 62603
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 400
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Flash Combo",
-    "Binding Blade",
-    "Leap of Faith",
-    "Symbol of Resolution",
+    {
+      "name": "Flash Combo",
+      "skillId": 62608
+    },
+    {
+      "name": "Binding Blade",
+      "skillId": 9147
+    },
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 280
+    },
     {
       "name": "Crashing Courage",
       "skillId": 62648
     },
-    "Whirling Wrath",
-    "Sword of Justice",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Leap of Faith",
-    "Symbol of Resolution",
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
+    {
+      "name": "Strike",
+      "skillId": 9137
+    },
+    {
+      "name": "Vengeful Strike",
+      "skillId": 9138
+    },
+    {
+      "name": "Wrathful Strike",
+      "skillId": 9139,
+      "interruptMs": 560
+    },
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 280
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Whirling Wrath",
-    "Swap Weapons",
-    "Helio Rush",
-    "Solar Storm",
-    "Flowing Resolve",
-    "Gleaming Disc",
-    "Symbol of Luminance",
-    "Helio Rush",
-    "Sword of Justice",
-    "Heaven's Palm",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Helio Rush",
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 320
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Flowing Resolve",
+      "skillId": 62603
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
+    {
+      "name": "Symbol of Luminance",
+      "skillId": 73132
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 280
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
+    {
+      "name": "Heaven's Palm",
+      "skillId": 62561
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 520
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 480
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 360
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Flash Combo",
-    "Daybreaking Slash",
-    "Flowing Resolve",
-    "Gleaming Disc",
-    "Helio Rush",
-    "Solar Storm",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Leap of Faith",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Binding Blade",
+    {
+      "name": "Flash Combo",
+      "skillId": 62608
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 480
+    },
+    {
+      "name": "Flowing Resolve",
+      "skillId": 62603
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 280
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Strike",
+      "skillId": 9137
+    },
+    {
+      "name": "Vengeful Strike",
+      "skillId": 9138
+    },
+    {
+      "name": "Wrathful Strike",
+      "skillId": 9139,
+      "interruptMs": 560
+    },
+    {
+      "name": "Binding Blade",
+      "skillId": 9147
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Sword of Justice",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
     {
       "name": "Crashing Courage",
       "skillId": 62648
     },
-    "Leap of Faith",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Swap Weapons",
-    "Helio Rush",
-    "Solar Storm",
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "Strike",
+      "skillId": 9137
+    },
+    {
+      "name": "Vengeful Strike",
+      "skillId": 9138
+    },
+    {
+      "name": "Wrathful Strike",
+      "skillId": 9139,
+      "interruptMs": 560
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 280
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 320
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Gleaming Disc",
-    "Flash Combo",
-    "Symbol of Luminance",
-    "Helio Rush",
-    "Heaven's Palm",
-    "Daybreaking Slash",
-    "Sword of Justice",
-    "Flowing Resolve",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Helio Rush",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
     {
-      "type": "wait",
-      "durationMs": 360
+      "name": "Gleaming Disc",
+      "skillId": 72978
     },
-    "Gleaming Disc",
+    {
+      "name": "Flash Combo",
+      "skillId": 62608
+    },
+    {
+      "name": "Symbol of Luminance",
+      "skillId": 73132
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 360
+    },
+    {
+      "name": "Heaven's Palm",
+      "skillId": 62561
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 520
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
+    {
+      "name": "Flowing Resolve",
+      "skillId": 62603
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 400
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 520
+    },
+    {
+      "name": "__wait",
+      "waitMs": 320
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Helio Rush",
-    "Solar Storm",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Leap of Faith",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Binding Blade",
-    "Symbol of Resolution",
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 280
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 240
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Strike",
+      "skillId": 9137
+    },
+    {
+      "name": "Vengeful Strike",
+      "skillId": 9138
+    },
+    {
+      "name": "Wrathful Strike",
+      "skillId": 9139,
+      "interruptMs": 600
+    },
+    {
+      "name": "Binding Blade",
+      "skillId": 9147
+    },
+    {
+      "name": "__wait",
+      "waitMs": 280
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 280
+    },
     {
       "name": "Crashing Courage",
       "skillId": 62648
     },
-    "Whirling Wrath",
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Sword of Justice",
-    "Flash Combo",
-    "Leap of Faith",
-    "Symbol of Resolution",
-    "Strike",
-    "Whirling Wrath",
-    "Swap Weapons",
-    "Helio Rush",
-    "Solar Storm",
-    "Flowing Resolve",
-    "Gleaming Disc",
-    "Symbol of Luminance",
-    "Helio Rush",
-    "Sword of Justice",
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
+    {
+      "name": "Flash Combo",
+      "skillId": 62608
+    },
+    {
+      "name": "Leap of Faith",
+      "skillId": 9080
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Symbol of Resolution",
+      "skillId": 9146,
+      "interruptMs": 240
+    },
+    {
+      "name": "Strike",
+      "skillId": 9137
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 400
+    },
+    {
+      "name": "Solar Storm",
+      "skillId": 73094
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Flowing Resolve",
+      "skillId": 62603
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
+    {
+      "name": "Symbol of Luminance",
+      "skillId": 73132
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 320
+    },
+    {
+      "name": "Sword of Justice",
+      "skillId": 9168
+    },
     {
       "name": "Rushing Justice",
       "skillId": 62668
     },
-    "Heaven's Palm",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Helio Rush",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Daybreaking Slash",
-    "Gleaming Disc",
-    "Helio Rush",
     {
-      "type": "wait",
-      "durationMs": 560
+      "name": "Heaven's Palm",
+      "skillId": 62561
     },
     {
-      "type": "wait",
-      "durationMs": 400
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 520
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 280
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 520
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055
+    },
+    {
+      "name": "Daybreaking Slash",
+      "skillId": 73055,
+      "interruptMs": 440
+    },
+    {
+      "name": "Gleaming Disc",
+      "skillId": 72978
+    },
+    {
+      "name": "Helio Rush",
+      "skillId": 72940,
+      "interruptMs": 320
     }
   ]
 }
