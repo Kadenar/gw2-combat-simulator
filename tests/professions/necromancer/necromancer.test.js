@@ -659,6 +659,17 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
   assert.equal(lifeReap.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_REAP).length, 0);
 });
 
+test('Gravedigger retains its full skill lockout after its strike commits', () => {
+  const result = simulate('Reaper', [{ name: 'Gravedigger', interruptMs: 840 }, 'Dusk Strike'], {
+    boons: { quickness: true },
+    primaryWeapon: 'Greatsword'
+  });
+
+  assert.equal(result.steps[0].end, 840);
+  assert.equal(result.steps[0].castLockoutEnd, 1080);
+  assert.equal(result.steps[1].start, 1080);
+});
+
 test('Dark Barrage interruption retains only the channel packets that have landed', () => {
   const run = (interruptMs) =>
     simulate('Harbinger', ['Harbinger Shroud', { name: 'Dark Barrage', interruptMs }], {

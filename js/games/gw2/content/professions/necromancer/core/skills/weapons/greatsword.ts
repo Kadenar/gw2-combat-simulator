@@ -119,8 +119,9 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.GRAVEDIGGER]: {
     quicknessCastTimeMs: 1080,
-    // Once the strike lands, weapon swaps may safely cancel the remaining Gravedigger aftercast.
+    // The strike commits at 840 ms, but cancelling after it lands retains the full skill lockout.
     interruptCommitMs: 840,
+    retainsCastLockoutAfterInterrupt: true,
     // Completing Gravedigger resets its recharge once the target is below half health.
     mechanicTriggers: [
       {
