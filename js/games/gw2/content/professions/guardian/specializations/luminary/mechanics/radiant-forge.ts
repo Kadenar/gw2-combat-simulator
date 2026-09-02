@@ -80,10 +80,17 @@ export function radiantWeaponImpactAt(context: GuardianCastContext, skill: Guard
   return context.start + impactMs / 1000;
 }
 
-/** Records one completed radiant-weapon equip and rejects its autoattack flips. */
+/** Records one completed radiant-weapon equip and dismisses every other radiant weapon's flip. */
 export function recordRadiantWeaponEquipped(context: GuardianCastContext, skill: GuardianSkill): boolean {
   if (!skill.radiantWeapon || skill.flipParentId != null) return false;
   luminaryState.from(context).radiantWeaponsUsed[skill.radiantWeapon] = true;
+  const availableFlips = professionCoreState(context).availableFlips;
+  for (const flipId of Object.keys(availableFlips)) {
+    const flip = context.catalog.skillsById.get(Number(flipId));
+    if (flip?.radiantWeapon && flip.flipParentId != null && flip.id !== skill.flipSkillId) {
+      delete availableFlips[flipId];
+    }
+  }
   return true;
 }
 

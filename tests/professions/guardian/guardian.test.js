@@ -3453,6 +3453,14 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
       GUARDIAN_SKILL_IDS.RADIANT_BULWARK
     ]
   );
+  assert.deepEqual(
+    displayedIdsAfter(
+      ['Enter Radiant Forge', 'Dazzling Hammer', 'Luminous Staff'],
+      [GUARDIAN_SKILL_IDS.DAZZLING_HAMMER, GUARDIAN_SKILL_IDS.LUMINOUS_STAFF],
+      { specialization: 'Luminary' }
+    ),
+    [GUARDIAN_SKILL_IDS.DAZZLING_HAMMER, GUARDIAN_SKILL_IDS.RESTORATIVE_GLOW]
+  );
 
   const forgeSkillIds = guardianProfession.ui.paletteGroups({ specialization: 'Luminary' })[1].skillIds;
   assert.equal(
@@ -3936,6 +3944,36 @@ test('Radiant-weapon traits activate only after a completed equip cast', () => {
   assert.equal(interrupted.procSteps.filter((step) => step.skill === 'Empowered Armaments').length, 0);
   assert.deepEqual(completed.endState.profession.radiantWeaponsUsed, { hammer: true });
   assert.deepEqual(interrupted.endState.profession.radiantWeaponsUsed, {});
+});
+
+test('Radiant weapon equips replace the prior flip and preserve its parent cooldown', () => {
+  const weapons = [
+    ['Dazzling Hammer', GUARDIAN_SKILL_IDS.SHINING_SPIN],
+    ['Luminous Staff', GUARDIAN_SKILL_IDS.RESTORATIVE_GLOW],
+    ['Gleaming Blade', GUARDIAN_SKILL_IDS.LUCENT_THRUST],
+    ['Radiant Bulwark', GUARDIAN_SKILL_IDS.BRILLIANT_SLAM]
+  ];
+
+  for (const [index, [parent, flip]] of weapons.entries()) {
+    const [nextParent, nextFlip] = weapons[(index + 1) % weapons.length];
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Enter Radiant Forge', parent, nextParent],
+      config: { ...config, specialization: 'Luminary' }
+    });
+
+    assert.equal(result.endState.profession.availableFlips[flip], undefined, parent);
+    assert.ok(result.endState.profession.availableFlips[nextFlip], nextParent);
+    assert.ok(result.endState.cooldowns[parent].remaining > 0, parent);
+  }
+
+  const glaringBurst = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Enter Radiant Forge', 'Dazzling Hammer', 'Glaring Burst'],
+    config: { ...config, specialization: 'Luminary' }
+  });
+
+  assert.ok(glaringBurst.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.SHINING_SPIN]);
 });
 
 test('Guardian armaments share the additive sigil bucket', () => {

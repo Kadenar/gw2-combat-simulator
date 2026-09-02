@@ -223,9 +223,9 @@ export function paletteSkillView(
   const recharge =
     maximumAmmo && Number(skill.ammoRecharge || 0) > 0 ? Number(skill.ammoRecharge) : Number(skill.cooldown || 0);
   const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
-  // Keep the next recharge visible and use one hundredths-precision value for the badge and remaining tooltip.
-  const cooldownLabel =
-    ammo?.remaining || remaining ? `${(Number(ammo?.remaining || remaining) / 1000).toFixed(2)}s` : '';
+  // Show the cast lockout while disabled, then the next charge timer once usable; the tooltip reuses this precision.
+  const displayedRemaining = remaining || Number(ammo?.remaining || 0);
+  const cooldownLabel = displayedRemaining ? `${(displayedRemaining / 1000).toFixed(2)}s` : '';
   const unavailable = remaining > 0 || !contextAvailable;
   const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
@@ -241,7 +241,9 @@ export function paletteSkillView(
           .filter(Boolean)
           .join(' · ')
       : ammoDisplay
-        ? `${ammoDisplay.label}${ammo?.remaining ? ` · next charge in ${seconds(Number(ammo.remaining))}` : ''}`
+        ? `${ammoDisplay.label}${
+            displayedRemaining ? ` · ${remaining ? 'available' : 'next charge'} in ${cooldownLabel}` : ''
+          }`
         : remaining
           ? `Remaining: ${cooldownLabel} · available at ${seconds(
               // Show absolute scheduler deadlines on the combat-relative rotation clock.
