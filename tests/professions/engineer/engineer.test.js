@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfession, loadProfessionAppAdapter, professionRoute } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
 import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
@@ -5595,7 +5595,6 @@ test('trait-coverage manifest covers all Engineer traits', () => {
 });
 
 test('Engineer is a loadable native application', async () => {
-  assert.equal(professionRoute('engineer'), 'engineer.html');
   assert.equal((await loadProfession('engineer')).id, 'engineer');
   assert.equal((await loadProfessionAppAdapter('engineer')).profession.id, 'engineer');
   const html = await readFile(new URL('../../../dist/site/engineer.html', import.meta.url), 'utf8');

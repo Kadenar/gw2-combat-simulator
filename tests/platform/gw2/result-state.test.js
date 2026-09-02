@@ -1,14 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  criticalChanceAt,
-  criticalChanceEventAt,
-  timedBuffAt,
-  timedBuffStacksAt
-} from '#gw2/platform/results/query.js';
+import { criticalChanceEventAt, timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 
-test('critical chance queries select the next eligible player strike', () => {
+test('critical chance query selects the next eligible player strike', () => {
   const before = { type: 'damage', at: 0.5, criticalChance: 0.4 };
   const after = { type: 'damage', at: 2, criticalChance: 0.75 };
   const result = {
@@ -22,9 +17,6 @@ test('critical chance queries select the next eligible player strike', () => {
   };
 
   assert.equal(criticalChanceEventAt(result, 1000), after);
-  assert.equal(criticalChanceAt(result, 1000), 0.75);
-  assert.equal(criticalChanceAt({ resolvedEvents: [before] }, 1000), 0.4);
-  assert.equal(criticalChanceAt({ resolvedEvents: [] }, 1000), null);
 });
 
 test('timed buff queries use the latest active application and sum live stacks', () => {

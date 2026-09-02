@@ -38,12 +38,6 @@ export function criticalChanceEventAt(
   return after ?? before;
 }
 
-/** Returns the player critical-strike chance represented at a rotation time. */
-export function criticalChanceAt(result: Gw2SimulationResult | null | undefined, timeMs: number): number | null {
-  const event = criticalChanceEventAt(result, timeMs);
-  return event ? Number(event.criticalChance) : null;
-}
-
 /**
  * Returns the latest matching self-buff still active at the requested result
  * time, including its remaining duration and source event.

@@ -1,12 +1,10 @@
 import type { SkillEffect } from '#gw2/platform/engine/types.js';
 import type {
-  NativePatchAuthoringBalanceProfile,
   NativePatchAuthoringMetadata,
   NativePatchAuthoringSkill
 } from '#gw2/integrations/patches/authoring/module-types.js';
 import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
-  balanceProfileHasAuthorableControls,
   type EffectPatch,
   type ModifierRulePatchEdit,
   type PatchOverviewEntry,
@@ -135,18 +133,6 @@ export function groupPatchAuthoringSkills(
         attunementGroups: key.startsWith('weapon:') ? groupSkillsByAttunement(sortedSkills) : []
       };
     });
-}
-
-/** Splits cast-owned variants from trait and mechanic profiles so the UI can put them in the correct section. */
-export function partitionPatchAuthoringBalanceProfiles(entries: readonly NativePatchAuthoringBalanceProfile[]): {
-  readonly profiles: readonly NativePatchAuthoringBalanceProfile[];
-  readonly skillVariants: readonly NativePatchAuthoringBalanceProfile[];
-} {
-  const authorable = entries.filter((entry) => balanceProfileHasAuthorableControls(entry.profile));
-  return {
-    profiles: authorable.filter((entry) => entry.profile.profileKind !== 'skill-variant'),
-    skillVariants: authorable.filter((entry) => entry.profile.profileKind === 'skill-variant')
-  };
 }
 
 /** Creates the minimal valid preview shell used before an active preview exists. */

@@ -1,5 +1,3 @@
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
-import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 export interface EventLogDescriptor {
@@ -69,52 +67,6 @@ export function normalizeEventLogDescriptor(descriptor: unknown): NormalizedEven
     order: Number.isFinite(Number(value.order)) ? Number(value.order) : (EVENT_LOG_ORDER[type] ?? 80),
     flags
   };
-}
-
-export function eventLogRows(
-  result: Gw2ResolverResult,
-  adapters: Readonly<Record<string, (event: SimulationEvent, result: Gw2ResolverResult) => unknown>> = {}
-): EventLogRow[] {
-  const rows: Array<EventLogRow & { order: number; flags: string[] }> = [];
-  for (const event of result?.events || []) {
-    const adapter = adapters[event.type];
-    const presented = adapter?.(event, result);
-    const fallbackDescription =
-      event.type === 'action'
-        ? `CAST ${event.skillName || event.name || event.sourceId}`
-        : event.type === 'proc'
-          ? `PROC ${event.name || event.sourceId}`
-          : null;
-    const descriptor =
-      typeof presented === 'string'
-        ? normalizeEventLogDescriptor({
-            type: event.type,
-            description: presented
-          })
-        : normalizeEventLogDescriptor(
-            presented === undefined && fallbackDescription
-              ? {
-                  type: event.type,
-                  description: fallbackDescription
-                }
-              : presented
-          );
-    if (!descriptor) continue;
-    rows.push({
-      at: Number(event.at || 0),
-      ...descriptor
-    });
-  }
-
-  return (
-    rows
-      // Type order makes same-timestamp rows read as cause before consequence.
-      .sort(
-        (left, right) =>
-          left.at - right.at || left.order - right.order || left.description.localeCompare(right.description)
-      )
-      .map(({ order: _order, flags: _flags, ...row }) => row)
-  );
 }
 
 export function eventLogCsv(rows: readonly EventLogRow[]): string {

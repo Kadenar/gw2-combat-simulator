@@ -2,12 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import {
-  loadProfession,
-  loadProfessionAppAdapter,
-  professionOptions,
-  professionRoute
-} from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
@@ -5202,7 +5197,6 @@ test('Necromancer is wired through the selector and application adapter', async 
     professionOptions.some((option) => option.id === 'necromancer'),
     true
   );
-  assert.equal(professionRoute('necromancer'), 'necromancer.html');
   assert.equal((await loadProfession('necromancer'))?.id, 'necromancer');
   assert.equal((await loadProfessionAppAdapter('necromancer'))?.id, 'necromancer');
   assert.match(page, /data-profession="necromancer"/);

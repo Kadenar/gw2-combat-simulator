@@ -10,7 +10,6 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   WEAPON_STRENGTH_PROFILES,
   sampleWeaponStrength,
-  weaponStrengthHalfRange,
   weaponStrengthMidpoint,
   weaponStrengthProfile,
   weaponStrengthProfileForName,
@@ -61,11 +60,9 @@ test('canonical weapon-strength bounds derive every documented midpoint', () => 
 
     assert.deepEqual(profile, { id, min, max });
     assert.equal(weaponStrengthMidpoint(profile), midpoint);
-    assert.equal(weaponStrengthHalfRange(profile), (max - min) / 2);
     assert.equal(Object.isFrozen(profile), true);
   }
 
-  assert.equal(weaponStrengthHalfRange(weaponStrengthProfile('bundle.ascended')), 48.5);
   assert.equal(WEAPON_DATA.Longbow.weaponStrength, 1050);
   assert.equal(WEAPON_DATA.Longbow.weaponStrengthProfileId, 'weapon.longbow');
 });

@@ -30,7 +30,7 @@ import { THIEF_TRAIT_COVERAGE } from '../fixtures/trait-coverage/thief.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/thief/state.js';
 import { WARRIOR_TRAIT_COVERAGE } from '../fixtures/trait-coverage/warrior.js';
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/warrior/state.js';
-import { professionRegistry, PROFESSION_ROUTES } from '#gw2/app/profession/registry.js';
+import { professionRegistry } from '#gw2/app/profession/registry.js';
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
@@ -298,7 +298,6 @@ test('profession registry entries conform to the shared contracts', async () => 
     assert.match(entry.id, /^[a-z][a-z0-9-]*$/);
     assert.equal(profession.id, entry.id);
     assert.equal(adapter.id, entry.id);
-    assert.equal(PROFESSION_ROUTES[entry.id], entry.route);
     assert.ok(entry.themeClass);
     assert.equal(typeof profession.resolveRuntime, 'function');
     assert.equal(Object.hasOwn(profession, 'eventHandlers'), false);

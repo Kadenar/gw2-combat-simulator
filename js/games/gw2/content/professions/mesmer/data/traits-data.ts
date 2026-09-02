@@ -25,12 +25,13 @@ export interface MesmerTraitRecord {
   readonly [annotation: string]: number | string;
 }
 
-export interface SpecializationSelection {
-  readonly name: string;
-  readonly traits?: string;
-}
-
-const traitData = createProfessionTraitData<MesmerApiTrait, MesmerTraitRecord>(CATALOG_SPECIALIZATIONS, {
+export const {
+  specializations: SPECIALIZATIONS,
+  eliteSpecs: ELITE_SPECS,
+  coreSpecs: CORE_SPECS,
+  traits: TRAITS,
+  getActiveTraits
+} = createProfessionTraitData<MesmerApiTrait, MesmerTraitRecord>(CATALOG_SPECIALIZATIONS, {
   mapTrait(trait, { specialization, kind, tier, position }) {
     const tierName = kind === 'minor' ? MINOR_TIERS[tier] : MAJOR_TIERS[tier];
 
@@ -46,11 +47,3 @@ const traitData = createProfessionTraitData<MesmerApiTrait, MesmerTraitRecord>(C
     };
   }
 });
-
-export const SPECIALIZATIONS = [...traitData.specializations];
-export const ELITE_SPECS = new Set(traitData.eliteSpecs);
-export const CORE_SPECS = [...traitData.coreSpecs];
-export const TRAITS: MesmerTraitRecord[] = [...traitData.traits];
-
-export const getActiveTraits: (specializations?: readonly SpecializationSelection[] | null) => MesmerTraitRecord[] =
-  traitData.getActiveTraits;

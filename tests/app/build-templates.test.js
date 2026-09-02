@@ -7,7 +7,6 @@ import {
   loadTemplateAction,
   templateBoon,
   templateCategory,
-  templateHasBoon,
   templateSpecializations,
   undoTemplateLoad
 } from '#gw2/app/build/panels/presets.js';
@@ -104,11 +103,6 @@ test('template metadata classifies damage type and boon roles', () => {
   assert.equal(templateBoon(powerBoon), 'quickness');
   assert.equal(templateBoon(condiBoon), 'alacrity');
   assert.equal(templateBoon(otherBoon), 'alacrity');
-  assert.equal(templateHasBoon(power), false);
-  assert.equal(templateHasBoon(condi), false);
-  assert.equal(templateHasBoon(powerBoon), true);
-  assert.equal(templateHasBoon(condiBoon), true);
-  assert.equal(templateHasBoon(otherBoon), true);
 });
 
 test('specialization filters come from unique manifest section names', () => {

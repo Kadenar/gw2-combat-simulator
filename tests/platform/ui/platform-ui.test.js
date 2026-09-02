@@ -18,7 +18,7 @@ import {
   chartValueAt,
   mountTimeSeriesCharts
 } from '#gw2/app/presentation/results/charts/time-series.js';
-import { eventLogCsv, eventLogRows, mountEventLog } from '#gw2/app/presentation/results/event-log.js';
+import { eventLogCsv, mountEventLog } from '#gw2/app/presentation/results/event-log.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
@@ -1416,21 +1416,10 @@ test('timeline binding routes the wait pencil to duration editing', () => {
   assert.equal(propagationStopped, true);
 });
 
-test('event logs order stably and CSV escapes cells', () => {
-  const rows = eventLogRows({
-    events: [
-      { type: 'proc', at: 1, name: 'Later' },
-      { type: 'action', at: 1, name: 'First' },
-      { type: 'action', at: 0, name: 'Quote "skill"' }
-    ]
-  });
+test('event log CSV escapes cells', () => {
+  const rows = [{ at: 0, type: 'action', description: 'CAST Quote "skill"' }];
 
-  assert.deepEqual(
-    rows.map((row) => row.description),
-    ['CAST Quote "skill"', 'CAST First', 'PROC Later']
-  );
   assert.match(eventLogCsv(rows), /"CAST Quote ""skill"""/);
-  assert.equal(eventLogRows({ events: [] }).length, 0);
 });
 
 test('event-log mounting filters rows, escapes descriptions, and configures filename', () => {

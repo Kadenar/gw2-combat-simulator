@@ -92,10 +92,6 @@ export function templateBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'
   return 'none';
 }
 
-export function templateHasBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): boolean {
-  return templateBoon(preset) !== 'none';
-}
-
 export function templateSnowCrowsLink(preset: Pick<BuildTemplatePreset, 'snowCrowsUrl'>): string {
   // Only presets with explicit source metadata expose an external build-page action.
   return preset.snowCrowsUrl

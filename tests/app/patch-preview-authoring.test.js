@@ -11,7 +11,6 @@ import {
   groupPatchAuthoringSkills,
   numericEditForValue,
   numericEditValue,
-  partitionPatchAuthoringBalanceProfiles,
   patchSearchText
 } from '#gw2/integrations/patches/app/model.js';
 import {
@@ -303,32 +302,10 @@ test('patch authoring separates skill variants and emits no runtime cast fields'
   assert.doesNotMatch(payload, /"interruptCommitMs":/);
 });
 
-test('patch authoring moves variants out of profiles and omits empty cards', () => {
-  const entry = (id, profile, patchableFields = {}) => ({
-    id,
-    name: profile.name,
-    moduleId: 'Core',
-    profile: { id, effects: [], ...profile },
-    patchableFields
-  });
-  const trait = entry(1, { name: 'Trait', profileKind: 'trait', internalCooldown: 5 }, { internalCooldown: 5 });
-  const variant = entry('variant', {
-    name: 'Variant',
-    profileKind: 'skill-variant',
-    parentId: 10,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 2 }]
-  });
-  const empty = entry('empty', { name: 'Empty', profileKind: 'skill-variant' });
-  const groups = partitionPatchAuthoringBalanceProfiles([trait, variant, empty]);
-
-  assert.equal(balanceProfileHasAuthorableControls(empty.profile), false);
-  assert.deepEqual(
-    groups.profiles.map((profile) => profile.id),
-    [1]
-  );
-  assert.deepEqual(
-    groups.skillVariants.map((profile) => profile.id),
-    ['variant']
+test('patch authoring omits profiles without authorable controls', () => {
+  assert.equal(
+    balanceProfileHasAuthorableControls({ id: 'empty', name: 'Empty', profileKind: 'skill-variant', effects: [] }),
+    false
   );
 });
 

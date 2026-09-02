@@ -133,11 +133,6 @@ export function weaponStrengthMidpoint(profile: Gw2WeaponStrengthProfile): numbe
   return (Number(profile.min) + Number(profile.max)) / 2;
 }
 
-/** Calculates half of a weapon-strength profile's range. */
-export function weaponStrengthHalfRange(profile: Gw2WeaponStrengthProfile): number {
-  return (Number(profile.max) - Number(profile.min)) / 2;
-}
-
 /** Maps a unit-interval sample onto a weapon-strength profile. */
 export function sampleWeaponStrength(profile: Gw2WeaponStrengthProfile, unitIntervalValue: number): number {
   const sample = Number(unitIntervalValue);

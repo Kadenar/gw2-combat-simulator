@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfession, loadProfessionAppAdapter, professionRoute } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import {
   currentAutoattackSkill,
@@ -6008,7 +6008,6 @@ test('Revenant state events use the shared event-log row contract', () => {
 });
 
 test('Revenant is a loadable native fixed-bar application', async () => {
-  assert.equal(professionRoute('revenant'), 'revenant.html');
   assert.equal((await loadProfession('revenant')).id, 'revenant');
   const adapter = await loadProfessionAppAdapter('revenant');
 

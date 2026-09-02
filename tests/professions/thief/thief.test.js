@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfession, loadProfessionAppAdapter, professionRoute } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -3246,7 +3246,6 @@ test('trait-coverage manifest covers all Thief traits', () => {
 });
 
 test('Thief is a loadable native application', async () => {
-  assert.equal(professionRoute('thief'), 'thief.html');
   assert.equal((await loadProfession('thief')).id, 'thief');
   const adapter = await loadProfessionAppAdapter('thief');
 

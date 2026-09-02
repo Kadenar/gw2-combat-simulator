@@ -7,13 +7,10 @@ export interface NecromancerSpecializationSelection {
   readonly traits?: string;
 }
 
-const traitData = createProfessionTraitData<NecromancerApiTrait>(CATALOG_SPECIALIZATIONS);
-
-export const SPECIALIZATIONS = [...traitData.specializations];
-export const ELITE_SPECS = new Set(traitData.eliteSpecs);
-export const CORE_SPECS = [...traitData.coreSpecs];
-export const TRAITS = [...traitData.traits];
-
-export const getActiveTraits: (
-  specializations?: readonly NecromancerSpecializationSelection[]
-) => NecromancerApiTrait[] = traitData.getActiveTraits;
+export const {
+  specializations: SPECIALIZATIONS,
+  eliteSpecs: ELITE_SPECS,
+  coreSpecs: CORE_SPECS,
+  traits: TRAITS,
+  getActiveTraits
+} = createProfessionTraitData<NecromancerApiTrait>(CATALOG_SPECIALIZATIONS);

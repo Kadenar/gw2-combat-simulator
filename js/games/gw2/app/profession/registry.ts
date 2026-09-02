@@ -445,22 +445,11 @@ export interface ProfessionOption {
 
 export const professionOptions: readonly ProfessionOption[] = professionRegistry.map(({ id, name }) => ({ id, name }));
 
-export const PROFESSION_ROUTES: Readonly<Record<string, string>> = Object.fromEntries(
-  professionRegistry.map(({ id, route }) => [id, route])
-);
-
 /**
  * Returns the registered entry for a profession ID, or `null` for an unknown ID.
  */
 export function getProfessionEntry(professionId: string): ProfessionRegistryEntry | null {
   return byId.get(professionId) || null;
-}
-
-/**
- * Resolves a profession ID to its page, falling back to the landing page.
- */
-export function professionRoute(professionId: string): string {
-  return getProfessionEntry(professionId)?.route || 'index.html';
 }
 
 /**

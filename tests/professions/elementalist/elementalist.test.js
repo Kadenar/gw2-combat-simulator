@@ -7,10 +7,8 @@ import test from 'node:test';
 import {
   loadProfession,
   loadProfessionAppAdapter,
-  PROFESSION_ROUTES,
   professionOptions,
-  professionRegistry,
-  professionRoute
+  professionRegistry
 } from '#gw2/app/profession/registry.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
@@ -72,10 +70,7 @@ async function accessSourceModule(target) {
   }
 }
 
-test('profession selector exposes every ready application route', () => {
-  assert.deepEqual(PROFESSION_ROUTES, Object.fromEntries(professionRegistry.map(({ id, route }) => [id, route])));
-  assert.equal(professionRoute('elementalist'), 'elementalist.html');
-  assert.equal(professionRoute('unknown'), 'index.html');
+test('profession selector exposes every registered profession', () => {
   assert.deepEqual(
     professionOptions,
     professionRegistry.map(({ id, name }) => ({ id, name }))

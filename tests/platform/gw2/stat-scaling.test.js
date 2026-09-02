@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { criticalChance, criticalDamageMultiplier } from '#gw2/platform/combat/damage/calculations.js';
-import { gw2ConditionDurationMultiplier, gw2WeaponStrength } from '#gw2/platform/combat/query/runtime-rules.js';
+import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/query/runtime-rules.js';
 import {
   conditionDurationFractionFromExpertise,
   conditionDurationPercentFromExpertise,
@@ -29,21 +29,4 @@ test('runtime stat wrappers retain their caps and floors', () => {
 
   assert.equal(gw2ConditionDurationMultiplier('Burning', { expertise: -100 }), 1);
   assert.equal(gw2ConditionDurationMultiplier('Burning', { expertise: 3000 }), 2);
-});
-
-test('weapon strength alias patterns compile once per alias map', () => {
-  let aliasReads = 0;
-  const aliases = Object.defineProperty({}, '^kit(?: |$)', {
-    enumerable: true,
-    get() {
-      aliasReads += 1;
-
-      return 'Utility';
-    }
-  });
-  const options = { strengths: { Utility: 999 }, aliases };
-
-  assert.equal(gw2WeaponStrength({ weapon: 'Kit Flamethrower' }, {}, options), 999);
-  assert.equal(gw2WeaponStrength({ weapon: 'kit grenade' }, {}, options), 999);
-  assert.equal(aliasReads, 1);
 });

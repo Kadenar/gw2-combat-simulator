@@ -9,20 +9,6 @@ export interface WeaponAttunementGroup {
   readonly skills: Skill[];
 }
 
-export function weaponBarSkillStacks(skills: readonly Skill[], flattenSameSlots = false): Skill[][] {
-  if (flattenSameSlots) return skills.map((skill) => [skill]);
-
-  const bySlot = new Map<string, Skill[]>();
-  for (const skill of skills) {
-    const slot = String(skill.slot);
-    const stack = bySlot.get(slot) || [];
-    stack.push(skill);
-    bySlot.set(slot, stack);
-  }
-
-  return [...bySlot.values()];
-}
-
 /**
  * Splits Elementalist-style weapon variants into one row per attunement.
  * Professions without multiple elemental rows keep the normal single-row bar.

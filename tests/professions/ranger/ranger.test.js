@@ -13,12 +13,7 @@ import { selectableSkillBarGroups, skillBarInspectionStacks } from '#gw2/app/bui
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import {
-  loadProfession,
-  loadProfessionAppAdapter,
-  professionOptions,
-  professionRoute
-} from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -2731,7 +2726,6 @@ test('Ranger is wired through the selector and application adapter', async () =>
     professionOptions.some((option) => option.id === 'ranger'),
     true
   );
-  assert.equal(professionRoute('ranger'), 'ranger.html');
   assert.equal((await loadProfession('ranger'))?.id, 'ranger');
   assert.equal((await loadProfessionAppAdapter('ranger'))?.id, 'ranger');
   assert.match(page, /data-profession="ranger"/);

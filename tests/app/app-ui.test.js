@@ -15,12 +15,7 @@ import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
-import {
-  loadProfessionAppAdapter,
-  professionOptions,
-  professionRegistry,
-  professionRoute
-} from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/app/profession/registry.js';
 import {
   autoattackChainSkillAvailable,
   displayedSkillTiles,
@@ -939,7 +934,6 @@ test('Guardian is exposed by the profession selector and app composition', async
     professionOptions.some((option) => option.id === 'guardian'),
     true
   );
-  assert.equal(professionRoute('guardian'), 'guardian.html');
   assert.equal((await loadProfessionAppAdapter('guardian'))?.id, 'guardian');
   assert.match(guardianPage, /data-profession="guardian"/);
 });
@@ -999,7 +993,6 @@ test('the generic landing page and profession simulators have separate entries',
   assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
   for (const { entry, source } of professionPages) {
     assert.match(source, /<a class="home-link" href="index\.html">← All professions<\/a>/);
-    assert.equal(professionRoute(entry.id), entry.route);
     assert.match(source, new RegExp(`data-profession="${entry.id}"`));
     assert.match(source, /assets\/app-[^"']+\.js/);
     assert.match(source, /id="rotation-warnings"/);

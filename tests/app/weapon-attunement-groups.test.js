@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { groupWeaponSkillsByAttunement, weaponBarSkillStacks } from '#gw2/app/profession/weapon-attunement-groups.js';
+import { groupWeaponSkillsByAttunement } from '#gw2/app/profession/weapon-attunement-groups.js';
 import { weaverWeaponPaletteLayout } from '#gw2/content/professions/elementalist/specializations/weaver/presentation.js';
 
 const skill = (id, name, slot, attunement, chainStep = null) => ({
@@ -59,15 +59,6 @@ test('Weaver dual attacks follow the four elemental rows', () => {
   assert.deepEqual(
     groupWeaponSkillsByAttunement(skills, 'Weaver').map((group) => group.attunement),
     ['Fire', 'Water', 'Air', 'Earth', 'Dual']
-  );
-
-  const dualSkills = groupWeaponSkillsByAttunement(skills, 'Weaver').find(
-    (group) => group.attunement === 'Dual'
-  )?.skills;
-
-  assert.deepEqual(
-    weaponBarSkillStacks(dualSkills || [], true).map((stack) => stack.map((entry) => entry.name)),
-    [['Twin Strike'], ['Pyro Vortex']]
   );
 });
 

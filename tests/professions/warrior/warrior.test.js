@@ -2,12 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import {
-  loadProfession,
-  loadProfessionAppAdapter,
-  professionOptions,
-  professionRoute
-} from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
 import { autoattackChainSkillAvailable } from '#gw2/app/rotation/palette/model.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
@@ -2954,7 +2949,6 @@ test('Axe packets and burst coefficients use the supplied PvE values', () => {
 });
 
 test('Warrior is exposed through the shared application registry', async () => {
-  assert.equal(professionRoute('warrior'), 'warrior.html');
   assert.equal(
     professionOptions.some((profession) => profession.id === 'warrior'),
     true

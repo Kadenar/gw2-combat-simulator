@@ -5,10 +5,7 @@ import test from 'node:test';
 import { createEventQueue } from '#kernel/events/queue.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
-import {
-  createGw2ResolverReactionRegistry,
-  defineGw2ResolverReactions
-} from '#gw2/platform/resolver/reaction-registry.js';
+import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 test('generic resolver modules contain no concrete equipment policy', () => {
@@ -29,13 +26,13 @@ test('generic resolver modules contain no concrete equipment policy', () => {
 
 test('GW2 resolver registry orders hooks stably and returns the last result', () => {
   const calls = [];
-  const professionReactions = defineGw2ResolverReactions({
+  const professionReactions = {
     'damage.resolved': () => {
       calls.push('profession');
 
       return { owner: 'profession' };
     }
-  });
+  };
   const registry = createGw2ResolverReactionRegistry({
     professionReactions,
     contributions: {
@@ -68,8 +65,11 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
   assert.equal(registry.dispatch('blind.resolved', {}, { type: 'blind', at: 0 }), undefined);
 });
 
-test('GW2 resolver declarations reject unknown stages and duplicate hook ids', () => {
-  assert.throws(() => defineGw2ResolverReactions({ damage: () => {} }), /Unknown GW2 resolver stage: damage/);
+test('GW2 resolver registry rejects unknown stages and duplicate hook ids', () => {
+  assert.throws(
+    () => createGw2ResolverReactionRegistry({ professionReactions: { damage: () => {} } }),
+    /unknown stage: damage/
+  );
   assert.throws(
     () =>
       createGw2ResolverReactionRegistry({
@@ -86,7 +86,7 @@ test('GW2 resolver declarations reject unknown stages and duplicate hook ids', (
 
 test('condition stage runs once after state and ticks, including profession and relic recursion', () => {
   const trace = [];
-  const professionReactions = defineGw2ResolverReactions({
+  const professionReactions = {
     'condition.applied': (context, application, details) => {
       assert.equal(details.applyCondition, undefined);
       trace.push({
@@ -110,7 +110,7 @@ test('condition stage runs once after state and ticks, including profession and 
         });
       }
     }
-  });
+  };
   const extensions = createGw2ResolverExtensions({
     config: { relic: 'Fractal' },
     professionReactions

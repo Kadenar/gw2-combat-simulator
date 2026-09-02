@@ -7,9 +7,4 @@ export interface WarriorSpecializationSelection {
   readonly traits?: string;
 }
 
-const traitData = createProfessionTraitData<WarriorApiTrait>(CATALOG_SPECIALIZATIONS);
-
-export const TRAITS: readonly WarriorApiTrait[] = Object.freeze([...traitData.traits]);
-
-export const getActiveTraits: (specializations?: readonly WarriorSpecializationSelection[]) => WarriorApiTrait[] =
-  traitData.getActiveTraits;
+export const { traits: TRAITS, getActiveTraits } = createProfessionTraitData<WarriorApiTrait>(CATALOG_SPECIALIZATIONS);
