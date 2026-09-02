@@ -91,6 +91,7 @@ export function recordRadiantWeaponEquipped(context: GuardianCastContext, skill:
       delete availableFlips[flipId];
     }
   }
+
   return true;
 }
 
