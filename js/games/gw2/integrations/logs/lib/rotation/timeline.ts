@@ -208,7 +208,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     } else {
       previousCastStart = at;
       activeCastEnd = Math.max(activeCastEnd, instant ? at : actionReplayEnd);
-      if (action.skill?.retainsCastLockoutAfterInterrupt === true) {
+      // Only an interrupted command uses the retained lane; idle after a completed cast remains explicit.
+      if (action.skill?.retainsCastLockoutAfterInterrupt === true && command.interruptMs != null) {
         retainedCastEnd = Math.max(retainedCastEnd, actionReplayEnd);
       }
     }

@@ -171,6 +171,26 @@ test('the shared timeline preserves explicit aftercast mismatches without adding
   assert.equal(waitFor(800, { ...fixtureSkill, slot: 'Weapon_1' }), 0);
 });
 
+test('the shared timeline preserves idle after an uninterrupted retained-lockout skill', () => {
+  const retainedSkill = { ...fixtureSkill, retainsCastLockoutAfterInterrupt: true };
+  const nextSkill = { ...fixtureSkill, id: 2_000, name: 'Next Cast' };
+  const rotation = buildReplayTimeline(
+    [
+      { start: 0, end: 400, eventIndex: 0, skill: retainedSkill, name: retainedSkill.name, skillId: retainedSkill.id },
+      { start: 441, end: 841, eventIndex: 1, skill: nextSkill, name: nextSkill.name, skillId: nextSkill.id }
+    ],
+    0,
+    null,
+    { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+  );
+
+  assert.deepEqual(rotation, [
+    { name: 'Mind Stab', skillId: 1_000 },
+    { name: '__wait', waitMs: 41 },
+    { name: 'Next Cast', skillId: 2_000 }
+  ]);
+});
+
 test('the shared timeline subtracts concurrent progress from an observed instant-skill channel', () => {
   const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0, quicknessCastTimeMs: 0 };
   const channel = { ...instant, id: 2_001, name: 'Channel' };
