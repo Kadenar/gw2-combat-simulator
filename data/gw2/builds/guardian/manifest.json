@@ -82,6 +82,15 @@
         "benchmarkDps": 41200
       },
       {
+        "label": "Power (Greatsword / Spear) - Nagy Rotation",
+        "build": "data/gw2/builds/guardian/b-power-luminary-nagy.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-luminary-nagy.json",
+        "benchmarkDps": 41818,
+        "sourceBenchmarkDps": 41568,
+        "dpsReportUrl": "https://dps.report/0C3r-41568splumi_golem",
+        "upToDate": true
+      },
+      {
         "label": "Power (Greatsword / Longbow)",
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
