@@ -19,33 +19,28 @@ directory-level reference of what each module and folder owns, see [MODULES.md](
 
 ## Layers
 
-The simulator is composed in three layers:
+The simulator separates game-neutral infrastructure from GW2-specific platform, profession, and application code:
 
 ```text
 js/
-  platform/
-    engine/        deterministic scheduling, events, handlers, contracts
-    gw2/           common combat, equipment, sigils, relics, attributes
-    ui/            palette/resource/timeline/log/result/chart view models
-  professions/
-    mesmer/        Mesmer catalog, build schema, state, rules, and mechanics
-    guardian/      Guardian API catalog, virtues, rules, and declarative skills
-    necromancer/   Necromancer catalog, shrouds, summons, rules, and adapter
-    engineer/      Engineer catalog, kits, heat, mech, and Amalgam mechanics
-    revenant/      Revenant catalog, legends, energy, and Conduit mechanics
-    ranger/        Ranger catalog, pets, astral force, and Galeshot mechanics
-    warrior/       Warrior catalog, burst, adrenaline, and Bladesworn mechanics
-    thief/         Thief catalog, initiative, stealth, and artifact mechanics
-    elementalist/  Elementalist catalog, attunements, rules, and mechanics
-  app/             browser composition and persistence adapters
+  kernel/          game-neutral clock, events, queues, randomness, observation
+  ui/              game-neutral view models and DOM/rotation primitives
+  app/             game-neutral registry, bootstrap, worker harness, and shell
+  games/gw2/
+    platform/      shared GW2 engine, combat, builds, equipment, and simulation
+    content/
+      professions/ profession-owned builds, skills, state, mechanics, and UI
+    app/           GW2 browser composition, persistence, and presentation
+    integrations/  logs, keybinds, and patch-preview adapters
 ```
 
 ### Shared attribute assembly
 
-Common GW2 attribute assembly and derived-stat finalization live in `js/games/gw2/platform/attributes.ts`; profession
-calculators own only their resolved trait and skill deltas. The shared `calculateCommonAttributes()` assembles
-equipment, consumables, infusions, sigils, and base derived stats. Native professions pass their resolved deltas to
-`finalizeBuildAttributes()`, which rebuilds critical chance, critical damage, boon duration, and condition duration.
+Common GW2 attribute assembly and derived-stat finalization live in `js/games/gw2/platform/builds/attributes.ts`;
+profession calculators own only their resolved trait and skill deltas. The shared `calculateCommonAttributes()`
+assembles equipment, consumables, infusions, sigils, and base derived stats. Native professions pass their resolved
+deltas to `finalizeBuildAttributes()`, which rebuilds critical chance, critical damage, boon duration, and condition
+duration.
 
 ### Profession composition boundary
 
@@ -82,11 +77,12 @@ and independent persisted builds.
 
 ## Dependency rules
 
-- `platform/engine` imports no GW2, UI, or profession modules.
-- `platform/gw2` may import `platform/engine`, but no profession.
-- `platform/ui` consumes contract view models and imports no profession.
-- A profession may import engine and shared GW2 modules.
-- `app` is the composition root and may import every layer.
+- `js/kernel` imports no GW2, UI, application, or profession modules.
+- `js/games/gw2/platform` may import `js/kernel`, but no profession or application modules.
+- `js/ui` consumes game-neutral contracts and imports no game or profession modules.
+- Profession runtimes may import the kernel and shared GW2 platform; profession `app/` adapters may also import GW2 app
+  modules.
+- `js/app` and `js/games/gw2/app` are composition roots for their respective neutral and GW2 browser concerns.
 
 `tests/platform/platform-architecture.test.js` enforces these rules and rejects profession terminology inside the
 platform tree.
@@ -94,11 +90,11 @@ platform tree.
 ## Declarative profession mechanics layout
 
 Every native profession — Elementalist, Engineer, Guardian, Mesmer, Necromancer, Ranger, Revenant, Thief, and Warrior —
-uses the typed authoring layer in `integrations/patches/authoring/profession.ts`. A native module is a vertical slice with four
-explicit sections:
+uses the typed authoring layer in `integrations/patches/authoring/profession.ts`. A native module is a vertical slice
+with four explicit sections:
 
-- `data` owns generated identities, skill mechanics and overrides, extra skills, traits, specialization metadata,
-  weapon hands, and chain exceptions;
+- `data` owns generated identities, skill mechanics and overrides, extra skills, traits, specialization metadata, weapon
+  hands, and chain exceptions;
 - `state.scheduler` creates scheduler state, optional `state.resolver` creates distinct resolver state, and optional
   `state.project` defines the public end-state projection;
 - `mechanics.execution` owns skill handlers, availability, cast lifecycle declarations, cast rules, and scheduler hooks;
@@ -146,18 +142,17 @@ Every native profession otherwise uses the same source roles:
 - `data/traits-data.ts` is the only module that exports the flattened runtime `TRAITS` collection; it derives that view
   from specialization metadata.
 - Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts` or grouped
-  `skills/*.ts` modules. Tests that need a
-  profession-wide inventory compose those owner-local fragments under `tests/`; production does not expose a root
-  skill-mechanics aggregate.
+  `skills/*.ts` modules. Tests that need a profession-wide inventory compose those owner-local fragments under `tests/`;
+  production does not expose a root skill-mechanics aggregate.
 - Triggered effects and state machines live in owner-local, concept-named `mechanics/*.ts` files (or a small
-  `mechanics.ts`); families do not use mixed
-  profession-wide runtime aggregates.
-- `catalog/module-data.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
+  `mechanics.ts`); families do not use mixed profession-wide runtime aggregates.
+- `catalog/module-data.ts` owns inert profession-wide generated metadata and catalog options used by module data
+  selectors.
 - `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
   import it.
 - Owner-local `skills/execution.ts` modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that
-  cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application
-  catalog is assembled from module contributions.
+  cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application catalog
+  is assembled from module contributions.
 
 Profession-specific state machines remain in named feature modules beside these boundaries. Skill entries reference
 those handlers explicitly. The repeatable module authoring and migration requirements are defined in
@@ -245,10 +240,10 @@ return `{ type, description, className, order, flags }`; `null` deliberately sup
 `undefined` requests the diagnostic fallback.
 
 Native-profession scalar combat bonuses are declared as per-effect rules in owner-local trait, skill, or mechanic
-modules. The shared `platform/gw2/modifier-rules.ts` adapter compiles those rules into the existing critical chance,
-critical damage, strike damage, condition damage, and condition duration hooks. It owns scalar sequencing and the single
-GW2 outgoing additive-damage bucket rebuild; profession modules own predicates and runtime state. Ordered attribute
-conversions remain narrow imperative hooks.
+modules. The shared `js/games/gw2/platform/combat/modifiers/rules.ts` adapter compiles those rules into the existing
+critical chance, critical damage, strike damage, condition damage, and condition duration hooks. It owns scalar
+sequencing and the single GW2 outgoing additive-damage bucket rebuild; profession modules own predicates and runtime
+state. Ordered attribute conversions remain narrow imperative hooks.
 
 ## Phase-explicit native helpers
 
@@ -282,7 +277,7 @@ For families, Core resources live under `state.profession.core`; active-elite re
 `state.profession.specialization.state`. Public `endState.profession` remains an allowlisted, compatibility-stable
 projection. Typed scheduler tasks carry serializable payloads and are dispatched to namespaced profession handlers.
 
-The neutral engine accepts scheduler policy callbacks. `platform/gw2` supplies the shared GW2 policy for
+The neutral engine accepts scheduler policy callbacks. `js/games/gw2/platform` supplies the shared GW2 policy for
 Quickness-adjusted casts, Alacrity-adjusted recharge, ammo, and the configured starting weapon set. Profession hooks may
 then modify cast duration, recharge duration, or maximum ammo without copying the common state machine.
 
@@ -337,7 +332,7 @@ profession predicates. Mesmer does not own a scheduler, resolver wrapper, or res
 
 ## Events
 
-Event schema version 1 is defined in `platform/engine/events/events.ts`. Every event has:
+Event schema version 1 is defined in `js/games/gw2/platform/engine/events/events.ts`. Every event has:
 
 ```js
 {
@@ -358,7 +353,7 @@ Common types are `action`, `damage`, `condition`, `condition_tick`, `control`, `
 profession adds a namespaced type such as `example.resource` by registering it in `resolverHooks.eventHandlers`.
 Duplicate registrations, missing required handlers, and unknown namespaced events throw explicit errors.
 
-Standard event types are owned by `platform/gw2/resolver`. A profession reacts to them through
+Standard event types are owned by `js/games/gw2/platform/resolver`. A profession reacts to them through
 `resolverHooks.eventReactions` without replacing the common handler:
 
 ```js
@@ -388,11 +383,11 @@ cast retain it. Triggered traits, sigils, relics, equipment effects, and summon 
 The GW2 policy snapshots `weaponStrengthProfileId` from canonical skill metadata while the activation's weapon, kit,
 transform, or shroud is still known.
 
-`platform/gw2/weapon-strength.ts` owns immutable min/max profiles. The resolver uses their midpoint in deterministic
-mode. In stochastic mode it draws one continuous uniform value per activation, caches it for every packet, and uses an
-actor-scoped `weapon-strength:*` random stream independent from critical and trait streams. Resolved coefficient strikes
-expose the activation, profile, resolved strength, and whether it was sampled. Explicit numeric strength, flat damage,
-conditions, and independent summon formulas remain exempt.
+`js/games/gw2/platform/equipment/weapons/strength.ts` owns immutable min/max profiles. The resolver uses their midpoint
+in deterministic mode. In stochastic mode it draws one continuous uniform value per activation, caches it for every
+packet, and uses an actor-scoped `weapon-strength:*` random stream independent from critical and trait streams. Resolved
+coefficient strikes expose the activation, profile, resolved strength, and whether it was sampled. Explicit numeric
+strength, flat damage, conditions, and independent summon formulas remain exempt.
 
 ## Skills, traits, and rotations
 
@@ -468,7 +463,7 @@ The current persisted schema is:
 ```
 
 Each profession owns defaults, explicit version migrations, and resource-specific normalization and validation. Native
-professions configure the shared `platform/gw2/build-codec.ts` factory, which owns common schema migration,
+professions configure the shared `js/games/gw2/platform/builds/codec.ts` factory, which owns common schema migration,
 sanitization, and validation for gear, weapons, sigils, relics, infusions, runes, consumables, specializations,
 specialization-available slot skills, targets, and canonical rotation timing. The existing `gw2-mesmer-simulator-v2`
 localStorage key is kept so saved builds migrate in place. Browser state uses a compatibility view of rotation entries;
@@ -519,7 +514,7 @@ separate profession count.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm test` and `npm run check`.
 
-No engine, GW2, or shared UI branch should be needed. New professions should use the `platform/engine` scheduler,
-canonical effects, shared effect materializer, and the `platform/gw2` resolver. If a new rule is truly shared by
-multiple professions, add it to `platform/gw2`; otherwise keep it in the profession module as a scheduler mechanic or
-resolver reaction.
+No engine, GW2, or shared UI branch should be needed. New professions should use the `js/games/gw2/platform/engine`
+scheduler, canonical effects, shared effect materializer, and the `js/games/gw2/platform/resolver`. If a new rule is
+truly shared by multiple professions, add it to `js/games/gw2/platform`; otherwise keep it in the profession module as a
+scheduler mechanic or resolver reaction.
