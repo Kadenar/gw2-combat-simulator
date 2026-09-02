@@ -453,7 +453,7 @@ frame.addEventListener('load', async () => {
       'palette activation editor did not add a manual interruption'
     );
 
-    app.build.rotation = [castCommand('Bladecall')];
+    app.build.rotation = [castCommand('Bladecall'), { type: 'combat-start' }, castCommand('Bladecall')];
     app.changed(false);
     const editActivation = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-edit-activation');
 
@@ -464,13 +464,18 @@ frame.addEventListener('load', async () => {
     assert(
       activationEditor &&
         activationEditor.querySelector('input[value="normal"]')?.checked &&
-        activationEditor.textContent.includes('Full cast:'),
+        activationEditor.textContent.includes('Full cast:') &&
+        activationEditor.querySelector('.activation-editor-off-target'),
       'normal cast editor did not open with full-cast context'
     );
+    activationEditor.querySelector('.activation-editor-off-target').click();
     activationEditor.querySelector('input[value="interrupt"]').click();
     activationEditor.querySelector('.activation-editor-input').value = '120';
     activationEditor.querySelector('.activation-editor-apply').click();
-    assert(app.build.rotation[0].interruptAfterMs === 120, 'activation editor did not add a manual interruption');
+    assert(
+      app.build.rotation[0].interruptAfterMs === 120 && app.build.rotation[0].offTarget === true,
+      'activation editor did not save timing and off-target settings'
+    );
     let interruptBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-interrupt-badge');
 
     assert(
@@ -480,17 +485,28 @@ frame.addEventListener('load', async () => {
     interruptBadge.click();
     activationEditor = document.querySelector('.rotation-activation-editor');
     assert(
-      activationEditor?.querySelector('.activation-editor-input')?.value === '120',
-      'existing interruption did not open with its current value'
+      activationEditor?.querySelector('.activation-editor-input')?.value === '120' &&
+        activationEditor.querySelector('.activation-editor-off-target')?.checked,
+      'existing activation settings did not open with their current values'
     );
+    activationEditor.querySelector('.activation-editor-off-target').click();
     activationEditor.querySelector('input[value="normal"]').click();
     activationEditor.querySelector('.activation-editor-apply').click();
     assert(
       app.build.rotation[0].type === 'cast' &&
         app.skillById.get(Number(app.build.rotation[0].skillId))?.name === 'Bladecall' &&
-        app.build.rotation[0].interruptAfterMs === undefined,
-      'normal cast did not remove the interruption override'
+        app.build.rotation[0].interruptAfterMs === undefined &&
+        app.build.rotation[0].offTarget === undefined,
+      'normal cast did not remove the activation overrides'
     );
+
+    document.querySelector('#rotation-timeline .rot-skill[data-idx="2"] .rot-edit-activation').click();
+    activationEditor = document.querySelector('.rotation-activation-editor');
+    assert(
+      !activationEditor?.querySelector('.activation-editor-off-target'),
+      'post-combat cast exposes the off-target precast option'
+    );
+    activationEditor.querySelector('.activation-editor-cancel').click();
 
     const originalPower = app.attributeData.attributes.Power.final;
     const helm = document.querySelector('[data-slot="Helm"]');

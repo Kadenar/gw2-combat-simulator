@@ -16,7 +16,9 @@ export interface ActivationEditorOptions {
   readonly suggestedConcurrentOffsetMs?: number | null;
   readonly minimumConcurrentOffsetMs?: number | null;
   readonly damageCommitMs?: number | null;
-  readonly onApply: (timingMs: number | null) => void;
+  readonly allowOffTarget?: boolean;
+  readonly offTarget?: boolean;
+  readonly onApply: (timingMs: number | null, offTarget: boolean) => void;
 }
 
 export interface ActivationEditorHandle {
@@ -210,6 +212,15 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     </div>
     <div class="activation-editor-full-cast"></div>
     <div class="activation-editor-damage-commit"></div>
+    ${
+      options.allowOffTarget
+        ? `<div class="activation-editor-label">Targeting</div>
+    <label class="activation-editor-choice">
+      <input class="activation-editor-off-target" type="checkbox" />
+      <span>Cast away from target</span>
+    </label>`
+        : ''
+    }
     <div class="activation-editor-warning" aria-live="polite" hidden></div>
     <div class="activation-editor-error" aria-live="polite"></div>
     <button class="activation-editor-reset" type="button">Reset to normal</button>
@@ -227,6 +238,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   const inputRow = editor.querySelector<HTMLElement>('.activation-editor-input-row');
   const fullCast = editor.querySelector<HTMLElement>('.activation-editor-full-cast');
   const damageCommit = editor.querySelector<HTMLElement>('.activation-editor-damage-commit');
+  const offTarget = editor.querySelector<HTMLInputElement>('.activation-editor-off-target');
   const warning = editor.querySelector<HTMLElement>('.activation-editor-warning');
   const error = editor.querySelector<HTMLElement>('.activation-editor-error');
   const reset = editor.querySelector<HTMLButtonElement>('.activation-editor-reset');
@@ -242,6 +254,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     !inputRow ||
     !fullCast ||
     !damageCommit ||
+    (options.allowOffTarget && !offTarget) ||
     !warning ||
     !error ||
     !reset ||
@@ -269,6 +282,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   fullCast.hidden = isConcurrentBehavior || fullCastMs <= 0;
   damageCommit.textContent = isConcurrentBehavior ? '' : activationDamageCommitLabel(options.damageCommitMs);
   damageCommit.hidden = !damageCommit.textContent;
+  if (offTarget) offTarget.checked = options.offTarget === true;
 
   const updateDamageCommitWarning = (): void => {
     const message =
@@ -306,7 +320,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   const applyChanges = (): void => {
     if (normalRadio.checked) {
       handle.close();
-      options.onApply(null);
+      options.onApply(null, offTarget?.checked === true);
       return;
     }
 
@@ -321,7 +335,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     }
 
     handle.close();
-    options.onApply(validation.value);
+    options.onApply(validation.value, offTarget?.checked === true);
   };
 
   reset.addEventListener('click', () => {

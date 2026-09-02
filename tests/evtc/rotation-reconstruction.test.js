@@ -675,10 +675,13 @@ test('pairs a stop before the next same-millisecond animation start', () => {
       { timestampMs: 600, durationMs: 600 }
     ]
   );
-  assert.deepEqual(result.rotation, [
-    { name: 'Mind Stab', skillId: 1_000 },
-    { name: 'Mind Stab', skillId: 1_000 }
-  ]);
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name !== '__wait'),
+    [
+      { name: 'Mind Stab', skillId: 1_000 },
+      { name: 'Mind Stab', skillId: 1_000 }
+    ]
+  );
 });
 
 test('keeps an instant at the preceding cast end sequential', () => {
@@ -704,10 +707,13 @@ test('keeps an instant at the preceding cast end sequential', () => {
     includeCombatStart: false
   });
 
-  assert.deepEqual(result.rotation, [
-    { name: 'Mind Stab', skillId: 1_000 },
-    { name: 'Time Sink', skillId: 2_000 }
-  ]);
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name !== '__wait'),
+    [
+      { name: 'Mind Stab', skillId: 1_000 },
+      { name: 'Time Sink', skillId: 2_000 }
+    ]
+  );
 });
 
 test('resolves Weaponmaster skills owned by another specialization', () => {
@@ -3416,7 +3422,10 @@ test('supports the legacy single-event activation encoding', () => {
     status: 'completed',
     supportedByCatalog: true
   });
-  assert.deepEqual(result.rotation, [{ name: 'Blink', skillId: 3_000 }]);
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name !== '__wait'),
+    [{ name: 'Blink', skillId: 3_000 }]
+  );
 });
 
 test('reconstructs Thief Antiquary buff, precast, and animation-only mechanics', () => {

@@ -85,13 +85,19 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
   const initialStateDuration = candidate.initialStateDurationMs;
   const releaseAtCharges = candidate.releaseAtCharges;
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
+  const offTarget = candidate.offTarget;
   if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
     throw new TypeError('Double Edge outcome must be either success or backfire.');
+  }
+
+  if (offTarget != null && typeof offTarget !== 'boolean') {
+    throw new TypeError('Off-target cast must be a boolean.');
   }
 
   return {
     type: 'cast',
     skillId: canonicalGw2SkillId(skillId),
+    ...(offTarget === true ? { offTarget: true } : {}),
     ...(concurrent == null
       ? {}
       : {

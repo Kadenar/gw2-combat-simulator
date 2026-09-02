@@ -50,6 +50,7 @@ export function createRotationItem(
   return {
     type: 'cast',
     skillId: skill?.id ?? options.skillId ?? name,
+    ...(options.offTarget === true ? { offTarget: true } : {}),
     ...(options.concurrentOffsetMs == null ? {} : { concurrentOffsetMs: options.concurrentOffsetMs }),
     ...(interruptAfterMs == null ? {} : { interruptAfterMs }),
     ...(options.releaseAtCharges == null ? {} : { releaseAtCharges: options.releaseAtCharges }),

@@ -567,6 +567,7 @@ test('rotation items preserve default interrupts when options contain nullish va
     skillId: skill.name,
     interruptAfterMs: 120
   });
+  assert.equal(createRotationItem(app, skill.name, { offTarget: true }).offTarget, true);
 });
 
 test('cooldown-reduction procs use a refresh icon and reduction badge', () => {

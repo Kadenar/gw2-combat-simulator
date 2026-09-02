@@ -19,6 +19,21 @@ interface RunGw2ResolverEventLoopOptions {
   readonly shouldSkipEvent?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => boolean;
 }
 
+const HOSTILE_TARGET_EVENT_TYPES = new Set([
+  'damage',
+  'condition',
+  'condition_tick',
+  'control',
+  'blind',
+  'weakness_vulnerability',
+  'peitha'
+]);
+
+/** Suppresses enemy-facing packets from a cast aimed away while retaining its setup and self effects. */
+function missesTarget(event: Gw2ResolverEvent): boolean {
+  return event.offTarget === true && HOSTILE_TARGET_EVENT_TYPES.has(event.type);
+}
+
 export function createGw2ResolverHandlerRegistry({
   commonHandlers = {},
   professionHandlers = {}
@@ -105,7 +120,7 @@ export function runGw2ResolverEventLoop(
         continue;
     }
 
-    if (shouldSkipEvent(ctx, event)) continue;
+    if (missesTarget(event) || shouldSkipEvent(ctx, event)) continue;
     if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON && isCombatGatedEvent(event)) continue;
 
     if (handlerRegistry.has(event.type)) {

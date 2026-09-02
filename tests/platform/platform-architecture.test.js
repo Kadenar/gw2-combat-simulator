@@ -437,6 +437,7 @@ test('normalized commands migrate legacy cast options', () => {
           name: 'Fixture Charge',
           offset: 100,
           interruptMs: 50,
+          offTarget: true,
           releaseAtCharges: 3,
           doubleEdgeOutcome: 'backfire'
         },
@@ -451,6 +452,7 @@ test('normalized commands migrate legacy cast options', () => {
       {
         type: 'cast',
         skillId: 900002,
+        offTarget: true,
         concurrentOffsetMs: 100,
         interruptAfterMs: 50,
         releaseAtCharges: 3,
@@ -472,6 +474,38 @@ test('normalized commands migrate legacy cast options', () => {
       }),
     /either success or backfire/
   );
+  assert.throws(
+    () => normalizeRotation([{ name: 'Fixture Charge', offTarget: 'yes' }], testProfession.catalog, { strict: true }),
+    /Off-target cast must be a boolean/
+  );
+});
+
+test('off-target casts retain their activation while hostile packets miss the target', () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [{ type: 'cast', skillId: 900001, offTarget: true }],
+    config: {
+      attributes: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+      target: { armor: 2597 },
+      weaponStrength: 1000
+    }
+  });
+  const activationEvents = result.events.filter((event) => event.sourceId === 900001);
+
+  assert.equal(result.steps[0].end, 1000);
+  assert.equal(
+    activationEvents.every((event) => event.offTarget === true),
+    true
+  );
+  assert.equal(
+    activationEvents.some((event) => event.type === 'damage'),
+    true
+  );
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage'),
+    false
+  );
+  assert.equal(result.endState.profession.controlEvents, 0);
 });
 
 test('normalized commands preserve signed combat-start offsets', () => {

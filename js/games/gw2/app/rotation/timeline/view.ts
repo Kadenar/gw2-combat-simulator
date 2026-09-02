@@ -74,6 +74,7 @@ type TimelineItem = SchedulerRecord & {
   skillId?: SkillId;
   concurrentOffsetMs?: number;
   interruptAfterMs?: number;
+  offTarget?: boolean;
   releaseAtCharges?: unknown;
   doubleEdgeOutcome?: unknown;
   durationMs?: number;
@@ -258,6 +259,9 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
   const isCombatStart = item.type === 'combat-start';
+  // Away-from-target casts model precasts, so expose the option only before the authored combat marker.
+  const combatStartIndex = app.build.rotation.findIndex((command) => command.type === 'combat-start');
+  const isPrecast = item.type === 'cast' && combatStartIndex > index;
   if (!skill && !isCombatStart) return false;
 
   const step = currentTimelineResults(app)?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
@@ -287,15 +291,18 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     fullCastMs,
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     damageCommitMs: activationDamageCommitMs(skill),
-    onApply(timingMs) {
+    allowOffTarget: isPrecast,
+    offTarget: item.offTarget === true,
+    onApply(timingMs, offTarget) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
-      app.build.rotation[index] = updateRotationEntry(
-        currentEntry,
-        behavior === 'concurrent'
+      // Timing and targeting belong to the same cast command, so the pencil editor updates both together.
+      app.build.rotation[index] = updateRotationEntry(currentEntry, {
+        ...(behavior === 'concurrent'
           ? { concurrentOffsetMs: timingMs ?? undefined }
-          : { interruptAfterMs: timingMs ?? undefined }
-      );
+          : { interruptAfterMs: timingMs ?? undefined }),
+        ...(isPrecast ? { offTarget: offTarget ? true : undefined } : {})
+      });
       app.changed(false);
     }
   });

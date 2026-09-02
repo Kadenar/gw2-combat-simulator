@@ -1,5 +1,8 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type { ReconstructedCommand, ReconstructedRotationCommand } from '#gw2/integrations/logs/lib/rotation/model.js';
+import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+
+const OBSERVED_CAST_TOLERANCE_MS = 20;
 
 export interface ReplayTimelineAction {
   readonly start: number;
@@ -25,6 +28,8 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   /** Quantizes imported idle durations independently from offsets when their replay precision differs. */
   readonly quantizeWaitMs?: (value: number) => number;
   readonly replayEnd?: (action: Action) => number;
+  /** Limits observed-aftercast correction to actions whose duration came from the source log. */
+  readonly hasObservedCastTime?: (action: Action) => boolean;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
   readonly commandFor: (action: Action) => ReconstructedRotationCommand;
   readonly canEmit?: (action: Action) => boolean;
@@ -33,6 +38,13 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
 
 function identityMilliseconds(value: number): number {
   return Math.max(0, value);
+}
+
+/** Preserves overlong explicit casts while leaving autoattack chains to model their own cadence. */
+function observedAftercastWaitMs(action: ReplayTimelineAction, replayEnd: number): number {
+  if (!action.skill || String(action.skill.slot || '').toLowerCase() === 'weapon_1') return 0;
+  const excessMs = replayEnd - action.start - quicknessReferenceCastTimeMs(action.skill);
+  return excessMs > OBSERVED_CAST_TOLERANCE_MS ? excessMs : 0;
 }
 
 /** Applies the earliest profession-proven combat boundary without moving a later source boundary forward. */
@@ -91,15 +103,25 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let activeCastEnd = origin;
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
+  let pendingAftercastWaitMs = 0;
+
+  const appendPendingAftercastWait = (): void => {
+    if (pendingAftercastWaitMs > 0) rotation.push({ name: '__wait', waitMs: pendingAftercastWaitMs });
+    pendingAftercastWaitMs = 0;
+  };
+
   const appendObservedIdle = (nextActionAt: number): void => {
     const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
     const observedGapMs = nextActionAt - blockingEnd;
     const retainedTimingJitter =
       retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
     const waitMs = quantizeWaitMs(observedGapMs);
+    const aftercastWaitMs = pendingAftercastWaitMs;
+    pendingAftercastWaitMs = 0;
     // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
     // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
-    if (!retainedTimingJitter && waitMs > minimumWaitMs) rotation.push({ name: '__wait', waitMs });
+    const totalWaitMs = aftercastWaitMs + (!retainedTimingJitter && waitMs > minimumWaitMs ? waitMs : 0);
+    if (totalWaitMs > 0) rotation.push({ name: '__wait', waitMs: totalWaitMs });
     activeCastEnd = nextActionAt;
   };
 
@@ -122,14 +144,16 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     const action = entry.action;
     if (action.control === 'cooldown-reset') {
-      if (!overlapping) appendObservedIdle(at);
+      if (overlapping) appendPendingAftercastWait();
+      else appendObservedIdle(at);
       rotation.push({ name: '__cooldown_reset' });
       continue;
     }
 
     const actionReplayEnd = Math.max(at, replayEnd(action));
     if (!canEmit(action)) {
-      if (!overlapping) appendObservedIdle(at);
+      if (overlapping) appendPendingAftercastWait();
+      else appendObservedIdle(at);
       const waitMs = quantizeWaitMs(actionReplayEnd - at);
       if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
@@ -158,6 +182,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       rotation.push({ name: '__wait', waitMs: quantizeWaitMs(action.followingWaitMs) });
     }
 
+    const aftercastWaitMs = observedAftercastWaitMs(action, actionReplayEnd);
+    if (!concurrent && policy.hasObservedCastTime?.(action) !== false && aftercastWaitMs > 0) {
+      pendingAftercastWaitMs = quantizeWaitMs(aftercastWaitMs);
+    }
+
     if (independent) {
       activeCastEnd = Math.max(activeCastEnd, at);
     } else {
@@ -168,6 +197,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       }
     }
   }
+
+  appendPendingAftercastWait();
 
   return rotation;
 }

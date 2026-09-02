@@ -826,6 +826,7 @@ function actionCommand(action: ResolvedAction): ReconstructedCommand {
   const command: {
     name: string;
     skillId?: string | number;
+    offTarget?: boolean;
     offset?: number;
     interruptMs?: number;
     initialStateDurationMs?: number;
@@ -834,6 +835,7 @@ function actionCommand(action: ResolvedAction): ReconstructedCommand {
     name: action.name,
     skillId: action.skillId
   };
+  if (action.offTarget === true) command.offTarget = true;
   const interruptMs = observedInterruptMs(action, action.skill);
   // EVTC duration is replayed only after the shared commit check; otherwise
   // omitting interruptMs makes the simulator use its normal Quickness cast.
@@ -875,6 +877,8 @@ function buildRotation(
     timingToleranceMs: TIMING_TOLERANCE_MS,
     quantizeMs: quantizeGw2ActionTimingMs,
     replayEnd: replayActionEnd,
+    hasObservedCastTime: (action) =>
+      action.status !== 'unknown' && (action.evidence === 'animation' || action.evidence === 'legacy-activation'),
     commandFor: actionCommand,
     canEmit: (action) => action.skill != null || action.rawName === 'Swap Weapons' || isDodgeName(action.rawName),
     // Continuum Split must stay anchored at its recorded cast boundary so its cooldown snapshot uses the EVTC order.

@@ -175,6 +175,7 @@ export interface BuildTemplateSelection {
 
 export interface RotationActionOptions extends SchedulerRecord {
   readonly skillId?: SkillId | null;
+  readonly offTarget?: boolean | null;
   readonly concurrentOffsetMs?: number | null;
   readonly interruptAfterMs?: number | null;
   readonly releaseAtCharges?: number | null;

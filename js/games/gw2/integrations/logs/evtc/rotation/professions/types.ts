@@ -16,6 +16,7 @@ export interface EvtcRecordedRotationAction {
   readonly suppressesWeaponSwap?: boolean;
   readonly initialState?: boolean;
   readonly precast?: boolean;
+  readonly offTarget?: boolean;
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';

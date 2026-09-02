@@ -209,16 +209,13 @@ test('recovers an opening Harbinger Shroud and removes canceled autoattacks', ()
   const result = reconstructDpsReportRotation(report, catalog);
 
   assert.deepEqual(
-    result.rotation.map((command) => command.name),
+    result.rotation.filter((command) => command.name !== '__wait').map((command) => command.name),
     [
       'Harbinger Shroud',
       'Voracious Arc',
       '__combat_start',
-      '__wait',
       'Exit Harbinger Shroud',
-      '__wait',
       'Weeping Shots',
-      '__wait',
       'Harbinger Shroud'
     ]
   );
@@ -734,6 +731,28 @@ test('keeps near-nominal Glaring Burst report casts at their 600 ms runtime', ()
   assert.equal('interruptMs' in glaringBurst, false);
 });
 
+test('accepts committed Symbol of Resolution report casts through its normal runtime', () => {
+  const report = reportFixture(
+    'Luminary',
+    [
+      { id: 9_146, skills: [{ castTime: 0, duration: 240, timeGained: 0 }] },
+      { id: 9_146, skills: [{ castTime: 240, duration: 280, timeGained: 0 }] },
+      { id: 9_146, skills: [{ castTime: 520, duration: 320, timeGained: 0 }] }
+    ],
+    { s9146: { name: 'Symbol of Resolution' } },
+    1_000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  const symbols = result.rotation.filter((command) => command.name === 'Symbol of Resolution');
+
+  // Committed early casts retain their observed action ticks; the full cast uses catalog timing.
+  assert.deepEqual(
+    symbols.map((command) => command.interruptMs ?? null),
+    [240, 280, null]
+  );
+});
+
 test('reconstructs every observed Helio Rush action-lane duration', () => {
   const report = reportFixture(
     'Luminary',
@@ -881,7 +900,7 @@ test('recovers Renegade warband precasts and normalizes legend and enhanced summ
     result.actions.filter((action) => action.rawSkillId === 72363).every((action) => action.skillId === 42949),
     true
   );
-  const tail = result.rotation.slice(-2);
+  const tail = result.rotation.filter((command) => command.name !== '__wait').slice(-2);
 
   assert.deepEqual(tail, [
     { name: 'Shattershot', skillId: 40497 },
@@ -936,15 +955,13 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
   const result = reconstructDpsReportRotation(report, catalog);
 
   assert.deepEqual(
-    result.rotation.map((command) => [command.name, command.skillId]),
+    result.rotation.filter((command) => command.name !== '__wait').map((command) => [command.name, command.skillId]),
     [
       ['__combat_start', undefined],
       ['Embrace the Darkness', 28287],
       ['Abyssal Blitz', 72938],
       ["Darkrazor's Daring", 41220],
-      ['__wait', undefined],
       ['Abyssal Strike', 73015],
-      ['__wait', undefined],
       ['Swap Legends', -4]
     ]
   );

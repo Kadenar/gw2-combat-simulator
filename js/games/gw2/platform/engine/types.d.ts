@@ -1202,6 +1202,8 @@ export type ProfessionSource<TProfessionState extends object = SchedulerRecord> 
 export interface CastCommand {
   readonly type: 'cast';
   readonly skillId: SkillId;
+  /** Casts normally but prevents this activation's hostile packets from reaching the target. */
+  readonly offTarget?: boolean;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
   /** Exact remaining duration carried by a hidden combat-log initial-state action. */

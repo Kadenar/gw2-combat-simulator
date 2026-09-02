@@ -39,6 +39,7 @@ const OPENING_RADIANT_WEAPONS = Object.freeze([
   Object.freeze({ name: 'Radiant Bulwark', skillId: 77197 }),
   Object.freeze({ name: 'Dazzling Hammer', skillId: 77339 })
 ]);
+const OFF_TARGET_OPENING_SKILL_IDS = new Set([76708, 77339]);
 
 export const LUMINARY_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
   {
@@ -127,7 +128,8 @@ function inferOpeningForgePrecast(
       evidence: 'initial-state',
       status: duration > 0 ? 'completed' : 'instant',
       eventIndex: opening.eventIndex - identities.length + index,
-      precast: true
+      precast: true,
+      ...(OFF_TARGET_OPENING_SKILL_IDS.has(identity.skillId) ? { offTarget: true } : {})
     });
   }
 

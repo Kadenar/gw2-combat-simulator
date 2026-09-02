@@ -6,6 +6,7 @@ export type RotationActionStatus = 'completed' | 'reduced' | 'interrupted' | 'un
 export interface ReconstructedRotationCommand {
   readonly name: string;
   readonly skillId?: string | number;
+  readonly offTarget?: boolean;
   readonly offset?: number;
   readonly interruptMs?: number;
   readonly initialStateDurationMs?: number;

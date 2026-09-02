@@ -254,9 +254,9 @@ test('reconstructs the evidenced Luminary Forge precast instead of synthetic ope
 
   assert.deepEqual(result.rotation.slice(0, 7), [
     { name: 'Enter Radiant Forge', skillId: 77_073 },
-    { name: 'Luminous Staff', skillId: 76_708 },
+    { name: 'Luminous Staff', skillId: 76_708, offTarget: true },
     { name: 'Radiant Bulwark', skillId: 77_197 },
-    { name: 'Dazzling Hammer', skillId: 77_339 },
+    { name: 'Dazzling Hammer', skillId: 77_339, offTarget: true },
     { name: 'Exit Radiant Forge', skillId: 76_616 },
     { name: 'Symbol of Luminance', skillId: 73_132 },
     { name: '__combat_start', offset: 359 }

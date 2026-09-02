@@ -87,9 +87,9 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
       events: [
         evtcEvent({ stateChange: 1 }),
         evtcEvent({ time: 1_200, stateChange: 67, skillId: 1_000, value: 600 }),
-        evtcEvent({ time: 1_600, stateChange: 68, skillId: 1_000, value: 400, activation: 3 }),
-        evtcEvent({ time: 1_960, stateChange: 67, skillId: 1_000, value: 600 }),
-        evtcEvent({ time: 2_360, stateChange: 68, skillId: 1_000, value: 400, activation: 3 })
+        evtcEvent({ time: 1_840, stateChange: 68, skillId: 1_000, value: 640, activation: 3 }),
+        evtcEvent({ time: 1_840, stateChange: 67, skillId: 1_000, value: 600 }),
+        evtcEvent({ time: 2_480, stateChange: 68, skillId: 1_000, value: 640, activation: 3 })
       ]
     },
     catalog,
@@ -106,8 +106,8 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
             {
               id: 1_000,
               skills: [
-                { castTime: 1_200, duration: 400, timeGained: 0 },
-                { castTime: 1_960, duration: 400, timeGained: 0 }
+                { castTime: 1_200, duration: 640, timeGained: 0 },
+                { castTime: 1_840, duration: 640, timeGained: 0 }
               ]
             }
           ]
@@ -122,6 +122,11 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
   assert.equal(evtc.timelineOriginMs, report.timelineOriginMs);
   assert.equal(evtc.combatStartTimestampMs, report.combatStartTimestampMs);
   assert.deepEqual(evtc.rotation, report.rotation);
+  // Both import paths preserve the observed-aftercast mismatch on 40 ms action ticks.
+  assert.deepEqual(
+    report.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    [200, 240, 240]
+  );
 });
 
 test('the shared timeline preserves controls, unsupported durations, idle gaps, and concurrent offsets', () => {
@@ -150,6 +155,21 @@ test('the shared timeline preserves controls, unsupported durations, idle gaps, 
     { name: '__wait', waitMs: 100 },
     { name: '__cooldown_reset' }
   ]);
+});
+
+test('the shared timeline preserves explicit aftercast mismatches without adding autoattack waits', () => {
+  const waitFor = (durationMs, skill = fixtureSkill) =>
+    buildReplayTimeline(
+      [{ start: 0, end: durationMs, eventIndex: 0, skill, name: skill.name, skillId: skill.id }],
+      0,
+      null,
+      { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+    ).find((command) => command.name === '__wait')?.waitMs ?? 0;
+
+  assert.equal(waitFor(420), 0);
+  assert.equal(waitFor(421), 21);
+  assert.equal(waitFor(800), 400);
+  assert.equal(waitFor(800, { ...fixtureSkill, slot: 'Weapon_1' }), 0);
 });
 
 test('the shared player selector applies explicit matching and evidence ties consistently', () => {

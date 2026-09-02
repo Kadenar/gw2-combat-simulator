@@ -241,6 +241,9 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   // reservations retains the lifecycle data used by the completion task.
   const inFlight = new Map<SkillId, Set<string>>();
   const reservations = new Map<string, CastReservation<TProfessionState>>();
+  // Off-target activations still schedule self/setup mechanics; tagging every descendant lets resolution skip only
+  // hostile packets, including delayed pulses that land after Combat Start.
+  const offTargetActivationIds = new Set<string>();
   // Scheduling hooks may emit more events. A FIFO observation queue flattens
   // that recursion so every event is observed exactly once in causal order.
   const observationQueue: SimulationEvent[] = [];
@@ -364,10 +367,14 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       return eventOrderIndex.get(Number(order));
     },
     emit(/** @type {SimulationEventInput} */ event) {
-      const professionPrepared = activeProfession.prepareEvent(context, event);
+      const activationId = typeof event.activationId === 'string' ? event.activationId : null;
+      const offTarget = event.offTarget === true || (activationId != null && offTargetActivationIds.has(activationId));
+      const targetedEvent = offTarget ? { ...event, offTarget: true } : event;
+      const professionPrepared = activeProfession.prepareEvent(context, targetedEvent);
       const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
       const normalized = createEvent({
         ...prepared,
+        ...(offTarget ? { offTarget: true } : {}),
         eventOrder: eventOrder++
       });
       events.push(normalized);
@@ -421,6 +428,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       const count = (derivedEventCounts.get(rootOrder) || 0) + 1;
       derivedEventCounts.set(rootOrder, count);
       return context.emit({
+        ...(cause.activationId ? { activationId: cause.activationId } : {}),
         ...event,
         causalOrder: rootOrder + count / 1_000_000,
         triggeredBy: event.triggeredBy ?? cause.skillName ?? cause.name ?? ''
@@ -977,6 +985,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // Register the reservation before lifecycle hooks emit anything. Re-entrant
     // availability checks therefore see this cast as already in flight.
     const reservationId = `cast:${++reservationOrder}`;
+    if (command.offTarget === true) offTargetActivationIds.add(reservationId);
     const reservation: CastReservation<TProfessionState> = {
       id: reservationId,
       skill,

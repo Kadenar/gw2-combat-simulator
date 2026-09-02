@@ -82,7 +82,8 @@ function detonateLightAura(context: GuardianResolverContext, event: GuardianReso
       name: 'Sovereign of Light',
       coefficient: Number(strike?.coefficient || 1.5),
       skillWeapon: 'Unequipped',
-      triggeredBy: event.sourceSkill || event.skillName
+      triggeredBy: event.sourceSkill || event.skillName,
+      offTarget: event.offTarget === true
     })
   );
   context.recordProc(

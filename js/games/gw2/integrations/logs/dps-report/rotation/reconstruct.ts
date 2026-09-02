@@ -359,6 +359,7 @@ function buildRotation(
     commandFor: actionCommand,
     // Troubadour EI animations omit ordinary aftercast; its measured catalog cadence already models that occupied lane.
     replayEnd: (action) => replayActionEnd(action, completeReportedAftercast),
+    hasObservedCastTime: (action) => action.inference == null,
     compareSimultaneousActions,
     // Weapon Swap is a supported simulator action even when no catalog entry was supplied.
     canEmit: (action) => action.skill != null || (action.isSwap && normalized(action.rawName) === 'weapon swap')
