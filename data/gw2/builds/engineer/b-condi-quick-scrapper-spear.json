@@ -57,7 +57,7 @@
     "regeneration": true,
     "swiftness": true,
     "vigor": true,
-    "aegis": false,
+    "aegis": true,
     "targetMoving": false,
     "targetBoonless": true,
     "inDamagingField": false,

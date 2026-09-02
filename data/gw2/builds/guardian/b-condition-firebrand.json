@@ -56,7 +56,7 @@
     "regeneration": true,
     "swiftness": true,
     "vigor": true,
-    "aegis": false,
+    "aegis": true,
     "alliedPlayerCount": 4,
     "targetMoving": false,
     "targetBoonless": true,

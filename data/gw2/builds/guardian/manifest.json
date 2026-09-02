@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 42820,
+        "benchmarkDps": 43265,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -64,7 +64,7 @@
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-radiance-spear-greatsword",
-        "benchmarkDps": 41621,
+        "benchmarkDps": 40225,
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
