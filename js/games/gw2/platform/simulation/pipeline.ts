@@ -1,7 +1,7 @@
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { cloneProfessionState, flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
-import type { NormalizedProfessionContract, SchedulerRunResult, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRunResult, SkillId } from '#gw2/platform/engine/types.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
@@ -92,15 +92,11 @@ function simulateDeclarativeGw2Pass({
   config = {},
   observationPolicy
 }: Gw2DeclarativeSimulationOptions): Gw2SimulationResult {
-  const runtimeProfession = resolveProfessionRuntime(
-    profession as unknown as NormalizedProfessionContract,
-    config
-  ) as unknown as Gw2ProfessionContract;
-  const engineProfession = runtimeProfession as unknown as NormalizedProfessionContract;
+  const runtimeProfession = resolveProfessionRuntime(profession, config);
   // Resolve traits once and share the exact selection between both phases.
   const traits = selectedGw2TraitValues(config, runtimeProfession.catalog);
   const scheduled = createScheduler({
-    profession: engineProfession,
+    profession: runtimeProfession,
     config,
     schedulerPolicy: createGw2SchedulerPolicy(config, {
       traits,
@@ -123,7 +119,7 @@ function simulateDeclarativeGw2Pass({
     professionReactions: runtimeProfession.eventReactions
   });
   const query = createGw2CombatQuery({
-    profession: engineProfession,
+    profession: runtimeProfession,
     config,
     events: resolverStream.events,
     traits,

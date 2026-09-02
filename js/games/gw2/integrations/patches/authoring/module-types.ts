@@ -10,6 +10,7 @@ import type {
   SkillHandlerStrategy,
   SkillId
 } from '#gw2/platform/engine/types.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 import type {
   Gw2HitResolutionContext,
   Gw2ResolverEvent,
@@ -349,7 +350,8 @@ export interface NativePatchAuthoringMetadata {
 }
 
 export type NativeProfessionContract<TModules extends readonly AnyNativeModule[]> = ProfessionFamilyContract<
-  NativeProfessionRuntimeState<TModules>
+  NativeProfessionRuntimeState<TModules>,
+  Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>>
 > & {
   readonly specializationIds: readonly NativeSpecializationId<TModules>[];
   readonly preview: PatchPreview | null;

@@ -221,15 +221,19 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
  * Resolves family contracts for the supplied configuration. Already-resolved
  * runtime contracts pass through unchanged.
  */
-export function resolveProfessionRuntime<TProfessionState extends object = SchedulerRecord>(
-  profession: ProfessionSource<TProfessionState>,
+export function resolveProfessionRuntime<
+  TProfessionState extends object = SchedulerRecord,
+  TRuntime extends NormalizedProfessionContract<TProfessionState, object, object> =
+    NormalizedProfessionContract<TProfessionState>
+>(
+  profession: ProfessionSource<TProfessionState, TRuntime>,
   config: Readonly<SchedulerConfig> = {}
-): Readonly<NormalizedProfessionContract<TProfessionState>> {
+): Readonly<TRuntime> {
   if (!profession || typeof profession !== 'object') {
     throw new TypeError('A profession contract is required.');
   }
 
-  return typeof (profession as ProfessionFamilyContract<TProfessionState>).resolveRuntime === 'function'
-    ? (profession as ProfessionFamilyContract<TProfessionState>).resolveRuntime(config)
-    : (profession as Readonly<NormalizedProfessionContract<TProfessionState>>);
+  return typeof (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveRuntime === 'function'
+    ? (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveRuntime(config)
+    : (profession as Readonly<TRuntime>);
 }

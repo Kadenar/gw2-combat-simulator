@@ -1122,7 +1122,12 @@ export interface ProfessionFamilyDefinition<TProfessionState extends object = Sc
   readonly simulation?: SchedulerRecord | null;
 }
 
-export interface NormalizedProfessionContract<TProfessionState extends object = SchedulerRecord> {
+/** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
+export interface NormalizedProfessionContract<
+  TProfessionState extends object = SchedulerRecord,
+  TEventHandlers extends object = object,
+  TEventReactions extends object = object
+> {
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog;
@@ -1138,8 +1143,8 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
     Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>>
   >;
   readonly skillMechanicHandlers: Readonly<Record<string, SkillMechanicTriggerHandler<TProfessionState>>>;
-  readonly eventHandlers: Readonly<Record<string, (...args: never[]) => unknown>>;
-  readonly eventReactions: Readonly<Record<string, (...args: never[]) => unknown>>;
+  readonly eventHandlers: TEventHandlers;
+  readonly eventReactions: TEventReactions;
   readonly prepareEvent: (
     context: SchedulerContext<TProfessionState>,
     event: SimulationEventInput
@@ -1189,15 +1194,18 @@ export interface ProfessionApplicationContract {
 }
 
 export interface ProfessionFamilyContract<
-  TProfessionState extends object = SchedulerRecord
+  TProfessionState extends object = SchedulerRecord,
+  TRuntime extends NormalizedProfessionContract<TProfessionState, object, object> =
+    NormalizedProfessionContract<TProfessionState>
 > extends ProfessionApplicationContract {
-  readonly resolveRuntime: (
-    config: Readonly<SchedulerConfig>
-  ) => Readonly<NormalizedProfessionContract<TProfessionState>>;
+  readonly resolveRuntime: (config: Readonly<SchedulerConfig>) => Readonly<TRuntime>;
 }
 
-export type ProfessionSource<TProfessionState extends object = SchedulerRecord> =
-  NormalizedProfessionContract<TProfessionState> | ProfessionFamilyContract;
+export type ProfessionSource<
+  TProfessionState extends object = SchedulerRecord,
+  TRuntime extends NormalizedProfessionContract<TProfessionState, object, object> =
+    NormalizedProfessionContract<TProfessionState>
+> = TRuntime | ProfessionFamilyContract<TProfessionState, TRuntime>;
 
 export interface CastCommand {
   readonly type: 'cast';

@@ -2,6 +2,7 @@
 import type {
   NormalizedProfessionContract,
   ObservationPolicy,
+  ProfessionApplicationContract,
   ProfessionSource,
   SchedulerContext,
   SchedulerRecord,
@@ -15,12 +16,9 @@ import type {
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export interface Gw2ProfessionContract extends Omit<
-  NormalizedProfessionContract,
-  'eventHandlers' | 'eventReactions' | 'simulation' | 'projectEndState'
-> {
-  readonly eventHandlers: Gw2ResolverEventHandlers;
-  readonly eventReactions: Gw2ResolverReactions;
+export interface Gw2ProfessionContract<
+  TProfessionState extends object = SchedulerRecord
+> extends NormalizedProfessionContract<TProfessionState, Gw2ResolverEventHandlers, Gw2ResolverReactions> {
   readonly simulation:
     | (SchedulerRecord & {
         readonly refineSchedulerConfig?: (
@@ -53,6 +51,10 @@ export interface Gw2ProfessionContract extends Omit<
   }) => unknown;
 }
 
+/** Joins the application surface to a runtime source whose GW2 resolver callbacks remain type checked. */
+export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract &
+  ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>>;
+
 export interface Gw2SimulationEndState {
   readonly time: number;
   readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
@@ -72,7 +74,7 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
 }
 
 export interface Gw2DeclarativeSimulationOptions {
-  readonly profession: Gw2ProfessionContract | ProfessionSource;
+  readonly profession: Gw2ProfessionSource;
   readonly rotation: readonly unknown[];
   readonly config?: Gw2Config;
   readonly observationPolicy?: ObservationPolicy;

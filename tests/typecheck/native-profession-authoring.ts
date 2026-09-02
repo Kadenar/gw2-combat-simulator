@@ -1,7 +1,14 @@
 import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
 import { onResolvedDamage, skillAvailability } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type { NativeProfessionRuntimeState } from '#gw2/integrations/patches/authoring/module-types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { ProfessionAppContract } from '#gw2/app/types.js';
+import type {
+  Gw2ResolverEvent,
+  Gw2ResolverEventHandlers,
+  Gw2ResolverReactions,
+  Gw2ResolverRuntime
+} from '#gw2/platform/resolver/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;
@@ -49,7 +56,11 @@ type NativeAuthoringAssertions = [
   Assert<Equal<(typeof profession.specializationIds)[number], 'Elite'>>,
   Assert<Equal<RuntimeState['core']['coreValue'], number>>,
   Assert<Equal<RuntimeState['specialization']['kind'], 'Core' | 'Elite'>>,
-  Assert<Equal<Extract<RuntimeState['specialization'], { kind: 'Elite' }>['state']['eliteValue'], 'active'>>
+  Assert<Equal<Extract<RuntimeState['specialization'], { kind: 'Elite' }>['state']['eliteValue'], 'active'>>,
+  Assert<typeof profession extends ProfessionAppContract ? true : false>,
+  Assert<typeof profession extends Gw2ProfessionSource ? true : false>,
+  Assert<ReturnType<typeof profession.resolveRuntime>['eventHandlers'] extends Gw2ResolverEventHandlers ? true : false>,
+  Assert<ReturnType<typeof profession.resolveRuntime>['eventReactions'] extends Gw2ResolverReactions ? true : false>
 ];
 
 export type NativeProfessionAuthoringAssertions = NativeAuthoringAssertions;

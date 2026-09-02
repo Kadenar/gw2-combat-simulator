@@ -10,7 +10,7 @@ import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { ObservationPolicy, RotationCommand, Skill } from '#gw2/platform/engine/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ProfessionContract, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type {
   BaselineSimulationOutput,
   BaselineSimulationRequest,
@@ -58,7 +58,7 @@ export function createProfessionRuntime({
     observationPolicy?: ObservationPolicy
   ): Gw2SimulationResult =>
     simulateGw2({
-      profession: profession as unknown as Gw2ProfessionContract,
+      profession,
       rotation,
       config,
       observationPolicy

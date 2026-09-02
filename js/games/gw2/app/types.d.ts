@@ -18,24 +18,18 @@ import type {
   ProfessionAssumptionControl
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ProfessionContract, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
 import type { PatchPreview, PatchRuntimeValues } from '#gw2/integrations/patches/authoring/patches.js';
 import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison.js';
 import type { BuildEditor, GameContentAddress, SimulationPresentation } from '#app/shell/types.js';
 import type { RotationHotkeyImport } from '#gw2/app/rotation/input/hotkeys.js';
 
-export interface ProfessionAppContract {
-  readonly id: string;
-  readonly name: string;
-  readonly catalog: CanonicalCatalog;
-  readonly ui: ProfessionUiContract;
+export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
   readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly patchValuesFor?: (patchId?: string) => PatchRuntimeValues;
-  createBuildDefaults(): SchedulerRecord;
-  migrateBuild(saved: SchedulerRecord): SchedulerRecord;
-}
+};
 
 export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
   activeTraits: CatalogEntity[];
