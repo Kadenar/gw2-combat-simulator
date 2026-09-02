@@ -3586,39 +3586,37 @@ test('Radiant Forge strikes use its normalized transform weapon strength', () =>
   assert.deepEqual(result.warnings, []);
 });
 
-test('Radiant Forge recharge starts on exit and uses equipped weapons', () => {
-  const hammerOnly = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin', 'Exit Radiant Forge', 'Enter Radiant Forge'],
-    config: { ...config, specialization: 'Luminary' }
-  });
-  const allWeapons = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'Enter Radiant Forge',
-      'Dazzling Hammer',
-      'Luminous Staff',
-      'Gleaming Blade',
-      'Radiant Bulwark',
-      'Exit Radiant Forge',
-      'Enter Radiant Forge'
-    ],
-    config: { ...config, specialization: 'Luminary' }
-  });
+test('Radiant Forge recharge is reduced only when exactly one weapon is used', () => {
+  const rechargeAfter = (radiantWeapons) => {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Enter Radiant Forge', ...radiantWeapons, 'Exit Radiant Forge', 'Enter Radiant Forge'],
+      config: { ...config, specialization: 'Luminary' }
+    });
+    const exit = result.steps.find((step) => step.skill === 'Exit Radiant Forge');
+    const reentry = result.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1];
 
-  assert.equal(hammerOnly.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 6440);
-  assert.equal(allWeapons.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 14820);
-  assert.equal(allWeapons.endState.profession.radiantForgeEndsAt, 34.82);
+    return reentry.start - exit.start;
+  };
+
+  assert.equal(rechargeAfter([]), 10000);
+  assert.equal(rechargeAfter(['Dazzling Hammer']), 5000);
+  assert.equal(rechargeAfter(['Dazzling Hammer', 'Luminous Staff']), 10000);
 });
 
-test('Radiant Forge recharge starts when its automatic exit occurs', () => {
+test('Radiant Forge automatically exits after 20 seconds and starts its base recharge', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: ['Enter Radiant Forge', { type: 'wait', durationMs: 21000 }, 'Enter Radiant Forge'],
     config: { ...config, specialization: 'Luminary' }
   });
 
-  assert.equal(result.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 25000);
+  const automaticExit = result.events.find(
+    (event) => event.type === 'weapon_set' && event.skillName === 'Exit Radiant Forge' && event.automatic
+  );
+
+  assert.equal(automaticExit.at, 20);
+  assert.equal(result.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 30000);
 });
 
 test('Radiant Forge transitions emit the current set and trigger swap sigils', () => {
@@ -3678,8 +3676,8 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
         event.condition === condition
     );
 
-  assert.deepEqual(procTimes('Hydromancy'), [1300, 11300]);
-  assert.deepEqual(procTimes('Geomancy'), [1300, 11300]);
+  assert.deepEqual(procTimes('Hydromancy'), [1300, 11300, 21300]);
+  assert.deepEqual(procTimes('Geomancy'), [1300, 11300, 21300]);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'weapon_set').map((event) => [event.skillName, event.weaponSet]),
     [
@@ -3701,10 +3699,10 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
   assert.equal(
     result.resolvedEvents.filter((event) => event.skillName === 'Sigil of Hydromancy' && event.type === 'damage')
       .length,
-    2
+    3
   );
-  assert.equal(applications('Chilled').length, 2);
-  assert.equal(applications('Bleeding').length, 2);
+  assert.equal(applications('Chilled').length, 3);
+  assert.equal(applications('Bleeding').length, 3);
   assert.ok(applications('Bleeding').every((application) => application.damage > 0));
 
   const manualExit = simulateGw2({

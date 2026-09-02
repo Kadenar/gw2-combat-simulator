@@ -1451,7 +1451,7 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
   );
 
   assert.equal(anguishHits.length, 7);
-  assert.ok(anguishHits.every((event) => event.coefficient === 0.355));
+  assert.ok(anguishHits.every((event) => event.coefficient === 0.36));
   assert.ok(anguishHits.every((event) => event.weaponStrengthProfileId === 'transform.ritualist-shroud'));
   assert.ok(anguishHits.every((event) => event.resolvedWeaponStrength === 1100));
   assert.equal(new Set(anguishHits.map((event) => event.activationId)).size, 1);
@@ -3536,7 +3536,7 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
 
   assert.equal(anguish.length, 7);
   assert.equal(
-    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.355),
+    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.36),
     true
   );
   assert.equal(lingering.length, 4);

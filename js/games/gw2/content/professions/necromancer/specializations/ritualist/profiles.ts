@@ -44,16 +44,16 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         name: 'Anguish Autoattack'
       },
       {
-        // EVTC calibration identifies each player-owned barrage packet as a 0.355 coefficient strike.
+        // EVTC calibration identifies each player-owned barrage packet as a 0.36 coefficient strike.
         type: 'strike',
         ticks: [
-          { atMs: 800, coefficient: 0.355 },
-          { atMs: 960, coefficient: 0.355 },
-          { atMs: 1000, coefficient: 0.355 },
-          { atMs: 1080, coefficient: 0.355 },
-          { atMs: 1120, coefficient: 0.355 },
-          { atMs: 1160, coefficient: 0.355 },
-          { atMs: 1200, coefficient: 0.355 }
+          { atMs: 800, coefficient: 0.36 },
+          { atMs: 960, coefficient: 0.36 },
+          { atMs: 1000, coefficient: 0.36 },
+          { atMs: 1080, coefficient: 0.36 },
+          { atMs: 1120, coefficient: 0.36 },
+          { atMs: 1160, coefficient: 0.36 },
+          { atMs: 1200, coefficient: 0.36 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
