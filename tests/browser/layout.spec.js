@@ -64,6 +64,68 @@ test('empty and authored rotations keep a usable timeline and an open event log 
   expect(panelLayout).toEqual({ maxHeight: 'none', overflow: 'visible' });
 });
 
+test('weapon-set labels stay centered in groups and visible while scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/necromancer.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => window.necromancerApp);
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+
+  const renderCycles = (count) =>
+    page.evaluate((cycleCount) => {
+      const app = window.necromancerApp;
+      const cycle = [
+        'Feast of Corruption',
+        'Harbinger Shroud',
+        'Tainted Bolts',
+        'Exit Harbinger Shroud',
+        'Feast of Corruption'
+      ];
+      const names = Array.from({ length: cycleCount }, () => cycle).flat();
+      const skills = names.map((name) => app.activeCatalog.skillsByName.get(name));
+      if (skills.some((skill) => !skill)) return false;
+      app.build.startingWeaponSet = 1;
+      app.build.rotation = skills.map((skill) => ({ type: 'cast', skillId: skill.id }));
+      app.changed(false);
+      return true;
+    }, count);
+
+  expect(await renderCycles(1)).toBe(true);
+  const timeline = page.locator('#rotation-timeline');
+  const group = page.locator('#rotation-timeline > .rot-row');
+  await expect(group).toHaveCount(1);
+  const label = group.locator(':scope > .rot-row-label > .rot-row-label-text');
+  await expect(label).toHaveText('W1');
+  await expect(group.locator('.rot-row-line')).toHaveCount(3);
+  const centerOffset = await group.evaluate((element) => {
+    const groupRect = element.getBoundingClientRect();
+    const labelRect = element.querySelector('.rot-row-label-text').getBoundingClientRect();
+    return Math.abs(labelRect.top + labelRect.height / 2 - (groupRect.top + groupRect.height / 2));
+  });
+  expect(centerOffset).toBeLessThan(1);
+
+  expect(await renderCycles(12)).toBe(true);
+  await expect(group.locator('.rot-row-line')).toHaveCount(25);
+  expect(await group.locator('.rot-row-skills').evaluateAll((lines) => lines.every((line) => line.ondrop))).toBe(true);
+
+  const heights = await group.evaluate((element) => ({
+    label: element.querySelector('.rot-row-label').getBoundingClientRect().height,
+    line: element.querySelector('.rot-row-line').getBoundingClientRect().height
+  }));
+  expect(heights.label).toBeGreaterThan(heights.line * 2);
+
+  const labelIsVisible = () =>
+    label.evaluate((element) => {
+      const labelRect = element.getBoundingClientRect();
+      const timelineRect = element.closest('.rotation-timeline').getBoundingClientRect();
+      return labelRect.top >= timelineRect.top && labelRect.bottom <= timelineRect.bottom;
+    });
+  expect(await labelIsVisible()).toBe(true);
+  await timeline.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  expect(await labelIsVisible()).toBe(true);
+});
+
 test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ page }) => {
   await openSimulator(page, { width: 600, height: 900 });
   await page.evaluate(() => {

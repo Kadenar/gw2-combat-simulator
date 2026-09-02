@@ -27,6 +27,7 @@ import { paletteSkillView } from '#gw2/app/rotation/palette/view.js';
 import {
   continuumEndTimelineMarkers,
   shatterResourceSpends,
+  timelineWeaponRowGroups,
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
@@ -3052,6 +3053,14 @@ test('weapon swaps start new weapon-set rows in the rotation timeline', () => {
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0, 1], [2, 3], [4]]
   );
+  assert.deepEqual(
+    timelineWeaponRowGroups(rows).map((group) => [group.weaponSet, group.rows.length]),
+    [
+      [1, 1],
+      [2, 1],
+      [1, 1]
+    ]
+  );
 });
 
 test('shroud and forge transitions start a new row on the current weapon set', () => {
@@ -3060,6 +3069,7 @@ test('shroud and forge transitions start a new row on the current weapon set', (
     ["Reaper's Shroud", "Exit Reaper's Shroud"],
     ['Harbinger Shroud', 'Exit Harbinger Shroud'],
     ["Ritualist's Shroud", "Exit Ritualist's Shroud"],
+    ['Enter Shadow Shroud', 'Exit Shadow Shroud'],
     ['Enter Radiant Forge', 'Exit Radiant Forge']
   ]) {
     const rows = timelineWeaponRows(
@@ -3080,6 +3090,14 @@ test('shroud and forge transitions start a new row on the current weapon set', (
     assert.deepEqual(
       rows.map((row) => row.skills.map((skill) => skill.index)),
       [[0, 1], [2, 3], [4, 5], [6]],
+      enter
+    );
+    assert.deepEqual(
+      timelineWeaponRowGroups(rows).map((group) => [group.weaponSet, group.rows.length]),
+      [
+        [2, 3],
+        [1, 1]
+      ],
       enter
     );
   }

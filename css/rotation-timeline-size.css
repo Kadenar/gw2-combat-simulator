@@ -36,12 +36,14 @@
   zoom: 1.5;
 }
 
-.rotation-panel[data-rotation-size='large'] .rot-row-label {
+.rotation-panel[data-rotation-size='large'] .rot-row-label,
+.rotation-panel[data-rotation-size='large'] .rot-row-line-label {
   min-width: 17px;
   font-size: 11px;
 }
 
-.rotation-panel[data-rotation-size='extra-large'] .rot-row-label {
+.rotation-panel[data-rotation-size='extra-large'] .rot-row-label,
+.rotation-panel[data-rotation-size='extra-large'] .rot-row-line-label {
   min-width: 21px;
   font-size: 13px;
 }

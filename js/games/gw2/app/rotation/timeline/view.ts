@@ -59,6 +59,7 @@ import {
   targetHealthTimelineMarkers,
   timelineStepsWithChargeFills,
   timelineWeaponLineExitMarkerRowIndex,
+  timelineWeaponRowGroups,
   timelineWeaponRows,
   traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
@@ -765,11 +766,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         </div>`;
   };
 
-  const timelineRows = rows.map((row, rowNumber) => {
-    const weapons = row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
-    const weaponLabel = row.weaponLine || weapons.filter(Boolean).join('/') || 'Unequipped';
-    const rowLabel = row.weaponLine ? row.weaponLine.replace(/ Kit$/, '') : `W${row.weaponSet}`;
-    const rowTitle = row.weaponLine ? `${row.weaponLine} weapon line` : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
+  const timelineLines = rows.map((row, rowNumber) => {
     const rowItems: string[] = [];
     row.skills.forEach(({ entry, index }) => {
       for (const marker of overlayProcMarkersByIndex.get(index) || []) {
@@ -981,15 +978,30 @@ export function renderTimeline(app: ProfessionAppState): void {
     const skills = rowItems.join('');
     const finalSkill = row.skills.at(-1);
     const insertAt = finalSkill ? finalSkill.index + 1 : 0;
-    const firstCommand = row.skills[0]?.entry;
-    const rowKey = firstCommand
-      ? `${row.weaponSet}:${row.weaponLine || ''}:${timelineCommandKey(firstCommand)}`
-      : `${row.weaponSet}:${row.weaponLine || ''}:empty:${rowNumber}`;
-    return {
-      key: rowKey,
-      html: `<div class="rot-row" style="--row-color:#9d7bd0">
-            <div class="rot-row-label" title="${esc(rowTitle)}">${esc(rowLabel)}</div>
+    const lineLabel = row.weaponLine?.replace(/ Kit$/, '') || '';
+    const lineTitle = row.weaponLine ? `${row.weaponLine} weapon line` : '';
+    return `<div class="rot-row-line">
+            ${lineLabel ? `<div class="rot-row-line-label" title="${esc(lineTitle)}">${esc(lineLabel)}</div>` : ''}
             <div class="rot-row-skills" data-insert-idx="${insertAt}">${skills}</div>
+        </div>`;
+  });
+
+  let timelineLineIndex = 0;
+  const timelineRows = timelineWeaponRowGroups(rows).map((group, groupNumber) => {
+    const weapons = group.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
+    const weaponLabel = weapons.filter(Boolean).join('/') || 'Unequipped';
+    const groupTitle = `Weapon set ${group.weaponSet}: ${weaponLabel}`;
+    const groupLines = timelineLines.slice(timelineLineIndex, timelineLineIndex + group.rows.length).join('');
+    timelineLineIndex += group.rows.length;
+    const firstCommand = group.rows[0]?.skills[0]?.entry;
+    const groupKey = firstCommand
+      ? `${group.weaponSet}:${timelineCommandKey(firstCommand)}`
+      : `${group.weaponSet}:empty:${groupNumber}`;
+    return {
+      key: groupKey,
+      html: `<div class="rot-row" role="group" aria-label="${esc(groupTitle)}" style="--row-color:#9d7bd0">
+            <div class="rot-row-label" title="${esc(groupTitle)}"><span class="rot-row-label-text">W${group.weaponSet}</span></div>
+            <div class="rot-row-lines">${groupLines}</div>
         </div>`
     };
   });

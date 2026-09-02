@@ -556,7 +556,8 @@ export function bindTimelineInteractions(
     };
   }
 
-  for (const row of root.querySelectorAll<HTMLElement>('.rot-row:not(.rot-procs-row) > .rot-row-skills')) {
+  // Every logical line keeps its own insertion boundary even when several lines share one weapon-set label.
+  for (const row of root.querySelectorAll<HTMLElement>('.rot-row-skills[data-insert-idx]')) {
     row.ondragover = (event) => {
       // Skill elements own midpoint insertion. Row background drops use the
       // row's precomputed insertion boundary.

@@ -1693,36 +1693,81 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   font-weight: 600;
 }
 
-/* Weapon rows use spacing and separators without a redundant left accent strip. */
+/* One weapon-set label spans its preserved transform lines so state boundaries stay visible without repeated labels. */
 .rot-row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
   gap: 2px;
-  padding: 4px 0 4px 8px;
+  padding: 0 0 0 8px;
   margin-bottom: 2px;
 }
 
 .rot-row + .rot-row {
-  border-top: 1px dotted var(--border-light);
+  border-top: 1px solid var(--border-light);
 }
 
-.rot-row-label {
+.rot-row-label,
+.rot-row-line-label {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--row-color, var(--text-dim));
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
   min-width: 14px;
   text-align: center;
   user-select: none;
 }
 
+.rot-row-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--row-color) 8%, transparent);
+}
+
+.rot-row-label-text {
+  /* Center normal groups, but clamp labels inside the viewport when a group is taller than it. */
+  position: sticky;
+  top: 4px;
+  bottom: 4px;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+.rot-row-lines {
+  min-width: 0;
+}
+
+.rot-row-line {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.rot-row-line + .rot-row-line {
+  border-top: 1px dotted var(--border-light);
+}
+
+.rot-row-line-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  padding: 0 1px;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
 .rot-row-skills {
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   gap: 4px;
   align-items: flex-start;
+  min-width: 0;
 }
 
 .rot-row-skills.drag-over {

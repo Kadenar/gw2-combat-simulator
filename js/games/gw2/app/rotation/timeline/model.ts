@@ -207,6 +207,23 @@ export interface TimelineWeaponRowOptions {
   ) => string | null | undefined;
 }
 
+export interface TimelineWeaponRowGroup {
+  readonly weaponSet: number;
+  readonly rows: TimelineRow[];
+}
+
+/** Groups adjacent timeline lines under one weapon-set label while preserving every transform boundary. */
+export function timelineWeaponRowGroups(rows: readonly TimelineRow[] = []): TimelineWeaponRowGroup[] {
+  const groups: TimelineWeaponRowGroup[] = [];
+  for (const row of rows) {
+    const current = groups.at(-1);
+    if (current?.weaponSet === row.weaponSet) current.rows.push(row);
+    else groups.push({ weaponSet: row.weaponSet, rows: [row] });
+  }
+
+  return groups;
+}
+
 export function timelineWeaponRows(
   rotation: readonly RotationCommand[] = [],
   {
