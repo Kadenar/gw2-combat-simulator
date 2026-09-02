@@ -3594,7 +3594,7 @@ test('Radiant Forge strikes use its normalized transform weapon strength', () =>
   assert.deepEqual(result.warnings, []);
 });
 
-test('Radiant Forge recharge is reduced only when exactly one weapon is used', () => {
+test('Radiant Forge recharge is reduced when at most one weapon is used', () => {
   const rechargeAfter = (radiantWeapons) => {
     const result = simulateGw2({
       profession: guardianProfession,
@@ -3607,12 +3607,12 @@ test('Radiant Forge recharge is reduced only when exactly one weapon is used', (
     return reentry.start - exit.start;
   };
 
-  assert.equal(rechargeAfter([]), 10000);
+  assert.equal(rechargeAfter([]), 5000);
   assert.equal(rechargeAfter(['Dazzling Hammer']), 5000);
   assert.equal(rechargeAfter(['Dazzling Hammer', 'Luminous Staff']), 10000);
 });
 
-test('Radiant Forge automatically exits after 20 seconds and starts its base recharge', () => {
+test('Radiant Forge automatically exits after 20 seconds and starts its reduced recharge', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: ['Enter Radiant Forge', { type: 'wait', durationMs: 21000 }, 'Enter Radiant Forge'],
@@ -3624,7 +3624,7 @@ test('Radiant Forge automatically exits after 20 seconds and starts its base rec
   );
 
   assert.equal(automaticExit.at, 20);
-  assert.equal(result.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 30000);
+  assert.equal(result.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 25000);
 });
 
 test('Radiant Forge transitions emit the current set and trigger swap sigils', () => {
@@ -3684,8 +3684,8 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
         event.condition === condition
     );
 
-  assert.deepEqual(procTimes('Hydromancy'), [1300, 11300, 21300]);
-  assert.deepEqual(procTimes('Geomancy'), [1300, 11300, 21300]);
+  assert.deepEqual(procTimes('Hydromancy'), [1300, 11300]);
+  assert.deepEqual(procTimes('Geomancy'), [1300, 11300]);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'weapon_set').map((event) => [event.skillName, event.weaponSet]),
     [
@@ -3707,10 +3707,10 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
   assert.equal(
     result.resolvedEvents.filter((event) => event.skillName === 'Sigil of Hydromancy' && event.type === 'damage')
       .length,
-    3
+    2
   );
-  assert.equal(applications('Chilled').length, 3);
-  assert.equal(applications('Bleeding').length, 3);
+  assert.equal(applications('Chilled').length, 2);
+  assert.equal(applications('Bleeding').length, 2);
   assert.ok(applications('Bleeding').every((application) => application.damage > 0));
 
   const manualExit = simulateGw2({

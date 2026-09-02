@@ -292,7 +292,7 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
 
 /**
  * Replaces Radiant Forge's provisional recharge with a five-second recharge
- * only when exactly one radiant weapon was used; otherwise it keeps the base.
+ * when zero or one radiant weapon was used; otherwise it keeps the base.
  */
 function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: number): void {
   const state = luminaryState.from(context);
@@ -303,7 +303,7 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   ).length;
   const forge = balanceProfileFromContext(context, PROFILE.forge);
   const baseRecharge = Math.max(0, Number(enter.cooldown ?? enter.recharge ?? 10));
-  const adjustedBase = Math.max(0, baseRecharge - (used === 1 ? Number(forge?.rechargeReduction || 5) : 0));
+  const adjustedBase = Math.max(0, baseRecharge - (used <= 1 ? Number(forge?.rechargeReduction || 5) : 0));
   // Preserve the ratio of effective-to-base recharge so alacrity/recharge
   // traits still apply proportionally to the adjusted cooldown.
   const fullEffective = context.rechargeDurationFor(enter, at);

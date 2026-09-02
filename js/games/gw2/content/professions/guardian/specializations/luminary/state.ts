@@ -7,7 +7,7 @@ export function createLuminaryState(): GuardianLuminaryState {
     radiantForgeEndsAt: 0,
     radiantForgeEnteredAt: 0,
     radiantWeapon: '',
-    // Tracks distinct weapon types so exactly one used weapon can receive the reduced forge recharge.
+    // Tracks distinct weapon types so zero or one used weapon receives the reduced forge recharge.
     radiantWeaponsUsed: {},
     empoweredArmamentsUntil: 0,
     piercingStanceUntil: 0,
