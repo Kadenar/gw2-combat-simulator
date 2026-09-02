@@ -729,6 +729,22 @@ test('recovers alacrity Luminary opening state and retains only physical weapon 
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
 
+test('places dps.report combat start before both opening Symbol of Luminance packets', () => {
+  const report = reportFixture(
+    'Luminary',
+    [{ id: 73_132, skills: [{ castTime: -361, duration: 444, timeGained: 0 }] }],
+    { s73132: { name: 'Symbol of Luminance' } },
+    1_000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+
+  assert.deepEqual(result.rotation, [
+    { name: 'Symbol of Luminance', skillId: 73_132 },
+    { name: '__combat_start', offset: 359 }
+  ]);
+});
+
 test('keeps near-nominal Glaring Burst report casts at their 600 ms runtime', () => {
   const report = reportFixture(
     'Luminary',
