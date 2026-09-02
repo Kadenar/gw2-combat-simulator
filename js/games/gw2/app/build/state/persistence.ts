@@ -58,7 +58,13 @@ export function loadBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild {
 export function saveBuild(build: Gw2ApplicationBuild, adapter: Gw2AppAdapter): void {
   const resolved = resolveAdapter(adapter);
   const persisted = resolved.profession.migrateBuild(build);
-  localStorage.setItem(resolved.storageKey, JSON.stringify(persisted));
+  const serialized = JSON.stringify(persisted);
+  try {
+    // Persistence is optional; an inaccessible or full browser store must not abort an in-memory edit.
+    localStorage.setItem(resolved.storageKey, serialized);
+  } catch {
+    // Keep the normalized in-memory build usable when storage is unavailable.
+  }
 }
 
 /**
