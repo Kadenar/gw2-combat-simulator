@@ -38,8 +38,9 @@
     "build:site": "vite build",
     "pretest": "npm run build",
     "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
+    "test:browser": "playwright test",
     "typecheck": "tsc -p tsconfig.typecheck.json",
-    "check": "npm run format:check && npm run lint && npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs",
+    "check": "npm run format:check && npm run lint && npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs && npm run test:browser",
     "format": "prettier --write . && eslint . --fix",
     "format:check": "prettier --check .",
     "lint": "eslint .",
@@ -59,6 +60,7 @@
     "node": ">=20.19"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "eslint": "^10.8.1",
     "prettier": "^3.9.6",

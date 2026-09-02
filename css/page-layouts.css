@@ -1,0 +1,439 @@
+/* Owns landing-page, narrow-screen, and embedded-page layout overrides. */
+
+/* Generic simulator landing page */
+.landing-page {
+  --accent: #d0aa55;
+  --accent-dim: #8e7135;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(110, 77, 156, 0.18), transparent 34rem),
+    radial-gradient(circle at 85% 8%, rgba(208, 170, 85, 0.12), transparent 30rem), var(--bg-dark);
+}
+
+.landing-shell {
+  max-width: 1500px;
+}
+
+/* Keep the shared title-bar layout without covering the landing-page background. */
+.landing-page #app > header {
+  background: transparent;
+}
+
+.landing-section {
+  max-width: 1120px;
+  margin: 36px auto 54px;
+}
+
+.landing-section-heading {
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.landing-section-heading h2 {
+  margin-top: 5px;
+  color: var(--text-bright);
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.landing-tutorial-link {
+  margin-top: 6px;
+  padding: 0;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-tutorial-link:hover,
+.landing-tutorial-link:focus-visible {
+  color: var(--accent);
+}
+
+.landing-community {
+  border: 0;
+}
+
+.landing-community h3 {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.landing-community h3:not(:first-child) {
+  margin-top: 24px;
+}
+
+.landing-community a {
+  color: var(--accent);
+}
+
+.profession-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profession-card-mesmer {
+  --profession-accent: #ad83df;
+}
+
+.profession-card-elementalist {
+  --profession-accent: #d19a46;
+}
+
+.profession-card-guardian {
+  --profession-accent: #72c1d9;
+}
+
+.profession-card-necromancer {
+  --profession-accent: #69b87a;
+}
+
+.profession-card-engineer {
+  --profession-accent: #d29b3d;
+}
+
+.profession-card-revenant {
+  --profession-accent: #c4565d;
+}
+
+.profession-card-ranger {
+  --profession-accent: #8dcc75;
+}
+
+.profession-card-warrior {
+  --profession-accent: #d79b55;
+}
+
+.profession-card-thief {
+  --profession-accent: #c65d68;
+}
+
+/* Landing and profession-browser views share three compact armor columns. */
+.profession-showcase-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.profession-showcase-group {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profession-showcase {
+  overflow: hidden;
+  background: color-mix(in srgb, var(--profession-accent) 7%, var(--bg-panel));
+  border: 1px solid color-mix(in srgb, var(--profession-accent) 34%, var(--border));
+  border-radius: 5px;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.profession-showcase:hover,
+.profession-showcase:focus-within {
+  border-color: color-mix(in srgb, var(--profession-accent) 72%, var(--border));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--profession-accent) 15%, transparent);
+  transform: translateY(-2px);
+}
+
+.profession-showcase-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  background: linear-gradient(
+    125deg,
+    color-mix(in srgb, var(--profession-accent) 22%, var(--bg-panel)) 0%,
+    color-mix(in srgb, var(--profession-accent) 8%, var(--bg-panel)) 48%,
+    var(--bg-panel) 100%
+  );
+  border-bottom: 1px solid color-mix(in srgb, var(--profession-accent) 28%, var(--border));
+  text-align: left;
+}
+
+.profession-showcase-name {
+  color: var(--text-bright);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.profession-showcase-link {
+  color: var(--profession-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.profession-showcase-link:focus-visible {
+  outline: 2px solid var(--profession-accent);
+  outline-offset: 3px;
+}
+
+.specialization-showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  background: color-mix(in srgb, var(--profession-accent) 35%, var(--border));
+}
+
+.specialization-showcase-card {
+  position: relative;
+  display: block;
+  min-height: 72px;
+  overflow: hidden;
+  color: var(--text-bright);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--profession-accent) 12%, var(--bg-panel-alt));
+}
+
+.specialization-showcase-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.specialization-showcase-card:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--profession-accent);
+  outline-offset: -2px;
+}
+
+.specialization-showcase-copy {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px;
+  pointer-events: none;
+}
+
+.specialization-showcase-copy strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.specialization-showcase-copy small {
+  color: color-mix(in srgb, var(--profession-accent) 65%, var(--text));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.specialization-showcase-card-placeholder {
+  min-height: 72px;
+  background:
+    radial-gradient(circle at 82% 40%, color-mix(in srgb, var(--profession-accent) 18%, transparent), transparent 34%),
+    linear-gradient(125deg, color-mix(in srgb, var(--profession-accent) 9%, transparent), transparent 55%),
+    var(--bg-panel-alt);
+}
+
+.landing-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 10px 16px;
+  color: #686879;
+  font-size: 11px;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+  body[data-simulation-config-open][data-rotation-focus] .rotation-section {
+    right: 0;
+  }
+
+  .traits-panel-inline {
+    width: 100%;
+  }
+
+  /* Hide the decorative specialization emblem so trait choices can use the full narrow-screen width. */
+  .spec-selected-icon {
+    display: none;
+  }
+
+  /* Remove the floating badge when it would cover narrow-screen controls and content. */
+  .floating-dps {
+    display: none;
+  }
+
+  .rotation-mid {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* Rotation builder on phones: keep the palette and timeline as independent
+   scroll regions. The normal workspace grows with the page; focus mode becomes
+   one scrolling column with results after the full builder. */
+@media (max-width: 700px) {
+  body[data-rotation-focus] .rotation-section {
+    display: block;
+    padding: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body[data-rotation-focus] .rotation-panel {
+    height: auto;
+  }
+
+  body[data-rotation-focus] .rotation-panel-shell > .rotation-panel {
+    height: auto;
+  }
+
+  .perma-section {
+    inset: 6px 6px 6px auto;
+  }
+
+  body[data-rotation-focus] .rotation-dps-summary .res-summary {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 8px;
+  }
+
+  body[data-rotation-focus] .rotation-dps-summary .res-stat {
+    min-width: 0;
+  }
+
+  body[data-rotation-focus] .rotation-dps-summary .res-stat-target-start {
+    padding-left: 0;
+    margin-left: 0;
+    border-left: 0;
+  }
+
+  .rotation-builder-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .rotation-builder-controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  body:not([data-rotation-focus]) .rotation-panel {
+    max-height: none;
+  }
+
+  .rotation-mid {
+    display: grid;
+    grid-template-areas:
+      'label size'
+      'start start'
+      'buttons buttons';
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  .rotation-tl-label {
+    grid-area: label;
+  }
+
+  .rotation-size-control {
+    grid-area: size;
+  }
+
+  .start-att-selector {
+    min-width: 0;
+    grid-area: start;
+  }
+
+  .rotation-btns {
+    min-width: 0;
+    grid-area: buttons;
+    flex-wrap: wrap;
+  }
+
+  .rotation-palette {
+    flex: 0 0 auto;
+    max-height: 30vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body[data-rotation-focus] .rotation-palette {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .rotation-timeline {
+    flex: 0 0 clamp(320px, 50vh, 520px);
+    min-height: 320px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body[data-rotation-focus] .rotation-timeline {
+    flex: 0 0 auto;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .pal-skill {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 640px) {
+  .profession-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fixed-loadout-pairs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-footer {
+    flex-direction: column;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Embedded mode (?embed=1) — strips standalone-site chrome so the tool blends
+   into a host page (e.g. an iframe on another site). Tune the hidden set here.
+   --------------------------------------------------------------------------- */
+
+/* Landing page: keep only the profession picker; drop hero, marketing, footer. */
+.embed .landing-header,
+.embed .landing-footer,
+.embed .landing-section:not(:has(.profession-grid)) {
+  display: none;
+}
+
+/* Profession pages: drop the standalone hero title and the long "About" box;
+   keep the profession selector, snapshot note, and the simulator itself. */
+.embed header h1 {
+  display: none;
+}
+
+.embed .landing-shell,
+.embed #app {
+  padding-top: 0;
+}

@@ -116,24 +116,10 @@ test('specialization filters come from unique manifest section names', () => {
   assert.deepEqual(templateSpecializations(manifest), ['Weaver', 'Tempest']);
 });
 
-test('filtered templates remain hidden despite their flex layout', () => {
-  const css = readFileSync(new URL('../../css/style.css', import.meta.url), 'utf8');
-
-  assert.match(
-    css,
-    /\.build-templates \.presets-group\[hidden\],\s*\.template-preset\[hidden\],\s*\.template-filter-empty\[hidden\]\s*\{\s*display:\s*none;/
-  );
-});
-
-test('desktop template sidebar stays left of the contiguous simulator editor', () => {
-  const css = readFileSync(new URL('../../css/style.css', import.meta.url), 'utf8');
+test('template sidebar renders outside the contiguous simulator editor', () => {
   const source = readFileSync(new URL('../../js/games/gw2/app/build/panels/presets.ts', import.meta.url), 'utf8');
   const template = readFileSync(new URL('../../templates/profession.html', import.meta.url), 'utf8');
 
-  assert.match(css, /\.profession-layout\s*\{\s*display: grid;\s*grid-template-columns: 310px minmax\(0, 1fr\);/);
-  assert.match(css, /\.profession-main\s*\{\s*min-width: 0;\s*grid-column: 2;\s*grid-row: 1;/);
-  assert.match(css, /\.build-templates-region\s*\{\s*display: contents;/);
-  assert.match(css, /\.build-templates\s*\{[\s\S]*?grid-column: 1;\s*grid-row: 1;/);
   assert.match(source, /templateRegion\.append\(container\)/);
   assert.doesNotMatch(source, /simulationWorkspace/);
   assert.match(template, /<section class="build-editor panel">[\s\S]*\n {8}<div class="simulation-workspace">/);

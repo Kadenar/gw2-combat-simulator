@@ -1,0 +1,2293 @@
+/* Owns rotation controls, palettes, timelines, and authored-action presentation. */
+
+/* ─── Rotation Builder ─── */
+.simulation-workspace {
+  position: relative;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.analysis-view-heading {
+  margin-bottom: 14px;
+  padding: 3px 2px 0;
+}
+
+.analysis-view-heading p {
+  margin-bottom: 3px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.analysis-view-heading h2 {
+  color: var(--text-bright);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.analysis-view-heading span {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+body[data-profession][data-simulator-view='workspace'] .analysis-view-heading {
+  display: none;
+}
+
+body[data-profession][data-simulator-view='workspace'] #rotation-results > :not(.rng-distribution) {
+  display: none;
+}
+
+body[data-profession][data-simulator-view='workspace'] #rotation-results:not(:has(> .rng-distribution)) {
+  display: none;
+}
+
+body[data-profession][data-simulator-view='analysis']
+  :is(
+    .build-templates-region,
+    .build-section,
+    .skills-section,
+    .rotation-panel-shell,
+    .simulation-workspace > .perma-section
+  ) {
+  display: none;
+}
+
+body[data-profession][data-simulator-view='analysis'] .profession-layout {
+  display: block;
+}
+
+body[data-profession][data-simulator-view='analysis'] .profession-main {
+  width: 100%;
+  container: none;
+}
+
+/* Analysis reuses the nested results host without carrying the editor card around it. */
+body[data-profession][data-simulator-view='analysis'] .build-editor {
+  margin: 0;
+  background: transparent;
+  border: 0;
+}
+
+body[data-profession][data-simulator-view='analysis'] .build-editor > .simulation-workspace {
+  border-top: 0;
+}
+
+body[data-profession][data-simulator-view='analysis'] .simulation-workspace,
+body[data-profession][data-simulator-view='analysis'] .rotation-section,
+body[data-profession][data-simulator-view='analysis'] .rotation-results {
+  margin: 0;
+}
+
+body[data-profession][data-simulator-view='analysis'] .simulation-workspace {
+  display: block;
+}
+
+body[data-profession][data-simulator-view='analysis'] .rotation-section > .rotation-results {
+  padding-top: 0;
+  background: transparent;
+}
+
+body[data-profession][data-simulator-view='analysis'] #rotation-results > :is(.res-summary, .rng-distribution) {
+  display: none;
+}
+
+.analysis-dps-summary {
+  display: none;
+}
+
+body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.analysis-empty-state {
+  display: grid;
+  min-height: 210px;
+  padding: 28px;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  background: var(--bg-panel);
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.analysis-empty-state strong {
+  color: var(--text-bright);
+  font-size: 15px;
+}
+
+.analysis-empty-state a {
+  color: var(--accent);
+}
+
+.simulation-workspace > * {
+  min-width: 0;
+}
+
+.rotation-section {
+  grid-area: rotation;
+  margin-bottom: 12px;
+}
+
+body[data-profession] .rotation-section {
+  container: rotation-builder / inline-size;
+}
+
+.simulation-workspace .rotation-section {
+  position: relative;
+  margin-bottom: 0;
+}
+
+.rotation-panel-shell {
+  position: relative;
+  min-width: 0;
+}
+
+.rotation-builder-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rotation-builder-heading-title,
+.rotation-builder-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rotation-builder-heading-title {
+  min-width: 0;
+}
+
+.rotation-builder-heading .palette-hint {
+  min-width: 0;
+  flex: 1 1 320px;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.rotation-builder-title {
+  color: inherit;
+}
+
+.rotation-focus-indicator {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.rotation-builder-controls {
+  margin-left: auto;
+}
+
+.simulation-config-open-button,
+.rotation-focus-toggle,
+.rotation-hotkey-button {
+  display: inline-flex;
+  min-height: 28px;
+  padding: 4px 9px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.simulation-config-open-button::before,
+.rotation-focus-toggle::before,
+.rotation-hotkey-button::before {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.simulation-config-open-button::before {
+  content: '\2699';
+}
+
+.rotation-focus-toggle::before {
+  content: '\26F6';
+}
+
+.rotation-hotkey-button::before {
+  content: '\2328';
+}
+
+body[data-rotation-focus] {
+  overflow: hidden;
+}
+
+body[data-rotation-focus] .build-templates-region {
+  display: none;
+}
+
+body[data-rotation-focus] .profession-main {
+  container: none;
+}
+
+body[data-rotation-focus] .rotation-section {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-dark);
+  transition: right 160ms ease;
+}
+
+body[data-rotation-focus] .rotation-panel {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
+
+body[data-rotation-focus] .rotation-panel-shell {
+  min-height: 0;
+}
+
+body[data-rotation-focus] .rotation-panel-shell > .rotation-panel {
+  height: 100%;
+}
+
+@media (min-width: 900px) {
+  body[data-rotation-focus] .rotation-palette {
+    --focus-palette-skill-size: clamp(48px, 3.25vw, 56px);
+    --focus-palette-tool-size: clamp(38px, 2.5vw, 44px);
+
+    gap: 8px;
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-skill,
+  body[data-rotation-focus] .rotation-palette .pal-status-icon {
+    width: var(--focus-palette-skill-size);
+    height: var(--focus-palette-skill-size);
+    flex-basis: var(--focus-palette-skill-size);
+  }
+
+  body[data-rotation-focus] .rotation-palette .pistol-bullet {
+    width: var(--focus-palette-tool-size);
+    height: var(--focus-palette-tool-size);
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-row {
+    gap: 5px;
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-cd {
+    font-size: 10px;
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-charges {
+    font-size: 11px;
+  }
+}
+
+body[data-rotation-focus] .rotation-results {
+  display: none;
+}
+
+body[data-rotation-focus] .rotation-dps-summary .res-summary {
+  margin: 0;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+@media (min-width: 1200px) and (min-height: 760px) {
+  body[data-rotation-focus] .palette-hint,
+  body[data-rotation-focus] .rotation-mid,
+  body[data-rotation-focus] .rotation-active-buffs {
+    zoom: 1.08;
+  }
+
+  body[data-rotation-focus] .rotation-panel .rot-row-skills {
+    zoom: 1.15;
+  }
+
+  body[data-rotation-focus] .rotation-panel[data-rotation-size='large'] .rot-row-skills {
+    zoom: 1.35;
+  }
+
+  body[data-rotation-focus] .rotation-panel[data-rotation-size='extra-large'] .rot-row-skills {
+    zoom: 1.55;
+  }
+}
+
+/* .rotation-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+} */
+
+.rotation-panel {
+  max-height: clamp(680px, 88vh, 1100px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.build-editor .rotation-panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.rotation-panel > h3,
+.rotation-palette,
+.palette-hint,
+.rotation-mid {
+  flex: 0 0 auto;
+}
+
+.rotation-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+  align-items: flex-start;
+}
+
+.profession-palette-section,
+.timeline-tools-palette-stack {
+  display: contents;
+}
+
+.palette-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.pal-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 0;
+  border-right: 1px solid var(--border);
+}
+
+.pal-group.pal-group-concealed,
+.pal-skill.pal-concealed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.profession-palette-stack,
+.profession-resource-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.profession-palette-resource-group {
+  display: flex;
+  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
+}
+
+.profession-palette-resource-group.resource-above,
+.profession-palette-resource-group.resource-below {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.profession-palette-resource-group.resource-beside {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/* Evoker's supplied layers stay on their original canvases: outer pips become
+   the ready ring, while inner wedges become a top-layer familiar at three stacks. */
+.profession-palette-resource-group.resource-beside:has(.elementalist-evoker-familiar) {
+  align-items: center;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource-group:has([class*='elementalist-evoker-']) {
+  padding-left: 0;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource-group:has([class*='elementalist-evoker-'])
+  > .pal-label {
+  display: none;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource:has([class*='elementalist-evoker-']) {
+  min-width: 48px;
+  gap: 0;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0;
+  background-image: var(--evoker-inner-two, none), var(--evoker-inner-one, none), var(--evoker-outer-image, none);
+  background-position: center;
+  background-size:
+    20px 20px,
+    20px 20px,
+    48px 48px;
+  background-repeat: no-repeat;
+}
+
+.active-resource-pips[class*='elementalist-evoker-']::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: var(--evoker-familiar-image, none) center / 48px 48px no-repeat;
+  pointer-events: none;
+  content: '';
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  background-position: center;
+  background-size: 48px 48px;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  transform: none;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip.active {
+  display: block;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(1) {
+  background-image: url('../assets/elementalist/evoker/Ring1.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(2) {
+  background-image: url('../assets/elementalist/evoker/Ring2.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(3) {
+  background-image: url('../assets/elementalist/evoker/Ring3.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(4) {
+  background-image: url('../assets/elementalist/evoker/Ring4.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(5) {
+  background-image: url('../assets/elementalist/evoker/Ring5.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(6) {
+  background-image: url('../assets/elementalist/evoker/Ring6.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'][class*='-ready'] {
+  --evoker-outer-image: var(--evoker-ready-ring);
+}
+
+.active-resource-pips[class*='elementalist-evoker-'][class*='-ready'] .active-resource-pip.active {
+  display: none;
+}
+
+.active-resource-pips[class*='elementalist-evoker-fire-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Fire.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarFire.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-water-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Water.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarWater.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-air-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Air.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarAir.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-earth-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Earth.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarEarth.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-1'],
+  [class*='elementalist-evoker-water-1'],
+  [class*='elementalist-evoker-air-1'],
+  [class*='elementalist-evoker-earth-1'],
+  [class*='elementalist-evoker-fire-2'],
+  [class*='elementalist-evoker-water-2'],
+  [class*='elementalist-evoker-air-2'],
+  [class*='elementalist-evoker-earth-2']
+) {
+  --evoker-inner-one: url('../assets/elementalist/evoker/Charge1.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-2'],
+  [class*='elementalist-evoker-water-2'],
+  [class*='elementalist-evoker-air-2'],
+  [class*='elementalist-evoker-earth-2']
+) {
+  --evoker-inner-two: url('../assets/elementalist/evoker/Charge2.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-3'],
+  [class*='elementalist-evoker-water-3'],
+  [class*='elementalist-evoker-air-3'],
+  [class*='elementalist-evoker-earth-3']
+) {
+  --evoker-familiar-image: var(--evoker-ready-familiar);
+}
+
+.profession-palette-resource-group > .pal-group,
+.profession-palette-resource-group > .active-resource-stack > .pal-group {
+  border-radius: 0;
+  background: transparent;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.bladesworn-f-skills {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession'])
+  .active-resource-group:has([data-resource-id='flow']) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.bladesworn-dragon-slash {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.bladesworn-dragon-trigger {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.bladesworn-gunsaber {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.antiquary-artifact-group {
+  min-height: 48px;
+}
+
+/* Seat Skritt Swipe (F) beside its artifact rows: F over the initiative pips in
+   column one, the offensive and defensive artifact rows stacked in column two. */
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+  gap: 6px;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.antiquary-f-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.antiquary-artifacts-offensive {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.antiquary-artifacts-defensive {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts'])
+  .active-resource-group:has([data-resource-id='initiative']) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* Keep the base stolen-skill choices visible beside Steal, with initiative
+   directly beneath the skill that grants those choices. */
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+  gap: 6px;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.thief-steal-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.thief-stolen-skill-choices {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  .active-resource-group:has([data-resource-id='initiative']) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.pal-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  min-width: 12px;
+  text-align: center;
+}
+
+.pal-row {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.pal-status-icon {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  flex: 0 0 42px;
+  border: 2px solid #7ca64a;
+  border-radius: 4px;
+  background: #232632;
+}
+
+.pal-status-icon::after {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #d8efbc;
+  border-radius: 50%;
+  background: #7fc34b;
+  box-shadow: 0 0 5px rgba(127, 195, 75, 0.9);
+  content: '';
+}
+
+.pal-status-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Full-width spacer that forces the following pal-groups onto a new line. */
+.pal-break {
+  flex-basis: 100%;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.endurance-readout {
+  min-width: 46px;
+  padding: 0 6px;
+  color: #d8e7ef;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 32px;
+  border-radius: 4px;
+  background: rgba(127, 182, 216, 0.12);
+  border: 1px solid rgba(127, 182, 216, 0.3);
+  text-align: center;
+}
+
+.pal-skill {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+  border: 2px solid var(--att-border, var(--border-light));
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.pal-skill img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Dormant virtues keep their Tome usable, so tint the icon red without using
+   disabled styling or suppressing palette interaction. */
+.guardian-tome-f-keys.tome-justice-dormant .pal-skill[data-skill='Tome of Justice'],
+.guardian-tome-f-keys.tome-resolve-dormant .pal-skill[data-skill='Tome of Resolve'],
+.guardian-tome-f-keys.tome-courage-dormant .pal-skill[data-skill='Tome of Courage'] {
+  border-color: #b74343;
+}
+
+.guardian-tome-f-keys.tome-justice-dormant .pal-skill[data-skill='Tome of Justice']::after,
+.guardian-tome-f-keys.tome-resolve-dormant .pal-skill[data-skill='Tome of Resolve']::after,
+.guardian-tome-f-keys.tome-courage-dormant .pal-skill[data-skill='Tome of Courage']::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: rgba(190, 35, 35, 0.38);
+  box-shadow: inset 0 0 12px rgba(255, 70, 55, 0.65);
+  content: '';
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.skill-variant-badge {
+  position: absolute;
+  z-index: 3;
+  padding: 1px 3px;
+  border: 1px solid rgba(170, 235, 255, 0.8);
+  border-radius: 3px;
+  background: rgba(9, 44, 62, 0.92);
+  color: #b9efff;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 9px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.pal-variant-badge {
+  bottom: 1px;
+  left: 1px;
+}
+
+.pal-skill:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--att-border, var(--border-light)) 60%, transparent);
+  z-index: 2;
+}
+
+.pal-skill.pal-disabled {
+  opacity: 0.18;
+  filter: grayscale(0.85);
+  cursor: not-allowed;
+}
+
+.pal-skill.pal-disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.pal-skill[draggable='true'] {
+  cursor: grab;
+}
+
+.pal-skill.dragging {
+  opacity: 0.45;
+  transform: none;
+}
+
+.pal-skill.pal-has-ammo {
+  margin-bottom: 11px;
+  overflow: visible;
+}
+
+.pal-skill.pal-has-resource {
+  margin-bottom: 22px;
+  overflow: visible;
+}
+
+.pal-skill-resource-value {
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: -21px;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted, #9aa4b2);
+  pointer-events: none;
+}
+
+.pal-skill-resource-value[data-resource-id='endurance'] {
+  color: #e5c35a;
+}
+
+.pal-skill-resource {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 5px;
+  overflow: hidden;
+  border: 1px solid var(--accent-dim);
+  border-radius: 3px;
+  background: #20252a;
+  pointer-events: none;
+}
+
+.pal-skill-resource > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.pal-skill-resource[data-resource-id='endurance'] {
+  border-color: #c7a343;
+  background: #292412;
+}
+
+.pal-skill-resource[data-resource-id='endurance'] > span {
+  background: #e5c35a;
+  box-shadow: 0 0 5px rgba(229, 195, 90, 0.75);
+}
+
+.pal-skill.pal-has-ammo img {
+  border-radius: 2px;
+}
+
+.pal-skill.pal-ammo-available {
+  box-shadow: 0 0 7px color-mix(in srgb, var(--att-border) 55%, transparent);
+}
+
+.pal-ammo-pips {
+  position: absolute;
+  right: 1px;
+  bottom: -10px;
+  left: 1px;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  height: 7px;
+  pointer-events: none;
+}
+
+.pal-ammo-pip {
+  width: 7px;
+  height: 7px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--att-border) 55%, #25202d);
+  border-radius: 50%;
+  background: #25202d;
+}
+
+.pal-ammo-pip.filled {
+  border-color: color-mix(in srgb, var(--att-border) 75%, white);
+  background: var(--att-border);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--att-border) 80%, transparent);
+}
+
+.pistol-bullet {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 4px;
+  border: 2px dashed var(--att-border, var(--border-light));
+  background: #171722;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.pistol-bullet img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: opacity 0.12s;
+}
+
+.pistol-bullet:not(.pal-control-active) img {
+  opacity: 0.35;
+}
+
+.pistol-bullet:hover {
+  transform: scale(1.15);
+  z-index: 2;
+}
+
+.pistol-bullet.pal-control-active {
+  border-style: solid;
+  opacity: 1;
+  box-shadow: 0 0 6px var(--att-border);
+}
+
+.pistol-bullet.pal-control-muted {
+  filter: saturate(0.4);
+}
+
+.pistol-bullet .pal-control-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 11px;
+  padding: 0 2px;
+  border-radius: 0 0 0 3px;
+  background: var(--att-border);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 11px;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.pal-charges {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  background: #000b;
+  color: #eee;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.1;
+  padding: 2px 3px;
+  border-radius: 3px 0 3px 0;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.pal-cd {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  background: #000c;
+  color: #ffaa44;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 0 0 3px 0;
+  pointer-events: none;
+}
+
+.rotation-mid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+
+.start-att-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.start-att-selector .start-att-label {
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 2px;
+}
+
+.start-resource-control {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.start-resource-controls {
+  display: contents;
+}
+
+.start-state-toggle {
+  display: inline-flex;
+  gap: 3px;
+  margin-right: 6px;
+}
+
+.elementalist-theme .start-att-selector:has([data-start-control-key='secondaryAttunement']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+}
+
+.elementalist-theme .start-att-selector:has([data-start-control-key='secondaryAttunement']) .start-resource-control {
+  display: contents;
+}
+
+.start-att-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: 2px solid var(--att-c);
+  background: var(--bg-dark);
+  cursor: pointer;
+  transition: all 0.12s;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0.4;
+}
+
+.start-att-btn img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.start-att-btn:hover {
+  opacity: 0.7;
+  transform: scale(1.1);
+}
+
+.start-att-btn.active {
+  opacity: 1;
+  box-shadow: 0 0 6px var(--att-c);
+}
+
+.rotation-tl-label {
+  color: var(--text-bright);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.rotation-btns {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* The config sidebar narrows the rotation panel without changing the viewport,
+   so responsive rotation layouts need to follow the panel's actual width. */
+@container rotation-builder (min-width: 701px) and (max-width: 1050px) {
+  body[data-profession]:not(.elementalist-theme) .rotation-mid {
+    display: grid;
+    grid-template-areas:
+      'label size start'
+      'buttons buttons buttons';
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    align-items: center;
+  }
+
+  body[data-profession]:not(.elementalist-theme) .rotation-tl-label {
+    grid-area: label;
+  }
+
+  body[data-profession]:not(.elementalist-theme) .rotation-size-control {
+    grid-area: size;
+  }
+
+  body[data-profession]:not(.elementalist-theme) .start-att-selector {
+    min-width: 0;
+    grid-area: start;
+    justify-content: flex-end;
+  }
+
+  body[data-profession]:not(.elementalist-theme) .rotation-btns {
+    grid-area: buttons;
+    justify-self: end;
+    flex-wrap: wrap;
+  }
+
+  body[data-profession]:not(.elementalist-theme) .rotation-btns .btn {
+    white-space: nowrap;
+  }
+
+  body[data-profession]:not(.elementalist-theme)
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .mesmer-theme .rotation-palette {
+    grid-template-areas:
+      'profession profession'
+      'weapons utility'
+      'tools tools';
+  }
+
+  .necromancer-theme .rotation-palette {
+    grid-template-areas:
+      'profession weapons'
+      'profession utility'
+      'tools tools';
+  }
+
+  .thief-theme .rotation-palette:has(.specter-shroud-skills) {
+    display: grid;
+    grid-template-areas:
+      'profession weapons'
+      'profession utility'
+      'tools tools';
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .thief-theme
+    .rotation-palette:has(.specter-shroud-skills)
+    > .profession-palette-section
+    > .profession-resource-stack:has(.specter-f-skills) {
+    grid-area: profession;
+    justify-self: start;
+  }
+
+  .thief-theme .rotation-palette:has(.specter-shroud-skills) > .weapon-palette-section {
+    min-width: 0;
+    grid-area: weapons;
+    justify-self: start;
+  }
+
+  .thief-theme .rotation-palette:has(.specter-shroud-skills) > .utility-palette-group {
+    grid-area: utility;
+    justify-self: end;
+  }
+
+  .engineer-theme .rotation-palette {
+    display: grid;
+    grid-template-areas:
+      'profession weapons utility'
+      'forge kits utility'
+      'action kits utility'
+      'tools tools tools';
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+  }
+
+  .engineer-theme
+    .rotation-palette
+    > .profession-palette-section
+    > :is(.engineer-profession-skills, .profession-resource-stack:has(> .engineer-profession-skills)) {
+    grid-area: profession;
+    justify-self: start;
+  }
+
+  .engineer-theme .rotation-palette > .profession-palette-section > .engineer-forge-skills {
+    grid-area: forge;
+    justify-self: start;
+  }
+
+  .engineer-theme
+    .rotation-palette
+    > .profession-palette-section
+    > .profession-palette-stack[data-palette-stack='engineer-kits'] {
+    width: max-content;
+    grid-area: kits;
+    justify-self: start;
+  }
+
+  .engineer-theme .rotation-palette > .weapon-palette-section {
+    display: contents !important;
+  }
+
+  .engineer-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
+    width: max-content;
+    grid-area: weapons;
+    justify-self: start;
+  }
+
+  .engineer-theme .weapon-palette-section > .action-palette-group {
+    grid-area: action;
+    justify-self: start;
+  }
+
+  .engineer-theme .rotation-palette > .utility-palette-group {
+    grid-area: utility;
+    justify-self: end;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette > .profession-palette-section > .profession-resource-stack {
+    grid-area: profession;
+    justify-self: start;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette > .weapon-palette-section {
+    min-width: 0;
+    grid-area: weapons;
+    justify-self: start;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette > .utility-palette-group {
+    grid-area: utility;
+    justify-self: end;
+  }
+
+  :is(.engineer-theme, .mesmer-theme, .necromancer-theme, .thief-theme) .timeline-tools-palette-stack {
+    display: flex;
+    grid-area: tools;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  :is(.engineer-theme, .mesmer-theme, .necromancer-theme, .thief-theme) .timeline-tools-palette-stack > .pal-break {
+    display: none;
+  }
+
+  .revenant-theme .rotation-palette {
+    display: grid;
+    grid-template-areas:
+      'legends weapons action'
+      'mechanic weapons action'
+      'utility utility utility'
+      'tools tools tools';
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+  }
+
+  .revenant-theme .rotation-palette > .profession-palette-section > .revenant-f-skills {
+    grid-area: mechanic;
+    justify-self: start;
+  }
+
+  .revenant-theme .rotation-palette > .profession-palette-section > .profession-resource-stack {
+    grid-area: legends;
+  }
+
+  .revenant-theme .profession-resource-stack > .active-resource-stack {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .revenant-theme .rotation-palette > .weapon-palette-section {
+    display: contents !important;
+  }
+
+  .revenant-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
+    grid-area: weapons;
+  }
+
+  .revenant-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) > .pal-group {
+    padding-inline: 4px;
+  }
+
+  .revenant-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) > .pal-group > .pal-row {
+    gap: 2px;
+  }
+
+  .revenant-theme .weapon-palette-section > .action-palette-group {
+    grid-area: action;
+  }
+
+  .revenant-theme .rotation-palette > .utility-palette-group {
+    grid-area: utility;
+    justify-self: start;
+  }
+
+  .revenant-theme .timeline-tools-palette-stack {
+    display: flex;
+    grid-area: tools;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .revenant-theme .timeline-tools-palette-stack > .pal-break {
+    display: none;
+  }
+}
+
+@container rotation-builder (min-width: 701px) and (max-width: 820px) {
+  .revenant-theme .rotation-palette {
+    grid-template-areas:
+      'legends weapons'
+      'mechanic weapons'
+      'action action'
+      'utility utility'
+      'tools tools';
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .revenant-theme .weapon-palette-section > .action-palette-group {
+    justify-self: start;
+  }
+}
+
+/* Keep selected utilities at their intrinsic one-row width. Palette sections
+   then wrap as units, allowing combat/wait tools to use right-side slack or
+   move to the next row without compressing profession-neutral utilities. */
+.rotation-palette .pal-group.utility-palette-group {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+
+.rotation-palette .pal-group.utility-palette-group > .pal-row {
+  flex-wrap: nowrap;
+}
+
+@container rotation-builder (min-width: 701px) {
+  body[data-profession] .rotation-palette:not(:has(.weaver-weapon-palette)) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  body[data-profession] .rotation-palette > .profession-palette-section {
+    display: flex;
+    max-width: 100%;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    order: 1;
+  }
+
+  body[data-profession] .rotation-palette > .weapon-palette-section {
+    display: flex !important;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    order: 2;
+  }
+
+  body[data-profession] .rotation-palette .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+  }
+
+  body[data-profession] .rotation-palette > .utility-palette-group {
+    order: 3;
+  }
+
+  body[data-profession] .rotation-palette > .timeline-tools-palette-stack {
+    display: flex;
+    max-width: 100%;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-inline-start: auto;
+    order: 4;
+  }
+
+  body[data-profession] .rotation-palette > .timeline-tools-palette-stack > .pal-break {
+    display: none;
+  }
+}
+
+@container rotation-builder (min-width: 701px) {
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex: 1 1 700px;
+    min-width: min(100%, 700px);
+    max-width: 720px;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start;
+    gap: 4px !important;
+  }
+
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack)
+    > .pal-group {
+    flex: 0 0 auto;
+    padding-inline: 4px;
+  }
+
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack)
+    > .pal-group
+    > .pal-row {
+    gap: 2px;
+  }
+}
+
+@container rotation-builder (max-width: 700px) {
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+  }
+}
+
+.btn {
+  padding: 4px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-panel-alt);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn:hover {
+  background: var(--border);
+}
+
+.btn-run {
+  border-color: var(--health);
+  color: var(--health);
+}
+
+.btn-run:hover {
+  background: rgba(68, 187, 68, 0.15);
+}
+
+.btn-clear {
+  border-color: var(--condi);
+  color: var(--condi);
+}
+
+.btn-clear:hover {
+  background: rgba(204, 68, 68, 0.15);
+}
+
+.btn-undo {
+  color: var(--text-dim);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn:disabled:hover {
+  background: var(--bg-panel-alt);
+}
+
+.btn-dpsreport {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* .rotation-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 52px;
+    padding: 8px;
+    background: var(--bg-dark);
+    border-radius: 4px;
+    border: 1px dashed var(--border);
+} */
+
+/* Reads active state (crit chance, profession timers, target debuffs) at the
+   current rotation point — or at the insertion cursor when one is set. Sits
+   above the internally-scrolling timeline, reusing the controls divider above. */
+.rotation-active-buffs {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 4px;
+  padding: 5px 9px;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.rotation-active-buffs[hidden] {
+  display: none;
+}
+
+.rotation-active-buffs .rot-state-label {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+}
+
+.rotation-active-buffs .rot-state-item {
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
+.rotation-active-buffs .rot-state-item strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Empty and authored rotations share a viewport-sized canvas so adding the
+   first skill does not collapse the builder around the user. */
+.rotation-timeline {
+  flex: 1 1 auto;
+  height: clamp(280px, 52vh, 600px);
+  min-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+
+.pal-skill.pal-ambush-active {
+  box-shadow:
+    0 0 0 1px rgba(255, 229, 150, 0.8),
+    0 0 14px rgba(240, 199, 102, 0.9);
+  animation: ambush-pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes ambush-pulse {
+  from {
+    filter: brightness(1);
+  }
+  to {
+    filter: brightness(1.25);
+  }
+}
+
+.rotation-timeline.is-empty {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at center, rgba(157, 123, 208, 0.1), transparent 55%), var(--bg-dark);
+  border: 1px dashed var(--border-light);
+}
+
+.rotation-dps-summary {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-dps-summary:empty {
+  display: none;
+}
+
+.rotation-dps-summary .res-summary {
+  margin-bottom: 0;
+}
+
+/* Offset both DPS summaries from surrounding content so each strip stays easy to scan. */
+:is(.rotation-dps-summary, .analysis-dps-summary) .res-summary {
+  background: var(--bg-panel-alt);
+}
+
+/* Keep the primary result readable and profession-themed while the user scrolls or switches simulator views. */
+.floating-dps {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(100% + 12px);
+  z-index: 900;
+  display: flex;
+  min-width: 116px;
+  padding: 8px 12px 9px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--bg-panel-alt) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-light));
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.floating-dps.floating-dps-viewport {
+  position: fixed;
+  bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+.floating-dps-label {
+  padding-bottom: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.floating-dps-value {
+  color: var(--accent);
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.rotation-timeline.drag-over-empty {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.rot-empty {
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  text-align: center;
+  padding: 28px;
+  pointer-events: none;
+}
+
+.rot-empty strong {
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Weapon rows use spacing and separators without a redundant left accent strip. */
+.rot-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0 4px 8px;
+  margin-bottom: 2px;
+}
+
+.rot-row + .rot-row {
+  border-top: 1px dotted var(--border-light);
+}
+
+.rot-row-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--row-color, var(--text-dim));
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  min-width: 14px;
+  text-align: center;
+  user-select: none;
+}
+
+.rot-row-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.rot-row-skills.drag-over {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent);
+  border-radius: 6px;
+}
+
+.rot-skill {
+  width: 40px;
+  border-radius: 5px;
+  border: 2px solid var(--att-border, var(--border-light));
+  overflow: visible;
+  position: relative;
+  cursor: grab;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.rot-skill img {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  border-radius: 3px;
+}
+
+.rot-variant-badge {
+  top: 25px;
+  left: 1px;
+}
+
+.rot-skill:hover {
+  transform: scale(1.08);
+}
+
+.rot-skill.dragging {
+  opacity: 0.4;
+}
+
+.rot-skill.drag-over {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.rot-skill.drag-insert-before {
+  box-shadow: -3px 0 0 0 var(--accent);
+}
+
+.rot-skill.drag-insert-after {
+  box-shadow: 3px 0 0 0 var(--accent);
+}
+
+.rot-x {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  background: var(--condi);
+  color: #fff;
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 2;
+}
+
+.rot-skill:hover .rot-x {
+  opacity: 1;
+}
+
+/* Touch devices have no hover, so the remove button would stay invisible and
+   the timeline becomes read-only. Reveal it permanently (matches the edit
+   button's `@media (hover: none)` treatment) and enlarge the tap target. */
+@media (hover: none) {
+  .rot-x {
+    opacity: 1;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 12px;
+  }
+}
+
+.rot-time {
+  display: block;
+  text-align: center;
+  font-size: 8px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.rot-arrow {
+  color: var(--text-dim);
+  font-size: 10px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.rot-concurrent {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.rot-gapfill {
+  border-style: dotted;
+  opacity: 0.9;
+}
+
+.rot-skill.rot-injected {
+  border-style: dashed;
+  cursor: default;
+}
+
+/* Separate automatic state changes from the authored skill immediately before them. */
+.rot-skill.rot-automatic-transition {
+  margin-left: 6px;
+}
+
+.rot-proc-overlay {
+  width: 34px;
+  border-style: dotted;
+}
+
+.rot-proc-overlay[data-skill-highlight-key] {
+  cursor: pointer;
+}
+
+/* Crossed relic cards mark the exact end of a timed effect window. */
+.proc-expired-cross {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.proc-expired-cross::before,
+.proc-expired-cross::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -12%;
+  width: 124%;
+  height: 3px;
+  background: #f02e2e;
+  box-shadow: 0 0 0 1px rgba(30, 5, 5, 0.9);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.proc-expired-cross::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.rot-proc-overlay .proc-count {
+  top: 8px;
+}
+
+.rot-sigil-proc .rot-injected-badge {
+  right: -5px;
+  background: #4488cc;
+  color: #fff;
+}
+
+.rot-relic-proc .rot-injected-badge {
+  right: -5px;
+  background: #ddaa33;
+  color: #201b28;
+}
+
+/* Trait-proc overlays use the same green identity as their timeline proc entries. */
+.rot-trait-proc .rot-injected-badge {
+  right: -5px;
+  background: #77cc77;
+  color: #201b28;
+}
+
+.rot-injected-badge {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #d6b46b;
+  color: #201b28;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 10px;
+  pointer-events: none;
+}
+
+.rot-resource-spend-badge {
+  position: absolute;
+  top: -6px;
+  left: -7px;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #c49cff;
+  color: #201b28;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 10px;
+  white-space: nowrap;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* A queued command that is not valid in this position (e.g. Power Spike woven
+   into the Mantra of Pain channel). Shown smaller and muted; never simulated. */
+.rot-skill.rot-invalid {
+  width: 26px;
+  border: 1px dashed #e0555f;
+  opacity: 0.55;
+  filter: grayscale(0.55);
+}
+
+.rot-skill.rot-invalid:hover {
+  opacity: 0.8;
+}
+
+.rot-skill.skill-faded,
+.rot-skill.skill-faded:hover {
+  opacity: 0.25;
+  filter: grayscale(0.65);
+}
+
+.rot-skill.skill-highlight {
+  opacity: 1;
+  border-color: var(--att-border, var(--border-light));
+  box-shadow: 0 0 0 2px var(--att-border, var(--border-light));
+}
+
+.rot-invalid-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 13px;
+  height: 13px;
+  background: #e0555f;
+  color: #fff;
+  font-size: 9px;
+  line-height: 13px;
+  text-align: center;
+  border-radius: 50%;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.rot-gapfill-badge {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 50, 0.88);
+  color: #c8e87e;
+  font-size: 7px;
+  line-height: 10px;
+  padding: 0 3px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.rot-charge-release-badge {
+  color: #ffb454;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.rot-charge-release-badge:hover {
+  background: #a46020;
+  color: #fff;
+}
+
+.rot-double-edge-badge {
+  color: #ef9b9b;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.rot-double-edge-badge:hover {
+  background: #923c3c;
+  color: #fff;
+}
+
+.rot-skill.rot-charge-mismatch {
+  border-color: #ff7c55;
+  box-shadow: 0 0 0 2px #ff7c5577;
+}
+
+.rot-skill.rot-charge-mismatch .rot-charge-release-badge {
+  background: #8d3325;
+  color: #fff;
+}
+
+/* Proc panel */
+.rotation-procs {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-procs:empty {
+  display: none;
+}
+
+.rotation-warnings {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-warnings:empty {
+  display: none;
+}
+
+.rotation-warnings-wrap {
+  background: rgba(160, 95, 35, 0.12);
+  border: 1px solid rgba(160, 95, 35, 0.35);
+  border-radius: var(--radius);
+}
+
+.rotation-warnings-wrap > summary {
+  padding: 8px 10px;
+  color: #e5b36e;
+  cursor: pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.rotation-warnings-wrap > summary:hover {
+  background: rgba(160, 95, 35, 0.08);
+}
+
+.rotation-warnings-content {
+  max-height: 210px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  margin: 0;
+  padding: 8px 10px 10px 30px;
+  color: #e5b36e;
+  border-top: 1px solid rgba(160, 95, 35, 0.35);
+}
+
+.rotation-warnings-content li + li {
+  margin-top: 5px;
+}
+
+.rotation-warning-time {
+  display: inline-block;
+  min-width: 6ch;
+  margin-right: 8px;
+  color: #f0c98f;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.rotation-procs-wrap {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.rotation-procs-wrap > summary {
+  padding: 8px 10px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.rotation-procs-wrap > summary:hover {
+  background: transparent;
+}
+
+.rotation-procs-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.proc-icons-row {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.proc-icon {
+  width: 30px;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.proc-icon img {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  border-radius: 3px;
+  border: 1px solid var(--proc-color, var(--border-light));
+  opacity: 0.88;
+  transition:
+    opacity 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+
+.proc-icon:hover img {
+  opacity: 1;
+}
+
+.proc-icon.proc-faded {
+  opacity: 0.25;
+}
+
+.proc-icon.proc-highlight img {
+  opacity: 1;
+  border-color: var(--proc-color, var(--border-light));
+  box-shadow: 0 0 0 2px var(--proc-color, var(--border-light));
+}
+
+.proc-count,
+.proc-stack {
+  position: absolute;
+  top: -3px;
+  min-width: 17px;
+  padding: 1px 2px;
+  border-radius: 5px;
+  background: #171820;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 10px;
+  text-align: center;
+  box-shadow: 0 0 0 1px var(--proc-color, var(--border-light));
+  pointer-events: none;
+}
+
+.proc-count {
+  left: -4px;
+  min-width: 20px;
+  padding: 1px 3px;
+  background: #08080d;
+  color: var(--text-bright);
+  font-size: 9px;
+  line-height: 12px;
+  z-index: 2;
+}
+
+.proc-stack {
+  right: -3px;
+  color: #f4cf69;
+}
+
+.proc-time {
+  display: block;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.proc-filter {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.proc-filter summary {
+  cursor: pointer;
+  list-style: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.proc-filter summary::-webkit-details-marker {
+  display: none;
+}
+
+.proc-filter summary::after {
+  content: ' ▾';
+  color: var(--accent);
+}
+
+.proc-filter[open] summary::after {
+  content: ' ▴';
+}
+
+.proc-filter-count {
+  color: var(--accent);
+  font-size: 8px;
+}
+
+.proc-filter-menu {
+  margin-top: 5px;
+  min-width: 220px;
+  max-height: 165px;
+  overflow-y: auto;
+  padding: 5px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.proc-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 3px;
+  color: var(--text);
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.proc-filter-option:hover {
+  background: var(--bg-panel-alt);
+}
+
+.proc-filter-option input {
+  margin: 0;
+}
+
+.rot-offset-badge {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 50, 0.88);
+  color: #7ec8e3;
+  font-size: 7px;
+  line-height: 10px;
+  padding: 0 3px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.rot-skill .rot-timed-action-badge {
+  position: static;
+  display: block;
+  transform: none;
+  width: max-content;
+  margin: 1px auto 0;
+  line-height: 9px;
+  text-align: center;
+  white-space: pre-line;
+}

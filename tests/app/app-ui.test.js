@@ -85,7 +85,7 @@ test('starting resource clamps cover every active resource view', () => {
   });
 });
 
-test('15-pip initiative uses a specialization-neutral dense layout', async () => {
+test('15-pip initiative uses specialization-neutral rows', () => {
   const html = activeResourceGroup({
     adapter: { eliteSpecialization: () => 'Core' },
     build: { initialResource: 15 },
@@ -105,15 +105,12 @@ test('15-pip initiative uses a specialization-neutral dense layout', async () =>
     results: { endState: { time: 0, profession: {} } }
   });
 
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
   const rowPipCounts = [
     ...html.matchAll(/<span class="resource-pip-row">((?:<span class="active-resource-pip[^"]*"><\/span>)+)<\/span>/g)
   ].map(([, pips]) => [...pips.matchAll(/active-resource-pip/g)].length);
 
   assert.match(html, /class="active-resource-pips thief-initiative pip-rows-2 pip-count-15"/);
   assert.deepEqual(rowPipCounts, [7, 8]);
-  assert.match(css, /\.thief-initiative\.pip-count-15\.pip-rows-2/);
-  assert.doesNotMatch(css, /specter-f-skills[^}]*thief-initiative/);
 });
 
 test('specialization selection replaces another elite line and refreshes its resources', () => {
@@ -684,52 +681,6 @@ test('shared app metadata owns common attributes and target conditions', () => {
   );
 });
 
-test('mobile rotation workspace keeps controls, timeline, and focus metrics usable', async () => {
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
-
-  assert.match(css, /body:not\(\[data-rotation-focus\]\) \.rotation-panel\s*\{\s*max-height: none;/);
-  assert.match(css, /grid-template-areas:\s*['"]label size['"]\s*['"]start start['"]\s*['"]buttons buttons['"];/);
-  assert.match(
-    css,
-    /body\[data-rotation-focus\] \.rotation-section\s*\{\s*display: block;\s*padding: 6px;\s*overflow-x: hidden;\s*overflow-y: auto;/
-  );
-  assert.match(css, /body\[data-rotation-focus\] \.rotation-panel-shell > \.rotation-panel\s*\{\s*height: auto;/);
-  assert.match(css, /\.rotation-timeline\s*\{\s*flex: 0 0 clamp\(320px, 50vh, 520px\);\s*min-height: 320px;/);
-  assert.match(css, /body\[data-rotation-focus\] \.rotation-palette\s*\{\s*max-height: none;\s*overflow-y: visible;/);
-  assert.match(
-    css,
-    /body\[data-rotation-focus\] \.rotation-timeline\s*\{\s*flex: 0 0 auto;\s*height: auto;\s*overflow-y: visible;/
-  );
-  assert.match(
-    css,
-    /body\[data-rotation-focus\] \.rotation-dps-summary \.res-summary\s*\{\s*display: grid;\s*width: 100%;\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
-  );
-  assert.match(css, /body\[data-rotation-focus\] \.rotation-results\s*\{\s*display: none;/);
-});
-
-test('damage breakdown keeps its skill identity column visible on narrow screens', async () => {
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
-  const identityColumn = 'minmax\\(180px, 1fr\\)';
-
-  assert.match(css, new RegExp(`\\.res-hdr\\s*\\{[\\s\\S]*?grid-template-columns: ${identityColumn}`));
-  assert.match(css, new RegExp(`\\.res-row\\s*\\{[\\s\\S]*?grid-template-columns: ${identityColumn}`));
-  assert.match(css, new RegExp(`\\.res-skill-group-heading\\s*\\{[\\s\\S]*?grid-template-columns: ${identityColumn}`));
-  assert.match(css, /\.res-breakdown\s*\{[\s\S]*?overflow-x: auto;/);
-});
-
-test('an open event log expands past the normal rotation panel cap', async () => {
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
-
-  assert.match(
-    css,
-    /body:not\(\[data-rotation-focus\]\) \.rotation-panel:has\(\.rotation-event-log \.res-log-wrap\[open\]\)\s*\{\s*max-height: none;\s*overflow: visible;/
-  );
-  assert.match(
-    css,
-    /\.rotation-event-log \.res-log\s*\{\s*max-height: clamp\(120px, calc\(100dvh - 200px\), 400px\);\s*scrollbar-gutter: stable;/
-  );
-});
-
 test('timeline display checkboxes are owned by Simulation Config instead of the rotation output', async () => {
   const [displayControls, timelineView, timelineSize] = await Promise.all([
     readFile(new URL('../../js/games/gw2/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),
@@ -748,20 +699,6 @@ test('timeline display checkboxes are owned by Simulation Config instead of the 
   assert.match(timelineView, /app\.overlaySovereignOfLightProcs/);
   assert.doesNotMatch(timelineView, /data-overlay-proc-type/);
   assert.doesNotMatch(timelineSize, /rotation-dead-time-control/);
-});
-
-test('shared profession palettes preserve utility rows before wrapping combat tools', async () => {
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
-
-  assert.match(css, /\.rotation-palette \.pal-group\.utility-palette-group > \.pal-row\s*\{\s*flex-wrap: nowrap;/);
-  assert.match(
-    css,
-    /body\[data-profession\] \.rotation-palette:not\(:has\(\.weaver-weapon-palette\)\)\s*\{\s*display: flex;\s*flex-wrap: wrap;/
-  );
-  assert.match(
-    css,
-    /body\[data-profession\] \.rotation-palette > \.timeline-tools-palette-stack\s*\{[\s\S]*?flex: 0 0 auto;[\s\S]*?flex-wrap: nowrap;[\s\S]*?margin-inline-start: auto;/
-  );
 });
 
 test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
@@ -873,40 +810,14 @@ test('published simulation results refresh result-dependent palette state', asyn
   assert.ok(outputRenderer.indexOf('renderPalette(app)') < outputRenderer.indexOf('renderTimeline(app)'));
 });
 
-test('current rotation DPS stays above the footer on simulator pages', async () => {
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
-
-  assert.match(
-    css,
-    /\.floating-dps\s*\{\s*position: absolute;\s*right: max\(14px, env\(safe-area-inset-right\)\);\s*bottom: calc\(100% \+ 12px\);/
-  );
-  assert.doesNotMatch(css, /data-simulator-view='professions'/);
-});
-
 test('gear panel leaves current rotation DPS to the floating metric', async () => {
-  const [gearPanel, professionApp, css] = await Promise.all([
+  const [gearPanel, professionApp] = await Promise.all([
     readFile(new URL('../../js/games/gw2/app/build/panels/gear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/profession-app.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../css/style.css', import.meta.url), 'utf8')
+    readFile(new URL('../../js/games/gw2/app/profession-app.ts', import.meta.url), 'utf8')
   ]);
 
   assert.doesNotMatch(gearPanel, /current-rotation-dps|gear-rotation-dps|currentRotationDps/);
   assert.doesNotMatch(professionApp, /updateGearRotationDps/);
-  assert.doesNotMatch(css, /\.gear-rotation-(?:result|dps)/);
-});
-
-test('empty and authored rotations keep the same timeline height', async () => {
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
-
-  assert.match(
-    css,
-    /\.rotation-timeline\s*\{\s*flex: 1 1 auto;\s*height: clamp\(280px, 52vh, 600px\);\s*min-height: 280px;/
-  );
-  assert.match(css, /\.rotation-timeline\.is-empty\s*\{\s*display: grid;\s*place-items: center;\s*background:/);
-  assert.match(
-    css,
-    /body\[data-rotation-focus\] \.rotation-timeline\s*\{\s*flex: 0 0 auto;\s*height: auto;\s*overflow-y: visible;/
-  );
 });
 
 test('shared app and platform helpers are profession neutral', async () => {
@@ -966,7 +877,6 @@ test('the landing selector records supplied specialization artwork for every pro
 
 test('the generic landing page and profession simulators have separate entries', async () => {
   const landingPage = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
-  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
   const professionPages = await Promise.all(
     professionRegistry.map(async (entry) => ({
       entry,
@@ -1017,8 +927,6 @@ test('the generic landing page and profession simulators have separate entries',
     assert.doesNotMatch(source, /id="skill-info-table"/);
     assert.doesNotMatch(source, /selected-skills-panel/);
   }
-
-  assert.match(css, /\.skill-selection-section\s*\{[^}]*grid-template-columns:\s*647px minmax\(0, 1fr\);/s);
 });
 
 test('Mesmer default builds resolve without embedded rotations', async () => {
