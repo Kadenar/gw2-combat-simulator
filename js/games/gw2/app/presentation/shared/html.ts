@@ -1,10 +1,6 @@
-export function escapeHtml(value: unknown): string {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
+import { escapeHtml } from '#ui/shared/html.js';
+
+export { escapeHtml };
 
 export function gw2ApiText(value: unknown): string {
   return String(value ?? '')

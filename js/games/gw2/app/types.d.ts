@@ -408,7 +408,7 @@ export interface ProfessionRuntimeConfigContext {
 
 export interface ProfessionRuntimeOverrides {
   readonly buildConfigInputs?: (app: ProfessionAppState, context: ProfessionRuntimeConfigContext) => SchedulerRecord;
-  readonly buildConfigExtras?: (app: ProfessionAppState) => SchedulerRecord;
+  readonly buildConfigExtras?: (app: ProfessionAppState, context: ProfessionRuntimeConfigContext) => SchedulerRecord;
 }
 
 export interface ProfessionRuntimeOptions extends ProfessionRuntimeOverrides {

@@ -3997,6 +3997,35 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
   assert.equal(config.stats.ferocity - config.amalgamEvolveAttributePool.Ferocity, 150);
 });
 
+test('Amalgam food comparisons use the recalculated Evolve attribute pool', () => {
+  const canonical = createEngineerBuildDefaults();
+
+  canonical.food = 'Plate of Coq Au Vin with Salsa';
+  canonical.specializations = [
+    { name: 'Explosives', traits: '3-2-3' },
+    { name: 'Firearms', traits: '3-3-2' },
+    { name: 'Amalgam', traits: '2-2-3' }
+  ];
+  const app = {
+    build: toApplicationBuild(canonical),
+    skillByName: engineerCatalog.skillsByName,
+    attributeWeaponSet: 1
+  };
+
+  engineerAppAdapter.recalculate(app);
+  const request = engineerAppAdapter.modifierContributionRequest(app);
+  const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${canonical.food}`);
+
+  assert.equal(
+    request.baseConfig.amalgamEvolveAttributePool.Power - comparison.config.amalgamEvolveAttributePool.Power,
+    100
+  );
+  assert.equal(
+    request.baseConfig.amalgamEvolveAttributePool.Precision - comparison.config.amalgamEvolveAttributePool.Precision,
+    70
+  );
+});
+
 test('Thorns damaging-field assumption creates six one-second retaliations', () => {
   const selectedMorphSkillIds = [77103, 77104, 76705];
   const inactive = simulate('Amalgam', [77104], {

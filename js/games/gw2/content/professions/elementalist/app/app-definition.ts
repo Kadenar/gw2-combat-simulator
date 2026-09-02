@@ -59,12 +59,12 @@ export const elementalistAppAdapter = defineProfessionApp({
   toApplicationBuild,
   specializationFallback: 'Fire',
   runtime: {
-    buildConfigExtras: (app) => {
+    buildConfigExtras: (app, { attributeData }) => {
       const catalyst = build(app).specializations?.some((specialization) => specialization.name === 'Catalyst');
       return {
         ...(catalyst
           ? {
-              catalystEmpowermentPool: catalystEmpowermentPool(app.attributeData as ProfessionAttributeData)
+              catalystEmpowermentPool: catalystEmpowermentPool(attributeData)
             }
           : {}),
         startAttunement: build(app).startAttunement,

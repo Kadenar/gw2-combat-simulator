@@ -432,6 +432,59 @@ test('modifier contributions compare the active build against each modifier remo
   assert.ok(contributions.every((entry) => Number.isFinite(entry.dpsIncrease) && Number.isFinite(entry.pctIncrease)));
 });
 
+test('Accuracy comparisons remove its attribute and one-strike critical chance bonuses', () => {
+  const build = createDefaultBuild();
+
+  build.rotation = ['Bladecall'];
+  build.relic = '';
+  build.food = '';
+  build.selectedSkills = {};
+  build.weaponSigils = [
+    ['Force', 'Accuracy'],
+    ['Force', 'Accuracy']
+  ];
+  const attributeData = calcAttributes(build, []);
+  const withoutAccuracy = calcAttributes(build, [], 1, null, 'Accuracy');
+  const app = { build, attributeData, attributeWeaponSet: 1, skillByName: new Map() };
+  const request = mesmerAppAdapter.modifierContributionRequest(app);
+  const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Sigil:Accuracy');
+  const contribution = mesmerAppAdapter
+    .calculateModifierContributions(request)
+    .find(({ id }) => id === 'Sigil:Accuracy');
+
+  assert.equal(
+    attributeData.attributes['Critical Chance'].final - withoutAccuracy.attributes['Critical Chance'].final,
+    7
+  );
+  assert.equal(comparison.config.sigilSets[0].criticalChanceBonus, 0);
+  assert.ok(contribution.dpsIncrease > 0);
+});
+
+test('food comparisons remove both nourishment procs and attribute bonuses', () => {
+  const build = createDefaultBuild();
+
+  build.rotation = ['Bladecall'];
+  build.relic = '';
+  build.food = 'Plate of Coq Au Vin with Salsa';
+  build.selectedSkills = {};
+  const app = {
+    build,
+    attributeData: calcAttributes(build, []),
+    attributeWeaponSet: 1,
+    skillByName: new Map()
+  };
+  const request = mesmerAppAdapter.modifierContributionRequest(app);
+  const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${build.food}`);
+  const contribution = mesmerAppAdapter
+    .calculateModifierContributions(request)
+    .find(({ id }) => id === `Food:${build.food}`);
+
+  assert.equal(comparison.config.food, '');
+  assert.ok(comparison.config.stats.power < request.baseConfig.stats.power);
+  assert.ok(comparison.config.stats.precision < request.baseConfig.stats.precision);
+  assert.ok(contribution.dpsIncrease > 0);
+});
+
 test('interactive simulation leaves contribution passes to the background worker', () => {
   const build = createDefaultBuild();
 

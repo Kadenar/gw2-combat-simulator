@@ -114,13 +114,16 @@ export function createProfessionRuntime({
 
     const displayedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
     const targetWeaponSet = weaponSet ?? displayedWeaponSet;
-    if (
-      targetWeaponSet === displayedWeaponSet &&
-      (!disabled || (disabled.type !== 'Trait' && disabled.type !== 'Boon'))
-    ) {
+    const recalculatesAttributes =
+      disabled?.type === 'Trait' ||
+      disabled?.type === 'Boon' ||
+      disabled?.type === 'Sigil' ||
+      disabled?.type === 'Food';
+    if (targetWeaponSet === displayedWeaponSet && !recalculatesAttributes) {
       return app.attributeData;
     }
 
+    // Attribute-backed modifiers must be removed before recalculation; config filtering only removes runtime effects.
     let build: Gw2ApplicationBuild = app.build;
     if (disabled?.type === 'Boon') {
       const key = disabled.name.toLowerCase();
@@ -131,13 +134,16 @@ export function createProfessionRuntime({
           [key]: key === 'might' ? 0 : false
         }
       };
+    } else if (disabled?.type === 'Food') {
+      build = { ...app.build, food: '' };
     }
 
     return calculateAttributes(
       build,
       selectedSkills(app),
       targetWeaponSet,
-      disabled?.type === 'Trait' ? disabled.name : null
+      disabled?.type === 'Trait' ? disabled.name : null,
+      disabled?.type === 'Sigil' ? disabled.name : null
     ) as ProfessionAttributeData;
   }
 
@@ -148,6 +154,7 @@ export function createProfessionRuntime({
     );
     const specialization = eliteSpecialization(app.build);
     const activeTraits = attributeData.activeTraits || [];
+    const runtimeContext = { attributeData, specialization, activeTraits };
     const config = createGw2SimulationConfig({
       app,
       attributeData,
@@ -155,15 +162,9 @@ export function createProfessionRuntime({
       specialization,
       disabled,
       selectedTraitIds: activeTraits.map((trait) => trait.id).filter((id) => id != null),
-      ...(buildConfigInputs
-        ? buildConfigInputs(app, {
-            attributeData,
-            specialization,
-            activeTraits
-          })
-        : null)
+      ...(buildConfigInputs ? buildConfigInputs(app, runtimeContext) : null)
     });
-    return buildConfigExtras ? { ...config, ...buildConfigExtras(app) } : config;
+    return buildConfigExtras ? { ...config, ...buildConfigExtras(app, runtimeContext) } : config;
   }
 
   function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {

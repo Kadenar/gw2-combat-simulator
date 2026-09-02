@@ -471,9 +471,14 @@ export function createCalculateAttributes(
     build: Gw2Build,
     selectedSkills: readonly Skill[] = [],
     weaponSet = 1,
-    disabledTrait: string | null = null
+    disabledTrait: string | null = null,
+    disabledSigil: string | null = null
   ) {
-    const common = calculateCommonAttributes(build, { weaponSet });
+    // Modifier comparisons omit the named sigil here so attribute and runtime effects use the same effective loadout.
+    const sigilNames = disabledSigil
+      ? weaponSigilsForSet(build, weaponSet).filter((name) => name !== disabledSigil)
+      : null;
+    const common = calculateCommonAttributes(build, { weaponSet, sigilNames });
     return applyBuildAttributeRules(common, {
       build,
       selectedSkills,

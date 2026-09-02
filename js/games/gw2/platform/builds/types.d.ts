@@ -381,5 +381,6 @@ export type Gw2CalculateAttributes = (
   build: Gw2Build,
   selectedSkills?: readonly Skill[],
   weaponSet?: number,
-  disabledTrait?: string | null
+  disabledTrait?: string | null,
+  disabledSigil?: string | null
 ) => Gw2FinalizedAttributeResult;

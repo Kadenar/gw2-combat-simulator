@@ -20,10 +20,10 @@ export const engineerAppAdapter = defineProfessionApp({
       initialResource: (app.build as EngineerApplicationBuild).initialHeat
     }),
     // Supply specialization-only runtime fields without leaking inactive state into other builds.
-    buildConfigExtras: (app) => {
+    buildConfigExtras: (app, { attributeData }) => {
       const build = app.build as EngineerApplicationBuild;
       const evolveAttributePool = (
-        app.attributeData as {
+        attributeData as {
           amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
         }
       ).amalgamEvolveAttributePool;
