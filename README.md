@@ -177,6 +177,7 @@ simulation modes.
 
 - Node.js **20.19+**
 - npm
+- Google Chrome, only for browser tests
 
 Clone the repository and install dependencies:
 
@@ -189,16 +190,10 @@ npm install
 Start the local simulator:
 
 ```bash
-npm start
+npm run dev
 ```
 
-Then open:
-
-```text
-http://127.0.0.1:4173
-```
-
-The startup process automatically compiles the TypeScript modules and creates a development build.
+Open the local URL printed by Vite (normally `http://localhost:5173`).
 
 ---
 
@@ -216,11 +211,19 @@ Run the test suite:
 npm test
 ```
 
-Run the full project validation:
+Run the browser tests:
+
+```bash
+npm run test:browser
+```
+
+Run formatting, lint, build, type, artifact, and browser checks:
 
 ```bash
 npm run check
 ```
+
+`npm run check` does not run the Node test suite, so run `npm test` separately.
 
 The production site is emitted to:
 
@@ -234,44 +237,10 @@ Do not commit generated `dist/` output.
 
 ---
 
-## Patch preview authoring
+## Specialized tooling
 
-The repository includes a local authoring tool for previewing balance changes against the simulator's profession data.
-
-Start it with:
-
-```bash
-npm run author:patch-preview
-```
-
-Then open:
-
-```text
-http://127.0.0.1:4174
-```
-
-The authoring interface can modify existing effects, remove effects, add new effects, and generate a preview of the
-resulting skill and modifier changes.
-
-The authoring API binds only to loopback and is not exposed by the normal simulator server.
-
----
-
-## Updating profession data
-
-Refresh Guild Wars 2 API data for a profession with:
-
-```bash
-npm run update:profession-data -- --profession Guardian
-```
-
-Some professions have additional generation steps:
-
-```bash
-npm run update:elementalist-data
-npm run update:warrior-data
-npm run update:ranger-data
-```
+The root [`package.json`](package.json) is the source of truth for available commands. See [`scripts/README.md`](scripts/README.md)
+for analysis tooling and [Patch preview](docs/architecture/PATCH-PREVIEW.md) for balance-change authoring.
 
 ---
 
@@ -306,6 +275,7 @@ Useful starting points:
 - [Architecture](docs/architecture/ARCHITECTURE.md)
 - [Module responsibilities](docs/architecture/MODULES.md)
 - [Programmatic simulation](docs/architecture/PROGRAMMATIC-SIMULATION.md)
+- [Patch preview](docs/architecture/PATCH-PREVIEW.md)
 - [EVTC rotation reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md)
 - [Community build submissions](docs/BUILD-SUBMISSIONS.md)
 
