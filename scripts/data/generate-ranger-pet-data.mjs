@@ -275,7 +275,6 @@ export async function generateRangerPetData({ skills: apiSkills }) {
     .filter(Boolean);
 
   for (const skill of skills) keyFor(skill);
-  const skillById = new Map(skills.map((skill) => [skill.id, skill]));
 
   const skillLines = skills.map((skill) => {
     const recharge = skill.recharge || skill.facts?.find((fact) => fact.type === 'Recharge')?.value || 0;

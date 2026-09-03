@@ -5,7 +5,6 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
 import { autoattackChainSkillAvailable } from '#gw2/app/rotation/palette/model.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
@@ -21,7 +20,6 @@ import {
 import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
 import { warriorNativeModules } from '#gw2/content/professions/warrior/modules.js';
 import { warriorCoreModule } from '#gw2/content/professions/warrior/core/module.js';
-import { warriorAppAdapter } from '#gw2/content/professions/warrior/app/app-definition.js';
 import { createWarriorCoreState } from '#gw2/content/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/core/profiles.js';
 import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/execution/index.js';

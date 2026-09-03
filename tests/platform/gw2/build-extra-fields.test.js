@@ -57,7 +57,8 @@ test('bounded-integer build fields truncate persisted values and reject fraction
 
 test('enum build fields restore missing or invalid values and reject them before migration', () => {
   const defaults = createElementalistBuildDefaults();
-  const { evokerElement: _missing, ...missingEvokerElement } = defaults;
+  const missingEvokerElement = { ...defaults };
+  delete missingEvokerElement.evokerElement;
 
   assert.equal(migrateElementalistBuild({}).startAttunement, 'Fire');
   assert.equal(migrateElementalistBuild({ startAttunement: 'Void' }).startAttunement, 'Fire');

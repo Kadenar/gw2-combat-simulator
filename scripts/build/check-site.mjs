@@ -1,6 +1,5 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
-import process from 'node:process';
 
 const siteRoot = path.resolve('dist', 'site');
 const pages = [

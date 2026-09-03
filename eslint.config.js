@@ -1,4 +1,6 @@
+import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const packageAliasPattern = {
@@ -24,7 +26,7 @@ export default [
     ignores: ['node_modules/**', 'dist/**', 'coverage/**', 'build/**', 'reference-repos/**']
   },
 
-  // JavaScript
+  // Apply ESLint's baseline correctness checks to JavaScript while TypeScript remains compiler-checked.
   {
     files: ['**/*.{js,jsx,mjs,cjs}'],
 
@@ -33,6 +35,7 @@ export default [
     },
 
     rules: {
+      ...js.configs.recommended.rules,
       '@stylistic/padding-line-between-statements': [
         'error',
         // Blank line after block-like statements, including ordinary braced if statements.
@@ -42,6 +45,26 @@ export default [
           next: '*'
         }
       ]
+    }
+  },
+
+  // Declare only the globals provided by each JavaScript file's runtime so no-undef remains useful.
+  {
+    files: [
+      'eslint.config.js',
+      'playwright.config.js',
+      'vite.config.js',
+      'scripts/**/*.{js,mjs,cjs}',
+      'tests/**/*.{js,mjs,cjs}'
+    ],
+    languageOptions: {
+      globals: globals.nodeBuiltin
+    }
+  },
+  {
+    files: ['js/app/github-pages-redirect.js', 'tests/browser/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: globals.browser
     }
   },
 

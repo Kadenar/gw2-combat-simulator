@@ -647,7 +647,6 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
 
   const currentStart = palette.innerHTML.indexOf('data-role="weaver-current-bar"');
   const currentEnd = palette.innerHTML.indexOf('utility-palette-group', currentStart);
-  const bankStart = palette.innerHTML.indexOf('data-role="weaver-cooldown-bank"');
   const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
 
   assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 5);

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
@@ -14,7 +13,6 @@ import { rangerProfession } from '#gw2/content/professions/ranger/definition.js'
 import { rangerCoreCriticalReactions } from '#gw2/content/professions/ranger/core/mechanics/reactions.js';
 import { rangerCoreModifierRules } from '#gw2/content/professions/ranger/core/traits/modifiers.js';
 import { druidModifierRules } from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
-import { rangerAppAdapter } from '#gw2/content/professions/ranger/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

@@ -48,7 +48,6 @@ import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
 import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
 import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
-import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { snapshotMesmerState } from '#gw2/content/professions/mesmer/state/index.js';
 import { testProfession } from '../fixtures/test-profession.js';
@@ -1623,7 +1622,6 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
     profession,
     rotation: ['Context Strike'],
     config: {
-      selectedTraitIds: [],
       selectedTraitIds: ['context-fixture.damage']
     }
   });

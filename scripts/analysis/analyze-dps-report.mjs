@@ -78,7 +78,7 @@ function decodeLogData(html) {
   try {
     logData = JSON.parse(extractAssignment(html, '_logData', '_crData'));
   } catch (error) {
-    throw new Error(`Unable to parse the report's embedded log data: ${error}`);
+    throw new Error(`Unable to parse the report's embedded log data: ${error}`, { cause: error });
   }
 
   if (typeof logData !== 'string') return logData;
@@ -88,7 +88,7 @@ function decodeLogData(html) {
 
     return JSON.parse(inflateSync(compressed).toString('utf8'));
   } catch (error) {
-    throw new Error(`Unable to inflate the report's embedded log data: ${error}`);
+    throw new Error(`Unable to inflate the report's embedded log data: ${error}`, { cause: error });
   }
 }
 

@@ -3,10 +3,9 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { warriorAppAdapter } from '#gw2/content/professions/warrior/app/app-definition.js';
-import { migrateWarriorBuild, validateWarriorBuild } from '#gw2/content/professions/warrior/build/build.js';
+import { migrateWarriorBuild } from '#gw2/content/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
-import { getActiveTraits } from '#gw2/content/professions/warrior/data/traits-data.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
 
 const buildUrl = new URL(
   '../../../data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json',

@@ -1641,7 +1641,6 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
 
   const perforate = damageEvents(utility, ID.PERFORATE).filter((event) => event.name === 'Perforate');
   const shards = damageEvents(utility, ID.SOUL_SHARDS).filter((event) => event.name === 'Soul Shards');
-  const lowShards = damageEvents(belowHalf, ID.SOUL_SHARDS).filter((event) => event.name === 'Soul Shards');
 
   assert.equal(perforate.length, 7);
   assert.deepEqual(

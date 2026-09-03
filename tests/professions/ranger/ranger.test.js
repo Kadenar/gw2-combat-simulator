@@ -17,7 +17,6 @@ import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import {
   createRangerBuildDefaults,
   migrateRangerBuild,

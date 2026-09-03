@@ -4,12 +4,11 @@ import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
-import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import {

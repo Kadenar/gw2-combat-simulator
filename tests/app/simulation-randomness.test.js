@@ -27,8 +27,7 @@ import { createMesmerBuildDefaults } from '#gw2/content/professions/mesmer/build
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
   createNecromancerBuildDefaults,
-  migrateNecromancerBuild,
-  validateNecromancerBuild
+  migrateNecromancerBuild
 } from '#gw2/content/professions/necromancer/build/build.js';
 import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
