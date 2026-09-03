@@ -531,8 +531,8 @@ export function mountRotationResults(
           Starting stacks
           <input type="number" min="0" max="10" step="1" value="${relicComparisonInitialStacks}" data-role="relic-comparison-stacks" aria-label="Starting Thorns stacks" />
         </label>
-        <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run">
-          ${relicComparisonError ? 'Retry' : relicComparison ? 'Run again' : 'Run comparison'}
+        <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run"${relicComparisonStale ? ' disabled' : ''}>
+          ${relicComparisonStale ? 'Running…' : relicComparisonError ? 'Retry' : relicComparison ? 'Run again' : 'Run comparison'}
         </button>`;
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
@@ -696,10 +696,10 @@ export function mountRotationResults(
         <p>Choose a relic to compare against ${escapeHtml(relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : 'your equipped relic')} across fight durations.</p>
       </div>
     </div>
-    ${relicComparisonStale ? '' : `<div class="relic-cmp-manual">${relicComparisonAction}</div>`}
+    <div class="relic-cmp-manual">${relicComparisonAction}</div>
     ${
       relicComparisonStale
-        ? `<div class="relic-cmp-status" role="status">Running comparison simulation…</div>`
+        ? `<div class="relic-cmp-skeleton" role="status">Running comparison simulation…</div>`
         : relicComparisonError
           ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(relicComparisonError)}</div>`
           : relicComparison

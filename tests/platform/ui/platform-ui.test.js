@@ -1189,6 +1189,23 @@ test('relic comparison passes the selected relic and shows stacks only for Thorn
   assert.equal(startingStacks, 4);
 });
 
+test('relic comparison keeps its footprint while rerunning', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    metrics: [],
+    relicComparisonAvailable: true,
+    relicComparisonStale: true,
+    relicComparisonOpponent: 'Fractal',
+    relicComparisonTarget: 'Thorns',
+    relicComparisonTargets: ['Thorns']
+  });
+
+  assert.match(container.innerHTML, /class="relic-cmp-skeleton" role="status"/);
+  assert.match(container.innerHTML, /data-role="relic-comparison-run" disabled/);
+  assert.match(container.innerHTML, /Running…/);
+});
+
 test('randomized DPS range renders completed simulations and percentage progress', () => {
   const container = inertContainer();
 
