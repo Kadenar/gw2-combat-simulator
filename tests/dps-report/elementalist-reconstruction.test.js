@@ -226,7 +226,7 @@ test('recovers an unexplained equipped aura skill from its buff activation', () 
   );
 });
 
-test('recovers Blinding Flash unless nearby casts explain both condition applications', () => {
+test('recovers Blinding Flash only in Air unless nearby casts explain both condition applications', () => {
   const report = reportFixture(
     'Elementalist',
     [
@@ -276,7 +276,7 @@ test('recovers Blinding Flash unless nearby casts explain both condition applica
   };
 
   const result = reconstructDpsReportRotation(report, catalog, {
-    professionConfig: { primaryWeapon: 'Scepter' }
+    professionConfig: { primaryWeapon: 'Scepter', startAttunement: 'Air' }
   });
 
   assert.deepEqual(
@@ -284,6 +284,15 @@ test('recovers Blinding Flash unless nearby casts explain both condition applica
     [ID.BLINDING_FLASH]
   );
   assert.match(result.warnings.join('\n'), /Recovered report evidence:.*Blinding Flash/);
+
+  const fireResult = reconstructDpsReportRotation(report, catalog, {
+    professionConfig: { primaryWeapon: 'Scepter', startAttunement: 'Fire' }
+  });
+
+  assert.equal(
+    fireResult.actions.some((action) => action.name === 'Blinding Flash'),
+    false
+  );
 });
 
 test('reconstructs Evoker scepter/focus setup from report weapons, buffs, and hit totals', () => {

@@ -60,8 +60,8 @@
   "selectedSkills": {
     "Heal": "Rejuvenate",
     "Utility1": "Fox's Fury",
-    "Utility2": "Glyph of Storms (Fire)",
-    "Utility3": "Signet of Fire",
+    "Utility2": "Signet of Fire",
+    "Utility3": "Cleansing Fire",
     "Elite": "Glyph of Elementals"
   },
   "assumptions": {

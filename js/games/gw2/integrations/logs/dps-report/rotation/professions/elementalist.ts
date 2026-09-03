@@ -449,7 +449,16 @@ function recoverBlindingFlashActions(
   }
 
   const recovered: DpsReportRecordedAction[] = [];
+  const startingElement = inferStartingElement(context, actions);
   for (const at of candidates) {
+    let currentElement = startingElement;
+    // Blinding Flash occupies scepter 3 only in Air, so reject otherwise ambiguous condition evidence outside Air.
+    for (const action of actions) {
+      if (action.start > at) break;
+      currentElement = swappedElement(action) || currentElement;
+    }
+    if (currentElement !== 'Air') continue;
+
     const hasBlindSource = actions.some(
       (action) =>
         BLIND_SOURCES.has(actionName(action)) && Math.abs(action.start - at) <= BLINDING_FLASH_SOURCE_WINDOW_MS
