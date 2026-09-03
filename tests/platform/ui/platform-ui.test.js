@@ -846,7 +846,10 @@ test('shared results render summaries, totals, contributions, and icons', () => 
         { name: 'Low', total: 10 },
         { name: 'High', total: 20 }
       ],
-      conditions: [{ name: 'Burn <hot>', damage: 25, dps: 5, averageStacks: 1.25 }],
+      conditions: [
+        { name: 'Weak <slow>', damage: 0, dps: 0, averageStacks: 0.5 },
+        { name: 'Burn <hot>', damage: 25, dps: 5, averageStacks: 1.25 }
+      ],
       conditionTotal: { label: 'Total Conditions', damage: 25, dps: 5 },
       contributions: [
         {
@@ -919,6 +922,9 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.equal((container.innerHTML.match(/class="res-breakdown-section"/g) || []).length, 1);
   assert.doesNotMatch(container.innerHTML, /res-section-title"><svg/);
   assert.ok(container.innerHTML.indexOf('Damage Breakdown') < container.innerHTML.indexOf('Conditions'));
+  assert.ok(container.innerHTML.indexOf('Damaging Conditions') < container.innerHTML.indexOf('Burn &lt;hot&gt;'));
+  assert.ok(container.innerHTML.indexOf('Burn &lt;hot&gt;') < container.innerHTML.indexOf('Other Conditions'));
+  assert.ok(container.innerHTML.indexOf('Other Conditions') < container.innerHTML.indexOf('Weak &lt;slow&gt;'));
   assert.match(container.innerHTML, /\+12/);
   assert.match(container.innerHTML, /\+1\.50%/);
   assert.match(

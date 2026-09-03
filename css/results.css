@@ -1294,8 +1294,9 @@
   overflow-x: auto;
 }
 
-/* Damage and conditions share one analysis card, with each label inside the card. */
+/* Size the paired breakdown against its real content width so it stacks in narrow hosts. */
 .res-breakdown-section {
+  container: result-breakdown / inline-size;
   margin-bottom: 10px;
 }
 
@@ -1314,8 +1315,48 @@
   color: var(--text-bright);
 }
 
-[data-role='skill-breakdown'] + .res-section-title {
+.res-breakdown-part {
+  min-width: 0;
+}
+
+.res-breakdown-part + .res-breakdown-part .res-section-title {
   margin-top: 10px;
+}
+
+.res-condition-group + .res-condition-group {
+  margin-top: 10px;
+}
+
+.res-condition-group-title {
+  padding: 2px 4px 4px;
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Reserve the full table plus a matching right inset before placing conditions beside it. */
+@container result-breakdown (min-width: 1200px) {
+  .res-breakdown:has(> .res-damage-breakdown):has(> .res-condition-breakdown) {
+    display: grid;
+    grid-template-columns: minmax(844px, 2fr) minmax(324px, 1fr);
+    overflow-x: visible;
+  }
+
+  .res-damage-breakdown {
+    padding-right: 12px;
+    overflow-x: clip;
+  }
+
+  .res-condition-breakdown {
+    padding-left: 12px;
+    border-left: 1px solid var(--border);
+  }
+
+  .res-breakdown-part + .res-breakdown-part .res-section-title {
+    margin-top: 0;
+  }
 }
 
 /* Keep skill identity readable on narrow screens while the numeric columns use

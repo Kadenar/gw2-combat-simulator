@@ -203,3 +203,57 @@ test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ p
     controlRows: '"label size" "start start" "buttons buttons"'
   });
 });
+
+test('damage and condition breakdowns split only when their container is wide', async ({ page }) => {
+  await openSimulator(page, { width: 1400, height: 900 });
+  const fixture = page.locator('[data-layout-fixture="result-breakdown"]');
+
+  await page.evaluate(() => {
+    const section = document.createElement('section');
+    section.className = 'res-breakdown-section';
+    section.dataset.layoutFixture = 'result-breakdown';
+    section.style.width = '1200px';
+    section.innerHTML = `<div class="res-breakdown">
+      <div class="res-breakdown-part res-damage-breakdown">
+        <div class="res-section-title">Damage Breakdown</div>
+        <div class="res-hdr">
+          <span>Skill</span><span>Strike</span><span>Condition</span><span>Total</span><span>DPS</span>
+          <span>Avg/Cast</span><span>DCT</span><span>Casts</span><span>Hits</span><span>Exp. Crit %</span>
+        </div>
+      </div>
+      <div class="res-breakdown-part res-condition-breakdown">Conditions</div>
+    </div>`;
+    document.body.append(section);
+  });
+
+  const positions = () =>
+    fixture.locator('.res-breakdown-part').evaluateAll((parts) =>
+      parts.map((part) => {
+        const rect = part.getBoundingClientRect();
+        return { x: rect.x, y: rect.y, bottom: rect.bottom };
+      })
+    );
+
+  const [wideDamage, wideConditions] = await positions();
+  expect(wideConditions.x).toBeGreaterThan(wideDamage.x);
+  expect(wideConditions.y).toBe(wideDamage.y);
+  expect(
+    await fixture.locator('.res-damage-breakdown').evaluate((damage) => {
+      const style = getComputedStyle(damage);
+      return { overflowX: style.overflowX, paddingRight: style.paddingRight };
+    })
+  ).toEqual({ overflowX: 'clip', paddingRight: '12px' });
+  expect(
+    await fixture.locator('.res-hdr').evaluate((header) => {
+      const damage = header.closest('.res-damage-breakdown');
+      return header.scrollWidth <= damage.clientWidth;
+    })
+  ).toBe(true);
+
+  await fixture.evaluate((section) => {
+    section.style.width = '900px';
+  });
+  const [narrowDamage, narrowConditions] = await positions();
+  expect(narrowConditions.x).toBe(narrowDamage.x);
+  expect(narrowConditions.y).toBeGreaterThanOrEqual(narrowDamage.bottom);
+});

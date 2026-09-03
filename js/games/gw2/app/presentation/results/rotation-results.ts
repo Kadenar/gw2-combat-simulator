@@ -464,6 +464,11 @@ export function mountRotationResults(
   const skillRows = model.skillRows || [];
   const skillColumns = model.skillColumns || [];
   const conditions = model.conditions || [];
+  // Keep damage-dealing conditions prominent while retaining utility-condition stack visibility.
+  const conditionGroups = [
+    { label: 'Damaging Conditions', conditions: conditions.filter((condition) => condition.damage > 0) },
+    { label: 'Other Conditions', conditions: conditions.filter((condition) => condition.damage <= 0) }
+  ].filter((group) => group.conditions.length);
   // Contributions compare reruns with one modifier disabled; the UI warns that invalid rotations skew results.
   const contributions = model.contributions || [];
   const contributionsStale = model.contributionsStale === true;
@@ -603,29 +608,39 @@ export function mountRotationResults(
     <div class="res-breakdown">
       ${
         skillColumns.length
-          ? `<div class="res-section-title">Damage Breakdown</div>
+          ? `<div class="res-breakdown-part res-damage-breakdown">
+      <div class="res-section-title">Damage Breakdown</div>
       <div class="${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
         <div class="res-hdr res-hdr-sortable" data-role="skill-header">
           ${skillHeaderHtml(skillColumns, sortState)}
         </div>
         <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options)}</div>
-      </div>`
+      </div>
+    </div>`
           : ''
       }
       ${
         conditions.length
-          ? `<div class="res-section-title">Conditions</div>
+          ? `<div class="res-breakdown-part res-condition-breakdown">
+      <div class="res-section-title">Conditions</div>
       <div class="cond-breakdown">
-        <div class="res-hdr cond-hdr">
-          <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
-        </div>
-        ${conditions
+        ${conditionGroups
           .map(
-            (condition) => `<div class="res-row">
+            (group) => `<div class="res-condition-group">
+          <div class="res-condition-group-title">${group.label}</div>
+          <div class="res-hdr cond-hdr">
+            <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
+          </div>
+          ${group.conditions
+            .map(
+              (condition) => `<div class="res-row">
           <span class="res-skill condi">${escapeHtml(condition.name)}</span>
           <span class="condi">${number(condition.damage)}</span>
           <span class="dps">${number(condition.dps)}</span>
           <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
+        </div>`
+            )
+            .join('')}
         </div>`
           )
           .join('')}
@@ -639,7 +654,8 @@ export function mountRotationResults(
         </div>`
             : ''
         }
-      </div>`
+      </div>
+    </div>`
           : ''
       }
     </div>
