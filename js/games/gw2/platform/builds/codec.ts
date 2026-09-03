@@ -689,7 +689,8 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
   }
 
   const candidate = command as SchedulerRecord;
-  if (!['cast', 'wait', 'combat-start'].includes(String(candidate.type))) {
+  // Accept every canonical command emitted by migration while keeping cast-only payloads guarded below.
+  if (!['cast', 'wait', 'combat-start', 'cooldown-reset'].includes(String(candidate.type))) {
     errors.push('rotation contains an invalid canonical command.');
     return;
   }

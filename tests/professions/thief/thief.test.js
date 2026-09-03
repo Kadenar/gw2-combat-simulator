@@ -336,6 +336,21 @@ test('Thief defaults migrate deterministic assumptions and validate bars', () =>
   );
 });
 
+test('Thief cooldown resets survive build migration and validation', () => {
+  const defaults = createThiefBuildDefaults();
+  const migrated = migrateThiefBuild({ ...defaults, rotation: ['__cooldown_reset'] });
+
+  assert.deepEqual(migrated.rotation, [{ type: 'cooldown-reset' }]);
+  assert.deepEqual(validateThiefBuild(migrated), { valid: true, errors: [] });
+  assert.equal(
+    validateThiefBuild({
+      ...migrated,
+      rotation: [{ type: 'cooldown-reset', interruptAfterMs: 1 }]
+    }).valid,
+    false
+  );
+});
+
 test('Thief resources use profession-specific initiative and malice pips', () => {
   const resourceViews = (specialization, config = {}) =>
     thiefProfession.ui.resourceViews({
