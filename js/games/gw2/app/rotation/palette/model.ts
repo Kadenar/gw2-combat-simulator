@@ -1,9 +1,22 @@
 import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import type { NormalizedPaletteGroup } from '#gw2/app/presentation/rotation/palette.js';
 import type { ProfessionAppContract, ProfessionAppState, ProfessionSlotLoadoutContext } from '#gw2/app/types.js';
 import { groupWeaponSkillsByAttunement } from '#gw2/app/profession/weapon-attunement-groups.js';
 import { activeSpecialization, paletteEndState, paletteProfessionState } from '#gw2/app/rotation/shared/context.js';
+
+/** Owns the normalized palette declaration consumed by this feature's views. */
+export interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
+  readonly skillEntries: SchedulerRecord[];
+  readonly reservedSkillIds: readonly number[];
+  readonly color: string;
+  readonly className: string;
+  readonly stackId: string;
+  readonly placement: 'profession' | 'weapon-set-1' | 'active-weapon';
+  readonly weaponRowLabel: string;
+  readonly resourceAnchor: boolean;
+  readonly resourceIds: readonly string[];
+  readonly resourcePlacement: 'above' | 'beside' | 'below';
+}
 
 const PALETTE_ACTION_ORDER = new Map<string, number>([
   ['Dodge', 0],

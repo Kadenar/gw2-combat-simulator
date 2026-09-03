@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { criticalChanceTooltip } from '#gw2/app/presentation/rotation/state-snapshot.js';
+import { criticalChanceTooltip } from '#gw2/app/rotation/state-snapshot/model.js';
 
 test('critical chance tooltips list contributors and cap behavior', () => {
   const event = {

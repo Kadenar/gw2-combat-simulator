@@ -14,7 +14,6 @@
  */
 import type { ProfessionResourceView, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
-import type { PaletteResourceView } from '#gw2/app/presentation/rotation/palette.js';
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
 import {
   activeSpecialization,
@@ -22,6 +21,13 @@ import {
   paletteProfessionState,
   professionEndState
 } from '#gw2/app/rotation/shared/context.js';
+
+export interface PaletteResourceView {
+  readonly id: string;
+  readonly label: string;
+  readonly value: number;
+  readonly maximum: number;
+}
 
 function normalizeResourceView(view: ProfessionResourceView): ProfessionResourceView {
   const maximum = Math.max(0, Number(view.maximum || 0));

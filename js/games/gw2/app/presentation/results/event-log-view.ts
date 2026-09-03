@@ -1,3 +1,4 @@
+/** Renders and exports generic event-log rows without simulation-specific knowledge. */
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 export interface EventLogDescriptor {

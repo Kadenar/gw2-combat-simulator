@@ -5,7 +5,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { timelineDeadTimeMarkers } from '#gw2/app/presentation/rotation/timeline.js';
+import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 
 const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 

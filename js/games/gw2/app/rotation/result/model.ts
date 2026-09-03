@@ -4,7 +4,7 @@ import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt
 } from '#gw2/app/presentation/results/charts/time-series.js';
-import { formatTimelineDuration, timelineDeadTimeMarkers } from '#gw2/app/presentation/rotation/timeline.js';
+import { formatTimelineDuration, timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import {
   skillBreakdownRows as transformSkillBreakdownRows,
   skillDamageIdentityKey,

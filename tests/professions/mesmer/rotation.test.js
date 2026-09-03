@@ -7,12 +7,12 @@ import { prepareSimulationConfig } from '#gw2/platform/engine/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { chartValueAt } from '#gw2/app/presentation/results/charts/time-series.js';
-import { eventLogCsv } from '#gw2/app/presentation/results/event-log.js';
+import { eventLogCsv } from '#gw2/app/presentation/results/event-log-view.js';
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails
-} from '#gw2/app/presentation/rotation/timeline.js';
+} from '#gw2/app/rotation/timeline/model.js';
 import { moveRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { nextResultSortState, sortResultRows } from '#gw2/app/presentation/results/rotation-results.js';
 import {
@@ -30,7 +30,7 @@ import {
   timelineWeaponRowGroups,
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
+import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
 import { rotationWarningItems } from '#gw2/app/rotation/result/warnings.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';

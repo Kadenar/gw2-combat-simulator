@@ -311,7 +311,7 @@ longer than `duration`.
 For UI-equivalent formatted data, the existing transforms are also callable headlessly:
 
 ```js
-import { simulationEventLogRows } from './js/games/gw2/app/rotation/result/event-log.js';
+import { simulationEventLogRows } from './js/games/gw2/app/rotation/result/simulation-event-log.js';
 import { resultSummaryMetrics } from './js/games/gw2/app/rotation/result/model.js';
 
 console.table(resultSummaryMetrics(result));

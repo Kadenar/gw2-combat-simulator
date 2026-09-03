@@ -9,7 +9,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
+import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import {

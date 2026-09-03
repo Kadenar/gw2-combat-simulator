@@ -22,7 +22,7 @@ import {
   defaultPaletteInterruptMs
 } from '#gw2/app/rotation/palette/view.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
+import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';

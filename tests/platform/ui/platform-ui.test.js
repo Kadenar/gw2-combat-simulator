@@ -7,7 +7,7 @@ import {
   suggestedActivationInterruptMs,
   validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
-} from '#gw2/app/presentation/rotation/editors/activation-editor.js';
+} from '#gw2/app/rotation/editing/activation-editor.js';
 import { chargeReleaseRowLabel } from '#ui/rotation/editors/charge-release-editor.js';
 import { validateDurationMs } from '#ui/rotation/editors/duration-editor.js';
 import { positionFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
@@ -18,13 +18,13 @@ import {
   chartValueAt,
   mountTimeSeriesCharts
 } from '#gw2/app/presentation/results/charts/time-series.js';
-import { eventLogCsv, mountEventLog } from '#gw2/app/presentation/results/event-log.js';
+import { eventLogCsv, mountEventLog } from '#gw2/app/presentation/results/event-log-view.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml
-} from '#gw2/app/presentation/rotation/palette.js';
+} from '#gw2/app/rotation/palette/view.js';
 import { escapeHtml, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
 import {
   normalizeRotationInsertionIndex,
@@ -44,15 +44,14 @@ import {
 } from '#gw2/app/presentation/results/rotation-results.js';
 import { mountRotationWarnings } from '#ui/results/rotation-warnings.js';
 import {
-  bindTimelineInteractions,
   formatTimelineCastDetails,
   formatTimelineDuration,
   formatTimelineSkillTooltip,
-  getSkillDropInsertionIndex,
   rotationEntryName,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals
-} from '#gw2/app/presentation/rotation/timeline.js';
+} from '#gw2/app/rotation/timeline/model.js';
+import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/view.js';
 
 function inertContainer() {
   return {

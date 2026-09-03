@@ -9,7 +9,7 @@ import { autoattackChainSkillAvailable } from '#gw2/app/rotation/palette/model.j
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
-import { timelineDeadTimeMarkers } from '#gw2/app/presentation/rotation/timeline.js';
+import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
