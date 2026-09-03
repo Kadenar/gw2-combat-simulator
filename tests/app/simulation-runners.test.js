@@ -7,6 +7,7 @@ import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulatio
 import { createGameWorkerEndpoint, ManagedWorkerBatch } from '#app/simulation/game-worker-harness.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution-runner.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison-runner.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 
@@ -315,7 +316,7 @@ test('baseline runner publishes only the newest revision and reuses one worker',
       }
     },
     publishBaselineSimulation(output, revision) {
-      published.push([output.result.id, revision]);
+      published.push([output.result.id, output.referenceResult?.id, revision]);
     },
     failBaselineSimulation(error) {
       assert.fail(error);
@@ -329,13 +330,109 @@ test('baseline runner publishes only the newest revision and reuses one worker',
   assert.equal(workers.length, 1);
   assert.equal(workers[0].messages.length, 1, 'newer work waits instead of running concurrently');
 
-  workers[0].respond({ requestId: 1, revision: 1, output: { result: { id: 'old' }, patchComparison: null } });
+  workers[0].respond({
+    requestId: 1,
+    revision: 1,
+    output: { result: { id: 'old' }, referenceResult: { id: 'old-reference' }, patchComparison: null }
+  });
   assert.deepEqual(published, [], 'the superseded result is not published');
   assert.equal(workers[0].messages.length, 2);
 
-  workers[0].respond({ requestId: 2, revision: 2, output: { result: { id: 'new' }, patchComparison: null } });
-  assert.deepEqual(published, [['new', 2]]);
+  workers[0].respond({
+    requestId: 2,
+    revision: 2,
+    output: { result: { id: 'new' }, referenceResult: { id: 'new-reference' }, patchComparison: null }
+  });
+  assert.deepEqual(published, [['new', 'new-reference', 2]]);
   assert.equal(workers.length, 1, 'the persistent worker handles both jobs');
+});
+
+test('baseline requests refresh a queued reference once, using independent command clones', async () => {
+  const adapter = await loadProfessionAppAdapter('engineer');
+  const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
+  build.rotation = [{ type: 'wait', durationMs: 1 }];
+  const referenceRotation = [{ type: 'wait', durationMs: 2 }];
+  const app = {
+    adapter,
+    profession: adapter.profession,
+    activeCatalog: adapter.profession.catalog,
+    skillByName: adapter.profession.catalog.skillsByName,
+    skillById: adapter.profession.catalog.skillsById,
+    attributeWeaponSet: 1,
+    patchId: 'current',
+    build,
+    rotationComparison: {
+      referenceRotation,
+      referenceResult: {},
+      referenceStatus: 'fresh',
+      referenceError: '',
+      previewTimeMs: null
+    }
+  };
+  adapter.recalculate(app);
+
+  assert.equal(adapter.baselineSimulationRequest(app).referenceRotation, undefined);
+  app.rotationComparison.referenceStatus = 'queued';
+  const request = adapter.baselineSimulationRequest(app);
+  assert.deepEqual(request.referenceRotation, referenceRotation);
+  assert.notEqual(request.referenceRotation, referenceRotation);
+  assert.notEqual(request.referenceRotation[0], referenceRotation[0]);
+
+  const output = adapter.calculateBaselineSimulation(request);
+  assert.ok(output.referenceResult);
+  app.rotationComparison.referenceStatus = 'fresh';
+  assert.equal(adapter.baselineSimulationRequest(app).referenceRotation, undefined);
+});
+
+test('comparison reference commits only while comparison is still active', (t) => {
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => {
+    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
+    else delete globalThis.document;
+  });
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { body: { dataset: {} } }
+  });
+
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    buildRevision: 3,
+    resultRevision: 2,
+    results: { id: 'old-current' },
+    patchComparison: null,
+    rotationComparison: {
+      referenceRotation: [{ type: 'wait', durationMs: 1 }],
+      referenceResult: { id: 'old-reference' },
+      referenceStatus: 'queued',
+      referenceError: '',
+      previewTimeMs: null
+    },
+    deferredRotationRenderRevision: 3,
+    simulationStatus: 'running',
+    simulationError: '',
+    randomDistributionRunner: { schedule() {} },
+    modifierContributionRunner: { schedule() {} },
+    relicComparisonRunner: { schedule() {} },
+    adapter: { renderRotationBuilder() {} }
+  });
+
+  app.publishBaselineSimulation(
+    { result: { id: 'new-current' }, referenceResult: { id: 'new-reference' }, patchComparison: null },
+    3
+  );
+  assert.equal(app.results.id, 'new-current');
+  assert.equal(app.rotationComparison.referenceResult.id, 'new-reference');
+  assert.equal(app.rotationComparison.referenceStatus, 'fresh');
+
+  app.rotationComparison = null;
+  app.buildRevision = 4;
+  app.deferredRotationRenderRevision = 4;
+  app.publishBaselineSimulation(
+    { result: { id: 'after-exit' }, referenceResult: { id: 'ignored-reference' }, patchComparison: null },
+    4
+  );
+  assert.equal(app.results.id, 'after-exit');
+  assert.equal(app.rotationComparison, null);
 });
 
 test('baseline runner recovers after Worker construction fails', (t) => {

@@ -28,6 +28,8 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   /** Quantizes imported idle durations independently from offsets when their replay precision differs. */
   readonly quantizeWaitMs?: (value: number) => number;
   readonly replayEnd?: (action: Action) => number;
+  /** Makes waits compensate when emitted commands use a different cast duration than the source log. */
+  readonly alignWaitsToSimulatorTiming?: boolean;
   /** Limits observed-aftercast correction to actions whose duration came from the source log. */
   readonly hasObservedCastTime?: (action: Action) => boolean;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
@@ -72,6 +74,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const quantizeMs = policy.quantizeMs ?? identityMilliseconds;
   const quantizeWaitMs = policy.quantizeWaitMs ?? quantizeMs;
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
+  const alignWaitsToSimulatorTiming = policy.alignWaitsToSimulatorTiming === true;
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
   const effectiveCombatStart = replayCombatStart(actions, combatStart);
   const preserveCombatStartOffset = actions.some(
@@ -104,11 +107,29 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
   let pendingAftercast: { until: number; progressedTo: number } | null = null;
+  // The dps.report adapter opts into this scheduler projection because EI cast durations differ from catalog runtime.
+  let projectedTime = origin;
+  let projectedReservedEnd = origin;
+  let projectedBlockingEnd = origin;
+  let projectedInstantReadyAt = origin;
+  let projectedIndependentReadyAt = origin;
+  let projectedPreviousCastStart: number | null = null;
+  let ignoredSourceIdleMs = 0;
+
+  const appendWait = (waitMs: number): void => {
+    if (!(waitMs > 0)) return;
+    rotation.push({ name: '__wait', waitMs });
+    if (alignWaitsToSimulatorTiming) {
+      projectedTime = Math.max(projectedTime, projectedReservedEnd) + waitMs;
+    }
+  };
 
   const appendPendingAftercastWait = (): void => {
     if (!pendingAftercast) return;
-    const waitMs = quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo);
-    if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
+    const waitMs = alignWaitsToSimulatorTiming
+      ? quantizeWaitMs(pendingAftercast.until - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
+      : quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo);
+    appendWait(waitMs);
     pendingAftercast = null;
   };
 
@@ -117,15 +138,22 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const observedGapMs = nextActionAt - blockingEnd;
     const retainedTimingJitter =
       retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
-    const waitMs = quantizeWaitMs(observedGapMs);
+    const waitMs = alignWaitsToSimulatorTiming
+      ? quantizeWaitMs(nextActionAt - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
+      : quantizeWaitMs(observedGapMs);
     const aftercastWaitMs = pendingAftercast
       ? quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo)
       : 0;
     pendingAftercast = null;
     // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
     // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
-    const totalWaitMs = aftercastWaitMs + (!retainedTimingJitter && waitMs > minimumWaitMs ? waitMs : 0);
-    if (totalWaitMs > 0) rotation.push({ name: '__wait', waitMs: totalWaitMs });
+    if (alignWaitsToSimulatorTiming) {
+      if (!retainedTimingJitter && waitMs > minimumWaitMs) appendWait(waitMs);
+      else ignoredSourceIdleMs += waitMs;
+    } else {
+      appendWait(aftercastWaitMs + (!retainedTimingJitter && waitMs > minimumWaitMs ? waitMs : 0));
+    }
+
     activeCastEnd = nextActionAt;
   };
 
@@ -138,9 +166,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
         // Keep a packet-proven observation boundary exact so action-frame rounding cannot move it past an opener.
         const offset = preserveCombatStartOffset ? at - previousCastStart : quantizeMs(at - previousCastStart);
         rotation.push({ name: '__combat_start', offset });
+        if (alignWaitsToSimulatorTiming && projectedPreviousCastStart != null) {
+          projectedTime = Math.max(projectedTime, projectedPreviousCastStart + offset);
+        }
       } else {
         appendObservedIdle(at);
         rotation.push({ name: '__combat_start' });
+        if (alignWaitsToSimulatorTiming) projectedTime = Math.max(projectedTime, projectedReservedEnd);
       }
 
       continue;
@@ -151,6 +183,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       if (overlapping) appendPendingAftercastWait();
       else appendObservedIdle(at);
       rotation.push({ name: '__cooldown_reset' });
+      if (alignWaitsToSimulatorTiming) projectedTime = Math.max(projectedTime, projectedReservedEnd);
       continue;
     }
 
@@ -158,10 +191,14 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     if (!canEmit(action)) {
       if (overlapping) appendPendingAftercastWait();
       else appendObservedIdle(at);
-      const waitMs = quantizeWaitMs(actionReplayEnd - at);
-      if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
+      appendWait(
+        alignWaitsToSimulatorTiming
+          ? quantizeWaitMs(actionReplayEnd - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
+          : quantizeWaitMs(actionReplayEnd - at)
+      );
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
       previousCastStart = null;
+      if (alignWaitsToSimulatorTiming) projectedPreviousCastStart = null;
       continue;
     }
 
@@ -191,8 +228,37 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     rotation.push(command);
+    if (alignWaitsToSimulatorTiming) {
+      const runtimeMs = action.skill ? quicknessReferenceCastTimeMs(action.skill) : actionReplayEnd - at;
+      const interruptMs = command.interruptMs ?? action.skill?.defaultInterruptMs;
+      const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
+      const retainedRuntimeMs =
+        effectiveRuntimeMs < runtimeMs && action.skill?.retainsCastLockoutAfterInterrupt === true
+          ? runtimeMs
+          : effectiveRuntimeMs;
+      const projectedStart: number =
+        command.offset != null && projectedPreviousCastStart != null
+          ? Math.max(projectedTime, projectedPreviousCastStart + command.offset)
+          : independent
+            ? Math.max(projectedTime, projectedIndependentReadyAt)
+            : instant
+              ? Math.max(projectedTime, projectedInstantReadyAt)
+              : Math.max(projectedTime, projectedBlockingEnd);
+      projectedTime = projectedStart;
+      projectedReservedEnd = Math.max(projectedReservedEnd, projectedStart + retainedRuntimeMs);
+      if (independent) {
+        if (action.skill?.independentCastCanOverlap !== true) {
+          projectedIndependentReadyAt = Math.max(projectedIndependentReadyAt, projectedStart + retainedRuntimeMs);
+        }
+      } else {
+        projectedPreviousCastStart = projectedStart;
+        projectedInstantReadyAt = Math.max(projectedInstantReadyAt, projectedStart + effectiveRuntimeMs);
+        projectedBlockingEnd = Math.max(projectedBlockingEnd, projectedStart + retainedRuntimeMs);
+      }
+    }
+
     if (action.followingWaitMs && action.followingWaitMs > 0) {
-      rotation.push({ name: '__wait', waitMs: quantizeWaitMs(action.followingWaitMs) });
+      appendWait(quantizeWaitMs(action.followingWaitMs));
     }
 
     const aftercastWaitMs = observedAftercastWaitMs(action, actionReplayEnd);

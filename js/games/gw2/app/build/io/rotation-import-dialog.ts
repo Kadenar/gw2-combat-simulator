@@ -1,4 +1,4 @@
-import { getRotationItems, readJsonFile } from '#gw2/app/build/io/files.js';
+import { fetchJsonAsset, getRotationItems, readJsonFile } from '#gw2/app/build/io/files.js';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc-rotation-import.js';
 import { readDpsReportRotationData, readDpsReportRotationUrl } from '#gw2/app/build/io/dps-report-rotation-import.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
@@ -6,10 +6,12 @@ import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { errorMessage } from '#ui/shared/dom.js';
 
 import type { RotationCommand } from '#gw2/platform/engine/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { BuildTemplatePreset, ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
+type RotationImportDestination = 'current' | 'reference';
 
 export interface RotationImportPreview {
   readonly rotation: readonly RotationCommand[];
@@ -17,7 +19,6 @@ export interface RotationImportPreview {
   readonly description: string;
   readonly warnings: readonly string[];
   readonly observations: readonly RotationImportObservation[];
-  readonly initialBlight?: number;
 }
 
 interface RotationImportDialogElements {
@@ -30,6 +31,8 @@ interface RotationImportDialogElements {
   readonly browseButton: HTMLButtonElement;
   readonly reportInput: HTMLInputElement;
   readonly reportButton: HTMLButtonElement;
+  readonly presetSelect: HTMLSelectElement | null;
+  readonly presetButton: HTMLButtonElement | null;
   readonly applyButton: HTMLButtonElement;
   readonly closeButton: HTMLButtonElement;
 }
@@ -70,8 +73,7 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
     actionCount: imported.actionCount,
     description: `Reconstructed ${imported.playerLabel}`,
     warnings: imported.warnings,
-    observations: imported.observations,
-    ...(imported.initialBlight == null ? {} : { initialBlight: imported.initialBlight })
+    observations: imported.observations
   };
 }
 
@@ -91,11 +93,51 @@ export async function previewDpsReportUrl(
   };
 }
 
+/** Loads one manifest rotation through the same strict preview boundary as uploaded JSON. */
+async function previewManifestRotation(
+  preset: BuildTemplatePreset,
+  app: ProfessionAppState
+): Promise<RotationImportPreview> {
+  if (!preset.rotation) throw new Error('Rotation asset missing.');
+  const items = getRotationItems(await fetchJsonAsset(preset.rotation));
+  if (!items) throw new Error('Rotation array missing.');
+  const rotation = normalizeRotation(items, app.activeCatalog, { strict: true });
+  const name = preset.section ? `${preset.section} · ${preset.label}` : preset.label;
+  return {
+    rotation,
+    actionCount: rotation.length,
+    description: `Loaded ${name}`,
+    warnings: [],
+    observations: []
+  };
+}
+
+function selectedSkillNames(build: unknown): string[] | null {
+  if (!build || typeof build !== 'object' || Array.isArray(build)) return null;
+  const selectedSkills = (build as { selectedSkills?: unknown }).selectedSkills;
+  if (!selectedSkills || typeof selectedSkills !== 'object' || Array.isArray(selectedSkills)) return null;
+  const names = Object.values(selectedSkills);
+  return names.every((name) => typeof name === 'string') ? names.filter(Boolean).sort() : null;
+}
+
+/** Keeps manifest references compatible with the active profession and selected skill loadout. */
+export function manifestRotationMatchesBuild(build: unknown, currentBuild: Gw2ApplicationBuild): boolean {
+  if (!build || typeof build !== 'object' || Array.isArray(build)) return false;
+  const candidate = build as { profession?: unknown };
+  const candidateSkills = selectedSkillNames(build);
+  const currentSkills = selectedSkillNames(currentBuild);
+  return (
+    candidate.profession === currentBuild.profession &&
+    candidateSkills !== null &&
+    currentSkills !== null &&
+    candidateSkills.length === currentSkills.length &&
+    candidateSkills.every((name, index) => name === currentSkills[index])
+  );
+}
+
 /** Replaces the active rotation only after the user accepts a successfully reconstructed preview. */
 export function applyRotationImportPreview(app: ProfessionAppState, preview: RotationImportPreview): void {
   app.build.rotation = [...preview.rotation];
-  // Harbinger replay depends on the Blight already present when the recorded rotation began.
-  if (preview.initialBlight != null) app.build.initialBlight = preview.initialBlight;
   app.changed(false);
 }
 
@@ -123,6 +165,9 @@ function ensureStyles(document: Document): void {
     .rotation-import-report { display:flex; gap:6px; margin-top:10px; }
     .rotation-import-report input { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
       border-radius:5px; background:var(--bg-input); color:var(--text); }
+    .rotation-import-preset { display:flex; gap:6px; margin-top:10px; }
+    .rotation-import-preset select { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
+      border-radius:5px; background:var(--bg-input); color:var(--text); }
     .rotation-import-status { margin:12px 0 0; color:var(--text-dim); font-size:12px; }
     .rotation-import-status.is-success { color:var(--health); }
     .rotation-import-error { margin:12px 0 0; color:var(--condi); font-size:12px; white-space:pre-wrap; }
@@ -144,13 +189,16 @@ function ensureStyles(document: Document): void {
   document.head.append(style);
 }
 
-function createDialog(document: Document): RotationImportDialogElements {
+function createDialog(document: Document, destination: RotationImportDestination): RotationImportDialogElements {
   ensureStyles(document);
+  const reference = destination === 'reference';
+  const titleId = `rotation-import-title-${destination}`;
   const dialog = document.createElement('dialog');
   dialog.className = 'rotation-import-dialog';
-  dialog.setAttribute('aria-labelledby', 'rotation-import-title');
+  dialog.dataset.rotationImportDestination = destination;
+  dialog.setAttribute('aria-labelledby', titleId);
   dialog.innerHTML = `<form class="rotation-import-form" method="dialog">
-    <h3 id="rotation-import-title">Load rotation</h3>
+    <h3 id="${titleId}">${reference ? 'Load reference rotation' : 'Load rotation'}</h3>
     <p class="rotation-import-intro">Load a saved rotation JSON, reconstruct an ArcDPS EVTC log, or import the Elite Insights casts from a dps.report link.</p>
     <p class="rotation-import-experimental"><strong>Experimental:</strong> Combat-log import may produce incomplete or inaccurate rotations. dps.report omits some raw EVTC evidence, so review the imported rotation before relying on it.</p>
     <div class="rotation-import-drop" data-rotation-import-drop>
@@ -164,13 +212,21 @@ function createDialog(document: Document): RotationImportDialogElements {
       <input type="url" inputmode="url" placeholder="https://dps.report/…" aria-label="dps.report link" data-rotation-import-report-input>
       <button type="button" class="btn btn-io" data-rotation-import-report>Import link</button>
     </div>
+    ${
+      reference
+        ? `<div class="rotation-import-preset">
+      <select aria-label="Existing rotation" data-rotation-import-preset></select>
+      <button type="button" class="btn btn-io" data-rotation-import-preset-load>Load selected</button>
+    </div>`
+        : ''
+    }
     <p class="rotation-import-status" role="status" data-rotation-import-status>Select a file or enter a link to begin.</p>
     <p class="rotation-import-error" role="alert" data-rotation-import-error hidden></p>
     <div class="rotation-import-warnings" aria-label="Import notices" data-rotation-import-warnings hidden></div>
     <div class="rotation-import-observations" aria-label="Combat log observations" data-rotation-import-observations hidden></div>
     <div class="rotation-import-actions">
       <button type="button" class="btn" data-rotation-import-close>Cancel</button>
-      <button type="button" class="btn btn-io" data-rotation-import-apply disabled>Apply rotation</button>
+      <button type="button" class="btn btn-io" data-rotation-import-apply disabled>${reference ? 'Use as reference' : 'Apply rotation'}</button>
     </div>
   </form>`;
   document.body.append(dialog);
@@ -183,6 +239,8 @@ function createDialog(document: Document): RotationImportDialogElements {
   const browseButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-browse]');
   const reportInput = dialog.querySelector<HTMLInputElement>('[data-rotation-import-report-input]');
   const reportButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-report]');
+  const presetSelect = dialog.querySelector<HTMLSelectElement>('[data-rotation-import-preset]');
+  const presetButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-preset-load]');
   const applyButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-apply]');
   const closeButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-close]');
   if (
@@ -210,6 +268,8 @@ function createDialog(document: Document): RotationImportDialogElements {
     browseButton,
     reportInput,
     reportButton,
+    presetSelect,
+    presetButton,
     applyButton,
     closeButton
   };
@@ -259,17 +319,38 @@ function renderObservations(element: HTMLElement, observations: readonly Rotatio
   element.append(list);
 }
 
-/** Connects the rotation load button to JSON, EVTC, and dps.report import flows. */
+/** Connects a rotation destination to JSON, EVTC, dps.report, and optional manifest previews. */
 export function bindRotationImportDialog(
   app: ProfessionAppState,
   button: HTMLElement,
-  fileInput: HTMLInputElement
+  fileInput: HTMLInputElement,
+  destination: RotationImportDestination = 'current'
 ): void {
   fileInput.accept = ROTATION_IMPORT_ACCEPT;
   button.setAttribute('aria-haspopup', 'dialog');
   button.title = 'Load a rotation JSON or reconstruct one from an EVTC/dps.report log';
 
-  const elements = createDialog(button.ownerDocument);
+  const elements = createDialog(button.ownerDocument, destination);
+  const manifestCandidates = destination === 'reference' ? app.templatePresets.filter((preset) => preset.rotation) : [];
+  const manifestBuilds = Promise.all(
+    manifestCandidates.map(async (preset) => {
+      try {
+        return { preset, build: await fetchJsonAsset(preset.build) };
+      } catch {
+        return null;
+      }
+    })
+  );
+  let manifestRotations: BuildTemplatePreset[] = [];
+  if (elements.presetSelect && elements.presetButton) {
+    const placeholder = button.ownerDocument.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Loading compatible rotations…';
+    elements.presetSelect.append(placeholder);
+    elements.presetSelect.disabled = true;
+    elements.presetButton.disabled = true;
+  }
+
   let importing = false;
   let activePreview: RotationImportPreview | null = null;
 
@@ -277,7 +358,10 @@ export function bindRotationImportDialog(
     activePreview = null;
     elements.applyButton.disabled = true;
     elements.status.classList.remove('is-success');
-    elements.status.textContent = 'Select a file or enter a link to begin.';
+    elements.status.textContent =
+      destination === 'reference'
+        ? 'Select a file, enter a link, or choose an existing rotation.'
+        : 'Select a file or enter a link to begin.';
     elements.error.hidden = true;
     elements.error.textContent = '';
     elements.warnings.hidden = true;
@@ -291,8 +375,44 @@ export function bindRotationImportDialog(
     elements.browseButton.disabled = value;
     elements.reportButton.disabled = value;
     elements.reportInput.disabled = value;
+    if (elements.presetSelect) elements.presetSelect.disabled = value || !manifestRotations.length;
+    if (elements.presetButton) {
+      elements.presetButton.disabled = value || !elements.presetSelect?.value;
+    }
+
     elements.closeButton.disabled = value;
     elements.applyButton.disabled = value || !activePreview;
+  };
+
+  const populateManifestRotations = async (): Promise<void> => {
+    if (!elements.presetSelect || !elements.presetButton) return;
+    elements.presetSelect.disabled = true;
+    elements.presetButton.disabled = true;
+    const placeholder = button.ownerDocument.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Loading compatible rotations…';
+    elements.presetSelect.replaceChildren(placeholder);
+    manifestRotations = (await manifestBuilds)
+      .filter((entry) => entry && manifestRotationMatchesBuild(entry.build, app.build))
+      .map((entry) => entry!.preset);
+    placeholder.textContent = manifestRotations.length ? 'Choose a compatible rotation…' : 'No compatible rotations';
+    manifestRotations.forEach((preset, index) => {
+      const option = button.ownerDocument.createElement('option');
+      option.value = String(index);
+      option.textContent = preset.section ? `${preset.section} · ${preset.label}` : preset.label;
+      elements.presetSelect?.append(option);
+    });
+    elements.presetSelect.disabled = !manifestRotations.length;
+  };
+
+  const showReadyPreview = (imported: RotationImportPreview): void => {
+    activePreview = imported;
+    elements.status.classList.add('is-success');
+    elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
+    elements.warnings.hidden = imported.warnings.length === 0;
+    renderWarnings(elements.warnings, imported.warnings);
+    elements.observations.hidden = imported.observations.length === 0;
+    renderObservations(elements.observations, imported.observations);
   };
 
   const selectFile = async (file: File): Promise<void> => {
@@ -305,20 +425,7 @@ export function bindRotationImportDialog(
     elements.warnings.hidden = true;
     elements.observations.hidden = true;
     try {
-      const imported = await previewRotationFile(file, app);
-      activePreview = imported;
-      elements.status.classList.add('is-success');
-      elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
-      if (imported.warnings.length) {
-        elements.warnings.hidden = false;
-      }
-
-      renderWarnings(elements.warnings, imported.warnings);
-      if (imported.observations.length) {
-        elements.observations.hidden = false;
-      }
-
-      renderObservations(elements.observations, imported.observations);
+      showReadyPreview(await previewRotationFile(file, app));
     } catch (error) {
       elements.status.textContent = `Could not import ${file.name}.`;
       elements.error.hidden = false;
@@ -341,18 +448,31 @@ export function bindRotationImportDialog(
     elements.warnings.hidden = true;
     elements.observations.hidden = true;
     try {
-      const imported = await previewDpsReportUrl(input, app);
-      activePreview = imported;
-      elements.status.classList.add('is-success');
-      elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
-      if (imported.warnings.length) {
-        elements.warnings.hidden = false;
-      }
-
-      renderWarnings(elements.warnings, imported.warnings);
-      renderObservations(elements.observations, imported.observations);
+      showReadyPreview(await previewDpsReportUrl(input, app));
     } catch (error) {
       elements.status.textContent = 'Could not import the dps.report link.';
+      elements.error.hidden = false;
+      elements.error.textContent = errorMessage(error);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const selectPreset = async (): Promise<void> => {
+    if (importing || !elements.presetSelect?.value) return;
+    const preset = manifestRotations[Number(elements.presetSelect.value)];
+    if (!preset) return;
+    activePreview = null;
+    setImporting(true);
+    elements.status.classList.remove('is-success');
+    elements.status.textContent = 'Loading existing rotation…';
+    elements.error.hidden = true;
+    elements.warnings.hidden = true;
+    elements.observations.hidden = true;
+    try {
+      showReadyPreview(await previewManifestRotation(preset, app));
+    } catch (error) {
+      elements.status.textContent = 'Could not load the existing rotation.';
       elements.error.hidden = false;
       elements.error.textContent = errorMessage(error);
     } finally {
@@ -363,6 +483,7 @@ export function bindRotationImportDialog(
   button.addEventListener('click', () => {
     resetMessages();
     elements.dialog.showModal();
+    void populateManifestRotations();
   });
   elements.browseButton.addEventListener('click', () => fileInput.click());
   elements.reportButton.addEventListener('click', () => void selectReport());
@@ -371,9 +492,14 @@ export function bindRotationImportDialog(
     event.preventDefault();
     void selectReport();
   });
+  elements.presetSelect?.addEventListener('change', () => {
+    if (elements.presetButton) elements.presetButton.disabled = !elements.presetSelect?.value;
+  });
+  elements.presetButton?.addEventListener('click', () => void selectPreset());
   elements.applyButton.addEventListener('click', () => {
     if (!activePreview) return;
-    applyRotationImportPreview(app, activePreview);
+    if (destination === 'reference') app.loadRotationReference(activePreview.rotation);
+    else applyRotationImportPreview(app, activePreview);
     activePreview = null;
     elements.dialog.close();
   });

@@ -21,9 +21,17 @@ interface RotationHistory {
   current: RotationCommand[];
 }
 
-function cloneRotation(rotation: readonly RotationCommand[]): RotationCommand[] {
-  // Commands are shallow immutable value objects, so cloning each object isolates history snapshots.
-  return rotation.map((command) => ({ ...command }));
+export function cloneRotation(rotation: readonly RotationCommand[]): RotationCommand[] {
+  // Clone canonical value objects while preserving legacy primitive commands until normalization handles them.
+  return rotation.map((command) => (typeof command === 'object' && command !== null ? { ...command } : command));
+}
+
+/** Starts a new history around the supplied rotation so an atomic role swap cannot undo into the other side. */
+export function resetRotationHistory(
+  app: ProfessionAppState,
+  rotation: readonly RotationCommand[] = app.build.rotation
+): void {
+  app._rotationHistory = { undo: [], redo: [], current: cloneRotation(rotation) };
 }
 
 function sameRotation(left: readonly RotationCommand[], right: readonly RotationCommand[]): boolean {

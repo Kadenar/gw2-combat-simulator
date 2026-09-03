@@ -227,6 +227,13 @@ body[data-profession] .rotation-section {
   content: '\2328';
 }
 
+.rotation-compare-button {
+  min-height: 28px;
+  padding: 4px 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
 body[data-rotation-focus] {
   overflow: hidden;
 }
@@ -735,6 +742,15 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Remove the redundant pet marker and zoom its padded portrait without resizing the skill row. */
+[data-palette-group='ranger-pet'] .pal-status-icon::after {
+  content: none;
+}
+
+[data-palette-group='ranger-pet'] .pal-status-icon img {
+  transform: scale(1.5);
 }
 
 /* Full-width spacer that forces the following pal-groups onto a new line. */
@@ -1693,6 +1709,226 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   font-weight: 600;
 }
 
+/* Comparison reuses the focused builder and splits only its timeline region into two independently scrollable rows. */
+body[data-rotation-comparison] .rotation-panel-shell,
+body[data-rotation-comparison] .rotation-panel-shell > .rotation-panel {
+  min-height: 0;
+}
+
+body[data-rotation-comparison][data-rotation-focus] .build-editor > :is(.build-section, .skills-section) {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-panel-shell > .rotation-panel {
+  max-height: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 6px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel-alt);
+}
+
+body[data-rotation-comparison] .rotation-comparison-summary[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-stat {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-stat > span,
+body[data-rotation-comparison] .rotation-comparison-stat > small,
+body[data-rotation-comparison] .rotation-comparison-time > span,
+body[data-rotation-comparison] [data-comparison-status] {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-stat strong {
+  color: var(--text-bright);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time,
+body[data-rotation-comparison] .rotation-comparison-time-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time input {
+  width: clamp(120px, 15vw, 220px);
+}
+
+body[data-rotation-comparison] .rotation-comparison-time-controls {
+  flex-wrap: wrap;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time output {
+  min-width: 4.25em;
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+body[data-rotation-comparison] .rotation-comparison-timeline-label {
+  flex: 0 0 auto;
+  margin: 3px 0;
+  color: var(--text-bright);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-label {
+  margin: 0;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-header,
+body[data-rotation-comparison] .rotation-comparison-reference-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-header {
+  flex: 0 0 auto;
+  justify-content: space-between;
+  margin: 3px 0;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-actions[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+}
+
+body[data-rotation-comparison] :is(#rotation-timeline, .rotation-reference-timeline) {
+  height: auto;
+  min-height: 120px;
+  flex: 1 1 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body[data-rotation-comparison] .rotation-reference-timeline {
+  border-color: color-mix(in srgb, #d6b46b 45%, transparent);
+}
+
+body[data-rotation-comparison] .rotation-reference-timeline[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-empty {
+  display: flex;
+  min-height: 120px;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 28px;
+  border: 1px solid color-mix(in srgb, #d6b46b 45%, transparent);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 11px;
+  text-align: center;
+}
+
+body[data-rotation-comparison] .rotation-comparison-empty[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-empty strong {
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+body[data-rotation-comparison] :is(.rotation-dps-summary, .rotation-warnings, .rotation-procs, .rotation-event-log) {
+  display: none;
+}
+
+body[data-rotation-comparison] .rot-skill.rot-preview-active {
+  outline: 2px solid var(--text-bright);
+  outline-offset: -2px;
+  filter: brightness(1.25);
+}
+
+@media (max-width: 900px) {
+  body[data-rotation-comparison] .rotation-comparison-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-rotation-comparison] .rotation-comparison-time {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  body[data-rotation-comparison] .rotation-comparison-reference-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  body[data-rotation-comparison][data-rotation-focus] .rotation-section {
+    display: grid;
+    overflow: hidden;
+  }
+
+  body[data-rotation-comparison][data-rotation-focus] .rotation-panel-shell > .rotation-panel {
+    height: 100%;
+  }
+
+  body[data-rotation-comparison][data-rotation-focus] .rotation-palette {
+    max-height: 26vh;
+    overflow-y: auto;
+  }
+
+  body[data-rotation-comparison] .rotation-comparison-metrics {
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+    overflow-x: auto;
+  }
+
+  body[data-rotation-comparison] :is(#rotation-timeline, .rotation-reference-timeline) {
+    height: auto;
+    min-height: 140px;
+    flex: 1 1 0;
+    overflow-y: auto;
+  }
+}
+
 /* One weapon-set label spans its preserved transform lines so state boundaries stay visible without repeated labels. */
 .rot-row {
   display: grid;
@@ -1892,6 +2128,11 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 .rot-proc-overlay {
   width: 34px;
   border-style: dotted;
+}
+
+/* Keep a proc card attached to its skill-sized gutter when the timeline wraps. */
+.rot-proc-entry {
+  padding-left: 16px;
 }
 
 .rot-proc-overlay[data-skill-highlight-key] {

@@ -257,6 +257,14 @@ export interface ProfessionSlotLoadoutView {
   readonly bars: readonly ProfessionSlotLoadoutBar[];
 }
 
+export interface RotationComparisonState {
+  referenceRotation: RotationCommand[];
+  referenceResult: Gw2SimulationResult | null;
+  referenceStatus: 'empty' | 'fresh' | 'queued' | 'error';
+  referenceError: string;
+  previewTimeMs: number | null; // null means Final.
+}
+
 export interface ProfessionAppState {
   readonly gameId: string;
   readonly contentId: string;
@@ -278,6 +286,7 @@ export interface ProfessionAppState {
   results: ProfessionAppResult | null;
   buildRevision: number;
   resultRevision: number;
+  rotationComparison: RotationComparisonState | null;
   simulationStatus: 'idle' | 'queued' | 'running' | 'error';
   simulationError: string;
   dragState: ProfessionRotationDragState | null;
@@ -313,6 +322,11 @@ export interface ProfessionAppState {
   publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void;
   failBaselineSimulation(error: unknown, revision: number): void;
   changed(rebuildStatic?: boolean, rebuildGear?: boolean, options?: ProfessionChangeOptions): void;
+  startRotationComparison(): void;
+  loadRotationReference(rotation: readonly RotationCommand[]): void;
+  clearRotationReference(): void;
+  swapRotationComparison(): void;
+  exitRotationComparison(): void;
   renderGear(): void;
   renderTraits(): void;
   renderAttributes(): void;
@@ -339,6 +353,7 @@ export interface PatchComparison {
 /** Serializable input sent to the dedicated baseline-simulation worker. */
 export interface BaselineSimulationRequest extends GameContentAddress {
   readonly rotation: readonly RotationCommand[];
+  readonly referenceRotation?: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
   readonly selectedPatchId: string;
   readonly previewPatchId?: string;
@@ -348,6 +363,7 @@ export interface BaselineSimulationRequest extends GameContentAddress {
 export interface BaselineSimulationOutput {
   readonly result: Gw2SimulationResult;
   readonly patchComparison: PatchComparison | null;
+  readonly referenceResult?: Gw2SimulationResult;
 }
 
 export interface ProfessionRotationDragState extends SchedulerRecord {

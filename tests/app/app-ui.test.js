@@ -42,7 +42,7 @@ import {
   traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
 import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
-import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
+import { syncProcVisibility, timelineWeaponLineLabel } from '#gw2/app/rotation/timeline/view.js';
 import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { gw2SimulationPresentation } from '#gw2/app/presentation.js';
 import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
@@ -1652,6 +1652,15 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
     [[0], [1, 2], [3, 4], [5]]
   );
   assert.ok(rows.every((row) => row.weaponSet === 1));
+});
+
+test('bar replacements omit timeline labels without losing other state labels', () => {
+  for (const weaponLine of ['Celestial Avatar', 'Grenade Kit', 'Elixir Gun', 'Flamethrower', 'Gunsaber']) {
+    assert.equal(timelineWeaponLineLabel(weaponLine), '');
+  }
+
+  assert.equal(timelineWeaponLineLabel('Photon Forge'), 'Photon Forge');
+  assert.equal(timelineWeaponLineLabel('Tome of Justice'), 'Tome of Justice');
 });
 
 test('Firebrand mantra flips replace their selected skill-bar parent', async () => {

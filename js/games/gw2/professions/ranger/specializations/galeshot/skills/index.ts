@@ -4,6 +4,8 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Cyclone Bow entry and exit are state-selected variants of one F5 UI tile.
 const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
+// Keen Shot flips to Hawkeye at full Wind Force without creating a second weapon tile.
+const CYCLONE_BOW_ONE_PALETTE_TILE = 'galeshot-cyclone-bow-one';
 
 export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WHIRLWIND]: {
@@ -113,6 +115,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 500
   },
   [ID.KEEN_SHOT]: {
+    paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
+    paletteTileOrder: 1,
     effects: [
       {
         type: 'strike',
@@ -125,6 +129,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 480
   },
   [ID.HAWKEYE]: {
+    paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
+    paletteTileOrder: 2,
     interruptCommitMs: 0,
     effects: [
       {

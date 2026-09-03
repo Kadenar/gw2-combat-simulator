@@ -288,6 +288,8 @@ test('stateful transforms select one live tile across professions', async () => 
     ['ranger', 'Soulbeast', { beastmodeActive: true }, ['Beastmode'], 'Leave Beastmode'],
     ['ranger', 'Galeshot', { cycloneBowActive: false }, ['Summon Cyclone Bow'], 'Summon Cyclone Bow'],
     ['ranger', 'Galeshot', { cycloneBowActive: true }, ['Summon Cyclone Bow'], 'Dismiss Cyclone Bow'],
+    ['ranger', 'Galeshot', { cycloneBowActive: true, windForce: 0 }, ['Keen Shot'], 'Keen Shot'],
+    ['ranger', 'Galeshot', { cycloneBowActive: true, windForce: 5 }, ['Keen Shot'], 'Hawkeye'],
     ['elementalist', 'Core', { primaryAttunement: 'Earth', rockBarrierExpiresAt: 0 }, ['Rock Barrier'], 'Rock Barrier'],
     ['elementalist', 'Core', { primaryAttunement: 'Earth', rockBarrierExpiresAt: 30 }, ['Rock Barrier'], 'Hurl'],
     ['elementalist', 'Core', { primaryAttunement: 'Earth', activeAuras: [] }, ['Magnetic Aura'], 'Magnetic Aura'],

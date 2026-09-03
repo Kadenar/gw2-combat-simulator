@@ -18,7 +18,6 @@ export interface ImportedEvtcRotation {
   readonly warnings: readonly string[];
   readonly observations: readonly RotationImportObservation[];
   readonly playerLabel: string;
-  readonly initialBlight?: number;
 }
 
 function percent(value: number): string {
@@ -246,9 +245,6 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     actionCount: result.actions.length,
     warnings: result.warnings,
     observations,
-    playerLabel: `${selected.character} (${selected.account || selected.address})`,
-    ...(selected.specializationId === 'harbinger'
-      ? { initialBlight: rotationModule.initialHarbingerBlight(log, playerAddress) }
-      : {})
+    playerLabel: `${selected.character} (${selected.account || selected.address})`
   };
 }

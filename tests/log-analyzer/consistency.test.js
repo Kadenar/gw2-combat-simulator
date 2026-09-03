@@ -191,6 +191,30 @@ test('the shared timeline preserves idle after an uninterrupted retained-lockout
   ]);
 });
 
+test('the shared timeline subtracts accumulated simulator cast overruns from a later source gap', () => {
+  const longerRuntimeSkill = { ...fixtureSkill, quicknessCastTimeMs: 480 };
+  const rotation = buildReplayTimeline(
+    [
+      { start: 0, end: 440, eventIndex: 0, skill: longerRuntimeSkill, name: 'Mind Stab', skillId: 1_000 },
+      { start: 440, end: 880, eventIndex: 1, skill: longerRuntimeSkill, name: 'Mind Stab', skillId: 1_000 },
+      { start: 1_000, end: 1_440, eventIndex: 2, skill: longerRuntimeSkill, name: 'Mind Stab', skillId: 1_000 }
+    ],
+    0,
+    null,
+    {
+      alignWaitsToSimulatorTiming: true,
+      commandFor: ({ name, skillId }) => ({ name, skillId })
+    }
+  );
+
+  assert.deepEqual(rotation, [
+    { name: 'Mind Stab', skillId: 1_000 },
+    { name: 'Mind Stab', skillId: 1_000 },
+    { name: '__wait', waitMs: 40 },
+    { name: 'Mind Stab', skillId: 1_000 }
+  ]);
+});
+
 test('the shared timeline subtracts concurrent progress from an observed instant-skill channel', () => {
   const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0, quicknessCastTimeMs: 0 };
   const channel = { ...instant, id: 2_001, name: 'Channel' };

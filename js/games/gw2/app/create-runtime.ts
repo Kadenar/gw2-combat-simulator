@@ -5,6 +5,7 @@ import {
   calculateRandomDistribution as calculateDistribution
 } from '#gw2/app/simulation/random-distribution.js';
 import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison.js';
+import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -360,9 +361,10 @@ export function createProfessionRuntime({
     return {
       gameId: 'gw2',
       contentId: profession.id,
-      rotation: app.build.rotation.map((command) =>
-        typeof command === 'object' && command !== null ? { ...command } : command
-      ),
+      rotation: cloneRotation(app.build.rotation),
+      ...(app.rotationComparison?.referenceStatus === 'queued'
+        ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
+        : null),
       baseConfig: baselineSimulationConfig(app),
       selectedPatchId: app.patchId,
       ...(profession.preview?.id ? { previewPatchId: profession.preview.id } : null)
@@ -371,11 +373,12 @@ export function createProfessionRuntime({
 
   /** Runs a serialized baseline job without depending on browser application state. */
   function calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput {
-    const { rotation, baseConfig, selectedPatchId, previewPatchId } = request;
+    const { rotation, referenceRotation, baseConfig, selectedPatchId, previewPatchId } = request;
     if (!previewPatchId) {
       return {
         result: simulateBuild(rotation, baseConfig),
-        patchComparison: null
+        patchComparison: null,
+        ...(referenceRotation ? { referenceResult: simulateBuild(referenceRotation, baseConfig) } : null)
       };
     }
 
@@ -388,7 +391,11 @@ export function createProfessionRuntime({
     const preview = simulateBuild(rotation, configForPatch(previewPatchId));
     return {
       result: selectedPatchId === previewPatchId ? preview : current,
-      patchComparison: { patchId: previewPatchId, current, preview }
+      patchComparison: { patchId: previewPatchId, current, preview },
+      // Reference uses only the selected patch; patch comparison remains a Current-only analysis.
+      ...(referenceRotation
+        ? { referenceResult: simulateBuild(referenceRotation, configForPatch(selectedPatchId)) }
+        : null)
     };
   }
 

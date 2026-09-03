@@ -7,9 +7,13 @@ import { renderEventLog } from '#gw2/app/rotation/result/simulation-event-log.js
 import { renderWarnings } from '#gw2/app/rotation/result/warnings.js';
 import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
+
+export { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 
 export function renderRotationBuilder(app: ProfessionAppState): void {
   renderRotationEditor(app);
+  renderRotationComparison(app);
   renderSimulationDetails(app);
 }
 
@@ -30,6 +34,7 @@ export function renderSimulationOutput(app: ProfessionAppState): void {
   renderPalette(app);
   mountRotationHotkeys(document.getElementById('rotation-palette'), app.adapter.capabilities.keybindImport);
   renderTimeline(app);
+  renderRotationComparison(app);
   renderRotationStateSnapshot(app);
   renderSimulationDetails(app);
 }

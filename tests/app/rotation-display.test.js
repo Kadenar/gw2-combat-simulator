@@ -22,7 +22,7 @@ import {
   reduceRotationWorkspaceState,
   updateFloatingDps
 } from '#app/shell/workspace.js';
-import { currentTimelineResults, reconcileTimelineRows } from '#gw2/app/rotation/timeline/view.js';
+import { currentTimelineResults, reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
@@ -140,6 +140,55 @@ test('timeline timings use only results produced for the current build revision'
     currentTimelineResults({ buildRevision: 2, resultRevision: 2, results: currentResults }),
     currentResults
   );
+});
+
+test('default empty timelines stay interactive while read-only timelines omit authoring behavior', (t) => {
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => {
+    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
+    else delete globalThis.document;
+  });
+  const attributes = new Map();
+  const root = {
+    dataset: {},
+    classList: { add() {}, remove() {} },
+    innerHTML: '',
+    ownerDocument: null,
+    previousElementSibling: null,
+    closest: () => null,
+    querySelectorAll: () => [],
+    toggleAttribute(name, value) {
+      if (value) attributes.set(name, '');
+      else attributes.delete(name);
+    }
+  };
+  const fakeDocument = {
+    activeElement: null,
+    body: {},
+    addEventListener() {},
+    removeEventListener() {},
+    querySelector: () => null,
+    getElementById: (id) => (id === 'rotation-timeline' ? root : null)
+  };
+  root.ownerDocument = fakeDocument;
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: fakeDocument });
+  const app = {
+    build: { rotation: [] },
+    buildRevision: 1,
+    resultRevision: 1,
+    results: null,
+    rotationInsertionIndex: null
+  };
+
+  renderTimeline(app);
+  assert.equal(typeof root.ondrop, 'function');
+  assert.equal(attributes.has('aria-readonly'), false);
+
+  root.ondrop = null;
+  renderTimeline(app, { root, procRoot: null, build: { rotation: [] }, result: null, readOnly: true });
+  assert.equal(root.ondrop, null);
+  assert.equal(attributes.has('aria-readonly'), true);
+  assert.doesNotMatch(root.innerHTML, /rot-(?:insertion-gap|edit|x)/);
 });
 
 test('rotation timeline sizes expose two larger display options', () => {

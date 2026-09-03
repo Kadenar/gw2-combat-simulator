@@ -11,7 +11,7 @@ import {
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
 } from '#ui/rotation/insertion-cursor.js';
-import { activeSpecialization, professionEndState } from '#gw2/app/rotation/shared/context.js';
+import { professionEndState } from '#gw2/app/rotation/shared/context.js';
 import {
   ACTION_ICONS,
   COMBAT_START_ICON,
@@ -62,7 +62,8 @@ import {
 } from '#gw2/app/rotation/timeline/model.js';
 import type { RotationCommand, SchedulerRecord, SchedulerStep, Skill, SkillId } from '#gw2/platform/engine/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { ProfessionAppResult, ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
 
 export interface RotationDragState extends SchedulerRecord {
   readonly source?: string;
@@ -349,6 +350,13 @@ const timelineRowsByRoot = new WeakMap<HTMLElement, Map<string, RetainedTimeline
 const timelineCommandKeys = new WeakMap<object, number>();
 let nextTimelineCommandKey = 1;
 
+const UNLABELED_WEAPON_LINES = new Set(['Celestial Avatar', 'Elixir Gun', 'Flamethrower', 'Gunsaber']);
+
+/** Hides redundant bar-replacement labels so their skill tiles keep the normal timeline alignment. */
+export function timelineWeaponLineLabel(weaponLine: string | null | undefined): string {
+  return !weaponLine || weaponLine.endsWith(' Kit') || UNLABELED_WEAPON_LINES.has(weaponLine) ? '' : weaponLine;
+}
+
 function timelineCommandKey(command: RotationCommand): number {
   const object = command as object;
   const existing = timelineCommandKeys.get(object);
@@ -415,6 +423,48 @@ export function currentTimelineResults(
   app: Pick<ProfessionAppState, 'buildRevision' | 'resultRevision' | 'results'>
 ): ProfessionAppState['results'] {
   return app.resultRevision === app.buildRevision ? app.results : null;
+}
+
+/** Converts a DPS-window preview time back to scheduler time for authored-step highlighting. */
+export function rotationPreviewSchedulerTimeMs(result: ProfessionAppResult, previewTimeMs: number): number {
+  return Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000 + Math.max(0, Number(previewTimeMs) || 0);
+}
+
+/** Finds every authored action active at a preview point, falling back to the latest action already started. */
+export function authoredStepIndexesAtPreviewTime(
+  result: ProfessionAppResult | null | undefined,
+  previewTimeMs: number | null | undefined
+): number[] {
+  if (!result || previewTimeMs == null) return [];
+  const schedulerTimeMs = rotationPreviewSchedulerTimeMs(result, previewTimeMs);
+  const authored = (result.steps || []).filter((step) => Number(step.ri) >= 0 && !step.invalid);
+  const active = authored.filter((step) => {
+    const start = Number(step.start || 0);
+    const end = Math.max(start, Number(step.end ?? step.start ?? 0));
+    return start <= schedulerTimeMs && schedulerTimeMs <= end;
+  });
+  if (active.length) return [...new Set(active.map((step) => Number(step.ri)))];
+
+  const latestStart = Math.max(
+    ...authored.filter((step) => Number(step.start || 0) <= schedulerTimeMs).map((step) => Number(step.start || 0)),
+    -Infinity
+  );
+  return Number.isFinite(latestStart)
+    ? [...new Set(authored.filter((step) => Number(step.start || 0) === latestStart).map((step) => Number(step.ri)))]
+    : [];
+}
+
+/** Applies point-in-time emphasis without rebuilding either timeline or scheduling simulation work. */
+export function applyTimelinePreviewHighlight(
+  root: HTMLElement | null | undefined,
+  result: ProfessionAppResult | null | undefined,
+  previewTimeMs: number | null | undefined
+): void {
+  if (!root) return;
+  const indexes = new Set(authoredStepIndexesAtPreviewTime(result, previewTimeMs));
+  root.querySelectorAll<HTMLElement>('.rot-skill[data-idx]').forEach((skill) => {
+    skill.classList.toggle('rot-preview-active', indexes.has(Number(skill.dataset.idx)));
+  });
 }
 
 /** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */
@@ -690,23 +740,38 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
   };
 }
 
-export function renderTimeline(app: ProfessionAppState): void {
+export interface TimelineRenderOptions {
+  readonly root?: HTMLElement | null;
+  readonly procRoot?: HTMLElement | null;
+  readonly build?: Gw2ApplicationBuild;
+  readonly result?: ProfessionAppResult | null;
+  readonly readOnly?: boolean;
+  readonly previewTimeMs?: number | null;
+}
+
+export function renderTimeline(app: ProfessionAppState, options: TimelineRenderOptions = {}): void {
+  const readOnly = options.readOnly === true;
+  const build = options.build || app.build;
+  const rotation = build.rotation;
+  const resultIsExplicit = Object.hasOwn(options, 'result');
+  const results = resultIsExplicit ? options.result || null : currentTimelineResults(app);
   // Keyed reconciliation retains unchanged rows and may replace changed editor anchors.
-  closeFloatingEditor();
-  const element = document.getElementById('rotation-timeline');
-  const procElement = document.getElementById('rotation-procs');
+  if (!readOnly) closeFloatingEditor();
+  const element = options.root === undefined ? document.getElementById('rotation-timeline') : options.root;
+  const procElement = options.procRoot === undefined ? document.getElementById('rotation-procs') : options.procRoot;
   if (!element) return;
   element.dataset.buildRevision = String(app.buildRevision);
   element.dataset.resultRevision = String(app.resultRevision);
-  element.toggleAttribute('aria-busy', app.resultRevision !== app.buildRevision);
+  element.toggleAttribute('aria-busy', !resultIsExplicit && app.resultRevision !== app.buildRevision);
+  element.toggleAttribute('aria-readonly', readOnly);
   const procPanel = procElement?.querySelector<HTMLDetailsElement>('.rotation-procs-wrap') || null;
   // Capture open state before rebuilding the proc panel so it stays open after rendering.
   const procPanelWasOpen = procPanel?.open ?? false;
   element.ondragover = null;
   element.ondragleave = null;
   element.ondrop = null;
-  if (!app.build.rotation.length) {
-    app.rotationSkillHighlightKey = null;
+  if (!rotation.length) {
+    if (!readOnly) app.rotationSkillHighlightKey = null;
     element.classList.add('is-empty');
     element.innerHTML = `<div class="rot-empty">
             <strong>Build your rotation</strong>
@@ -714,29 +779,31 @@ export function renderTimeline(app: ProfessionAppState): void {
         </div>`;
     timelineRowsByRoot.delete(element);
     if (procElement) procElement.innerHTML = '';
-    app.rotationInsertionIndex = mountRotationInsertionCursor({
-      root: element,
-      insertionIndex: app.rotationInsertionIndex,
-      rotationLength: 0,
-      onSelect(index) {
-        app.rotationInsertionIndex = index;
-        renderPalette(app);
-        renderTimeline(app);
-        renderRotationStateSnapshot(app);
-      },
-      onClear() {
-        app.rotationInsertionIndex = null;
-        renderPalette(app);
-        renderTimeline(app);
-        renderRotationStateSnapshot(app);
-      }
-    });
-    bindTimelineInteractions(element, timelineInteractionOptions(app));
+    if (!readOnly) {
+      app.rotationInsertionIndex = mountRotationInsertionCursor({
+        root: element,
+        insertionIndex: app.rotationInsertionIndex,
+        rotationLength: 0,
+        onSelect(index) {
+          app.rotationInsertionIndex = index;
+          renderPalette(app);
+          renderTimeline(app);
+          renderRotationStateSnapshot(app);
+        },
+        onClear() {
+          app.rotationInsertionIndex = null;
+          renderPalette(app);
+          renderTimeline(app);
+          renderRotationStateSnapshot(app);
+        }
+      });
+      bindTimelineInteractions(element, timelineInteractionOptions(app));
+    }
+
     return;
   }
 
   element.classList.remove('is-empty');
-  const results = currentTimelineResults(app);
   const resultSteps = results?.steps || [];
   // Action details carry runtime-selected variants and other cast facts into the generic timeline tooltip.
   const actionDetails = new Map(
@@ -750,27 +817,27 @@ export function renderTimeline(app: ProfessionAppState): void {
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = shatterResourceSpends(results);
-  const automaticPhotonForgeExits = automaticPhotonForgeExitTimelineMarkers(results, app.build.rotation.length);
-  const automaticTomeStows = automaticTomeStowTimelineMarkers(results, app.build.rotation.length);
+  const automaticPhotonForgeExits = automaticPhotonForgeExitTimelineMarkers(results, rotation.length);
+  const automaticTomeStows = automaticTomeStowTimelineMarkers(results, rotation.length);
   // Automatic transformation exits act as weapon-row boundaries even though
   // no authored deactivation or stow command exists at that position.
   const automaticWeaponLineEndIndexes = new Set(
     [...automaticPhotonForgeExits, ...automaticTomeStows].map((marker) => marker.insertionIndex)
   );
-  const startingWeaponSet = app.build.startingWeaponSet;
-  const specialization = activeSpecialization(app);
+  const startingWeaponSet = build.startingWeaponSet;
+  const specialization = app.adapter.eliteSpecialization(build);
   const startingWeaponLine =
     app.profession.ui.timelineWeaponLineTransition({
       initial: true,
-      build: app.build,
+      build,
       specialization,
       weaponSet: startingWeaponSet,
       weaponLine: null
     }) ?? null;
-  const rows = timelineWeaponRows(app.build.rotation, {
+  const rows = timelineWeaponRows(rotation, {
     startingWeaponSet,
     startingWeaponLine,
-    weaponSwapChangesSet: app.profession.ui.weaponSwapChangesSet !== false && Boolean(app.build.alternateWeapons?.[0]),
+    weaponSwapChangesSet: app.profession.ui.weaponSwapChangesSet !== false && Boolean(build.alternateWeapons?.[0]),
     weaponLineEndIndexes: automaticWeaponLineEndIndexes,
     skillName: (entry) => resolveEntrySkill(app, entry)?.name || rotationEntryName(entry),
     weaponLineTransition: (entry, current) => {
@@ -779,7 +846,7 @@ export function renderTimeline(app: ProfessionAppState): void {
       return app.profession.ui.timelineWeaponLineTransition({
         entry: item.command,
         skill,
-        build: app.build,
+        build,
         specialization,
         ...current
       });
@@ -809,16 +876,18 @@ export function renderTimeline(app: ProfessionAppState): void {
     skill_proc: '#bb88ff'
   };
   const procSteps = [...(results?.procSteps || [])].sort((a, b) => a.start - b.start);
-  const procVisibility = procSteps.length ? syncProcVisibility(app, procSteps) : new Set<string>();
+  const procVisibility = procSteps.length
+    ? readOnly
+      ? new Set(procSteps.map(procFilterKey))
+      : syncProcVisibility(app, procSteps)
+    : new Set<string>();
   const overlayProcMarkers = [
-    ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, app.build.rotation.length) : []),
-    ...(app.overlayRelicProcs ? relicProcTimelineMarkers(results, app.build.rotation.length) : []),
-    ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, app.build.rotation.length) : []),
+    ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, rotation.length) : []),
+    ...(app.overlayRelicProcs ? relicProcTimelineMarkers(results, rotation.length) : []),
+    ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, rotation.length) : []),
     // Keep this requested trait proc opt-in without overlaying every simulated trait proc.
     ...(specialization === 'Luminary' && app.overlaySovereignOfLightProcs
-      ? traitProcTimelineMarkers(results, app.build.rotation.length).filter(
-          (marker) => marker.skill === 'Sovereign of Light'
-        )
+      ? traitProcTimelineMarkers(results, rotation.length).filter((marker) => marker.skill === 'Sovereign of Light')
       : [])
   ].sort((left, right) => left.start - right.start);
   const overlayProcMarkersByIndex = new Map<number, typeof overlayProcMarkers>();
@@ -828,7 +897,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     overlayProcMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const continuumEnds = continuumEndTimelineMarkers(results, app.build.rotation.length);
+  const continuumEnds = continuumEndTimelineMarkers(results, rotation.length);
   const continuumEndsByIndex = new Map<number, typeof continuumEnds>();
   for (const marker of continuumEnds) {
     const markers = continuumEndsByIndex.get(marker.insertionIndex) || [];
@@ -863,16 +932,16 @@ export function renderTimeline(app: ProfessionAppState): void {
 
   const targetThresholds =
     app.profession.ui.targetHealthThresholds?.({
-      specialization: activeSpecialization(app),
-      build: app.build,
+      specialization,
+      build,
       professionState: professionEndState(results)
     }) || [];
   const healthMarkers = targetHealthTimelineMarkers(
     results,
-    app.build.targetHealth,
+    build.targetHealth,
     targetThresholds,
-    app.build.rotation.length,
-    app.build.targetStartingHealthPercent
+    rotation.length,
+    build.targetStartingHealthPercent
   );
   const healthMarkersByIndex = new Map<number, typeof healthMarkers>();
   for (const marker of healthMarkers) {
@@ -1016,13 +1085,15 @@ export function renderTimeline(app: ProfessionAppState): void {
                 .join(' - ')
             )
           ].join('\n');
-    return `<div class="rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}
+    return `<div class="rot-entry rot-proc-entry" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}>
+        <div class="rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"
             title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
             <img src="${esc(icon)}" alt="" />
             ${expired ? '<span class="proc-expired-cross" aria-hidden="true"></span>' : ''}
             ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
             <span class="rot-injected-badge">${type.toUpperCase()}</span>
             <span class="rot-time">${time}</span>
+        </div>
         </div>`;
   };
 
@@ -1075,8 +1146,8 @@ export function renderTimeline(app: ProfessionAppState): void {
         app.profession.ui.timelineSkillIcon?.({
           entry: item.command,
           index,
-          rotation: app.build.rotation,
-          build: app.build,
+          rotation,
+          build,
           catalog: app.activeCatalog,
           skill,
           defaultIcon
@@ -1152,24 +1223,20 @@ export function renderTimeline(app: ProfessionAppState): void {
       const canEditWait = item.type === 'wait';
       // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
       const deadTimeHtml = (deadTimesByIndex.get(index) || []).map(renderDeadTime).join('');
-      rowItems.push(
-        rotationTimelineEntryHtml(
-          index,
-          app.rotationInsertionIndex ?? app.build.rotation.length,
-          `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
+      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}"${readOnly ? '' : ' draggable="true"'}
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
-                      canEditActivation
+                      !readOnly && canEditActivation
                         ? `<button type="button" class="rot-edit-activation" data-idx="${index}"
                         title="Edit cast behavior" aria-label="Edit ${esc(display)} cast behavior" aria-haspopup="dialog">&#9998;</button>`
-                        : canEditWait
+                        : !readOnly && canEditWait
                           ? `<button type="button" class="rot-edit-wait" data-idx="${index}"
                         title="Edit wait duration" aria-label="Edit Wait duration" aria-haspopup="dialog">&#9998;</button>`
                           : ''
                     }
-                    <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
+                    ${readOnly ? '' : '<span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>'}
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
                     ${
                       // Dragon Slash's release badge already shows its charges and timestamp without covering the pencil.
@@ -1204,8 +1271,11 @@ export function renderTimeline(app: ProfessionAppState): void {
                         : ''
                     }
                     ${item.durationMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.durationMs}ms</span>` : ''}
-                </div>`
-        )
+                </div>`;
+      rowItems.push(
+        readOnly
+          ? `<div class="rot-entry">${entryHtml}</div>`
+          : rotationTimelineEntryHtml(index, app.rotationInsertionIndex ?? rotation.length, entryHtml)
       );
     });
     for (const marker of automaticPhotonForgeExitsByRow.get(rowNumber) || []) {
@@ -1214,27 +1284,28 @@ export function renderTimeline(app: ProfessionAppState): void {
 
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
-      for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {
+      for (const marker of overlayProcMarkersByIndex.get(rotation.length) || []) {
         rowItems.push(renderOverlayProcMarker(marker));
       }
 
-      rowItems.push(
-        rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length)
-      );
-      for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
+      if (!readOnly) {
+        rowItems.push(rotationInsertionGapHtml(rotation.length, app.rotationInsertionIndex ?? rotation.length));
+      }
+
+      for (const marker of healthMarkersByIndex.get(rotation.length) || []) {
         rowItems.push(renderHealthMarker(marker));
       }
 
-      for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
+      for (const marker of continuumEndsByIndex.get(rotation.length) || []) {
         rowItems.push(renderContinuumEnd(marker));
       }
 
-      for (const marker of automaticPhotonForgeExitsByIndex.get(app.build.rotation.length) || []) {
+      for (const marker of automaticPhotonForgeExitsByIndex.get(rotation.length) || []) {
         if (automaticPhotonForgeExitRowMarkers.has(marker)) continue;
         rowItems.push(renderAutomaticPhotonForgeExit(marker));
       }
 
-      for (const marker of automaticTomeStowsByIndex.get(app.build.rotation.length) || []) {
+      for (const marker of automaticTomeStowsByIndex.get(rotation.length) || []) {
         rowItems.push(renderAutomaticTomeStow(marker));
       }
     }
@@ -1242,7 +1313,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     const skills = rowItems.join('');
     const finalSkill = row.skills.at(-1);
     const insertAt = finalSkill ? finalSkill.index + 1 : 0;
-    const lineLabel = row.weaponLine?.replace(/ Kit$/, '') || '';
+    const lineLabel = timelineWeaponLineLabel(row.weaponLine);
     const lineTitle = row.weaponLine ? `${row.weaponLine} weapon line` : '';
     return `<div class="rot-row-line">
             ${lineLabel ? `<div class="rot-row-line-label" title="${esc(lineTitle)}">${esc(lineLabel)}</div>` : ''}
@@ -1252,7 +1323,7 @@ export function renderTimeline(app: ProfessionAppState): void {
 
   let timelineLineIndex = 0;
   const timelineRows = timelineWeaponRowGroups(rows).map((group, groupNumber) => {
-    const weapons = group.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
+    const weapons = group.weaponSet === 1 ? build.weapons : build.alternateWeapons;
     const weaponLabel = weapons.filter(Boolean).join('/') || 'Unequipped';
     const groupTitle = `Weapon set ${group.weaponSet}: ${weaponLabel}`;
     const groupLines = timelineLines.slice(timelineLineIndex, timelineLineIndex + group.rows.length).join('');
@@ -1348,23 +1419,25 @@ export function renderTimeline(app: ProfessionAppState): void {
         </details>`;
   } else if (procElement) procElement.innerHTML = '';
   reconcileTimelineRows(element, timelineRows);
-  app.rotationInsertionIndex = mountRotationInsertionCursor({
-    root: element,
-    insertionIndex: app.rotationInsertionIndex,
-    rotationLength: app.build.rotation.length,
-    onSelect(index) {
-      app.rotationInsertionIndex = index;
-      renderPalette(app);
-      renderTimeline(app);
-      renderRotationStateSnapshot(app);
-    },
-    onClear() {
-      app.rotationInsertionIndex = null;
-      renderPalette(app);
-      renderTimeline(app);
-      renderRotationStateSnapshot(app);
-    }
-  });
+  if (!readOnly) {
+    app.rotationInsertionIndex = mountRotationInsertionCursor({
+      root: element,
+      insertionIndex: app.rotationInsertionIndex,
+      rotationLength: rotation.length,
+      onSelect(index) {
+        app.rotationInsertionIndex = index;
+        renderPalette(app);
+        renderTimeline(app);
+        renderRotationStateSnapshot(app);
+      },
+      onClear() {
+        app.rotationInsertionIndex = null;
+        renderPalette(app);
+        renderTimeline(app);
+        renderRotationStateSnapshot(app);
+      }
+    });
+  }
 
   const applySkillHighlight = (): void => {
     const skills = [...element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]')];
@@ -1378,20 +1451,22 @@ export function renderTimeline(app: ProfessionAppState): void {
     });
   };
 
-  element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
-    if (skill.dataset.highlightBound === 'true') return;
-    skill.dataset.highlightBound = 'true';
-    skill.addEventListener('click', () => {
-      const key = skill.dataset.skillHighlightKey;
-      app.rotationSkillHighlightKey = app.rotationSkillHighlightKey === key ? null : key;
-      applySkillHighlight();
+  if (!readOnly) {
+    element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
+      if (skill.dataset.highlightBound === 'true') return;
+      skill.dataset.highlightBound = 'true';
+      skill.addEventListener('click', () => {
+        const key = skill.dataset.skillHighlightKey;
+        app.rotationSkillHighlightKey = app.rotationSkillHighlightKey === key ? null : key;
+        applySkillHighlight();
+      });
     });
-  });
-  applySkillHighlight();
+    applySkillHighlight();
+  }
 
   const procFilter = procElement?.querySelector<HTMLDetailsElement>('.proc-filter') || null;
   const activeProcVisibility = app.procVisibility || new Set();
-  if (procFilter && procElement) {
+  if (!readOnly && procFilter && procElement) {
     procFilter.addEventListener('toggle', () => {
       app.procFilterOpen = procFilter.open;
     });
@@ -1414,9 +1489,9 @@ export function renderTimeline(app: ProfessionAppState): void {
           if (!(procIcon instanceof HTMLElement)) return;
           procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
         });
-        element.querySelectorAll('.rot-proc-overlay[data-proc-key]').forEach((procIcon) => {
-          if (!(procIcon instanceof HTMLElement)) return;
-          procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
+        element.querySelectorAll('.rot-proc-entry[data-proc-key]').forEach((procEntry) => {
+          if (!(procEntry instanceof HTMLElement)) return;
+          procEntry.hidden = !activeProcVisibility.has(procEntry.dataset.procKey || '');
         });
         const count = procFilter.querySelector('.proc-filter-count');
         if (count) {
@@ -1429,7 +1504,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   }
 
   const procIconsRow = procElement?.querySelector<HTMLElement>('.proc-icons-row') || null;
-  if (procIconsRow) {
+  if (!readOnly && procIconsRow) {
     const applyProcHighlight = (): void => {
       const icons = [...procIconsRow.querySelectorAll('.proc-icon[data-proc-key]')];
       const key = app.procHighlightKey;
@@ -1454,5 +1529,6 @@ export function renderTimeline(app: ProfessionAppState): void {
     applyProcHighlight();
   }
 
-  bindTimelineInteractions(element, timelineInteractionOptions(app));
+  if (!readOnly) bindTimelineInteractions(element, timelineInteractionOptions(app));
+  applyTimelinePreviewHighlight(element, results, options.previewTimeMs);
 }

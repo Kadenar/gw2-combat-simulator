@@ -7,14 +7,12 @@ import type {
 import {
   effectAction,
   hasRecordedAction,
-  initialSelfBuffCount,
   INSTANT_SIGNAL_WINDOW_MS
 } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/shared.js';
 
 const PLAGUE_SIGNET = Object.freeze({ name: 'Plague Signet', skillId: 10562 });
 const PLAGUE_SIGNET_PASSIVE_BUFF = 72368;
 const BLOOD_IS_POWER = Object.freeze({ name: 'Blood Is Power', skillId: 10544 });
-const BLIGHT_BUFF = 62653;
 
 export const HARBINGER_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
   {
@@ -24,11 +22,6 @@ export const HARBINGER_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] =
     suppressWeaponSwap: true
   }
 ];
-
-/** Reads Harbinger's starting Blight stacks from the EVTC initial-state records. */
-export function initialHarbingerBlight(log: EvtcProfessionReconstructionContext['log'], playerAddress: bigint): number {
-  return Math.min(25, initialSelfBuffCount(log, playerAddress, BLIGHT_BUFF));
-}
 
 function isAction(
   action: EvtcRecordedRotationAction,

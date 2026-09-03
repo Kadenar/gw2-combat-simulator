@@ -7,7 +7,6 @@ import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.
 import {
   EVTC_PROFESSION_ROTATION_PARSERS,
   getEvtcProfessionRotationParser,
-  initialHarbingerBlight,
   reconstructEvtcRotation
 } from '#gw2/integrations/logs/evtc/rotation/index.js';
 
@@ -786,7 +785,7 @@ test('reconstructs Harbinger Shroud entry and exit from buff transitions', () =>
   );
 });
 
-test('reconstructs a Soul Barbs shroud precast and Harbinger starting Blight', () => {
+test('reconstructs a Soul Barbs shroud precast', () => {
   const initialBuff = (skillId) =>
     event({
       time: 1_000,
@@ -807,9 +806,6 @@ test('reconstructs a Soul Barbs shroud precast and Harbinger starting Blight', (
     skills: [{ id: 45_846, name: 'Harrowing Wave' }],
     events: [
       initialBuff(53_489),
-      initialBuff(62_653),
-      initialBuff(62_653),
-      initialBuff(62_653),
       event({ time: 10_000, stateChange: 1 }),
       event({ time: 10_000, stateChange: 67, skillId: 45_846 })
     ]
@@ -841,18 +837,28 @@ test('reconstructs a Soul Barbs shroud precast and Harbinger starting Blight', (
     { name: '__combat_start' },
     { name: 'Harrowing Wave', skillId: 45_846 }
   ]);
-  assert.equal(initialHarbingerBlight(fixture, PLAYER), 3);
+});
 
-  const app = { build: { rotation: [], initialBlight: 0 }, changed() {} };
+test('applying a rotation import preserves configured starting resources', () => {
+  const changedCalls = [];
+  const app = {
+    build: { rotation: [], initialBlight: 7 },
+    changed(...args) {
+      changedCalls.push(args);
+    }
+  };
+
   applyRotationImportPreview(app, {
-    rotation: result.rotation,
-    actionCount: result.actions.length,
+    rotation: [{ type: 'cast', skillId: 62_567 }],
+    actionCount: 1,
     description: 'Fixture Harbinger',
     warnings: [],
-    observations: [],
-    initialBlight: initialHarbingerBlight(fixture, PLAYER)
+    observations: []
   });
-  assert.equal(app.build.initialBlight, 3);
+
+  assert.deepEqual(app.build.rotation, [{ type: 'cast', skillId: 62_567 }]);
+  assert.equal(app.build.initialBlight, 7);
+  assert.deepEqual(changedCalls, [[false]]);
 });
 
 test('reconstructs Plague Signet once per passive-buff removal', () => {

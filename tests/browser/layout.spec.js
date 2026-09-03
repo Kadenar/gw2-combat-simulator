@@ -204,6 +204,152 @@ test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ p
   });
 });
 
+test('rotation comparison keeps editable and read-only timelines stacked without page overflow', async ({ page }) => {
+  await openSimulator(page);
+  // Start from a manifest build so the reference picker has one compatible skill loadout.
+  const templateButton = page.locator('.template-load-btn').first();
+  await templateButton.click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => window.professionApp.currentTemplate !== null && window.professionApp.simulationStatus === 'idle'
+      )
+    )
+    .toBe(true);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    const bladecall = app.skillByName.get('Bladecall');
+    app.build.rotation = [
+      { type: 'cast', skillId: bladecall.id },
+      { type: 'wait', durationMs: 1000 }
+    ];
+    app.changed(false);
+  });
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const app = window.professionApp;
+        return app.simulationStatus === 'idle' && app.resultRevision === app.buildRevision;
+      })
+    )
+    .toBe(true);
+
+  await page.getByRole('button', { name: 'Compare' }).click();
+  await expect(page.locator('body')).toHaveAttribute('data-rotation-comparison', '');
+  await expect(page.getByRole('heading', { name: 'Current — Editing' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reference — Read only' })).toBeVisible();
+  const referenceSection = page.locator('#rotation-comparison-reference');
+  const referenceTimeline = page.locator('#rotation-reference-timeline');
+  await expect(referenceSection.getByText('Load a comparison', { exact: true })).toBeVisible();
+  await expect(referenceTimeline).toBeHidden();
+  await expect(referenceSection.getByRole('button', { name: 'Load rotation' })).toBeHidden();
+  await expect(referenceSection.getByRole('button', { name: 'Swap' })).toBeHidden();
+  await expect(referenceSection.getByRole('button', { name: 'Clear' })).toBeHidden();
+  await expect(page.locator('#rotation-comparison-summary')).toBeHidden();
+
+  await referenceSection.getByRole('button', { name: 'Load comparison' }).click();
+  const loadDialog = page.getByRole('dialog', { name: 'Load reference rotation' });
+  await expect(loadDialog).toBeVisible();
+  const existingRotations = loadDialog.getByLabel('Existing rotation');
+  await expect.poll(() => existingRotations.locator('option').count()).toBeGreaterThan(1);
+  await existingRotations.selectOption({ index: 1 });
+  await loadDialog.getByRole('button', { name: 'Load selected' }).click();
+  await expect(loadDialog.getByRole('button', { name: 'Use as reference' })).toBeEnabled();
+  await loadDialog.getByRole('button', { name: 'Use as reference' }).click();
+  await expect(page.locator('[data-comparison-status]')).toHaveText('Fresh');
+  await expect(referenceSection.getByRole('button', { name: 'Load rotation' })).toBeVisible();
+  await expect(referenceSection.getByRole('button', { name: 'Swap' })).toBeVisible();
+  await expect(referenceSection.getByRole('button', { name: 'Clear' })).toBeVisible();
+  await expect(page.locator('#rotation-comparison-summary')).toBeVisible();
+  await expect(referenceTimeline).toHaveAttribute('aria-readonly', 'true');
+  await expect(
+    referenceTimeline.locator('.rot-insertion-gap, .rot-edit-activation, .rot-edit-wait, .rot-x')
+  ).toHaveCount(0);
+  expect(
+    await referenceTimeline.locator('.rot-skill').evaluateAll((skills) => skills.every((skill) => !skill.draggable))
+  ).toBe(true);
+
+  const updatingStatus = await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.rotation.push({ type: 'cast', skillId: app.skillByName.get('Mirror Blade').id });
+    app.changed(false);
+    return {
+      status: document.querySelector('[data-comparison-status]')?.textContent,
+      referenceDps: document.querySelector('[data-comparison-reference-dps]')?.textContent,
+      currentDps: document.querySelector('[data-comparison-current-dps]')?.textContent
+    };
+  });
+  expect(updatingStatus.status).toBe('Updating');
+  expect(updatingStatus.referenceDps).not.toBe('');
+  expect(updatingStatus.currentDps).not.toBe('');
+  await expect(page.locator('[data-comparison-status]')).toHaveText('Fresh');
+
+  const finalValues = await page
+    .locator('#rotation-comparison-summary')
+    .evaluate((summary) => [
+      summary.querySelector('[data-comparison-reference-dps]').textContent,
+      summary.querySelector('[data-comparison-current-dps]').textContent
+    ]);
+  const timedValues = await page.locator('[data-comparison-time]').evaluate((range) => {
+    range.value = String(Math.min(Number(range.max), 250));
+    range.dispatchEvent(new Event('input', { bubbles: true }));
+    const summary = range.closest('#rotation-comparison-summary');
+    return [
+      summary.querySelector('[data-comparison-reference-dps]').textContent,
+      summary.querySelector('[data-comparison-current-dps]').textContent
+    ];
+  });
+  expect(timedValues[0]).not.toBe(finalValues[0]);
+  expect(timedValues[1]).not.toBe(finalValues[1]);
+  await expect(page.locator('[data-comparison-metric-label]')).toContainText('Average DPS through');
+
+  const beforeSwap = await page.evaluate(() => ({
+    current: structuredClone(window.professionApp.build.rotation),
+    reference: structuredClone(window.professionApp.rotationComparison.referenceRotation)
+  }));
+  await page.getByRole('button', { name: 'Swap', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.professionApp.simulationStatus)).toBe('idle');
+  const afterSwap = await page.evaluate(() => ({
+    current: window.professionApp.build.rotation,
+    reference: window.professionApp.rotationComparison.referenceRotation
+  }));
+  expect(afterSwap.current).toEqual(beforeSwap.reference);
+  expect(afterSwap.reference).toEqual(beforeSwap.current);
+
+  for (const viewport of [
+    { width: 1280, height: 900 },
+    { width: 390, height: 844 }
+  ]) {
+    await page.setViewportSize(viewport);
+    const pageWidth = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      overflow: [...document.querySelectorAll('body *')]
+        .filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+        .slice(0, 5)
+        .map((element) => ({
+          className: element.className,
+          id: element.id,
+          right: element.getBoundingClientRect().right
+        }))
+    }));
+    expect(pageWidth, JSON.stringify(pageWidth.overflow)).toMatchObject({
+      clientWidth: pageWidth.scrollWidth
+    });
+    await expect(page.locator('#rotation-timeline')).toBeVisible();
+    await expect(referenceTimeline).toBeVisible();
+  }
+
+  await page.getByRole('button', { name: 'Exit comparison' }).click();
+  await expect(page.locator('body')).not.toHaveAttribute('data-rotation-comparison', '');
+  await expect(page.locator('body')).toHaveAttribute('data-rotation-focus', '');
+
+  await page.getByRole('button', { name: 'Compare' }).click();
+  await page.getByRole('button', { name: 'Exit focus' }).click();
+  await expect(page.locator('body')).not.toHaveAttribute('data-rotation-focus', '');
+  await expect(page.locator('body')).not.toHaveAttribute('data-rotation-comparison', '');
+});
+
 test('damage and condition breakdowns split only when their container is wide', async ({ page }) => {
   await openSimulator(page, { width: 1400, height: 900 });
   const fixture = page.locator('[data-layout-fixture="result-breakdown"]');

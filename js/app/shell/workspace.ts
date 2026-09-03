@@ -24,6 +24,7 @@ type RotationWorkspaceController = {
 
 const controllers = new WeakMap<Document, RotationWorkspaceController>();
 const FLOATING_DPS_PLACEHOLDER = '\u2014';
+export const ROTATION_FOCUS_EXIT_EVENT = 'rotation-workspace-focus-exit';
 
 /** Mounts the current rotation DPS as a viewport-pinned status that survives page scrolling and view changes. */
 export function mountFloatingDps(root: Document = document): HTMLOutputElement | null {
@@ -77,6 +78,13 @@ export function resetRotationWorkspace(root: Document = document): void {
   const controller = controllers.get(root);
   if (!controller) return;
   applyWorkspaceState(controller, DEFAULT_ROTATION_WORKSPACE_STATE);
+}
+
+/** Enters the existing full-screen rotation workspace without coupling callers to its button markup. */
+export function enterRotationFocus(root: Document = document): void {
+  const controller = controllers.get(root);
+  if (!controller || controller.state.focus) return;
+  applyWorkspaceState(controller, { configOpen: false, focus: true });
 }
 
 export function reduceRotationWorkspaceState(
@@ -143,6 +151,11 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
     const { left, top } = controller.focusScrollPosition;
     controller.focusScrollPosition = undefined;
     view?.scrollTo(left, top);
+  }
+
+  // Focus-owned features use this boundary to discard layouts that cannot remain active outside focus mode.
+  if (previous.focus && !state.focus) {
+    controller.document.dispatchEvent(new Event(ROTATION_FOCUS_EXIT_EVENT));
   }
 }
 

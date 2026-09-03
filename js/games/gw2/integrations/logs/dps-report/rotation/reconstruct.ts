@@ -383,6 +383,8 @@ function buildRotation(
     minimumWaitMs: completeReportedAftercast ? 2 * GW2_ACTION_TICK_MS : 0,
     // Imported idle gaps share the same action-tick precision as observed cast durations.
     quantizeWaitMs: quantizeGw2ActionTimingMs,
+    // EI source durations can be shorter than simulator casts, so later waits absorb that accumulated difference.
+    alignWaitsToSimulatorTiming: true,
     commandFor: actionCommand,
     // Troubadour EI animations omit ordinary aftercast; its measured catalog cadence already models that occupied lane.
     replayEnd: (action) => replayActionEnd(action, completeReportedAftercast),
