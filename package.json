@@ -25,7 +25,7 @@
       "default": "./dist/js/app/*"
     }
   },
-  "//": "Scripts are ordered by responsibility: local development, builds, validation, analysis and authoring, then data maintenance.",
+  "//": "Scripts are ordered by responsibility; test builds first, while check reuses its existing build for the Node suite.",
   "scripts": {
     "dev": "vite",
     "prestart": "npm run build:dev",
@@ -37,10 +37,11 @@
     "build:modules": "tsc -p tsconfig.build.json",
     "build:site": "vite build",
     "pretest": "npm run build",
-    "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
+    "test": "npm run test:node",
+    "test:node": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
     "test:browser": "playwright test",
     "typecheck": "tsc -p tsconfig.typecheck.json",
-    "check": "npm run format:check && npm run lint && npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs && npm run test:browser",
+    "check": "npm run format:check && npm run lint && npm run build && npm run test:node && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs && npm run test:browser",
     "format": "prettier --write . && eslint . --fix",
     "format:check": "prettier --check .",
     "lint": "eslint .",

@@ -217,13 +217,11 @@ Run the browser tests:
 npm run test:browser
 ```
 
-Run formatting, lint, build, type, artifact, and browser checks:
+Run formatting, lint, build, Node tests, type, artifact, and browser checks:
 
 ```bash
 npm run check
 ```
-
-`npm run check` does not run the Node test suite, so run `npm test` separately.
 
 The production site is emitted to:
 
@@ -239,8 +237,9 @@ Do not commit generated `dist/` output.
 
 ## Specialized tooling
 
-The root [`package.json`](package.json) is the source of truth for available commands. See [`scripts/README.md`](scripts/README.md)
-for analysis tooling and [Patch preview](docs/architecture/PATCH-PREVIEW.md) for balance-change authoring.
+The root [`package.json`](package.json) is the source of truth for available commands. See
+[`scripts/README.md`](scripts/README.md) for analysis tooling and [Patch preview](docs/architecture/PATCH-PREVIEW.md)
+for balance-change authoring.
 
 ---
 

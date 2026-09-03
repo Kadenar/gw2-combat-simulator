@@ -512,7 +512,7 @@ separate profession count.
 3. Add the profession page and one lazy entry to `js/games/gw2/app/profession/registry.ts`, providing `loadProfession`
    and `loadAppAdapter` loaders.
 4. Add an end-to-end fixture that imports no other profession.
-5. Run `npm test` and `npm run check`.
+5. Run `npm run check`.
 
 No engine, GW2, or shared UI branch should be needed. New professions should use the `js/games/gw2/platform/engine`
 scheduler, canonical effects, shared effect materializer, and the `js/games/gw2/platform/resolver`. If a new rule is
