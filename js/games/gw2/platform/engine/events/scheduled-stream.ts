@@ -34,8 +34,9 @@ export function buildScheduledEventStream(options: BuildScheduledEventStreamOpti
     source = 'platform.engine.scheduler'
   } = options;
   if (!Array.isArray(events)) throw new TypeError('Scheduled stream requires events.');
-  if (!Number.isFinite(rotationEndTime)) {
-    throw new TypeError('Scheduled stream requires a finite rotation end.');
+  // Timeline horizons start at zero so downstream duration calculations cannot observe negative time.
+  if (!Number.isFinite(rotationEndTime) || rotationEndTime < 0) {
+    throw new TypeError('Scheduled stream requires a finite, non-negative rotation end.');
   }
 
   if (!Number.isFinite(resolutionEndTime) || resolutionEndTime < rotationEndTime) {
@@ -66,6 +67,7 @@ export function assertScheduledEventStream(stream: unknown): ScheduledEventStrea
     candidate.eventSchemaVersion !== EVENT_SCHEMA_VERSION ||
     !Array.isArray(candidate.events) ||
     !Number.isFinite(candidate.rotationEndTime) ||
+    Number(candidate.rotationEndTime) < 0 ||
     (candidate.resolutionEndTime != null &&
       (!Number.isFinite(candidate.resolutionEndTime) ||
         candidate.resolutionEndTime < Number(candidate.rotationEndTime))) ||

@@ -159,6 +159,20 @@ test('typed event and stream constructors return immutable envelopes', () => {
   );
 });
 
+test('scheduled stream horizons cannot precede time zero', () => {
+  const stream = buildScheduledEventStream({ events: [], rotationEndTime: 0 });
+
+  assert.equal(stream.resolutionEndTime, 0);
+  assert.throws(
+    () => buildScheduledEventStream({ events: [], rotationEndTime: -1 }),
+    /finite, non-negative rotation end/
+  );
+  assert.throws(
+    () => assertScheduledEventStream({ ...stream, rotationEndTime: -1, resolutionEndTime: -1 }),
+    /Invalid scheduled event stream/
+  );
+});
+
 test('state snapshot emission removes only matching adjacent synchronization checkpoints', () => {
   const events = [];
   const context = {
