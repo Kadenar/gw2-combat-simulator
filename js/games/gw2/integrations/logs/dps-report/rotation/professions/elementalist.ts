@@ -457,6 +457,7 @@ function recoverBlindingFlashActions(
       if (action.start > at) break;
       currentElement = swappedElement(action) || currentElement;
     }
+
     if (currentElement !== 'Air') continue;
 
     const hasBlindSource = actions.some(
