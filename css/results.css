@@ -1121,10 +1121,6 @@
 }
 
 .relic-cmp-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 10px;
 }
 
@@ -1140,8 +1136,32 @@
   font-size: 10px;
 }
 
-.relic-cmp-heading-actions {
-  flex: none;
+.relic-cmp-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.relic-cmp-control[hidden] {
+  display: none;
+}
+
+.relic-cmp-control input,
+.relic-cmp-control select {
+  padding: 5px;
+  color: var(--text-bright);
+  font: inherit;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.relic-cmp-control input {
+  width: 46px;
 }
 
 .relic-cmp-status {
@@ -1159,16 +1179,13 @@
 .relic-cmp-manual {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
   padding: 10px;
   background: var(--bg-card);
   border-radius: 6px;
-}
-
-.relic-cmp-manual > span {
-  color: var(--text-dim);
-  font-size: 10px;
+  margin-bottom: 10px;
 }
 
 .relic-cmp-run-button {

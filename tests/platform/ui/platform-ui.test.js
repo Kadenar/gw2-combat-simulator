@@ -1136,33 +1136,56 @@ test('randomized DPS range waits for its calculate button', () => {
   assert.equal(runCount, 1);
 });
 
-test('Thorns comparison passes the selected starting stacks to the runner', () => {
+test('relic comparison passes the selected relic and shows stacks only for Thorns', () => {
   const runButton = {};
+  const targetInput = { value: 'Thorns' };
   const stackInput = { value: '4' };
+  const stackControl = { hidden: false };
   const container = {
     ...inertContainer(),
     querySelector: (selector) =>
       selector === '[data-role="relic-comparison-run"]'
         ? runButton
-        : selector === '[data-role="relic-comparison-stacks"]'
-          ? stackInput
-          : null
+        : selector === '[data-role="relic-comparison-target"]'
+          ? targetInput
+          : selector === '[data-role="relic-comparison-stacks-control"]'
+            ? stackControl
+            : selector === '[data-role="relic-comparison-stacks"]'
+              ? stackInput
+              : null
   };
+  let targetRelic = null;
   let startingStacks = null;
 
   mountRotationResults(
     container,
-    { metrics: [], relicComparisonAvailable: true, relicComparisonInitialStacks: 4 },
     {
-      onRunRelicComparison(value) {
-        startingStacks = value;
+      metrics: [],
+      relicComparisonAvailable: true,
+      relicComparisonOpponent: 'Fractal',
+      relicComparisonTarget: 'Thorns',
+      relicComparisonTargets: ['Akeem', 'Thorns'],
+      relicComparisonInitialStacks: 4
+    },
+    {
+      onRunRelicComparison(relic, stacks) {
+        targetRelic = relic;
+        startingStacks = stacks;
       }
     }
   );
 
+  assert.match(container.innerHTML, /Relic break-even comparison/);
+  assert.doesNotMatch(container.innerHTML, /Off by default/);
+  assert.match(container.innerHTML, /<option value="Akeem">Relic of Akeem<\/option>/);
+  assert.doesNotMatch(container.innerHTML, /value="Fractal"/);
   assert.match(container.innerHTML, /aria-label="Starting Thorns stacks"/);
   assert.match(container.innerHTML, /min="0" max="10" step="1" value="4"/);
+  targetInput.value = 'Akeem';
+  targetInput.onchange();
+  assert.equal(stackControl.hidden, true);
   runButton.onclick();
+  assert.equal(targetRelic, 'Akeem');
   assert.equal(startingStacks, 4);
 });
 

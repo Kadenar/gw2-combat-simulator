@@ -137,6 +137,8 @@ export interface RotationResultsModel {
   readonly relicComparisonStale?: boolean;
   readonly relicComparisonError?: string;
   readonly relicComparisonOpponent?: string;
+  readonly relicComparisonTarget?: string;
+  readonly relicComparisonTargets?: readonly string[];
   readonly relicComparisonInitialStacks?: number;
 }
 
@@ -148,7 +150,7 @@ export interface RotationResultsOptions {
   readonly sortState?: Partial<ResultSortState>;
   readonly onSortStateChange?: (state: ResultSortState) => unknown;
   readonly onRunRandomDistribution?: () => unknown;
-  readonly onRunRelicComparison?: (initialStacks: number) => unknown;
+  readonly onRunRelicComparison?: (comparisonRelic: string, initialStacks: number) => unknown;
 }
 
 // Default column schema shared by the renderer and profession adapters.
@@ -505,11 +507,27 @@ export function mountRotationResults(
   const relicComparisonStale = model.relicComparisonStale === true;
   const relicComparisonError = String(model.relicComparisonError || '');
   const relicComparisonOpponent = String(model.relicComparisonOpponent || '');
+  const relicComparisonTargets = model.relicComparisonTargets || [];
+  const requestedRelicComparisonTarget = String(model.relicComparisonTarget || '');
+  const relicComparisonTarget = relicComparisonTargets.includes(requestedRelicComparisonTarget)
+    ? requestedRelicComparisonTarget
+    : String(relicComparisonTargets[0] || '');
   const relicComparisonInitialStacks = Math.min(
     10,
     Math.max(0, Math.trunc(Number(model.relicComparisonInitialStacks) || 0))
   );
-  const relicComparisonAction = `<label class="relic-cmp-stacks">
+  const relicComparisonAction = `<label class="relic-cmp-control">
+          Compare with
+          <select data-role="relic-comparison-target" aria-label="Comparison relic">
+            ${relicComparisonTargets
+              .map(
+                (name) =>
+                  `<option value="${escapeHtml(name)}"${name === relicComparisonTarget ? ' selected' : ''}>Relic of ${escapeHtml(name)}</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <label class="relic-cmp-control" data-role="relic-comparison-stacks-control"${relicComparisonTarget === 'Thorns' ? '' : ' hidden'}>
           Starting stacks
           <input type="number" min="0" max="10" step="1" value="${relicComparisonInitialStacks}" data-role="relic-comparison-stacks" aria-label="Starting Thorns stacks" />
         </label>
@@ -674,11 +692,11 @@ export function mountRotationResults(
       ? `<section class="relic-cmp">
     <div class="relic-cmp-heading">
       <div>
-        <h4>Relic of Thorns break-even</h4>
-        <p>Relic of Thorns ramps its Condition Damage every 5s. Run a second simulation to see the fight duration at which it overtakes ${escapeHtml(relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : 'your equipped relic')}.</p>
+        <h4>Relic break-even comparison</h4>
+        <p>Choose a relic to compare against ${escapeHtml(relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : 'your equipped relic')} across fight durations.</p>
       </div>
-      ${relicComparisonStale ? '' : `<div class="relic-cmp-heading-actions">${relicComparisonAction}</div>`}
     </div>
+    ${relicComparisonStale ? '' : `<div class="relic-cmp-manual">${relicComparisonAction}</div>`}
     ${
       relicComparisonStale
         ? `<div class="relic-cmp-status" role="status">Running comparison simulation…</div>`
@@ -688,9 +706,7 @@ export function mountRotationResults(
             ? relicComparisonChartSvg(relicComparison, {
                 opponentLabel: relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : undefined
               })
-            : `<div class="relic-cmp-manual">
-                <span>Off by default to avoid a second simulation on every edit.</span>
-              </div>`
+            : ''
     }
   </section>`
       : ''
@@ -845,10 +861,27 @@ export function mountRotationResults(
   }
 
   const runRelicComparison = container.querySelector<HTMLElement>('[data-role="relic-comparison-run"]');
+  const relicComparisonTargetInput = container.querySelector<HTMLSelectElement>(
+    '[data-role="relic-comparison-target"]'
+  );
+  const relicComparisonStacksControl = container.querySelector<HTMLElement>(
+    '[data-role="relic-comparison-stacks-control"]'
+  );
+
+  if (relicComparisonTargetInput && relicComparisonStacksControl) {
+    // Thorns alone needs opening stack configuration; other relics keep the control out of the way.
+    relicComparisonTargetInput.onchange = () => {
+      relicComparisonStacksControl.hidden = relicComparisonTargetInput.value !== 'Thorns';
+    };
+  }
+
   if (runRelicComparison && typeof options.onRunRelicComparison === 'function') {
     runRelicComparison.onclick = () => {
       const initialStacks = container.querySelector<HTMLInputElement>('[data-role="relic-comparison-stacks"]');
-      options.onRunRelicComparison?.(Number(initialStacks?.value || 0));
+      options.onRunRelicComparison?.(
+        relicComparisonTargetInput?.value || relicComparisonTarget,
+        Number(initialStacks?.value || 0)
+      );
     };
   }
 

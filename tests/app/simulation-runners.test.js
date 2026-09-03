@@ -662,16 +662,17 @@ test('relic comparison scheduling publishes availability without simulating', ()
   let simulated = 0;
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
+    relicNames: ['Akeem', 'Fractal', 'Thorns'],
     results,
     adapter: {
-      relicComparisonRequest() {
+      relicComparisonRequest(_app, comparisonRelic) {
         return {
           gameId: 'gw2',
           contentId: 'engineer',
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
           opponentRelic: 'Fractal',
-          comparisonRelic: 'Thorns'
+          comparisonRelic
         };
       },
       simulateBuild() {
@@ -687,26 +688,28 @@ test('relic comparison scheduling publishes availability without simulating', ()
   runner.schedule();
   assert.equal(results.relicComparisonAvailable, true);
   assert.equal(results.relicComparisonOpponent, 'Fractal');
+  assert.equal(results.relicComparisonTarget, 'Thorns');
   assert.equal(simulated, 0, 'scheduling must not run the second simulation');
 });
 
-test('relic comparison run simulates Thorns once and stores the break-even model', (t) => {
+test('relic comparison run simulates each selected relic and gives opening stacks only to Thorns', (t) => {
   runTimersImmediately(t);
   let renderCount = 0;
   const simulatedConfigs = [];
   const results = minimalResult(4000);
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
+    relicNames: ['Akeem', 'Fractal', 'Thorns'],
     results,
     adapter: {
-      relicComparisonRequest() {
+      relicComparisonRequest(_app, comparisonRelic) {
         return {
           gameId: 'gw2',
           contentId: 'engineer',
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
           opponentRelic: 'Fractal',
-          comparisonRelic: 'Thorns'
+          comparisonRelic
         };
       },
       simulateBuild(_rotation, config) {
@@ -721,12 +724,15 @@ test('relic comparison run simulates Thorns once and stores the break-even model
   };
   const runner = new RelicComparisonRunner(app);
 
-  runner.run(4);
+  runner.run('Akeem');
+  runner.run('Thorns', 4);
 
   assert.deepEqual(
     simulatedConfigs.map(({ relic, initialThornsStacks }) => ({ relic, initialThornsStacks })),
-    [{ relic: 'Thorns', initialThornsStacks: 4 }],
-    'exactly one Thorns simulation runs with the selected opening stacks'
+    [
+      { relic: 'Akeem', initialThornsStacks: undefined },
+      { relic: 'Thorns', initialThornsStacks: 4 }
+    ]
   );
   assert.equal(results.relicComparisonInitialStacks, 4);
   assert.equal(results.relicComparisonStale, false);
@@ -742,16 +748,17 @@ test('relic comparison run surfaces simulation failures', (t) => {
   const results = minimalResult(4000);
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Akeem' },
+    relicNames: ['Akeem', 'Fractal', 'Thorns'],
     results,
     adapter: {
-      relicComparisonRequest() {
+      relicComparisonRequest(_app, comparisonRelic) {
         return {
           gameId: 'gw2',
           contentId: 'engineer',
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Akeem' },
           opponentRelic: 'Akeem',
-          comparisonRelic: 'Thorns'
+          comparisonRelic
         };
       },
       simulateBuild() {

@@ -6,7 +6,7 @@ import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 export interface RelicComparisonPoint {
   readonly tMs: number;
   readonly opponentDps: number;
-  readonly thornsDps: number;
+  readonly targetDps: number;
 }
 
 export interface RelicComparisonModel {
@@ -15,17 +15,17 @@ export interface RelicComparisonModel {
   readonly durationMs: number;
   readonly points: readonly RelicComparisonPoint[];
   readonly crossoverMs: number | null;
-  readonly thornsAlwaysAhead: boolean;
+  readonly targetAlwaysAhead: boolean;
   readonly evaluationStartMs: number;
   readonly opponentFinalDps: number;
-  readonly thornsFinalDps: number;
+  readonly targetFinalDps: number;
 }
 
 export interface RelicComparisonChartOptions {
   /** Colour for the equipped (opponent) relic curve. */
   readonly opponentColor?: string;
-  /** Colour for the Relic of Thorns curve. */
-  readonly thornsColor?: string;
+  /** Colour for the selected comparison relic curve. */
+  readonly targetColor?: string;
   /** Human label for the opponent relic (defaults to "Relic of <key>"). */
   readonly opponentLabel?: string;
 }
@@ -36,10 +36,10 @@ const PAD = Object.freeze({ top: 18, right: 18, bottom: 34, left: 60 });
 const PLOT_WIDTH = WIDTH - PAD.left - PAD.right;
 const PLOT_HEIGHT = HEIGHT - PAD.top - PAD.bottom;
 // High-contrast, clearly distinct pair on the dark chart card: warm amber for
-// the equipped relic, cool cyan for Thorns. Different in both hue and lightness
+// the equipped relic, cool cyan for the comparison. Different in both hue and lightness
 // so the two lines never blur together.
 const DEFAULT_OPPONENT_COLOR = '#ffb02e';
-const DEFAULT_THORNS_COLOR = '#2ee6c4';
+const DEFAULT_TARGET_COLOR = '#2ee6c4';
 const LINE_WIDTH = 2;
 
 function relicLabel(relic: string): string {
@@ -60,7 +60,7 @@ interface Scale {
 }
 
 function createScale(points: readonly RelicComparisonPoint[], startMs: number, endMs: number): Scale {
-  const values = points.flatMap((point) => [point.opponentDps, point.thornsDps]);
+  const values = points.flatMap((point) => [point.opponentDps, point.targetDps]);
   const rawMin = values.length ? Math.min(...values) : 0;
   const rawMax = values.length ? Math.max(...values) : 1;
   // Pad the value range so both curves and the crossover sit clear of the axes.
@@ -128,11 +128,11 @@ function crossoverMarkup(
   const labelX = labelAnchor === 'end' ? x - 8 : x + 8;
   return `<line x1="${x.toFixed(1)}" y1="${PAD.top}" x2="${x.toFixed(1)}" y2="${PAD.top + PLOT_HEIGHT}" stroke="#c9c9d6" stroke-width="1" stroke-dasharray="4 3" />
     <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#ffffff" stroke="#1c1c24" stroke-width="1.5" />
-    <text x="${labelX.toFixed(1)}" y="${(PAD.top + 12).toFixed(1)}" text-anchor="${labelAnchor}" class="relic-cmp-crossover-label">Thorns overtakes at ${formatSeconds(model.crossoverMs)}</text>`;
+    <text x="${labelX.toFixed(1)}" y="${(PAD.top + 12).toFixed(1)}" text-anchor="${labelAnchor}" class="relic-cmp-crossover-label">${escapeHtml(model.targetRelic)} overtakes at ${formatSeconds(model.crossoverMs)}</text>`;
 }
 
 function axisMarkup(plotPoints: readonly RelicComparisonPoint[], startMs: number, endMs: number, scale: Scale): string {
-  const values = plotPoints.flatMap((point) => [point.opponentDps, point.thornsDps]);
+  const values = plotPoints.flatMap((point) => [point.opponentDps, point.targetDps]);
   const rawMin = values.length ? Math.min(...values) : 0;
   const rawMax = values.length ? Math.max(...values) : 1;
   const yTicks = [rawMax, (rawMax + rawMin) / 2, rawMin].map(
@@ -151,7 +151,7 @@ function axisMarkup(plotPoints: readonly RelicComparisonPoint[], startMs: number
 
 /**
  * Renders the fight-duration break-even chart as a self-contained SVG string:
- * the equipped relic's and Relic of Thorns' cumulative average-DPS curves, with
+ * the equipped relic's and selected relic's cumulative average-DPS curves, with
  * the crossover point marked. Returns a short empty-state note when there are no
  * comparable samples.
  */
@@ -160,9 +160,9 @@ export function relicComparisonChartSvg(
   options: RelicComparisonChartOptions = {}
 ): string {
   const opponentColor = options.opponentColor || DEFAULT_OPPONENT_COLOR;
-  const thornsColor = options.thornsColor || DEFAULT_THORNS_COLOR;
+  const targetColor = options.targetColor || DEFAULT_TARGET_COLOR;
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
-  const thornsLabel = relicLabel(model.targetRelic);
+  const targetLabel = relicLabel(model.targetRelic);
 
   if (model.points.length < 2) {
     return `<p class="relic-cmp-empty">Not enough damage in this rotation to compare relics.</p>`;
@@ -176,28 +176,29 @@ export function relicComparisonChartSvg(
   const endMs = model.durationMs;
   const scale = createScale(plotPoints, startMs, endMs);
   const opponent = escapeHtml(opponentLabel);
+  const target = escapeHtml(targetLabel);
   const verdict =
     model.crossoverMs != null
-      ? `Relic of Thorns overtakes ${opponent} at <b>${formatSeconds(model.crossoverMs)}</b>. Longer fights favour Thorns; shorter fights favour ${opponent}.`
-      : model.thornsAlwaysAhead
-        ? `Relic of Thorns matches or beats ${opponent} for the entire ${formatSeconds(model.durationMs)} window.`
-        : `Relic of Thorns does not overtake ${opponent} within this ${formatSeconds(model.durationMs)} rotation.`;
+      ? `${target} overtakes ${opponent} at <b>${formatSeconds(model.crossoverMs)}</b>. Longer fights favour ${target}; shorter fights favour ${opponent}.`
+      : model.targetAlwaysAhead
+        ? `${target} matches or beats ${opponent} for the entire ${formatSeconds(model.durationMs)} window.`
+        : `${target} does not overtake ${opponent} within this ${formatSeconds(model.durationMs)} rotation.`;
 
   return `<figure class="relic-cmp-figure">
     <div class="chart-canvas-wrap">
       <svg class="relic-cmp-svg" data-role="relic-comparison-chart" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" preserveAspectRatio="xMidYMid meet"
-        aria-label="Average DPS versus fight duration for ${escapeHtml(opponentLabel)} and ${escapeHtml(thornsLabel)}">
+        aria-label="Average DPS versus fight duration for ${escapeHtml(opponentLabel)} and ${escapeHtml(targetLabel)}">
         ${axisMarkup(plotPoints, startMs, endMs, scale)}
         ${crossoverMarkup(model, plotPoints, scale)}
         ${polyline(plotPoints, opponentColor, (point) => point.opponentDps, scale, '7 4')}
-        ${polyline(plotPoints, thornsColor, (point) => point.thornsDps, scale, 'none')}
+        ${polyline(plotPoints, targetColor, (point) => point.targetDps, scale, 'none')}
       </svg>
       <div class="chart-tooltip" data-role="relic-comparison-tooltip"></div>
     </div>
     <figcaption class="relic-cmp-caption">
       <div class="relic-cmp-legend">
         <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${opponentColor}"></span>${escapeHtml(opponentLabel)} <b>${formatDps(model.opponentFinalDps)}</b></span>
-        <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${thornsColor}"></span>${escapeHtml(thornsLabel)} <b>${formatDps(model.thornsFinalDps)}</b></span>
+        <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${targetColor}"></span>${escapeHtml(targetLabel)} <b>${formatDps(model.targetFinalDps)}</b></span>
       </div>
       <p class="relic-cmp-verdict">${verdict}</p>
     </figcaption>
@@ -218,7 +219,7 @@ export function bindRelicComparisonChartHover(
   const startMs = plotPoints[0].tMs;
   const endMs = model.durationMs;
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
-  const thornsLabel = relicLabel(model.targetRelic);
+  const targetLabel = relicLabel(model.targetRelic);
 
   svg.onmouseleave = () => {
     tooltip.style.display = 'none';
@@ -238,7 +239,7 @@ export function bindRelicComparisonChartHover(
     const time = startMs + ((chartX - PAD.left) / PLOT_WIDTH) * Math.max(0, endMs - startMs);
     tooltip.innerHTML = `<div><b>${(time / 1000).toFixed(2)}s</b></div>
       <div>${escapeHtml(opponentLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.opponentDps))} DPS</div>
-      <div>${escapeHtml(thornsLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.thornsDps))} DPS</div>`;
+      <div>${escapeHtml(targetLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.targetDps))} DPS</div>`;
     tooltip.style.left = `${pointerX + 12}px`;
     tooltip.style.top = `${pointerY + 12}px`;
     tooltip.style.display = 'block';

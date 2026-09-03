@@ -147,6 +147,8 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         relicComparisonStale: result.relicComparisonStale === true,
         relicComparisonError: result.relicComparisonError || '',
         relicComparisonOpponent: result.relicComparisonOpponent || '',
+        relicComparisonTarget: result.relicComparisonTarget || '',
+        relicComparisonTargets: (app.relicNames || []).filter((name) => name !== result.relicComparisonOpponent),
         relicComparisonInitialStacks: result.relicComparisonInitialStacks || 0
       },
       {
@@ -171,7 +173,10 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         },
         onRunRandomDistribution: () => app.runRandomDistribution(),
         ...(app.adapter?.capabilities?.relicComparison
-          ? { onRunRelicComparison: (initialStacks: number) => app.runRelicComparison(initialStacks) }
+          ? {
+              onRunRelicComparison: (comparisonRelic: string, initialStacks: number) =>
+                app.runRelicComparison(comparisonRelic, initialStacks)
+            }
           : null)
       }
     ),

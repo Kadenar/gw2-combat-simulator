@@ -4,7 +4,7 @@ import {
   DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   calculateRandomDistribution as calculateDistribution
 } from '#gw2/app/simulation/random-distribution.js';
-import { RELIC_COMPARISON_TARGET, relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison.js';
+import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -307,22 +307,18 @@ export function createProfessionRuntime({
     };
   }
 
-  /**
-   * Describes the opt-in Relic of Thorns break-even comparison for the equipped
-   * relic, or null when the equipped relic is not an allowlisted opponent. The
-   * base config is the same deterministic baseline used for the on-screen result
-   * so the opponent curve matches `app.results` exactly.
-   */
-  function relicComparisonRequest(app: ProfessionAppState): RelicComparisonJobRequest | null {
+  /** Uses the on-screen equipped relic as the baseline for an explicitly selected alternative. */
+  function relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonJobRequest | null {
     const opponentRelic = String(app.build.relic || '');
-    if (!relicComparisonAvailable(opponentRelic)) return null;
+    const targetRelic = String(comparisonRelic || '');
+    if (!app.relicNames.includes(targetRelic) || !relicComparisonAvailable(opponentRelic, targetRelic)) return null;
     return {
       gameId: 'gw2',
       contentId: profession.id,
       rotation: app.build.rotation,
       baseConfig: baselineSimulationConfig(app),
       opponentRelic,
-      comparisonRelic: RELIC_COMPARISON_TARGET
+      comparisonRelic: targetRelic
     };
   }
 
