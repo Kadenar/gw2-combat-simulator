@@ -1,3 +1,7 @@
+/**
+ * Owns Engineer sword cast behavior shared by Core and Holosmith sword variants.
+ * Skill fragments live in weapon catalogs; handler registration lives in `execution.ts`.
+ */
 import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
 /** Reduces recharge on active Engineer sword skills other than the triggering Gleam Saber cast. */

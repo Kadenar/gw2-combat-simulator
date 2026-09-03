@@ -4,7 +4,7 @@ import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/content/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';

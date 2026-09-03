@@ -1,3 +1,7 @@
+/**
+ * Owns Engineer spear state transitions, task handlers, and cross-skill delayed behavior.
+ * Skill fragments live in `skills/weapons/spear.ts`; handler registration lives in `skills/execution.ts`.
+ */
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';

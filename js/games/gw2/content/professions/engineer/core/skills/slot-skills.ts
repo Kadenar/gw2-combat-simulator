@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 /** Defines Core heal, utility, elite, turret, and palette-follow-up skill fragments. */
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HEALING_TURRET]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/skills/flips.ts`.
+    // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     castTimeMs: 750,
@@ -39,7 +39,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/skills/flips.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Healing Turret',
     castTimeMs: 0,
@@ -67,7 +67,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.THROW_MINE]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/skills/flips.ts`.
+    // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 500,
@@ -75,7 +75,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     rechargeAnchor: 'castStart'
   },
   [ID.DETONATE]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/skills/flips.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Throw Mine',
     castTimeMs: 0,

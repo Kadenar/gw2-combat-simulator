@@ -11,13 +11,13 @@ import {
   handleElectricArtilleryExpire,
   handleElectricArtilleryReady,
   handleLightningRodCharge
-} from '#gw2/content/professions/engineer/core/skills/spear.js';
+} from '#gw2/content/professions/engineer/core/mechanics/spear.js';
 import {
   applyEngineerCastTraits,
   isEngineerToolbeltSkill,
   observeEngineerHghEvent
 } from '#gw2/content/professions/engineer/core/traits/index.js';
-import { observeEngineerMineFieldEvent } from '#gw2/content/professions/engineer/core/skills/execution.js';
+import { observeEngineerMineFieldEvent } from '#gw2/content/professions/engineer/core/skills/mine-field-execution.js';
 import {
   activeBoonStacks,
   cloneEngineerAttributes,

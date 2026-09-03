@@ -1,3 +1,7 @@
+/**
+ * Owns Engineer palette-flip state transitions shared by Core and elite-specialization skills.
+ * Skill declarations own flip metadata; the Core execution registry owns handler registration.
+ */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/content/professions/engineer/state.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
