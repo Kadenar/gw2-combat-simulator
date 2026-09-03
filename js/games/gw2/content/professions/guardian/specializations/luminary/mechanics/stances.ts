@@ -7,10 +7,8 @@ import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mech
 import { GUARDIAN_SKILL_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { radiantWeaponImpactAt } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
-import {
-  LUMINARY_INITIAL_STATE_SKILL_IDS,
-  PIERCING_STANCE_IMPACT_MS
-} from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
+import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/content/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+import { PIERCING_STANCE_IMPACT_MS } from '#gw2/content/professions/guardian/specializations/luminary/skills/stance-skills.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 import type {

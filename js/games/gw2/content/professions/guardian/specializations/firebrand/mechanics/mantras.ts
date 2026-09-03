@@ -1,3 +1,7 @@
+/**
+ * Owns Firebrand mantra preparation, charge, flip, and recharge state.
+ * Declarative mantra fragments live in `skills/mantra-skills.ts`.
+ */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';

@@ -6,7 +6,7 @@ import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mech
 import { guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { radiantWeaponImpactAt } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
-import { LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
+import { LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID } from '#gw2/content/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 import type { SkillId } from '#gw2/platform/engine/types.js';

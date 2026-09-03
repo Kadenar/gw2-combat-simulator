@@ -1,3 +1,7 @@
+/**
+ * Owns Willbender virtue and physical skill fragments.
+ * Runtime virtue behavior remains under `mechanics/` and `execution.ts`.
+ */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 

@@ -1,4 +1,8 @@
-import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
+/**
+ * Composes Core Guardian weapon, profession, and slot-skill catalogs.
+ * Synthetic actions live in `actions.ts`; runtime behavior lives under `mechanics/`.
+ */
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 import { GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/guardian/core/skills/profession-skills.js';
 import { GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/content/professions/guardian/core/skills/slot-skills.js';
 import { GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/content/professions/guardian/core/skills/weapons/axe.js';
@@ -33,26 +37,4 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   ...GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS
 });
 
-export const GUARDIAN_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
-  Object.freeze({
-    id: -3,
-    name: 'Swap Weapons',
-    icon: '',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: undefined,
-    categories: [],
-    recharge: 10,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null,
-    castTimeMs: 0,
-    rechargeAnchor: 'castStart',
-    cooldown: 10,
-    // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
-    handlerId: 'guardian.weapon-swap',
-    effects: []
-  })
-]);
+export { GUARDIAN_CORE_EXTRA_SKILLS } from '#gw2/content/professions/guardian/core/skills/actions.js';

@@ -17,7 +17,7 @@ import {
   completeFirebrandMantra,
   firebrandMantraAvailability,
   initializeFirebrandMantras
-} from '#gw2/content/professions/guardian/specializations/firebrand/skills/mantras.js';
+} from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/mantras.js';
 import { initializeFirebrandBalanceState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 

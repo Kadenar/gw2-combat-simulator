@@ -1,11 +1,10 @@
+/**
+ * Owns Guardian spear's persistent Illuminated state and conditional packets.
+ * Declarative spear fragments remain in `skills/weapons/spear.ts`.
+ */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
-/**
- * @fileoverview Implements Guardian spear's Illuminated state machine and
- * applies its conditional damage changes to scheduler events.
- */
-
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
 import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/core/profiles.js';

@@ -23,7 +23,7 @@ import {
 import {
   advanceSpearIlluminationState,
   updateSpearIlluminationState
-} from '#gw2/content/professions/guardian/core/skills/spear.js';
+} from '#gw2/content/professions/guardian/core/mechanics/spear-illumination.js';
 import { createGuardianCoreState } from '#gw2/content/professions/guardian/core/state.js';
 import { projectGuardianEndState, snapshotGuardianState } from '#gw2/content/professions/guardian/state.js';
 import { bindGuardianCoreUi } from '#gw2/content/professions/guardian/core/presentation.js';
