@@ -48,7 +48,7 @@ import {
   triggerPoisonousStrikes,
   triggerSharpeningStone,
   triggerStrengthOfThePack
-} from '#gw2/content/professions/ranger/core/skills/reactions.js';
+} from '#gw2/content/professions/ranger/core/mechanics/skill-reactions.js';
 
 export {
   applyRangerDodgeTraits,

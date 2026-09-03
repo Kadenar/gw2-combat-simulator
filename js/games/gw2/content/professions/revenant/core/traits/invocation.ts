@@ -4,7 +4,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/profiles.js';
 import {
   emitLegendInvocationProfile,
   emitLegendInvocationSkill

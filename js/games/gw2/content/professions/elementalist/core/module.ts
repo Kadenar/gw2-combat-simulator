@@ -7,7 +7,7 @@ import {
   elementalistOnCastComplete,
   elementalistOnCastStart,
   scheduleElementalistSkill
-} from '#gw2/content/professions/elementalist/core/skills/execution.js';
+} from '#gw2/content/professions/elementalist/core/execution/index.js';
 import { elementalistCoreCastRules } from '#gw2/content/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistCoreAttributeRules } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
 import { projectElementalistEndState } from '#gw2/content/professions/elementalist/state.js';

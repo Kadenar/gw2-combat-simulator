@@ -8,7 +8,7 @@ import {
 import { virtuosoState } from '#gw2/content/professions/mesmer/specializations/virtuoso/state.js';
 import { virtuosoUi } from '#gw2/content/professions/mesmer/specializations/virtuoso/presentation.js';
 import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/specializations/virtuoso/skills/index.js';
-import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/skills/execution.js';
+import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/execution/index.js';
 import { VIRTUOSO_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/virtuoso/profiles.js';
 
 export const virtuosoModule = defineNativeModule({

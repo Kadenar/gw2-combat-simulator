@@ -1,4 +1,7 @@
-import { expireThievesGuild, handleThievesGuildAttack } from '#gw2/content/professions/thief/core/skills/actions.js';
+import {
+  expireThievesGuild,
+  handleThievesGuildAttack
+} from '#gw2/content/professions/thief/core/mechanics/thieves-guild.js';
 import {
   handleStealthBreakingStrike,
   THIEF_BREAK_STEALTH_TASK

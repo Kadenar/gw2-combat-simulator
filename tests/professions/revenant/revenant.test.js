@@ -46,13 +46,11 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/revenant/data/ids.js';
 import { REVENANT_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/revenant.js';
-import {
-  REVENANT_CORE_BALANCE_PROFILE_IDS,
-  REVENANT_CORE_BASE_SKILL_MECHANICS
-} from '#gw2/content/professions/revenant/core/skills/index.js';
+import { REVENANT_CORE_BASE_SKILL_MECHANICS } from '#gw2/content/professions/revenant/core/skills/index.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/profiles.js';
 import { createRevenantCoreState } from '#gw2/content/professions/revenant/core/state.js';
 import { afterRevenantCast, observeRevenantEvent } from '#gw2/content/professions/revenant/core/traits/index.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/profiles.js';
 import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
 import {
   legalRevenantLegendIds,
@@ -729,15 +727,23 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
 });
 
 test('Revenant modules preserve the declarative authoring contract', async () => {
-  const [ids, coreSkills, renegadeSkills, catalog, modules] = await Promise.all([
+  const [ids, coreSkills, coreProfiles, renegadeSkills, renegadeProfiles, catalog, modules] = await Promise.all([
     readFile(new URL('../../../js/games/gw2/content/professions/revenant/data/ids.ts', import.meta.url), 'utf8'),
     readFile(
       new URL('../../../js/games/gw2/content/professions/revenant/core/skills/index.ts', import.meta.url),
       'utf8'
     ),
+    readFile(new URL('../../../js/games/gw2/content/professions/revenant/core/profiles.ts', import.meta.url), 'utf8'),
     readFile(
       new URL(
         '../../../js/games/gw2/content/professions/revenant/specializations/renegade/skills/index.ts',
+        import.meta.url
+      ),
+      'utf8'
+    ),
+    readFile(
+      new URL(
+        '../../../js/games/gw2/content/professions/revenant/specializations/renegade/profiles.ts',
         import.meta.url
       ),
       'utf8'
@@ -749,9 +755,12 @@ test('Revenant modules preserve the declarative authoring contract', async () =>
   assert.doesNotMatch(ids, /^import\b/m);
   assert.match(ids, /REVENANT_SKILL_IDS = Object\.freeze/);
   assert.match(coreSkills, /REVENANT_CORE_BASE_SKILL_MECHANICS/);
-  assert.match(coreSkills, /REVENANT_CORE_BALANCE_PROFILES/);
-  assert.match(renegadeSkills, /RENEGADE_PROFILE_IDS/);
-  assert.match(renegadeSkills, /RENEGADE_BALANCE_PROFILES/);
+  assert.doesNotMatch(coreSkills, /REVENANT_CORE_BALANCE_PROFILES/);
+  assert.match(coreProfiles, /REVENANT_CORE_BALANCE_PROFILES/);
+  assert.match(renegadeSkills, /RENEGADE_BASE_SKILL_MECHANICS/);
+  assert.doesNotMatch(renegadeSkills, /RENEGADE_PROFILE_IDS|RENEGADE_BALANCE_PROFILES/);
+  assert.match(renegadeProfiles, /RENEGADE_PROFILE_IDS/);
+  assert.match(renegadeProfiles, /RENEGADE_BALANCE_PROFILES/);
   assert.doesNotMatch(renegadeSkills, /RENEGADE_MECHANICS/);
   assert.doesNotMatch(catalog, /DYNAMIC_EFFECT_HANDLER_IDS/);
   assert.match(catalog, /assembleNativeApplicationCatalog/);

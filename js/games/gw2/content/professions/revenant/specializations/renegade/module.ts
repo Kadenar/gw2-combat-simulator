@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { onFoodProcCreated, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createRevenantModuleData } from '#gw2/content/professions/revenant/catalog/module-data.js';
-import { renegadeSkillHandlers } from '#gw2/content/professions/revenant/specializations/renegade/skills/execution.js';
+import { renegadeSkillHandlers } from '#gw2/content/professions/revenant/specializations/renegade/execution/index.js';
 import {
   renegadeEventHandlers,
   revenantRenegadeEventReactions
@@ -13,11 +13,9 @@ import {
 } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-rules.js';
 import { renegadeState } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
 import { renegadeUi } from '#gw2/content/professions/revenant/specializations/renegade/presentation.js';
-import {
-  RENEGADE_BASE_SKILL_MECHANICS,
-  RENEGADE_BALANCE_PROFILES,
-  RENEGADE_EXTRA_SKILLS
-} from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
+import { RENEGADE_BASE_SKILL_MECHANICS } from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
+import { RENEGADE_EXTRA_SKILLS } from '#gw2/content/professions/revenant/specializations/renegade/skills/warband-skills.js';
+import { RENEGADE_BALANCE_PROFILES } from '#gw2/content/professions/revenant/specializations/renegade/profiles.js';
 
 export const renegadeModule = defineNativeModule({
   id: 'Renegade',

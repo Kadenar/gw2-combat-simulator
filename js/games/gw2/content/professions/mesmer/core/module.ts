@@ -16,23 +16,21 @@ import {
   mesmerCoreEventHandlers,
   mesmerCoreEventReactions
 } from '#gw2/content/professions/mesmer/core/mechanics/reactions.js';
-import { completeMesmerCast, startMesmerCast } from '#gw2/content/professions/mesmer/core/skills/cast-lifecycle.js';
-import { mesmerCastRules } from '#gw2/content/professions/mesmer/core/skills/recharge.js';
+import { completeMesmerCast, startMesmerCast } from '#gw2/content/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerCastRules } from '#gw2/content/professions/mesmer/core/mechanics/recharge.js';
 import {
   handleSignetIllusionsPassiveTask,
   mesmerCoreSignetSkillMechanicHandlers
-} from '#gw2/content/professions/mesmer/core/skills/signets.js';
+} from '#gw2/content/professions/mesmer/core/mechanics/signets.js';
 import { handleChaoticInterruptionTask } from '#gw2/content/professions/mesmer/core/traits/index.js';
 import { mesmerCoreAttributeRules } from '#gw2/content/professions/mesmer/core/traits/modifiers.js';
 import { createMesmerCoreResolverState, createMesmerCoreState } from '#gw2/content/professions/mesmer/core/state.js';
 import { projectMesmerEndState, snapshotMesmerState } from '#gw2/content/professions/mesmer/state/index.js';
 import { mesmerCoreUi } from '#gw2/content/professions/mesmer/core/presentation.js';
-import {
-  MESMER_CORE_EXTRA_SKILLS,
-  MESMER_CORE_SKILL_MECHANICS,
-  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS
-} from '#gw2/content/professions/mesmer/core/skills/index.js';
-import { mesmerCoreSkillHandlers } from '#gw2/content/professions/mesmer/core/skills/execution.js';
+import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/content/professions/mesmer/core/skills/actions.js';
+import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/index.js';
+import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/supplemental-skills.js';
+import { mesmerCoreSkillHandlers } from '#gw2/content/professions/mesmer/core/execution/index.js';
 import { MESMER_CORE_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/core/profiles.js';
 import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 

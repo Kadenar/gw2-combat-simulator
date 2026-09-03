@@ -12,7 +12,6 @@ export function createLuminaryState(): GuardianLuminaryState {
     empoweredArmamentsUntil: 0,
     piercingStanceUntil: 0,
     lightAuraUntil: 0,
-    lightFields: [],
     // One-shot flags: set by a virtue cast, consumed by the next matching
     // radiant weapon so each proc fires at most once per virtue use.
     radiantJusticeArmed: false,

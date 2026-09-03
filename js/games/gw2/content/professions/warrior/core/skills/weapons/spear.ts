@@ -42,7 +42,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.MIGHTY_THROW]: {
-    // Custom: Suppresses secondary-target shards in single-target simulations; see `core/skills/execution.ts`.
+    // Custom: Suppresses secondary-target shards in single-target simulations; see `core/execution/index.ts`.
     handlerId: 'warrior.mighty-throw',
     quicknessCastTimeMs: 640,
     effects: [

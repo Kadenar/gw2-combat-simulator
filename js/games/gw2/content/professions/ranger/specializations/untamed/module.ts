@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { onResolvedControl, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createRangerModuleData } from '#gw2/content/professions/ranger/catalog/module-data.js';
-import { untamedSkillHandlers } from '#gw2/content/professions/ranger/specializations/untamed/skills/execution.js';
+import { untamedSkillHandlers } from '#gw2/content/professions/ranger/specializations/untamed/execution/index.js';
 import {
   untamedAttributeRules,
   untamedCastRules,

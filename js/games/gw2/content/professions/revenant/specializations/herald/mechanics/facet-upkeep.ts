@@ -12,7 +12,7 @@ import type {
   RevenantSkill
 } from '#gw2/content/professions/revenant/types.js';
 import { HERALD_MECHANICS as MECHANICS } from '#gw2/content/professions/revenant/specializations/herald/mechanics/facets.js';
-import { HERALD_ELEVATED_COMPASSION_PROFILE_ID } from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
+import { HERALD_ELEVATED_COMPASSION_PROFILE_ID } from '#gw2/content/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/content/professions/revenant/specializations/herald/state.js';
 
 interface HeraldFacetPulsePayload extends SchedulerRecord {

@@ -2,8 +2,8 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/content/professions/thief/build/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
-import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-chain.js';
-import { thiefWeaponSkillMatchesSet } from '#gw2/content/professions/thief/core/skills/weapons.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/mechanics/spear-chain.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/content/professions/thief/core/mechanics/weapon-state.js';
 import {
   storedStolenSkillChoices,
   THIEF_STOLEN_SKILL_IDS

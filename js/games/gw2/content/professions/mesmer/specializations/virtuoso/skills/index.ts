@@ -1,6 +1,6 @@
 /**
- * Raw Virtuoso skill mechanics. Generated once from the characterized
- * pre-migration table; this file is now the runtime source owner.
+ * Owns Virtuoso slot-skill and bladesong catalog fragments only.
+ * Blade storage and bladesong runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { SkillFragment, SkillId } from '#gw2/platform/engine/types.js';

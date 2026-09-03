@@ -325,7 +325,7 @@ test('Elementalist dispatchers preserve attunement, post-cast, event, and condit
     readFile(new URL('traits/index.ts', root), 'utf8'),
     readFile(new URL('mechanics/reactions.ts', root), 'utf8'),
     readFile(new URL('mechanics/scheduler-state.ts', root), 'utf8'),
-    readFile(new URL('skills/execution.ts', root), 'utf8')
+    readFile(new URL('execution/index.ts', root), 'utf8')
   ]);
 
   assertSourceOrder(indexSource, 'export function applyElementalistAttunementTraits', [

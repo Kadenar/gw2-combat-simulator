@@ -7,7 +7,7 @@ import type { RangerPrecastContext, RangerSkill } from '#gw2/content/professions
 import {
   isRangerHammerVariant,
   normalizeRangerHammerSkillIds
-} from '#gw2/content/professions/ranger/core/skills/hammer.js';
+} from '#gw2/content/professions/ranger/core/mechanics/hammer-variants.js';
 import { rangerEnduranceReadyAt } from '#gw2/content/professions/ranger/core/mechanics/resources.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/core/profiles.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/content/professions/ranger/core/mechanics/weapon-state.js';

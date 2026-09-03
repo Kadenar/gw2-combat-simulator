@@ -49,11 +49,6 @@ export interface GuardianConfig extends Gw2Config {
   readonly specializations?: readonly (string | { readonly name?: string })[];
 }
 
-export interface GuardianLightField {
-  readonly startsAt: number;
-  readonly endsAt: number;
-}
-
 export interface GuardianCoreState {
   endurance: number;
   maximumEndurance: number;
@@ -112,7 +107,6 @@ export interface GuardianLuminaryState {
   empoweredArmamentsUntil: number;
   piercingStanceUntil: number;
   lightAuraUntil: number;
-  lightFields: GuardianLightField[];
   radiantJusticeArmed: boolean;
   radiantCourageSwordArmed: boolean;
   radiantCourageShieldArmed: boolean;

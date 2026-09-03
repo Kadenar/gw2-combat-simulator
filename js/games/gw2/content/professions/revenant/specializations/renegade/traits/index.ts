@@ -8,7 +8,7 @@ import {
   grantKallasFervor,
   isBandTogetherReady
 } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { RENEGADE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
+import { RENEGADE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/renegade/profiles.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type {

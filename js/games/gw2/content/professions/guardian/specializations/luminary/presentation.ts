@@ -25,9 +25,7 @@ const LUMINARY_INTERNAL_EVENT_TYPES = new Set([
   'guardian.effulgent-activated',
   'guardian.effulgent-detonate',
   'guardian.luminary.light-aura-detonate',
-  'guardian.luminary.light-aura-grant',
-  'guardian.luminary.light-field-start',
-  'guardian.luminary.light-finisher'
+  'guardian.luminary.light-aura-grant'
 ]);
 
 function luminaryEventLogRow(

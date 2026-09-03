@@ -226,7 +226,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     cooldown: 20,
     // Use the measured Quickness animation so later casts begin at the logged time.
     quicknessCastTimeMs: 360,
-    // Custom: Emits Solar Flare's Burning packet; see `core/skills/execution.ts`.
+    // Custom: Emits Solar Flare's Burning packet; see `core/execution/index.ts`.
     handlerId: 'ranger.sun-spirit'
   },
   [ID.FLAME_TRAP]: {
@@ -299,7 +299,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     effects: [],
     castTimeMs: 0,
     canCastConcurrently: true,
-    // Custom: Arms Sharpening Stone charges and duration; see `core/skills/execution.ts`.
+    // Custom: Arms Sharpening Stone charges and duration; see `core/execution/index.ts`.
     handlerId: 'ranger.sharpening-stone'
   },
   [ID.SPIRIT_OF_NATURE]: {
@@ -427,7 +427,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.SIC_EM]: {
     castTimeMs: 0,
     effects: [],
-    // Custom: Applies the pet-only Sic Em damage window when a pet is active; see `core/skills/execution.ts`.
+    // Custom: Applies the pet-only Sic Em damage window when a pet is active; see `core/execution/index.ts`.
     handlerId: 'ranger.sic-em'
   },
   [ID.WATER_SPIRIT]: {

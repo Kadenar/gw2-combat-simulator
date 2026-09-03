@@ -43,7 +43,7 @@ import type {
   MesmerActiveEmission,
   MesmerCastDetails,
   MesmerSkillEffectController
-} from '#gw2/content/professions/mesmer/core/skills/types.js';
+} from '#gw2/content/professions/mesmer/core/execution/effect-types.js';
 import type { MesmerContinuumController } from '#gw2/content/professions/mesmer/specializations/chronomancer/types.js';
 import type { MesmerMirageController } from '#gw2/content/professions/mesmer/specializations/mirage/types.js';
 

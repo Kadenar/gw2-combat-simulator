@@ -27,7 +27,7 @@ import { heraldState } from '#gw2/content/professions/revenant/specializations/h
 import {
   HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
   HERALD_SPIRIT_BOON_PROFILE_ID
-} from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
+} from '#gw2/content/professions/revenant/specializations/herald/profiles.js';
 import {
   afterHeraldFacetCast,
   handleElevatedCompassionPulse,

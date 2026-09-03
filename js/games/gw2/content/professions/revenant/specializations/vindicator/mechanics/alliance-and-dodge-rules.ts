@@ -22,7 +22,7 @@ import {
   revenantRuntimeSpecializationState
 } from '#gw2/content/professions/revenant/core/traits/modifiers.js';
 import { completeVindicatorDodge } from '#gw2/content/professions/revenant/specializations/vindicator/mechanics/dodge.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/profiles.js';
 import {
   modifyVindicatorCastDuration,
   modifyVindicatorRechargeDuration

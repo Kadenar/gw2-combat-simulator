@@ -10,7 +10,7 @@ import { necromancerNativeModules } from '#gw2/content/professions/necromancer/m
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from '#gw2/content/professions/necromancer/types.js';
-import { observeNecromancerAutoattackTransition } from '#gw2/content/professions/necromancer/core/skills/weapons.js';
+import { observeNecromancerAutoattackTransition } from '#gw2/content/professions/necromancer/core/mechanics/sword-chain.js';
 
 /** Finds the first exact damage boundary where the target falls below half health. */
 function targetBelowHalfAt(result: Gw2SimulationResult, config: NecromancerConfig): number | null {

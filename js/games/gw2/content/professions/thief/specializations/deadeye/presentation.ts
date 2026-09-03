@@ -2,7 +2,7 @@ import { deadeyeCastAvailability } from '#gw2/content/professions/thief/speciali
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/content/professions/thief/specializations/deadeye/mechanics/malice.js';
-import { deadeyeWeaponSkillMatchesSet } from '#gw2/content/professions/thief/specializations/deadeye/skills/weapons.js';
+import { deadeyeWeaponSkillMatchesSet } from '#gw2/content/professions/thief/specializations/deadeye/mechanics/weapon-state.js';
 import { thiefUiState } from '#gw2/content/professions/thief/core/presentation.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/content/professions/thief/types.js';
 

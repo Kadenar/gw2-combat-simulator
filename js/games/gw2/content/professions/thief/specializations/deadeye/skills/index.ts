@@ -3,7 +3,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.STEAL_WARMTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -39,7 +39,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.STEAL_RESISTANCE]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -75,7 +75,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.STEAL_PRECISION]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -109,7 +109,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.STEAL_HEALTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -139,7 +139,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.STEAL_STRENGTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -175,7 +175,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.SHADOW_FLARE]: {
-    // Custom: Arms the temporary Shadow Swap follow-up; see `deadeye/skills/execution.ts`.
+    // Custom: Arms the temporary Shadow Swap follow-up; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-shadow-flare',
     quicknessCastTimeMs: 480,
     cooldown: 20,
@@ -229,7 +229,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.MERCY]: {
-    // Custom: Consumes Malice, refunds initiative, and resets Deadeye's Mark; see `deadeye/skills/execution.ts`.
+    // Custom: Consumes Malice, refunds initiative, and resets Deadeye's Mark; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-mercy',
     castTimeMs: 0,
     cooldown: 1,
@@ -240,7 +240,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: []
   },
   [ID.STEAL_TIME]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     quicknessCastTimeMs: 280,
     cooldown: 0.5,
@@ -277,7 +277,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.STEAL_DURABILITY]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -315,7 +315,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   [ID.DEADEYES_MARK]: {
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Marks the target, initializes Malice/stolen skills, and schedules expiry; see `deadeye/skills/execution.ts`.
+    // Custom: Marks the target, initializes Malice/stolen skills, and schedules expiry; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeyes-mark',
     castTimeMs: 0,
     cooldown: 25,
@@ -323,7 +323,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: []
   },
   [ID.STEAL_DEFENSES]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -359,7 +359,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     quicknessCastTimeMs: 600,
     cooldown: 1,
@@ -379,7 +379,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     malicious: true
   },
   [ID.STEAL_MOBILITY]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/skills/execution.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stolen-skill',
     castTimeMs: 250,
     cooldown: 0.5,
@@ -415,7 +415,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: []
   },
   [ID.SHADOW_MELD]: {
-    // Custom: Clears Revealed at cast start so stealth can apply; see `deadeye/skills/execution.ts`.
+    // Custom: Clears Revealed at cast start so stealth can apply; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-shadow-meld',
     quicknessCastTimeMs: 440,
     cooldown: 5,
@@ -433,7 +433,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.SHADOW_SWAP]: {
-    // Custom: Consumes the Shadow Swap follow-up; see `deadeye/skills/execution.ts`.
+    // Custom: Consumes the Shadow Swap follow-up; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-shadow-swap',
     castTimeMs: 0,
     cooldown: 0,
@@ -477,7 +477,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.MALICIOUS_SURPRISE_SHOT]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     castTimeMs: 250,
     cooldown: 1,
@@ -511,7 +511,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     malicious: true
   },
   [ID.MALICIOUS_SNEAK_ATTACK]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     castTimeMs: 1000,
     cooldown: 1,
@@ -545,7 +545,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     malicious: true
   },
   [ID.MALICIOUS_BACKSTAB]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     quicknessCastTimeMs: 440,
     cooldown: 1,
@@ -565,7 +565,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     malicious: true
   },
   [ID.MALICIOUS_TACTICAL_STRIKE]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     quicknessCastTimeMs: 440,
     cooldown: 1,
@@ -604,7 +604,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     malicious: true
   },
   [ID.MALICIOUS_SHADOWSQUALL]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     castTimeMs: 2500,
     cooldown: 0,
@@ -637,7 +637,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     malicious: true
   },
   [ID.MALICIOUS_HOOK_STRIKE]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     castTimeMs: 0,
     cooldown: 1,
@@ -669,7 +669,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     malicious: true
   },
   [ID.MALICIOUS_CUNNING_SALVO]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-stealth-attack',
     castTimeMs: 500,
     cooldown: 1,
@@ -712,7 +712,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
     preservesStealth: true,
     spearStealthAttack: true,
-    // Custom: Snapshots Malice, scales the final hit/Torment, refunds initiative, and consumes stealth; see `deadeye/skills/execution.ts`.
+    // Custom: Snapshots Malice, scales the final hit/Torment, refunds initiative, and consumes stealth; see `deadeye/execution/index.ts`.
     handlerId: 'thief.deadeye-spear-stealth-attack',
     castTimeMs: 575,
     cooldown: 0,

@@ -1,6 +1,6 @@
 /**
- * Raw Troubadour skill mechanics. Generated once from the characterized
- * pre-migration table; this file is now the runtime source owner.
+ * Owns Troubadour instrument, Tale, and simulator-action catalog data.
+ * Instrument and Tale runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';

@@ -17,7 +17,7 @@ import { ritualistState } from '#gw2/content/professions/necromancer/specializat
 import { ritualistUi } from '#gw2/content/professions/necromancer/specializations/ritualist/presentation.js';
 import { RITUALIST_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/ritualist/skills/index.js';
 import { necromancerSpiritSkillHandlers } from '#gw2/content/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
-import { necromancerWeaponSpellSkillHandlers } from '#gw2/content/professions/necromancer/specializations/ritualist/skills/weapon-spells.js';
+import { necromancerWeaponSpellSkillHandlers } from '#gw2/content/professions/necromancer/specializations/ritualist/execution/weapon-spells.js';
 import { RITUALIST_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
 /** Runs Ritualist behavior before replacing the corresponding declarative effects. */

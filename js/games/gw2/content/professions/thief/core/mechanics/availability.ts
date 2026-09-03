@@ -4,8 +4,8 @@ import {
   thiefEnduranceReadyAt,
   thiefInitiativeRegenerationRate
 } from '#gw2/content/professions/thief/core/mechanics/resources.js';
-import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-chain.js';
-import { thiefTrapCastAvailability } from '#gw2/content/professions/thief/core/skills/traps.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/mechanics/spear-chain.js';
+import { thiefTrapCastAvailability } from '#gw2/content/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices } from '#gw2/content/professions/thief/core/mechanics/steal.js';
 import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/types.js';

@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { onConditionApplied } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createThiefModuleData } from '#gw2/content/professions/thief/catalog/module-data.js';
-import { specterSkillHandlers } from '#gw2/content/professions/thief/specializations/specter/skills/execution.js';
+import { specterSkillHandlers } from '#gw2/content/professions/thief/specializations/specter/execution/index.js';
 import {
   specterAttributeRules,
   specterCastRules,

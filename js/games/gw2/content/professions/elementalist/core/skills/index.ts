@@ -1,6 +1,6 @@
 /**
  * Composes owner-local Core Elementalist skill catalogs without owning behavior.
- * Runtime execution and persistent state live in sibling `execution.ts` and `mechanics/` modules.
+ * Runtime execution and persistent state live in `execution/` and `mechanics/` modules.
  */
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
 import {

@@ -11,10 +11,8 @@ import {
 } from '#gw2/content/professions/revenant/specializations/herald/mechanics/facet-rules.js';
 import { heraldState } from '#gw2/content/professions/revenant/specializations/herald/state.js';
 import { heraldUi } from '#gw2/content/professions/revenant/specializations/herald/presentation.js';
-import {
-  HERALD_BALANCE_PROFILES,
-  HERALD_BASE_SKILL_MECHANICS
-} from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
+import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
+import { HERALD_BALANCE_PROFILES } from '#gw2/content/professions/revenant/specializations/herald/profiles.js';
 
 /** Appends facet teardown after each consume skill's catalog effects. */
 const heraldSkillHandlers = new Map([

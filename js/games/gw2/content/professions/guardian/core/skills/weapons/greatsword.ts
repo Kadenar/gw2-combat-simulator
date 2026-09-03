@@ -10,10 +10,19 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       {
         type: 'strike',
         coefficient: 2,
-        hits: 1
+        hits: 1,
+        // Leap of Faith only creates combo effects when this packet resolves through an active field.
+        comboFinishers: [
+          {
+            ownerId: 'guardian',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
-        type: 'blind'
+        type: 'blind',
+        duration: 3
       }
     ]
   },

@@ -42,7 +42,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Ski
     cooldown: 5,
     ammoCastLockout: 1,
     quicknessCastTimeMs: 560,
-    // Custom: Consumes the ammo snapshot and emits one bullet packet per charge; see `core/skills/execution.ts`.
+    // Custom: Consumes the ammo snapshot and emits one bullet packet per charge; see `core/execution/index.ts`.
     handlerId: 'warrior.dragons-roar',
     effects: []
   }

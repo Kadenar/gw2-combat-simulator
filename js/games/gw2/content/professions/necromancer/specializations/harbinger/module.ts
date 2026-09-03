@@ -12,7 +12,7 @@ import { harbingerState } from '#gw2/content/professions/necromancer/specializat
 import { harbingerUi } from '#gw2/content/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/index.js';
 import { necromancerBlightSkillHandlers } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight.js';
-import { darkBarrage } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/dark-barrage.js';
+import { darkBarrage } from '#gw2/content/professions/necromancer/specializations/harbinger/execution/dark-barrage.js';
 import { darkBarrageHandlerMode } from '#gw2/content/professions/necromancer/specializations/harbinger/traits/index.js';
 import { HARBINGER_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
 

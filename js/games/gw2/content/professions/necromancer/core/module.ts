@@ -21,7 +21,7 @@ import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
   NECROMANCER_CORE_EXTRA_SKILLS
 } from '#gw2/content/professions/necromancer/core/skills/index.js';
-import { necromancerCoreSkillHandlers } from '#gw2/content/professions/necromancer/core/skills/execution.js';
+import { necromancerCoreSkillHandlers } from '#gw2/content/professions/necromancer/core/execution/index.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/core/profiles.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
@@ -35,9 +35,10 @@ import {
 import { necromancerMinionTaskHandlers } from '#gw2/content/professions/necromancer/core/mechanics/minions.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
 import {
-  necromancerCoreSkillMechanicHandlers,
-  necromancerWeaponTaskHandlers
-} from '#gw2/content/professions/necromancer/core/skills/weapons.js';
+  necromancerGreatswordSkillMechanicHandlers,
+  necromancerGreatswordTaskHandlers
+} from '#gw2/content/professions/necromancer/core/execution/greatsword.js';
+import { necromancerSwordTaskHandlers } from '#gw2/content/professions/necromancer/core/mechanics/sword-chain.js';
 import {
   applyNecromancerAfterCastTraits,
   applyNecromancerCastStartTraits
@@ -57,7 +58,8 @@ const necromancerSchedulerHooks = Object.freeze({
   onCooldownReset: resetNecromancerResources,
   onEventScheduled: observeNecromancerPlagueSendingEvent,
   taskHandlers: Object.freeze({
-    ...necromancerWeaponTaskHandlers,
+    ...necromancerSwordTaskHandlers,
+    ...necromancerGreatswordTaskHandlers,
     ...necromancerMinionTaskHandlers
   })
 });
@@ -83,7 +85,7 @@ export const necromancerCoreModule = defineNativeModule({
     execution: {
       skillHandlers: necromancerCoreSkillHandlers,
       castRules: necromancerCoreCastRules,
-      skillMechanicHandlers: necromancerCoreSkillMechanicHandlers,
+      skillMechanicHandlers: necromancerGreatswordSkillMechanicHandlers,
       hooks: {
         ...necromancerSchedulerHooks,
         snapshot: (context: NecromancerSchedulerContext) => snapshotNecromancerState(context.state.profession)

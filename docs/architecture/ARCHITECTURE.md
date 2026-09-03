@@ -150,9 +150,9 @@ Every native profession otherwise uses the same source roles:
   selectors.
 - `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
   import it.
-- Owner-local `skills/execution.ts` modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that
-  cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application catalog
-  is assembled from module contributions.
+- Owner-local `execution/` modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that cannot be
+  represented by declarative effects. Root handler aggregates are unnecessary because the application catalog is
+  assembled from module contributions.
 
 Profession-specific state machines remain in named feature modules beside these boundaries. Skill entries reference
 those handlers explicitly. The repeatable module authoring and migration requirements are defined in

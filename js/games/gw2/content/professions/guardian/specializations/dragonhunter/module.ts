@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { onResolvedControl, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createGuardianModuleData } from '#gw2/content/professions/guardian/catalog/module-data.js';
-import { dragonhunterSkillHandlers } from '#gw2/content/professions/guardian/specializations/dragonhunter/skills/execution.js';
+import { dragonhunterSkillHandlers } from '#gw2/content/professions/guardian/specializations/dragonhunter/execution/virtues.js';
 import {
   dragonhunterEventHandlers,
   dragonhunterEventReactions

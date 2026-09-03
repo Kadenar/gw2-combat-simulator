@@ -144,7 +144,7 @@ test('Elementalist skill and persistent-mechanic files have explicit owners', ()
     'core/skills/actions.ts',
     'core/skills/conjure-skills.ts',
     'core/skills/elemental-skills.ts',
-    'core/skills/execution.ts',
+    'core/execution/index.ts',
     'core/skills/trait-skills.ts',
     'specializations/evoker/skills/familiar-skills.ts',
     'specializations/evoker/skills/meditation-skills.ts',

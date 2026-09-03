@@ -9,7 +9,7 @@ import { createRangerModuleData } from '#gw2/content/professions/ranger/catalog/
 import {
   rangerCoreSkillHandlers,
   rangerCoreSkillMechanicHandlers
-} from '#gw2/content/professions/ranger/core/skills/execution.js';
+} from '#gw2/content/professions/ranger/core/execution/index.js';
 import {
   rangerCoreAttributeRules,
   rangerCoreCastRules

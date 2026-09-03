@@ -106,9 +106,17 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
+        // Gleaming Blade creates a combo only when its leap lands through an active field.
         ticks: [{ atMs: 760, coefficient: 1.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'guardian',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       }
     ]
   },
@@ -165,9 +173,17 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
+        // Dazzling Hammer grants Light Aura only after this blast successfully finishes a combo.
         ticks: [{ atMs: 440, coefficient: 1.2 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'guardian',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'control',

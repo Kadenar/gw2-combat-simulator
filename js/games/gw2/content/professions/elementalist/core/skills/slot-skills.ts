@@ -7,7 +7,7 @@
  *
  * These are pure data fragments — no behavior. Anything stateful is delegated by marker field:
  * `elementalistStateMachine` hands the skill to a subsystem (`core/mechanics/elementals/` for
- * summons), and `mechanicTriggers` names a handler in `core/skills/execution.ts`.
+ * summons), and `mechanicTriggers` names a handler in `core/execution/index.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
@@ -85,7 +85,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // --- Arcane -----------------------------------------------------------------
   // Blast and Wave are ammo skills: `cooldown` is the short between-charge lockout while
   // `ammoRecharge` refills a charge. Arcane Echo carries no packets — its recast window is
-  // driven from core/skills/execution.ts.
+  // driven from core/execution/index.ts.
   [ID.ARCANE_BLAST]: {
     name: 'Arcane Blast',
     type: 'Utility',

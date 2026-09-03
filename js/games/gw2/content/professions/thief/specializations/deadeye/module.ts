@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { createThiefModuleData } from '#gw2/content/professions/thief/catalog/module-data.js';
-import { deadeyeSkillHandlers } from '#gw2/content/professions/thief/specializations/deadeye/skills/execution.js';
+import { deadeyeSkillHandlers } from '#gw2/content/professions/thief/specializations/deadeye/execution/index.js';
 import {
   deadeyeAttributeRules,
   deadeyeCastRules,

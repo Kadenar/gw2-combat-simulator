@@ -25,7 +25,7 @@ import { renegadeState } from '#gw2/content/professions/revenant/specializations
 import {
   RENEGADE_PROFILE_IDS,
   RENEGADE_SPIRIT_BOON_PROFILE_ID
-} from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
+} from '#gw2/content/professions/revenant/specializations/renegade/profiles.js';
 import {
   handleRenegadeCriticalTraitsTask,
   handleRazorclawProcTask,

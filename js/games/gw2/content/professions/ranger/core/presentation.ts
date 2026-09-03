@@ -21,7 +21,7 @@ import {
   isRangerHammerVariant,
   normalizeRangerHammerSkillIds,
   RANGER_HAMMER_VARIANT_PAIRS
-} from '#gw2/content/professions/ranger/core/skills/hammer.js';
+} from '#gw2/content/professions/ranger/core/mechanics/hammer-variants.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/content/professions/ranger/core/mechanics/weapon-state.js';
 
 let rangerCatalog: Readonly<CanonicalCatalog>;

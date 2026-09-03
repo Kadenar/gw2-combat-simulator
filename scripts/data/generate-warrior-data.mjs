@@ -406,8 +406,7 @@ function handlerId(identity, raw) {
   return '';
 }
 
-// Generates Warrior mechanics and IDs from the freshly fetched snapshot so
-// refreshes do not need to compile and reload the generated metadata module.
+// Refreshes Warrior IDs and supplemental metadata without rewriting hand-owned skill catalogs.
 export async function generateWarriorData({ skills: apiSkills, specializations: apiSpecializations }) {
   const specializationById = new Map(
     apiSpecializations.map((specialization) => [specialization.id, specialization.name])
@@ -676,46 +675,6 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
       key: keyById.get(identity.id),
       mechanics
     });
-  }
-
-  const roots = {
-    Core: 'core',
-    Berserker: 'specializations/berserker',
-    Spellbreaker: 'specializations/spellbreaker',
-    Bladesworn: 'specializations/bladesworn',
-    Paragon: 'specializations/paragon'
-  };
-  const constants = {
-    Core: 'WARRIOR_CORE_SKILL_MECHANICS',
-    Berserker: 'BERSERKER_SKILL_MECHANICS',
-    Spellbreaker: 'SPELLBREAKER_SKILL_MECHANICS',
-    Bladesworn: 'BLADESWORN_SKILL_MECHANICS',
-    Paragon: 'PARAGON_SKILL_MECHANICS'
-  };
-
-  for (const [owner, owned] of Object.entries(declarations)) {
-    const importPath = owner === 'Core' ? '../data/ids.js' : '../../data/ids.js';
-    const typePath = owner === 'Core' ? '../../../platform/engine/types.js' : '../../../../platform/engine/types.js';
-    const source = `/** Explicit PvE skill mechanics owned by the ${owner} Warrior module. */
-import { WARRIOR_SKILL_IDS as ID } from ${JSON.stringify(importPath)};
-import type { SkillFragment } from ${JSON.stringify(typePath)};
-
-export const ${constants[owner]}: Readonly<Record<number, SkillFragment>> = Object.freeze({
-${owned.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics, null, 2).replace(/\n/g, '\n  ')},`).join('\n')}
-});
-`;
-    const target = fileURLToPath(
-      new URL(`../../js/games/gw2/content/professions/warrior/${roots[owner]}/skills.ts`, import.meta.url)
-    );
-
-    await mkdir(
-      fileURLToPath(new URL(`../../js/games/gw2/content/professions/warrior/${roots[owner]}/`, import.meta.url)),
-      {
-        recursive: true
-      }
-    );
-    await writeFile(target, source, 'utf8');
-    console.log(`Wrote ${owned.length} ${owner} Warrior skill mechanics.`);
   }
 
   function declaration(name, values, prefix = []) {

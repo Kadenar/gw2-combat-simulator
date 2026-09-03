@@ -6,7 +6,7 @@ import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-pr
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 import { gainThiefEndurance } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/core/profiles.js';
-import { applyActiveVenoms } from '#gw2/content/professions/thief/core/skills/venoms.js';
+import { applyActiveVenoms } from '#gw2/content/professions/thief/core/mechanics/venoms.js';
 import { applyFluidStrikes, applyHardToCatch } from '#gw2/content/professions/thief/core/traits/acrobatics.js';
 import {
   applyAssassinsFury,

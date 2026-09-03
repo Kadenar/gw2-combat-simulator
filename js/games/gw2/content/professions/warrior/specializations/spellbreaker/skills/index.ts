@@ -20,7 +20,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     burstTier: 1,
     adrenalineGain: 10,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.EARTHSHAKER_ID_40601]: {
@@ -54,7 +54,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.NATURAL_HEALING]: {
@@ -78,7 +78,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.BOON_CRUSHER]: {
@@ -94,7 +94,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.FORCEFUL_SHOT_ID_41330]: {
@@ -109,7 +109,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.WOUNDING_STRIKE]: {
@@ -136,7 +136,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.WHIRLING_STRIKE_ID_41746]: {
@@ -156,7 +156,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.IMMINENT_THREAT]: {
@@ -170,7 +170,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     quicknessCastTimeMs: 167,
     adrenalineGain: 3,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.ARCING_SLICE_ID_42707]: {
@@ -198,7 +198,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.COMBUSTIVE_SHOT_ID_42803]: {
@@ -220,7 +220,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.BREAK_ENCHANTMENTS]: {
@@ -257,7 +257,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.EVISCERATE_ID_43566]: {
@@ -278,7 +278,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.SIGHT_BEYOND_SIGHT]: {
@@ -293,7 +293,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Spends adrenaline and opens the Full Counter trigger window; see `spellbreaker/skills/execution.ts`.
+    // Custom: Spends adrenaline and opens the Full Counter trigger window; see `spellbreaker/execution/index.ts`.
     handlerId: 'warrior.full-counter'
   },
   [ID.DISSONANCE]: {
@@ -313,7 +313,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
@@ -379,7 +379,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.PATH_TO_VICTORY_ID_72089]: {
@@ -400,7 +400,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
   [ID.HARRIERS_TOSS_ID_73014]: {
@@ -421,7 +421,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   }
 });

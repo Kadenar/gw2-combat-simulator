@@ -29,7 +29,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.DEFIANT_ROAR]: {
     quicknessCastTimeMs: 333,
     adrenalineGain: 10,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {
@@ -53,7 +53,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.VALIANT_LEAP]: {
     quicknessCastTimeMs: 500,
     adrenalineGain: 5,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/skills/execution.ts`.
+    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
     effects: [
       {

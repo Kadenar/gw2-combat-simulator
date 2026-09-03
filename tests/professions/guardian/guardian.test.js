@@ -4257,6 +4257,58 @@ test('Luminary hidden actions replay exact EVTC opening-state durations', () => 
   assert.equal(result.events.find((event) => event.controlKind === 'initial-state').duration, 0);
 });
 
+test('Luminary Light Aura follows resolved combos instead of hardcoded leap casts', () => {
+  const simulate = (rotation, selectedTraitIds = []) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: {
+        ...config,
+        specialization: 'Luminary',
+        primaryWeapon: 'Greatsword',
+        selectedTraitIds
+      }
+    });
+  const combo = (result, skillName) =>
+    result.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === skillName);
+  const unbound = simulate(['Leap of Faith', 'Piercing Stance'], [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]);
+  const bound = simulate(
+    ['Symbol of Resolution', 'Leap of Faith', 'Piercing Stance'],
+    [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+  );
+  const daring = simulate(['Daring Advance']);
+  const gleaming = simulate(['Symbol of Resolution', 'Enter Radiant Forge', 'Gleaming Blade']);
+  const dazzlingUnbound = simulate(['Enter Radiant Forge', 'Dazzling Hammer']);
+  const dazzlingBound = simulate(['Symbol of Resolution', 'Enter Radiant Forge', 'Dazzling Hammer']);
+
+  assert.equal(unbound.events.find((event) => event.type === 'blind').duration, 3);
+  assert.equal(combo(unbound, 'Leap of Faith'), undefined);
+  assert.equal(
+    unbound.resolvedEvents.some((event) => event.name === 'Sovereign of Light'),
+    false
+  );
+  assert.deepEqual(
+    [
+      combo(bound, 'Leap of Faith'),
+      combo(daring, 'Daring Advance'),
+      combo(gleaming, 'Gleaming Blade'),
+      combo(dazzlingBound, 'Dazzling Hammer')
+    ].map((event) => [event.fieldType, event.finisherType, event.outcome.name]),
+    [
+      ['Light', 'Leap', 'Light Aura'],
+      ['Light', 'Leap', 'Light Aura'],
+      ['Light', 'Leap', 'Light Aura'],
+      ['Light', 'Blast', 'Area Cleanse']
+    ]
+  );
+  assert.equal(
+    bound.resolvedEvents.find((event) => event.name === 'Sovereign of Light').triggeredBy,
+    'Piercing Stance'
+  );
+  assert.equal(dazzlingUnbound.endState.profession.lightAuraUntil, 0);
+  assert.ok(dazzlingBound.endState.profession.lightAuraUntil > 0);
+});
+
 test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   const sovereignJustice = simulateGw2({
     profession: guardianProfession,

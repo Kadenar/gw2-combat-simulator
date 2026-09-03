@@ -17,7 +17,7 @@ import {
   isEngineerToolbeltSkill,
   observeEngineerHghEvent
 } from '#gw2/content/professions/engineer/core/traits/index.js';
-import { observeEngineerMineFieldEvent } from '#gw2/content/professions/engineer/core/skills/mine-field-execution.js';
+import { observeEngineerMineFieldEvent } from '#gw2/content/professions/engineer/core/mechanics/mine-field.js';
 import {
   activeBoonStacks,
   cloneEngineerAttributes,

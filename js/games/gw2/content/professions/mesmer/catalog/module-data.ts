@@ -12,7 +12,7 @@ import { TRAITS } from '#gw2/content/professions/mesmer/data/traits-data.js';
 import {
   MESMER_FLIP_PARENT_BY_CHILD_ID,
   prepareMesmerSkillForCatalog
-} from '#gw2/content/professions/mesmer/mechanics/skill-handlers.js';
+} from '#gw2/content/professions/mesmer/catalog/skill-preparation.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
 import type { NativeCatalogOptions } from '#gw2/integrations/patches/authoring/module-types.js';
 

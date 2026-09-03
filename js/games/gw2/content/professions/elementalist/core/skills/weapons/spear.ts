@@ -7,7 +7,7 @@
  * combo field and unlocks `Lesser X`, which three further casts upgrade to the full `X`.
  *
  * Declarative data only: the named `mechanicTriggers` are implemented by
- * `core/skills/execution.ts`, the chain/stage gating lives in
+ * `core/execution/index.ts`, the chain/stage gating lives in
  * `core/mechanics/availability.ts`, and the table is merged in by `core/skills/index.ts`.
  */
 

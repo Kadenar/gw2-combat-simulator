@@ -1,6 +1,6 @@
 /**
- * Raw Mirage skill mechanics. Generated once from the characterized
- * pre-migration table; this file is now the runtime source owner.
+ * Owns Mirage slot-skill, ambush, and simulator-action catalog data.
+ * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';

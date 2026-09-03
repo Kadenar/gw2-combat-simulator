@@ -8,7 +8,7 @@ import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resourc
  * module applies passive regeneration, aggregate upkeep drain, exact starvation
  * timing, out-of-combat Energy capping and endurance regeneration.
  */
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/profiles.js';
 import type {
   RevenantCoreState,
   RevenantEnergyContext,

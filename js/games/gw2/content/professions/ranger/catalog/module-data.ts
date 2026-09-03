@@ -7,7 +7,7 @@ import { RANGER_PET_SKILLS } from '#gw2/content/professions/ranger/data/ranger-p
 import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
 import { RANGER_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/ranger/data/ranger-supplemental-skills.js';
 import { TRAITS } from '#gw2/content/professions/ranger/data/traits-data.js';
-import { isRangerHammerVariant } from '#gw2/content/professions/ranger/core/skills/hammer.js';
+import { isRangerHammerVariant } from '#gw2/content/professions/ranger/core/mechanics/hammer-variants.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/engine/types.js';
 import type { RangerSkill } from '#gw2/content/professions/ranger/types.js';
 

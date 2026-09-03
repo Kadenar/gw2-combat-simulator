@@ -68,7 +68,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 600,
     cooldown: 6,
     quicknessCastTimeMs: 880,
-    // Custom: Upgrades the strike against controlled or defiant targets; see `core/skills/execution.ts`.
+    // Custom: Upgrades the strike against controlled or defiant targets; see `core/execution/index.ts`.
     handlerId: 'warrior.fierce-blow',
     effects: [
       {

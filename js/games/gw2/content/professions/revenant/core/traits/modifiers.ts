@@ -10,7 +10,7 @@ import { advanceRevenantEnergy } from '#gw2/content/professions/revenant/core/me
 import { spendRevenantEnergy } from '#gw2/content/professions/revenant/energy.js';
 import { prepareRevenantHitboxEvent } from '#gw2/content/professions/revenant/core/mechanics/event-handlers.js';
 import { handleRevenantUpkeepPulse } from '#gw2/content/professions/revenant/core/mechanics/upkeep.js';
-import { completeRevenantFollowup } from '#gw2/content/professions/revenant/core/skills/actions.js';
+import { completeRevenantFollowup } from '#gw2/content/professions/revenant/core/mechanics/skill-flips.js';
 import {
   beginRevenantWeaponCast,
   completeRevenantWeaponCast,
@@ -31,9 +31,9 @@ import {
   advanceRevenantSpearState,
   handleAbyssalRazeRechargeReduction,
   handleCrushingAbyssGain,
-  handleCrushingAbyssWeaponSwap,
   observeRevenantSpearEvent
-} from '#gw2/content/professions/revenant/core/skills/spear.js';
+} from '#gw2/content/professions/revenant/core/mechanics/crushing-abyss.js';
+import { handleCrushingAbyssWeaponSwap } from '#gw2/content/professions/revenant/core/execution/spear.js';
 import type {
   RevenantCastContext,
   RevenantSchedulerContext,

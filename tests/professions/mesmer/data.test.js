@@ -24,10 +24,12 @@ import {
   MESMER_CORE_WEAPON_STRENGTH as WEAPON_STRENGTH
 } from '#gw2/content/professions/mesmer/core/mechanics/definitions.js';
 import {
-  MESMER_CORE_EXTRA_SKILLS,
+  MESMER_CORE_EXTRA_SKILLS as MESMER_CORE_INDEX_EXTRA_SKILLS,
   MESMER_CORE_SKILL_MECHANICS,
-  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS
+  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS as MESMER_CORE_INDEX_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/content/professions/mesmer/core/skills/index.js';
+import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/content/professions/mesmer/core/skills/actions.js';
+import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/core/skills/supplemental-skills.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
 import {
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
@@ -161,6 +163,12 @@ const totalStrikeCoefficient = (skill) =>
   strikeEffects(skill).reduce((sum, effect) => sum + strikeCoefficient(effect), 0);
 
 const applyMesmerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(mesmerCatalog, patch), patch);
+
+// Keeps the public Core index contract while the named files own supplemental fragments and actions.
+test('Core Mesmer catalog extras retain named ownership', () => {
+  assert.equal(MESMER_CORE_INDEX_EXTRA_SKILLS, MESMER_CORE_EXTRA_SKILLS);
+  assert.equal(MESMER_CORE_INDEX_SUPPLEMENTAL_SKILL_MECHANICS, MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS);
+});
 
 test('catalog contains every terrestrial Mesmer skill and trait line', () => {
   assert.deepEqual(

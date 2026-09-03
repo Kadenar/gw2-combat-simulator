@@ -15,7 +15,7 @@ import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-ev
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/profiles.js';
 import type {
   RevenantCastContext,
   RevenantSchedulerContext,

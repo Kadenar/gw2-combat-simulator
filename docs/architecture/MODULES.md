@@ -59,10 +59,10 @@ Use this table as the first place to look.
 | Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                    |
 | Skill availability rule                                               | The owning skill or mechanic module                   |
 | Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                             |
-| Cast lifecycle behavior                                               | The owning skill, trait, or mechanic module           |
+| Cast lifecycle behavior                                               | Owner-local `execution/<concept>.ts`                  |
 | Declarative trait modifier                                            | `traits/modifiers.ts` or `traits/<trait-line>.ts`     |
 | Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`         |
-| Scheduler-specific skill implementation                               | The owning skill module; a focused handler if shared  |
+| Scheduler-specific skill implementation                               | Owner-local `execution/<concept>.ts`                  |
 | Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
 | Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution` |
 | Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module       |
@@ -344,7 +344,7 @@ The scheduler answers questions such as:
 Profession-owned scheduler behavior usually lives in:
 
 ```text
-skills/execution.ts
+execution/
 availability.ts
 mechanics/<concept>.ts
 traits/<trait-line>.ts
@@ -582,8 +582,9 @@ specializations/berserker/
 ├── profiles.ts
 ├── state.ts
 ├── skills/
-│   ├── index.ts
-│   └── execution.ts
+│   └── index.ts
+├── execution/
+│   └── index.ts
 ├── traits/
 │   └── index.ts
 ├── mechanics/
@@ -598,11 +599,13 @@ core/
 ├── module.ts
 ├── skills/
 │   ├── index.ts
-│   ├── execution.ts
 │   ├── slot-skills.ts
 │   └── weapons/
 │       ├── axe.ts
 │       └── greatsword.ts
+├── execution/
+│   ├── index.ts
+│   └── greatsword.ts
 ├── traits/
 │   ├── index.ts
 │   └── modifiers.ts
@@ -686,7 +689,7 @@ Keep implementation details outside this file.
 
 ## `skills/`
 
-Authoritative simulator mechanics for skills owned by the module.
+Declarative simulator definitions for skills owned by the module. Imperative cast handlers belong under `execution/`.
 
 Examples:
 
@@ -703,6 +706,15 @@ If ArenaNet changes the damage coefficient of a skill, this is usually the first
 
 Group related skills by weapon, slot family, transformation, or another recognizable GW2 concept. Keep a single
 `skills/index.ts` when the module is already cohesive.
+
+---
+
+## `execution/`
+
+Imperative cast behavior owned by a skill or skill family. This includes handler registration, cast-phase routing, and
+delayed work that exists only to finish one cast. A nontrivial registry may live in `execution/index.ts`; `module.ts`
+may wire a small handler map directly. Use flat concept files such as `execution/greatsword.ts` when cast
+implementations need named owners.
 
 ---
 
@@ -734,9 +746,9 @@ State fields should belong to the module that owns the mechanic.
 
 ## `mechanics/`
 
-Profession and specialization systems that are not naturally owned by one skill or trait. Use GW2 concept names such as
-`shatters.ts`, `continuum-split.ts`, `pets.ts`, `beastmode.ts`, `life-force.ts`, `attunements.ts`, `energy.ts`, or
-`initiative-and-endurance.ts`.
+Persistent profession and specialization systems whose state or lifecycle spans casts, skills, traits, or events. Use
+GW2 concept names such as `shatters.ts`, `continuum-split.ts`, `pets.ts`, `beastmode.ts`, `life-force.ts`,
+`attunements.ts`, `energy.ts`, or `initiative-and-endurance.ts`.
 
 A mechanics module may contain scheduler declarations, resolver declarations, or both. Its exports must make that phase
 visible when assembled in `module.ts`. Shared strike and condition resolution stays under

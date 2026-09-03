@@ -29,17 +29,6 @@ function lightAuraActive(state: GuardianLuminaryState, at: number, epsilon: numb
   return Number(state.lightAuraUntil || 0) > at + epsilon;
 }
 
-function activeLightField(state: GuardianLuminaryState, at: number, epsilon: number): boolean {
-  // Prune expired fields during reads so long rotations cannot grow the ledger indefinitely.
-  state.lightFields = (state.lightFields || []).filter((field) => field.endsAt > at + epsilon);
-  return state.lightFields.some((field) => field.startsAt <= at + epsilon && field.endsAt > at + epsilon);
-}
-
-function addLightField(state: GuardianLuminaryState, startsAt: number, duration: number): void {
-  state.lightFields ||= [];
-  state.lightFields.push({ startsAt, endsAt: startsAt + duration });
-}
-
 // Resolver operations keep overlapping casts in combat-time order instead of scheduler order.
 function emitLightAuraOperation(
   context: GuardianCastContext | GuardianSchedulerContext,
@@ -120,27 +109,12 @@ export function handleLightAuraDetonate(context: GuardianResolverContext, event:
   detonateLightAura(context, event);
 }
 
-export function handleLightFieldStart(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  addLightField(luminaryState.from(context), event.at, Number(event.duration || 0));
-}
-
-export function handleLightFinisher(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  if (!activeLightField(luminaryState.from(context), event.at, Number(context.epsilon ?? EPSILON))) return;
-  handleLightAuraGrant(context, { ...event, duration: 5 });
-}
-
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
   if (skill.id === GUARDIAN_SKILL_IDS.GLARING_BURST) return false;
   return Boolean(
     RADIANT_VIRTUE_IDS.has(skill.id) ||
     skill.radiantForgeSkill === true ||
     (skill.specialization === 'Luminary' && skill.categories?.includes('Stance'))
-  );
-}
-
-function isLightLeap(skill: GuardianSkill): boolean {
-  return [GUARDIAN_SKILL_IDS.LEAP_OF_FAITH, GUARDIAN_SKILL_IDS.DARING_ADVANCE, GUARDIAN_SKILL_IDS.GLEAMING_BLADE].some(
-    (skillId) => skillId === skill.id
   );
 }
 
@@ -191,40 +165,28 @@ export function processLuminaryLightFields(context: GuardianCastContext, skill: 
       duration: Number(blind?.duration || 3)
     });
   }
-
-  if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
-    emitLightAuraOperation(context, 'guardian.luminary.light-field-start', impactAt, skill, -30, { duration: 5 });
-  }
-
-  if (isLightLeap(skill) || skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER) {
-    emitLightAuraOperation(context, 'guardian.luminary.light-finisher', impactAt, skill, -15);
-  }
 }
 
-/** Converts scheduled Light fields and Lesser Symbol packets into ordered Luminary field operations. */
+/** Tracks only successful combo outcomes, so an unbound finisher cannot grant Luminary Light Aura. */
 export function observeLuminaryLightFields(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
-  if (event.type === 'combo_field' && String(event.fieldType) === 'Light') {
+  if (event.type === 'aura' && event.aura === 'Light Aura') {
     emitLightAuraOperation(
       context,
-      'guardian.luminary.light-field-start',
+      'guardian.luminary.light-aura-grant',
       event.at,
-      { id: event.skillId ?? event.sourceId, name: event.skillName || event.name || 'Light field' },
-      -30,
-      { duration: Number(event.expiresAt) - event.at }
+      { id: event.skillId ?? event.sourceId, name: event.skillName || event.name || 'Light Aura' },
+      -15,
+      { duration: Number(event.duration || 5) }
     );
   }
 
-  if (
-    event.type === 'damage' &&
-    event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES &&
-    Number(event.hitIndex || 0) === 1
-  ) {
+  if (event.type === 'combo' && event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER) {
     emitLightAuraOperation(
       context,
-      'guardian.luminary.light-field-start',
+      'guardian.luminary.light-aura-grant',
       event.at,
-      { id: event.skillId, name: event.skillName || 'Lesser Symbol of Blades' },
-      -30,
+      { id: event.skillId, name: event.skillName || 'Dazzling Hammer' },
+      -15,
       { duration: 4 }
     );
   }

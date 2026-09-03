@@ -20,10 +20,18 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       {
         type: 'strike',
         // The strike and target tether land about 680 ms into the fixed animation;
-        // this also anchors its damage buff, aura detonation, and light-field finisher.
+        // this also anchors its damage buff, Light field, and leap finisher.
         ticks: [{ atMs: 680, coefficient: 3 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 5 }],
+        comboFinishers: [
+          {
+            ownerId: 'guardian',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       }
     ]
   },

@@ -13,7 +13,7 @@ import {
   MESMER_MIRAGE_SKILL_MECHANICS,
   MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/content/professions/mesmer/specializations/mirage/skills/index.js';
-import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/skills/execution.js';
+import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/execution/index.js';
 import { MIRAGE_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
 
 export const mirageModule = defineNativeModule({

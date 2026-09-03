@@ -7,9 +7,7 @@ import {
 } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/stances.js';
 import {
   handleLightAuraDetonate,
-  handleLightAuraGrant,
-  handleLightFieldStart,
-  handleLightFinisher
+  handleLightAuraGrant
 } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/light-fields.js';
 
 export const luminaryEventHandlers = Object.freeze({
@@ -19,9 +17,7 @@ export const luminaryEventHandlers = Object.freeze({
   'guardian.effulgent-activated': handleEffulgentActivated,
   'guardian.effulgent-detonate': handleEffulgentDetonate,
   'guardian.luminary.light-aura-detonate': handleLightAuraDetonate,
-  'guardian.luminary.light-aura-grant': handleLightAuraGrant,
-  'guardian.luminary.light-field-start': handleLightFieldStart,
-  'guardian.luminary.light-finisher': handleLightFinisher
+  'guardian.luminary.light-aura-grant': handleLightAuraGrant
 });
 
 export const luminaryEventReactions = Object.freeze({

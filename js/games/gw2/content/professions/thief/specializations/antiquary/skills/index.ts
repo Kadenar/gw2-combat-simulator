@@ -560,7 +560,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.SKRITT_SWIPE]: {
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Runs steal traits, pilfers artifacts, and applies swipe traits; see `antiquary/skills/execution.ts`.
+    // Custom: Runs steal traits, pilfers artifacts, and applies swipe traits; see `antiquary/execution/index.ts`.
     handlerId: 'thief.skritt-swipe',
     quicknessCastTimeMs: 200,
     cooldown: 25,

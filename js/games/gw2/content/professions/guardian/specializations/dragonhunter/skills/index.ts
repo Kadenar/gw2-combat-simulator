@@ -1,6 +1,6 @@
 /**
  * Owns Dragonhunter virtue and trap skill fragments.
- * Runtime virtue and trap behavior remains under `mechanics/` and `execution.ts`.
+ * Runtime virtue and trap behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
@@ -9,7 +9,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   [ID.SPEAR_OF_JUSTICE]: {
     quicknessCastTimeMs: 560,
     cooldown: 20,
-    // Custom: Tracks the tether, decorates its strike, and schedules justice pulses; see `dragonhunter/skills/execution.ts`.
+    // Custom: Tracks the tether, decorates its strike, and schedules justice pulses; see `dragonhunter/execution/virtues.ts`.
     handlerId: 'guardian.dragonhunter-justice',
     // The completed tether activation exposes Hunter's Verdict for the tether window.
     mechanicTriggers: [
@@ -51,7 +51,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   [ID.WINGS_OF_RESOLVE]: {
     castTimeMs: 0,
     cooldown: 25,
-    // Custom: Runs the core virtue transition plus Dragonhunter virtue traits; see `dragonhunter/skills/execution.ts`.
+    // Custom: Runs the core virtue transition plus Dragonhunter virtue traits; see `dragonhunter/execution/virtues.ts`.
     handlerId: 'guardian.dragonhunter-virtue',
     effects: []
   },
@@ -112,7 +112,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   [ID.HUNTERS_VERDICT]: {
     castTimeMs: 0,
     cooldown: 40,
-    // Custom: Breaks the active Spear of Justice tether and cancels later pulses; see `dragonhunter/skills/execution.ts`.
+    // Custom: Breaks the active Spear of Justice tether and cancels later pulses; see `dragonhunter/execution/virtues.ts`.
     handlerId: 'guardian.hunters-verdict',
     effects: [
       {

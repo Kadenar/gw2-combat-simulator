@@ -15,7 +15,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: []
   },
   [ID.PREPARE_THOUSAND_NEEDLES]: {
-    // Custom: Stores the prepared trap and exposes its activation skill; see `core/skills/traps.ts`.
+    // Custom: Stores the prepared trap and exposes its activation skill; see `core/mechanics/preparations.ts`.
     handlerId: 'thief.prepare-trap',
     quicknessCastTimeMs: 600,
     cooldown: 30,
@@ -74,7 +74,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.SPIDER_VENOM]: {
-    // Custom: Arms per-recipient venom charges and proc state; see `core/skills/venoms.ts`.
+    // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.
     handlerId: 'thief.venom',
     castTimeMs: 0,
     cooldown: 30,
@@ -115,7 +115,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: []
   },
   [ID.SKALE_VENOM]: {
-    // Custom: Arms per-recipient venom charges and proc state; see `core/skills/venoms.ts`.
+    // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.
     handlerId: 'thief.venom',
     castTimeMs: 0,
     cooldown: 30,
@@ -125,7 +125,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.PREPARE_PITFALL]: {
-    // Custom: Stores the prepared trap and exposes its activation skill; see `core/skills/traps.ts`.
+    // Custom: Stores the prepared trap and exposes its activation skill; see `core/mechanics/preparations.ts`.
     handlerId: 'thief.prepare-trap',
     castTimeMs: 500,
     cooldown: 25,
@@ -326,7 +326,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.DEVOURER_VENOM]: {
-    // Custom: Arms per-recipient venom charges and proc state; see `core/skills/venoms.ts`.
+    // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.
     handlerId: 'thief.venom',
     castTimeMs: 0,
     cooldown: 40,
@@ -348,7 +348,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: []
   },
   [ID.PITFALL]: {
-    // Custom: Consumes the prepared trap and emits its activation effects; see `core/skills/traps.ts`.
+    // Custom: Consumes the prepared trap and emits its activation effects; see `core/mechanics/preparations.ts`.
     handlerId: 'thief.activate-trap',
     castTimeMs: 0,
     cooldown: 3,
@@ -394,7 +394,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.THOUSAND_NEEDLES]: {
-    // Custom: Consumes the prepared trap and emits its activation effects; see `core/skills/traps.ts`.
+    // Custom: Consumes the prepared trap and emits its activation effects; see `core/mechanics/preparations.ts`.
     handlerId: 'thief.activate-trap',
     castTimeMs: 0,
     cooldown: 0,

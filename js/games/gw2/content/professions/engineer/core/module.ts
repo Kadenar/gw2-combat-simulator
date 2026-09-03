@@ -6,7 +6,7 @@ import {
 } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
-import { engineerCoreSkillHandlers } from '#gw2/content/professions/engineer/core/skills/execution.js';
+import { engineerCoreSkillHandlers } from '#gw2/content/professions/engineer/core/execution/index.js';
 import {
   engineerCoreAttributeRules,
   engineerCoreCastRules,

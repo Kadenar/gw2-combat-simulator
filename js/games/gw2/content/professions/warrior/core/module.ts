@@ -7,7 +7,7 @@ import {
   WARRIOR_SWAP_WEAPONS,
   WARRIOR_WEAPON_STOW
 } from '#gw2/content/professions/warrior/core/skills/index.js';
-import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/skills/execution.js';
+import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/execution/index.js';
 import { warriorCoreSkillMechanicHandlers } from '#gw2/content/professions/warrior/core/traits/index.js';
 import {
   warriorCoreAttributeRules,

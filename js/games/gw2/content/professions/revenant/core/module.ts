@@ -11,11 +11,11 @@ import { createRevenantCoreState } from '#gw2/content/professions/revenant/core/
 import { projectRevenantEndState } from '#gw2/content/professions/revenant/state.js';
 import { revenantCoreUi } from '#gw2/content/professions/revenant/core/presentation.js';
 import {
-  REVENANT_CORE_BALANCE_PROFILES,
   REVENANT_CORE_BASE_SKILL_MECHANICS,
   REVENANT_CORE_EXTRA_SKILLS
 } from '#gw2/content/professions/revenant/core/skills/index.js';
-import { revenantCoreSkillHandlers } from '#gw2/content/professions/revenant/core/skills/execution.js';
+import { REVENANT_CORE_BALANCE_PROFILES } from '#gw2/content/professions/revenant/core/profiles.js';
+import { revenantCoreSkillHandlers } from '#gw2/content/professions/revenant/core/execution/index.js';
 import type { RevenantSchedulerContext } from '#gw2/content/professions/revenant/types.js';
 
 export const revenantCoreModule = defineNativeModule({

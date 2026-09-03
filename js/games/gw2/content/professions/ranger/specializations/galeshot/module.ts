@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import { createRangerModuleData } from '#gw2/content/professions/ranger/catalog/module-data.js';
-import { galeshotSkillHandlers } from '#gw2/content/professions/ranger/specializations/galeshot/skills/execution.js';
+import { galeshotSkillHandlers } from '#gw2/content/professions/ranger/specializations/galeshot/execution/index.js';
 import {
   galeshotAttributeRules,
   galeshotCastRules,

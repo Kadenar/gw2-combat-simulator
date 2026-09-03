@@ -50,6 +50,8 @@ function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: Guar
         hitIndex: index + 1,
         totalHits: ticks.length,
         isSymbol: true,
+        // The first symbol pulse owns its four-second Light field for shared combo resolution.
+        comboFields: index === 0 ? [{ ownerId: 'guardian', fieldType: 'Light', duration: 4 }] : undefined,
         triggeredBy: skill.name
       })
     );

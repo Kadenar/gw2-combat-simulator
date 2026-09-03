@@ -12,23 +12,35 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 
+// Locks the named Mesmer effect boundaries so generic runtime filenames cannot return.
 test('Mesmer skill damage scheduling is split into focused modules', () => {
   const core = new URL('../../../js/games/gw2/content/professions/mesmer/core/', import.meta.url);
 
   for (const path of [
     'mechanics/illusions/clone-attacks.ts',
     'mechanics/illusions/phantasms.ts',
-    'skills/damage.ts',
     'mechanics/illusions/resources.ts',
-    'skills/special-effects.ts',
-    'skills/effects.ts'
+    'skills/actions.ts',
+    'execution/effect-controller.ts',
+    'execution/effect-types.d.ts',
+    'execution/packet-emission.ts',
+    'execution/skill-effects.ts',
+    'skills/supplemental-skills.ts'
   ]) {
     assert.equal(existsSync(new URL(path, core)), true, path);
   }
 
-  assert.equal(existsSync(new URL('illusions.ts', core)), false);
+  for (const path of [
+    'illusions.ts',
+    'skills/damage.ts',
+    'skills/effects.ts',
+    'skills/special-effects.ts',
+    'skills/types.d.ts'
+  ]) {
+    assert.equal(existsSync(new URL(path, core)), false, path);
+  }
 
-  const pipeline = readFileSync(new URL('skills/effects.ts', core), 'utf8');
+  const pipeline = readFileSync(new URL('execution/effect-controller.ts', core), 'utf8');
 
   assert.match(pipeline, /createPhantasmEffectController/);
   assert.match(pipeline, /createSkillDamageController/);

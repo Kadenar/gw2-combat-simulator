@@ -24,7 +24,7 @@ import { warriorCoreModule } from '#gw2/content/professions/warrior/core/module.
 import { warriorAppAdapter } from '#gw2/content/professions/warrior/app/app-definition.js';
 import { createWarriorCoreState } from '#gw2/content/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/core/profiles.js';
-import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/skills/execution.js';
+import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/execution/index.js';
 import { DATA_SNAPSHOT } from '#gw2/content/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
@@ -313,7 +313,7 @@ test('Warrior Core does not own elite resource, cast, UI, or trait branches', as
   const sources = await Promise.all(
     [
       'mechanics/availability.ts',
-      'skills/execution.ts',
+      'execution/index.ts',
       'mechanics/adrenaline-and-endurance.ts',
       'state.ts',
       'traits/index.ts',

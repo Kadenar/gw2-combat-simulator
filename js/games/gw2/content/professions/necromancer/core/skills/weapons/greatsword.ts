@@ -47,7 +47,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         controlKind: 'pull'
       }
     ],
-    // Custom: Checks projectile commitment and grants life force on the committed hit; see `core/skills/weapons.ts`.
+    // Custom: Checks projectile commitment and grants life force on the committed hit; see `core/execution/greatsword.ts`.
     handlerId: 'necromancer.grasping-darkness'
   },
   [ID.NIGHTFALL]: {
@@ -88,7 +88,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         persistsAfterInterrupt: true
       }
     ],
-    // Custom: Checks field commitment and grants life force with each committed pulse; see `core/skills/weapons.ts`.
+    // Custom: Checks field commitment and grants life force with each committed pulse; see `core/execution/greatsword.ts`.
     handlerId: 'necromancer.nightfall'
   },
   [ID.CHILLING_SCYTHE]: {
@@ -114,7 +114,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
       }
     ],
     lifeForceGain: 5,
-    // Custom: Resets Gravedigger after a committed strike; see `core/skills/weapons.ts`.
+    // Custom: Resets Gravedigger after a committed strike; see `core/execution/greatsword.ts`.
     handlerId: 'necromancer.chilling-scythe'
   },
   [ID.GRAVEDIGGER]: {

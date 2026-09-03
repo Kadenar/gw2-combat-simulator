@@ -46,7 +46,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     lifeForceGain: 12,
-    // Custom: Adds Soul Shards on the first committed hit; see `core/skills/weapons.ts`.
+    // Custom: Adds Soul Shards on the first committed hit; see `core/execution/spear.ts`.
     handlerId: 'necromancer.extirpate'
   },
   [ID.DARK_SLASH]: {
@@ -71,7 +71,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     lifeForceGain: 10,
-    // Custom: Applies the shard-gated immobilize, defiance bonus, life force, and Soul Shards; see `core/skills/weapons.ts`.
+    // Custom: Applies the shard-gated immobilize, defiance bonus, life force, and Soul Shards; see `core/execution/spear.ts`.
     handlerId: 'necromancer.addle'
   },
   [ID.DEADLY_SLICE]: {
@@ -84,7 +84,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'cast'
       }
     ],
-    // Custom: Adds one Soul Shard after the attack; see `core/skills/weapons.ts`.
+    // Custom: Adds one Soul Shard after the attack; see `core/execution/spear.ts`.
     handlerId: 'necromancer.deadly-slice'
   },
   [ID.SINISTER_STAB]: {
@@ -108,7 +108,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     lifeForceGain: 5,
-    // Custom: Adds one Soul Shard after the attack; see `core/skills/weapons.ts`.
+    // Custom: Adds one Soul Shard after the attack; see `core/execution/spear.ts`.
     handlerId: 'necromancer.sinister-stab'
   },
   [ID.PERFORATE]: {
@@ -159,7 +159,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         ]
       }
     ],
-    // Custom: Snapshots/consumes Soul Shards and emits one shard hit per eligible packet; see `core/skills/weapons.ts`.
+    // Custom: Snapshots/consumes Soul Shards and emits one shard hit per eligible packet; see `core/execution/spear.ts`.
     handlerId: 'necromancer.perforate'
   },
   [ID.ISOLATE]: {
@@ -194,7 +194,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.DISTRESS]: {
     castTimeMs: 0,
     effects: [],
-    // Custom: Consumes the flip, refreshes Perforate, and grants Soul Shards; see `core/skills/weapons.ts`.
+    // Custom: Consumes the flip, refreshes Perforate, and grants Soul Shards; see `core/execution/spear.ts`.
     handlerId: 'necromancer.distress'
   }
 });

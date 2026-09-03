@@ -1,6 +1,6 @@
 /**
- * Raw Chronomancer skill mechanics. Generated once from the characterized
- * pre-migration table; this file is now the runtime source owner.
+ * Owns Chronomancer well, profession-skill, and Continuum action catalog data.
+ * Continuum Split, Time Bomb, and shatter behavior live under `mechanics/` and `traits/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';

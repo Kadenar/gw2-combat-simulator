@@ -840,7 +840,6 @@ const guardianInactiveStateKeys = Object.freeze({
     'empoweredArmamentsUntil',
     'piercingStanceUntil',
     'lightAuraUntil',
-    'lightFields',
     'radiantJusticeArmed',
     'radiantCourageSwordArmed',
     'radiantCourageShieldArmed',

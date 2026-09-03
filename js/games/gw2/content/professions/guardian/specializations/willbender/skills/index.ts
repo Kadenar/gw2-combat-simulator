@@ -1,6 +1,6 @@
 /**
  * Owns Willbender virtue and physical skill fragments.
- * Runtime virtue behavior remains under `mechanics/` and `execution.ts`.
+ * Runtime virtue behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
@@ -29,7 +29,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.CRASHING_COURAGE]: {
     quicknessCastTimeMs: 680,
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/skills/execution.ts`.
+    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: [
       {
@@ -138,7 +138,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 520,
     unaffectedByQuickness: true,
     ammoCastLockout: 0.5,
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/skills/execution.ts`.
+    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: []
   },
@@ -172,7 +172,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.RUSHING_JUSTICE]: {
     quicknessCastTimeMs: 480,
     rechargeAnchor: 'castStart',
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/skills/execution.ts`.
+    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: [
       {

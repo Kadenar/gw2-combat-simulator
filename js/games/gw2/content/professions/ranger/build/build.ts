@@ -11,7 +11,7 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids
 import {
   normalizeRangerHammerSkillIds,
   RANGER_HAMMER_VARIANT_PAIRS
-} from '#gw2/content/professions/ranger/core/skills/hammer.js';
+} from '#gw2/content/professions/ranger/core/mechanics/hammer-variants.js';
 import type { RangerCanonicalBuild } from '#gw2/content/professions/ranger/types.js';
 import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 

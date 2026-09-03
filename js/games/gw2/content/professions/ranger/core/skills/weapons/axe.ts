@@ -1,6 +1,6 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RICOCHET]: {
@@ -93,7 +93,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       }
     ],
     quicknessCastTimeMs: 520,
-    // Custom: Arms the Winter's Bite follow-up state; see `core/skills/execution.ts`.
+    // Custom: Arms the Winter's Bite follow-up state; see `core/execution/index.ts`.
     handlerId: 'ranger.winters-bite',
     missileHits: 1
   },
@@ -164,3 +164,56 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     quicknessCastTimeMs: 2720
   }
 });
+
+/** Owns the max-range Path of Scars identity beside the canonical Axe fragment. */
+export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  {
+    id: ID.PATH_OF_SCARS_MAX_RANGE,
+    interruptCommitMs: 360,
+    name: 'Path of Scars (Max Range)',
+    description: 'Throw your axe from maximum range so its returning strike lands later.',
+    icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',
+    variantBadge: 'MAX',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_4',
+    quicknessCastTimeMs: 440,
+    rechargeAnchor: 'castStart',
+    cooldown: 15,
+    missileHits: 2,
+    // Both range variants share the same weapon-slot recharge after completion.
+    mechanicTriggers: [
+      {
+        type: 'ranger.core.sync-path-of-scars-cooldown',
+        timingAnchor: 'castEnd'
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 400, coefficient: 1.2 },
+          { atMs: 1640, coefficient: 1.2 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      },
+      {
+        type: 'control',
+        atMs: 1640,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        controlKind: 'pull'
+      }
+    ]
+  }
+]);

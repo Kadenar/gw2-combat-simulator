@@ -6,7 +6,7 @@ import {
   onResolvedDamage
 } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createRangerModuleData } from '#gw2/content/professions/ranger/catalog/module-data.js';
-import { soulbeastSkillHandlers } from '#gw2/content/professions/ranger/specializations/soulbeast/skills/execution.js';
+import { soulbeastSkillHandlers } from '#gw2/content/professions/ranger/specializations/soulbeast/execution/index.js';
 import {
   soulbeastAttributeRules,
   soulbeastCastRules,

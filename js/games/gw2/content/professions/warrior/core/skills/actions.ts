@@ -44,7 +44,7 @@ export const WARRIOR_DODGE: Skill = Object.freeze({
   unaffectedByQuickness: true,
   rechargeAnchor: 'castStart',
   simulatorExcluded: false,
-  // Custom: Spends endurance and applies Reckless Dodge; see `core/skills/execution.ts`.
+  // Custom: Spends endurance and applies Reckless Dodge; see `core/execution/index.ts`.
   handlerId: 'warrior.dodge',
   effects: []
 });

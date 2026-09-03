@@ -13,7 +13,7 @@ import {
   applyLegendInvocationTraits,
   revenantCombatActive
 } from '#gw2/content/professions/revenant/core/traits/index.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/profiles.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/content/professions/revenant/types.js';
 
 export { revenantCombatActive };

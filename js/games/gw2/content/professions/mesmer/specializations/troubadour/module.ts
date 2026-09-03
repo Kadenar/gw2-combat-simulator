@@ -14,7 +14,7 @@ import {
   MESMER_TROUBADOUR_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/content/professions/mesmer/specializations/troubadour/skills/index.js';
-import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/skills/execution.js';
+import { mesmerReplaceProfile } from '#gw2/content/professions/mesmer/core/execution/index.js';
 import { TROUBADOUR_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
 
 export const troubadourModule = defineNativeModule({

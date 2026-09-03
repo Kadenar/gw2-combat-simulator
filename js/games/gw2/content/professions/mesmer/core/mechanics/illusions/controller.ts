@@ -33,11 +33,14 @@ import {
   mesmerProfiledShatters,
   mesmerProfiledTraitDamage
 } from '#gw2/content/professions/mesmer/core/profiles.js';
-import { createSkillEffectController } from '#gw2/content/professions/mesmer/core/skills/effects.js';
+import { createSkillEffectController } from '#gw2/content/professions/mesmer/core/execution/effect-controller.js';
 import { createCloneAttackScheduler } from '#gw2/content/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { createExpectedProcTracker } from '#gw2/content/professions/mesmer/core/mechanics/illusions/expected-procs.js';
 import { createMesmerEventMaterializer } from '#gw2/content/professions/mesmer/core/mechanics/illusions/event-materializer.js';
-import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/content/professions/mesmer/core/skills/types.js';
+import type {
+  MesmerActiveEmission,
+  MesmerCastDetails
+} from '#gw2/content/professions/mesmer/core/execution/effect-types.js';
 import type {
   MesmerClone,
   MesmerPhantasmAttackTiming

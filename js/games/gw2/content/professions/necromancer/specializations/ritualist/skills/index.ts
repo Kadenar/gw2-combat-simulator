@@ -58,7 +58,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
-    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/skills/weapon-spells.ts`.
+    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/execution/weapon-spells.ts`.
     handlerId: 'necromancer.weapon-spell'
   },
   [ID.WEAPON_OF_WARDING]: {
@@ -122,7 +122,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
-    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/skills/weapon-spells.ts`.
+    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/execution/weapon-spells.ts`.
     handlerId: 'necromancer.weapon-spell'
   },
   [ID.INNERVATE_ANGUISH]: {
@@ -181,7 +181,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
-    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/skills/weapon-spells.ts`.
+    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/execution/weapon-spells.ts`.
     handlerId: 'necromancer.weapon-spell'
   }
 });

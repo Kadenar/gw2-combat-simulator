@@ -1,7 +1,7 @@
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { vindicatorState } from '#gw2/content/professions/revenant/specializations/vindicator/state.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/profiles.js';
 import type { RevenantPrecastContext, RevenantRechargeContext } from '#gw2/content/professions/revenant/types.js';
 
 export function modifyVindicatorCastDuration(context: RevenantPrecastContext, duration: number): number {

@@ -4,7 +4,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import { emitRevenantStateSnapshot } from '#gw2/content/professions/revenant/state.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type {

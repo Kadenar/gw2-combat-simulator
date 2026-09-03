@@ -2,7 +2,7 @@ import { defineNativeModule } from '#gw2/integrations/patches/authoring/professi
 import { onResolvedControl, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
 import { createWarriorModuleData } from '#gw2/content/professions/warrior/catalog/module-data.js';
 import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/content/professions/warrior/specializations/spellbreaker/skills/index.js';
-import { spellbreakerSkillHandlers } from '#gw2/content/professions/warrior/specializations/spellbreaker/skills/execution.js';
+import { spellbreakerSkillHandlers } from '#gw2/content/professions/warrior/specializations/spellbreaker/execution/index.js';
 import {
   reactToSpellbreakerControl,
   reactToSpellbreakerDamage
