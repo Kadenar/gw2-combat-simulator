@@ -1,32 +1,29 @@
 import {
   committedActionsFromStrikePackets,
+  isRecordedAutoattack,
   quicknessRuntimeDurationMs
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import { normalized, skillForAction } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
+import { skillForAction } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
 
 const MAX_AUTOATTACK_IMPACT_MS = 2000;
 const AUTOATTACK_COMPLETION_TOLERANCE_MS = 75;
-
-function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
-  return normalized(skillForAction(context, action)?.slot) === 'weapon_1';
-}
 
 export function removeUncommittedEngineerAutoattacks(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const autoattacks = actions.filter((action) => isAutoattack(context, action));
+  const autoattacks = actions.filter((action) => isRecordedAutoattack(context, action));
   const committed = committedActionsFromStrikePackets(context, autoattacks, {
     maxFallbackImpactMs: MAX_AUTOATTACK_IMPACT_MS
   });
-  const retained = actions.filter((action) => !isAutoattack(context, action) || committed.has(action));
+  const retained = actions.filter((action) => !isRecordedAutoattack(context, action) || committed.has(action));
 
   return retained.map((action) => {
-    if (!isAutoattack(context, action) || !committed.has(action)) return action;
+    if (!isRecordedAutoattack(context, action) || !committed.has(action)) return action;
     const skill = skillForAction(context, action);
     const runtimeDuration = quicknessRuntimeDurationMs(skill);
     const observedDuration = Math.max(0, action.end - action.start);

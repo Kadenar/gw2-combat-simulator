@@ -1,5 +1,7 @@
-import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import {
+  committedActionsFromStrikePackets,
+  isRecordedAutoattack
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -51,12 +53,6 @@ function addMissingWindsOfChaosActions(
   return [...actions, ...inferred];
 }
 
-/** Resolves an action against the active catalog and reports whether it occupies the weapon-autoattack slot. */
-function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
-  const skill = recordedActionSkill(action, context);
-  return String(skill?.slot || '').toLowerCase() === 'weapon_1';
-}
-
 /**
  * Removes completed Mesmer autoattack animations that lack a confirming player strike, preserves interrupted chain
  * attempts, and restores missing Winds of Chaos casts from their damage packets.
@@ -65,12 +61,12 @@ export function removeUncommittedMesmerAutoattacks(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const autoattacks = actions.filter((action) => isAutoattack(context, action));
+  const autoattacks = actions.filter((action) => isRecordedAutoattack(context, action));
   const committed = committedActionsFromStrikePackets(context, autoattacks, {
     maxFallbackImpactMs: MAX_AUTOATTACK_IMPACT_MS
   });
   const filtered = actions.filter((action) => {
-    if (!isAutoattack(context, action)) return true;
+    if (!isRecordedAutoattack(context, action)) return true;
     if (
       action.status === 'interrupted' &&
       String(action.canonicalName || action.rawName).toLowerCase() === 'winds of chaos'

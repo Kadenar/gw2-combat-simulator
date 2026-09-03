@@ -1,5 +1,7 @@
-import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import {
+  committedActionsFromStrikePackets,
+  isRecordedAutoattack
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -16,24 +18,19 @@ const CRIPPLING_STRIKE = Object.freeze({
   skillId: 13116
 });
 
-function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
-  const skill = recordedActionSkill(action, context);
-  return String(skill?.slot || '').toLowerCase() === 'weapon_1';
-}
-
 export function normalizeThiefAnimations(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const sorted = [...context.recordedActions].sort(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );
   const normalized: EvtcRecordedRotationAction[] = [];
-  const autoattacks = sorted.filter((action) => isAutoattack(context, action));
+  const autoattacks = sorted.filter((action) => isRecordedAutoattack(context, action));
   const committed = committedActionsFromStrikePackets(context, autoattacks, {
     maxFallbackImpactMs: 2_000
   });
   for (const action of sorted) {
     if (action.rawSkillId === MOVEMENT_ARTIFACT_FOLLOW_UP_ANIMATION) continue;
     if (action.rawSkillId === DAREDEVIL_DODGE_ANIMATION) continue;
-    if (action.status === 'interrupted' && isAutoattack(context, action)) {
+    if (action.status === 'interrupted' && isRecordedAutoattack(context, action)) {
       if (committed.has(action)) {
         normalized.push(action);
       }

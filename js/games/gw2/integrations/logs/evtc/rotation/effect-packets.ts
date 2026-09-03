@@ -56,6 +56,14 @@ export function skillForAction(
   return recordedActionSkill(action, context);
 }
 
+/** Resolves a recorded action against the active catalog and identifies weapon-slot-one autoattacks. */
+export function isRecordedAutoattack(
+  context: EvtcProfessionReconstructionContext,
+  action: EvtcRecordedRotationAction
+): boolean {
+  return normalized(skillForAction(context, action)?.slot) === 'weapon_1';
+}
+
 export { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, strikePacketOffsets };
 
 /** Reads the strike definition retained by a profession handler after it replaces the shared effect runner. */

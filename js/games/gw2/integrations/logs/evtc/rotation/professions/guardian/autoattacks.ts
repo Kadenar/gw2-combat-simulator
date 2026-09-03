@@ -1,5 +1,8 @@
 import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import {
+  committedActionsFromStrikePackets,
+  isRecordedAutoattack
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -33,11 +36,6 @@ function removePairedDaybreakingSlashAnimations(
       .map((action) => action.start)
   );
   return actions.filter((action) => action.rawSkillId !== DAYBREAKING_SLASH_ID || !alternateStarts.has(action.start));
-}
-
-function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
-  const skill = recordedActionSkill(action, context);
-  return String(skill?.slot || '').toLowerCase() === 'weapon_1';
 }
 
 function resetsAutoattackChain(
@@ -103,11 +101,11 @@ function removeUncommittedAutoattacks(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const autoattacks = actions.filter((action) => isAutoattack(context, action));
+  const autoattacks = actions.filter((action) => isRecordedAutoattack(context, action));
   const committed = committedActionsFromStrikePackets(context, autoattacks, {
     maxFallbackImpactMs: MAX_AUTOATTACK_IMPACT_MS
   });
-  return actions.filter((action) => !isAutoattack(context, action) || committed.has(action));
+  return actions.filter((action) => !isRecordedAutoattack(context, action) || committed.has(action));
 }
 
 export function normalizeGuardianAutoattacks(
