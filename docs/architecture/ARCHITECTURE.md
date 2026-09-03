@@ -465,10 +465,9 @@ The current persisted schema is:
 Each profession owns defaults, explicit version migrations, and resource-specific normalization and validation. Native
 professions configure the shared `js/games/gw2/platform/builds/codec.ts` factory, which owns common schema migration,
 sanitization, and validation for gear, weapons, sigils, relics, infusions, runes, consumables, specializations,
-specialization-available slot skills, targets, and canonical rotation timing. The existing `gw2-mesmer-simulator-v2`
-localStorage key is kept so saved builds migrate in place. Browser state uses a compatibility view of rotation entries;
-storage and the simulator contract use normalized commands. Stored local data may fall back to defaults when unreadable,
-while explicit user imports preserve wrong-profession and future-version errors.
+specialization-available slot skills, targets, and canonical rotation timing. Browser state uses a compatibility view of
+rotation entries; storage and the simulator contract use normalized commands. Stored local data may fall back to
+defaults when unreadable, while explicit user imports preserve wrong-profession and future-version errors.
 
 ## Included professions
 

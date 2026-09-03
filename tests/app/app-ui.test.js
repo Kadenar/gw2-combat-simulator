@@ -908,7 +908,7 @@ test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
 
   assert.equal(energyPreset.build, 'data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json');
   assert.equal(hydroPreset.build, 'data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json');
-  assert.equal(energyPreset.rotation, 'data/gw2/rotations/revenant/r-power-vindicator-greatsword-benchmark.json');
+  assert.equal(energyPreset.rotation, 'data/gw2/rotations/revenant/r-power-vindicator-greatsword-bench.json');
   assert.equal(Object.hasOwn(hydroPreset, 'rotation'), false);
   assert.equal(Object.hasOwn(energySaved, 'rotation'), false);
   assert.equal(Object.hasOwn(hydroSaved, 'rotation'), false);
