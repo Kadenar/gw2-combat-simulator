@@ -107,7 +107,17 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     // between those bounds are safe interrupts and the committed symbol keeps pulsing afterward.
     interruptCommitMs: 240,
     rechargeAnchor: 'castStart',
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 200, startAnchor: 'castStart' }],
+    comboFields: [
+      {
+        ownerId: 'guardian',
+        fieldType: 'Light',
+        duration: 4,
+        startMs: 200,
+        startAnchor: 'castStart',
+        // The final pulse can share a server timestamp with a successful finisher, so keep that boundary eligible.
+        inclusiveExpiry: true
+      }
+    ],
     effects: [
       {
         type: 'strike',

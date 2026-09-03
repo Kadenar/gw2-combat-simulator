@@ -1067,6 +1067,23 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
   assert.ok(dazzlingBound.endState.profession.lightAuraUntil > 0);
 });
 
+test('Dazzling Hammer combos at the Symbol of Resolution expiry boundary', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 3440 }, 'Enter Radiant Forge', 'Dazzling Hammer'],
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword',
+      boons: { quickness: true }
+    }
+  });
+  const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Dazzling Hammer');
+
+  assert.equal(combo.at, 4.2);
+  assert.deepEqual([combo.fieldType, combo.finisherType], ['Light', 'Blast']);
+});
+
 test('Sovereign of Light ignores a core leap that refreshes Light Aura', () => {
   const result = simulateGw2({
     profession: guardianProfession,
