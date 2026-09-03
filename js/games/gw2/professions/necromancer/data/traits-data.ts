@@ -1,11 +1,8 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
 import type { NecromancerApiTrait } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
-import { createProfessionTraitData } from '#gw2/professions/lib/traits.js';
+import { createProfessionTraitData, type ProfessionTraitSelection } from '#gw2/professions/lib/traits.js';
 
-export interface NecromancerSpecializationSelection {
-  readonly name?: string;
-  readonly traits?: string;
-}
+export type NecromancerSpecializationSelection = ProfessionTraitSelection;
 
 export const {
   specializations: SPECIALIZATIONS,

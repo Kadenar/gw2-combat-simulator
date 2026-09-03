@@ -18,11 +18,9 @@ import type {
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/lib/traits.js';
 
-export interface RevenantSpecializationSelection {
-  readonly name?: string;
-  readonly traits?: string;
-}
+export type RevenantSpecializationSelection = ProfessionTraitSelection;
 
 export interface RevenantSkill extends Skill {
   readonly affinityOnHit?: boolean;

@@ -21,11 +21,9 @@ import type {
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2HitResolutionContext, Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/lib/traits.js';
 
-export interface EngineerSpecializationSelection {
-  readonly name?: string;
-  readonly traits?: string;
-}
+export type EngineerSpecializationSelection = ProfessionTraitSelection;
 
 export interface EngineerBuild extends Gw2Build {
   specializations?: EngineerSpecializationSelection[];
