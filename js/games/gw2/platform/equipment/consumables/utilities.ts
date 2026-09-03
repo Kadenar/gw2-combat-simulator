@@ -1,7 +1,4 @@
 /** Owns utility consumable conversions, flat stats, and UI groupings. */
-function sortNames(names: Iterable<string>): string[] {
-  return [...names].sort((a, b) => a.localeCompare(b));
-}
 
 // ─── Utility Conversions ─────────────────────────────────────────────────────
 // Percentage of the source stat (from conversion base pool) added to target stat.
@@ -74,7 +71,9 @@ export const UTILITY_STAT_DATA = {
   'Writ of Masterful Malice': { 'Condition Damage': 200 }
 };
 
-export const UTILITY_NAMES = sortNames([...new Set([...Object.keys(UTILITY_DATA), ...Object.keys(UTILITY_STAT_DATA)])]);
+export const UTILITY_NAMES = [...new Set([...Object.keys(UTILITY_DATA), ...Object.keys(UTILITY_STAT_DATA)])].sort(
+  (a, b) => a.localeCompare(b)
+);
 
 export const UTILITY_GROUPS = [
   {

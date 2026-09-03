@@ -1,7 +1,4 @@
 /** Owns rune catalog data and its UI groupings. */
-function sortNames(names: Iterable<string>): string[] {
-  return [...names].sort((a, b) => a.localeCompare(b));
-}
 
 // ─── Rune Data ────────────────────────────────────────────────────────────────
 // stats: flat attribute bonuses (feed into conversion pool, treated as "converted")
@@ -150,7 +147,7 @@ export const RUNE_DATA = {
   }
 };
 
-export const RUNE_NAMES = sortNames(Object.keys(RUNE_DATA));
+export const RUNE_NAMES = [...Object.keys(RUNE_DATA)].sort((a, b) => a.localeCompare(b));
 
 export const RUNE_GROUPS = [
   { label: 'Power', items: ['Dragonhunter', 'Scholar'] },

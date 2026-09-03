@@ -710,11 +710,7 @@ export const GEAR_STATS = {
   }
 };
 
-function sortNames(names: Iterable<string>): string[] {
-  return [...names].sort((a, b) => a.localeCompare(b));
-}
-
-export const PREFIXES = sortNames(Object.keys(GEAR_STATS));
+export const PREFIXES = [...Object.keys(GEAR_STATS)].sort((a, b) => a.localeCompare(b));
 
 const GEAR_STATS_LOOKUP = GEAR_STATS as Readonly<
   Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>

@@ -1,7 +1,4 @@
 /** Owns food catalog data, proc metadata, and UI groupings. */
-function sortNames(names: Iterable<string>): string[] {
-  return [...names].sort((a, b) => a.localeCompare(b));
-}
 
 // ─── Food Data ────────────────────────────────────────────────────────────────
 // isConverted: true  → stats feed into the conversion pool (subject to utility/trait conversions)
@@ -250,7 +247,7 @@ const FOOD_CATALOG = {
 
 export const FOOD_DATA = Object.fromEntries(Object.values(FOOD_CATALOG).flatMap((foods) => Object.entries(foods)));
 
-export const FOOD_NAMES = sortNames(Object.keys(FOOD_DATA));
+export const FOOD_NAMES = [...Object.keys(FOOD_DATA)].sort((a, b) => a.localeCompare(b));
 
 export const FOOD_GROUPS = Object.entries(FOOD_CATALOG).map(([label, foods]) => ({
   label,

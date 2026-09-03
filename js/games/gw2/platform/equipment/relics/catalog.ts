@@ -1,7 +1,4 @@
 /** Owns selectable relic metadata and equipment-level timing modifiers. */
-function sortNames(names: Iterable<string>): string[] {
-  return [...names].sort((a, b) => a.localeCompare(b));
-}
 
 // ─── Relic Data ───────────────────────────────────────────────────────────────
 // Runtime owns behavior; trigger text summarizes both activation and payoff for equipment UI.
@@ -110,7 +107,7 @@ export function relicWeaponSwapRechargeMultiplier(relicName: string | undefined)
   return relic && 'weaponSwapRechargeMultiplier' in relic ? Number(relic.weaponSwapRechargeMultiplier) : 1;
 }
 
-export const RELIC_NAMES = sortNames(Object.keys(RELIC_DATA));
+export const RELIC_NAMES = [...Object.keys(RELIC_DATA)].sort((a, b) => a.localeCompare(b));
 
 export const RELIC_GROUPS = [
   {
