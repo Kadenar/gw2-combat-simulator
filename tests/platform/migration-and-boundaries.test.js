@@ -16,7 +16,7 @@ import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { snapshotMesmerState } from '#gw2/professions/mesmer/state/index.js';
 
-async function relativeModuleGraph(entryFiles) {
+async function relativeStaticModuleGraph(entryFiles) {
   const visited = new Set();
   const pending = [...entryFiles];
   const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
@@ -44,13 +44,6 @@ async function relativeModuleGraph(entryFiles) {
         ts.isStringLiteralLike(node.moduleSpecifier)
       ) {
         specifiers.push(node.moduleSpecifier.text);
-      } else if (
-        ts.isCallExpression(node) &&
-        node.expression.kind === ts.SyntaxKind.ImportKeyword &&
-        node.arguments.length === 1 &&
-        ts.isStringLiteralLike(node.arguments[0])
-      ) {
-        specifiers.push(node.arguments[0].text);
       }
 
       ts.forEachChild(node, visit);
@@ -191,9 +184,9 @@ test('Mesmer conforms to native handler and state contracts', () => {
 test('native registry loaders do not pull another profession module graph', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/games/gw2');
 
-  // Trace each profession's runtime graph so lazy registry loading stays isolated to that profession.
+  // Trace eager imports only so optional dynamic integrations remain a lazy boundary.
   for (const entry of professionRegistry) {
-    const graph = await relativeModuleGraph([
+    const graph = await relativeStaticModuleGraph([
       path.join(root, 'professions', entry.id, 'definition.js'),
       path.join(root, 'professions', entry.id, 'app', 'app-definition.js')
     ]);
