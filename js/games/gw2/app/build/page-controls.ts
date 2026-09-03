@@ -61,6 +61,9 @@ export function bindPageControls(app: ProfessionAppState): void {
       app.changed();
     } catch (error) {
       alert(errorMessage(error));
+    } finally {
+      // Clear the selection so choosing the same file again still emits a change event.
+      importFileInput.value = '';
     }
   });
   requiredElement('btn-export-rotation').addEventListener('click', () =>
