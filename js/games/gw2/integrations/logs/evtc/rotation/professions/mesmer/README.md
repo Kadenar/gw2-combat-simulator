@@ -273,7 +273,7 @@ as another source within the 1,000 ms tail of the recovered cast. The result is 
 ## Focused tests
 
 Shatter extraction tests are in
-[`../../../../../tests/evtc/mesmer-rotation-reconstruction.test.js`](../../../../../tests/evtc/mesmer-rotation-reconstruction.test.js),
+[`tests/evtc/mesmer-rotation-reconstruction.test.js`](../../../../../../../../../tests/evtc/mesmer-rotation-reconstruction.test.js),
 including:
 
 - `reconstructs Chronomancer shatters and Continuum transitions`;

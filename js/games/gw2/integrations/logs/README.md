@@ -1,10 +1,10 @@
 # Log analyzers
 
-`log-analyzer` owns rotation reconstruction from recorded combat. It separates source parsing from rules that must be
-identical for EVTC and dps.report imports.
+`js/games/gw2/integrations/logs/` owns rotation reconstruction from recorded combat. It separates source parsing from
+rules that must be identical for EVTC and dps.report imports.
 
 ```text
-log-analyzer/
+js/games/gw2/integrations/logs/
 ├── lib/          Source-neutral contracts, catalog/profile lookup, scheduling, and reusable rules
 ├── evtc/         Raw ArcDPS parsing and EVTC-only evidence inference
 └── dps-report/   Elite Insights validation and report-only inference

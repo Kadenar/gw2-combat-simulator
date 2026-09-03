@@ -4309,6 +4309,31 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
   assert.ok(dazzlingBound.endState.profession.lightAuraUntil > 0);
 });
 
+test('Sovereign of Light ignores a core leap that refreshes Light Aura', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Radiant Justice', 'Leap of Faith'],
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword',
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+        GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
+        GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT
+      ]
+    }
+  });
+
+  // Justice is Blind supplies the first aura; the Light-field leap may refresh it but cannot detonate Sovereign.
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'aura' && event.skillName === 'Leap of Faith'));
+  assert.equal(
+    result.resolvedEvents.some((event) => event.name === 'Sovereign of Light'),
+    false
+  );
+  assert.ok(result.endState.profession.lightAuraUntil > 0);
+});
+
 test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   const sovereignJustice = simulateGw2({
     profession: guardianProfession,

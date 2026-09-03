@@ -8,8 +8,8 @@ in that runtime.
 
 ## Data
 
-- API identity snapshot: 2026-07-25 (official GW2 API): 149 API skills, 108
-  traits, 9 specialization lines. API-omitted Death Shroud, Lich Form,
+- API identity snapshot: 2026-07-25 (official GW2 API): 143 skills, 108 traits,
+  and 9 specialization lines. Fifteen API-omitted Death Shroud, Lich Form,
   Ritualist innervate, and simulator action identities live in
   `data/necromancer-supplemental-skills.ts`.
 - Refresh: `npm run update:profession-data -- --profession Necromancer` (API

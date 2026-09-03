@@ -8,9 +8,9 @@ under `core/` or `specializations/<name>/`.
 
 ## Data
 
-- API identity snapshot: 2026-07-25 (official GW2 API): 164 terrestrial/linked skills, 108 traits, 9 specialization
-  lines. The API omits Firebrand tome pages, Luminary Radiant Forge weapons, and Dragonhunter virtue variants;
-  `data/guardian-bundle-skills.ts` supplies stable-ID identity and presentation supplements.
+- API identity snapshot: 2026-07-25 (official GW2 API): 142 skills, 108 traits, and 9 specialization lines. The API
+  omits Firebrand tome pages, Luminary Radiant Forge weapons, and Dragonhunter virtue variants;
+  `data/guardian-bundle-skills.ts` supplies 29 stable-ID identity and presentation supplements.
 - Refresh: `npm run update:profession-data -- --profession Guardian` (generated API metadata only; the bundle
   supplement is preserved).
   Simulation-affecting fields live in owner-local `skills/` fragments.
@@ -28,7 +28,8 @@ under `core/` or `specializations/<name>/`.
 - **Luminary** — Radiant Forge entry/exit, duration, radiant-weapon flips, weapon-dependent Glaring Burst, per-entry
   recharge reduction, and light-field / finisher / Sovereign of Light detonation behavior.
 - **Spear (Janthir Wilds)** — the Illuminated mechanic (armed by spear 2/3/4, held open by Symbol of Luminance; consumed
-  by the next spear attack to enhance its strike packet). Modeled in `core/skills/spear.ts`.
+  by the next spear attack to enhance its strike packet). Skill data lives in `core/skills/weapons/spear.ts`; persistent
+  Illuminated behavior lives in `core/mechanics/spear-illumination.ts`.
 - Explicit strike-modifier grouping (Force/Impact, Empowered/Radiant Armaments, Furious Focus, Retribution, Symbolic
   Avenger, Piercing Stance share one additive bucket; Fiery Wrath, Symbolic Exposure, gates, vulnerability, and relics
   stay separate multipliers). Permanent Protection/Resolution/ Regeneration/Swiftness are on by default; Aegis is an

@@ -1279,8 +1279,12 @@ Examples:
 tests/platform/
 tests/professions/
 tests/app/
+tests/architecture/
+tests/kernel/
+tests/ui/
 tests/evtc/
 tests/dps-report/
+tests/log-analyzer/
 tests/browser/
 tests/scripts/
 tests/typecheck/

@@ -215,7 +215,7 @@ ZIP archives must:
 ## Project Structure
 
 ```text
-log-analyzer/evtc/
+js/games/gw2/integrations/logs/evtc/
 ├── decompression.ts
 ├── errors.ts
 ├── parser.ts
@@ -224,8 +224,8 @@ log-analyzer/evtc/
 └── rotation/
     ├── catalog.ts
     ├── effect-packets.ts
+    ├── encounter.ts
     ├── index.ts
-    ├── parser.ts
     ├── profiles.ts
     ├── reconstruct.ts
     ├── registry.ts

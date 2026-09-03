@@ -76,15 +76,18 @@ Automatic effects that are already modeled by the simulator are not added to the
 ## Project Structure
 
 ```text
-log-analyzer/dps-report/
+js/games/gw2/integrations/logs/dps-report/
 ├── parser.ts
 ├── url.ts
 ├── errors.ts
 ├── types.ts
 └── rotation/
+    ├── index.ts
     ├── registry.ts
     ├── reconstruct.ts
     ├── profiles.ts
+    ├── target-damage.ts
+    ├── types.ts
     └── professions/
 ```
 

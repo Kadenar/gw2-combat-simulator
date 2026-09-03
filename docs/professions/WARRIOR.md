@@ -9,13 +9,13 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 
 ## Data
 
-- API identity snapshot: 2026-08-08 (official GW2 API): 195 API skills, 108
+- API identity snapshot: 2026-08-08 (official GW2 API): 171 skills, 108
   traits, and all nine specialization lines. Twelve API-omitted Bladesworn
   gunsaber and Dragon Slash skills are checked in as supplemental identities.
 - Refresh: `npm run update:warrior-data`. The updater drops invalid API skill
   `62857`, repairs Dragon Trigger's dangling flip reference, and regenerates
-  Warrior IDs and supplemental skills. Its skill generator currently writes
-  retired flat `skills.ts` outputs that the runtime does not import.
+  API metadata, Warrior IDs, and supplemental skills without overwriting the
+  owner-local mechanics catalogs.
 - Public API data omits some activation times and mode-specific facts; the
   generator uses current Wiki activation data where available and deterministic
   fallbacks elsewhere.

@@ -86,10 +86,13 @@ function detonateLightAura(context: GuardianResolverContext, event: GuardianReso
   return true;
 }
 
+/** Grants or refreshes Light Aura while limiting same-time Sovereign recovery to its Luminary source skill. */
 export function handleLightAuraGrant(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
+  const sourceSkill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   if (
-    event.refreshOnly !== true &&
+    sourceSkill &&
+    isLuminaryDetonator(sourceSkill) &&
     lightAuraActive(state, event.at, Number(context.epsilon ?? EPSILON)) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
   ) {
@@ -146,9 +149,7 @@ export function processLuminaryLightFields(context: GuardianCastContext, skill: 
     (enteringRadiantForge && sovereign) ||
     (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND));
   if (grantsImmediately) {
-    emitLightAuraOperation(context, 'guardian.luminary.light-aura-grant', activationAt, skill, -10, {
-      refreshOnly: enteringRadiantForge
-    });
+    emitLightAuraOperation(context, 'guardian.luminary.light-aura-grant', activationAt, skill, -10);
   }
 
   if (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)) {
