@@ -37,8 +37,8 @@
     "presets": [
       {
         "label": "Condition (Axe / Torch + Pistol / Pistol)",
-        "build": "data/gw2/builds/guardian/b-condition-firebrand.json",
-        "rotation": "data/gw2/rotations/guardian/r-condition-firebrand-bench.json",
+        "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
+        "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
         "benchmarkDps": 41296,
         "sourceBenchmarkDps": 40916,
