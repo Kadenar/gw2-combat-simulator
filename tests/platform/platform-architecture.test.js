@@ -15,11 +15,9 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { resolveScheduledStream } from '#gw2/platform/engine/resolution/resolver.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { augmentSkillHandler, replaceSkillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { professionRegistry } from '#gw2/app/profession/registry.js';
@@ -1655,30 +1653,6 @@ test('Mesmer production simulation is reached through simulateGw2', () => {
     ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'cooldowns', 'profession', 'time'].sort()
   );
   assert.equal(canonical.endState.profession.resource, 5);
-});
-
-test('unknown required custom events fail clearly', () => {
-  const stream = buildScheduledEventStream({
-    events: [
-      {
-        type: 'fixture.missing',
-        at: 0,
-        source: 'fixture',
-        sourceId: 1
-      }
-    ],
-    rotationEndTime: 1
-  });
-
-  assert.throws(
-    () =>
-      resolveScheduledStream({
-        stream,
-        profession: testProfession,
-        handlerRegistry: new HandlerRegistry()
-      }),
-    /Missing required event handler/
-  );
 });
 
 test('canonical catalog validation rejects duplicate ids and missing handlers', () => {

@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
-import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { catalogSkillById, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
@@ -32,19 +32,6 @@ function actionId(action: DpsReportRecordedAction): number {
 
 function sorted(actions: readonly DpsReportRecordedAction[]): DpsReportRecordedAction[] {
   return [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
-}
-
-function catalogSkill(context: DpsReportProfessionReconstructionContext, id: number): Skill | null {
-  return context.catalog?.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === id) || null;
-}
-
-function actionSkill(context: DpsReportProfessionReconstructionContext, action: DpsReportRecordedAction): Skill | null {
-  return findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
 }
 
 function inferredAction(
@@ -111,7 +98,7 @@ function normalizeRangerSignals(
     .filter((action) => {
       if ([LESSER_SIC_EM_ID, WUTHERING_WIND_ID].includes(action.rawSkillId)) return false;
       return (
-        (actionSkill(context, action) as (Skill & { readonly petAutonomousSkill?: boolean }) | null)
+        (recordedActionSkill(action, context) as (Skill & { readonly petAutonomousSkill?: boolean }) | null)
           ?.petAutonomousSkill !== true
       );
     })
@@ -152,10 +139,10 @@ function recoverInitialCycloneBow(
     [SUMMON_CYCLONE_BOW_ID, DISMISS_CYCLONE_BOW_ID].includes(actionId(action))
   );
   if (!firstTransition || actionId(firstTransition) !== DISMISS_CYCLONE_BOW_ID) return ordered;
-  const summon = catalogSkill(context, SUMMON_CYCLONE_BOW_ID);
+  const summon = catalogSkillById(context.catalog, SUMMON_CYCLONE_BOW_ID);
   const firstAction = ordered[0];
   if (!summon || !firstAction) return ordered;
-  const firstSkill = actionSkill(context, firstAction) as Skill & { readonly cycloneBowSkill?: boolean };
+  const firstSkill = recordedActionSkill(firstAction, context) as Skill & { readonly cycloneBowSkill?: boolean };
   const start = firstAction.start + (firstSkill?.cycloneBowSkill === true ? 0 : 1);
   return sorted([...ordered, inferredAction(summon, start, start, firstAction.eventIndex - 0.1, 'ranger-opening')]);
 }
@@ -188,7 +175,7 @@ function recoverMissingBlusters(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
 ): DpsReportRecordedAction[] {
-  const skill = catalogSkill(context, BLUSTER_ID);
+  const skill = catalogSkillById(context.catalog, BLUSTER_ID);
   const duration = quicknessReferenceCastTimeMs(skill);
   const expected = primaryTargetHits(context, BLUSTER_ID) / BLUSTER_PACKETS;
   let missing = expected - actions.filter((action) => actionId(action) === BLUSTER_ID).length;
@@ -198,7 +185,7 @@ function recoverMissingBlusters(
   const inferred: DpsReportRecordedAction[] = [];
   for (const window of bowWindows(ordered, context.phase.end)) {
     const firstBowAction = ordered.find((action) => {
-      const rangerSkill = actionSkill(context, action) as Skill & { readonly cycloneBowSkill?: boolean };
+      const rangerSkill = recordedActionSkill(action, context) as Skill & { readonly cycloneBowSkill?: boolean };
       return action.start >= window.start && action.start < window.end && rangerSkill?.cycloneBowSkill === true;
     });
     if (!firstBowAction || actionId(firstBowAction) === BLUSTER_ID) continue;
@@ -219,7 +206,7 @@ function recoverMissingQuarries(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
 ): DpsReportRecordedAction[] {
-  const skill = catalogSkill(context, QUARRYS_PERIL_ID);
+  const skill = catalogSkillById(context.catalog, QUARRYS_PERIL_ID);
   const duration = quicknessReferenceCastTimeMs(skill);
   let missing =
     primaryTargetHits(context, QUARRYS_PERIL_ID) -

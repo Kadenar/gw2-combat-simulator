@@ -1,8 +1,8 @@
 import {
   actionKind,
   findNamedRotationSkill,
-  findRotationSkill,
   normalizedName as normalized,
+  recordedActionSkill,
   skillIdentity
 } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
@@ -174,12 +174,7 @@ function selectedSkillForAction(
 ): Skill | null {
   if (!catalog || !selectedSkillIds?.length) return null;
   const selected = new Set(selectedSkillIds.map(Number).filter(Number.isFinite));
-  const resolvedName = findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    catalog,
-    profile
-  )?.name;
+  const resolvedName = recordedActionSkill(action, { catalog, profile })?.name;
   const name = normalized(resolvedName || action.canonicalName || action.rawName);
   return (
     catalog.skills.find(
@@ -200,14 +195,7 @@ function resolveAction(
   }
 
   const selected = selectedSkillForAction(action, profile, catalog, selectedSkillIds);
-  const skill =
-    selected ||
-    findRotationSkill(
-      action.canonicalSkillId ?? action.rawSkillId,
-      action.canonicalName ?? action.rawName,
-      catalog,
-      profile
-    );
+  const skill = selected || recordedActionSkill(action, { catalog, profile });
   return {
     ...action,
     skill,

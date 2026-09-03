@@ -9,28 +9,6 @@ import type {
   ProfessionPatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 
-// Keeps stable declaration types available at their former path while patch-only contracts remain integration-owned.
-export type {
-  AnyNativeModule,
-  NativeAutoattackChains,
-  NativeCatalogOptions,
-  NativeExecutionMechanicsDefinition,
-  NativeMechanicsDefinition,
-  NativeModule,
-  NativeModuleCatalogData,
-  NativeModuleDefinition,
-  NativeProfessionDefinition,
-  NativeProfessionRuntimeState,
-  NativeResolutionMechanicsDefinition,
-  NativeResolvedDamageDetails,
-  NativeResolvedReaction,
-  NativeResolverMechanic,
-  NativeSchedulerMechanic,
-  NativeSkillHandlerRegistry,
-  NativeSpecializationId,
-  NativeStateDefinition
-} from '#gw2/platform/profession-definition/module-types.js';
-
 export interface NativePreviewModifierRuleTarget {
   readonly id: string;
   readonly moduleId: string;

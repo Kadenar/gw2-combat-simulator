@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import { catalogSkillById } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -15,15 +15,11 @@ function numericSkillId(action: DpsReportRecordedAction): number {
   return Number(action.canonicalSkillId ?? action.rawSkillId);
 }
 
-function catalogSkill(context: DpsReportProfessionReconstructionContext, id: number): Skill | null {
-  return context.catalog?.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === id) || null;
-}
-
 function inferredOpeningJurisdiction(
   context: DpsReportProfessionReconstructionContext,
   signal: DpsReportRecordedAction
 ): DpsReportRecordedAction | null {
-  const skill = catalogSkill(context, JURISDICTION_ID);
+  const skill = catalogSkillById(context.catalog, JURISDICTION_ID);
   if (!skill || typeof skill.id !== 'number') return null;
   const duration = Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
   const start = context.phase.start - JURISDICTION_COMBAT_OFFSET_MS;

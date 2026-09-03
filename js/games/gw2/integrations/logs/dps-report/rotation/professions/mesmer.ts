@@ -1,5 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { catalogSkillById } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
@@ -13,10 +14,6 @@ const FLYING_CUTTER_ID = 62510;
 const BLADECALL_ID = 62560;
 const BLADETURN_REQUIEM_ID = 62597;
 const THOUSAND_CUTS_ID = 24755;
-
-function catalogSkill(context: DpsReportProfessionReconstructionContext, id: number): Skill | null {
-  return context.catalog?.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === id) || null;
-}
 
 function omittedActivation(
   context: DpsReportProfessionReconstructionContext,
@@ -62,7 +59,7 @@ function recoverTroubadourOpening(
   if (!first) return sorted;
 
   const inferred: DpsReportRecordedAction[] = [];
-  const unstableBladestorm = catalogSkill(context, UNSTABLE_BLADESTORM_ID);
+  const unstableBladestorm = catalogSkillById(context.catalog, UNSTABLE_BLADESTORM_ID);
   let cursor = first.start;
   if (unstableBladestorm && omittedActivation(context, UNSTABLE_BLADESTORM_ID, 8)) {
     const duration = quicknessReferenceCastTimeMs(unstableBladestorm);
@@ -70,7 +67,7 @@ function recoverTroubadourOpening(
     inferred.unshift(inferredAction(unstableBladestorm, cursor, first.eventIndex - 1, duration, 'troubadour-opening'));
   }
 
-  const mimic = catalogSkill(context, MIMIC_ID);
+  const mimic = catalogSkillById(context.catalog, MIMIC_ID);
   const selectedMimic =
     !context.selectedSkillNames?.length ||
     context.selectedSkillNames.some((name) => name.trim().toLowerCase() === 'mimic');
@@ -98,9 +95,9 @@ function recoverVirtuosoOpening(
   const first = sorted[0];
   if (!first) return sorted;
 
-  const unstableBladestorm = catalogSkill(context, UNSTABLE_BLADESTORM_ID);
-  const thousandCuts = catalogSkill(context, THOUSAND_CUTS_ID);
-  const bladeturnRequiem = catalogSkill(context, BLADETURN_REQUIEM_ID);
+  const unstableBladestorm = catalogSkillById(context.catalog, UNSTABLE_BLADESTORM_ID);
+  const thousandCuts = catalogSkillById(context.catalog, THOUSAND_CUTS_ID);
+  const bladeturnRequiem = catalogSkillById(context.catalog, BLADETURN_REQUIEM_ID);
   const firstFlyingCutter = sorted.find((action) => action.rawSkillId === FLYING_CUTTER_ID);
   const firstBladecall = sorted.find((action) => action.rawSkillId === BLADECALL_ID);
   const inferred: DpsReportRecordedAction[] = [];

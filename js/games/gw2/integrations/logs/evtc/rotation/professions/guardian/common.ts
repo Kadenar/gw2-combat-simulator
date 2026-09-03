@@ -1,5 +1,5 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import type {
@@ -106,12 +106,7 @@ function alignReplayCastLanes(
 ): EvtcRecordedRotationAction[] {
   return actions.map((action) => {
     if (action.status !== 'completed') return action;
-    const skill = findRotationSkill(
-      action.canonicalSkillId ?? action.rawSkillId,
-      action.canonicalName ?? action.rawName,
-      context.catalog,
-      context.profile
-    );
+    const skill = recordedActionSkill(action, context);
     const runtimeDuration = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
     const replayCastEnd = Math.max(action.end, action.start + runtimeDuration);
     return replayCastEnd > action.end ? { ...action, replayCastEnd } : action;

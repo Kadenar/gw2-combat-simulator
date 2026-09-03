@@ -1,4 +1,5 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { catalogSkillById } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -100,7 +101,7 @@ function actionSkillId(action: EvtcRecordedRotationAction): number {
 
 function tomePageCost(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): number {
   const skillId = actionSkillId(action);
-  const skill = context.catalog?.skills.find((candidate) => Number(candidate.id) === skillId);
+  const skill = catalogSkillById(context.catalog, skillId);
   const configured = Number(skill?.pageCost);
   return Number.isFinite(configured) && configured > 0 ? configured : TWO_PAGE_CHAPTER_IDS.has(skillId) ? 2 : 1;
 }
@@ -132,7 +133,7 @@ function firebrandResourceEvents(
         return [{ action, at: action.start, kind: 'stow', tomeId: null }];
       }
 
-      const skill = context.catalog?.skills.find((candidate) => Number(candidate.id) === skillId);
+      const skill = catalogSkillById(context.catalog, skillId);
       if (FINAL_MANTRA_CHARGE_IDS.has(skillId) || /^Final Charge\./.test(String(skill?.description || ''))) {
         return [{ action, at: action.end, kind: 'page-gain', tomeId: null }];
       }

@@ -1,11 +1,10 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
 import { GW2_ACTION_TICK_MS, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
@@ -115,15 +114,6 @@ function actionName(action: DpsReportRecordedAction): string {
   return action.canonicalName || action.rawName;
 }
 
-function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    actionName(action),
-    context.catalog,
-    context.profile
-  );
-}
-
 function namedSkill(context: DpsReportProfessionReconstructionContext, name: string): ElementalistSkillIdentity | null {
   const skill = context.catalog?.skills.find((candidate) => normalized(candidate.name) === normalized(name));
   return skill && typeof skill.id === 'number' ? { name: skill.name, skillId: Number(skill.id) } : null;
@@ -183,7 +173,7 @@ function inferStartingElement(
     if (glyphElement) return glyphElement;
     const suffixElement = elementName(action.rawName.match(/\((Fire|Water|Air|Earth)\)$/)?.[1]);
     if (suffixElement) return suffixElement;
-    const attunement = String(actionSkill(action, context)?.attunement || '');
+    const attunement = String(recordedActionSkill(action, context)?.attunement || '');
     const skillElement = attunement.includes('+') ? null : elementName(attunement);
     if (skillElement) return skillElement;
   }
@@ -297,7 +287,7 @@ function recoverOpeningDragonsTooth(
     (action) => action.rawSkillId === ID.DRAGONS_TOOTH || action.canonicalSkillId === ID.DRAGONS_TOOTH
   );
   const firstAction = ordered[0];
-  const skill = recorded[0] ? actionSkill(recorded[0], context) : null;
+  const skill = recorded[0] ? recordedActionSkill(recorded[0], context) : null;
   const duration = quicknessReferenceCastTimeMs(skill);
   if (
     !firstAction ||
@@ -488,7 +478,7 @@ function recoverOpeningSpearEtching(
   const identity = SPEAR_ETCHING_BY_FULL_SKILL.get(actionName(full));
   if (!identity) return [];
   if (ordered.some((action) => actionName(action) === identity.name && action.start < full.start)) return [];
-  const skill = actionSkill(
+  const skill = recordedActionSkill(
     {
       ...full,
       rawSkillId: identity.skillId,

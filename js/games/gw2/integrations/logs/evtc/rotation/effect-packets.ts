@@ -5,7 +5,7 @@ import {
   strikePacketOffsets
 } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { observedCommittedInterruptMs } from '#gw2/platform/skills/timing.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -53,12 +53,7 @@ export function skillForAction(
   context: EvtcProfessionReconstructionContext,
   action: EvtcRecordedRotationAction
 ): Skill | null {
-  return findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
+  return recordedActionSkill(action, context);
 }
 
 export { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, strikePacketOffsets };

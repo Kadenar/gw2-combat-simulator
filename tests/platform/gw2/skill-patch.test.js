@@ -11,7 +11,8 @@ import {
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
-import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 function fixtureCatalog() {
@@ -456,11 +457,13 @@ test('native professions keep live and lazy preview catalogs side by side', () =
     },
     state: { scheduler: () => ({}) }
   });
-  const family = defineNativeProfession({
-    id: 'fixture',
-    name: 'Fixture',
-    modules: [core],
-    patchPreview: {
+  const family = withPatchPreview(
+    defineNativeProfession({
+      id: 'fixture',
+      name: 'Fixture',
+      modules: [core]
+    }),
+    {
       id: 'fixture-preview',
       label: 'Fixture Preview',
       constants: { 'shared.factor': { from: 2, to: 3 } },
@@ -473,7 +476,7 @@ test('native professions keep live and lazy preview catalogs side by side', () =
         }
       }
     }
-  });
+  );
 
   const live = family.catalogFor();
   const preview = family.catalogFor('fixture-preview');
@@ -561,11 +564,13 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
     },
     state: { scheduler: () => ({}) }
   });
-  const family = defineNativeProfession({
-    id: 'fixture',
-    name: 'Fixture',
-    modules: [core, elite],
-    patchPreview: {
+  const family = withPatchPreview(
+    defineNativeProfession({
+      id: 'fixture',
+      name: 'Fixture',
+      modules: [core, elite]
+    }),
+    {
       id: 'fixture-preview',
       label: 'Fixture Preview',
       professions: {
@@ -579,7 +584,7 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
         }
       }
     }
-  });
+  );
 
   const corePreview = family.resolveRuntime({
     specialization: 'Core',
@@ -647,11 +652,13 @@ describe('native profession modifier previews', () => {
       ]
     }
   });
-  const family = defineNativeProfession({
-    id: 'fixture',
-    name: 'Fixture',
-    modules: [core, elite],
-    patchPreview: {
+  const family = withPatchPreview(
+    defineNativeProfession({
+      id: 'fixture',
+      name: 'Fixture',
+      modules: [core, elite]
+    }),
+    {
       id: 'fixture-preview',
       label: 'Fixture Preview',
       professions: {
@@ -667,7 +674,7 @@ describe('native profession modifier previews', () => {
         }
       }
     }
-  });
+  );
 
   const previewCore = family.resolveRuntime({
     specialization: 'Core',

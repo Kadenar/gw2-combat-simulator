@@ -16,6 +16,7 @@ import {
   findNamedRotationSkill,
   findRotationSkill,
   isDirectPlayerSkill,
+  recordedActionSkill,
   skillIdentity,
   type EvtcRotationCatalog
 } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
@@ -111,12 +112,7 @@ function applyRetainedCastLockouts(
   profile: EvtcRotationProfessionProfile
 ): RecordedAction[] {
   return actions.map((action) => {
-    const skill = findRotationSkill(
-      action.canonicalSkillId ?? action.rawSkillId,
-      action.canonicalName ?? action.rawName,
-      catalog,
-      profile
-    );
+    const skill = recordedActionSkill(action, { catalog, profile });
     if (skill?.retainsCastLockoutAfterInterrupt !== true) return action;
     // A safe observed interrupt remains explicit; the engine retains the serial
     // cast lane itself while allowing instant actions and weapon swaps through.
@@ -140,12 +136,7 @@ function applyObservedInterruptTiming(
   profile: EvtcRotationProfessionProfile
 ): RecordedAction[] {
   return actions.map((action) => {
-    const skill = findRotationSkill(
-      action.canonicalSkillId ?? action.rawSkillId,
-      action.canonicalName ?? action.rawName,
-      catalog,
-      profile
-    );
+    const skill = recordedActionSkill(action, { catalog, profile });
     const interruptMs = observedInterruptMs(action, skill);
     if (interruptMs != null) return { ...action, replayInterruptMs: interruptMs };
     const runtimeDuration = quicknessRuntimeDurationMs(skill);
@@ -808,12 +799,7 @@ function resolveAction(
     };
   }
 
-  const skill = findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    catalog,
-    profile
-  );
+  const skill = recordedActionSkill(action, { catalog, profile });
   return {
     ...action,
     skill,
@@ -1022,7 +1008,7 @@ export function reconstructWithProfile(
     (action) =>
       !(
         (action.rawSkillId === WEAPON_STOW_ANIMATION_ID || action.rawName.trim().toLowerCase() === 'weapon stow') &&
-        (action.end <= action.start || findRotationSkill(action.rawSkillId, action.rawName, catalog, profile) == null)
+        (action.end <= action.start || recordedActionSkill(action, { catalog, profile }) == null)
       )
   );
   const replayNormalizedActions = applyEngineReplayTiming(genericActions, catalog, profile);

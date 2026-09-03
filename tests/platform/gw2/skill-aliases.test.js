@@ -13,7 +13,11 @@ import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
-import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import {
+  catalogSkillById,
+  findRotationSkill,
+  recordedActionSkill
+} from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { canonicalGw2SkillId, GW2_SKILL_ID_ALIASES } from '#gw2/platform/skills/aliases.js';
@@ -97,6 +101,20 @@ test('combat-log and legacy selected-skill loading use the shared alias map', ()
   assert.equal(findRotationSkill(46409, 'Unknown', revenantCatalog, renegade)?.id, 41858);
   assert.equal(findRotationSkill(76917, 'Unknown', revenantCatalog, conduit)?.id, 76805);
   assert.equal(findRotationSkill(77159, 'Unknown', revenantCatalog, conduit)?.id, 77141);
+});
+
+test('combat-log catalog helpers share canonical action, alias, and array fallback behavior', () => {
+  const profile = ROTATION_PROFILES.find((candidate) => candidate.specializationId === 'spellbreaker');
+  assert.ok(profile);
+
+  const action = {
+    rawSkillId: 999_999,
+    rawName: 'Unknown',
+    canonicalSkillId: 69_297,
+    canonicalName: 'Unknown'
+  };
+  assert.equal(recordedActionSkill(action, { catalog: warriorCatalog, profile })?.id, 45_252);
+  assert.equal(catalogSkillById({ skills: warriorCatalog.skills }, 69_297)?.id, 45_252);
 });
 
 test('protected variants and unreviewed IDs remain distinct', () => {

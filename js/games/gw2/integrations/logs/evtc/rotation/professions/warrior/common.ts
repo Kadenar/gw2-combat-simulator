@@ -4,7 +4,7 @@ import {
   createStrikePacketMatcher,
   firstStrikePacketOffsetMs
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -149,12 +149,7 @@ export function normalizeWarriorCommonActions(
       continue;
     }
 
-    const skill = findRotationSkill(
-      action.canonicalSkillId ?? action.rawSkillId,
-      action.canonicalName ?? action.rawName,
-      context.catalog,
-      context.profile
-    );
+    const skill = recordedActionSkill(action, context);
     const autoattack =
       String(skill?.type || '').toLowerCase() === 'weapon' && String(skill?.slot || '').toLowerCase() === 'weapon_1';
     const commitMs = skill ? firstStrikePacketOffsetMs(skill, runtimeCastDurationMs(skill)) : null;

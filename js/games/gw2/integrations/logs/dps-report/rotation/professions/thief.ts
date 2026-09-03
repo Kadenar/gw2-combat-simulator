@@ -1,5 +1,9 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import {
+  catalogSkillById,
+  normalizedName as normalized,
+  recordedActionSkill
+} from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
@@ -28,19 +32,6 @@ const CANNON_BACKFIRE_PACKETS = 1;
 const CANNON_SUCCESS_RECAST_MIN_MS = 9_000;
 const COMPOSITE_SIGNAL_WINDOW_MS = 75;
 
-function catalogSkill(context: DpsReportProfessionReconstructionContext, id: number): Skill | null {
-  return context.catalog?.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === id) || null;
-}
-
-function actionSkill(context: DpsReportProfessionReconstructionContext, action: DpsReportRecordedAction): Skill | null {
-  return findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
-}
-
 function selectedSkill(context: DpsReportProfessionReconstructionContext, skill: Skill): boolean {
   return (
     !context.selectedSkillNames?.length ||
@@ -57,7 +48,7 @@ function recoverChakShield(
     return [...actions];
   }
 
-  const skill = catalogSkill(context, CHAK_SHIELD_ID);
+  const skill = catalogSkillById(context.catalog, CHAK_SHIELD_ID);
   if (!skill) return [...actions];
   const selectedTraits = new Set(
     Array.isArray(context.professionConfig?.selectedTraitIds)
@@ -159,11 +150,11 @@ function recoverOpeningSkrittSwipe(
 ): DpsReportRecordedAction[] {
   if (context.profile.specializationId !== 'antiquary') return [...actions];
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
-  const artifact = sorted.find((action) => actionSkill(context, action)?.handlerId === 'thief.artifact');
+  const artifact = sorted.find((action) => recordedActionSkill(action, context)?.handlerId === 'thief.artifact');
   const recordedPilfer = sorted.find((action) =>
     [SKRITT_SWIPE_ID, SKRITT_SCUFFLE_ID].includes(action.canonicalSkillId ?? action.rawSkillId)
   );
-  const skill = catalogSkill(context, SKRITT_SWIPE_ID);
+  const skill = catalogSkillById(context.catalog, SKRITT_SWIPE_ID);
   if (!artifact || !skill || (recordedPilfer && recordedPilfer.start < artifact.start)) return sorted;
 
   const anchor = sorted[0];
@@ -190,7 +181,7 @@ function recoverOpeningCaltrops(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
 ): DpsReportRecordedAction[] {
-  const skill = catalogSkill(context, CALTROPS_ID);
+  const skill = catalogSkillById(context.catalog, CALTROPS_ID);
   const swipe = actions.find(
     (action) => action.inference === 'thief-opening' && action.canonicalSkillId === SKRITT_SWIPE_ID
   );
@@ -219,8 +210,8 @@ function recoverThousandNeedles(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
 ): DpsReportRecordedAction[] {
-  const prepareSkill = catalogSkill(context, PREPARE_THOUSAND_NEEDLES_ID);
-  const activationSkill = catalogSkill(context, THOUSAND_NEEDLES_ID);
+  const prepareSkill = catalogSkillById(context.catalog, PREPARE_THOUSAND_NEEDLES_ID);
+  const activationSkill = catalogSkillById(context.catalog, THOUSAND_NEEDLES_ID);
   const totalPackets = primaryTargetHits(context, THOUSAND_NEEDLES_DAMAGE_ID);
   if (
     !prepareSkill ||
@@ -315,7 +306,7 @@ function normalizeAntiquaryDoubleEdge(
     return outcome ? { ...action, doubleEdgeOutcome: outcome } : action;
   });
 
-  const cannonSkill = catalogSkill(context, STONE_SUMMIT_CANNON_ID);
+  const cannonSkill = catalogSkillById(context.catalog, STONE_SUMMIT_CANNON_ID);
   if (
     cannonSkill &&
     cannonEvidenceMatches &&

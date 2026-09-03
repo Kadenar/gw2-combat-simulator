@@ -1,15 +1,11 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
 } from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const EFFULGENT_DAMAGE_SIGNAL_ID = 76730;
-
-function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
-}
 
 function physicalWeapon(skill: Skill | null): string | null {
   if (normalized(skill?.type) !== 'weapon') return null;
@@ -27,11 +23,11 @@ function normalizeWeaponTransitions(
     const previous = sorted
       .slice(0, index)
       .reverse()
-      .map((candidate) => physicalWeapon(actionSkill(candidate, context)))
+      .map((candidate) => physicalWeapon(recordedActionSkill(candidate, context)))
       .find(Boolean);
     const next = sorted
       .slice(index + 1)
-      .map((candidate) => physicalWeapon(actionSkill(candidate, context)))
+      .map((candidate) => physicalWeapon(recordedActionSkill(candidate, context)))
       .find(Boolean);
     return previous != null && next != null && previous !== next;
   });
@@ -73,7 +69,7 @@ export function reconstructLuminaryDpsReportActions(
   const anchor = sorted[0];
   if (!anchor) return [];
 
-  const firstForgeWeapon = sorted.find((action) => actionSkill(action, context)?.radiantForgeSkill === true);
+  const firstForgeWeapon = sorted.find((action) => recordedActionSkill(action, context)?.radiantForgeSkill === true);
   const firstEnter = sorted.find((action) => normalized(action.rawName) === 'enter radiant forge');
   const needsForge = firstForgeWeapon != null && (firstEnter == null || firstForgeWeapon.start < firstEnter.start);
 

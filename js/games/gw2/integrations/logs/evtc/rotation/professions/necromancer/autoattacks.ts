@@ -1,4 +1,4 @@
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import {
   committedActionsFromStrikePackets,
   quicknessRuntimeDurationMs
@@ -25,7 +25,7 @@ function resetsAutoattackChain(
   context: EvtcProfessionReconstructionContext,
   action: EvtcRecordedRotationAction
 ): boolean {
-  const skill = findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
+  const skill = recordedActionSkill(action, context);
   return (
     skill?.type === 'Weapon' ||
     Number(skill?.castTimeMs || 0) > 0 ||
@@ -36,7 +36,7 @@ function resetsAutoattackChain(
 }
 
 function isWeaponAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
-  const skill = findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
+  const skill = recordedActionSkill(action, context);
   return String(skill?.slot || '').toLowerCase() === 'weapon_1';
 }
 
@@ -64,7 +64,7 @@ export function normalizeNecromancerAutoattackChains(
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)
     .flatMap((action) => {
       const position = positions.get(action.rawSkillId);
-      const skill = findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
+      const skill = recordedActionSkill(action, context);
       const endedBeforeCompletion = action.end - action.start + 75 < quicknessRuntimeDurationMs(skill);
       if (
         (action.status === 'interrupted' || endedBeforeCompletion) &&

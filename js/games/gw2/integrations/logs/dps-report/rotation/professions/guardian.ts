@@ -1,5 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
-import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { catalogSkillById, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
 import { reconstructDragonhunterDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian/dragonhunter.js';
 import { reconstructLuminaryDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian/luminary.js';
@@ -16,15 +15,6 @@ const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActio
   ['willbender', reconstructWillbenderDpsReportActions]
 ]);
 
-function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
-}
-
 /** Applies Guardian specialization recovery and removes uncommitted autoattack animations. */
 export function reconstructGuardianDpsReportActions(
   context: DpsReportProfessionReconstructionContext
@@ -33,11 +23,8 @@ export function reconstructGuardianDpsReportActions(
     ...context.recordedActions
   ];
   return normalizeAutoattackChains(specialized, {
-    skillFor: (action) => actionSkill(action, context),
-    skillById: (skillId) =>
-      context.catalog?.skills.find(
-        (candidate) => typeof candidate.id === 'number' && Number(candidate.id) === skillId
-      ) || null,
+    skillFor: (action) => recordedActionSkill(action, context),
+    skillById: (skillId) => catalogSkillById(context.catalog, skillId),
     resetsChain: (action, skill) =>
       action.isSwap ||
       Number(skill?.castTimeMs || skill?.quicknessCastTimeMs || 0) > 0 ||

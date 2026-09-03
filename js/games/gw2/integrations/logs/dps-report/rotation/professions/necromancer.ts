@@ -1,5 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -8,15 +7,6 @@ import type {
 const HARBINGER_SHROUD = Object.freeze({ name: 'Harbinger Shroud', skillId: 62567 });
 const HARBINGER_SHROUD_SKILL_IDS = new Set([62539, 62563, 62611, 62621, 62672]);
 
-function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
-}
-
 function recoverHarbingerOpening(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
@@ -24,7 +14,7 @@ function recoverHarbingerOpening(
   if (context.profile.specializationId !== 'harbinger') return [...actions];
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const openingEvidence = sorted.find((action) => {
-    const skill = actionSkill(action, context);
+    const skill = recordedActionSkill(action, context);
     return (
       HARBINGER_SHROUD_SKILL_IDS.has(Number(action.canonicalSkillId ?? action.rawSkillId)) ||
       skill?.shroud === 'harbinger' ||
@@ -62,7 +52,7 @@ export function reconstructNecromancerDpsReportActions(
   context: DpsReportProfessionReconstructionContext
 ): readonly DpsReportRecordedAction[] {
   const committed = context.recordedActions.filter((action) => {
-    const skill = actionSkill(action, context);
+    const skill = recordedActionSkill(action, context);
     const autoattack =
       normalized(skill?.slot) === 'weapon_1' || context.report.skillMap[`s${action.rawSkillId}`]?.autoAttack === true;
     return !(autoattack && action.status === 'interrupted');

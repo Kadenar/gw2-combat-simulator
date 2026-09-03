@@ -1,5 +1,5 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -44,12 +44,7 @@ export function normalizeRevenantCastPackets(
   const normalized: EvtcRecordedRotationAction[] = [];
 
   for (const action of mergeSplitAnimations(actions)) {
-    const skill = findRotationSkill(
-      action.canonicalSkillId ?? action.rawSkillId,
-      action.canonicalName ?? action.rawName,
-      context.catalog,
-      context.profile
-    );
+    const skill = recordedActionSkill(action, context);
     const duration = Math.max(0, action.end - action.start);
     const expected = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
     const autoattack = String(skill?.slot || '').toLowerCase() === 'weapon_1';

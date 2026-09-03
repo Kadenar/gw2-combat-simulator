@@ -6,6 +6,18 @@ import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 export type RotationCatalog = Pick<CanonicalCatalog, 'skills'> &
   Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName'>>;
 
+interface RecordedActionIdentity {
+  readonly rawSkillId: number;
+  readonly rawName: string;
+  readonly canonicalSkillId?: number;
+  readonly canonicalName?: string;
+}
+
+interface RotationCatalogContext {
+  readonly catalog: RotationCatalog | null;
+  readonly profile: RotationProfessionProfile;
+}
+
 export function normalizedName(value: unknown): string {
   return String(value || '')
     .trim()
@@ -41,6 +53,17 @@ function parentSkill(skill: Skill, catalog: RotationCatalog, profile: RotationPr
   return parent || skill;
 }
 
+/** Uses the canonical ID index when available while retaining array-only catalog and legacy-ID support. */
+export function catalogSkillById(catalog: RotationCatalog | null, rawSkillId: number): Skill | null {
+  if (!catalog) return null;
+  const skillId = canonicalGw2SkillId(rawSkillId);
+  return (
+    catalog.skillsById?.get(skillId) ||
+    catalog.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === skillId) ||
+    null
+  );
+}
+
 /** Resolves and canonicalizes a recorded identity without depending on either combat-log format. */
 export function findRotationSkill(
   rawSkillId: number,
@@ -61,6 +84,16 @@ export function findRotationSkill(
     profile
   );
   return byName ? parentSkill(byName, catalog, profile) : null;
+}
+
+/** Resolves either log format's action, preferring reconstruction-provided canonical identity. */
+export function recordedActionSkill(action: RecordedActionIdentity, context: RotationCatalogContext): Skill | null {
+  return findRotationSkill(
+    action.canonicalSkillId ?? action.rawSkillId,
+    action.canonicalName ?? action.rawName,
+    context.catalog,
+    context.profile
+  );
 }
 
 export function findNamedRotationSkill(

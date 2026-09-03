@@ -1,4 +1,4 @@
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -53,12 +53,7 @@ function addMissingWindsOfChaosActions(
 
 /** Resolves an action against the active catalog and reports whether it occupies the weapon-autoattack slot. */
 function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
-  const skill = findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
+  const skill = recordedActionSkill(action, context);
   return String(skill?.slot || '').toLowerCase() === 'weapon_1';
 }
 

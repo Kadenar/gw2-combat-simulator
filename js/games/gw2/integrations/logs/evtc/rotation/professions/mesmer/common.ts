@@ -1,6 +1,6 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill, recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -184,15 +184,7 @@ function chaosArmorActions(
 ): EvtcRecordedRotationAction[] {
   const isMirage = context.profile.specializationId === 'mirage';
   // A non-Staff Chronomancer can only gain Chaos Armor from a combo; do not turn that aura into an unavailable cast.
-  const observedStaffAction = actions.some(
-    (action) =>
-      findRotationSkill(
-        action.canonicalSkillId ?? action.rawSkillId,
-        action.canonicalName ?? action.rawName,
-        context.catalog,
-        context.profile
-      )?.weapon === 'Staff'
-  );
+  const observedStaffAction = actions.some((action) => recordedActionSkill(action, context)?.weapon === 'Staff');
   if (!isMirage && !observedStaffAction) return [];
   const phaseTimes = phaseRetreatSignals(context).map((signal) => signal.event.time);
   const chaosStormTimes = effectSignals(context, MESMER_EFFECT_GUIDS.chaosStorm).map((signal) => signal.event.time);

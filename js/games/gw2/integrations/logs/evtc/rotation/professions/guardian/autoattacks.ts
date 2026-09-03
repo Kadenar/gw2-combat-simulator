@@ -1,4 +1,4 @@
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -36,12 +36,7 @@ function removePairedDaybreakingSlashAnimations(
 }
 
 function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
-  const skill = findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
+  const skill = recordedActionSkill(action, context);
   return String(skill?.slot || '').toLowerCase() === 'weapon_1';
 }
 
@@ -50,12 +45,7 @@ function resetsAutoattackChain(
   action: EvtcRecordedRotationAction
 ): boolean {
   if (action.rawName === SWAP_WEAPONS.name) return true;
-  const skill = findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
+  const skill = recordedActionSkill(action, context);
   const canonicalSkillId = Number(action.canonicalSkillId ?? action.rawSkillId);
   return (
     Number(skill?.castTimeMs || 0) > 0 ||

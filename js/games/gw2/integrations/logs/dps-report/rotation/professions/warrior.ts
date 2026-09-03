@@ -1,5 +1,5 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   firstStrikePacketOffsetMs,
   openingStrikeCombatStartMs,
@@ -29,7 +29,7 @@ function alignOpeningHeadButtCombatStart(
     )
     .sort((left, right) => right.start - left.start)[0];
   if (!opening) return [...actions];
-  const skill = findRotationSkill(opening.rawSkillId, opening.rawName, context.catalog, context.profile);
+  const skill = recordedActionSkill(opening, context);
   const runtimeDuration = quicknessRuntimeDurationMs(skill);
   const strikeOffset = firstStrikePacketOffsetMs(skill, runtimeDuration, { explicitOnly: true });
   if (strikeOffset == null) return [...actions];

@@ -1,7 +1,10 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import {
+  catalogSkillById,
+  normalizedName as normalized,
+  recordedActionSkill
+} from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/conduit.js';
 import { reconstructHeraldDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/herald.js';
 import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant/renegade.js';
@@ -27,15 +30,6 @@ const COMPOSITE_CASTS = [
   { startId: 62895, finishId: 62713, maximumGapMs: 10 }
 ] as const;
 
-function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return findRotationSkill(
-    action.canonicalSkillId ?? action.rawSkillId,
-    action.canonicalName ?? action.rawName,
-    context.catalog,
-    context.profile
-  );
-}
-
 function normalizeLegendSwaps(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
@@ -51,7 +45,7 @@ function normalizeLegendSwaps(
                 (candidate) =>
                   candidate !== action &&
                   Math.abs(candidate.start - action.start) <= 1 &&
-                  actionSkill(candidate, context)?.handlerId === 'revenant.upkeep-release'
+                  recordedActionSkill(candidate, context)?.handlerId === 'revenant.upkeep-release'
               )
               .map((candidate) => candidate.eventIndex + 0.25)
           ),
@@ -69,7 +63,7 @@ function normalizeGeneratedRevenantActions(
   // Legend swaps automatically release active upkeep. Removing that EI signal
   // and coalescing split animations keeps one simulator command per player input.
   const actionable = actions.filter((action) => {
-    if (actionSkill(action, context)?.handlerId !== 'revenant.upkeep-release') return true;
+    if (recordedActionSkill(action, context)?.handlerId !== 'revenant.upkeep-release') return true;
     const imminentSwap = actions.find(
       (candidate) =>
         LEGEND_STANCE_NAME.test(normalized(candidate.rawName)) &&
@@ -112,11 +106,8 @@ export function reconstructRevenantDpsReportActions(
   }) || [...common];
   const actionable = normalizeGeneratedRevenantActions(context, specialized);
   return normalizeAutoattackChains(actionable, {
-    skillFor: (action) => actionSkill(action, context),
-    skillById: (skillId) =>
-      context.catalog?.skills.find(
-        (candidate) => typeof candidate.id === 'number' && Number(candidate.id) === skillId
-      ) || null,
+    skillFor: (action) => recordedActionSkill(action, context),
+    skillById: (skillId) => catalogSkillById(context.catalog, skillId),
     // EI normally reports the exact root when a chain restarts, even if a later stage was expected.
     trustExplicitRootReset: true,
     // Weapon and legend changes reset the equipped chain; ordinary Revenant skills do not.

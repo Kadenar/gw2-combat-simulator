@@ -214,8 +214,8 @@ Every native profession uses `defineNativeProfession()` and `defineNativeModule(
 `defineProfessionFamily()` and `defineProfessionModule()` boundary. A family is an application contract: it exposes
 identity, the complete catalog, build codec, normalized application UI, optional simulation refinement, and
 `resolveRuntime(config)`. It does not expose runtime handlers, hooks, rules, or mutable state. `resolveRuntime(config)`
-returns the cached executable contract containing Core plus only the selected elite module. `simulateGw2()`, the direct
-scheduler, and the direct resolver normalize family sources before constructing runtime state. Ordinary
+returns the cached executable contract containing Core plus only the selected elite module. `simulateGw2()` and the
+direct scheduler normalize family sources before constructing runtime state. Ordinary
 `defineProfession()` contracts, including test fixtures, pass through unchanged.
 
 Module composition rejects duplicate hook IDs, skill IDs, trait IDs, specialization IDs, task handlers, event handlers,

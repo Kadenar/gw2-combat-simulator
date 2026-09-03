@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
-import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { catalogSkillById, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
@@ -15,10 +15,6 @@ const OPENING_SKILLS = [
   { id: SWORD_OF_JUSTICE_ID, damageId: SWORD_OF_JUSTICE_DAMAGE_ID, packets: 4 },
   { id: PROCESSION_OF_BLADES_ID, damageId: PROCESSION_OF_BLADES_ID, packets: 10 }
 ];
-
-function catalogSkill(context: DpsReportProfessionReconstructionContext, id: number): Skill | null {
-  return context.catalog?.skills.find((skill) => typeof skill.id === 'number' && Number(skill.id) === id) || null;
-}
 
 function selectedSkill(context: DpsReportProfessionReconstructionContext, skill: Skill): boolean {
   if (!context.selectedSkillNames?.length) return true;
@@ -41,7 +37,7 @@ export function reconstructDragonhunterDpsReportActions(
   if (!anchor) return [];
 
   const missing = OPENING_SKILLS.flatMap(({ id, damageId, packets }) => {
-    const skill = catalogSkill(context, id);
+    const skill = catalogSkillById(context.catalog, id);
     if (!skill || !selectedSkill(context, skill)) return [];
     const recorded = recordedCastCount(context, id);
     return primaryTargetHits(context, damageId) === (recorded + 1) * packets ? [skill] : [];

@@ -1,5 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
-import { findRotationSkill, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -8,10 +8,6 @@ import type {
 const KIT_SWAP_SIGNAL_WINDOW_MS = 25;
 const MINE_SETUP_WAIT_MS = 5000;
 const TRIGGERED_PROC_SKILL_IDS = new Set([43630]);
-
-function actionSkill(action: DpsReportRecordedAction, context: DpsReportProfessionReconstructionContext): Skill | null {
-  return findRotationSkill(action.rawSkillId, action.rawName, context.catalog, context.profile);
-}
 
 function kitName(skill: Skill | null): string | null {
   if (skill?.handlerId !== 'engineer.kit-equip') return null;
@@ -110,7 +106,7 @@ export function reconstructEngineerDependencies(
   for (const action of sorted) {
     // EI reports do not always label known trait procs, so reject their fixed IDs before reconstructing player inputs.
     if (TRIGGERED_PROC_SKILL_IDS.has(action.rawSkillId)) continue;
-    const skill = actionSkill(action, context);
+    const skill = recordedActionSkill(action, context);
     if (unavailableToolbeltAction(skill, context)) continue;
     const equippedKit = kitName(skill);
     if (equippedKit) {

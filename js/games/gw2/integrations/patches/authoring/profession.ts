@@ -1,13 +1,9 @@
 import type { CanonicalCatalog, ProfessionModuleCatalogFragment, SchedulerConfig } from '#gw2/platform/engine/types.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
-import {
-  defineNativeModule,
-  defineNativeProfession as defineStableNativeProfession
-} from '#gw2/platform/profession-definition/profession.js';
+import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import type {
   AnyNativeModule,
-  NativeProfessionContract as StableNativeProfessionContract,
-  NativeProfessionDefinition
+  NativeProfessionContract as StableNativeProfessionContract
 } from '#gw2/platform/profession-definition/module-types.js';
 import {
   CURRENT_PATCH_ID,
@@ -35,8 +31,6 @@ import type {
   ProfessionPatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-
-export { defineNativeModule };
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -328,21 +322,4 @@ export function withPatchPreview<
     resolveRuntime,
     previewModifierRuleTargets: previewModifierRules.targets
   }) as NativeProfessionContract<TModules, TPresentation, TSimulation>;
-}
-
-/** Retains the former patch-aware constructor for integration callers while core content uses the neutral constructor. */
-export function defineNativeProfession<
-  const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
-  TPresentation extends object = object,
-  TSimulation extends object = object
->(
-  definition: NativeProfessionDefinition<TModules, TPresentation, TSimulation> & {
-    readonly patchPreview?: PatchPreview | null;
-  }
-): NativeProfessionContract<TModules, TPresentation, TSimulation> {
-  const { patchPreview, ...nativeDefinition } = definition;
-  const family = defineStableNativeProfession(
-    nativeDefinition as NativeProfessionDefinition<TModules, TPresentation, TSimulation>
-  );
-  return withPatchPreview(family, patchPreview);
 }

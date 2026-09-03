@@ -6,7 +6,6 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { defineProfessionFamily, resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { defineProfessionModule } from '#gw2/platform/engine/profession/module.js';
 import { nativeSkillRuntimeOwner } from '#gw2/platform/profession-definition/catalog.js';
-import { createResolverState } from '#gw2/platform/engine/resolution/resolver.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { assertProfessionFamilyConformance } from '../helpers/profession-family-conformance.js';
@@ -633,7 +632,7 @@ test('family composition rejects skill mechanic triggers without an active handl
   );
 });
 
-test('scheduler, resolver, and canonical simulation normalize family sources', () => {
+test('scheduler and canonical simulation normalize family sources', () => {
   const family = testFamily();
   const scheduled = createScheduler({
     profession: family,
@@ -641,17 +640,6 @@ test('scheduler, resolver, and canonical simulation normalize family sources', (
   });
 
   assert.equal(scheduled.context.profession.catalog.skillsById.has(2), true);
-  assert.deepEqual(
-    createResolverState({
-      profession: family,
-      config: { specialization: 'Elite' }
-    }).profession,
-    {
-      core: { coreReady: true },
-      specialization: { kind: 'Elite', state: { eliteReady: true } }
-    }
-  );
-
   const runtime = defineProfession({
     id: 'counted-runtime',
     name: 'Counted Runtime',
