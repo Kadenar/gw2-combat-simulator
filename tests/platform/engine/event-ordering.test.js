@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compareQueuedEvents, StableEventQueue } from '#kernel/events/queue.js';
-import { eventCausalOrder } from '#gw2/platform/engine/events/events.js';
+import { compareQueuedEvents, eventCausalOrder, StableEventQueue } from '#kernel/events/queue.js';
 
 test('event ordering prefers explicit causal placement over emission order', () => {
   assert.equal(eventCausalOrder({ causalOrder: 2, eventOrder: 3 }), 2);

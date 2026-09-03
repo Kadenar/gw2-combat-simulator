@@ -17,7 +17,8 @@ function eventTimestamp(event: QueuedEvent): number {
   return Number(event.at ?? event.time ?? 0);
 }
 
-function eventCausalOrder(event: QueuedEvent): number | null {
+/** Returns finite ordering metadata, preferring explicit causal placement over emission order. */
+export function eventCausalOrder(event: QueuedEvent): number | null {
   const order = Number(event.causalOrder ?? event.eventOrder);
   return Number.isFinite(order) ? order : null;
 }

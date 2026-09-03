@@ -13,12 +13,6 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-/** Returns finite ordering metadata, preferring explicit causal placement over emission order. */
-export function eventCausalOrder(event: SimulationEvent): number | null {
-  const order = Number(event.causalOrder ?? event.eventOrder);
-  return Number.isFinite(order) ? order : null;
-}
-
 /**
  * Event types owned by the shared platform resolver.
  */

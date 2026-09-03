@@ -1,6 +1,6 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
-import { eventCausalOrder } from '#gw2/platform/engine/events/events.js';
+import { eventCausalOrder } from '#kernel/events/queue.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
