@@ -761,6 +761,8 @@ function validateCommonBuild(
   }
 
   const candidate = build as Gw2CanonicalBuild;
+  // Keep malformed imported specialization data recoverable while preserving the shape error below.
+  const specializations = Array.isArray(candidate.specializations) ? candidate.specializations : [];
   errors.push(...validateCommonAssumptions(candidate.assumptions));
   if (candidate.profession !== professionId) {
     errors.push(`profession must be ${professionId}.`);
@@ -796,8 +798,7 @@ function validateCommonBuild(
         .filter((specialization) => specialization.elite)
         .map((specialization) => specialization.name)
     );
-    const specialization =
-      (candidate.specializations || []).find((selection) => eliteNames.has(selection?.name))?.name || 'Core';
+    const specialization = specializations.find((selection) => eliteNames.has(selection?.name))?.name || 'Core';
     errors.push(
       ...slotLoadout
         .validateBuild(candidate, {
@@ -810,9 +811,7 @@ function validateCommonBuild(
   } else if (!isPlainObject(candidate.selectedSkills)) {
     errors.push('selectedSkills must be an object.');
   } else {
-    const selectedSpecializations = new Set(
-      (candidate.specializations || []).map((specialization) => specialization?.name)
-    );
+    const selectedSpecializations = new Set(specializations.map((specialization) => specialization?.name));
     // Track already-used utility IDs so duplicates across Utility1-3 are flagged.
     const selectedUtilityIds = new Set();
     for (const [slot, type] of Object.entries(SLOT_TYPES)) {

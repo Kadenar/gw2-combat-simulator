@@ -563,6 +563,20 @@ test('profession registry IDs and routes are unique', () => {
   assert.equal(new Set(routes).size, routes.length);
 });
 
+test('build validation reports malformed specializations across skill-loadout strategies', async () => {
+  for (const professionId of ['thief', 'revenant']) {
+    const entry = professionRegistry.find(({ id }) => id === professionId);
+    const profession = await entry.loadProfession();
+    const result = profession.validateBuild({
+      ...profession.createBuildDefaults(),
+      specializations: {}
+    });
+
+    assert.equal(result.valid, false, professionId);
+    assert.ok(result.errors.includes('specializations must be an array.'), professionId);
+  }
+});
+
 test('native build codecs share version, schema, and sanitization behavior', async () => {
   for (const entry of professionRegistry) {
     const [profession, adapter] = await Promise.all([entry.loadProfession(), entry.loadAppAdapter()]);
