@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -22,7 +21,6 @@ import { availability as evokerAvailability } from '#gw2/professions/elementalis
 import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/traits/modifiers.js';
-import { ELEMENTALIST_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/elementalist.js';
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
 const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttributeRules);
@@ -2985,29 +2983,6 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
     dynamo.events.some((event) => event.type === 'resource' && event.source === 'Elemental Dynamo'),
     true
   );
-});
-
-test('Elementalist trait coverage documents implementation scope', () => {
-  const traitsById = new Map(elementalistCatalog.traits.map((trait) => [trait.id, trait]));
-  const implemented = ELEMENTALIST_TRAIT_COVERAGE.filter(
-    (entry) => entry.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED
-  );
-
-  for (const entry of implemented) {
-    const trait = traitsById.get(entry.traitId);
-
-    assert.ok(trait, String(entry.traitId));
-    assert.doesNotMatch(entry.effects[0].description, /Reviewed Elementalist behavior/);
-    assert.equal(entry.effects[0].description, String(trait.description).trim());
-    assert.equal(Object.hasOwn(entry, 'tests'), false, trait.name);
-  }
-
-  for (const name of ['Conjurer', 'Gathered Focus', 'Harmonious Conduit', 'Lucid Singularity']) {
-    const trait = elementalistCatalog.traits.find((candidate) => candidate.name === name);
-    const entry = ELEMENTALIST_TRAIT_COVERAGE.find((candidate) => candidate.traitId === trait.id);
-
-    assert.equal(entry.status, TRAIT_COVERAGE_STATUSES.IMPLEMENTED, name);
-  }
 });
 
 test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {

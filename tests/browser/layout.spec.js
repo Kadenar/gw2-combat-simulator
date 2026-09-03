@@ -8,6 +8,49 @@ async function openSimulator(page, viewport = { width: 1280, height: 900 }) {
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 }
 
+test('landing page exposes profession navigation and restores focus after its tutorial', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+  await expect(page.getByRole('heading', { name: 'Guild Wars 2 Rotation Simulator' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pick a profession to get started!' })).toBeVisible();
+  await expect(page.locator('.profession-showcase')).toHaveCount(9);
+
+  const trigger = page.getByRole('button', { name: 'How do I use this tool?' });
+
+  await trigger.click();
+  const dialog = page.getByRole('dialog', { name: 'How to use the simulator' });
+
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close tutorial' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test('simulation config controls and result-dependent palette state work in the browser', async ({ page }) => {
+  await openSimulator(page);
+
+  const openConfig = page.getByRole('button', { name: 'Open simulation config' });
+
+  await openConfig.click();
+  const config = page.locator('#simulation-config-panel');
+
+  await expect(config).toBeVisible();
+  await expect(config.getByText('Timeline Display', { exact: true })).toBeVisible();
+  await expect(config.getByLabel('Display idle time')).toBeVisible();
+  await expect(config.getByLabel('Overlay sigils')).toBeVisible();
+  await expect(config.getByLabel('Overlay relics')).toBeVisible();
+  await expect(config.getByLabel('Overlay Sovereign of Light')).toHaveCount(0);
+
+  await config.getByRole('button', { name: 'Close simulation config' }).click();
+  await expect(config).toBeHidden();
+  await expect(openConfig).toBeFocused();
+
+  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+  await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
+  await expect(page.locator('#floating-dps')).toHaveAttribute('aria-label', /Current rotation DPS: /);
+  await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
+});
+
 test('hidden template states stay out of layout', async ({ page }) => {
   await openSimulator(page);
 

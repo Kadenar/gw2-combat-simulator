@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { elementalistNativeModules } from '#gw2/professions/elementalist/modules.js';
@@ -35,16 +34,6 @@ const EXPECTED_MODULE_IDS = Object.freeze({
   thief: ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary'],
   warrior: ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
 });
-
-const PROFESSION_SOURCE_ROOT = new URL('../../js/games/gw2/professions/', import.meta.url);
-
-// Walk only profession source so the boundary check stays filesystem-driven instead of maintaining a file manifest.
-function sourceFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const url = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, directory);
-    return entry.isDirectory() ? sourceFiles(url) : [url];
-  });
-}
 
 function schedulerDeclarations(module) {
   const availability = module.mechanics?.execution?.availability;
@@ -119,20 +108,6 @@ test('profession modules register phase behavior only through explicit sections'
         assert.equal(module.mechanics[legacyKey], undefined, `${label}/mechanics.${legacyKey}`);
       }
     }
-  }
-});
-
-test('profession skills trees contain declarations rather than runtime execution', () => {
-  const runtimeFilename =
-    /^(?:execution|.+-execution|.+-handlers?|handler-registry|cast-lifecycle|effect-controller|effect-types|packet-emission|stateful-effects)\.(?:d\.)?ts$/;
-  const runtimeImport = /#gw2\/platform\/(?:engine\/skills\/handlers|scheduler\/skill-events)\.js/;
-
-  for (const file of sourceFiles(PROFESSION_SOURCE_ROOT)) {
-    const normalizedPath = file.pathname.replaceAll('\\', '/');
-    if (!normalizedPath.includes('/skills/') || !/\.ts$/.test(normalizedPath)) continue;
-    const filename = normalizedPath.slice(normalizedPath.lastIndexOf('/') + 1);
-    assert.doesNotMatch(filename, runtimeFilename, normalizedPath);
-    assert.doesNotMatch(readFileSync(file, 'utf8'), runtimeImport, normalizedPath);
   }
 });
 

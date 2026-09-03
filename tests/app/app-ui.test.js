@@ -681,26 +681,6 @@ test('shared app metadata owns common attributes and target conditions', () => {
   );
 });
 
-test('timeline display checkboxes are owned by Simulation Config instead of the rotation output', async () => {
-  const [displayControls, timelineView, timelineSize] = await Promise.all([
-    readFile(new URL('../../js/games/gw2/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/rotation/timeline/view.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/rotation/timeline/size.ts', import.meta.url), 'utf8')
-  ]);
-
-  assert.match(displayControls, /summary\.textContent = 'Timeline Display'/);
-  assert.match(displayControls, /id: 'rotation-show-dead-time'/);
-  assert.match(displayControls, /label: 'Display idle time'/);
-  assert.match(displayControls, /id: 'rotation-overlay-sigil-procs'/);
-  assert.match(displayControls, /id: 'rotation-overlay-relic-procs'/);
-  assert.match(displayControls, /id: 'rotation-overlay-sovereign-of-light-procs'/);
-  assert.match(displayControls, /label: 'Overlay Sovereign of Light'/);
-  assert.match(displayControls, /activeSpecialization\(app\) === 'Luminary'/);
-  assert.match(timelineView, /app\.overlaySovereignOfLightProcs/);
-  assert.doesNotMatch(timelineView, /data-overlay-proc-type/);
-  assert.doesNotMatch(timelineSize, /rotation-dead-time-control/);
-});
-
 test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
   const results = {
     innerHTML: '',
@@ -800,53 +780,12 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   assert.match(summaryStrip.innerHTML, /Baseline Player DPS/);
 });
 
-test('published simulation results refresh result-dependent palette state', async () => {
-  const source = await readFile(new URL('../../js/games/gw2/app/rotation/index.ts', import.meta.url), 'utf8');
-  const outputRenderer = source.slice(source.indexOf('export function renderSimulationOutput'));
-
-  assert.match(outputRenderer, /renderStartResource\(app\);/);
-  assert.match(outputRenderer, /renderPalette\(app\);/);
-  assert.ok(outputRenderer.indexOf('renderStartResource(app)') < outputRenderer.indexOf('renderPalette(app)'));
-  assert.ok(outputRenderer.indexOf('renderPalette(app)') < outputRenderer.indexOf('renderTimeline(app)'));
-});
-
-test('gear panel leaves current rotation DPS to the floating metric', async () => {
-  const [gearPanel, professionApp] = await Promise.all([
-    readFile(new URL('../../js/games/gw2/app/build/panels/gear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/profession-app.ts', import.meta.url), 'utf8')
-  ]);
-
-  assert.doesNotMatch(gearPanel, /current-rotation-dps|gear-rotation-dps|currentRotationDps/);
-  assert.doesNotMatch(professionApp, /updateGearRotationDps/);
-});
-
-test('shared app and platform helpers are profession neutral', async () => {
-  const sources = await Promise.all([
-    readFile(new URL('../../js/games/gw2/app/simulation/modifier-contributions.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/build/state/persistence.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/app.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/simulation/config.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/simulation/modifier-contribution-worker.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/games/gw2/app/presentation/results/rotation-results.ts', import.meta.url), 'utf8')
-  ]);
-  const professionTerms = professionRegistry.flatMap((entry) => [entry.id, entry.name]);
-
-  for (const source of sources) {
-    for (const term of professionTerms) {
-      assert.equal(source.toLowerCase().includes(term.toLowerCase()), false, term);
-    }
-  }
-});
-
 test('Guardian is exposed by the profession selector and app composition', async () => {
-  const guardianPage = await readFile(new URL('../../guardian.html', import.meta.url), 'utf8');
-
   assert.equal(
     professionOptions.some((option) => option.id === 'guardian'),
     true
   );
   assert.equal((await loadProfessionAppAdapter('guardian'))?.id, 'guardian');
-  assert.match(guardianPage, /data-profession="guardian"/);
 });
 
 test('the landing selector records supplied specialization artwork for every profession', () => {
@@ -873,60 +812,6 @@ test('the landing selector records supplied specialization artwork for every pro
       .every(({ image }) => image.startsWith('https://assets.snowcrows.com/')),
     true
   );
-});
-
-test('the generic landing page and profession simulators have separate entries', async () => {
-  const landingPage = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
-  const professionPages = await Promise.all(
-    professionRegistry.map(async (entry) => ({
-      entry,
-      source: await readFile(new URL(`../../dist/site/${entry.route}`, import.meta.url), 'utf8')
-    }))
-  );
-
-  assert.match(landingPage, /<body class="landing-page">/);
-  assert.match(landingPage, /<header class="landing-header">\s*<div class="header-brand">/);
-  assert.doesNotMatch(landingPage, /Available simulators/);
-  assert.match(landingPage, /Pick a profession to get started!/);
-  assert.match(
-    landingPage,
-    /Pick a profession to get started![\s\S]*data-tutorial-trigger[^>]*>[\s\S]*How do I use this tool\?[\s\S]*data-profession-grid/
-  );
-  assert.match(landingPage, /data-profession-grid/);
-  assert.doesNotMatch(landingPage, /simulator-view-tabs/);
-  assert.doesNotMatch(landingPage, /profession-card-mesmer/);
-  assert.deepEqual(
-    professionOptions,
-    professionRegistry.map(({ id, name }) => ({ id, name }))
-  );
-  assert.doesNotMatch(landingPage, /js\/app\/app\.js/);
-  assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
-  for (const { entry, source } of professionPages) {
-    assert.match(source, /<a class="home-link" href="index\.html">← All professions<\/a>/);
-    assert.match(source, new RegExp(`data-profession="${entry.id}"`));
-    assert.match(source, /assets\/app-[^"']+\.js/);
-    assert.match(source, /id="rotation-warnings"/);
-    // Every profession keeps build-selectable skills beside traits without the redundant combat preview.
-    assert.match(source, /build-editor panel/);
-    assert.match(source, /build-editor panel[\s\S]*simulation-workspace/);
-    assert.match(source, /skills-section skill-selection-section/);
-    assert.match(source, /selectable-skills-panel/);
-    assert.match(source, /selectable-skills-title/);
-    assert.match(source, /id="skill-bar" class="skill-bar selectable-skills-bar"/);
-    assert.doesNotMatch(source, /Combat loadout|combat-loadout|id="weapon-bar"|id="profession-mechanics"/);
-    assert.doesNotMatch(source, /skills-primary-column/);
-    assert.doesNotMatch(source, /equipped-skills-panel/);
-    assert.doesNotMatch(source, /weapon-sets-panel/);
-
-    if (entry.id === 'elementalist') {
-      assert.match(source, /class="elementalist-theme"/);
-    } else {
-      assert.match(source, /profession-loadout-theme/);
-    }
-
-    assert.doesNotMatch(source, /id="skill-info-table"/);
-    assert.doesNotMatch(source, /selected-skills-panel/);
-  }
 });
 
 test('Mesmer default builds resolve without embedded rotations', async () => {

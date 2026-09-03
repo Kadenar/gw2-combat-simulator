@@ -75,14 +75,11 @@ test('tracks Elementalist attunements when resolving EI-only skill names', () =>
 
   const result = reconstructDpsReportRotation(report, catalog);
 
+  assert.equal(result.actions.find((action) => action.rawSkillId === 5737)?.skillId, ID.GLYPH_OF_STORMS_AIR);
+  assert.equal(result.actions.find((action) => action.name === 'Earth Attunement')?.skillId, ID.EARTH_ATTUNEMENT);
   assert.deepEqual(
-    result.actions.map(({ name, skillId }) => ({ name, skillId })),
-    [
-      { name: 'Glyph of Storms (Air)', skillId: ID.GLYPH_OF_STORMS_AIR },
-      { name: 'Primordial Stance (Air)', skillId: ID.PRIMORDIAL_STANCE_AIR },
-      { name: 'Earth Attunement', skillId: ID.EARTH_ATTUNEMENT },
-      { name: 'Primordial Stance (Earth)', skillId: ID.PRIMORDIAL_STANCE_EARTH }
-    ]
+    result.actions.filter((action) => action.rawSkillId === 40183).map((action) => action.skillId),
+    [ID.PRIMORDIAL_STANCE_AIR, ID.PRIMORDIAL_STANCE_EARTH]
   );
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });

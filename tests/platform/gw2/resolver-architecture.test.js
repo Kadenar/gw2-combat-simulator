@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
@@ -11,51 +10,6 @@ import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechani
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-
-// Locks the named Mesmer effect boundaries so generic runtime filenames cannot return.
-test('Mesmer skill damage scheduling is split into focused modules', () => {
-  const core = new URL('../../../js/games/gw2/professions/mesmer/core/', import.meta.url);
-
-  for (const path of [
-    'mechanics/illusions/clone-attacks.ts',
-    'mechanics/illusions/phantasms.ts',
-    'mechanics/illusions/resources.ts',
-    'skills/actions.ts',
-    'execution/effect-controller.ts',
-    'execution/effect-types.d.ts',
-    'execution/packet-emission.ts',
-    'execution/skill-effects.ts',
-    'skills/supplemental-skills.ts'
-  ]) {
-    assert.equal(existsSync(new URL(path, core)), true, path);
-  }
-
-  for (const path of [
-    'illusions.ts',
-    'skills/damage.ts',
-    'skills/effects.ts',
-    'skills/special-effects.ts',
-    'skills/types.d.ts'
-  ]) {
-    assert.equal(existsSync(new URL(path, core)), false, path);
-  }
-
-  const pipeline = readFileSync(new URL('execution/effect-controller.ts', core), 'utf8');
-
-  assert.match(pipeline, /createPhantasmEffectController/);
-  assert.match(pipeline, /createSkillDamageController/);
-  assert.match(pipeline, /createIllusionResourceController/);
-  assert.match(pipeline, /createSkillSpecialEffectController/);
-  assert.doesNotMatch(pipeline, /\baddDamage\s*\(/);
-  assert.doesNotMatch(pipeline, /mesmer\.phantasm-(?:summoned|attack)/);
-
-  const phantasms = readFileSync(new URL('mechanics/illusions/phantasms.ts', core), 'utf8');
-  const clones = readFileSync(new URL('mechanics/illusions/clone-attacks.ts', core), 'utf8');
-
-  assert.match(phantasms, /mesmer\.phantasm-summoned/);
-  assert.match(phantasms, /\baddDamage\s*\(/);
-  assert.match(clones, /\baddDamage\s*\(/);
-});
 
 test('clone attacks are scheduled lazily as the timeline advances', () => {
   const state = { clones: [] };

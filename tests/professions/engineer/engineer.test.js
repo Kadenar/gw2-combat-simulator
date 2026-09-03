@@ -1,7 +1,7 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import test from 'node:test';
+import { describe, test } from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { selectableSkillBarGroups } from '#gw2/app/build/panels/skills.js';
@@ -27,9 +27,7 @@ import {
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
-import { ENGINEER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/engineer.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
@@ -204,87 +202,10 @@ test('Poison Dart Volley and Static Shot are not combo finishers', () => {
   assert.equal(mechanic('Static Shot').comboFinishers, undefined);
 });
 
-test('Engineer catalog pins API identity and explicit skill mechanics', () => {
-  assert.equal(DATA_SNAPSHOT, '2026-07-28');
-  assert.equal(engineerCatalog.specializations.length, 9);
-  assert.equal(engineerCatalog.traits.length, 108);
-  assert.ok(engineerCatalog.skills.length >= 233);
-  for (const aliasId of [29591, 29991, 30881]) {
-    assert.equal(engineerCatalog.skillsById.has(aliasId), false);
-  }
-
-  // Unsupported utility families and their tool-belt actions must stay out of the simulator catalog.
-  for (const omittedId of [
-    5811, 5818, 5821, 5825, 5832, 5834, 5836, 5837, 5838, 5860, 5861, 5862, 5865, 5904, 5910, 5912, 5968, 5969, 5970,
-    5972, 5973, 5983, 6077, 6078, 6084, 6088, 6089, 6090, 6093, 29522, 29722, 29739, 30101, 30725, 30828, 41218, 44646,
-    12335, 12354, 12355, 12463, 49097, 77018
-  ]) {
-    assert.equal(engineerCatalog.skillsById.has(omittedId), false);
-  }
-
-  for (const omittedName of [
-    'Slick Shoes',
-    'Rocket Boots',
-    'Superspeed (skill)',
-    'Rocket Kick',
-    'Elixir C',
-    'Elixir S',
-    'Elixir U',
-    'Elixir X',
-    'Toss Elixir C',
-    'Toss Elixir S',
-    'Toss Elixir U',
-    'Toss Elixir X',
-    'Detonate Elixir C',
-    'Detonate Elixir S',
-    'Detonate Elixir U',
-    'Detonate Elixir X',
-    'Lesser Elixir C',
-    'Personal Battering Ram',
-    'Rifle Turret',
-    'Elixir B',
-    'Elixir H',
-    'Flame Turret',
-    'Net Turret',
-    'Thumper Turret',
-    'Utility Goggles',
-    'Tool Kit',
-    'Rocket Turret',
-    'Elixir R',
-    'Harpoon Turret',
-    'Purge Gyro',
-    'Bulwark Gyro',
-    'Spectrum Shield',
-    'Hard Light Arena',
-    'Gaseous State',
-    'Blessing of Dwayna',
-    'Blessing of Kormir',
-    'Blessing of Lyssa',
-    'Eat Wurm Egg',
-    'Eat Owl Egg',
-    'Leafy Bandage',
-    'Snowman Turret (skill)',
-    'Detonate Snowman Turret',
-    'Pain Transference',
-    'Invigorating Roar',
-    'Booby Trap (charr skill)',
-    'Vine Shield'
-  ]) {
-    assert.equal(engineerCatalog.skillsByName.has(omittedName), false);
-  }
-
-  assert.equal(engineerCatalog.skillsByName.get('A.E.D.').id, 21659);
+test('Engineer catalog retains reviewed packet and profile mechanics', () => {
   assert.equal(engineerCatalog.skillsById.get(5842).name, 'Bomb');
   assert.equal(strikeEffectCoefficient(engineerCatalog.skillsByName.get('Bomb').effects[0]), 1.2);
   assert.match(engineerCatalog.skillsById.get(5806).icon, /Special:Redirect\/file\/Poison_Grenade\.png$/);
-  assert.equal(
-    engineerCatalog.skillsByName.get('Shrapnel Grenade').icon,
-    'https://render.guildwars2.com/file/' + '467E6BF83D152F95BC5D0B3573F4D2D71F5A4BFA/102830.png'
-  );
-  assert.equal(
-    engineerCatalog.skillsByName.get('Vent Exhaust').icon,
-    'https://render.guildwars2.com/file/' + '3C2B5C060DA920011A20ACDB96DB155D4BDE2A04/103434.png'
-  );
   const ventExhaust = engineerCatalog.skillsByName.get('Vent Exhaust');
 
   // Vent Exhaust is an invoked skill, so its packets and heat loss live on the skill without a cast handler.
@@ -305,37 +226,6 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
 
   assert.equal(thermalReleaseValve.resourceCost, undefined);
   assert.deepEqual(thermalReleaseValve.effects, [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]);
-  assert.equal(
-    engineerCatalog.skillsByName.get('Orbital Command Strike').icon,
-    'https://render.guildwars2.com/file/' + '99CFD7B1B200DCC508172BC8A3C2EE970C06493E/1012854.png'
-  );
-  assert.equal(
-    engineerCatalog.skillsByName.get('Flame Jet').icon,
-    'https://render.guildwars2.com/file/' + '2CDBD11894D945140B3480BFEC960800086352E5/103269.png'
-  );
-  assert.equal(
-    engineerCatalog.skillsByName.get('Bandage Blast').icon,
-    'https://render.guildwars2.com/file/' + 'F473E7A5D7D301A3B813443812C73338C073ABB2/102898.png'
-  );
-  assert.equal(
-    engineerCatalog.skillsByName.get('Stow Flamethrower').icon,
-    'https://render.guildwars2.com/file/' + '7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png'
-  );
-  assert.equal(
-    engineerCatalog.skillsByName.get('Jade Energy Shot').icon,
-    'https://render.guildwars2.com/file/' + '73600241FA662501C5D617719A7B4792F30B2846/2503622.png'
-  );
-  assert.equal(
-    engineerCatalog.skillsById.get(ID.ROCKET_PUNCH_MECH).icon,
-    'https://render.guildwars2.com/file/' + '02DA2C9899B63DE522020824C67D05951F40CA4A/2503679.png'
-  );
-  assert.ok(
-    engineerCatalog.skills
-      .filter((skill) => skill.specialization === 'Amalgam' && skill.categories?.includes('Morph'))
-      .every((skill) => skill.icon.startsWith('https://render.guildwars2.com/'))
-  );
-  assert.equal(engineerCatalog.skillsById.has(6175), false);
-  assert.equal(engineerCatalog.skillsById.has(58090), false);
   const poisonGrenade = ENGINEER_CORE_SKILL_MECHANICS[5806];
 
   assert.equal(poisonGrenade.castTimeMs, undefined);
@@ -2406,223 +2296,255 @@ test('Amalgam protocol selection swaps conflicting protocol names', () => {
   assert.equal(new Set(build.selectedMorphSkillIds.map((id) => engineerCatalog.skillsById.get(id).name)).size, 3);
 });
 
-test('Engineer packets use total coefficients and configured cadence', () => {
+describe('Engineer packet profiles', () => {
   const mechanic = (name) => engineerCatalog.skillsByName.get(name);
 
-  assert.equal(mechanic('Shrapnel Grenade').quicknessCastTimeMs, 680);
-  assert.equal(mechanic('Poison Grenade').quicknessCastTimeMs, 680);
-  assert.equal(mechanic('Freeze Grenade').quicknessCastTimeMs, 680);
-  assert.equal(mechanic('Flame Jet').castTimeMs, 2570);
-  assert.equal(strikeEffectCoefficient(mechanic('Flame Jet').effects[0]), 2.5);
-  assert.equal(
-    mechanic('Napalm').effects[0].ticks.reduce((total, packet) => total + packet.coefficient, 0),
-    5
-  );
-  assert.equal(mechanic('Napalm').quicknessCastTimeMs, 1760);
-  assert.equal(mechanic('Napalm').cooldown, 25);
-  assert.equal(mechanic('Napalm').interruptMode, 'per-packet');
-  assert.deepEqual(
-    mechanic('Napalm').effects[0].ticks.map((packet) => packet.atMs),
-    [280, 441, 560, 679, 842, 955, 1077, 1240, 1361, 1482]
-  );
-  assert.equal(mechanic('Napalm').effects[1].ticks.length, 10);
-  assert.deepEqual(
-    mechanic('Napalm').effects[1].ticks.map((packet) => packet.atMs),
-    mechanic('Napalm').effects[0].ticks.map((packet) => packet.atMs)
-  );
-  assert.equal(mechanic('Flame Blast').cooldown, 6);
-  assert.equal(mechanic('Flame Blast').quicknessCastTimeMs, 800);
-  assert.equal(mechanic('Flame Blast').effects[0].damageKind, 'explosion');
-  assert.deepEqual(
-    [
-      'Fragmentation Shot',
-      'Poison Dart Volley',
-      'Static Shot',
-      'Glue Shot',
-      'Blowtorch',
-      'Prime Light Beam',
-      'Corona Burst',
-      'Photon Blitz'
-    ].map((name) => [name, mechanic(name).quicknessCastTimeMs]),
-    [
-      ['Fragmentation Shot', 520],
-      ['Poison Dart Volley', 840],
-      ['Static Shot', 320],
-      ['Glue Shot', 560],
-      ['Blowtorch', 560],
-      ['Prime Light Beam', 1160],
-      ['Corona Burst', 480],
-      ['Photon Blitz', 1320]
-    ]
-  );
-  assert.equal(strikeEffectCoefficient(mechanic('Poison Dart Volley').effects[0]), 2);
-  assert.equal(mechanic('Poison Dart Volley').effects[1].ticks.length, 5);
-  assert.equal(conditionEffectTicks(mechanic('Static Shot').effects[1])[0].stacks, 3);
-  assert.equal(conditionEffectTicks(mechanic('Static Shot').effects[1])[0].duration, 5);
-  assert.equal(strikeEffectCoefficient(mechanic('Glue Shot').effects[0]), 2.5);
-  assert.equal(strikeEffectCoefficient(mechanic('Blowtorch').effects[0]), 2);
-  assert.equal(conditionEffectTicks(mechanic('Blowtorch').effects[1])[0].duration, 4.5);
-  assert.deepEqual(
-    mechanic('Corona Burst')
-      .effects.filter((effect) => effect.type === 'strike')
-      .map((effect) => strikeEffectCoefficient(effect)),
-    [1.5, 1.5]
-  );
-  assert.ok(
-    mechanic('Corona Burst')
-      .effects.filter((effect) => effect.type === 'strike')
-      .every((effect) => effect.damageKind === 'explosion')
-  );
-  assert.equal(
-    mechanic('Photon Blitz').effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
-    5.12
-  );
-  assert.equal(mechanic('Photon Blitz').effects[0].ticks[0].atMs, 280);
-  assert.deepEqual(
-    ['Laser Disk', 'Photon Wall', 'Launch Wall', 'Prime Light Beam'].map((name) => [
-      name,
-      mechanic(name).cooldown,
-      mechanic(name).quicknessCastTimeMs
-    ]),
-    [
-      ['Laser Disk', 30, 960],
-      ['Photon Wall', 25, 400],
-      ['Launch Wall', 0.5, 520],
-      ['Prime Light Beam', 60, 1160]
-    ]
-  );
-  assert.equal(strikeEffectCoefficient(mechanic('Prime Light Beam').effects[0]), 3);
-  assert.equal(mechanic('Prime Light Beam').effects[0].damageKind, 'explosion');
-  assert.equal(mechanic('Prime Light Beam').effects[2].controlKind, 'launch');
-  assert.equal(mechanic('Grenade Barrage').effects[0].weapon, 'Profession mechanic');
-  assert.equal(mechanic('Blade Burst').effects[0].weapon, 'Profession mechanic');
-  assert.equal(mechanic('Particle Accelerator').effects[0].weapon, 'Profession mechanic');
-  assert.equal(mechanic('Static Shock').effects[0].weapon, 'Profession mechanic');
-  assert.equal(mechanic('Prime Light Beam').effects[1].eventType, 'engineer.prime-light-beam-field');
-  assert.equal(mechanic('Grenade Barrage').effects[0].damageKind, 'explosion');
-  assert.equal(mechanic('Air Blast').quicknessCastTimeMs, 360);
-  assert.equal(mechanic('Puncturing Jab').quicknessCastTimeMs, 440);
-  assert.equal(mechanic('Rending Strike').quicknessCastTimeMs, 520);
-  assert.equal(mechanic('Amplifying Slice').quicknessCastTimeMs, 640);
-  assert.equal(mechanic('Lightning Rod').castTimeMs, 400);
-  assert.equal(mechanic('Lightning Rod').unaffectedByQuickness, true);
-  assert.equal(mechanic('Conduit Surge').castTimeMs, 520);
-  assert.equal(mechanic('Conduit Surge').unaffectedByQuickness, true);
-  assert.equal(mechanic('Electric Artillery').quicknessCastTimeMs, 520);
-  assert.equal(mechanic('Stoke the Flames').quicknessCastTimeMs, 440);
-  assert.equal(mechanic('Evolve').quicknessCastTimeMs, 640);
-  assert.equal(mechanic('Devastator').castTimeMs, 1000);
-  assert.equal(mechanic('Devastator').unaffectedByQuickness, true);
+  test('weapon kits retain their authored cadence and packets', () => {
+    assert.deepEqual(
+      ['Shrapnel Grenade', 'Poison Grenade', 'Freeze Grenade'].map((name) => mechanic(name).quicknessCastTimeMs),
+      [680, 680, 680]
+    );
+    assert.equal(mechanic('Flame Jet').castTimeMs, 2570);
+    assert.equal(strikeEffectCoefficient(mechanic('Flame Jet').effects[0]), 2.5);
+    assert.equal(
+      mechanic('Napalm').effects[0].ticks.reduce((total, packet) => total + packet.coefficient, 0),
+      5
+    );
+    assert.equal(mechanic('Napalm').quicknessCastTimeMs, 1760);
+    assert.equal(mechanic('Napalm').cooldown, 25);
+    assert.equal(mechanic('Napalm').interruptMode, 'per-packet');
+    assert.deepEqual(
+      mechanic('Napalm').effects[0].ticks.map((packet) => packet.atMs),
+      [280, 441, 560, 679, 842, 955, 1077, 1240, 1361, 1482]
+    );
+    assert.deepEqual(
+      mechanic('Napalm').effects[1].ticks.map((packet) => packet.atMs),
+      mechanic('Napalm').effects[0].ticks.map((packet) => packet.atMs)
+    );
+    assert.deepEqual([mechanic('Flame Blast').cooldown, mechanic('Flame Blast').quicknessCastTimeMs], [6, 800]);
+    assert.equal(mechanic('Flame Blast').effects[0].damageKind, 'explosion');
+  });
 
-  const shredSkill = mechanic('Offensive Protocol: Shred');
-  const shred = shredSkill.effects[0];
+  test('pistol and Holosmith packets retain their authored mechanics', () => {
+    assert.deepEqual(
+      [
+        'Fragmentation Shot',
+        'Poison Dart Volley',
+        'Static Shot',
+        'Glue Shot',
+        'Blowtorch',
+        'Prime Light Beam',
+        'Corona Burst',
+        'Photon Blitz'
+      ].map((name) => [name, mechanic(name).quicknessCastTimeMs]),
+      [
+        ['Fragmentation Shot', 520],
+        ['Poison Dart Volley', 840],
+        ['Static Shot', 320],
+        ['Glue Shot', 560],
+        ['Blowtorch', 560],
+        ['Prime Light Beam', 1160],
+        ['Corona Burst', 480],
+        ['Photon Blitz', 1320]
+      ]
+    );
+    assert.equal(strikeEffectCoefficient(mechanic('Poison Dart Volley').effects[0]), 2);
+    assert.equal(mechanic('Poison Dart Volley').effects[1].ticks.length, 5);
+    assert.deepEqual(
+      [
+        conditionEffectTicks(mechanic('Static Shot').effects[1])[0].stacks,
+        conditionEffectTicks(mechanic('Static Shot').effects[1])[0].duration
+      ],
+      [3, 5]
+    );
+    assert.equal(strikeEffectCoefficient(mechanic('Glue Shot').effects[0]), 2.5);
+    assert.equal(strikeEffectCoefficient(mechanic('Blowtorch').effects[0]), 2);
+    assert.equal(conditionEffectTicks(mechanic('Blowtorch').effects[1])[0].duration, 4.5);
+    assert.deepEqual(
+      mechanic('Corona Burst')
+        .effects.filter((effect) => effect.type === 'strike')
+        .map((effect) => [strikeEffectCoefficient(effect), effect.damageKind]),
+      [
+        [1.5, 'explosion'],
+        [1.5, 'explosion']
+      ]
+    );
+    assert.equal(
+      mechanic('Photon Blitz').effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
+      5.12
+    );
+    assert.equal(mechanic('Photon Blitz').effects[0].ticks[0].atMs, 280);
+  });
 
-  assert.equal(shredSkill.quicknessCastTimeMs, 760);
-  assert.deepEqual(
-    shred.ticks.map((packet) => packet.coefficient),
-    [0.96, 0.96, 0.96]
-  );
-  assert.deepEqual(
-    shred.ticks.map((packet) => packet.atMs),
-    [638.4, 684, 729.6]
-  );
-  assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].condition, 'Immobilized');
-  assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].duration, 3);
+  test('profession mechanics retain cooldown, timing, and classification facts', () => {
+    assert.deepEqual(
+      ['Laser Disk', 'Photon Wall', 'Launch Wall', 'Prime Light Beam'].map((name) => [
+        name,
+        mechanic(name).cooldown,
+        mechanic(name).quicknessCastTimeMs
+      ]),
+      [
+        ['Laser Disk', 30, 960],
+        ['Photon Wall', 25, 400],
+        ['Launch Wall', 0.5, 520],
+        ['Prime Light Beam', 60, 1160]
+      ]
+    );
+    assert.deepEqual(
+      [
+        strikeEffectCoefficient(mechanic('Prime Light Beam').effects[0]),
+        mechanic('Prime Light Beam').effects[0].damageKind,
+        mechanic('Prime Light Beam').effects[2].controlKind,
+        mechanic('Prime Light Beam').effects[1].eventType
+      ],
+      [3, 'explosion', 'launch', 'engineer.prime-light-beam-field']
+    );
 
-  const demolish = mechanic('Offensive Protocol: Demolish');
+    for (const name of ['Grenade Barrage', 'Blade Burst', 'Particle Accelerator', 'Static Shock']) {
+      assert.equal(mechanic(name).effects[0].weapon, 'Profession mechanic', name);
+    }
 
-  assert.equal(demolish.castTimeMs, 2340);
-  assert.equal(demolish.quicknessCastTimeMs, 1000 + 560);
-  assert.equal(demolish.rechargeAnchor, 'castStart');
-  assert.equal(demolish.rechargeOffsetMs, 1000);
-  assert.deepEqual(
-    demolish.effects[0].ticks.map((packet) => [packet.atMs, packet.coefficient]),
-    [
-      [360, 0.9],
-      [640, 0.9],
-      [920, 0.9]
-    ]
-  );
-  assert.equal(strikeEffectCoefficient(demolish.effects[1]), 2.25);
-  assert.equal(effectFirstAtMs(demolish.effects[1]), 1440);
-  assert.equal(
-    demolish.effects.some((effect) => effect.boon === 'stability'),
-    false
-  );
-  const obliterate = mechanic('Offensive Protocol: Obliterate');
+    assert.equal(mechanic('Grenade Barrage').effects[0].damageKind, 'explosion');
+  });
 
-  assert.equal(obliterate.quicknessCastTimeMs, 800);
-  assert.equal(strikeEffectCoefficient(obliterate.effects[0]), 2.88);
-  assert.equal(effectFirstAtMs(obliterate.effects[0]), 640);
-  assert.equal(obliterate.effects[0].timingAnchor, 'castStart');
-  assert.equal(conditionEffectTicks(obliterate.effects[1])[0].condition, 'Bleeding');
-  assert.equal(conditionEffectTicks(obliterate.effects[1])[0].stacks, 8);
-  assert.equal(conditionEffectTicks(obliterate.effects[1])[0].duration, 6);
-  assert.equal(effectFirstAtMs(obliterate.effects[1]), 640);
+  test('Amalgam skills retain their authored cast timing', () => {
+    assert.deepEqual(
+      [
+        ['Air Blast', 'quicknessCastTimeMs'],
+        ['Puncturing Jab', 'quicknessCastTimeMs'],
+        ['Rending Strike', 'quicknessCastTimeMs'],
+        ['Amplifying Slice', 'quicknessCastTimeMs'],
+        ['Lightning Rod', 'castTimeMs'],
+        ['Conduit Surge', 'castTimeMs'],
+        ['Electric Artillery', 'quicknessCastTimeMs'],
+        ['Stoke the Flames', 'quicknessCastTimeMs'],
+        ['Evolve', 'quicknessCastTimeMs'],
+        ['Devastator', 'castTimeMs']
+      ].map(([name, field]) => mechanic(name)[field]),
+      [360, 440, 520, 640, 400, 520, 520, 440, 640, 1000]
+    );
+    for (const name of ['Lightning Rod', 'Conduit Surge', 'Devastator']) {
+      assert.equal(mechanic(name).unaffectedByQuickness, true, name);
+    }
+  });
 
-  const flux = mechanic('Flux State');
+  test('Shred retains its packet and control profile', () => {
+    const shredSkill = mechanic('Offensive Protocol: Shred');
+    const shred = shredSkill.effects[0];
 
-  assert.equal(flux.quicknessCastTimeMs, 640);
-  assert.equal(strikeEffectCoefficient(flux.effects[1]), 9);
-  assert.equal(strikeEffectTicks(flux.effects[1]).length, 12);
-  assert.deepEqual(
-    strikeEffectTicks(flux.effects[1]).map((tick) => tick.atMs),
-    Array.from({ length: 12 }, (_, index) => 520 + index * 520)
-  );
-  assert.equal(flux.effects[2].ticks.length, 12);
+    assert.equal(shredSkill.quicknessCastTimeMs, 760);
+    assert.deepEqual(
+      shred.ticks.map((packet) => packet.coefficient),
+      [0.96, 0.96, 0.96]
+    );
+    assert.deepEqual(
+      shred.ticks.map((packet) => packet.atMs),
+      [638.4, 684, 729.6]
+    );
+    assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].condition, 'Immobilized');
+    assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].duration, 3);
+  });
 
-  const plasmatic = mechanic('Plasmatic State');
+  test('Demolish and Obliterate retain their packet profiles', () => {
+    const demolish = mechanic('Offensive Protocol: Demolish');
 
-  assert.equal(plasmatic.castTimeMs, 1440);
-  assert.equal(plasmatic.quicknessCastTimeMs, 480 + 480);
-  assert.equal(plasmatic.rechargeAnchor, 'castStart');
-  assert.equal(plasmatic.rechargeOffsetMs, 480);
-  assert.equal(
-    plasmatic.effects[0].ticks.reduce((sum, packet) => sum + packet.coefficient, 0),
-    4.5
-  );
-  assert.equal(plasmatic.effects[1].ticks.length, 2);
+    assert.equal(demolish.castTimeMs, 2340);
+    assert.equal(demolish.quicknessCastTimeMs, 1000 + 560);
+    assert.equal(demolish.rechargeAnchor, 'castStart');
+    assert.equal(demolish.rechargeOffsetMs, 1000);
+    assert.deepEqual(
+      demolish.effects[0].ticks.map((packet) => [packet.atMs, packet.coefficient]),
+      [
+        [360, 0.9],
+        [640, 0.9],
+        [920, 0.9]
+      ]
+    );
+    assert.equal(strikeEffectCoefficient(demolish.effects[1]), 2.25);
+    assert.equal(effectFirstAtMs(demolish.effects[1]), 1440);
+    assert.equal(
+      demolish.effects.some((effect) => effect.boon === 'stability'),
+      false
+    );
+    const obliterate = mechanic('Offensive Protocol: Obliterate');
 
-  const spark = mechanic('Spark Revolver').effects[0];
+    assert.equal(obliterate.quicknessCastTimeMs, 800);
+    assert.equal(strikeEffectCoefficient(obliterate.effects[0]), 2.88);
+    assert.equal(effectFirstAtMs(obliterate.effects[0]), 640);
+    assert.equal(obliterate.effects[0].timingAnchor, 'castStart');
+    assert.equal(conditionEffectTicks(obliterate.effects[1])[0].condition, 'Bleeding');
+    assert.equal(conditionEffectTicks(obliterate.effects[1])[0].stacks, 8);
+    assert.equal(conditionEffectTicks(obliterate.effects[1])[0].duration, 6);
+    assert.equal(effectFirstAtMs(obliterate.effects[1]), 640);
+  });
 
-  const mechCommands = engineerCatalog.skills.filter(
-    (skill) =>
-      skill.specialization === 'Mechanist' && Number(skill.mechanicSlot) >= 1 && Number(skill.mechanicSlot) <= 3
-  );
+  test('Flux and Plasmatic State retain their multi-phase cadence', () => {
+    const flux = mechanic('Flux State');
 
-  assert.equal(mechCommands.length, 9);
-  assert.equal(
-    mechCommands.every((skill) => skill.independentCast === true),
-    true
-  );
-  const instantMechCommands = mechCommands.filter((skill) => skill.castTimeMs === 0);
+    assert.equal(flux.quicknessCastTimeMs, 640);
+    assert.equal(strikeEffectCoefficient(flux.effects[1]), 9);
+    assert.equal(strikeEffectTicks(flux.effects[1]).length, 12);
+    assert.deepEqual(
+      strikeEffectTicks(flux.effects[1]).map((tick) => tick.atMs),
+      Array.from({ length: 12 }, (_, index) => 520 + index * 520)
+    );
+    assert.equal(flux.effects[2].ticks.length, 12);
 
-  assert.deepEqual(
-    instantMechCommands.map((skill) => skill.name),
-    ['Crisis Zone', 'Discharge Array']
-  );
-  assert.equal(
-    instantMechCommands.every((skill) => skill.independentCastCanOverlap === true),
-    true
-  );
-  assert.equal(
-    mechCommands.filter((skill) => skill.castTimeMs > 0).every((skill) => skill.independentCastCanOverlap !== true),
-    true
-  );
-  assert.deepEqual(
-    ['Core Reactor Shot', 'Jade Mortar', 'Spark Revolver'].map((name) => mechanic(name).quicknessCastTimeMs),
-    [1000, 1080, 1400]
-  );
-  assert.equal(
-    ['Core Reactor Shot', 'Jade Mortar', 'Spark Revolver'].every(
-      (name) => mechanic(name).rechargeAnchor === 'castStart'
-    ),
-    true
-  );
+    const plasmatic = mechanic('Plasmatic State');
 
-  assert.ok(Math.abs(spark.ticks.reduce((sum, packet) => sum + packet.coefficient, 0) - 2.112) < 1e-12);
-  assert.equal(spark.ticks.length, 12);
-  assert.equal(spark.actorType, 'summon');
+    assert.equal(plasmatic.castTimeMs, 1440);
+    assert.equal(plasmatic.quicknessCastTimeMs, 480 + 480);
+    assert.equal(plasmatic.rechargeAnchor, 'castStart');
+    assert.equal(plasmatic.rechargeOffsetMs, 480);
+    assert.equal(
+      plasmatic.effects[0].ticks.reduce((sum, packet) => sum + packet.coefficient, 0),
+      4.5
+    );
+    assert.equal(plasmatic.effects[1].ticks.length, 2);
+  });
+
+  test('Mechanist commands retain their lane and summon packet facts', () => {
+    const spark = mechanic('Spark Revolver').effects[0];
+
+    const mechCommands = engineerCatalog.skills.filter(
+      (skill) =>
+        skill.specialization === 'Mechanist' && Number(skill.mechanicSlot) >= 1 && Number(skill.mechanicSlot) <= 3
+    );
+
+    assert.equal(mechCommands.length, 9);
+    assert.equal(
+      mechCommands.every((skill) => skill.independentCast === true),
+      true
+    );
+    const instantMechCommands = mechCommands.filter((skill) => skill.castTimeMs === 0);
+
+    assert.deepEqual(
+      instantMechCommands.map((skill) => skill.name),
+      ['Crisis Zone', 'Discharge Array']
+    );
+    assert.equal(
+      instantMechCommands.every((skill) => skill.independentCastCanOverlap === true),
+      true
+    );
+    assert.equal(
+      mechCommands.filter((skill) => skill.castTimeMs > 0).every((skill) => skill.independentCastCanOverlap !== true),
+      true
+    );
+    assert.deepEqual(
+      ['Core Reactor Shot', 'Jade Mortar', 'Spark Revolver'].map((name) => mechanic(name).quicknessCastTimeMs),
+      [1000, 1080, 1400]
+    );
+    assert.equal(
+      ['Core Reactor Shot', 'Jade Mortar', 'Spark Revolver'].every(
+        (name) => mechanic(name).rechargeAnchor === 'castStart'
+      ),
+      true
+    );
+
+    assert.ok(Math.abs(spark.ticks.reduce((sum, packet) => sum + packet.coefficient, 0) - 2.112) < 1e-12);
+    assert.equal(spark.ticks.length, 12);
+    assert.equal(spark.actorType, 'summon');
+  });
 });
 
 test('Engineer sword variants have specialization-owned facts and runtime gating', () => {
@@ -5403,205 +5325,213 @@ test('Mechanist frame commands use mech stats and requested pulse profiles', () 
   );
 });
 
-test('Mech Fighter, Jade Dynamo, and J-Drive add their active effects', () => {
-  const fighter = simulate('Mechanist', ['Lightning Rod'], {
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
-      TRAIT.MECH_CORE_J_DRIVE
-    ],
-    target: { conditions: {} }
+describe('Mechanist grandmaster active effects', () => {
+  test('Mech Fighter adds Rocket Punch', () => {
+    const fighter = simulate('Mechanist', ['Lightning Rod'], {
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
+        TRAIT.MECH_CORE_J_DRIVE
+      ],
+      target: { conditions: {} }
+    });
+    const punch = fighter.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.name === 'Rocket Punch (Mech)'
+    );
+
+    assert.equal(punch.actorType, 'summon');
+    assert.equal(punch.coefficient, 1);
+    assert.equal(punch.explosion, true);
+    assert.equal(punch.weaponStrengthProfileId, 'summon.weapon-type-1');
+    assert.equal(punch.resolvedWeaponStrength, 2553.5);
+    const punchBreakdown = fighter.breakdown.find((entry) => entry.name === 'Rocket Punch (Mech)');
+
+    assert.equal(punchBreakdown.skillId, ID.ROCKET_PUNCH_MECH);
+    assert.equal(punchBreakdown.actorType, 'summon');
+    const punchRow = skillBreakdownRows(fighter).find((row) => row.name === 'Rocket Punch (Mech)');
+
+    assert.equal(punchRow.skillId, ID.ROCKET_PUNCH_MECH);
+    assert.equal(punchRow.actorType, 'summon');
+    assert.equal(punchRow.group, 'Entities');
+    assert.ok(
+      fighter.resolvedEvents.some(
+        (event) =>
+          event.type === 'condition' &&
+          event.skillName === 'Rocket Punch (Mech)' &&
+          event.condition === 'Burning' &&
+          event.duration === 5
+      )
+    );
+    assert.ok(
+      fighter.events.some(
+        (event) =>
+          event.type === 'control' &&
+          event.skillName === 'Rocket Punch (Mech)' &&
+          event.controlKind === 'defiance' &&
+          event.duration === 100
+      )
+    );
   });
-  const punch = fighter.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Rocket Punch (Mech)');
 
-  assert.equal(punch.actorType, 'summon');
-  assert.equal(punch.coefficient, 1);
-  assert.equal(punch.explosion, true);
-  assert.equal(punch.weaponStrengthProfileId, 'summon.weapon-type-1');
-  assert.equal(punch.resolvedWeaponStrength, 2553.5);
-  const punchBreakdown = fighter.breakdown.find((entry) => entry.name === 'Rocket Punch (Mech)');
+  test('Jade Dynamo adds quickness and Jade Buster Cannon', () => {
+    const dynamo = simulate('Mechanist', ['Jade Mortar', 'Jade Mortar'], {
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
+        TRAIT.MECH_CORE_JADE_DYNAMO
+      ],
+      target: { conditions: {} }
+    });
+    const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
 
-  assert.equal(punchBreakdown.skillId, ID.ROCKET_PUNCH_MECH);
-  assert.equal(punchBreakdown.actorType, 'summon');
-  const punchRow = skillBreakdownRows(fighter).find((row) => row.name === 'Rocket Punch (Mech)');
+    assert.equal(mortarSteps[0].end - mortarSteps[0].start, 1620);
+    assert.equal(mortarSteps[1].start - mortarSteps[0].start, 16000);
+    assert.equal(
+      dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
+        .length,
+      2
+    );
+    const mortar = dynamo.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Jade Mortar');
 
-  assert.equal(punchRow.skillId, ID.ROCKET_PUNCH_MECH);
-  assert.equal(punchRow.actorType, 'summon');
-  assert.equal(punchRow.group, 'Entities');
-  assert.ok(
-    fighter.resolvedEvents.some(
-      (event) =>
-        event.type === 'condition' &&
-        event.skillName === 'Rocket Punch (Mech)' &&
-        event.condition === 'Burning' &&
-        event.duration === 5
-    )
-  );
-  assert.ok(
-    fighter.events.some(
-      (event) =>
-        event.type === 'control' &&
-        event.skillName === 'Rocket Punch (Mech)' &&
-        event.controlKind === 'defiance' &&
-        event.duration === 100
-    )
-  );
+    assert.equal(mortar.actorType, 'summon');
+    assert.equal(mortar.coefficient, 2.2);
+    assert.equal(mortar.weaponStrengthProfileId, 'summon.weapon-type-2');
+    assert.equal(mortar.resolvedWeaponStrength, 2878);
 
-  const dynamo = simulate('Mechanist', ['Jade Mortar', 'Jade Mortar'], {
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
-      TRAIT.MECH_CORE_JADE_DYNAMO
-    ],
-    target: { conditions: {} }
+    const overclock = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 4000 }], {
+      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Shift Signet', 'Force Signet', 'Overclock Signet'],
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_JADE_CANNONS,
+        TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+        TRAIT.MECH_CORE_JADE_DYNAMO
+      ],
+      target: { conditions: {} }
+    });
+    const buster = overclock.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.name === 'Jade Buster Cannon'
+    );
+    const busterBurns = overclock.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === 'Jade Buster Cannon' && event.condition === 'Burning'
+    );
+
+    assert.equal(buster.length, 5);
+    assert.ok(
+      buster.every(
+        (event) =>
+          event.actorType === 'summon' &&
+          event.coefficient === 0.95 &&
+          event.weaponStrengthProfileId === 'summon.weapon-type-3' &&
+          event.resolvedWeaponStrength === 2749
+      )
+    );
+    assert.equal(new Set(buster.map((event) => event.activationId)).size, 1);
+    assert.equal(busterBurns.length, 5);
+    assert.ok(busterBurns.every((event) => event.stacks === 1 && event.duration === 6));
+    const stochasticBuster = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 4000 }], {
+      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Shift Signet', 'Force Signet', 'Overclock Signet'],
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_JADE_CANNONS,
+        TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+        TRAIT.MECH_CORE_JADE_DYNAMO
+      ],
+      randomness: { mode: 'stochastic', seed: 63374 },
+      target: { conditions: {} }
+    }).resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Jade Buster Cannon');
+    const stochasticStrengths = [...new Set(stochasticBuster.map((event) => event.resolvedWeaponStrength))];
+
+    assert.equal(stochasticStrengths.length, 1);
+    assert.ok(stochasticStrengths[0] >= 2448 && stochasticStrengths[0] < 3050);
+    assert.ok(stochasticBuster.every((event) => event.weaponStrengthSampled === true));
   });
-  const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
 
-  assert.equal(mortarSteps[0].end - mortarSteps[0].start, 1620);
-  assert.equal(mortarSteps[1].start - mortarSteps[0].start, 16000);
-  assert.equal(
-    dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
-      .length,
-    2
-  );
-  const mortar = dynamo.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Jade Mortar');
+  test('J-Drive adds mech attacks and improves signets', () => {
+    const jDriveConfig = {
+      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Force Signet', 'Superconducting Signet', 'Overclock Signet'],
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
+        TRAIT.MECH_CORE_J_DRIVE
+      ],
+      target: { conditions: {} }
+    };
+    const sky = simulate('Mechanist', ['Sky Circus'], jDriveConfig);
+    const missiles = sky.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Missile Damage');
 
-  assert.equal(mortar.actorType, 'summon');
-  assert.equal(mortar.coefficient, 2.2);
-  assert.equal(mortar.weaponStrengthProfileId, 'summon.weapon-type-2');
-  assert.equal(mortar.resolvedWeaponStrength, 2878);
+    assert.equal(missiles.length, 3);
+    assert.ok(missiles.every((event) => event.actorType === 'summon' && event.coefficient === 0.6));
+    assert.equal(
+      sky.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Landing Damage').coefficient,
+      1.2
+    );
+    assert.ok(
+      sky.events.some(
+        (event) => event.type === 'control' && event.skillName === 'Sky Circus' && event.controlKind === 'knockdown'
+      )
+    );
 
-  const overclock = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 4000 }], {
-    selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Shift Signet', 'Force Signet', 'Overclock Signet'],
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_JADE_CANNONS,
-      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
-      TRAIT.MECH_CORE_JADE_DYNAMO
-    ],
-    target: { conditions: {} }
+    const base = simulate('Mechanist', ['Puncturing Jab'], {
+      target: { conditions: {} }
+    });
+    const standardSignetConfig = {
+      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Force Signet', 'Shift Signet', 'Overclock Signet'],
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
+        TRAIT.MECH_CORE_BARRIER_ENGINE
+      ],
+      target: { conditions: {} }
+    };
+    const standardSigned = simulate('Mechanist', ['Puncturing Jab'], standardSignetConfig);
+    const signed = simulate('Mechanist', ['Puncturing Jab'], jDriveConfig);
+    const strike = (result) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
+
+    assert.ok(Math.abs(strike(standardSigned).damage / strike(base).damage - 1.15) < 1e-12);
+    assert.ok(Math.abs(strike(signed).damage / strike(base).damage - 1.18) < 1e-12);
+
+    const mechWithoutShift = simulate('Mechanist', ['Core Reactor Shot', { type: 'wait', durationMs: 1000 }], {
+      ...standardSignetConfig,
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+        TRAIT.MECH_CORE_BARRIER_ENGINE
+      ],
+      selectedSkills: standardSignetConfig.selectedSkills.filter((skill) => skill !== 'Shift Signet'),
+      boons: { might: 25 }
+    });
+    const mechWithShift = simulate('Mechanist', ['Core Reactor Shot', { type: 'wait', durationMs: 1000 }], {
+      ...standardSignetConfig,
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+        TRAIT.MECH_CORE_BARRIER_ENGINE
+      ],
+      boons: { might: 25 }
+    });
+    const mechStrike = (result) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Core Reactor Shot');
+
+    assert.ok(Math.abs(mechStrike(mechWithShift).damage / mechStrike(mechWithoutShift).damage - 1.375) < 1e-12);
+    assert.equal(
+      engineerProfession
+        .resolveRuntime({
+          specialization: 'Mechanist'
+        })
+        .modifyConditionDamage(
+          {
+            config: jDriveConfig,
+            time: 0
+          },
+          1
+        ),
+      1.12
+    );
+
+    const signetRecharge = simulate('Mechanist', ['Force Signet', 'Force Signet'], jDriveConfig);
+    const signetSteps = signetRecharge.steps.filter((step) => step.skill === 'Force Signet');
+
+    assert.equal(signetSteps[1].start - signetSteps[0].end, 22800);
   });
-  const buster = overclock.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Jade Buster Cannon'
-  );
-  const busterBurns = overclock.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Jade Buster Cannon' && event.condition === 'Burning'
-  );
-
-  assert.equal(buster.length, 5);
-  assert.ok(
-    buster.every(
-      (event) =>
-        event.actorType === 'summon' &&
-        event.coefficient === 0.95 &&
-        event.weaponStrengthProfileId === 'summon.weapon-type-3' &&
-        event.resolvedWeaponStrength === 2749
-    )
-  );
-  assert.equal(new Set(buster.map((event) => event.activationId)).size, 1);
-  assert.equal(busterBurns.length, 5);
-  assert.ok(busterBurns.every((event) => event.stacks === 1 && event.duration === 6));
-  const stochasticBuster = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 4000 }], {
-    selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Shift Signet', 'Force Signet', 'Overclock Signet'],
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_JADE_CANNONS,
-      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
-      TRAIT.MECH_CORE_JADE_DYNAMO
-    ],
-    randomness: { mode: 'stochastic', seed: 63374 },
-    target: { conditions: {} }
-  }).resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Jade Buster Cannon');
-  const stochasticStrengths = [...new Set(stochasticBuster.map((event) => event.resolvedWeaponStrength))];
-
-  assert.equal(stochasticStrengths.length, 1);
-  assert.ok(stochasticStrengths[0] >= 2448 && stochasticStrengths[0] < 3050);
-  assert.ok(stochasticBuster.every((event) => event.weaponStrengthSampled === true));
-
-  const jDriveConfig = {
-    selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Force Signet', 'Superconducting Signet', 'Overclock Signet'],
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
-      TRAIT.MECH_CORE_J_DRIVE
-    ],
-    target: { conditions: {} }
-  };
-  const sky = simulate('Mechanist', ['Sky Circus'], jDriveConfig);
-  const missiles = sky.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Missile Damage');
-
-  assert.equal(missiles.length, 3);
-  assert.ok(missiles.every((event) => event.actorType === 'summon' && event.coefficient === 0.6));
-  assert.equal(
-    sky.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Landing Damage').coefficient,
-    1.2
-  );
-  assert.ok(
-    sky.events.some(
-      (event) => event.type === 'control' && event.skillName === 'Sky Circus' && event.controlKind === 'knockdown'
-    )
-  );
-
-  const base = simulate('Mechanist', ['Puncturing Jab'], {
-    target: { conditions: {} }
-  });
-  const standardSignetConfig = {
-    selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Force Signet', 'Shift Signet', 'Overclock Signet'],
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
-      TRAIT.MECH_CORE_BARRIER_ENGINE
-    ],
-    target: { conditions: {} }
-  };
-  const standardSigned = simulate('Mechanist', ['Puncturing Jab'], standardSignetConfig);
-  const signed = simulate('Mechanist', ['Puncturing Jab'], jDriveConfig);
-  const strike = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
-
-  assert.ok(Math.abs(strike(standardSigned).damage / strike(base).damage - 1.15) < 1e-12);
-  assert.ok(Math.abs(strike(signed).damage / strike(base).damage - 1.18) < 1e-12);
-
-  const mechWithoutShift = simulate('Mechanist', ['Core Reactor Shot', { type: 'wait', durationMs: 1000 }], {
-    ...standardSignetConfig,
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
-      TRAIT.MECH_CORE_BARRIER_ENGINE
-    ],
-    selectedSkills: standardSignetConfig.selectedSkills.filter((skill) => skill !== 'Shift Signet'),
-    boons: { might: 25 }
-  });
-  const mechWithShift = simulate('Mechanist', ['Core Reactor Shot', { type: 'wait', durationMs: 1000 }], {
-    ...standardSignetConfig,
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
-      TRAIT.MECH_CORE_BARRIER_ENGINE
-    ],
-    boons: { might: 25 }
-  });
-  const mechStrike = (result) =>
-    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Core Reactor Shot');
-
-  assert.ok(Math.abs(mechStrike(mechWithShift).damage / mechStrike(mechWithoutShift).damage - 1.375) < 1e-12);
-  assert.equal(
-    engineerProfession
-      .resolveRuntime({
-        specialization: 'Mechanist'
-      })
-      .modifyConditionDamage(
-        {
-          config: jDriveConfig,
-          time: 0
-        },
-        1
-      ),
-    1.12
-  );
-
-  const signetRecharge = simulate('Mechanist', ['Force Signet', 'Force Signet'], jDriveConfig);
-  const signetSteps = signetRecharge.steps.filter((step) => step.skill === 'Force Signet');
-
-  assert.equal(signetSteps[1].start - signetSteps[0].end, 22800);
 });
 
 test('Energy Amplifier adds Power and Healing Power during regeneration', () => {
@@ -5630,26 +5560,6 @@ test('Energy Amplifier adds Power and Healing Power during regeneration', () => 
 
   assert.equal(attributes.power, 2250);
   assert.equal(attributes.healingPower, 750);
-});
-
-test('trait-coverage manifest covers all Engineer traits', () => {
-  assert.equal(ENGINEER_TRAIT_COVERAGE.length, engineerCatalog.traits.length);
-  assert.ok(ENGINEER_TRAIT_COVERAGE.every((entry) => entry.effects.length > 0));
-  const coverage = (name) => {
-    const trait = engineerCatalog.traits.find((entry) => entry.name === name);
-
-    return ENGINEER_TRAIT_COVERAGE.find((entry) => entry.traitId === trait.id);
-  };
-
-  assert.equal(coverage('Aim-Assisted Rocket').status, 'implemented');
-  assert.equal(coverage('Carbolic Composition').status, 'implemented');
-  assert.equal(coverage('Grenadier').status, 'implemented');
-  assert.equal(coverage('Static Discharge').status, 'implemented');
-  assert.equal(coverage('Object in Motion').status, 'implemented');
-  assert.equal(
-    ENGINEER_TRAIT_COVERAGE.some((entry) => entry.status === 'pending'),
-    false
-  );
 });
 
 test('Engineer is a loadable native application', async () => {

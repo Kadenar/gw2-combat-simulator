@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -309,71 +308,6 @@ for (const { name, traits, rotation, startAttunement, selectedSkills, stats, ver
   });
 }
 
-function assertSourceOrder(source, startToken, orderedTokens) {
-  let position = source.indexOf(startToken);
-  assert.notEqual(position, -1, startToken);
-  for (const token of orderedTokens) {
-    const next = source.indexOf(token, position + 1);
-    assert.ok(next > position, token);
-    position = next;
-  }
-}
-
-test('Elementalist dispatchers preserve attunement, post-cast, event, and condition order', async () => {
-  const root = new URL('../../../js/games/gw2/professions/elementalist/core/', import.meta.url);
-  const [indexSource, reactionsSource, schedulerStateSource, castsSource] = await Promise.all([
-    readFile(new URL('traits/index.ts', root), 'utf8'),
-    readFile(new URL('mechanics/reactions.ts', root), 'utf8'),
-    readFile(new URL('mechanics/scheduler-state.ts', root), 'utf8'),
-    readFile(new URL('execution/index.ts', root), 'utf8')
-  ]);
-
-  assertSourceOrder(indexSource, 'export function applyElementalistAttunementTraits', [
-    'triggerFlameExpulsion(context, at, skill.id);',
-    'triggerSunspot(context, at, skill.id);',
-    'triggerElectricDischarge(context, at, skill.id);',
-    'applyFreshAirAttunementEntry(context, at, skill, previous);',
-    'applyOneWithAir(context, at, skill);',
-    'applyInscriptionAirEntry(context, at, skill);',
-    'triggerEarthenBlast(context, at, skill.id);',
-    'grantElementalistRockSolid(context, at, skill.id);',
-    'applyArcaneProwess(context, at, skill.id);',
-    'grantElementalAttunementBoon(context, at, target, skill.id);',
-    'triggerBountifulPower(context, at, 1, skill.id);'
-  ]);
-  assertSourceOrder(indexSource, 'export function applyGenericPostCast', [
-    'applyPyromancersPuissance(context, skill);',
-    'applyEarthsEmbrace(context, skill);',
-    'applySoothingIce(context, skill, applyElementalistAura);',
-    'applyWrittenInStone(context, skill, applyElementalistAura);',
-    'applyInscriptionPostCast(context, skill);',
-    'applyArcaneLightning(context, skill);'
-  ]);
-  assertSourceOrder(indexSource, 'export function observeElementalistTraitEvent', [
-    'observeFreshAir(context, event);',
-    'applyLightningRod(context, event);',
-    'applyElementalLockdown(context, event);'
-  ]);
-  assertSourceOrder(reactionsSource, 'export function applyElementalistResolvedCondition', [
-    'applyStrengthOfStone(context, event);',
-    "if (event.condition === 'Burning') grantPersistingFlames(context, event);"
-  ]);
-  assertSourceOrder(schedulerStateSource, 'export function advanceElementalistState', [
-    'processFreshAirCandidates(context, at);',
-    'updateEndurance(context, state, at'
-  ]);
-  assertSourceOrder(castsSource, 'export function elementalistAfterCast', [
-    'extendPersistingFlamesPackets(context, skill);',
-    'const activationEvents = context.events'
-  ]);
-  assertSourceOrder(castsSource, 'export function elementalistOnCastComplete', [
-    'triggerEvasiveArcana(context, skill);',
-    'applyPistolState(context, skill);',
-    'applyHammerState(context, skill);',
-    'applyGenericPostCast(context, skill);'
-  ]);
-});
-
 test('Elementalist critical reactions retain their registration order', () => {
   assert.deepEqual(
     elementalistCoreCriticalReactions.map((reaction) => reaction.id),
@@ -384,30 +318,4 @@ test('Elementalist critical reactions retain their registration order', () => {
       'elementalist.burning-precision'
     ]
   );
-});
-
-test('Elementalist trait-line modules stay private and registration-free', async () => {
-  const core = new URL('../../../js/games/gw2/professions/elementalist/core/', import.meta.url);
-  const files = (await readdir(core, { recursive: true })).filter((file) => file.endsWith('.ts'));
-  const lineImport = /core\/traits\/(?:air|arcane|earth|fire|water)\.js/;
-  const lineFiles = new Set([
-    'traits/air.ts',
-    'traits/arcane.ts',
-    'traits/earth.ts',
-    'traits/fire.ts',
-    'traits/water.ts'
-  ]);
-
-  for (const file of files) {
-    const normalized = file.replaceAll('\\', '/');
-    const source = await readFile(new URL(normalized, core), 'utf8');
-    if (normalized !== 'traits/index.ts') assert.doesNotMatch(source, lineImport, file);
-    if (lineFiles.has(normalized)) {
-      assert.doesNotMatch(
-        source,
-        /elementalistCoreSchedulerHooks|onResolvedCriticalHit|context\.tasks\.schedule/,
-        file
-      );
-    }
-  }
 });

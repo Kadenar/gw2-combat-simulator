@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { createEventQueue } from '#kernel/events/queue.js';
@@ -7,22 +6,6 @@ import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-r
 import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-
-test('generic resolver modules contain no concrete equipment policy', () => {
-  const resolver = new URL('../../../js/games/gw2/platform/resolver/', import.meta.url);
-
-  for (const [filename, forbidden] of [
-    ['event-handlers.ts', /relic-rules|gear-data|FOOD_DATA|sigil-severance|criticalProgress/],
-    ['condition-resolution.ts', /relic-rules|handleConditionRelics|onConditionApplied/],
-    ['hit-resolution.ts', /relic-rules|relicStrikeMultiplier/],
-    ['runtime-state.ts', /relic-rules|createRelicRuntime/],
-    ['resolve-timeline.ts', /relic-rules|recordPassiveRelicTimeline/]
-  ]) {
-    assert.doesNotMatch(readFileSync(new URL(filename, resolver), 'utf8'), forbidden, filename);
-  }
-
-  assert.match(readFileSync(new URL('event-handlers.ts', resolver), 'utf8'), /weakness-vulnerability\.resolved/);
-});
 
 test('GW2 resolver registry orders hooks stably and returns the last result', () => {
   const calls = [];

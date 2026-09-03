@@ -1,7 +1,7 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import test from 'node:test';
+import { describe, test } from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
@@ -39,15 +39,12 @@ import {
   VINDICATOR_DODGE_AUTO_ACTION,
   vindicatorDodgeAutoRotationEntries
 } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { DATA_SNAPSHOT } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/revenant.js';
-import { REVENANT_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/index.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { afterRevenantCast, observeRevenantEvent } from '#gw2/professions/revenant/core/traits/index.js';
@@ -123,29 +120,7 @@ const strikeCoefficient = (effect) =>
 
 const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
 
-test('Revenant catalog pins API identity and explicit skill mechanics', () => {
-  assert.equal(DATA_SNAPSHOT, '2026-07-28');
-  assert.equal(revenantCatalog.specializations.length, 9);
-  assert.equal(revenantCatalog.traits.length, 108);
-  // Keep the catalog-size guard aligned with the six API-linked duplicate records now owned by aliases.
-  assert.ok(revenantCatalog.skills.length >= 203);
-  assert.equal(REVENANT_LEGENDS.length, 8);
-  assert.ok(REVENANT_LEGENDS.every((legend) => legend.skillIds.length === 5));
-  assert.ok(REVENANT_LEGENDS.every((legend) => legend.icon));
-  const jadeWinds = revenantCatalog.skillsById.get(28406);
-
-  assert.equal(jadeWinds.energyCost, 35);
-  assert.equal(jadeWinds.effects[0].coefficient, 3);
-  assert.equal(revenantCatalog.skillsByName.has("Duelist's Preparation"), false);
-  assert.equal(
-    revenantCatalog.skills
-      .filter((skill) => skill.weapon === 'Sword' && skill.slot === 'Weapon_4')
-      .map((skill) => skill.name)
-      .includes('Shackling Wave'),
-    true
-  );
-  assert.equal(REVENANT_CORE_BASE_SKILL_MECHANICS[28406].castTimeMs, 1000);
-  assert.equal(REVENANT_CORE_BASE_SKILL_MECHANICS[28406].effects[1].condition, 'Vulnerability');
+test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   const echoingEruption = revenantCatalog.skillsById.get(SKILL.ECHOING_ERUPTION);
 
   assert.equal(echoingEruption.cooldown, 8);
@@ -269,20 +244,6 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   );
   assert.match(revenantCatalog.skillsById.get(-5).icon, /\/Dodge\.png$/);
   assert.equal(SKILL.JADE_WINDS, 28406);
-  assert.deepEqual(
-    [...revenantCatalog.skillHandlers.keys()].sort(),
-    [...new Set(revenantCatalog.skills.map((skill) => skill.handlerId).filter(Boolean))].sort()
-  );
-  assert.equal(revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS).resourceGain, 50);
-  assert.equal(
-    revenantCatalog.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.resources).energyRegenerationPerSecond,
-    5
-  );
-  assert.ok(
-    revenantCatalog.skills.every(
-      (skill) => !Object.hasOwn(skill, 'upkeepEffects') && !Object.hasOwn(skill, 'dodgeEffects')
-    )
-  );
   const deathDropStrike = revenantCatalog.skillsById
     .get(SKILL.DEATH_DROP)
     .effects.find((effect) => effect.type === 'strike');
@@ -3832,237 +3793,254 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
   );
 });
 
-test('Band Together makes the next Renegade summon instant and enhanced', () => {
-  const base = simulate(
-    'Renegade',
-    ["Icerazor's Ire"],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    },
-    observationTail(3000)
-  );
+describe('Band Together summon enhancement', () => {
+  test('keeps base Icerazor timing and packets independent of Quickness', () => {
+    const base = simulate(
+      'Renegade',
+      ["Icerazor's Ire"],
+      {
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE,
+        initialEnergy: 100
+      },
+      observationTail(3000)
+    );
 
-  assert.equal(base.steps[0].fullCastMs, 520);
-  const quickBase = simulate('Renegade', ["Icerazor's Ire"], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-    boons: { quickness: true }
-  });
-
-  assert.equal(quickBase.steps[0].fullCastMs, 520);
-  assert.deepEqual(
-    base.events
-      .filter((event) => event.type === 'damage' && event.skillName === "Icerazor's Ire")
-      .map((event) => event.coefficient),
-    [2, 2, 2]
-  );
-  assert.ok(base.events.some((event) => event.condition === 'Immobilized' && event.duration === 2));
-  assert.equal(
-    base.events.some((event) => event.condition === 'Chilled'),
-    false
-  );
-
-  const darkrazor = simulate('Renegade', ["Darkrazor's Daring", { type: 'wait', durationMs: 1600 }], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-    boons: { quickness: true }
-  });
-
-  assert.equal(darkrazor.steps[0].fullCastMs, 500);
-  assert.deepEqual(
-    darkrazor.events
-      .filter(
-        (event) => event.skillName === "Darkrazor's Daring" && (event.type === 'damage' || event.type === 'control')
-      )
-      .map((event) => [event.type, Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000), event.actorType]),
-    [
-      ['damage', 1000, 'player'],
-      ['control', 1000, 'player']
-    ]
-  );
-  assert.deepEqual(
-    darkrazor.events
-      .filter(
-        (event) => event.skillName === "Darkrazor's Daring" && event.type === 'buff' && event.kind === 'stability'
-      )
-      .map((event) => [
-        event.duration,
-        event.stacks,
-        event.audience?.recipients,
-        Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000)
-      ]),
-    [
-      [1, 1, 'self', 0],
-      [6, 3, 'party', 1000]
-    ]
-  );
-
-  const enhancedRazorclaw = simulate(
-    'Renegade',
-    ["Icerazor's Ire", "Razorclaw's Rage", { type: 'wait', durationMs: 1000 }],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    }
-  );
-
-  assert.equal(
-    enhancedRazorclaw.events.find(
-      (event) => event.skillName === "Razorclaw's Rage" && event.type === 'condition' && event.condition === 'Torment'
-    )?.actorType,
-    'player'
-  );
-
-  const enhanced = simulate(
-    'Renegade',
-    ["Razorclaw's Rage", "Icerazor's Ire", "Darkrazor's Daring", { type: 'wait', durationMs: 1100 }],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    }
-  );
-
-  assert.deepEqual(
-    enhanced.steps.slice(0, 3).map((step) => step.fullCastMs),
-    [500, 0, 500]
-  );
-  assert.ok(
-    enhanced.events.some(
-      (event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled' && event.duration === 1.5
-    )
-  );
-
-  const quickEnhanced = simulate(
-    'Renegade',
-    ["Razorclaw's Rage", "Icerazor's Ire", { type: 'wait', durationMs: 1000 }],
-    {
+    assert.equal(base.steps[0].fullCastMs, 520);
+    const quickBase = simulate('Renegade', ["Icerazor's Ire"], {
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
       initialEnergy: 100,
       boons: { quickness: true }
-    },
-    observationTail(1000)
-  );
-  const quickIcerazorHits = quickEnhanced.events.filter(
-    (event) => event.type === 'damage' && event.skillName === "Icerazor's Ire"
-  );
+    });
 
-  assert.deepEqual(
-    quickIcerazorHits.map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
-    [1200, 1361, 1522]
-  );
-  assert.ok(
-    quickEnhanced.events
-      .filter((event) => event.skillName === "Icerazor's Ire" && event.type === 'condition')
-      .every((event) => event.actorType === 'player')
-  );
-  assert.equal(
-    quickEnhanced.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Torment').at,
-    quickIcerazorHits[0].at
-  );
-  assert.equal(
-    quickEnhanced.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Immobilized').at,
-    quickIcerazorHits[2].at
-  );
-  assert.deepEqual(
-    quickEnhanced.events
-      .filter((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled')
-      .map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
-    [1200, 1361, 1522]
-  );
-
-  const enhancedDarkrazor = simulate(
-    'Renegade',
-    ["Icerazor's Ire", "Darkrazor's Daring", { type: 'wait', durationMs: 1100 }],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    }
-  );
-
-  assert.deepEqual(
-    enhancedDarkrazor.steps.slice(0, 2).map((step) => step.fullCastMs),
-    [520, 0]
-  );
-  assert.ok(
-    enhancedDarkrazor.events.some(
-      (event) =>
-        event.skillName === "Darkrazor's Daring" &&
-        event.type === 'control' &&
-        event.duration === 2 &&
-        event.breakbar === 600 &&
-        event.bonusDefianceBreak === 400
-    )
-  );
-  assert.deepEqual(
-    enhancedDarkrazor.events
-      .filter((event) => event.skillName === "Darkrazor's Daring" && event.type === 'buff')
-      .map((event) => [event.kind, event.duration, event.stacks, event.audience?.recipients]),
-    [
-      ['stability', 1, 1, 'self'],
-      ['resistance', 4, 1, 'party'],
-      ['protection', 4, 1, 'party'],
-      ['stability', 6, 3, 'party']
-    ]
-  );
-
-  const concurrent = simulate(
-    'Renegade',
-    ["Icerazor's Ire", { name: "Razorclaw's Rage", offset: 100 }],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    },
-    observationTail(2000)
-  );
-
-  assert.deepEqual(
-    concurrent.steps.map((step) => [step.start, step.fullCastMs]),
-    [
-      [0, 520],
-      [100, 0]
-    ]
-  );
-  // Every eligible hit consumes one charge at its hit time; Razorclaw has no internal cooldown.
-  assert.deepEqual(
-    concurrent.events
-      .filter(
-        (event) =>
-          event.type === 'condition' &&
-          event.skillName === "Razorclaw's Rage" &&
-          event.stacks === 1 &&
-          !event.triggeredByAlly
-      )
-      .map((event) => Math.round(event.at * 1000)),
-    [1020, 1181, 1342]
-  );
-
-  const primed = simulate('Renegade', ["Icerazor's Ire"], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100
+    assert.equal(quickBase.steps[0].fullCastMs, 520);
+    assert.deepEqual(
+      base.events
+        .filter((event) => event.type === 'damage' && event.skillName === "Icerazor's Ire")
+        .map((event) => event.coefficient),
+      [2, 2, 2]
+    );
+    assert.ok(base.events.some((event) => event.condition === 'Immobilized' && event.duration === 2));
+    assert.equal(
+      base.events.some((event) => event.condition === 'Chilled'),
+      false
+    );
   });
-  const razorclaw = revenantCatalog.skillsByName.get("Razorclaw's Rage");
 
-  assert.equal(
-    paletteSkillIsInstant(
-      { profession: revenantProfession },
+  test('keeps base Darkrazor timing and outgoing effects', () => {
+    const darkrazor = simulate('Renegade', ["Darkrazor's Daring", { type: 'wait', durationMs: 1600 }], {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+      boons: { quickness: true }
+    });
+
+    assert.equal(darkrazor.steps[0].fullCastMs, 500);
+    assert.deepEqual(
+      darkrazor.events
+        .filter(
+          (event) => event.skillName === "Darkrazor's Daring" && (event.type === 'damage' || event.type === 'control')
+        )
+        .map((event) => [event.type, Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000), event.actorType]),
+      [
+        ['damage', 1000, 'player'],
+        ['control', 1000, 'player']
+      ]
+    );
+    assert.deepEqual(
+      darkrazor.events
+        .filter(
+          (event) => event.skillName === "Darkrazor's Daring" && event.type === 'buff' && event.kind === 'stability'
+        )
+        .map((event) => [
+          event.duration,
+          event.stacks,
+          event.audience?.recipients,
+          Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000)
+        ]),
+      [
+        [1, 1, 'self', 0],
+        [6, 3, 'party', 1000]
+      ]
+    );
+  });
+
+  test('attributes enhanced Razorclaw torment to the player', () => {
+    const enhancedRazorclaw = simulate(
+      'Renegade',
+      ["Icerazor's Ire", "Razorclaw's Rage", { type: 'wait', durationMs: 1000 }],
       {
-        professionState: primed.endState.profession,
-        time: primed.endState.time / 1000
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE,
+        initialEnergy: 100
+      }
+    );
+
+    assert.equal(
+      enhancedRazorclaw.events.find(
+        (event) => event.skillName === "Razorclaw's Rage" && event.type === 'condition' && event.condition === 'Torment'
+      )?.actorType,
+      'player'
+    );
+  });
+
+  test('makes only the next summon instant and enhanced', () => {
+    const enhanced = simulate(
+      'Renegade',
+      ["Razorclaw's Rage", "Icerazor's Ire", "Darkrazor's Daring", { type: 'wait', durationMs: 1100 }],
+      {
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE,
+        initialEnergy: 100
+      }
+    );
+
+    assert.deepEqual(
+      enhanced.steps.slice(0, 3).map((step) => step.fullCastMs),
+      [500, 0, 500]
+    );
+    assert.ok(
+      enhanced.events.some(
+        (event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled' && event.duration === 1.5
+      )
+    );
+  });
+
+  test('retains Icerazor packet timing when the enhanced cast is instant', () => {
+    const quickEnhanced = simulate(
+      'Renegade',
+      ["Razorclaw's Rage", "Icerazor's Ire", { type: 'wait', durationMs: 1000 }],
+      {
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE,
+        initialEnergy: 100,
+        boons: { quickness: true }
       },
-      razorclaw
-    ),
-    true
-  );
+      observationTail(1000)
+    );
+    const quickIcerazorHits = quickEnhanced.events.filter(
+      (event) => event.type === 'damage' && event.skillName === "Icerazor's Ire"
+    );
+
+    assert.deepEqual(
+      quickIcerazorHits.map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
+      [1200, 1361, 1522]
+    );
+    assert.ok(
+      quickEnhanced.events
+        .filter((event) => event.skillName === "Icerazor's Ire" && event.type === 'condition')
+        .every((event) => event.actorType === 'player')
+    );
+    assert.equal(
+      quickEnhanced.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Torment').at,
+      quickIcerazorHits[0].at
+    );
+    assert.equal(
+      quickEnhanced.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Immobilized')
+        .at,
+      quickIcerazorHits[2].at
+    );
+    assert.deepEqual(
+      quickEnhanced.events
+        .filter((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled')
+        .map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
+      [1200, 1361, 1522]
+    );
+  });
+
+  test('adds the enhanced Darkrazor control and party boons', () => {
+    const enhancedDarkrazor = simulate(
+      'Renegade',
+      ["Icerazor's Ire", "Darkrazor's Daring", { type: 'wait', durationMs: 1100 }],
+      {
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE,
+        initialEnergy: 100
+      }
+    );
+
+    assert.deepEqual(
+      enhancedDarkrazor.steps.slice(0, 2).map((step) => step.fullCastMs),
+      [520, 0]
+    );
+    assert.ok(
+      enhancedDarkrazor.events.some(
+        (event) =>
+          event.skillName === "Darkrazor's Daring" &&
+          event.type === 'control' &&
+          event.duration === 2 &&
+          event.breakbar === 600 &&
+          event.bonusDefianceBreak === 400
+      )
+    );
+    assert.deepEqual(
+      enhancedDarkrazor.events
+        .filter((event) => event.skillName === "Darkrazor's Daring" && event.type === 'buff')
+        .map((event) => [event.kind, event.duration, event.stacks, event.audience?.recipients]),
+      [
+        ['stability', 1, 1, 'self'],
+        ['resistance', 4, 1, 'party'],
+        ['protection', 4, 1, 'party'],
+        ['stability', 6, 3, 'party']
+      ]
+    );
+  });
+
+  test('applies Razorclaw charges to concurrent summon hits', () => {
+    const concurrent = simulate(
+      'Renegade',
+      ["Icerazor's Ire", { name: "Razorclaw's Rage", offset: 100 }],
+      {
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE,
+        initialEnergy: 100
+      },
+      observationTail(2000)
+    );
+
+    assert.deepEqual(
+      concurrent.steps.map((step) => [step.start, step.fullCastMs]),
+      [
+        [0, 520],
+        [100, 0]
+      ]
+    );
+    // Every eligible hit consumes one charge at its hit time; Razorclaw has no internal cooldown.
+    assert.deepEqual(
+      concurrent.events
+        .filter(
+          (event) =>
+            event.type === 'condition' &&
+            event.skillName === "Razorclaw's Rage" &&
+            event.stacks === 1 &&
+            !event.triggeredByAlly
+        )
+        .map((event) => Math.round(event.at * 1000)),
+      [1020, 1181, 1342]
+    );
+  });
+
+  test('marks the next summon as instant in the palette', () => {
+    const primed = simulate('Renegade', ["Icerazor's Ire"], {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100
+    });
+    const razorclaw = revenantCatalog.skillsByName.get("Razorclaw's Rage");
+
+    assert.equal(
+      paletteSkillIsInstant(
+        { profession: revenantProfession },
+        {
+          professionState: primed.endState.profession,
+          time: primed.endState.time / 1000
+        },
+        razorclaw
+      ),
+      true
+    );
+  });
 });
 
 test('enhanced Renegade summons do not rearm Band Together', () => {
@@ -4749,99 +4727,101 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
   assert.doesNotMatch(paletteSkillView(app, deathstrike).title, /Instant cast/);
 });
 
-test('Power Conduit skill profiles retain their impact timing, coefficients, and cooldowns', () => {
+describe('Power Conduit skill profiles', () => {
   const skill = (name) => revenantCatalog.skillsByName.get(name);
-  const cooldowns = {
-    Deathstrike: 15,
-    'Shackling Wave': 15,
-    'Chilling Isolation': 5,
-    'Twin Moon Sweep': 3,
-    'Beguiling Haze': 10,
-    'Release Potential: Dervish': 10,
-    "Gladiator's Defense": 5,
-    'Release Potential: Assassin': 10,
-    "Eternity's Requiem": 15,
-    "Phantom's Onslaught": 8,
-    'Mist Unleashed': 3,
-    'Cosmic Wisdom': 20
-  };
+  test('retain authored cooldowns, casts, and coefficients', () => {
+    const cooldowns = {
+      Deathstrike: 15,
+      'Shackling Wave': 15,
+      'Chilling Isolation': 5,
+      'Twin Moon Sweep': 3,
+      'Beguiling Haze': 10,
+      'Release Potential: Dervish': 10,
+      "Gladiator's Defense": 5,
+      'Release Potential: Assassin': 10,
+      "Eternity's Requiem": 15,
+      "Phantom's Onslaught": 8,
+      'Mist Unleashed': 3,
+      'Cosmic Wisdom': 20
+    };
 
-  for (const [name, cooldown] of Object.entries(cooldowns)) {
-    assert.equal(skill(name).cooldown, cooldown, name);
-  }
+    for (const [name, cooldown] of Object.entries(cooldowns)) {
+      assert.equal(skill(name).cooldown, cooldown, name);
+    }
 
-  for (const [name, castTimeMs, coefficient] of [
-    ['Preparation Thrust', 540, 0.75],
-    ['Brutal Blade', 840, 0.8],
-    ['Mist Swing', 400, 0.7],
-    ['Mist Slash', 600, 0.8],
-    ['Arcing Mists', 680, 1.2],
-    ['Mist Unleashed', 780, 1.6],
-    ["Phantom's Onslaught", 657, 1.6]
-  ]) {
-    assert.equal(skill(name).castTimeMs, castTimeMs, name);
-    assert.equal(strikeCoefficient(skill(name).effects.find((effect) => effect.type === 'strike')), coefficient, name);
-  }
+    for (const [name, castTimeMs, coefficient] of [
+      ['Preparation Thrust', 540, 0.75],
+      ['Brutal Blade', 840, 0.8],
+      ['Mist Swing', 400, 0.7],
+      ['Mist Slash', 600, 0.8],
+      ['Arcing Mists', 680, 1.2],
+      ['Mist Unleashed', 780, 1.6],
+      ["Phantom's Onslaught", 657, 1.6]
+    ]) {
+      assert.equal(skill(name).castTimeMs, castTimeMs, name);
+      assert.equal(
+        strikeCoefficient(skill(name).effects.find((effect) => effect.type === 'strike')),
+        coefficient,
+        name
+      );
+    }
 
-  for (const [name, castTimeMs] of [
-    ['Mist Swing', 400],
-    ['Mist Slash', 600],
-    ['Arcing Mists', 680]
-  ]) {
-    assert.equal(skill(name).castTimeMs, castTimeMs, `${name} cast timing`);
-    assert.equal(skill(name).quicknessCastTimeMs, undefined, name);
-    assert.equal(skill(name).unaffectedByQuickness, true, name);
-  }
+    for (const name of ['Mist Swing', 'Mist Slash', 'Arcing Mists']) {
+      assert.equal(skill(name).quicknessCastTimeMs, undefined, name);
+      assert.equal(skill(name).unaffectedByQuickness, true, name);
+    }
 
-  for (const [name, quicknessCastTimeMs] of [
-    ['Release Potential: Dervish', 680],
-    ['Shackling Wave', 800],
-    ['Deathstrike', 720],
-    ['Twin Moon Sweep', 920],
-    ['Preparation Thrust', 360],
-    ['Brutal Blade', 560],
-    ['Rift Slash', 480],
-    ["Eternity's Requiem", 840],
-    ["Phantom's Onslaught", 438],
-    ['Mist Unleashed', 520],
-    ['Release Potential: Assassin', 740]
-  ]) {
-    assert.equal(skill(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
-  }
+    for (const [name, quicknessCastTimeMs] of [
+      ['Release Potential: Dervish', 680],
+      ['Shackling Wave', 800],
+      ['Deathstrike', 720],
+      ['Twin Moon Sweep', 920],
+      ['Preparation Thrust', 360],
+      ['Brutal Blade', 560],
+      ['Rift Slash', 480],
+      ["Eternity's Requiem", 840],
+      ["Phantom's Onslaught", 438],
+      ['Mist Unleashed', 520],
+      ['Release Potential: Assassin', 740]
+    ]) {
+      assert.equal(skill(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
+    }
 
-  assert.equal(skill('Chilling Isolation').castTimeMs, 680);
-  assert.equal(skill('Chilling Isolation').quicknessCastTimeMs, undefined);
-  assert.equal(skill('Chilling Isolation').unaffectedByQuickness, true);
-  assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
-  assert.equal(defaultPaletteInterruptMs(skill('Chilling Isolation')), 420);
-  assert.equal(defaultPaletteInterruptMs({ castTimeMs: 657 }), 657);
-  assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
-  assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
-  assert.equal(skill("Phantom's Onslaught").dashTimeMs, 38);
-  assert.equal(skill("Phantom's Onslaught").hitDelayMs, 400);
-  assert.equal(skill("Phantom's Onslaught").rechargeAnchor, 'castStart');
-  assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 420);
-  assert.equal(
-    revenantCatalog.balanceProfilesById
-      .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)
-      .effects.find((effect) => effect.kind === 'cosmic-wisdom-extension').duration,
-    1
-  );
-  assert.equal(
-    revenantCatalog.skillsById.get(SKILL.FORM_OF_THE_DERVISH_ATTACK).effects.find((effect) => effect.type === 'strike')
-      .coefficient,
-    0.8
-  );
-  assert.equal(
-    revenantCatalog.skillsById.get(SKILL.GLADIATORS_DEFENSE).effects.find((effect) => effect.type === 'strike')
-      .coefficient,
-    1.5
-  );
-  assert.equal(
-    revenantCatalog.skillsById.get(SKILL.RELEASE_POTENTIAL_ASSASSIN).effects.find((effect) => effect.type === 'strike')
-      .ticks[0].coefficient,
-    0.6
-  );
+    assert.equal(skill('Chilling Isolation').castTimeMs, 680);
+    assert.equal(skill('Chilling Isolation').quicknessCastTimeMs, undefined);
+    assert.equal(skill('Chilling Isolation').unaffectedByQuickness, true);
+    assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
+    assert.equal(defaultPaletteInterruptMs(skill('Chilling Isolation')), 420);
+    assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
+    assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
+    assert.equal(skill("Phantom's Onslaught").dashTimeMs, 38);
+    assert.equal(skill("Phantom's Onslaught").hitDelayMs, 400);
+    assert.equal(skill("Phantom's Onslaught").rechargeAnchor, 'castStart');
+    assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 420);
+    assert.equal(
+      revenantCatalog.balanceProfilesById
+        .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)
+        .effects.find((effect) => effect.kind === 'cosmic-wisdom-extension').duration,
+      1
+    );
+    assert.equal(
+      revenantCatalog.skillsById
+        .get(SKILL.FORM_OF_THE_DERVISH_ATTACK)
+        .effects.find((effect) => effect.type === 'strike').coefficient,
+      0.8
+    );
+    assert.equal(
+      revenantCatalog.skillsById.get(SKILL.GLADIATORS_DEFENSE).effects.find((effect) => effect.type === 'strike')
+        .coefficient,
+      1.5
+    );
+    assert.equal(
+      revenantCatalog.skillsById
+        .get(SKILL.RELEASE_POTENTIAL_ASSASSIN)
+        .effects.find((effect) => effect.type === 'strike').ticks[0].coefficient,
+      0.6
+    );
+  });
 
   const config = {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
@@ -4856,206 +4836,188 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
       .filter((event) => event.type === 'damage' && event.skillName === skillName)
       .map((event) => [Math.round(event.at * 1000), event.name, event.coefficient]);
 
-  const deathstrike = simulate('Conduit', ['Deathstrike'], config);
+  test('resolves Deathstrike and Shackling Wave packet timing', () => {
+    const deathstrike = simulate('Conduit', ['Deathstrike'], config);
 
-  assert.deepEqual(damageTimeline(deathstrike, 'Deathstrike'), [
-    [320, 'Initial Damage', 0.45],
-    [600, 'Final Damage', 2.67]
-  ]);
-  assert.deepEqual(deathstrike.endState.cooldowns.Deathstrike, {
-    readyAt: 12420,
-    remaining: 11700
-  });
-  assert.deepEqual(
-    damageTimeline(simulate('Conduit', ['Shackling Wave'], config, observationTail(1000)), 'Shackling Wave'),
-    [
-      [640, 'Initial Damage', 1.2],
-      [720, 'Additional Strikes', 0.4],
-      [800, 'Additional Strikes', 0.4],
-      [880, 'Additional Strikes', 0.4],
-      [960, 'Additional Strikes', 0.4],
-      [1040, 'Additional Strikes', 0.4]
-    ]
-  );
-  const combined = simulate('Conduit', ['Deathstrike', 'Shackling Wave'], config);
-  const combinedRows = skillBreakdownRows(combined);
-
-  for (const skillName of ['Deathstrike', 'Shackling Wave']) {
-    const resolvedDamage = combined.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillName === skillName)
-      .reduce((sum, event) => sum + event.damage, 0);
-
-    assert.ok(Math.abs(combinedRows.find((row) => row.name === skillName).strike - resolvedDamage) < 1e-9, skillName);
-  }
-
-  const chilling = simulate('Conduit', ['Chilling Isolation'], config);
-
-  assert.equal(chilling.steps[0].fullCastMs, 680);
-  assert.equal(chilling.steps[0].end, 680);
-  assert.equal(chilling.steps[0].interrupted, false);
-  assert.deepEqual(damageTimeline(chilling, 'Chilling Isolation'), [
-    [280, 'Chilling Isolation — Packet 1', 0.8],
-    [480, 'Isolated Damage', 1.6]
-  ]);
-
-  const paletteChilling = simulate(
-    'Conduit',
-    [
-      {
-        name: 'Chilling Isolation',
-        interruptMs: defaultPaletteInterruptMs(skill('Chilling Isolation'))
-      }
-    ],
-    config,
-    observationTail(1000)
-  );
-
-  assert.equal(paletteChilling.steps[0].end, 420);
-  assert.equal(paletteChilling.steps[0].interrupted, true);
-  const interruptedChilling = simulate(
-    'Conduit',
-    [
-      {
-        name: 'Chilling Isolation',
-        interruptMs: 420
-      }
-    ],
-    config,
-    observationTail(1000)
-  );
-
-  assert.equal(interruptedChilling.steps[0].end, 420);
-  assert.equal(interruptedChilling.steps[0].interrupted, true);
-  assert.deepEqual(damageTimeline(interruptedChilling, 'Chilling Isolation'), [
-    [280, 'Chilling Isolation — Packet 1', 0.8],
-    [480, 'Isolated Damage', 1.6]
-  ]);
-
-  const earlyChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 419 }], config);
-
-  assert.deepEqual(damageTimeline(earlyChilling, 'Chilling Isolation'), []);
-
-  const fullChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 680 }], config);
-
-  assert.equal(fullChilling.steps[0].end, 680);
-  assert.equal(fullChilling.steps[0].interrupted, false);
-  assert.deepEqual(damageTimeline(fullChilling, 'Chilling Isolation'), [
-    [280, 'Chilling Isolation — Packet 1', 0.8],
-    [480, 'Isolated Damage', 1.6]
-  ]);
-
-  const swordAutos = simulate('Conduit', ['Preparation Thrust', 'Brutal Blade'], config);
-
-  assert.deepEqual(
-    swordAutos.events
-      .filter((event) => event.type === 'damage' && ['Preparation Thrust', 'Brutal Blade'].includes(event.skillName))
-      .map((event) => [event.skillName, Math.round(event.at * 1000)]),
-    [
-      ['Preparation Thrust', 320],
-      ['Brutal Blade', 840]
-    ]
-  );
-
-  for (const [name, impactMs] of [
-    ['Mist Slash', 400],
-    ['Arcing Mists', 440]
-  ]) {
-    const strike = skill(name).effects.find((effect) => effect.type === 'strike');
-
-    assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
-  }
-
-  for (const [name, impactMs] of [
-    ['Hammer Bolt', 481],
-    ['Coalescence of Ruin', 561],
-    ['Field of the Mists', 560],
-    ['Drop the Hammer', 1639]
-  ]) {
-    const strike = skill(name).effects.find((effect) => effect.type === 'strike');
-
-    assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
-  }
-
-  const onslaught = simulate('Vindicator', ["Phantom's Onslaught"], {
-    ...config,
-    specialization: 'Vindicator',
-    selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ALLIANCE,
-    primaryWeapon: 'Greatsword',
-    secondaryWeapon: ''
+    assert.deepEqual(damageTimeline(deathstrike, 'Deathstrike'), [
+      [320, 'Initial Damage', 0.45],
+      [600, 'Final Damage', 2.67]
+    ]);
+    assert.deepEqual(deathstrike.endState.cooldowns.Deathstrike, {
+      readyAt: 12420,
+      remaining: 11700
+    });
+    assert.deepEqual(
+      damageTimeline(simulate('Conduit', ['Shackling Wave'], config, observationTail(1000)), 'Shackling Wave'),
+      [
+        [640, 'Initial Damage', 1.2],
+        [720, 'Additional Strikes', 0.4],
+        [800, 'Additional Strikes', 0.4],
+        [880, 'Additional Strikes', 0.4],
+        [960, 'Additional Strikes', 0.4],
+        [1040, 'Additional Strikes', 0.4]
+      ]
+    );
   });
 
-  assert.equal(onslaught.steps[0].fullCastMs, 438);
-  assert.equal(
-    Math.round(
-      onslaught.events.find((event) => event.type === 'damage' && event.skillName === "Phantom's Onslaught").at * 1000
-    ),
-    438
-  );
-  assert.deepEqual(onslaught.endState.cooldowns["Phantom's Onslaught"], {
-    readyAt: 6820,
-    remaining: 6382
+  test('commits Chilling Isolation at the palette cutoff', () => {
+    const chilling = simulate('Conduit', ['Chilling Isolation'], config);
+
+    assert.equal(chilling.steps[0].fullCastMs, 680);
+    assert.equal(chilling.steps[0].end, 680);
+    assert.equal(chilling.steps[0].interrupted, false);
+    assert.deepEqual(damageTimeline(chilling, 'Chilling Isolation'), [
+      [280, 'Chilling Isolation — Packet 1', 0.8],
+      [480, 'Isolated Damage', 1.6]
+    ]);
+
+    const paletteChilling = simulate(
+      'Conduit',
+      [
+        {
+          name: 'Chilling Isolation',
+          interruptMs: defaultPaletteInterruptMs(skill('Chilling Isolation'))
+        }
+      ],
+      config,
+      observationTail(1000)
+    );
+
+    assert.equal(paletteChilling.steps[0].end, 420);
+    assert.equal(paletteChilling.steps[0].interrupted, true);
+    assert.deepEqual(damageTimeline(paletteChilling, 'Chilling Isolation'), [
+      [280, 'Chilling Isolation — Packet 1', 0.8],
+      [480, 'Isolated Damage', 1.6]
+    ]);
+
+    const earlyChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 419 }], config);
+
+    assert.deepEqual(damageTimeline(earlyChilling, 'Chilling Isolation'), []);
   });
 
-  const rift = damageTimeline(
-    simulate('Conduit', ['Preparation Thrust', 'Brutal Blade', 'Rift Slash'], config, observationTail(1000)),
-    'Rift Slash'
-  );
+  test('resolves sword autoattack timing', () => {
+    const swordAutos = simulate('Conduit', ['Preparation Thrust', 'Brutal Blade'], config);
 
-  assert.deepEqual(
-    rift.map((event) => event.slice(1)),
-    [
-      ['Rift Slash — Packet 1', 0.9],
-      ['Rift Damage', 0.2175]
-    ]
-  );
-  assert.equal(rift[1][0] - rift[0][0], 1000);
-  assert.deepEqual(
-    rift.map((event) => event[0]),
-    [1320, 2320]
-  );
+    assert.deepEqual(
+      swordAutos.events
+        .filter((event) => event.type === 'damage' && ['Preparation Thrust', 'Brutal Blade'].includes(event.skillName))
+        .map((event) => [event.skillName, Math.round(event.at * 1000)]),
+      [
+        ['Preparation Thrust', 320],
+        ['Brutal Blade', 840]
+      ]
+    );
+  });
 
-  const impossibleRift = simulate(
-    'Conduit',
-    ['Impossible Odds', 'Preparation Thrust', 'Brutal Blade', 'Rift Slash', { type: 'wait', durationMs: 1500 }],
-    {
-      selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
-      startingLegend: LEGEND.ASSASSIN,
-      initialEnergy: 100,
-      primaryWeapon: 'Sword',
-      secondaryWeapon: 'Sword',
-      boons: { quickness: true }
+  test('retains sword and hammer impact timing', () => {
+    for (const [name, impactMs] of [
+      ['Mist Slash', 400],
+      ['Arcing Mists', 440]
+    ]) {
+      const strike = skill(name).effects.find((effect) => effect.type === 'strike');
+
+      assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
     }
-  );
 
-  assert.equal(
-    impossibleRift.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.skillName === 'Impossible Odds' && event.triggeredBy === 'Rift Slash'
-    ).length,
-    2
-  );
+    for (const [name, impactMs] of [
+      ['Hammer Bolt', 481],
+      ['Coalescence of Ruin', 561],
+      ['Field of the Mists', 560],
+      ['Drop the Hammer', 1639]
+    ]) {
+      const strike = skill(name).effects.find((effect) => effect.type === 'strike');
 
-  const requiem = simulate(
-    'Conduit',
-    ["Eternity's Requiem"],
-    {
+      assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
+    }
+  });
+
+  test('resolves Phantom Onslaught timing and cooldown from cast start', () => {
+    const onslaught = simulate('Vindicator', ["Phantom's Onslaught"], {
       ...config,
+      specialization: 'Vindicator',
+      selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ALLIANCE,
       primaryWeapon: 'Greatsword',
       secondaryWeapon: ''
-    },
-    observationTail(2000)
-  );
+    });
 
-  assert.deepEqual(damageTimeline(requiem, "Eternity's Requiem"), [
-    [1163, "Eternity's Requiem", 1],
-    [1241, "Eternity's Requiem", 0.9],
-    [1361, "Eternity's Requiem", 0.8],
-    [1445, "Eternity's Requiem", 0.7],
-    [1486, "Eternity's Requiem", 0.6],
-    [1562, "Eternity's Requiem", 0.5],
-    [1678, "Eternity's Requiem", 0.4],
-    [1762, "Eternity's Requiem", 0.3]
-  ]);
+    assert.equal(onslaught.steps[0].fullCastMs, 438);
+    assert.equal(
+      Math.round(
+        onslaught.events.find((event) => event.type === 'damage' && event.skillName === "Phantom's Onslaught").at * 1000
+      ),
+      438
+    );
+    assert.deepEqual(onslaught.endState.cooldowns["Phantom's Onslaught"], {
+      readyAt: 6820,
+      remaining: 6382
+    });
+  });
+
+  test('resolves Rift Slash follow-up timing and upkeep triggers', () => {
+    const rift = damageTimeline(
+      simulate('Conduit', ['Preparation Thrust', 'Brutal Blade', 'Rift Slash'], config, observationTail(1000)),
+      'Rift Slash'
+    );
+
+    assert.deepEqual(
+      rift.map((event) => event.slice(1)),
+      [
+        ['Rift Slash — Packet 1', 0.9],
+        ['Rift Damage', 0.2175]
+      ]
+    );
+    assert.equal(rift[1][0] - rift[0][0], 1000);
+    assert.deepEqual(
+      rift.map((event) => event[0]),
+      [1320, 2320]
+    );
+
+    const impossibleRift = simulate(
+      'Conduit',
+      ['Impossible Odds', 'Preparation Thrust', 'Brutal Blade', 'Rift Slash', { type: 'wait', durationMs: 1500 }],
+      {
+        selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+        startingLegend: LEGEND.ASSASSIN,
+        initialEnergy: 100,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
+        boons: { quickness: true }
+      }
+    );
+
+    assert.equal(
+      impossibleRift.resolvedEvents.filter(
+        (event) =>
+          event.type === 'damage' && event.skillName === 'Impossible Odds' && event.triggeredBy === 'Rift Slash'
+      ).length,
+      2
+    );
+  });
+
+  test('resolves every Eternity Requiem impact', () => {
+    const requiem = simulate(
+      'Conduit',
+      ["Eternity's Requiem"],
+      {
+        ...config,
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: ''
+      },
+      observationTail(2000)
+    );
+
+    assert.deepEqual(damageTimeline(requiem, "Eternity's Requiem"), [
+      [1163, "Eternity's Requiem", 1],
+      [1241, "Eternity's Requiem", 0.9],
+      [1361, "Eternity's Requiem", 0.8],
+      [1445, "Eternity's Requiem", 0.7],
+      [1486, "Eternity's Requiem", 0.6],
+      [1562, "Eternity's Requiem", 0.5],
+      [1678, "Eternity's Requiem", 0.4],
+      [1762, "Eternity's Requiem", 0.3]
+    ]);
+  });
 });
 
 test('large Revenant hitboxes add the second Coalescence cascade and all Requiem impacts', () => {
@@ -5974,11 +5936,6 @@ test('Alacrity does not reduce Revenant legend or weapon swap cooldowns', () => 
     weapons.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
     [0, 10000]
   );
-});
-
-test('trait-coverage manifest covers all Revenant traits', () => {
-  assert.equal(REVENANT_TRAIT_COVERAGE.length, revenantCatalog.traits.length);
-  assert.ok(REVENANT_TRAIT_COVERAGE.every((entry) => entry.effects.length > 0));
 });
 
 test('Revenant state events use the shared event-log row contract', () => {

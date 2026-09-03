@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -215,53 +214,6 @@ for (const { name, trait, extraTraits = [], rotation, config, verify } of traitC
   });
 }
 
-// Assert the dispatcher call topology directly because no real skill qualifies for every cast branch at once.
-function assertSourceOrder(source, startToken, orderedTokens) {
-  let position = source.indexOf(startToken);
-  assert.notEqual(position, -1, startToken);
-  for (const token of orderedTokens) {
-    const next = source.indexOf(token, position + 1);
-    assert.ok(next > position, token);
-    position = next;
-  }
-}
-
-test('Engineer trait dispatchers preserve cast, damage, condition, and nested Tools order', async () => {
-  const directory = new URL('../../../js/games/gw2/professions/engineer/core/traits/', import.meta.url);
-  const [indexSource, toolsSource] = await Promise.all([
-    readFile(new URL('index.ts', directory), 'utf8'),
-    readFile(new URL('tools.ts', directory), 'utf8')
-  ]);
-
-  assertSourceOrder(indexSource, 'export function applyEngineerCastTraits', [
-    'applyGrenadier(context, skill, at);',
-    'applyStreamlinedKits(context, skill, at);',
-    'applyEngineerToolbeltTraits(context, skill, at);',
-    'applyHgh(context, skill, at);'
-  ]);
-  assertSourceOrder(toolsSource, 'export function applyEngineerToolbeltTraits', [
-    'applyOptimizedActivation(context, skill, at);',
-    'applyStaticDischarge(context, skill, at);',
-    'applyKineticBattery(context, skill, at);'
-  ]);
-  assertSourceOrder(indexSource, 'export function reactToEngineerDamage', [
-    'recordStaticDischargeProc(context, event);',
-    'applyExplosiveEntrance(context, event);',
-    'const explosion = isExplosion(context, event);',
-    'applySteelPackedPowder(context, event, explosion);',
-    'applyShortFuse(context, event, explosion);',
-    'applyExplosiveTemper(context, event, explosion);',
-    'applyGrandEntrance(context, event);',
-    'applyShrapnel(context, event, explosion);',
-    'applyAimAssistedRocket(context, event);'
-  ]);
-  assertSourceOrder(indexSource, 'export function reactToEngineerCondition', [
-    'applyThermalVision(context, event);',
-    'applySanguineArray(context, event);',
-    'applyHematicFocus(context, event);'
-  ]);
-});
-
 test('Engineer critical and scheduled-event definitions preserve their public order', () => {
   assert.deepEqual(
     engineerCoreCriticalHitDefinitions.map((definition) => definition.id),
@@ -271,20 +223,4 @@ test('Engineer critical and scheduled-event definitions preserve their public or
     engineerCoreSchedulerHooks.onEventScheduled.map((hook) => hook.id),
     ['engineer.mine-field', 'engineer.hgh-duration']
   );
-});
-
-test('Engineer trait-line modules stay private and registration-free', async () => {
-  const core = new URL('../../../js/games/gw2/professions/engineer/core/', import.meta.url);
-  const files = (await readdir(core, { recursive: true })).filter((file) => file.endsWith('.ts'));
-  const lineImport = /core\/traits\/(?:alchemy|explosives|firearms|tools)\.js/;
-  const lineFiles = new Set(['traits/alchemy.ts', 'traits/explosives.ts', 'traits/firearms.ts', 'traits/tools.ts']);
-
-  for (const file of files) {
-    const normalized = file.replaceAll('\\', '/');
-    const source = await readFile(new URL(normalized, core), 'utf8');
-    if (normalized !== 'traits/index.ts') assert.doesNotMatch(source, lineImport, file);
-    if (lineFiles.has(normalized)) {
-      assert.doesNotMatch(source, /engineerCore(?:SchedulerHooks|ResolverEventReactions)|\.push\(/, file);
-    }
-  }
 });

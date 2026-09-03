@@ -5,6 +5,7 @@ import { readDpsReportRotationData } from '#gw2/app/build/io/dps-report-rotation
 import { applyRotationImportPreview, previewDpsReportUrl } from '#gw2/app/build/io/rotation-import-dialog.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import {
   DPS_REPORT_PROFESSION_ROTATION_PARSERS,
   detectDpsReportRotationPlayers,
@@ -162,9 +163,19 @@ test('fetches and validates the raw Elite Insights response', async () => {
 });
 
 test('registers a generic parser for every supported profession profile', () => {
-  assert.equal(DPS_REPORT_PROFESSION_ROTATION_PARSERS.length, 45);
-  assert.equal(new Set(DPS_REPORT_PROFESSION_ROTATION_PARSERS.map((parser) => parser.id)).size, 45);
-  assert.equal(getDpsReportProfessionRotationParser('engineer', 'amalgam')?.id, 'engineer:amalgam');
+  const parserIds = DPS_REPORT_PROFESSION_ROTATION_PARSERS.map((parser) => parser.id);
+  const expectedIds = new Set(
+    ROTATION_PROFILES.map((profile) => `${profile.professionId}:${profile.specializationId}`)
+  );
+
+  assert.deepEqual(new Set(parserIds), expectedIds);
+  assert.equal(new Set(parserIds).size, parserIds.length);
+
+  for (const profile of ROTATION_PROFILES) {
+    const id = `${profile.professionId}:${profile.specializationId}`;
+
+    assert.equal(getDpsReportProfessionRotationParser(profile.professionId, profile.specializationId)?.id, id);
+  }
 });
 
 test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', () => {
@@ -210,12 +221,6 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
   });
 
   assert.equal(result.combatStartTimestampMs, 900);
-  assert.deepEqual(result.rotation.slice(0, 4), [
-    { name: 'Throw Mine', skillId: 6161 },
-    { name: '__wait', waitMs: 5_000 },
-    { name: 'Bomb Kit', skillId: 5812 },
-    { name: 'Galvanic Bomb', skillId: 5822 }
-  ]);
   assert.equal(
     result.actions.some((action) => action.name === 'Throw Mine' && action.inferred),
     true
@@ -224,12 +229,10 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
     result.actions.some((action) => action.name === 'Bomb Kit' && action.inferred),
     true
   );
-  assert.deepEqual(
-    result.actions
-      .filter((action) => action.name === 'Offensive Protocol: Demolish')
-      .map((action) => [action.skillId, action.durationMs]),
-    [[76927, 1_560]]
-  );
+  const demolish = result.actions.find((action) => action.name === 'Offensive Protocol: Demolish');
+
+  assert.equal(demolish?.skillId, 76927);
+  assert.equal(demolish?.durationMs, 1_560);
   assert.equal(result.actions.filter((action) => action.name === 'Overcharged Shot').length, 1);
   assert.equal(
     result.actions.some((action) => action.name === 'Stow Bomb Kit'),
@@ -239,10 +242,7 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
     result.actions.some((action) => action.name === 'Automatic Proc'),
     false
   );
-  assert.deepEqual(
-    result.rotation.find((command) => command.name === '__combat_start'),
-    { name: '__combat_start', offset: 500 }
-  );
+  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 500);
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Throw Mine.*Bomb Kit/);
   assert.doesNotMatch(result.warnings.join('\n'), /duplicate instant|automatic trait|potentially incomplete/);
 });

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import test from 'node:test';
+import { describe, test } from 'node:test';
 
 import { replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { GW2_SKILL_ID_ALIASES as RUNTIME_SKILL_ID_ALIASES } from '#gw2/platform/skills/aliases.js';
@@ -437,6 +437,11 @@ test('ready native professions classify every trait with no pending entries', as
     assert.equal(coverage.length, profession.catalog.traits.length);
     assert.equal(new Set(coverage.map((item) => item.traitId)).size, profession.catalog.traits.length);
     assert.equal(
+      coverage.every((item) => item.effects.length > 0),
+      true,
+      `${entry.id} empty trait coverage`
+    );
+    assert.equal(
       coverage.some(
         (item) =>
           item.status === TRAIT_COVERAGE_STATUSES.PENDING ||
@@ -577,129 +582,144 @@ test('build validation reports malformed specializations across skill-loadout st
   }
 });
 
-test('native build codecs share version, schema, and sanitization behavior', async () => {
+describe('native build codecs', () => {
   for (const entry of professionRegistry) {
-    const [profession, adapter] = await Promise.all([entry.loadProfession(), entry.loadAppAdapter()]);
-    const defaults = profession.createBuildDefaults();
+    const loaded = Promise.all([entry.loadProfession(), entry.loadAppAdapter()]);
+    const load = async () => {
+      const [profession, adapter] = await loaded;
 
-    if (entry.id === 'guardian') {
-      assert.equal(Object.hasOwn(defaults, 'initialResource'), false);
-      assert.equal(
-        Object.hasOwn(
-          profession.migrateBuild({
-            ...defaults,
-            initialResource: 3
-          }),
-          'initialResource'
-        ),
-        false
+      return { profession, adapter, defaults: profession.createBuildDefaults() };
+    };
+
+    test(`${entry.id} migrates supported schema versions`, async () => {
+      const { profession, adapter, defaults } = await load();
+
+      assert.throws(() => replaceBuild({ ...defaults, profession: 'wrong-profession' }, adapter), /Cannot load/);
+      assert.throws(
+        () => replaceBuild({ ...defaults, schemaVersion: defaults.schemaVersion + 1 }, adapter),
+        /Unsupported build schema version/
       );
-    }
+      for (let version = 0; version <= defaults.schemaVersion; version += 1) {
+        const migrated = profession.migrateBuild({
+          ...defaults,
+          schemaVersion: version
+        });
 
-    assert.throws(() => replaceBuild({ ...defaults, profession: 'wrong-profession' }, adapter), /Cannot load/);
-    assert.throws(
-      () => replaceBuild({ ...defaults, schemaVersion: defaults.schemaVersion + 1 }, adapter),
-      /Unsupported build schema version/
-    );
-    for (let version = 0; version <= defaults.schemaVersion; version += 1) {
-      const migrated = profession.migrateBuild({
-        ...defaults,
-        schemaVersion: version
-      });
+        assert.equal(migrated.schemaVersion, defaults.schemaVersion, `${entry.id} v${version}`);
+        assert.equal(profession.validateBuild(migrated).valid, true);
+      }
 
-      assert.equal(migrated.schemaVersion, defaults.schemaVersion, `${entry.id} v${version}`);
-      assert.equal(profession.validateBuild(migrated).valid, true);
-    }
-
-    const legacySigils = profession.migrateBuild({
-      ...defaults,
-      schemaVersion: 0,
-      weaponSigils: undefined,
-      sigils: ['Force', 'Impact']
+      if (entry.id === 'guardian') {
+        assert.equal(Object.hasOwn(defaults, 'initialResource'), false);
+        assert.equal(
+          Object.hasOwn(profession.migrateBuild({ ...defaults, initialResource: 3 }), 'initialResource'),
+          false
+        );
+      }
     });
 
-    assert.deepEqual(legacySigils.weaponSigils, [
-      ['Force', 'Impact'],
-      ['Force', 'Impact']
-    ]);
-    assert.equal('sigils' in legacySigils, false);
-
-    for (const field of ['rune', 'food', 'utility']) {
-      const invalidValue = `Unknown ${field}`;
-      const invalidBuild = { ...defaults, [field]: invalidValue };
-
-      assert.equal(profession.validateBuild(invalidBuild).valid, false);
-      assert.equal(profession.migrateBuild(invalidBuild)[field], defaults[field]);
-    }
-
-    assert.equal(
-      profession.validateBuild({
+    test(`${entry.id} sanitizes shared equipment fields`, async () => {
+      const { profession, defaults } = await load();
+      const legacySigils = profession.migrateBuild({
         ...defaults,
-        jadeBotCore: 'yes'
-      }).valid,
-      false
-    );
-    assert.equal(
-      profession.migrateBuild({
+        schemaVersion: 0,
+        weaponSigils: undefined,
+        sigils: ['Force', 'Impact']
+      });
+
+      assert.deepEqual(legacySigils.weaponSigils, [
+        ['Force', 'Impact'],
+        ['Force', 'Impact']
+      ]);
+      assert.equal('sigils' in legacySigils, false);
+
+      for (const field of ['rune', 'food', 'utility']) {
+        const invalidBuild = { ...defaults, [field]: `Unknown ${field}` };
+
+        assert.equal(profession.validateBuild(invalidBuild).valid, false);
+        assert.equal(profession.migrateBuild(invalidBuild)[field], defaults[field]);
+      }
+
+      const invalid = {
         ...defaults,
-        jadeBotCore: 'yes'
-      }).jadeBotCore,
-      defaults.jadeBotCore
-    );
-
-    for (const rotation of [
-      [{ type: 'wait', durationMs: -1 }],
-      [
-        {
-          type: 'cast',
-          skillId: profession.catalog.skills[0].id,
-          concurrentOffsetMs: -1
-        }
-      ],
-      [{ type: 'combat-start', interruptAfterMs: 1 }]
-    ]) {
-      assert.equal(profession.validateBuild({ ...defaults, rotation }).valid, false);
-    }
-
-    const selectedSpecializations = new Set(defaults.specializations.map((specialization) => specialization.name));
-    const lockedSlotSkill = profession.catalog.skills.find(
-      (skill) =>
-        ['Heal', 'Utility', 'Elite'].includes(skill.type) &&
-        !skill.simulatorExcluded &&
-        skill.flipParentId == null &&
-        skill.specialization &&
-        !selectedSpecializations.has(skill.specialization)
-    );
-
-    if (lockedSlotSkill && !adapter.slotLoadout) {
-      const slot = lockedSlotSkill.type === 'Heal' ? 'Heal' : lockedSlotSkill.type === 'Elite' ? 'Elite' : 'Utility1';
-      const lockedBuild = {
-        ...defaults,
-        selectedSkills: {
-          ...defaults.selectedSkills,
-          [slot]: lockedSlotSkill.name
-        }
+        gear: { ...defaults.gear, Helm: 'Unknown Prefix' },
+        relic: 'Unknown Relic',
+        rotation: [{ type: 'cast', skillId: -999 }],
+        specializations: [defaults.specializations[0], defaults.specializations[0], defaults.specializations[0]]
       };
+      const sanitized = profession.migrateBuild(invalid);
 
-      assert.equal(profession.validateBuild(lockedBuild).valid, false);
-      const migrated = profession.migrateBuild(lockedBuild);
+      assert.equal(profession.validateBuild(invalid).valid, false);
+      assert.equal(sanitized.relic, defaults.relic);
+      assert.equal(sanitized.gear.Helm, defaults.gear.Helm);
+      assert.deepEqual(sanitized.specializations, defaults.specializations);
+      assert.equal(
+        profession.validateBuild(sanitized).errors.some((error) => error.includes('unknown skill')),
+        true
+      );
 
-      assert.notEqual(migrated.selectedSkills[slot], lockedSlotSkill.name);
-      assert.equal(profession.validateBuild(migrated).valid, true);
-    }
+      const twoHanded = [...profession.catalog.weaponHands].find(([, hand]) => hand === '2h')?.[0];
 
-    if (!adapter.slotLoadout) {
+      if (twoHanded) {
+        assert.deepEqual(
+          profession.migrateBuild({
+            ...defaults,
+            weapons: [twoHanded, defaults.weapons[1] || 'invalid']
+          }).weapons,
+          [twoHanded, '']
+        );
+      }
+    });
+
+    test(`${entry.id} rejects invalid shared scalar and rotation fields`, async () => {
+      const { profession, defaults } = await load();
+
+      assert.equal(profession.validateBuild({ ...defaults, jadeBotCore: 'yes' }).valid, false);
+      assert.equal(profession.migrateBuild({ ...defaults, jadeBotCore: 'yes' }).jadeBotCore, defaults.jadeBotCore);
+      for (const rotation of [
+        [{ type: 'wait', durationMs: -1 }],
+        [{ type: 'cast', skillId: profession.catalog.skills[0].id, concurrentOffsetMs: -1 }],
+        [{ type: 'combat-start', interruptAfterMs: 1 }]
+      ]) {
+        assert.equal(profession.validateBuild({ ...defaults, rotation }).valid, false);
+      }
+    });
+
+    test(`${entry.id} sanitizes generic slot selections`, async () => {
+      const { profession, adapter, defaults } = await load();
+
+      if (adapter.slotLoadout) return;
+
+      const selectedSpecializations = new Set(defaults.specializations.map(({ name }) => name));
+      const lockedSlotSkill = profession.catalog.skills.find(
+        (skill) =>
+          ['Heal', 'Utility', 'Elite'].includes(skill.type) &&
+          !skill.simulatorExcluded &&
+          skill.flipParentId == null &&
+          skill.specialization &&
+          !selectedSpecializations.has(skill.specialization)
+      );
+
+      if (lockedSlotSkill) {
+        const slot = lockedSlotSkill.type === 'Heal' ? 'Heal' : lockedSlotSkill.type === 'Elite' ? 'Elite' : 'Utility1';
+        const lockedBuild = {
+          ...defaults,
+          selectedSkills: { ...defaults.selectedSkills, [slot]: lockedSlotSkill.name }
+        };
+        const migrated = profession.migrateBuild(lockedBuild);
+
+        assert.equal(profession.validateBuild(lockedBuild).valid, false);
+        assert.notEqual(migrated.selectedSkills[slot], lockedSlotSkill.name);
+        assert.equal(profession.validateBuild(migrated).valid, true);
+      }
+
       const duplicateUtility = {
         ...defaults,
-        selectedSkills: {
-          ...defaults.selectedSkills,
-          Utility2: defaults.selectedSkills.Utility1
-        }
+        selectedSkills: { ...defaults.selectedSkills, Utility2: defaults.selectedSkills.Utility1 }
       };
-
-      assert.equal(profession.validateBuild(duplicateUtility).valid, false);
       const normalizedUtilities = profession.migrateBuild(duplicateUtility);
 
+      assert.equal(profession.validateBuild(duplicateUtility).valid, false);
       assert.equal(
         new Set([
           normalizedUtilities.selectedSkills.Utility1,
@@ -708,77 +728,28 @@ test('native build codecs share version, schema, and sanitization behavior', asy
         ]).size,
         3
       );
-    }
 
-    const twoHanded = [...profession.catalog.weaponHands].find(([, hand]) => hand === '2h')?.[0];
+      const flip = profession.catalog.skills.find(
+        (skill) => skill.flipParentId != null && ['Heal', 'Utility', 'Elite'].includes(skill.type)
+      );
 
-    if (twoHanded) {
-      const migrated = profession.migrateBuild({
-        ...defaults,
-        weapons: [twoHanded, defaults.weapons[1] || 'invalid']
-      });
+      if (flip) {
+        const slot = flip.type === 'Heal' ? 'Heal' : flip.type === 'Elite' ? 'Elite' : 'Utility1';
+        const withFlip = { ...defaults, selectedSkills: { ...defaults.selectedSkills, [slot]: flip.name } };
 
-      assert.deepEqual(migrated.weapons, [twoHanded, '']);
-    }
-
-    const invalid = {
-      ...defaults,
-      gear: {
-        ...defaults.gear,
-        Helm: 'Unknown Prefix'
-      },
-      relic: 'Unknown Relic',
-      rotation: [{ type: 'cast', skillId: -999 }],
-      specializations: [defaults.specializations[0], defaults.specializations[0], defaults.specializations[0]]
-    };
-
-    assert.equal(profession.validateBuild(invalid).valid, false);
-    const sanitized = profession.migrateBuild(invalid);
-
-    assert.equal(sanitized.relic, defaults.relic);
-    assert.equal(sanitized.gear.Helm, defaults.gear.Helm);
-    assert.deepEqual(sanitized.specializations, defaults.specializations);
-    assert.equal(
-      profession.validateBuild(sanitized).errors.some((error) => error.includes('unknown skill')),
-      true
-    );
-
-    const flip = profession.catalog.skills.find(
-      (skill) => skill.flipParentId != null && ['Heal', 'Utility', 'Elite'].includes(skill.type)
-    );
-
-    if (flip && !adapter.slotLoadout) {
-      const slot = flip.type === 'Heal' ? 'Heal' : flip.type === 'Elite' ? 'Elite' : 'Utility1';
-      const withFlip = {
-        ...defaults,
-        selectedSkills: {
-          ...defaults.selectedSkills,
-          [slot]: flip.name
-        }
-      };
-
-      assert.equal(profession.validateBuild(withFlip).valid, false);
-      assert.equal(profession.migrateBuild(withFlip).selectedSkills[slot], defaults.selectedSkills[slot]);
-    }
-
-    const firstSkill = profession.catalog.skills[0];
-    const normalizedRotation = profession.migrateBuild({
-      ...defaults,
-      rotation: [firstSkill.name]
-    });
-
-    assert.deepEqual(normalizedRotation.rotation, [
-      {
-        type: 'cast',
-        skillId: firstSkill.id
+        assert.equal(profession.validateBuild(withFlip).valid, false);
+        assert.equal(profession.migrateBuild(withFlip).selectedSkills[slot], defaults.selectedSkills[slot]);
       }
-    ]);
-    const applicationBuild = adapter.toApplicationBuild({
-      ...defaults,
-      rotation: [{ type: 'cast', skillId: firstSkill.id }]
     });
 
-    assert.deepEqual(applicationBuild.rotation[0], { type: 'cast', skillId: firstSkill.id });
+    test(`${entry.id} normalizes rotations for application use`, async () => {
+      const { profession, adapter, defaults } = await load();
+      const firstSkill = profession.catalog.skills[0];
+      const cast = { type: 'cast', skillId: firstSkill.id };
+
+      assert.deepEqual(profession.migrateBuild({ ...defaults, rotation: [firstSkill.name] }).rotation, [cast]);
+      assert.deepEqual(adapter.toApplicationBuild({ ...defaults, rotation: [cast] }).rotation[0], cast);
+    });
   }
 });
 

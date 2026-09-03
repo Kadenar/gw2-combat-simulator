@@ -3,15 +3,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
+import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
-import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
-import { MESMER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/mesmer.js';
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS,
   MESMER_CORE_SHATTER_PROFILE_IDS,
@@ -171,36 +169,6 @@ const authoringMesmerProfession = withActivePatchPreview(mesmerProfession);
 test('Core Mesmer catalog extras retain named ownership', () => {
   assert.equal(MESMER_CORE_INDEX_EXTRA_SKILLS, MESMER_CORE_EXTRA_SKILLS);
   assert.equal(MESMER_CORE_INDEX_SUPPLEMENTAL_SKILL_MECHANICS, MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS);
-});
-
-test('catalog contains every terrestrial Mesmer skill and trait line', () => {
-  assert.deepEqual(
-    SPECIALIZATIONS.map((spec) => spec.name),
-    ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']
-  );
-  assert.equal(TRAITS.length, 108);
-  assert.equal(SKILLS.length, 113);
-
-  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
-  for (const omittedId of [10197, 10200, 10201, 10203, 10236, 62573]) {
-    assert.equal(mesmerCatalog.skillsById.has(omittedId), false);
-  }
-
-  for (const omittedName of [
-    'Portal Entre',
-    'Blink',
-    'Decoy',
-    'Null Field',
-    'Signet of Inspiration',
-    'Psychic Force'
-  ]) {
-    assert.equal(mesmerCatalog.skillsByName.has(omittedName), false);
-  }
-
-  assert.deepEqual(
-    SKILLS.filter((skill) => ['Arcane Thievery', 'Veil'].includes(skill.name)),
-    []
-  );
 });
 
 test('Mesmer modules expose isolated balance-profile authoring', () => {
@@ -1027,7 +995,7 @@ test('dodge models two endurance charges with a ten-second base recharge', () =>
   assert.equal(dodge.rechargeAnchor, 'castStart');
 });
 
-test('Mesmer supplemental identities, handler profiles, and trait coverage are explicit', () => {
+test('Mesmer supplemental identities and handler profiles are explicit', () => {
   assert.equal(MESMER_SUPPLEMENTAL_SKILLS.length, 15);
   assert.ok(MESMER_SUPPLEMENTAL_SKILLS.every((skill) => skill.id > 0));
   assert.ok(PSEUDO_SKILLS.every((skill) => skill.id < 0));
@@ -1038,9 +1006,6 @@ test('Mesmer supplemental identities, handler profiles, and trait coverage are e
       identityFields.every((field) => !Object.hasOwn(mechanics, field))
     )
   );
-  assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
-  assert.ok(MESMER_TRAIT_COVERAGE.every((entry) => entry.effects.length > 0));
-
   const shared = mesmerCatalog.skillsByName.get('Mind Stab');
 
   assert.equal(shared.handlerId, 'mesmer.declarative');

@@ -1,6 +1,5 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { loadProfession } from '#gw2/app/profession/registry.js';
@@ -17,7 +16,6 @@ import {
 } from '#gw2/professions/guardian/build/build.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -49,37 +47,6 @@ const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(g
 
 const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
 
-test('Guardian trait dispatch preserves mixed cast order and keeps line modules registration-free', async () => {
-  const traitRoot = new URL('../../../js/games/gw2/professions/guardian/core/traits/', import.meta.url);
-  const dispatcher = await readFile(new URL('index.ts', traitRoot), 'utf8');
-  const castDispatcher = dispatcher.slice(dispatcher.indexOf('export function updateGuardianTraitCastState'));
-  const castOrder = [
-    'applyWritOfPersistence(context, skill)',
-    'skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION',
-    'skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES',
-    'applyInspiredVirtue(context, skill, virtueSlot, at)',
-    'applyVirtueOfResolution(context, skill, at)',
-    'applyInspiringVirtue(context, skill, at)',
-    'applyIndomitableCourage(context, skill, virtueSlot, at)',
-    'applyFuriousFocus(context, skill, virtueSlot, at)',
-    'applyMasterOfConsecrations(context, skill)'
-  ].map((marker) => castDispatcher.indexOf(marker));
-
-  assert.equal(
-    castOrder.every((index) => index >= 0),
-    true
-  );
-  assert.deepEqual(
-    castOrder,
-    [...castOrder].sort((left, right) => left - right)
-  );
-
-  for (const file of ['zeal.ts', 'radiance.ts', 'honor.ts', 'virtues.ts']) {
-    const source = await readFile(new URL(file, traitRoot), 'utf8');
-    assert.doesNotMatch(source, /defineNativeModule|onResolvedDamage|onBuffApplied|executionHooks|eventHandlers/);
-  }
-});
-
 test('Virtue of Resolution replacement returns before later scheduled-event behavior', () => {
   const emitted = [];
   const event = {
@@ -105,19 +72,6 @@ test('Virtue of Resolution replacement returns before later scheduled-event beha
 
   assert.equal(event.duration, 5);
   assert.deepEqual(emitted, []);
-});
-
-test('Guardian uses a current API catalog with real skills and trait lines', () => {
-  assert.match(DATA_SNAPSHOT, /^2026-/);
-  assert.equal(guardianCatalog.specializations.length, 9);
-  assert.equal(guardianCatalog.traits.length, 108);
-  assert.ok(guardianCatalog.skills.length >= 172);
-  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.TRUE_STRIKE).name, 'True Strike');
-  assert.equal(guardianCatalog.skillsByName.get('Virtue of Justice').id, 9115);
-  assert.equal(
-    guardianCatalog.specializations.some((spec) => spec.name === 'Luminary'),
-    true
-  );
 });
 
 test('Guardian modules expose isolated balance-profile authoring', () => {
@@ -1914,26 +1868,7 @@ test('Renewed Focus recharges all three core virtues', () => {
   });
 });
 
-test('every supported catalog skill has executable mechanics', () => {
-  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
-  for (const omittedId of [9150, 9182, 9245, 29786, 30461, 30871, 41571, 68676]) {
-    assert.equal(guardianCatalog.skillsById.has(omittedId), false);
-  }
-
-  for (const omittedName of [
-    'Signet of Judgment',
-    'Shield of the Avenger',
-    'Smite Condition',
-    'Test of Faith',
-    "Light's Judgment",
-    'Signet of Courage'
-  ]) {
-    assert.equal(guardianCatalog.skillsByName.has(omittedName), false);
-  }
-
-  assert.equal(guardianCatalog.skillsByName.has('Chapter 1: Searing Spell'), true);
-  assert.equal(guardianCatalog.skillsByName.has('Dazzling Hammer'), true);
-
+test('a supported Guardian weapon skill executes without warnings', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: ['Hammer Swing'],

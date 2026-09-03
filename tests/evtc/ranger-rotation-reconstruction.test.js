@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { describe, test } from 'node:test';
 
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 
@@ -559,7 +559,7 @@ test('reconstructs Untamed state changes, unleashed pet commands, and composite 
   assert.equal(names.filter((name) => name === '"Sic \'Em!"').length, 2);
 });
 
-test('reconstructs Soulbeast precasts, commands, composite Smash, and shared Path ranges', () => {
+describe('Soulbeast rotation reconstruction', () => {
   const skills = [
     skill(42944, 'Beastmode'),
     skill(43014, 'Leave Beastmode'),
@@ -799,21 +799,38 @@ test('reconstructs Soulbeast precasts, commands, composite Smash, and shared Pat
   const result = reconstructEvtcRotation(fixture, { skills });
   const names = result.actions.map((action) => action.name);
 
-  assert.equal(result.parserId, 'ranger:soulbeast');
-  assert.deepEqual(names.slice(0, 3), ['One Wolf Pack', 'Frost Trap', 'Overbearing Smash']);
-  assert.equal(names.filter((name) => name === 'One Wolf Pack').length, 2);
-  assert.equal(names.filter((name) => name === 'Frost Trap').length, 2);
-  assert.equal(names.filter((name) => name === '"Sic \'Em!"').length, 2);
-  assert.equal(names.filter((name) => name === 'Path of Scars (Max Range)').length, 1);
-  assert.equal(names.filter((name) => name === 'Path of Scars').length, 1);
-  const smash = result.actions.filter((action) => action.name === 'Overbearing Smash');
+  test('selects the Soulbeast parser and recovers opening precasts', () => {
+    assert.equal(result.parserId, 'ranger:soulbeast');
+    assert.deepEqual(names.slice(0, 3), ['One Wolf Pack', 'Frost Trap', 'Overbearing Smash']);
+    assert.equal(names.filter((name) => name === 'One Wolf Pack').length, 2);
+    assert.equal(names.filter((name) => name === 'Frost Trap').length, 2);
+  });
 
-  assert.equal(smash.length, 2);
-  assert.equal(smash[0].status, 'interrupted');
-  assert.equal(smash[0].durationMs, 318);
-  assert.equal(smash[1].durationMs, 960);
-  assert.equal(names.filter((name) => name === 'Leave Beastmode').length, 1);
-  assert.equal(names.filter((name) => name === 'Beastmode').length, 1);
+  test('infers Sic Em commands from their buff removals', () => {
+    assert.equal(names.filter((name) => name === '"Sic \'Em!"').length, 2);
+  });
+
+  test('distinguishes Path of Scars ranges from packet timing', () => {
+    assert.equal(names.filter((name) => name === 'Path of Scars (Max Range)').length, 1);
+    assert.equal(names.filter((name) => name === 'Path of Scars').length, 1);
+  });
+
+  test('combines interrupted and completed Overbearing Smash casts', () => {
+    const smash = result.actions.filter((action) => action.name === 'Overbearing Smash');
+
+    assert.deepEqual(
+      smash.map((action) => [action.status, action.durationMs]),
+      [
+        ['interrupted', 318],
+        ['completed', 960]
+      ]
+    );
+  });
+
+  test('reconstructs Beastmode transitions', () => {
+    assert.equal(names.filter((name) => name === 'Leave Beastmode').length, 1);
+    assert.equal(names.filter((name) => name === 'Beastmode').length, 1);
+  });
 });
 
 test('orders an initial Cyclone Bow before its first skill and drops Winter reset signals', () => {

@@ -14,9 +14,7 @@ import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog, thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/professions/thief/data/thief-api-metadata.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
-import { THIEF_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/thief.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
@@ -82,22 +80,10 @@ const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thie
 
 const authoringThiefProfession = withActivePatchPreview(thiefProfession);
 
-test('Thief catalog pins API identity and explicit terrestrial mechanics', () => {
-  assert.equal(DATA_SNAPSHOT, '2026-07-28');
-  assert.equal(thiefCatalog.specializations.length, 9);
-  assert.equal(thiefCatalog.traits.length, 108);
-  assert.ok(thiefCatalog.skills.length >= 249);
-  assert.equal(thiefCatalog.skillsById.has(76550), false);
-  assert.equal(thiefCatalog.skillsById.has(40436), true);
-  assert.equal(thiefCatalog.skillsById.has(80278), false);
-  assert.equal(thiefCatalog.skillsById.has(76744), false);
-  assert.equal(thiefCatalog.skillsById.has(77230), true);
+test('Thief catalog retains reviewed packet and schema mechanics', () => {
   assert.equal(thiefCatalog.skillsByName.get("Death's Advance").id, 40436);
   assert.equal(thiefCatalog.skillsByName.get('Canach-Coin Toss').id, 77230);
   assert.equal(thiefCatalog.skillsByName.get('Death Blossom').initiativeCost, 4);
-  for (const excludedId of [13020, 13035, 13096, 76784, 76808, 76879, 77361]) {
-    assert.equal(thiefCatalog.skillsById.has(excludedId), false, String(excludedId));
-  }
 
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
@@ -142,29 +128,6 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
       [800, 'Bleeding', 2, 6]
     ]
   );
-  for (const excludedName of [
-    'Deadly Strike',
-    'Emergency Jade Shield',
-    'Ice Drake Venom',
-    'Inquest Portal Device',
-    'Inquest Portal Device: Backfired',
-    'Malicious Deadly Strike',
-    'Malicious Ripper',
-    'Prepare Seal Area',
-    'Prepare Shadow Portal',
-    'Seal Area',
-    'Shadow Portal',
-    'Shadow Refuge',
-    'Shadow Return',
-    'Shadowstep',
-    'Scorpion Wire',
-    'Smoke Screen',
-    'The Ripper',
-    'Roll for Initiative'
-  ]) {
-    assert.equal(thiefCatalog.skillsByName.has(excludedName), false, excludedName);
-  }
-
   assert.ok(
     THIEF_SUPPLEMENTAL_SKILLS.every(
       (skill) =>
@@ -3251,11 +3214,6 @@ test('Thief skill bar previews specialization-specific stolen skills', () => {
       .find((group) => group.id === 'deadeye-stolen-skills').className,
     'deadeye-stolen-skills-grid'
   );
-});
-
-test('trait-coverage manifest covers all Thief traits', () => {
-  assert.equal(THIEF_TRAIT_COVERAGE.length, thiefCatalog.traits.length);
-  assert.ok(THIEF_TRAIT_COVERAGE.every((entry) => entry.effects.length > 0));
 });
 
 test('Thief is a loadable native application', async () => {

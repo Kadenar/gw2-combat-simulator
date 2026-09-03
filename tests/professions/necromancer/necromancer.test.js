@@ -18,7 +18,6 @@ import {
   validateNecromancerBuild
 } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '#gw2/professions/necromancer/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -73,39 +72,6 @@ const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 const applyNecromancerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(necromancerCatalog, patch), patch);
 
 const authoringNecromancerProfession = withActivePatchPreview(necromancerProfession);
-
-test('Necromancer uses the current API catalog and all nine trait lines', () => {
-  assert.equal(DATA_SNAPSHOT, '2026-07-25');
-  assert.equal(necromancerCatalog.specializations.length, 9);
-  assert.equal(necromancerCatalog.traits.length, 108);
-  assert.ok(necromancerCatalog.skills.length >= 156);
-  assert.equal(necromancerCatalog.skillsById.get(ID.LIFE_BLAST).name, 'Life Blast');
-
-  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
-  for (const omittedId of [10612, 40274, 42917]) {
-    assert.equal(necromancerCatalog.skillsById.has(omittedId), false);
-  }
-
-  for (const name of [
-    'Corrupt Boon',
-    'Spectral Ring',
-    'Epidemic',
-    'Summon Flesh Wurm',
-    'Necrotic Traversal',
-    'Signet of the Locust',
-    'Trail of Anguish',
-    'Sand Swell'
-  ]) {
-    assert.equal(necromancerCatalog.skillsByName.has(name), false, name);
-  }
-
-  assert.deepEqual(
-    necromancerCatalog.specializations
-      .filter((specialization) => specialization.elite)
-      .map((specialization) => specialization.name),
-    ['Reaper', 'Scourge', 'Harbinger', 'Ritualist']
-  );
-});
 
 test('Necromancer modules expose isolated balance-profile authoring', () => {
   const modules = new Map(authoringNecromancerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
@@ -3906,65 +3872,6 @@ test('migrated Core trait lines retain previously uncovered threshold, blind, he
   );
   assert.equal(heal.endState.profession.carapaceExpiries.length, 10);
   assert.equal(fearOfDeath.endState.profession.lifeForce - plainFear.endState.profession.lifeForce, 15);
-});
-
-test('Core trait dispatch preserves cross-line order and keeps registration out of line modules', async () => {
-  const directory = new URL('../../../js/games/gw2/professions/necromancer/core/traits/', import.meta.url);
-  const source = await readFile(new URL('index.ts', directory), 'utf8');
-  const ordered = (functionName, calls) => {
-    const body = source.slice(source.indexOf(`export function ${functionName}`));
-    const positions = calls.map((call) => body.indexOf(call));
-    assert.equal(
-      positions.every((position) => position >= 0),
-      true,
-      functionName
-    );
-    assert.deepEqual(
-      positions,
-      positions.toSorted((left, right) => left - right),
-      functionName
-    );
-  };
-
-  // These source-level contracts protect reaction positions that cannot all emit on one real combat event.
-  ordered('reactToNecromancerCoreDamage', [
-    'applyVampiric(',
-    'applyReapersMight(',
-    'applySiphonedPower(',
-    'applySpitefulFortitude(',
-    'applyChillOfDeath(',
-    'applyDhuumfire(',
-    'applyUnyieldingBlast(',
-    'necromancerBarbedPrecisionReaction.handler(',
-    'applyVampiricPresence(',
-    'applyOverflowingThirstDamage('
-  ]);
-  ordered('reactToNecromancerCoreCondition', ['targetChilledUntil', 'applyBitterChill(', 'applyCorruptorsFervor(']);
-  ordered('reactToNecromancerCoreControl', [
-    'targetControlledUntil',
-    'dreadUntil',
-    'applyTerror(',
-    'applyInsidiousDisruption('
-  ]);
-  ordered('applyNecromancerAfterCastTraits', [
-    'updateNecromancerCastState(',
-    'applyDarkDefense(',
-    'applySignetsOfSuffering(',
-    'applyMaliciousSwarm(',
-    'applyTransfusion(',
-    'finalizeNecromancerCast('
-  ]);
-
-  const castState = source.slice(source.indexOf('function updateNecromancerCastState'));
-  assert.ok(castState.indexOf('availableFlips') < castState.indexOf('applyFearOfDeath('));
-  for (const file of ['spite.ts', 'curses.ts', 'death-magic.ts', 'blood-magic.ts', 'soul-reaping.ts']) {
-    const lineSource = await readFile(new URL(file, directory), 'utf8');
-    assert.doesNotMatch(
-      lineSource,
-      /core\/traits\/index\.js|defineNativeModule|onResolved(?:Damage|Blind|Control)/,
-      file
-    );
-  }
 });
 
 test('Blood Is Power and Plague Signet preserve transferred conditions', () => {

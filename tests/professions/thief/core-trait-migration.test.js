@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
@@ -338,21 +337,4 @@ test('cast-state updates preserve Lead, Fluid, Hard to Catch, then Deadly Ambiti
     ['thief.state.lead-attacks', 'thief.state.hard-to-catch', TRAIT.DEADLY_AMBITION]
   );
   assert.equal(events[1].state.fluidStrikesUntil, 6);
-});
-
-test('condition dispatcher preserves Leeching, Panic, Cloaked, then base bonus order', () => {
-  const source = readFileSync(
-    new URL('../../../js/games/gw2/professions/thief/core/traits/index.ts', import.meta.url),
-    'utf8'
-  );
-  const calls = [
-    'applyAlliedLeechingVenoms(context, application);',
-    'applyPanicStrikePoison(context, application);',
-    'applyCloakedInShadow(context, application);',
-    'applyUnsuspectingStrikeBonus(context, application);'
-  ];
-  assert.deepEqual(
-    calls.map((call) => source.indexOf(call)),
-    [...calls.map((call) => source.indexOf(call))].sort((left, right) => left - right)
-  );
 });

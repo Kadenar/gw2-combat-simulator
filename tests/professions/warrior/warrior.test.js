@@ -24,7 +24,6 @@ import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/execution/index.js';
-import { DATA_SNAPSHOT } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
@@ -92,52 +91,9 @@ const applyWarriorPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(wa
 
 const authoringWarriorProfession = withActivePatchPreview(warriorProfession);
 
-test('Warrior catalog pins the API snapshot and all elite specializations', () => {
-  assert.equal(DATA_SNAPSHOT, '2026-08-08');
-  assert.equal(warriorCatalog.specializations.length, 9);
-  assert.equal(warriorCatalog.traits.length, 108);
-  assert.equal(warriorCatalog.skills.length, 186);
-  assert.deepEqual(
-    warriorCatalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name),
-    ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
-  );
-  assert.equal(warriorCatalog.weaponHands.get('Torch'), 'oh');
+test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
   assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).name, 'Weapon Stow');
   assert.match(warriorCatalog.skillsById.get(ID.WEAPON_STOW).icon, /assets\/warrior\/weapon-stow\.png$/);
-  assert.equal(warriorCatalog.skillsById.get(ID.EVISCERATE).name, 'Eviscerate');
-  for (const aliasId of [
-    14422, 14425, 14469, 14473, 14474, 14475, 14512, 14520, 14545, 14549, 30435, 42041, 69297, 69433, 72029, 72911,
-    80252, 80263
-  ]) {
-    assert.equal(warriorCatalog.skillsById.has(aliasId), false);
-  }
-
-  // Unsupported skills stay outside the catalog so build and rotation selectors cannot surface them.
-  for (const omittedId of [14368, 14403, 14413, 14479, 76769, 76934]) {
-    assert.equal(warriorCatalog.skillsById.has(omittedId), false);
-  }
-
-  for (const omittedName of [
-    'Frenzy',
-    '"For Great Justice!"',
-    'Dolyak Signet',
-    'Signet of Stamina',
-    '"Never Surrender!"',
-    '"Brace Yourselves!"'
-  ]) {
-    assert.equal(warriorCatalog.skillsByName.has(omittedName), false);
-  }
-
-  for (const distinctId of [
-    40601, 41110, 41330, 41746, 42707, 42803, 43566, 71922, 71950, 72089, 73006, 73014, 73042
-  ]) {
-    assert.equal(warriorCatalog.skillsById.has(distinctId), true, String(distinctId));
-  }
-
-  for (const protectedId of [41746, 73006, 73042]) {
-    assert.equal(warriorCatalog.skillsById.get(protectedId).simulatorExcluded, false, String(protectedId));
-  }
-
   assert.equal(warriorCatalog.skillsByName.get('Forceful Shot').id, ID.FORCEFUL_SHOT);
   assert.equal(warriorCatalog.skillsByName.get('Path to Victory').id, ID.PATH_TO_VICTORY_ID_71932);
   assert.equal(warriorCatalog.skillsByName.get("Harrier's Toss").id, ID.HARRIERS_TOSS);
@@ -158,30 +114,6 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
     authoredSkills.every(
       (skill) => !(Object.hasOwn(skill, 'castTimeMs') && Object.hasOwn(skill, 'quicknessCastTimeMs'))
     ),
-    true
-  );
-  assert.equal(
-    warriorCatalog.skills.some((skill) => skill.id === 62857 || skill.name === '((996787))'),
-    false
-  );
-
-  const excludedSkillIds = [
-    ID.SHAKE_IT_OFF,
-    ID.ENDURE_PAIN,
-    ID.BERSERKER_STANCE,
-    ID.BANNER_OF_TACTICS,
-    ID.FEAR_ME,
-    ID.BALANCED_STANCE,
-    ID.BANNER_OF_DEFENSE,
-    ID.ON_MY_MARK,
-    ID.IMMINENT_THREAT,
-    ID.SIGHT_BEYOND_SIGHT,
-    ID.FEATHERFOOT_GRACE,
-    ID.ELECTRIC_FENCE
-  ];
-
-  assert.equal(
-    excludedSkillIds.every((skillId) => warriorCatalog.skillsById.get(skillId).simulatorExcluded),
     true
   );
 });

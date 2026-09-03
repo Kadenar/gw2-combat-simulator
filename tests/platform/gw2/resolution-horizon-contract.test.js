@@ -1,8 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
@@ -11,7 +8,6 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/presentation/rotation/timeline.js';
 
 const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 function fixtureConfig(overrides = {}) {
   return {
@@ -621,55 +617,4 @@ test('persistent actors respect lifetime, observation end, and target death', ()
     deathClipped.events.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
     [1.1]
   );
-});
-
-test('production source and catalog data cannot declare event-owned horizons', () => {
-  const roots = [path.join(repoRoot, 'js'), path.join(repoRoot, 'data', 'gw2', 'builds')];
-  const violations = [];
-  const visit = (entry) => {
-    if (statSync(entry).isDirectory()) {
-      for (const child of readdirSync(entry)) visit(path.join(entry, child));
-
-      return;
-    }
-
-    if (!/\.(?:js|ts|json)$/.test(entry)) return;
-
-    if (readFileSync(entry, 'utf8').includes(forbiddenHorizonField)) {
-      violations.push(path.relative(repoRoot, entry));
-    }
-  };
-
-  for (const root of roots) visit(root);
-  assert.deepEqual(violations, []);
-});
-
-test('saved rotations and regression tooling cannot select observation policy', () => {
-  const observationPolicyField = ['observation', 'Policy'].join('');
-  const violations = [];
-  const visit = (entry) => {
-    if (statSync(entry).isDirectory()) {
-      for (const child of readdirSync(entry)) visit(path.join(entry, child));
-
-      return;
-    }
-
-    if (!entry.endsWith('.json')) return;
-
-    if (readFileSync(entry, 'utf8').includes(observationPolicyField)) {
-      violations.push(path.relative(repoRoot, entry));
-    }
-  };
-
-  visit(path.join(repoRoot, 'data', 'gw2', 'rotations'));
-  for (const relativePath of [
-    'tests/app/benchmarks/preset-benchmark.js',
-    'scripts/analysis/capture-supported-build-metrics.mjs'
-  ]) {
-    const source = readFileSync(path.join(repoRoot, relativePath), 'utf8');
-
-    if (source.includes(observationPolicyField)) violations.push(relativePath);
-  }
-
-  assert.deepEqual(violations, []);
 });

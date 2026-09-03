@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { describe, test } from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import {
@@ -598,7 +598,7 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
   assert.equal(family.catalogFor('fixture-preview').balanceProfilesById.get('elite.profile').maximumStacks, 7);
 });
 
-test('native professions compile preview modifier rules in isolated runtimes', () => {
+describe('native profession modifier previews', () => {
   const traitSelected = (context, id) => context.traits?.has(id) || context.config?.selectedTraitIds?.includes(id);
   const core = defineNativeModule({
     id: 'Core',
@@ -692,121 +692,113 @@ test('native professions compile preview modifier rules in isolated runtimes', (
     config: { traitStacks: 3 }
   };
 
-  assert.notEqual(previewCore, liveCore);
-  assert.equal(liveCore.modifyCriticalChance(coreContext, 0), 0.1);
-  assert.equal(previewCore.modifyCriticalChance(coreContext, 0), 0.2);
-  assert.equal(liveElite.modifyCriticalChance(eliteContext, 0), 0.13);
-  assert.equal(previewElite.modifyCriticalChance(eliteContext, 0), 0.26);
-  assert.equal(previewElite.modifyCriticalChance({ ...eliteContext, traits: new Set() }, 0), 0);
-  assert.equal(
-    family.resolveRuntime({
-      specialization: 'Elite',
-      patchId: 'fixture-preview'
-    }),
-    previewElite
-  );
-  assert.deepEqual(family.previewModifierRuleTargets, [
-    {
-      id: 'fixture.trait-critical-chance',
-      moduleId: 'Core',
-      fields: ['amount']
-    },
-    {
-      id: 'fixture.elite-stacking-critical-chance',
-      moduleId: 'Elite',
-      fields: ['parameters.perStack']
-    }
-  ]);
-  assert.deepEqual(
-    family.patchAuthoring.modules.map((module) => ({
-      id: module.id,
-      skills: module.skills.map((skill) => skill.name),
-      rules: module.modifierRules.map((rule) => ({
-        id: rule.id,
-        amount: rule.amount,
-        parameters: rule.parameters
-      }))
-    })),
-    [
+  test('keeps current and preview runtimes isolated', () => {
+    assert.notEqual(previewCore, liveCore);
+    assert.equal(liveCore.modifyCriticalChance(coreContext, 0), 0.1);
+    assert.equal(previewCore.modifyCriticalChance(coreContext, 0), 0.2);
+    assert.equal(liveElite.modifyCriticalChance(eliteContext, 0), 0.13);
+    assert.equal(previewElite.modifyCriticalChance(eliteContext, 0), 0.26);
+    assert.equal(previewElite.modifyCriticalChance({ ...eliteContext, traits: new Set() }, 0), 0);
+    assert.equal(
+      family.resolveRuntime({
+        specialization: 'Elite',
+        patchId: 'fixture-preview'
+      }),
+      previewElite
+    );
+  });
+
+  test('exposes modifier rules for preview authoring', () => {
+    assert.deepEqual(family.previewModifierRuleTargets, [
       {
-        id: 'Core',
-        skills: ['Modifier Strike'],
-        rules: [
-          {
-            id: 'fixture.trait-critical-chance',
-            amount: { kind: 'static', value: 0.1 },
-            parameters: {}
-          }
-        ]
+        id: 'fixture.trait-critical-chance',
+        moduleId: 'Core',
+        fields: ['amount']
       },
       {
-        id: 'Elite',
-        skills: [],
-        rules: [
-          {
-            id: 'fixture.elite-stacking-critical-chance',
-            amount: { kind: 'resolver' },
-            parameters: { perStack: 0.01 }
-          }
-        ]
+        id: 'fixture.elite-stacking-critical-chance',
+        moduleId: 'Elite',
+        fields: ['parameters.perStack']
       }
-    ]
-  );
-  assert.equal(
-    family.validatePatch({
-      skills: { 10: { fields: { cooldown: { from: 10, to: 12 } } } },
-      modifierRules: {
-        'fixture.trait-critical-chance': {
-          amount: { from: 0.1, to: 0.15 }
+    ]);
+    assert.deepEqual(
+      family.patchAuthoring.modules.map((module) => ({
+        id: module.id,
+        skills: module.skills.map((skill) => skill.name),
+        rules: module.modifierRules.map((rule) => ({
+          id: rule.id,
+          amount: rule.amount,
+          parameters: rule.parameters
+        }))
+      })),
+      [
+        {
+          id: 'Core',
+          skills: ['Modifier Strike'],
+          rules: [
+            {
+              id: 'fixture.trait-critical-chance',
+              amount: { kind: 'static', value: 0.1 },
+              parameters: {}
+            }
+          ]
+        },
+        {
+          id: 'Elite',
+          skills: [],
+          rules: [
+            {
+              id: 'fixture.elite-stacking-critical-chance',
+              amount: { kind: 'resolver' },
+              parameters: { perStack: 0.01 }
+            }
+          ]
         }
-      }
-    }),
-    true
-  );
-  assert.throws(
-    () => family.validatePatch({ skills: { 10: { fields: { castTimeMs: { from: 0, to: 250 } } } } }),
-    /unsupported patch field castTimeMs/
-  );
-  assert.throws(() => family.validatePatch({ skills: { missing: { cooldown: 10 } } }), /unknown skill missing/);
-
-  const config = {
-    specialization: 'Core',
-    selectedTraitIds: [10],
-    stats: {
-      power: 1000,
-      precision: 0,
-      ferocity: 0,
-      conditionDamage: 0,
-      expertise: 0,
-      concentration: 0
-    },
-    target: { armor: 1000 }
-  };
-  const currentResult = simulateGw2({
-    profession: family,
-    rotation: [10],
-    config: { ...config, patchId: 'current' }
-  });
-  const previewResult = simulateGw2({
-    profession: family,
-    rotation: [10],
-    config: { ...config, patchId: 'fixture-preview' }
-  });
-  const unselectedPreviewResult = simulateGw2({
-    profession: family,
-    rotation: [10],
-    config: {
-      ...config,
-      selectedTraitIds: [],
-      patchId: 'fixture-preview'
-    }
-  });
-  const unselectedCurrentResult = simulateGw2({
-    profession: family,
-    rotation: [10],
-    config: { ...config, selectedTraitIds: [], patchId: 'current' }
+      ]
+    );
   });
 
-  assert.ok(previewResult.totalDamage > currentResult.totalDamage);
-  assert.equal(unselectedPreviewResult.totalDamage, unselectedCurrentResult.totalDamage);
+  test('validates supported patch fields', () => {
+    assert.equal(
+      family.validatePatch({
+        skills: { 10: { fields: { cooldown: { from: 10, to: 12 } } } },
+        modifierRules: {
+          'fixture.trait-critical-chance': {
+            amount: { from: 0.1, to: 0.15 }
+          }
+        }
+      }),
+      true
+    );
+    assert.throws(
+      () => family.validatePatch({ skills: { 10: { fields: { castTimeMs: { from: 0, to: 250 } } } } }),
+      /unsupported patch field castTimeMs/
+    );
+    assert.throws(() => family.validatePatch({ skills: { missing: { cooldown: 10 } } }), /unknown skill missing/);
+  });
+
+  test('applies preview modifiers only when their traits are selected', () => {
+    const config = {
+      specialization: 'Core',
+      selectedTraitIds: [10],
+      stats: {
+        power: 1000,
+        precision: 0,
+        ferocity: 0,
+        conditionDamage: 0,
+        expertise: 0,
+        concentration: 0
+      },
+      target: { armor: 1000 }
+    };
+    const simulate = (patchId, selectedTraitIds = config.selectedTraitIds) =>
+      simulateGw2({
+        profession: family,
+        rotation: [10],
+        config: { ...config, selectedTraitIds, patchId }
+      });
+
+    assert.ok(simulate('fixture-preview').totalDamage > simulate('current').totalDamage);
+    assert.equal(simulate('fixture-preview', []).totalDamage, simulate('current', []).totalDamage);
+  });
 });
