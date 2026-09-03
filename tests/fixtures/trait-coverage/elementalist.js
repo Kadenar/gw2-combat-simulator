@@ -1,5 +1,5 @@
 import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Empowering Flame',

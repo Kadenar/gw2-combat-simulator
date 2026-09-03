@@ -6,14 +6,14 @@ import {
   createDefaultTargetConditions,
   DEFAULT_TARGET_CONDITIONS
 } from '#gw2/platform/builds/default-target-conditions.js';
-import { createElementalistBuildDefaults } from '#gw2/content/professions/elementalist/build/build.js';
-import { createEngineerBuildDefaults } from '#gw2/content/professions/engineer/build/build.js';
-import { createGuardianBuildDefaults } from '#gw2/content/professions/guardian/build/build.js';
-import { createMesmerBuildDefaults } from '#gw2/content/professions/mesmer/build/build.js';
-import { createNecromancerBuildDefaults } from '#gw2/content/professions/necromancer/build/build.js';
-import { createRevenantBuildDefaults } from '#gw2/content/professions/revenant/build/build.js';
-import { createThiefBuildDefaults } from '#gw2/content/professions/thief/build/build.js';
-import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
+import { createElementalistBuildDefaults } from '#gw2/professions/elementalist/build/build.js';
+import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
+import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
+import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
+import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
+import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
+import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 
 test('all profession pages use the shared default target conditions', () => {
   for (const createDefaults of [

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { defineSkillVariantProfile, defineTraitProfile } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { defineSkillVariantProfile, defineTraitProfile } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   balanceProfileEffect,

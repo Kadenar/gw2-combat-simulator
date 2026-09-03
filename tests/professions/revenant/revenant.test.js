@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -30,35 +31,35 @@ import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,
   validateRevenantBuild
-} from '#gw2/content/professions/revenant/build/build.js';
-import { applyRevenantBuildAttributeRules } from '#gw2/content/professions/revenant/build/attributes.js';
-import { revenantAppAdapter } from '#gw2/content/professions/revenant/app/app-definition.js';
-import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
+} from '#gw2/professions/revenant/build/build.js';
+import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
   vindicatorDodgeAutoRotationEntries
-} from '#gw2/content/professions/revenant/specializations/vindicator/presentation.js';
-import { DATA_SNAPSHOT } from '#gw2/content/professions/revenant/data/revenant-api-metadata.js';
-import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/revenant/data/revenant-supplemental-skills.js';
+} from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import { DATA_SNAPSHOT } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
+import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/content/professions/revenant/data/ids.js';
+} from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/revenant.js';
-import { REVENANT_CORE_BASE_SKILL_MECHANICS } from '#gw2/content/professions/revenant/core/skills/index.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/profiles.js';
-import { createRevenantCoreState } from '#gw2/content/professions/revenant/core/state.js';
-import { afterRevenantCast, observeRevenantEvent } from '#gw2/content/professions/revenant/core/traits/index.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/profiles.js';
-import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
+import { REVENANT_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/index.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
+import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { afterRevenantCast, observeRevenantEvent } from '#gw2/professions/revenant/core/traits/index.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import {
   legalRevenantLegendIds,
   REVENANT_CORE_LEGEND_IDS,
   REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
   REVENANT_RELEASE_POTENTIAL_BY_LEGEND
-} from '#gw2/content/professions/revenant/data/legends.js';
-import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/content/professions/revenant/build/legend-loadout.js';
+} from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
@@ -119,6 +120,8 @@ const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
 const strikeCoefficient = (effect) =>
   effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
+
+const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
 
 test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
@@ -310,7 +313,7 @@ test('modifier contribution candidates include every active Revenant trait', () 
 });
 
 test('Core Revenant mechanics expose patch-authorable declarations', () => {
-  const core = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Core');
+  const core = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Core');
   const skill = (id) => core.skills.find((entry) => entry.id === id);
   const profile = (id) => core.balanceProfiles.find((entry) => entry.id === id);
   const resources = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
@@ -368,7 +371,7 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
 });
 
 test('Elemental Blast keeps packet timing runtime-only while exposing packet values', () => {
-  const herald = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
+  const herald = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
   const elementalBlast = herald.skills.find((skill) => skill.id === SKILL.ELEMENTAL_BLAST).skill;
   const runtimeElementalBlast = revenantCatalog.skillsById.get(SKILL.ELEMENTAL_BLAST);
   const [strike, conditions] = elementalBlast.effects;
@@ -393,7 +396,7 @@ test('Elemental Blast keeps packet timing runtime-only while exposing packet val
 });
 
 test('Herald facets expose recurring pulse fields to patch authoring', () => {
-  const herald = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
+  const herald = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
   const strength = herald.skills.find((skill) => skill.id === SKILL.FACET_OF_STRENGTH);
 
   assert.deepEqual(
@@ -435,7 +438,7 @@ test('Herald facets expose recurring pulse fields to patch authoring', () => {
 });
 
 test('Beguiling Haze keeps runtime cast timing out of profile authoring metadata', () => {
-  const conduit = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Conduit');
+  const conduit = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Conduit');
   const profile = (id) => conduit.skillVariants.find((entry) => entry.id === id);
   const mainExtension = profile(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension);
   const followUp = profile(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
@@ -472,7 +475,7 @@ test('Beguiling Haze keeps runtime cast timing out of profile authoring metadata
 });
 
 test('Herald invocation effects use patch-authorable skill declarations', () => {
-  const herald = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
+  const herald = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
   const call = herald.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_DRAGON);
   const spiritBoon = herald.balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Dragon)');
 
@@ -528,7 +531,7 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
 });
 
 test('Renegade invocation effects use patch-authorable skill declarations', () => {
-  const renegade = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
+  const renegade = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
   const call = renegade.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_RENEGADE);
   const spiritBoon = renegade.balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Renegade)');
 
@@ -583,7 +586,7 @@ test('Renegade invocation effects use patch-authorable skill declarations', () =
 });
 
 test('Renegade mechanics use authorable skills and modifier parameters', () => {
-  const renegade = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
+  const renegade = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
   const skill = (id) => renegade.skills.find((entry) => entry.id === id);
   const named = (name) => renegade.skills.find((entry) => entry.name === name);
   const namedProfile = (name) =>
@@ -728,28 +731,19 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
 
 test('Revenant modules preserve the declarative authoring contract', async () => {
   const [ids, coreSkills, coreProfiles, renegadeSkills, renegadeProfiles, catalog, modules] = await Promise.all([
-    readFile(new URL('../../../js/games/gw2/content/professions/revenant/data/ids.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../../js/games/gw2/professions/revenant/data/ids.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../../js/games/gw2/professions/revenant/core/skills/index.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../../js/games/gw2/professions/revenant/core/profiles.ts', import.meta.url), 'utf8'),
     readFile(
-      new URL('../../../js/games/gw2/content/professions/revenant/core/skills/index.ts', import.meta.url),
-      'utf8'
-    ),
-    readFile(new URL('../../../js/games/gw2/content/professions/revenant/core/profiles.ts', import.meta.url), 'utf8'),
-    readFile(
-      new URL(
-        '../../../js/games/gw2/content/professions/revenant/specializations/renegade/skills/index.ts',
-        import.meta.url
-      ),
+      new URL('../../../js/games/gw2/professions/revenant/specializations/renegade/skills/index.ts', import.meta.url),
       'utf8'
     ),
     readFile(
-      new URL(
-        '../../../js/games/gw2/content/professions/revenant/specializations/renegade/profiles.ts',
-        import.meta.url
-      ),
+      new URL('../../../js/games/gw2/professions/revenant/specializations/renegade/profiles.ts', import.meta.url),
       'utf8'
     ),
-    readFile(new URL('../../../js/games/gw2/content/professions/revenant/catalog.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/games/gw2/content/professions/revenant/modules.ts', import.meta.url), 'utf8')
+    readFile(new URL('../../../js/games/gw2/professions/revenant/catalog.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../../js/games/gw2/professions/revenant/modules.ts', import.meta.url), 'utf8')
   ]);
 
   assert.doesNotMatch(ids, /^import\b/m);

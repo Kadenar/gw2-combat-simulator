@@ -3,7 +3,7 @@ import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
-import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/numeric.js';
 import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 import {
@@ -25,7 +25,7 @@ import {
 import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
-import type { NativeResolvedDamageDetails } from '#gw2/integrations/patches/authoring/module-types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
 import type {
   Gw2ConditionResolution,

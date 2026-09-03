@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { reconcileCastEffectPackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import { reconstructVindicatorActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/vindicator.js';

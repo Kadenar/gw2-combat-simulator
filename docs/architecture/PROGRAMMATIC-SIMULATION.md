@@ -32,7 +32,7 @@ Create `run-engineer.mjs` in the repository root:
 import { prepareSimulationConfig } from './js/games/gw2/platform/engine/config.js';
 import { simulateGw2 } from './js/games/gw2/platform/index.js';
 import { skillBreakdownRows } from './js/games/gw2/app/presentation/results/result-tables.js';
-import { engineerProfession } from './js/games/gw2/content/professions/engineer/definition.js';
+import { engineerProfession } from './js/games/gw2/professions/engineer/definition.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
@@ -109,7 +109,7 @@ For that reason, a headless script should use source-looking imports:
 
 ```js
 import { simulateGw2 } from './js/games/gw2/platform/index.js';
-import { engineerProfession } from './js/games/gw2/content/professions/engineer/definition.js';
+import { engineerProfession } from './js/games/gw2/professions/engineer/definition.js';
 ```
 
 Run it after building:

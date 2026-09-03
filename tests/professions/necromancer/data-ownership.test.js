@@ -2,17 +2,17 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
 
-import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/content/professions/necromancer/core/skills/actions.js';
-import { NECROMANCER_CORE_EXTRA_SKILLS } from '#gw2/content/professions/necromancer/core/skills/index.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
-import { HARBINGER_ELIXIR_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/elixir-skills.js';
-import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/index.js';
-import { HARBINGER_SHROUD_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/shroud-skills.js';
-import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/reaper/skills/index.js';
-import { REAPER_SHOUT_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/reaper/skills/shout-skills.js';
-import { REAPER_SHROUD_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/reaper/skills/shroud-skills.js';
+import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
+import { NECROMANCER_CORE_EXTRA_SKILLS } from '#gw2/professions/necromancer/core/skills/index.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { HARBINGER_ELIXIR_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/elixir-skills.js';
+import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/index.js';
+import { HARBINGER_SHROUD_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/shroud-skills.js';
+import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/index.js';
+import { REAPER_SHOUT_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
+import { REAPER_SHROUD_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/shroud-skills.js';
 
-const professionSourceRoot = new URL('../../../js/games/gw2/content/professions/necromancer/', import.meta.url);
+const professionSourceRoot = new URL('../../../js/games/gw2/professions/necromancer/', import.meta.url);
 
 // Verifies a public owner catalog is exactly the disjoint union of its named family catalogs.
 function assertComposedCatalog(aggregate, families) {

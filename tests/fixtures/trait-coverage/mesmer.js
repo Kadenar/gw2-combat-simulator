@@ -1,6 +1,6 @@
 import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 const IMPLEMENTED = new Set([
   TRAIT.ALTERED_CHORD,

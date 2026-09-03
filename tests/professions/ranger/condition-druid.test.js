@@ -5,14 +5,14 @@ import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.
 import { resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { migrateRangerBuild } from '#gw2/content/professions/ranger/build/build.js';
-import { rangerCatalog } from '#gw2/content/professions/ranger/catalog.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
-import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
-import { rangerCoreCriticalReactions } from '#gw2/content/professions/ranger/core/mechanics/reactions.js';
-import { rangerCoreModifierRules } from '#gw2/content/professions/ranger/core/traits/modifiers.js';
-import { druidModifierRules } from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import { migrateRangerBuild } from '#gw2/professions/ranger/build/build.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/mechanics/reactions.js';
+import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
+import { druidModifierRules } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

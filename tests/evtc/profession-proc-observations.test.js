@@ -8,10 +8,10 @@ import {
 import { analyzeMesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 import { analyzeNecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import { analyzeRangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
-import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
-import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
-import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;

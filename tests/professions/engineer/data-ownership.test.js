@@ -5,21 +5,21 @@ import test from 'node:test';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
-} from '#gw2/content/professions/engineer/core/skills/index.js';
-import { ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/supplemental-skills.js';
-import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/content/professions/engineer/core/skills/trait-skills.js';
-import { ENGINEER_SKILL_IDS } from '#gw2/content/professions/engineer/data/ids.js';
-import { AMALGAM_EVOLVED_STATE_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
-import { AMALGAM_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/amalgam/skills/index.js';
-import { AMALGAM_PROTOCOL_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
-import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/holosmith/skills/index.js';
-import { HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/holosmith/skills/photon-forge-skills.js';
-import { HOLOSMITH_SLOT_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/holosmith/skills/slot-skills.js';
-import { HOLOSMITH_SWORD_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/holosmith/skills/weapons/sword.js';
-import { MECHANIST_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/mechanist/skills/index.js';
-import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/mechanist/skills/mech-attack-skills.js';
-import { MECHANIST_MECH_COMMAND_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/mechanist/skills/mech-command-skills.js';
-import { MECHANIST_SIGNET_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/mechanist/skills/signet-skills.js';
+} from '#gw2/professions/engineer/core/skills/index.js';
+import { ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/supplemental-skills.js';
+import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/trait-skills.js';
+import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { AMALGAM_EVOLVED_STATE_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
+import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
+import { AMALGAM_PROTOCOL_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/holosmith/skills/index.js';
+import { HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/holosmith/skills/photon-forge-skills.js';
+import { HOLOSMITH_SLOT_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/holosmith/skills/slot-skills.js';
+import { HOLOSMITH_SWORD_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/holosmith/skills/weapons/sword.js';
+import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/index.js';
+import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-attack-skills.js';
+import { MECHANIST_MECH_COMMAND_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-command-skills.js';
+import { MECHANIST_SIGNET_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 
 const KIT_SLUGS = new Map([
   ['Med Kit', 'med-kit'],
@@ -48,7 +48,7 @@ function assertComposedCatalog(aggregate, families) {
 
 // Loads every Core kit fragment so the aggregate contract proves disjoint ownership without a hand-maintained file list.
 async function kitFragments() {
-  const directory = new URL('../../../js/games/gw2/content/professions/engineer/core/skills/kits/', import.meta.url);
+  const directory = new URL('../../../js/games/gw2/professions/engineer/core/skills/kits/', import.meta.url);
   return Promise.all(
     readdirSync(directory)
       .filter((filename) => filename.endsWith('.ts'))

@@ -90,7 +90,7 @@ platform tree.
 ## Declarative profession mechanics layout
 
 Every native profession — Elementalist, Engineer, Guardian, Mesmer, Necromancer, Ranger, Revenant, Thief, and Warrior —
-uses the typed authoring layer in `integrations/patches/authoring/profession.ts`. A native module is a vertical slice
+uses the typed authoring layer in `platform/profession-definition/profession.ts`. A native module is a vertical slice
 with four explicit sections:
 
 - `data` owns generated identities, skill mechanics and overrides, extra skills, traits, specialization metadata, weapon
@@ -502,8 +502,8 @@ separate profession count.
 
 ## Adding another profession
 
-1. Add `js/games/gw2/content/professions/<id>/` with a build codec, a Core module, owner-local elite modules, and a
-   Core-first `defineNativeProfession()` composition. Each module contributes its own catalog data; export
+1. Add `js/games/gw2/professions/<id>/` with a build codec, a Core module, owner-local elite modules, and a Core-first
+   `defineNativeProfession()` composition. Each module contributes its own catalog data; export
    `assembleNativeApplicationCatalog(modules)` through the stable root catalog. Use `defineProfession()` only for an
    intentionally standalone architecture.
 2. Register stable skill/trait IDs, namespaced custom event handlers, and only the standard event reactions the

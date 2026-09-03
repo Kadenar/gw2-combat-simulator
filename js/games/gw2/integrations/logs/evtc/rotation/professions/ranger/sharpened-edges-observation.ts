@@ -1,8 +1,8 @@
 import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
-import type { RangerPetDefinition } from '#gw2/content/professions/ranger/types.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerPetDefinition } from '#gw2/professions/ranger/types.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import {
   EVTC_BLEEDING_SKILL_ID,

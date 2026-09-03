@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { restoreFlatProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { handleEngineerState } from '#gw2/content/professions/engineer/state.js';
-import { handleRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { handleEngineerState } from '#gw2/professions/engineer/state.js';
+import { handleRevenantState } from '#gw2/professions/revenant/state.js';
 
 test('profession snapshots flatten and deeply clone active runtime state', () => {
   const runtime = {

@@ -3,11 +3,11 @@ import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/content/professions/elementalist/data/ids.js';
-import { elementalistCoreCriticalReactions } from '#gw2/content/professions/elementalist/core/mechanics/reactions.js';
+import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCoreCriticalReactions } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 
 function canonicalRotation(rotation) {
   return rotation.map((entry) =>
@@ -320,7 +320,7 @@ function assertSourceOrder(source, startToken, orderedTokens) {
 }
 
 test('Elementalist dispatchers preserve attunement, post-cast, event, and condition order', async () => {
-  const root = new URL('../../../js/games/gw2/content/professions/elementalist/core/', import.meta.url);
+  const root = new URL('../../../js/games/gw2/professions/elementalist/core/', import.meta.url);
   const [indexSource, reactionsSource, schedulerStateSource, castsSource] = await Promise.all([
     readFile(new URL('traits/index.ts', root), 'utf8'),
     readFile(new URL('mechanics/reactions.ts', root), 'utf8'),
@@ -387,7 +387,7 @@ test('Elementalist critical reactions retain their registration order', () => {
 });
 
 test('Elementalist trait-line modules stay private and registration-free', async () => {
-  const core = new URL('../../../js/games/gw2/content/professions/elementalist/core/', import.meta.url);
+  const core = new URL('../../../js/games/gw2/professions/elementalist/core/', import.meta.url);
   const files = (await readdir(core, { recursive: true })).filter((file) => file.endsWith('.ts'));
   const lineImport = /core\/traits\/(?:air|arcane|earth|fire|water)\.js/;
   const lineFiles = new Set([

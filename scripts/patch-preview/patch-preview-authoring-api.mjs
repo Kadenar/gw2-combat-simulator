@@ -132,12 +132,19 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot, writeFile = wr
         pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'integrations', 'patches', 'authoring', 'patches.js'))
           .href
       ),
-      import(pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'app', 'profession', 'registry.js')).href)
-    ]).then(async ([patchModule, registryModule]) => {
-      const professions = await Promise.all(registryModule.professionRegistry.map((entry) => entry.loadProfession()));
-      const previewModule = await import(
+      import(pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'app', 'profession', 'registry.js')).href),
+      import(
+        pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'integrations', 'patches', 'active-profession.js'))
+          .href
+      ),
+      import(
         pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'integrations', 'patches', 'active-preview.js')).href
-      );
+      )
+    ]).then(async ([patchModule, registryModule, activeProfessionModule, previewModule]) => {
+      // Patch metadata is attached in tooling, leaving the loaded content definitions integration-free.
+      const professions = (
+        await Promise.all(registryModule.professionRegistry.map((entry) => entry.loadProfession()))
+      ).map(activeProfessionModule.withActivePatchPreview);
 
       return {
         professions,

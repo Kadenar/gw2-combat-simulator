@@ -3,11 +3,11 @@ import test from 'node:test';
 
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
-import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
-import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
-import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
-import { thiefCatalog } from '#gw2/content/professions/thief/catalog.js';
-import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';

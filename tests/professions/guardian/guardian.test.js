@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -13,22 +14,22 @@ import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
   validateGuardianBuild
-} from '#gw2/content/professions/guardian/build/build.js';
-import { applyGuardianBuildAttributeRules } from '#gw2/content/professions/guardian/build/attributes.js';
-import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/content/professions/guardian/data/guardian-api-metadata.js';
-import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
-import { guardianAppAdapter } from '#gw2/content/professions/guardian/app/app-definition.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/core/profiles.js';
-import { observeGuardianScheduledEvent } from '#gw2/content/professions/guardian/core/traits/index.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
-import { LUMINARY_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
-import { radiantForgeAvailability } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
-import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
-import { createLuminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
+} from '#gw2/professions/guardian/build/build.js';
+import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { DATA_SNAPSHOT } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
+import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/core/profiles.js';
+import { observeGuardianScheduledEvent } from '#gw2/professions/guardian/core/traits/index.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
+import { LUMINARY_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import { radiantForgeAvailability } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
+import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
+import { createLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);
@@ -46,8 +47,10 @@ const config = {
 
 const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
 
+const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
+
 test('Guardian trait dispatch preserves mixed cast order and keeps line modules registration-free', async () => {
-  const traitRoot = new URL('../../../js/games/gw2/content/professions/guardian/core/traits/', import.meta.url);
+  const traitRoot = new URL('../../../js/games/gw2/professions/guardian/core/traits/', import.meta.url);
   const dispatcher = await readFile(new URL('index.ts', traitRoot), 'utf8');
   const castDispatcher = dispatcher.slice(dispatcher.indexOf('export function updateGuardianTraitCastState'));
   const castOrder = [
@@ -118,7 +121,7 @@ test('Guardian uses a current API catalog with real skills and trait lines', () 
 });
 
 test('Guardian modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(guardianProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  const modules = new Map(authoringGuardianProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 
   assert.deepEqual([...modules.keys()], ['Core', 'Dragonhunter', 'Firebrand', 'Willbender', 'Luminary']);
   assert.equal(

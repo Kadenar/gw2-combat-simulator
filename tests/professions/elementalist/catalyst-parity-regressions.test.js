@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createModifierHooks } from '#gw2/platform/combat/modifiers/rules.js';
-import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import {
   applyCatalystEmpowerment,
   applyCatalystResolvedDamage
-} from '#gw2/content/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { catalystAttributeRules } from '#gw2/content/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
-import { createCatalystState } from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
-import { catalystModifierRules } from '#gw2/content/professions/elementalist/specializations/catalyst/traits/modifiers.js';
+} from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
+import { catalystAttributeRules } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
+import { createCatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/traits/modifiers.js';
 
 // These unit checks exercise Catalyst state and catalog behavior directly so
 // their expectations do not depend on a saved full rotation.

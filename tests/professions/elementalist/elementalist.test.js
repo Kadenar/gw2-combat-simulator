@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
@@ -17,22 +18,22 @@ import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild
-} from '#gw2/content/professions/elementalist/build/build.js';
-import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+} from '#gw2/professions/elementalist/build/build.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/content/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/mechanics/elementals/profiles.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/core/skills/index.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/core/profiles.js';
-import { elementalistAttunementRechargeDuration } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
-import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
-import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
-const professionRoot = new URL('../../../js/games/gw2/content/professions/elementalist/', import.meta.url);
+} from '#gw2/professions/elementalist/data/ids.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profiles.js';
+import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { CATALYST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+const professionRoot = new URL('../../../js/games/gw2/professions/elementalist/', import.meta.url);
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
@@ -70,6 +71,8 @@ async function accessSourceModule(target) {
   }
 }
 
+const authoringElementalistProfession = withActivePatchPreview(elementalistProfession);
+
 test('profession selector exposes every registered profession', () => {
   assert.deepEqual(
     professionOptions,
@@ -95,7 +98,7 @@ test('Elementalist is registered through the generic profession contract', async
 });
 
 test('Elementalist modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(elementalistProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  const modules = new Map(authoringElementalistProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 
   assert.deepEqual([...modules.keys()], ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']);
   assert.equal(

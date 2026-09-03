@@ -3,29 +3,29 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
-import { elementalistCoreModule } from '#gw2/content/professions/elementalist/core/module.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/core/skills/index.js';
+import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_SKILL_IDS,
   ELEMENTALIST_SPECIALIZATION_IDS,
   ELEMENTALIST_TRAIT_IDS
-} from '#gw2/content/professions/elementalist/data/ids.js';
-import { SPECIALIZATIONS as API_SPECIALIZATIONS } from '#gw2/content/professions/elementalist/data/elementalist-api-metadata.js';
-import { TRAITS } from '#gw2/content/professions/elementalist/data/traits-data.js';
-import { catalystModule } from '#gw2/content/professions/elementalist/specializations/catalyst/module.js';
-import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/content/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-effects.js';
-import { CATALYST_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/catalyst/skills/index.js';
-import { evokerModule } from '#gw2/content/professions/elementalist/specializations/evoker/module.js';
+} from '#gw2/professions/elementalist/data/ids.js';
+import { SPECIALIZATIONS as API_SPECIALIZATIONS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
+import { TRAITS } from '#gw2/professions/elementalist/data/traits-data.js';
+import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
+import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-effects.js';
+import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
+import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
 import {
   EVOKER_BALANCE_PROFILE_IDS,
   EVOKER_BALANCE_PROFILES
-} from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
-import { EVOKER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/evoker/skills/index.js';
-import { tempestModule } from '#gw2/content/professions/elementalist/specializations/tempest/module.js';
-import { TEMPEST_OVERLOAD_EFFECTS } from '#gw2/content/professions/elementalist/specializations/tempest/mechanics/overload-effects.js';
-import { TEMPEST_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/tempest/skills/index.js';
-import { weaverModule } from '#gw2/content/professions/elementalist/specializations/weaver/module.js';
-import { WEAVER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+} from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
+import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
+import { TEMPEST_OVERLOAD_EFFECTS } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-effects.js';
+import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
+import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
+import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 
 const slices = [
   ['core', elementalistCoreModule, ELEMENTALIST_CORE_SKILL_MECHANICS],
@@ -45,7 +45,7 @@ const weaponFragmentOwners = [
   ['specializations/weaver', WEAVER_SKILL_MECHANICS]
 ];
 
-const professionSourceRoot = new URL('../../../js/games/gw2/content/professions/elementalist/', import.meta.url);
+const professionSourceRoot = new URL('../../../js/games/gw2/professions/elementalist/', import.meta.url);
 
 function weaponSlug(value) {
   return String(value)
@@ -58,7 +58,7 @@ function weaponSlug(value) {
 // Loads every owner-local weapon fragment so the aggregate contract proves a disjoint, no-loss composition.
 async function weaponFragments(directory) {
   const sourceDirectory = new URL(
-    `../../../js/games/gw2/content/professions/elementalist/${directory}/skills/weapons/`,
+    `../../../js/games/gw2/professions/elementalist/${directory}/skills/weapons/`,
     import.meta.url
   );
   return Promise.all(
@@ -79,9 +79,7 @@ async function weaponFragments(directory) {
 
 test('Elementalist skill mechanics have disjoint module ownership', () => {
   assert.equal(
-    existsSync(
-      new URL('../../../js/games/gw2/content/professions/elementalist/data/native-skill-data.ts', import.meta.url)
-    ),
+    existsSync(new URL('../../../js/games/gw2/professions/elementalist/data/native-skill-data.ts', import.meta.url)),
     false
   );
 
@@ -89,7 +87,7 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
 
   for (const [directory, module, mechanics] of slices) {
     const source = readFileSync(
-      new URL(`../../../js/games/gw2/content/professions/elementalist/${directory}/skills/index.ts`, import.meta.url),
+      new URL(`../../../js/games/gw2/professions/elementalist/${directory}/skills/index.ts`, import.meta.url),
       'utf8'
     );
 

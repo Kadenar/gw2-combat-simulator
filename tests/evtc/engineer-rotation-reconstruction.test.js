@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;

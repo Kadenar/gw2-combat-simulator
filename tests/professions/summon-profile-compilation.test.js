@@ -5,17 +5,14 @@ import {
   elementalForGlyphId,
   elementalRuntimeProfile,
   selectedElementalFromSkills
-} from '#gw2/content/professions/elementalist/core/mechanics/elementals/attacks.js';
-import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/content/professions/elementalist/data/ids.js';
+} from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
+import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   commandDefinitionFor,
   minionDefinitionForSkill
-} from '#gw2/content/professions/necromancer/core/mechanics/minion-profiles.js';
-import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/content/professions/necromancer/core/profiles.js';
-import {
-  rangerPetAutoProfile,
-  rangerPetBaseAttributes
-} from '#gw2/content/professions/ranger/core/mechanics/pet-profiles.js';
+} from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
+import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
+import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
 test('elemental profile selection is independent from scheduler state', () => {
   assert.equal(selectedElementalFromSkills(new Set(['Glyph of Elementals (Earth)'])), 'Earth');

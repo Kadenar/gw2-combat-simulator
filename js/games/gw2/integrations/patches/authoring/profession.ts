@@ -1,14 +1,14 @@
-import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
+import type { CanonicalCatalog, ProfessionModuleCatalogFragment, SchedulerConfig } from '#gw2/platform/engine/types.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
+import {
+  defineNativeModule,
+  defineNativeProfession as defineStableNativeProfession
+} from '#gw2/platform/profession-definition/profession.js';
 import type {
-  CanonicalCatalog,
-  ProfessionFamilyDefinition,
-  ProfessionModuleCatalogFragment,
-  ProfessionModuleDefinition,
-  ProfessionUiContract,
-  SchedulerConfig,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
-import { getNativeCatalogAssembly } from '#gw2/integrations/patches/authoring/catalog.js';
+  AnyNativeModule,
+  NativeProfessionContract as StableNativeProfessionContract,
+  NativeProfessionDefinition
+} from '#gw2/platform/profession-definition/module-types.js';
 import {
   CURRENT_PATCH_ID,
   applyBalanceProfilePatch,
@@ -25,196 +25,23 @@ import {
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 import type {
-  AnyNativeModule,
-  NativeModule,
-  NativeModuleDefinition,
   NativePatchAuthoringMetadata,
   NativeProfessionContract,
-  NativeProfessionDefinition,
-  NativeProfessionRuntimeState,
-  NativePreviewModifierRuleTarget,
-  NativeResolvedReaction,
-  NativeResolverMechanic,
-  NativeSchedulerMechanic
+  NativePreviewModifierRuleTarget
 } from '#gw2/integrations/patches/authoring/module-types.js';
-import type { ModifierRulePatchEdit, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import type {
+  ModifierRulePatchEdit,
+  PatchPreview,
+  ProfessionPatchPreview
+} from '#gw2/integrations/patches/authoring/patches.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import {
-  createGw2AutoattackChainMechanics,
-  type Gw2AutoattackChainOptions
-} from '#gw2/platform/skills/autoattack-chains.js';
+
+export { defineNativeModule };
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${label} must be an object.`);
   }
-}
-
-function assertNativeModuleDefinition(definition: object): void {
-  assertObject(definition, 'Native profession module');
-  const candidate = definition as {
-    readonly id?: string;
-    readonly data?: Record<string, unknown>;
-    readonly state?: {
-      readonly scheduler?: (...args: never[]) => object;
-      readonly resolver?: (...args: never[]) => object;
-      readonly project?: (...args: never[]) => object;
-    };
-    readonly mechanics?: {
-      readonly execution?: {
-        readonly skillHandlers?: unknown;
-        readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
-        readonly castLifecycle?: readonly NativeSchedulerMechanic[];
-        readonly castRules?: unknown;
-        readonly hooks?: unknown;
-        readonly skillMechanicHandlers?: unknown;
-      };
-      readonly resolution?: {
-        readonly reactions?: readonly { readonly phase?: string }[];
-        readonly hooks?: unknown;
-      };
-    };
-  };
-  if (!String(candidate.id || '').trim()) {
-    throw new TypeError('Native profession module id is required.');
-  }
-
-  assertObject(candidate.data, `${candidate.id}.data`);
-  assertObject(candidate.state, `${candidate.id}.state`);
-  if (typeof candidate.state?.scheduler !== 'function') {
-    throw new TypeError(`${candidate.id}.state.scheduler must be a function.`);
-  }
-
-  for (const name of ['resolver', 'project'] as const) {
-    if (candidate.state?.[name] != null && typeof candidate.state[name] !== 'function') {
-      throw new TypeError(`${candidate.id}.state.${name} must be a function.`);
-    }
-  }
-
-  if (candidate.mechanics != null) {
-    assertObject(candidate.mechanics, `${candidate.id}.mechanics`);
-  }
-
-  if (candidate.mechanics?.execution != null) {
-    assertObject(candidate.mechanics.execution, `${candidate.id}.mechanics.execution`);
-  }
-
-  if (candidate.mechanics?.resolution != null) {
-    assertObject(candidate.mechanics.resolution, `${candidate.id}.mechanics.resolution`);
-  }
-
-  const execution = candidate.mechanics?.execution;
-  const resolution = candidate.mechanics?.resolution;
-  // availability can be a single mechanic or an array; normalize to array for uniform validation.
-  const availability = execution?.availability;
-  const castLifecycle = execution?.castLifecycle;
-  const schedulerDeclarations = [
-    ...(availability == null ? [] : Array.isArray(availability) ? availability : [availability]),
-    ...(castLifecycle || [])
-  ];
-  for (const declaration of schedulerDeclarations) {
-    if (declaration.phase !== 'scheduler' || typeof declaration.handler !== 'function') {
-      throw new TypeError(`${candidate.id} contains an invalid scheduler mechanic declaration.`);
-    }
-  }
-
-  for (const declaration of resolution?.reactions ?? []) {
-    if (declaration.phase !== 'resolver') {
-      throw new TypeError(`${candidate.id} contains a non-resolver reaction declaration.`);
-    }
-  }
-}
-
-/**
- * Declares a module without exposing engine normalization plumbing.
- *
- * Runtime immutability starts at composition, not at each content literal:
- * this boundary copies and freezes the module shell and its owned records,
- * catalog assembly normalizes and freezes catalog collections, and
- * `defineProfession` freezes the final engine contract. Values exported or
- * consumed before those boundaries must still protect their shared identity.
- */
-export function defineNativeModule<
-  const TId extends string,
-  TSchedulerState extends object,
-  TResolverState extends object = TSchedulerState,
-  TProjectOptions extends object = object,
-  TProjectedState extends object = object,
-  THandlerContext extends object = never,
-  TModifierEscape extends object = object,
-  TCastRulesEscape extends object = object,
-  TSchedulerHooksEscape extends object = object,
-  TResolverHooksEscape extends object = object,
-  TReactions extends readonly NativeResolverMechanic[] = readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[] = readonly NativeSchedulerMechanic[],
-  TPresentation extends object = object
->(
-  definition: NativeModuleDefinition<
-    TId,
-    TSchedulerState,
-    TResolverState,
-    TProjectOptions,
-    TProjectedState,
-    THandlerContext,
-    TModifierEscape,
-    TCastRulesEscape,
-    TSchedulerHooksEscape,
-    TResolverHooksEscape,
-    TReactions,
-    TSchedulerMechanics,
-    TPresentation
-  >
-): NativeModule<
-  TId,
-  TSchedulerState,
-  TResolverState,
-  TProjectOptions,
-  TProjectedState,
-  THandlerContext,
-  TModifierEscape,
-  TCastRulesEscape,
-  TSchedulerHooksEscape,
-  TResolverHooksEscape,
-  TReactions,
-  TSchedulerMechanics,
-  TPresentation
-> {
-  assertNativeModuleDefinition(definition);
-  const execution = definition.mechanics?.execution;
-  return Object.freeze({
-    ...definition,
-    kind: 'native-profession-module' as const,
-    data: Object.freeze({ ...definition.data }),
-    state: Object.freeze({ ...definition.state }),
-    mechanics: definition.mechanics
-      ? Object.freeze({
-          ...definition.mechanics,
-          execution: execution ? Object.freeze({ ...execution }) : undefined,
-          resolution: definition.mechanics.resolution
-            ? Object.freeze({ ...definition.mechanics.resolution })
-            : undefined
-        })
-      : undefined,
-    presentation:
-      typeof definition.presentation === 'function'
-        ? definition.presentation
-        : definition.presentation
-          ? Object.freeze({ ...definition.presentation })
-          : undefined
-  });
-}
-
-function appendOrderedHook(target: SchedulerRecord, name: string, declaration: NativeSchedulerMechanic): void {
-  const existing = target[name];
-  target[name] = [
-    ...(existing == null ? [] : Array.isArray(existing) ? existing : [existing]),
-    {
-      id: declaration.id,
-      order: declaration.order,
-      handler: declaration.handler
-    }
-  ];
 }
 
 function nativeModuleModifierRules(module: AnyNativeModule): readonly Gw2ModifierRule[] {
@@ -385,172 +212,50 @@ function preparePreviewModifierRules(
   };
 }
 
-function compileNativeModule(
-  module: AnyNativeModule,
-  applicationCatalog: Readonly<CanonicalCatalog>,
-  fragment: Readonly<ProfessionModuleCatalogFragment>,
-  modifierRules?: readonly Gw2ModifierRule[],
-  installAutoattackChainController = false,
-  autoattackChainOptions: Gw2AutoattackChainOptions = {}
-): ProfessionModuleDefinition {
-  const mechanics = module.mechanics || {};
-  const execution = mechanics.execution || {};
-  const resolution = mechanics.resolution || {};
-  const castRules = { ...((execution.castRules || {}) as SchedulerRecord) };
-  const schedulerHooks: SchedulerRecord = {
-    ...((execution.hooks || {}) as SchedulerRecord),
-    ...(execution.skillMechanicHandlers == null ? {} : { skillMechanicHandlers: execution.skillMechanicHandlers })
-  };
-  const availability = execution.availability;
-  const availabilityDeclarations: readonly NativeSchedulerMechanic[] =
-    availability == null ? [] : Array.isArray(availability) ? availability : [availability as NativeSchedulerMechanic];
-  // availability mechanics go into castRules (gate whether a skill can be cast);
-  // castLifecycle mechanics go into schedulerHooks (run during and after cast).
-  for (const declaration of [
-    ...availabilityDeclarations,
-    ...((execution.castLifecycle || []) as NativeSchedulerMechanic[])
-  ]) {
-    appendOrderedHook(declaration.hook === 'availability' ? castRules : schedulerHooks, declaration.hook, declaration);
-  }
+function modulesWithModifierRules(
+  modules: readonly AnyNativeModule[],
+  modifierRulesByModule: ReadonlyMap<string, readonly Gw2ModifierRule[]>
+): readonly AnyNativeModule[] {
+  return modules.map((module) => {
+    const modifierRules = modifierRulesByModule.get(module.id);
+    if (!modifierRules) return module;
+    const existing = module.mechanics?.modifiers;
+    const modifiers = Array.isArray(existing)
+      ? modifierRules
+      : Object.freeze({ ...((existing || {}) as object), modifierRules });
 
-  // Core receives the GW2-wide gate and committed-cast transition automatically;
-  // specialization modules only contribute scoped configuration through the family.
-  if (installAutoattackChainController) {
-    const controller = createGw2AutoattackChainMechanics(autoattackChainOptions);
-    appendOrderedHook(castRules, 'availability', controller.availability as NativeSchedulerMechanic);
-    appendOrderedHook(schedulerHooks, 'afterCast', controller.castLifecycle as NativeSchedulerMechanic);
-  }
-
-  const resolverHooks = { ...((resolution.hooks || {}) as SchedulerRecord) };
-  const reactions = {
-    ...((resolverHooks.eventReactions || {}) as SchedulerRecord)
-  };
-  let requiresCriticalFacts = false;
-  for (const declaration of (resolution.reactions || []) as NativeResolvedReaction<
-    Gw2ResolverRuntime,
-    Gw2ResolverEvent,
-    object
-  >[]) {
-    requiresCriticalFacts ||= declaration.requiresCriticalFacts === true;
-    const existing = reactions[declaration.stage];
-    reactions[declaration.stage] = [
-      ...(existing == null ? [] : Array.isArray(existing) ? existing : [existing]),
-      {
-        id: declaration.id,
-        order: declaration.order,
-        handler: declaration.handler
-      }
-    ];
-  }
-
-  // Resolved critical declarations consume the scheduler's canonical didCrit
-  // fact, so enable sampling automatically instead of relying on each
-  // profession initializer to request it independently.
-  if (requiresCriticalFacts) {
-    const initialize = schedulerHooks.initialize;
-    schedulerHooks.initialize = [
-      ...(initialize == null ? [] : Array.isArray(initialize) ? initialize : [initialize]),
-      {
-        id: `${module.id}.resolved-critical-facts`,
-        order: -1000,
-        handler(context: SchedulerRecord) {
-          const policy = context.schedulerPolicy as { requireCriticalFacts?: () => void } | undefined;
-          policy?.requireCriticalFacts?.();
-        }
-      }
-    ];
-  }
-
-  resolverHooks.eventReactions = reactions;
-  const modifiers = Array.isArray(mechanics.modifiers)
-    ? { modifierRules: modifierRules || mechanics.modifiers }
-    : modifierRules
-      ? {
-          ...((mechanics.modifiers || {}) as SchedulerRecord),
-          modifierRules
-        }
-      : mechanics.modifiers;
-  const presentation =
-    typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
-  return {
-    id: module.id,
-    catalog: fragment,
-    resources: {
-      createProfessionState: module.state.scheduler as (config: Readonly<SchedulerConfig>) => SchedulerRecord,
-      // Resolver state defaults to the same factory as scheduler state so that
-      // modules that don't need separate resolver state share one object.
-      createResolverState: module.state.resolver || module.state.scheduler,
-      ...(module.state.project == null ? {} : { projectEndState: module.state.project })
-    },
-    attributeRules: modifiers as SchedulerRecord | undefined,
-    castRules,
-    schedulerHooks,
-    resolverHooks,
-    ui: presentation as Partial<ProfessionUiContract> | undefined
-  };
+    // Clone only declaration shells touched by a preview; catalog data and state factories stay shared.
+    return Object.freeze({
+      ...module,
+      mechanics: Object.freeze({ ...module.mechanics, modifiers })
+    });
+  });
 }
 
-/**
- * Compiles the native authoring contract into the existing engine family
- * boundary. Application and runtime catalogs are independently assembled from
- * the same module contributions.
- */
-export function defineNativeProfession<
+/** Adds patch validation, metadata, and lazy runtime overlays to an already-compiled neutral profession family. */
+export function withPatchPreview<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
   TSimulation extends object = object
->(definition: NativeProfessionDefinition<TModules, TPresentation, TSimulation>): NativeProfessionContract<TModules> {
-  if (!definition || typeof definition !== 'object') {
-    throw new TypeError('A native profession definition is required.');
-  }
-
+>(
+  family: StableNativeProfessionContract<TModules, TPresentation, TSimulation>,
+  candidatePreview: PatchPreview | null | undefined
+): NativeProfessionContract<TModules, TPresentation, TSimulation> {
+  const definition = family.nativeDefinition;
   const modules = definition.modules as readonly AnyNativeModule[];
-  for (const module of modules) assertNativeModuleDefinition(module);
-  const preview = definition.patchPreview ? validatePatchPreview(definition.patchPreview) : null;
+  const preview = candidatePreview ? validatePatchPreview(candidatePreview) : null;
   const professionPatch = professionPatchFor(preview, definition.id);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
   const modifierRules = modules.flatMap((module) => [...nativeModuleModifierRules(module)]);
   const patchAuthoring = createPatchAuthoringMetadata(definition.id, definition.name, modules, assembly.fragments);
-  const core = modules[0];
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
-  const createEngineDefinition = (
-    modifierRulesByModule: ReadonlyMap<string, readonly Gw2ModifierRule[]> = new Map()
-  ): ProfessionFamilyDefinition<NativeProfessionRuntimeState<TModules>> => ({
-    id: definition.id,
-    name: definition.name,
-    catalog: assembly.catalog,
-    build: definition.build,
-    core: compileNativeModule(
-      core,
-      assembly.catalog,
-      assembly.fragments.get('Core')!,
-      modifierRulesByModule.get('Core'),
-      true,
-      definition.autoattackChains
-    ),
-    specializations: Object.fromEntries(
-      modules
-        .slice(1)
-        .map((module) => [
-          module.id,
-          compileNativeModule(
-            module,
-            assembly.catalog,
-            assembly.fragments.get(module.id)!,
-            modifierRulesByModule.get(module.id)
-          )
-        ])
-    ),
-    ui: definition.presentation as Partial<ProfessionUiContract> | undefined,
-    simulation: definition.simulation as SchedulerRecord | null | undefined
-  });
-  const family = defineProfessionFamily(createEngineDefinition());
-  // previewFamily is lazily created only when there are modifier rule changes
-  // in the patch — if only skill values changed, the baseline family is reused.
-  let previewFamily: typeof family | null = null;
+  let previewFamily: StableNativeProfessionContract<TModules, TPresentation, TSimulation> | null = null;
   const familyForPreview = () => {
     if (!previewModifierRules.targets.length) return family;
-    previewFamily ||= defineProfessionFamily(createEngineDefinition(previewModifierRules.byModule));
+    previewFamily ||= defineStableNativeProfession({
+      ...definition,
+      modules: modulesWithModifierRules(modules, previewModifierRules.byModule) as TModules
+    }) as StableNativeProfessionContract<TModules, TPresentation, TSimulation>;
     return previewFamily;
   };
 
@@ -560,8 +265,7 @@ export function defineNativeProfession<
     return previewCatalog;
   };
 
-  // Cache patched runtime catalogs per original catalog object so we don't
-  // re-apply the skill patch for every simulation that runs in preview mode.
+  // Cache patched runtime catalogs so repeated preview simulations reuse the same immutable overlay.
   const runtimeCatalogs = new WeakMap<Readonly<CanonicalCatalog>, Readonly<CanonicalCatalog>>();
   const runtimeOverlays = new WeakMap<object, object>();
   const assertPatchId = (patchId = CURRENT_PATCH_ID): string => {
@@ -622,7 +326,23 @@ export function defineNativeProfession<
     patchAuthoring,
     validatePatch,
     resolveRuntime,
-    previewModifierRuleTargets: previewModifierRules.targets,
-    specializationIds: Object.freeze(modules.slice(1).map((module) => module.id))
-  }) as NativeProfessionContract<TModules>;
+    previewModifierRuleTargets: previewModifierRules.targets
+  }) as NativeProfessionContract<TModules, TPresentation, TSimulation>;
+}
+
+/** Retains the former patch-aware constructor for integration callers while core content uses the neutral constructor. */
+export function defineNativeProfession<
+  const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
+  TPresentation extends object = object,
+  TSimulation extends object = object
+>(
+  definition: NativeProfessionDefinition<TModules, TPresentation, TSimulation> & {
+    readonly patchPreview?: PatchPreview | null;
+  }
+): NativeProfessionContract<TModules, TPresentation, TSimulation> {
+  const { patchPreview, ...nativeDefinition } = definition;
+  const family = defineStableNativeProfession(
+    nativeDefinition as NativeProfessionDefinition<TModules, TPresentation, TSimulation>
+  );
+  return withPatchPreview(family, patchPreview);
 }

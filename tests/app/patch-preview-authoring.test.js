@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -22,15 +23,32 @@ import {
   skillAuthoringReference,
   skillPatchableNumericFields
 } from '#gw2/integrations/patches/authoring/patches.js';
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
-import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
-import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
-import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
-import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
-import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
-import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
-import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
-import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
+import { elementalistProfession as baseElementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { engineerProfession as baseEngineerProfession } from '#gw2/professions/engineer/definition.js';
+import { guardianProfession as baseGuardianProfession } from '#gw2/professions/guardian/definition.js';
+import { mesmerProfession as baseMesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { necromancerProfession as baseNecromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { rangerProfession as baseRangerProfession } from '#gw2/professions/ranger/definition.js';
+import { revenantProfession as baseRevenantProfession } from '#gw2/professions/revenant/definition.js';
+import { thiefProfession as baseThiefProfession } from '#gw2/professions/thief/definition.js';
+import { warriorProfession as baseWarriorProfession } from '#gw2/professions/warrior/definition.js';
+
+const elementalistProfession = withActivePatchPreview(baseElementalistProfession);
+const engineerProfession = withActivePatchPreview(baseEngineerProfession);
+const guardianProfession = withActivePatchPreview(baseGuardianProfession);
+const mesmerProfession = withActivePatchPreview(baseMesmerProfession);
+const necromancerProfession = withActivePatchPreview(baseNecromancerProfession);
+const rangerProfession = withActivePatchPreview(baseRangerProfession);
+const revenantProfession = withActivePatchPreview(baseRevenantProfession);
+const thiefProfession = withActivePatchPreview(baseThiefProfession);
+const warriorProfession = withActivePatchPreview(baseWarriorProfession);
+
+test('patch preview decorates the neutral profession without changing its runtime contract', () => {
+  assert.equal('patchAuthoring' in baseWarriorProfession, false);
+  assert.equal(warriorProfession.nativeDefinition, baseWarriorProfession.nativeDefinition);
+  assert.equal(warriorProfession.catalog, baseWarriorProfession.catalog);
+  assert.equal(warriorProfession.patchAuthoring.professionId, 'warrior');
+});
 
 test('patch authoring omits unused skills but retains indirect runtime skills', () => {
   const engineerSkills = engineerProfession.patchAuthoring.modules.flatMap((module) => module.skills);

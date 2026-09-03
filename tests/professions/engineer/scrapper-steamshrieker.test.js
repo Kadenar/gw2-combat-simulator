@@ -4,8 +4,8 @@ import test from 'node:test';
 import { resolveProcIcon } from '#gw2/app/rotation/shared/icons.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
-import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
-import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 
 const STEAMSHRIEKER_ICON = 'https://render.guildwars2.com/file/23B0F0A5BF05E05C9F527BF7EB4962C9F49C6F42/3441975.png';
 

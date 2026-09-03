@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -11,30 +12,26 @@ import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
-import {
-  createThiefBuildDefaults,
-  migrateThiefBuild,
-  validateThiefBuild
-} from '#gw2/content/professions/thief/build/build.js';
-import { thiefCatalog, thiefWeaponSkillMatchesSet } from '#gw2/content/professions/thief/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/content/professions/thief/data/thief-api-metadata.js';
-import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/thief/data/thief-supplemental-skills.js';
+import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
+import { thiefCatalog, thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/catalog.js';
+import { DATA_SNAPSHOT } from '#gw2/professions/thief/data/thief-api-metadata.js';
+import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { THIEF_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/thief.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT
-} from '#gw2/content/professions/thief/data/ids.js';
-import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/content/professions/thief/core/skills/index.js';
-import { thiefCoreModifierRules } from '#gw2/content/professions/thief/core/traits/modifiers.js';
-import { thiefAppAdapter } from '#gw2/content/professions/thief/app/app-definition.js';
-import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
-import { daredevilModifierRules } from '#gw2/content/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/core/profiles.js';
-import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/daredevil/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
-import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/specter/profiles.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
+} from '#gw2/professions/thief/data/ids.js';
+import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
+import { thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';
+import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { daredevilModifierRules } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
+import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
+import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],
@@ -82,6 +79,8 @@ function simulate(specialization, rotation, config = {}, observationPolicy = und
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
 const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thiefCatalog, patch), patch);
+
+const authoringThiefProfession = withActivePatchPreview(thiefProfession);
 
 test('Thief catalog pins API identity and explicit terrestrial mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
@@ -186,7 +185,7 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
 });
 
 test('Thief modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(thiefProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  const modules = new Map(authoringThiefProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 
   assert.deepEqual([...modules.keys()], ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']);
   assert.equal(

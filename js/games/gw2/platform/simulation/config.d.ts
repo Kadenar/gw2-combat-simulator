@@ -6,8 +6,6 @@ import type { Gw2TargetConfig } from '#gw2/platform/combat/state/types.js';
 import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
 
 export interface Gw2Config extends SchedulerRecord {
-  readonly patchId?: string;
-  readonly patchValues?: Readonly<Record<string, import('#gw2/integrations/patches/authoring/patch-types.js').NumEdit>>;
   readonly stats?: Gw2Stats;
   readonly weaponSetStats?: readonly Gw2Stats[];
   readonly attributes?: Gw2Stats;

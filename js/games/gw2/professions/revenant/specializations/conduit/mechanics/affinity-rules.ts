@@ -1,0 +1,396 @@
+import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/bolstered-bonds.js';
+import {
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/professions/revenant/core/traits/modifiers.js';
+import { denySkillCast as denyRevenantSkill } from '#gw2/professions/lib/availability.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import {
+  emitNuminousGift,
+  gainConduitAffinity,
+  handleConduitAffinityHit,
+  syncConduitEnergyCostOverrides
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import { emitLesserEnchantedDaggers } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
+import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
+import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
+import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
+import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
+import {
+  afterConduitTraitCast,
+  modifyConduitCastDuration,
+  modifyConduitRechargeDuration,
+  observeConduitTraits
+} from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type {
+  RevenantCastContext,
+  RevenantPrecastContext,
+  RevenantSchedulerContext,
+  RevenantSimulationEvent,
+  RevenantSkill
+} from '#gw2/professions/revenant/types.js';
+
+function affinity(context: Gw2ModifierContext): number {
+  // Kinetic Insight adds a flat +2 bonus to affinity for modifier calculations without changing actual state.
+  const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
+  return Math.min(
+    Math.max(1, Number(revenantRuntimeSpecializationState(context, 'Conduit').affinityMaximum || 5)),
+    Number(revenantRuntimeSpecializationState(context, 'Conduit').affinity || 0) + bonus
+  );
+}
+
+function equippedLegend(context: Gw2ModifierContext, legendId: string): boolean {
+  return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(legendId);
+}
+
+export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'revenant.targeted-destruction-numinous-gift',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: {
+      vulnerabilityPerStack: 0.005,
+      bonus: 0.05
+    } as Readonly<Record<string, number>>,
+    // Numinous Gift unlocks Targeted Destruction's bonus; the factor is expressed as a multiplier delta on top of
+    // the existing vulnerability bonus so both traits stack multiplicatively with the base formula.
+    factor: (context, _target, parameters) => {
+      const base = 1 + vulnerabilityStacks(context) * parameters.vulnerabilityPerStack;
+      return (base + parameters.bonus) / base;
+    },
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      hasTrait(context, TRAIT.TARGETED_DESTRUCTION) &&
+      hasTrait(context, TRAIT.NUMINOUS_GIFT)
+  },
+  {
+    id: 'revenant.release-dervish-assassin-affinity',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: { damagePerAffinity: 0.1 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity,
+    when: (context) =>
+      ['Release Potential: Dervish', 'Release Potential: Assassin'].includes(String(context.event?.skillName || ''))
+  },
+  {
+    id: 'revenant.release-warrior-affinity',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: { damagePerAffinity: 0.15 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity,
+    when: (context) => context.event?.skillName === 'Release Potential: Warrior'
+  },
+  {
+    id: 'revenant.beguiling-haze-assassin-resonance',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
+    factor: 2,
+    when: (context) => context.event?.skillName === 'Beguiling Haze' && equippedLegend(context, LEGEND.ASSASSIN)
+  },
+  {
+    id: 'revenant.twin-moon-assassin-resonance',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.5,
+    when: (context) => context.event?.skillName === 'Twin Moon Sweep' && equippedLegend(context, LEGEND.ASSASSIN)
+  },
+  {
+    id: 'revenant.yearning-empowerment-numinous-gift',
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: 'add',
+    amount: 0.05,
+    when: (context) =>
+      isDamagingCondition(context.condition) &&
+      hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
+      hasTrait(context, TRAIT.NUMINOUS_GIFT) &&
+      !professionStaticRulesApplied(context.config)
+  }
+]);
+
+function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
+  const modified = { ...attributes } as Record<string, number>;
+  if (context.config?.specialization !== 'Conduit') return modified;
+  const state = revenantRuntimeSpecializationState(context, 'Conduit');
+  const coreState = revenantRuntimeCoreState(context);
+  // Cosmic Wisdom doubles the Bolstered Bonds bonus; the build-time static pass already applied one copy,
+  // so at runtime we add only the extra copies: 2 (active) - 1 (already in build stats) = 1 extra during form,
+  // or 1 (inactive) - 1 (already in build stats) = 0 during non-form (effectively a no-op addition).
+  const cosmicMultiplier = Number(state.cosmicWisdomUntil || 0) > context.time ? 2 : 1;
+  const buildMultiplier = professionStaticRulesApplied(context.config) ? 1 : 0;
+  const bonuses = bolsteredBondsBonuses(coreState.selectedLegendIds, cosmicMultiplier - buildMultiplier);
+  for (const [attribute, bonus] of Object.entries(bonuses)) {
+    modified[attribute] = Number(modified[attribute] || 0) + Number(bonus || 0);
+  }
+
+  if (hasTrait(context, TRAIT.DETERMINED_RESOLUTION)) {
+    modified.strikeDamageReduction = Number(modified.strikeDamageReduction || 0) + 0.05;
+  }
+
+  if (hasTrait(context, TRAIT.SERENE_REJUVENATION)) {
+    modified.healingEffectiveness = Number(modified.healingEffectiveness || 0) + 0.05;
+  }
+
+  if (hasTrait(context, TRAIT.CONTAINED_TEMPER)) {
+    modified.containedTemperEnergyGainBonus = Number(modified.containedTemperEnergyGainBonus || 0) + 5;
+  }
+
+  return modified;
+}
+
+export const conduitAttributeRules = Object.freeze({
+  modifierRules: conduitModifierRules,
+  modifyAttributes: modifyConduitAttributes
+});
+
+const RELEASE_POTENTIAL_IDS = new Set(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
+
+function conduitCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
+  const state = conduitState.from(context);
+  // Beguiling Haze has a custom dual-mode cooldown tracked in ConduitState; the platform's ammo/cooldown system
+  // is kept in sync but the authoritative gate is the state fields checked here.
+  if (
+    skill.handlerId === 'revenant.beguiling-haze' &&
+    Number(state.beguilingHazeCharges || 0) <= 0 &&
+    context.start < Number(state.beguilingHazeReadyAt || 0)
+  ) {
+    return denyRevenantSkill(
+      skill,
+      'revenant.beguiling-haze-cooldown',
+      'Beguiling Haze is recharging.',
+      Number(state.beguilingHazeReadyAt)
+    );
+  }
+
+  // Each legend maps to exactly one Release Potential variant; block the wrong variant before the engine
+  // can queue it, since all five variants share the same handler id.
+  if (
+    RELEASE_POTENTIAL_IDS.has(skill.id) &&
+    REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[professionCoreState(context).activeLegendId] !== skill.id
+  ) {
+    return denyRevenantSkill(
+      skill,
+      'revenant.release-variant',
+      'the active legend supplies a different Release Potential variant.'
+    );
+  }
+
+  return { ready: true as const };
+}
+
+export const conduitCastRules = Object.freeze({
+  availability: {
+    id: 'revenant.conduit-availability',
+    order: 20,
+    handler: conduitCastAvailability
+  },
+  modifyCastDuration: modifyConduitCastDuration,
+  modifyRechargeDuration: modifyConduitRechargeDuration
+});
+
+function afterConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
+  afterConduitTraitCast(context, skill);
+  if (skill.handlerId !== 'revenant.upkeep') return;
+  const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
+  const state = conduitState.from(context);
+  const upkeepKey = String(skill.id);
+  // Initialize the Conduit-owned cadence only once per upkeep activation.
+  if (active && state.upkeepAffinityNextAt[upkeepKey] == null) {
+    // Affinity ticks 3 s after the upkeep begins; subsequent ticks are advanced in advanceConduitUpkeep.
+    state.upkeepAffinityNextAt[upkeepKey] = context.effectiveEnd + 3;
+  }
+
+  if (active && skill.id === ID.IMPOSSIBLE_ODDS && state.impossibleOddsLesserDaggersNextAt == null) {
+    // Impossible Odds also fires Lesser Enchanted Daggers every 1 s; first proc is 1 s after activation.
+    state.impossibleOddsLesserDaggersNextAt = context.effectiveEnd + 1;
+  }
+}
+
+function completeConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
+  completeBeguilingHaze(context, skill);
+}
+
+function advanceConduitUpkeep(context: RevenantSchedulerContext, target: number): void {
+  const state = conduitState.from(context);
+  if (state.cosmicWisdomUntil > 0 && target >= state.cosmicWisdomUntil) {
+    // Form expiry clears the form name and restores native energy costs in the same tick.
+    state.cosmicWisdomUntil = 0;
+    state.conduitForm = '';
+    syncConduitEnergyCostOverrides(context);
+  }
+
+  const activeUpkeeps = professionCoreState(context).activeUpkeeps;
+  const activeIds = new Set(activeUpkeeps.map((active) => String(active.skillId)));
+  for (const skillId of Object.keys(state.upkeepAffinityNextAt)) {
+    if (!activeIds.has(skillId)) delete state.upkeepAffinityNextAt[skillId];
+  }
+
+  if (!activeIds.has(String(ID.IMPOSSIBLE_ODDS))) state.impossibleOddsLesserDaggersNextAt = null;
+
+  for (const active of activeUpkeeps) {
+    const upkeepKey = String(active.skillId);
+    const nextAffinityAt = state.upkeepAffinityNextAt[upkeepKey];
+    if (
+      nextAffinityAt != null &&
+      // epsilon prevents floating-point drift from skipping an affinity tick at exactly the boundary.
+      target + context.epsilon >= nextAffinityAt
+    ) {
+      gainConduitAffinity(context, 1, 'enigmatic-upkeep');
+      state.upkeepAffinityNextAt[upkeepKey] += 3;
+    }
+
+    if (
+      active.skillId === ID.IMPOSSIBLE_ODDS &&
+      state.impossibleOddsLesserDaggersNextAt != null &&
+      target + context.epsilon >= state.impossibleOddsLesserDaggersNextAt
+    ) {
+      const skill = context.catalog.skillsById.get(active.skillId);
+      if (skill) {
+        // While loop handles multiple elapsed ticks if the advance step spans more than 1 s.
+        while (
+          state.impossibleOddsLesserDaggersNextAt != null &&
+          target + context.epsilon >= state.impossibleOddsLesserDaggersNextAt
+        ) {
+          emitLesserEnchantedDaggers(context, skill, state.impossibleOddsLesserDaggersNextAt);
+          state.impossibleOddsLesserDaggersNextAt += 1;
+        }
+      }
+    }
+  }
+}
+
+function gainConduitAffinityFromCost(context: RevenantCastContext, skill: RevenantSkill): void {
+  const cost = effectiveRevenantEnergyCost(context, skill);
+  if (!(cost > 0)) return;
+  if (skill.legendId && !skill.affinityOnHit) {
+    // Legend skills whose affinity is deferred to hit time are excluded here to avoid double-granting.
+    gainConduitAffinity(context, cost >= 25 ? 2 : 1, 'enigmatic-connection');
+  } else if (
+    // Conductive Armaments grants affinity on weapon skill casts; only legend skills grant it on cast otherwise.
+    skill.type === 'Weapon' &&
+    hasTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
+  ) {
+    gainConduitAffinity(context, 1, 'conductive-armaments');
+  }
+}
+
+function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+  if (event.type !== 'sigil_swap') return;
+  const state = conduitState.from(context);
+  const coreState = professionCoreState(context);
+  // Entity invocation inherits Spirit Boon and Song of the Mists from Conduit's paired Core legend.
+  if (coreState.activeLegendId === LEGEND.ENTITY && revenantCombatActive(context, event.at)) {
+    const pairedLegendId = coreState.selectedLegendIds.find((legendId) => legendId !== LEGEND.ENTITY);
+    if (pairedLegendId && hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
+      emitLegendInvocationProfile(
+        context,
+        REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
+        event.at,
+        TRAIT.SPIRIT_BOON,
+        (effect) => effect.metadata?.legendId === pairedLegendId
+      );
+    }
+
+    if (pairedLegendId && hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
+      emitLegendInvocationProfile(
+        context,
+        REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
+        event.at,
+        TRAIT.SONG_OF_THE_MISTS,
+        (effect) => effect.metadata?.legendId === pairedLegendId
+      );
+    }
+  }
+
+  // Snapshot active status before resetting affinity so Enhanced Embodiment and form updates use the pre-swap value.
+  const cosmicWisdomActive = state.cosmicWisdomUntil > event.at;
+  // Legend swap always resets affinity to 0 regardless of traits.
+  state.affinity = 0;
+  if (revenantCombatActive(context, event.at) && hasTrait(context.config, TRAIT.LINGERING_DETERMINATION)) {
+    // Lingering Determination immediately restores 2 affinity after the reset; out-of-combat swaps do not proc it.
+    const lingering = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination);
+    gainConduitAffinity(context, Math.max(0, Number(lingering?.resourceGain || 0)), 'lingering-determination');
+  }
+
+  if (cosmicWisdomActive && hasTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)) {
+    const enhanced = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
+    const extension = enhanced?.effects?.find((effect) => effect.type === 'buff');
+    state.cosmicWisdomUntil += Math.max(0, Number(extension?.duration || 0));
+  }
+
+  if (cosmicWisdomActive) {
+    // On legend swap the form updates to match the newly active legend (e.g. swapping to Demon yields Mesmer form).
+    state.conduitForm =
+      REVENANT_RELEASE_POTENTIAL_BY_LEGEND[professionCoreState(context).activeLegendId]?.replace(
+        'Release Potential: ',
+        ''
+      ) || '';
+    syncConduitEnergyCostOverrides(context);
+  }
+
+  const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+  // Found Purpose fires Numinous Gift to allies on every legend swap.
+  if (swapSkill && hasTrait(context.config, TRAIT.FOUND_PURPOSE)) {
+    emitNuminousGift(context, swapSkill, { allies: true });
+  }
+}
+
+export const conduitSchedulerHooks = Object.freeze({
+  advance: {
+    id: 'revenant.conduit-upkeep',
+    order: 20,
+    handler: advanceConduitUpkeep
+  },
+  afterCast: {
+    id: 'revenant.conduit-upkeep-start',
+    order: 20,
+    handler: afterConduitCast
+  },
+  onCastComplete: {
+    id: 'revenant.conduit-cast-complete',
+    order: 20,
+    handler: completeConduitCast
+  },
+  onCastStart: {
+    id: 'revenant.conduit-energy-cost',
+    order: 20,
+    handler: gainConduitAffinityFromCost
+  },
+  onEventScheduled: {
+    id: 'revenant.conduit-events',
+    order: 20,
+    handler: (context: RevenantSchedulerContext, event: RevenantSimulationEvent): void => {
+      observeConduitTraits(context, event);
+      observeConduitEvent(context, event);
+    }
+  },
+  onCooldownReset: {
+    id: 'revenant.conduit-cooldown-reset',
+    order: 20,
+    // On a full cooldown reset (e.g. phase end), treat Beguiling Haze as immediately available.
+    handler: (context: RevenantSchedulerContext): void => {
+      conduitState.from(context).beguilingHazeReadyAt = context.state.time;
+    }
+  },
+  taskHandlers: Object.freeze({
+    'revenant.affinity-hit': handleConduitAffinityHit
+  })
+});

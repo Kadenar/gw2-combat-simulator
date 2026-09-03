@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
-import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 const baseConfig = Object.freeze({

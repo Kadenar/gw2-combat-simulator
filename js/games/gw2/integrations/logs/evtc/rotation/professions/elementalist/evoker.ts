@@ -1,11 +1,11 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
-import type { ElementalistAttunement } from '#gw2/content/professions/elementalist/core/state.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
-} from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { weaponSkillChargeGain } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/resources.js';
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { weaponSkillChargeGain } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import {
   firstStrikePacketOffsetMs,

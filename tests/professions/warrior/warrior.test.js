@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -16,35 +17,35 @@ import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
   validateWarriorBuild
-} from '#gw2/content/professions/warrior/build/build.js';
-import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
-import { warriorNativeModules } from '#gw2/content/professions/warrior/modules.js';
-import { warriorCoreModule } from '#gw2/content/professions/warrior/core/module.js';
-import { createWarriorCoreState } from '#gw2/content/professions/warrior/core/state.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/core/profiles.js';
-import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/execution/index.js';
-import { DATA_SNAPSHOT } from '#gw2/content/professions/warrior/data/warrior-api-metadata.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
-import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
-import { berserkerModule } from '#gw2/content/professions/warrior/specializations/berserker/module.js';
-import { berserkerAttributeRules } from '#gw2/content/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
-import { BERSERKER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/specializations/berserker/profiles.js';
-import { bladeswornModule } from '#gw2/content/professions/warrior/specializations/bladesworn/module.js';
+} from '#gw2/professions/warrior/build/build.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
+import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
+import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
+import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/execution/index.js';
+import { DATA_SNAPSHOT } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
+import { berserkerAttributeRules } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
+import { BERSERKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
+import { bladeswornModule } from '#gw2/professions/warrior/specializations/bladesworn/module.js';
 import {
   DRAGON_TRIGGER_DURATION_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent,
   projectDragonCharges
-} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { advanceBladesworn } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
-import { createBladeswornState } from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
-import { paragonModule } from '#gw2/content/professions/warrior/specializations/paragon/module.js';
-import { PARAGON_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/specializations/paragon/profiles.js';
-import { spellbreakerModule } from '#gw2/content/professions/warrior/specializations/spellbreaker/module.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
-import { spellbreakerAttributeRules } from '#gw2/content/professions/warrior/specializations/spellbreaker/mechanics/full-counter-rules.js';
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { advanceBladesworn } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
+import { createBladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
+import { PARAGON_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spellbreaker/module.js';
+import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
+import { spellbreakerAttributeRules } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/full-counter-rules.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
@@ -88,6 +89,8 @@ const strikeCoefficient = (effect) =>
 const skillStrikeCoefficient = (skill) => strikeCoefficient(skill.effects.find((effect) => effect.type === 'strike'));
 
 const applyWarriorPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(warriorCatalog, patch), patch);
+
+const authoringWarriorProfession = withActivePatchPreview(warriorProfession);
 
 test('Warrior catalog pins the API snapshot and all elite specializations', () => {
   assert.equal(DATA_SNAPSHOT, '2026-08-08');
@@ -184,7 +187,7 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
 });
 
 test('Warrior modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(warriorProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  const modules = new Map(authoringWarriorProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 
   assert.deepEqual([...modules.keys()], ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']);
   assert.equal(
@@ -317,7 +320,7 @@ test('Warrior Core does not own elite resource, cast, UI, or trait branches', as
       'traits/index.ts',
       'presentation.ts'
     ].map((name) =>
-      readFile(new URL(`../../../js/games/gw2/content/professions/warrior/core/${name}`, import.meta.url), 'utf8')
+      readFile(new URL(`../../../js/games/gw2/professions/warrior/core/${name}`, import.meta.url), 'utf8')
     )
   );
   const coreSource = sources.join('\n');

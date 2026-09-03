@@ -1,5 +1,5 @@
 import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 
 const IMPLEMENTED = new Set([
   "Reaper's Might",

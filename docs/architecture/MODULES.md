@@ -15,7 +15,7 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 | `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                    |
 | `js/app/`                             | Game-neutral registry, bootstrap, worker harness, and shell                                 |
 | `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine     |
-| `js/games/gw2/content/professions/`   | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI        |
+| `js/games/gw2/professions/`           | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI        |
 | `js/games/gw2/app/`                   | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters          |
 | `js/games/gw2/integrations/logs/`     | EVTC and dps.report parsing and rotation reconstruction                                     |
 | `js/games/gw2/integrations/keybinds/` | Optional GW2 keybind import                                                                 |
@@ -301,7 +301,8 @@ Important modules include:
 | `combat/state/traits.ts`          | Shared selected-trait lookup                    |
 | `combat/state/event-ownership.ts` | Player/summon/effect ownership rules            |
 
-Native profession and balance-preview authoring lives under `js/games/gw2/integrations/patches/authoring/`.
+Stable profession authoring lives under `js/games/gw2/platform/profession-definition/`. Optional balance-preview
+decoration and validation live under `js/games/gw2/integrations/patches/`.
 
 Subdirectories such as:
 
@@ -382,7 +383,7 @@ js/games/gw2/platform/resolver/
 # Profession modules
 
 ```text
-js/games/gw2/content/professions/<profession>/
+js/games/gw2/professions/<profession>/
 ```
 
 Each profession is implemented as a **Core module plus one module for each elite specialization**.
@@ -390,7 +391,7 @@ Each profession is implemented as a **Core module plus one module for each elite
 For example:
 
 ```text
-js/games/gw2/content/professions/warrior/
+js/games/gw2/professions/warrior/
 ├── core/
 ├── specializations/
 │   ├── berserker/
@@ -908,8 +909,7 @@ export const warriorProfession = defineNativeProfession({
     validateBuild: validateWarriorBuild
   },
 
-  modules: warriorNativeModules,
-  patchPreview: activePatchPreview
+  modules: warriorNativeModules
 });
 ```
 
@@ -918,7 +918,6 @@ This is where:
 - the profession ID/name;
 - build contract;
 - native modules;
-- active patch preview;
 
 come together.
 
@@ -934,7 +933,7 @@ adapter.
 Browser-specific profession assembly belongs separately under:
 
 ```text
-js/games/gw2/content/professions/<profession>/app/
+js/games/gw2/professions/<profession>/app/
 ```
 
 This layer owns things such as:
@@ -942,6 +941,7 @@ This layer owns things such as:
 - attribute calculation wiring;
 - simulation config extras;
 - persistence configuration;
+- active patch-preview decoration;
 - adapter construction;
 - browser-facing profession behavior.
 
@@ -950,7 +950,7 @@ Keep it separate from the engine-facing `definition.ts`.
 This separation allows:
 
 ```ts
-import { warriorProfession } from './js/games/gw2/content/professions/warrior/definition.js';
+import { warriorProfession } from './js/games/gw2/professions/warrior/definition.js';
 ```
 
 to work for headless simulation without loading browser UI/storage code.
@@ -995,7 +995,7 @@ composition/presentation boundaries where required.
 Profession build defaults, migrations, and validation belong in:
 
 ```text
-js/games/gw2/content/professions/<profession>/build/build.ts
+js/games/gw2/professions/<profession>/build/build.ts
 ```
 
 Shared Guild Wars 2 build contracts belong in:
@@ -1193,7 +1193,7 @@ maintaining a duplicate UI timer.
 A new specialization normally requires:
 
 ```text
-js/games/gw2/content/professions/<profession>/specializations/<specialization>/
+js/games/gw2/professions/<profession>/specializations/<specialization>/
 ```
 
 with only the files needed by that specialization.
@@ -1213,7 +1213,7 @@ defineNativeModule({
 Then add the module to:
 
 ```text
-js/games/gw2/content/professions/<profession>/modules.ts
+js/games/gw2/professions/<profession>/modules.ts
 ```
 
 after Core.
@@ -1238,7 +1238,7 @@ A completely new profession requires both engine and application integration.
 At a high level:
 
 ```text
-js/games/gw2/content/professions/new-profession/
+js/games/gw2/professions/new-profession/
     core/
     specializations/
     modules.ts

@@ -1,6 +1,6 @@
-import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
-import { onResolvedDamage, skillAvailability } from '#gw2/integrations/patches/authoring/mechanics.js';
-import type { NativeProfessionRuntimeState } from '#gw2/integrations/patches/authoring/module-types.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { onResolvedDamage, skillAvailability } from '#gw2/platform/profession-definition/mechanics.js';
+import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import type {
   Gw2ResolverEvent,

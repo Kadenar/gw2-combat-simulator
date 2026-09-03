@@ -5,7 +5,7 @@ import {
   quicknessRuntimeDurationMs,
   skillForAction
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { reconstructEvokerActions } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/evoker.js';
 import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {

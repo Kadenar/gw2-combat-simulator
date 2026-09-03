@@ -7,6 +7,7 @@
 
 import { loadProfession } from '#gw2/app/profession/registry.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 
 if (!activePatchPreview) {
   console.log('No active patch preview is authored.');
@@ -28,11 +29,14 @@ function describeNumericEdit(edit) {
 
 // Generates a report of the active patch preview, including professions, skills, modifier rules, and constants.
 for (const [professionId, patch] of Object.entries(activePatchPreview.professions || {})) {
-  const profession = await loadProfession(professionId);
+  const nativeProfession = await loadProfession(professionId);
 
-  if (!profession) {
+  if (!nativeProfession) {
     throw new Error(`Unknown patch-preview profession ${professionId}.`);
   }
+
+  // Reporting opts into patch decoration after the neutral profession is loaded.
+  const profession = withActivePatchPreview(nativeProfession);
 
   profession.catalogFor?.(activePatchPreview.id);
 

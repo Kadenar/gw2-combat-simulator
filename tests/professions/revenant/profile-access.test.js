@@ -4,7 +4,7 @@ import test from 'node:test';
 import {
   requireRevenantBalanceProfile,
   requireRevenantEffect
-} from '#gw2/content/professions/revenant/core/traits/profile-access.js';
+} from '#gw2/professions/revenant/core/traits/profile-access.js';
 
 test('Revenant strict profile access rejects missing data and ignores triggered child effects', () => {
   const profile = {

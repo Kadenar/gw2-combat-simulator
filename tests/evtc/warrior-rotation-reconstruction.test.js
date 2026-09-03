@@ -3,8 +3,8 @@ import test from 'node:test';
 
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
-import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 
 const PLAYER = 0x1000n;
 

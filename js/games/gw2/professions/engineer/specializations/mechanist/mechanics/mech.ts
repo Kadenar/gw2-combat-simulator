@@ -1,0 +1,453 @@
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValue,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  emitSkillBuff,
+  emitSkillCondition,
+  emitSkillControl,
+  emitSkillDamage
+} from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
+import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
+import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  EngineerCastContext,
+  EngineerScheduledTask,
+  EngineerSchedulerContext,
+  EngineerSimulationEvent,
+  EngineerSkill
+} from '#gw2/professions/engineer/types.js';
+
+// Mech strikes use the mech's native damage packet rather than the engineer's
+// equipped weapon strength. The skill-specific native weapon profile is
+// resolved separately from inherited mech attributes and live modifiers.
+const MECH_REFERENCE_POWER = 1500;
+const STANDARD_TARGET_ARMOR = 2597;
+const MECH_TYPE_1_PROFILE_ID = 'summon.weapon-type-1';
+const MECH_TYPE_2_PROFILE_ID = 'summon.weapon-type-2';
+const MECH_TYPE_3_PROFILE_ID = 'summon.weapon-type-3';
+// The mech takes roughly one-third of a second after a command's activation
+// ends before resuming its basic attack chain.
+const MECH_BASIC_SKILL_IDS = new Set<SkillId>([
+  ID.HARD_STRIKE,
+  ID.HEAVY_SMASH_MECH,
+  ID.TWIN_STRIKE_MECH,
+  ID.JADE_ENERGY_SHOT,
+  ID.JADE_ENERGY_SHOT_ID_63348,
+  ID.ROCKET_PUNCH_MECH
+]);
+
+const MECH_WEAPON_PROFILE_BY_SKILL_ID: ReadonlyMap<SkillId, string> = new Map<SkillId, string>([
+  [ID.JADE_ENERGY_SHOT, MECH_TYPE_1_PROFILE_ID],
+  [ID.JADE_ENERGY_SHOT_ID_63348, MECH_TYPE_1_PROFILE_ID],
+  [ID.CORE_REACTOR_SHOT, MECH_TYPE_1_PROFILE_ID],
+  [ID.ROCKET_PUNCH_MECH, MECH_TYPE_1_PROFILE_ID],
+  [ID.JADE_MORTAR, MECH_TYPE_2_PROFILE_ID],
+  [ID.SPARK_REVOLVER, MECH_TYPE_2_PROFILE_ID],
+  [ID.EXPLOSIVE_KNUCKLE, MECH_TYPE_2_PROFILE_ID],
+  [ID.HARD_STRIKE, MECH_TYPE_2_PROFILE_ID],
+  [ID.HEAVY_SMASH_MECH, MECH_TYPE_2_PROFILE_ID],
+  [ID.TWIN_STRIKE_MECH, MECH_TYPE_2_PROFILE_ID],
+  [ID.JADE_BUSTER_CANNON, MECH_TYPE_3_PROFILE_ID]
+]);
+
+/** Resolves the mech-native weapon profile and its damage-per-coefficient baseline. */
+function mechWeaponScaling(
+  context: EngineerSchedulerContext | EngineerCastContext,
+  skillId: SkillId | null | undefined
+): Readonly<{
+  damagePerCoefficient: number;
+  profileId: string;
+}> {
+  // Fall back to type-2 (melee) profile for any mech attack whose native
+  // weapon profile has not yet been empirically measured.
+  const profileId = (skillId == null ? null : MECH_WEAPON_PROFILE_BY_SKILL_ID.get(skillId)) || MECH_TYPE_2_PROFILE_ID;
+  const midpoint = weaponStrengthMidpoint(weaponStrengthProfile(profileId));
+  return {
+    damagePerCoefficient:
+      (midpoint * balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER)) /
+      balanceProfileValueFromContext(context, PROFILE.attackTiming, 'weaponStrength', STANDARD_TARGET_ARMOR),
+    profileId
+  };
+}
+
+interface MechAttackPayload extends SchedulerRecord {
+  readonly phase: number;
+}
+
+interface MechStrikeOptions {
+  readonly at: number;
+  readonly coefficient: number;
+  readonly hits?: number;
+  readonly name: string;
+  readonly skillId: SkillId;
+  readonly hitIndex?: number;
+  readonly totalHits?: number;
+  readonly basicAttack?: boolean;
+}
+
+/** Applies Shift Signet's quickness inheritance to the mech's autonomous attack rate. */
+function mechAttackRate(context: EngineerSchedulerContext): number {
+  return context.config.boons?.quickness && selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet')
+    ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'quicknessCastMultiplier', 1.5)
+    : 1;
+}
+
+/** Emits a summon-owned strike with the metadata required for mech attribute and modifier handling. */
+function emitMechStrike(
+  context: EngineerSchedulerContext,
+  { at, coefficient, hits = 1, name, skillId, hitIndex = 1, totalHits = hits, basicAttack = true }: MechStrikeOptions
+): void {
+  // Resolve the mech's native weapon packet here while leaving inherited
+  // attributes and live profession modifiers for damage resolution.
+  const scaling = mechWeaponScaling(context, skillId);
+  emitSkillDamage(context, {
+    at,
+    source: 'engineer',
+    sourceId: skillId,
+    actorType: 'summon',
+    skillId,
+    skillName: name,
+    name,
+    coefficient,
+    hits,
+    hitIndex,
+    totalHits,
+    skillWeapon: 'Unequipped',
+    independentSummonStrike: true,
+    summonInheritsAttributes: true,
+    summonUsesProfessionModifiers: true,
+    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+    summonDamagePerCoefficient: scaling.damagePerCoefficient,
+    weaponStrengthProfileId: scaling.profileId,
+    metadata: { engineerMech: true },
+    mechBasicAttack: basicAttack
+  });
+}
+
+/** Annotates mech events, including raw EVTC packets, with summon scaling and ownership metadata. */
+export function observeEngineerMechEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
+  if (context.config.specialization !== 'Mechanist' || event.actorType !== 'summon') return;
+  // Infer ownership when replay packets lack the explicit engineerMech marker.
+  const skill = context.catalog?.skillsById?.get(event.skillId ?? event.sourceId);
+  const slot = Number(skill?.mechanicSlot || 0);
+  const engineerMech =
+    event.metadata?.engineerMech === true ||
+    (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId)) ||
+    event.skillId === ID.JADE_BUSTER_CANNON ||
+    (slot >= 1 && slot <= 3);
+  if (!engineerMech) return;
+
+  const updates: Record<string, unknown> = {
+    metadata: { ...event.metadata, engineerMech: true }
+  };
+  // Positive damage packets additionally need the native scaling metadata
+  // consumed by summon damage resolution; other mech events need ownership only.
+  if (event.type === 'damage' && Number(event.coefficient) > 0) {
+    const basicAttack =
+      event.mechBasicAttack === true || (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId));
+    const scaling = mechWeaponScaling(context, event.skillId ?? event.sourceId);
+    Object.assign(updates, {
+      independentSummonStrike: true,
+      summonInheritsAttributes: true,
+      summonUsesProfessionModifiers: true,
+      summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+      summonDamagePerCoefficient: scaling.damagePerCoefficient,
+      weaponStrengthProfileId: scaling.profileId,
+      mechBasicAttack: basicAttack
+    });
+  }
+
+  context.replaceEvent(event, updates);
+}
+
+/** Schedules the next step of the mech's independent basic-attack chain and records its due time. */
+function scheduleMechAttack(context: EngineerSchedulerContext, at: number, payload: MechAttackPayload): void {
+  mechanistState.from(context).mech.nextAttackAt = at;
+  context.tasks.schedule({
+    type: 'engineer.mech-attack',
+    at,
+    ownerId: 'engineer.mech',
+    payload
+  });
+}
+
+/** Activates the mech at cast completion and publishes the resulting profession state. */
+function summonMech(context: EngineerCastContext): void {
+  const at = context.effectiveEnd;
+  mechanistState.from(context).mech.active = true;
+  emitEngineerStateSnapshot(context, at, 'summon-mech');
+}
+
+/** Deactivates the mech at cast completion and publishes the resulting profession state. */
+function recallMech(context: EngineerCastContext): void {
+  const at = context.effectiveEnd;
+  mechanistState.from(context).mech.active = false;
+  emitEngineerStateSnapshot(context, at, 'recall-mech');
+}
+
+/** Identifies the F1-F3 skills that execute as jade mech commands. */
+export function isEngineerMechCommand(skill: EngineerSkill | undefined): boolean {
+  const slot = Number(skill?.mechanicSlot || 0);
+  return slot >= 1 && slot <= 3;
+}
+
+/** Emits the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
+function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
+  const scaling = mechWeaponScaling(context, ID.ROCKET_PUNCH_MECH);
+  const strike = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'strike');
+  const condition = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'condition');
+  const control = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'control');
+  // Rocket Punch is the mech's activation, not another packet from the
+  // player's triggering weapon cast, so it owns a separate strength roll.
+  const activationId = context.createActivationId('summon-attack');
+  emitSkillDamage(context, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.MECH_FIGHTER,
+    actorType: 'summon',
+    skillId: ID.ROCKET_PUNCH_MECH,
+    skillName: 'Rocket Punch (Mech)',
+    name: 'Rocket Punch (Mech)',
+    coefficient: balanceProfileValue(strike, 'coefficient', 1),
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    independentSummonStrike: true,
+    summonInheritsAttributes: true,
+    summonUsesProfessionModifiers: true,
+    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+    summonDamagePerCoefficient: scaling.damagePerCoefficient,
+    weaponStrengthProfileId: scaling.profileId,
+    metadata: { engineerMech: true },
+    explosion: true,
+    activationId,
+    triggeredBy: skill.name
+  });
+  emitSkillCondition(context, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.MECH_FIGHTER,
+    actorType: 'summon',
+    skillId: ID.ROCKET_PUNCH_MECH,
+    skillName: 'Rocket Punch (Mech)',
+    name: 'Rocket Punch (Mech) — Burning',
+    condition: 'Burning',
+    stacks: balanceProfileValue(condition, 'stacks', 1),
+    duration: balanceProfileValue(condition, 'duration', 5),
+    metadata: { engineerMech: true },
+    activationId,
+    triggeredBy: skill.name
+  });
+  emitSkillControl(context, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.MECH_FIGHTER,
+    actorType: 'summon',
+    skillId: ID.ROCKET_PUNCH_MECH,
+    skillName: 'Rocket Punch (Mech)',
+    name: 'Rocket Punch (Mech)',
+    controlKind: 'defiance',
+    duration: balanceProfileValue(control, 'duration', 100),
+    metadata: { engineerMech: true },
+    activationId,
+    triggeredBy: skill.name
+  });
+}
+
+/** Applies post-cast mech lane recovery and Mechanist trait procs for the completed skill. */
+export function applyEngineerMechCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
+  if (context.config.specialization !== 'Mechanist') return;
+  const state = mechanistState.from(context);
+  const at = context.effectiveEnd;
+
+  if (state.mech.active && isEngineerMechCommand(skill)) {
+    // The command cast already reserves its measured animation on the mech lane;
+    // only its recovery extends the pause before the basic attack chain resumes.
+    const hasCommandAnimation = Number(skill.castTimeMs || 0) > 0;
+    const busyUntil =
+      at +
+      (hasCommandAnimation
+        ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'durationMultiplier', 0.35)
+        : 0);
+    state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), busyUntil);
+  }
+
+  if (
+    state.mech.active &&
+    skill.type === 'Weapon' &&
+    !skill.kit &&
+    skill.slot === 'Weapon_3' &&
+    isInternalCooldownReady(at, Number(professionCoreState(context).traitProcReadyAt.rocketPunch || 0))
+  ) {
+    professionCoreState(context).traitProcReadyAt.rocketPunch =
+      at + balanceProfileValueFromContext(context, PROFILE.rocketPunch, 'internalCooldown', 5);
+    emitRocketPunch(context, skill, at);
+  }
+
+  if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
+    const boon = balanceProfileEffectFromContext(context, PROFILE.jadeDynamo, 'boon');
+    emitSkillBuff(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.MECH_CORE_JADE_DYNAMO,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Jade Dynamo — quickness',
+      kind: 'quickness',
+      stacks: balanceProfileValue(boon, 'stacks', 1),
+      duration: gw2SchedulerBoonDuration(context, skill, 'quickness', balanceProfileValue(boon, 'duration', 2.5))
+    });
+  }
+}
+
+/** Starts the autonomous mech attack loop when the specialization begins with an active mech. */
+export function initializeEngineerMech(context: EngineerSchedulerContext): void {
+  const state = mechanistState.from(context);
+  if (!state.mech.enabled || !state.mech.active) return;
+  scheduleMechAttack(context, balanceProfileValueFromContext(context, PROFILE.attackTiming, 'initialDelay', 1), {
+    phase: 0
+  });
+}
+
+/** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
+export function handleEngineerMechAttack(
+  context: EngineerSchedulerContext,
+  task: EngineerScheduledTask<MechAttackPayload>
+): void {
+  const state = mechanistState.from(context);
+  if (!state.mech.enabled) return;
+  if (!state.mech.active) {
+    scheduleMechAttack(context, task.at + 1, { phase: 0 });
+    return;
+  }
+
+  // Mech is mid-command; hold the attack chain until the command animation ends.
+  const busyUntil = Number(state.mech.busyUntil || 0);
+  if (task.at < busyUntil - context.epsilon) {
+    scheduleMechAttack(context, busyUntil, task.payload || { phase: 0 });
+    return;
+  }
+
+  const rate = mechAttackRate(context);
+  const phase = Number(task.payload?.phase || 0);
+  // Jade Cannons replaces the melee chain with alternating arm shots and
+  // distinct within-pair and between-pair delays.
+  if (hasTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
+    const firstArm = phase === 0;
+    emitMechStrike(context, {
+      at: task.at,
+      coefficient: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.jadeCannons, 'strike'),
+        'coefficient',
+        0.42
+      ),
+      name: 'Jade Energy Shot',
+      skillId: firstArm ? ID.JADE_ENERGY_SHOT : ID.JADE_ENERGY_SHOT_ID_63348
+    });
+    scheduleMechAttack(
+      context,
+      task.at +
+        (firstArm
+          ? balanceProfileValueFromContext(
+              context,
+              PROFILE.attackTiming,
+              'minimumStacks',
+              MECHANIST_ATTACK_TIMING.jadeCannonArmGap
+            )
+          : balanceProfileValueFromContext(
+              context,
+              PROFILE.attackTiming,
+              'threshold',
+              MECHANIST_ATTACK_TIMING.jadeCannonCycleGap
+            )) /
+          rate,
+      { phase: firstArm ? 1 : 0 }
+    );
+    return;
+  }
+
+  // The default chassis advances through its three-hit melee chain, wrapping
+  // back to Hard Strike after Twin Strike.
+  const melee = [
+    { name: 'Hard Strike', skillId: ID.HARD_STRIKE },
+    {
+      name: 'Heavy Smash (Mech)',
+      skillId: ID.HEAVY_SMASH_MECH
+    },
+    {
+      name: 'Twin Strike (Mech)',
+      skillId: ID.TWIN_STRIKE_MECH
+    }
+  ][phase] || {
+    name: 'Hard Strike',
+    skillId: ID.HARD_STRIKE
+  };
+  const strike = balanceProfileEffectFromContext(context, PROFILE.meleeChain, 'strike', phase);
+  emitMechStrike(context, {
+    at: task.at,
+    ...melee,
+    coefficient: balanceProfileValue(strike, 'coefficient', phase === 2 ? 0.8 : 0.45),
+    hits: balanceProfileValue(strike, 'hits', phase === 2 ? 2 : 1)
+  });
+  scheduleMechAttack(context, task.at + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate, {
+    phase: (phase + 1) % 3
+  });
+}
+
+/** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */
+export function activateOverclockSignet(context: EngineerCastContext, skill: EngineerSkill): void {
+  const state = mechanistState.from(context);
+  if (!state.mech?.active) return;
+  const at = context.effectiveEnd;
+  const interval = balanceProfileValueFromContext(context, PROFILE.overclock, 'pulseInterval', 0.65);
+  const hits = balanceProfileValueFromContext(context, PROFILE.overclock, 'maximumStacks', 5);
+  const strike = balanceProfileEffectFromContext(context, PROFILE.overclock, 'strike');
+  const condition = balanceProfileEffectFromContext(context, PROFILE.overclock, 'condition');
+  // Block the basic attack loop for the full cannon burst so hits don't overlap.
+  state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), at + interval * hits);
+  for (let hit = 1; hit <= hits; hit += 1) {
+    const impactAt = at + interval * hit;
+    emitMechStrike(context, {
+      at: impactAt,
+      coefficient: balanceProfileValue(strike, 'coefficient', 0.95),
+      hits: 1,
+      name: 'Jade Buster Cannon',
+      skillId: ID.JADE_BUSTER_CANNON,
+      hitIndex: hit,
+      totalHits: hits,
+      basicAttack: false
+    });
+    emitSkillCondition(context, {
+      at: impactAt,
+      source: 'engineer',
+      sourceId: ID.JADE_BUSTER_CANNON,
+      actorType: 'summon',
+      skillId: ID.JADE_BUSTER_CANNON,
+      skillName: 'Jade Buster Cannon',
+      name: 'Jade Buster Cannon — Burning',
+      condition: 'Burning',
+      stacks: balanceProfileValue(condition, 'stacks', 1),
+      duration: balanceProfileValue(condition, 'duration', 6),
+      metadata: { engineerMech: true },
+      triggeredBy: skill.name
+    });
+  }
+}
+
+export const engineerMechSkillHandlers = Object.freeze({
+  'engineer.mech-summon': summonMech,
+  'engineer.mech-recall': recallMech
+});

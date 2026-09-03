@@ -8,12 +8,16 @@ const packageAliasPattern = {
   message: 'Use the package alias so TypeScript, Vite, and Node resolve the same module.'
 };
 const platformBoundaryPattern = {
-  regex: '(^|/)app(/|$)',
-  message: 'Platform modules must not depend on browser application code.'
+  regex: '(^|/)(app|integrations)(/|$)',
+  message: 'Platform modules must not depend on application or integration code.'
 };
 const engineBoundaryPattern = {
-  regex: '(^|/)content/professions(/|$)|(^|/)app(/|$)',
+  regex: '(^|/)professions(/|$)|(^|/)(app|integrations)(/|$)',
   message: 'Engine modules may depend only on shared platform contracts.'
+};
+const professionBoundaryPattern = {
+  regex: '(^|/)(app|integrations)(/|$)',
+  message: 'Headless profession content must not depend on application or integration code.'
 };
 
 // Flat config replaces overlapping rule arrays, so every boundary includes the shared alias restriction.
@@ -146,7 +150,7 @@ export default [
     }
   },
 
-  // Platform primitives must not depend on browser application code.
+  // Platform primitives must not depend on application or integration code.
   {
     files: ['js/games/gw2/platform/**/*.{ts,tsx}'],
     rules: {
@@ -203,40 +207,31 @@ export default [
 
   // Headless profession content must not load its browser application adapter.
   {
-    files: ['js/games/gw2/content/professions/**/*.{ts,tsx}'],
-    ignores: ['js/games/gw2/content/professions/**/app/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/professions/**/*.{ts,tsx}'],
+    ignores: ['js/games/gw2/professions/**/app/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports({
-        regex: '(^|/)app(/|$)',
-        message: 'Profession content must not import application or browser modules.'
-      })
+      'no-restricted-imports': restrictedImports(professionBoundaryPattern)
     }
   },
 
   // Core contributes upward and never depends on elite specialization content.
   {
-    files: ['js/games/gw2/content/professions/**/core/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/professions/**/core/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(
-        {
-          regex: '(^|/)app(/|$)',
-          message: 'Profession content must not import application or browser modules.'
-        },
-        {
-          regex: '(^|/)specializations(/|$)',
-          message: 'Core profession modules must not depend on elite specialization content.'
-        }
-      )
+      'no-restricted-imports': restrictedImports(professionBoundaryPattern, {
+        regex: '(^|/)specializations(/|$)',
+        message: 'Core profession modules must not depend on elite specialization content.'
+      })
     }
   },
 
   // Generated/static profession data contributes upward and cannot reach into behavior owners.
   {
-    files: ['js/games/gw2/content/professions/**/data/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/professions/**/data/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports({
-        regex: '(^|/)(app|core|specializations)(/|$)|(^|/)presentation\\.js$',
-        message: 'Profession data must not import behavior, presentation, or application modules.'
+        regex: '(^|/)(app|core|integrations|specializations)(/|$)|(^|/)presentation\\.js$',
+        message: 'Profession data must not import behavior, presentation, application, or integration modules.'
       })
     }
   },
@@ -245,41 +240,32 @@ export default [
   // must not depend on browser integration or its composition root.
   {
     files: [
-      'js/games/gw2/content/professions/**/{mechanics,skills,traits,state}.{ts,tsx}',
-      'js/games/gw2/content/professions/**/{mechanics,skills,traits,state}/**/*.{ts,tsx}'
+      'js/games/gw2/professions/**/{mechanics,skills,traits,state}.{ts,tsx}',
+      'js/games/gw2/professions/**/{mechanics,skills,traits,state}/**/*.{ts,tsx}'
     ],
     rules: {
-      'no-restricted-imports': restrictedImports(
-        {
-          regex: '(^|/)app(/|$)',
-          message: 'Simulation content must not import application or browser modules.'
-        },
-        {
-          regex: 'content/professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
-          message: 'Concept modules must contribute to module.ts without importing the composition root.'
-        }
-      )
+      'no-restricted-imports': restrictedImports(professionBoundaryPattern, {
+        regex: 'professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
+        message: 'Concept modules must contribute to module.ts without importing the composition root.'
+      })
     }
   },
 
   // Core concept modules retain both ownership restrictions when the broader concept rule overlaps.
   {
     files: [
-      'js/games/gw2/content/professions/**/core/{mechanics,skills,traits,state}.{ts,tsx}',
-      'js/games/gw2/content/professions/**/core/{mechanics,skills,traits,state}/**/*.{ts,tsx}'
+      'js/games/gw2/professions/**/core/{mechanics,skills,traits,state}.{ts,tsx}',
+      'js/games/gw2/professions/**/core/{mechanics,skills,traits,state}/**/*.{ts,tsx}'
     ],
     rules: {
       'no-restricted-imports': restrictedImports(
-        {
-          regex: '(^|/)app(/|$)',
-          message: 'Simulation content must not import application or browser modules.'
-        },
+        professionBoundaryPattern,
         {
           regex: '(^|/)specializations(/|$)',
           message: 'Core profession modules must not depend on elite specialization content.'
         },
         {
-          regex: 'content/professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
+          regex: 'professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
           message: 'Concept modules must contribute to module.ts without importing the composition root.'
         }
       )

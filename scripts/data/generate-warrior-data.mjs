@@ -703,7 +703,7 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
   ].join('\n');
 
   await writeFile(
-    fileURLToPath(new URL('../../js/games/gw2/content/professions/warrior/data/ids.ts', import.meta.url)),
+    fileURLToPath(new URL('../../js/games/gw2/professions/warrior/data/ids.ts', import.meta.url)),
     idsSource,
     'utf8'
   );
@@ -718,7 +718,7 @@ export const WARRIOR_SUPPLEMENTAL_SKILLS: readonly Skill[] = Object.freeze(
 
   await writeFile(
     fileURLToPath(
-      new URL('../../js/games/gw2/content/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)
+      new URL('../../js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)
     ),
     supplementalSource,
     'utf8'

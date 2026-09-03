@@ -1,0 +1,345 @@
+/** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+
+export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  [ID.UNSHEATHE_GUNSABER]: {
+    castTimeMs: 0,
+    effects: [],
+    // Custom: Equips Gunsaber and updates bundle/weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.gunsaber-enter'
+  },
+  [ID.DRAGON_TRIGGER]: {
+    effects: [],
+    castTimeMs: 0,
+    canCastConcurrently: false,
+    // Custom: Enters Dragon Trigger and starts charge/flow state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.dragon-trigger'
+  },
+  [ID.ELECTRIC_FENCE]: {
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 5
+      }
+    ],
+    quicknessCastTimeMs: 333
+  },
+  [ID.SHEATHE_GUNSABER]: {
+    cooldown: 0,
+    castTimeMs: 0,
+    effects: [],
+    // Custom: Stows Gunsaber and restores weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.gunsaber-exit'
+  },
+  [ID.TACTICAL_RELOAD]: {
+    effects: [],
+    quicknessCastTimeMs: 552,
+    // Tactical Reload restores Bladesworn ammo and opens its reload window on completion.
+    mechanicTriggers: [
+      {
+        type: 'warrior.bladesworn.tactical-reload',
+        timingAnchor: 'castEnd'
+      }
+    ]
+  },
+  [ID.DRAGONSPIKE_MINE]: {
+    movementSkill: true,
+    // Dragonspike Mine refreshes Dragon Trigger when its cast completes.
+    mechanicTriggers: [
+      {
+        type: 'warrior.bladesworn.reset-dragon-trigger',
+        timingAnchor: 'castEnd'
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1,
+        damageKind: 'explosion'
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 5
+      },
+      {
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 6
+      }
+    ],
+    quicknessCastTimeMs: 641
+  },
+  [ID.FLOW_STABILIZER]: {
+    castTimeMs: 0,
+    // Flow Stabilizer opens its passive-flow window and grants its conditional flow on completion.
+    mechanicTriggers: [
+      {
+        type: 'warrior.bladesworn.flow-stabilizer',
+        timingAnchor: 'castEnd'
+      }
+    ],
+    effects: [
+      {
+        type: 'boon',
+        boon: 'fury',
+        duration: 8,
+        stacks: 1
+      },
+      {
+        type: 'buff',
+        kind: 'positive-flow',
+        duration: 8,
+        stacks: 2
+      }
+    ]
+  },
+  [ID.COMBAT_STIMULANT]: {
+    effects: [
+      {
+        type: 'boon',
+        boon: 'quickness',
+        duration: 5,
+        stacks: 1
+      },
+      {
+        type: 'boon',
+        boon: 'fury',
+        duration: 10,
+        stacks: 1
+      },
+      {
+        type: 'boon',
+        boon: 'vigor',
+        duration: 10,
+        stacks: 1
+      }
+    ],
+    quicknessCastTimeMs: 500
+  },
+  [ID.OVERCHARGED_CARTRIDGES]: {
+    ammo: 2,
+    ammoRecharge: 20,
+    cooldown: 20,
+    ammoCastLockout: 1,
+    effects: [],
+    quicknessCastTimeMs: 600,
+    // Custom: Arms cartridge charges consumed by later explosions; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.overcharged-cartridges'
+  },
+  // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
+  [ID.SWIFT_CUT]: {
+    effects: [
+      {
+        type: 'strike',
+        name: 'Swift Cut — Blade',
+        coefficient: 0.9,
+        hits: 1
+      },
+      {
+        type: 'strike',
+        name: 'Swift Cut — Shot',
+        coefficient: 0.75 * 0.34,
+        hits: 1
+      }
+    ],
+    quicknessCastTimeMs: 639,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber'
+  },
+  [ID.STEEL_DIVIDE]: {
+    effects: [
+      {
+        type: 'strike',
+        name: 'Steel Divide — Blade',
+        coefficient: 1.1,
+        hits: 1
+      },
+      {
+        type: 'strike',
+        name: 'Steel Divide — Shot',
+        coefficient: 0.75 * 0.34,
+        hits: 1
+      }
+    ],
+    quicknessCastTimeMs: 602,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber'
+  },
+  [ID.EXPLOSIVE_THRUST]: {
+    effects: [
+      {
+        type: 'strike',
+        name: 'Explosive Thrust — Blade',
+        coefficient: 1.35,
+        hits: 1
+      },
+      {
+        type: 'strike',
+        name: 'Explosive Thrust — Explosion',
+        coefficient: 1.2 * 0.34,
+        hits: 1,
+        damageKind: 'explosion'
+      }
+    ],
+    quicknessCastTimeMs: 439,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber'
+  },
+  [ID.BLOOMING_FIRE]: {
+    ammo: 2,
+    ammoRecharge: 10,
+    cooldown: 10,
+    ammoCastLockout: 2,
+    effects: [
+      {
+        type: 'strike',
+        name: 'Blooming Fire — Blade',
+        coefficient: 0.8,
+        hits: 1
+      },
+      {
+        type: 'strike',
+        name: 'Blooming Fire — Explosion',
+        coefficient: 1.2,
+        hits: 3,
+        atMs: 0,
+        damageKind: 'explosion'
+      }
+    ],
+    quicknessCastTimeMs: 602,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber'
+  },
+  [ID.ARTILLERY_SLASH]: {
+    ammo: 2,
+    ammoRecharge: 15,
+    cooldown: 15,
+    ammoCastLockout: 2,
+    effects: [],
+    quicknessCastTimeMs: 681,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    // Custom: Materializes Artillery Slash's charge-scaled projectile sequence; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.artillery-slash'
+  },
+  [ID.CYCLONE_TRIGGER]: {
+    ammo: 2,
+    ammoRecharge: 20,
+    cooldown: 20,
+    ammoCastLockout: 1,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.5,
+        hits: 1
+      },
+      {
+        type: 'boon',
+        boon: 'aegis',
+        duration: 3,
+        stacks: 1
+      }
+    ],
+    quicknessCastTimeMs: 400,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber'
+  },
+  [ID.BREAK_STEP]: {
+    movementSkill: true,
+    ammo: 2,
+    ammoRecharge: 20,
+    cooldown: 20,
+    ammoCastLockout: 1,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.5,
+        hits: 1,
+        damageKind: 'explosion'
+      },
+      {
+        type: 'boon',
+        boon: 'fury',
+        duration: 5,
+        stacks: 1
+      }
+    ],
+    quicknessCastTimeMs: 333,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber'
+  },
+  [ID.DRAGON_SLASH_FORCE]: {
+    effects: [],
+    quicknessCastTimeMs: 1039,
+    burst: true,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    dragonSlash: true,
+    dragonSlashMinimumCoefficient: 1.16,
+    dragonSlashMaximumCoefficient: 20.4,
+    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.dragon-slash'
+  },
+  [ID.DRAGON_SLASH_BOOST]: {
+    movementSkill: true,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    burst: true,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    dragonSlash: true,
+    dragonSlashMinimumCoefficient: 0.92,
+    dragonSlashMaximumCoefficient: 16.3,
+    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.dragon-slash'
+  },
+  [ID.DRAGON_SLASH_REACH]: {
+    effects: [],
+    quicknessCastTimeMs: 333,
+    burst: true,
+    gunsaberSkill: true,
+    skillWeapon: 'Gunsaber',
+    dragonSlash: true,
+    dragonSlashMinimumCoefficient: 0.56,
+    dragonSlashMaximumCoefficient: 10.21,
+    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    handlerId: 'warrior.dragon-slash'
+  },
+  [ID.FLICKER_STEP]: {
+    ammo: 3,
+    ammoRecharge: 20,
+    cooldown: 20,
+    ammoCastLockout: 0.5,
+    castTimeMs: 0,
+    effects: [],
+    gunsaberSkill: true,
+    dragonTriggerSkill: true,
+    shadowstepSkill: true,
+    skillWeapon: 'Gunsaber'
+  },
+  [ID.TRIGGERGUARD]: {
+    ammo: 2,
+    ammoRecharge: 30,
+    cooldown: 30,
+    ammoCastLockout: 1,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'aegis',
+        duration: 2,
+        stacks: 1
+      }
+    ],
+    gunsaberSkill: true,
+    dragonTriggerSkill: true,
+    skillWeapon: 'Gunsaber'
+  }
+});

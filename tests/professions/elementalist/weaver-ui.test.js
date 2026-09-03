@@ -3,10 +3,10 @@ import test from 'node:test';
 
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
-import { ELEMENTALIST_WEAVER_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { ELEMENTALIST_WEAVER_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 
 function weaverBuild(traits) {
   return elementalistAppAdapter.toApplicationBuild({

@@ -33,12 +33,12 @@ import {
 import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
 import { rotationWarningItems } from '#gw2/app/rotation/result/warnings.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
-import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
-import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
-import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
-import { toApplicationBuild } from '#gw2/content/professions/mesmer/build/build.js';
-import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
+import { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 
 const PLAYER_RESOLVED_AUDIENCE = Object.freeze({
   includesSelf: true,

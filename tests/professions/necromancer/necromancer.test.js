@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -15,26 +16,23 @@ import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild
-} from '#gw2/content/professions/necromancer/build/build.js';
-import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '#gw2/content/professions/necromancer/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/content/professions/necromancer/data/necromancer-api-metadata.js';
-import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
-import {
-  NECROMANCER_SKILL_IDS as ID,
-  NECROMANCER_TRAIT_IDS as TRAIT
-} from '#gw2/content/professions/necromancer/data/ids.js';
+} from '#gw2/professions/necromancer/build/build.js';
+import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '#gw2/professions/necromancer/catalog.js';
+import { DATA_SNAPSHOT } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   actualNecromancerLifeForceCost,
   createNecromancerCoreState,
   normalizedNecromancerLifeForceCost
-} from '#gw2/content/professions/necromancer/core/state.js';
-import { addSoulShards, purgeTimedState } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/core/profiles.js';
-import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/reaper/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/scourge/profiles.js';
-import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
-import { necromancerAppAdapter } from '#gw2/content/professions/necromancer/app/app-definition.js';
+} from '#gw2/professions/necromancer/core/state.js';
+import { addSoulShards, purgeTimedState } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
+import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
+import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
+import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -74,6 +72,8 @@ const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
 const applyNecromancerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(necromancerCatalog, patch), patch);
 
+const authoringNecromancerProfession = withActivePatchPreview(necromancerProfession);
+
 test('Necromancer uses the current API catalog and all nine trait lines', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-25');
   assert.equal(necromancerCatalog.specializations.length, 9);
@@ -108,7 +108,7 @@ test('Necromancer uses the current API catalog and all nine trait lines', () => 
 });
 
 test('Necromancer modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(necromancerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  const modules = new Map(authoringNecromancerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 
   assert.deepEqual([...modules.keys()], ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']);
   assert.equal(
@@ -3909,7 +3909,7 @@ test('migrated Core trait lines retain previously uncovered threshold, blind, he
 });
 
 test('Core trait dispatch preserves cross-line order and keeps registration out of line modules', async () => {
-  const directory = new URL('../../../js/games/gw2/content/professions/necromancer/core/traits/', import.meta.url);
+  const directory = new URL('../../../js/games/gw2/professions/necromancer/core/traits/', import.meta.url);
   const source = await readFile(new URL('index.ts', directory), 'utf8');
   const ordered = (functionName, calls) => {
     const body = source.slice(source.indexOf(`export function ${functionName}`));

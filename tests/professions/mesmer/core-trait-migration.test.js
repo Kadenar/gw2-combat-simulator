@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { createMesmerCoreState } from '#gw2/content/professions/mesmer/core/state.js';
-import { triggerMesmerCriticalTraits } from '#gw2/content/professions/mesmer/core/traits/index.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
+import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 test('Dazzling observes control before later control-trait work', () => {
   const result = simulateMesmer(

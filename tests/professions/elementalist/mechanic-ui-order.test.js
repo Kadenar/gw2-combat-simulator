@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 
 const SPECIALIZATION_MECHANICS = Object.freeze({
   Catalyst: {

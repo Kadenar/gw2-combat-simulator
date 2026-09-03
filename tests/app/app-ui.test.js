@@ -27,7 +27,7 @@ import {
   weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
-import { dragonChargeReleaseProjection } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
+import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
@@ -49,11 +49,11 @@ import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
-import { createGuardianBuildDefaults } from '#gw2/content/professions/guardian/build/build.js';
-import { createEngineerBuildDefaults } from '#gw2/content/professions/engineer/build/build.js';
-import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
-import { createMesmerBuildDefaults } from '#gw2/content/professions/mesmer/build/build.js';
-import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
+import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
+import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
+import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 test('starting resource clamps cover every active resource view', () => {

@@ -241,7 +241,7 @@ A profession may intentionally expose only selected state fields.
 For example, Warrior projects a whitelist through:
 
 ```text
-js/games/gw2/content/professions/warrior/state.ts
+js/games/gw2/professions/warrior/state.ts
 ```
 
 using:

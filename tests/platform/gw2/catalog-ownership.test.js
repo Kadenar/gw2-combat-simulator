@@ -5,9 +5,9 @@ import {
   assembleNativeApplicationCatalog,
   createNativeModuleData,
   nativeSkillRuntimeOwner
-} from '#gw2/integrations/patches/authoring/catalog.js';
-import { onResolvedCriticalHit, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
-import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
+} from '#gw2/platform/profession-definition/catalog.js';
+import { onResolvedCriticalHit, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 
 const replaceHandler = Object.freeze({
   mode: 'replace',

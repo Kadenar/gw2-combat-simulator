@@ -345,7 +345,7 @@ ${petLines.join('\n')}
 `;
 
   const target = fileURLToPath(
-    new URL('../../js/games/gw2/content/professions/ranger/data/ranger-pet-data.ts', import.meta.url)
+    new URL('../../js/games/gw2/professions/ranger/data/ranger-pet-data.ts', import.meta.url)
   );
 
   await writeFile(target, source, 'utf8');

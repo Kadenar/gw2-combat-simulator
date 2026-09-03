@@ -2,15 +2,15 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { elementalistNativeModules } from '#gw2/content/professions/elementalist/modules.js';
-import { engineerNativeModules } from '#gw2/content/professions/engineer/modules.js';
-import { guardianNativeModules } from '#gw2/content/professions/guardian/modules.js';
-import { mesmerNativeModules } from '#gw2/content/professions/mesmer/modules.js';
-import { necromancerNativeModules } from '#gw2/content/professions/necromancer/modules.js';
-import { rangerNativeModules } from '#gw2/content/professions/ranger/modules.js';
-import { revenantNativeModules } from '#gw2/content/professions/revenant/modules.js';
-import { thiefNativeModules } from '#gw2/content/professions/thief/modules.js';
-import { warriorNativeModules } from '#gw2/content/professions/warrior/modules.js';
+import { elementalistNativeModules } from '#gw2/professions/elementalist/modules.js';
+import { engineerNativeModules } from '#gw2/professions/engineer/modules.js';
+import { guardianNativeModules } from '#gw2/professions/guardian/modules.js';
+import { mesmerNativeModules } from '#gw2/professions/mesmer/modules.js';
+import { necromancerNativeModules } from '#gw2/professions/necromancer/modules.js';
+import { rangerNativeModules } from '#gw2/professions/ranger/modules.js';
+import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
+import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
+import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
 
 const PROFESSION_MODULES = Object.freeze({
   elementalist: elementalistNativeModules,
@@ -36,7 +36,7 @@ const EXPECTED_MODULE_IDS = Object.freeze({
   warrior: ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
 });
 
-const PROFESSION_SOURCE_ROOT = new URL('../../js/games/gw2/content/professions/', import.meta.url);
+const PROFESSION_SOURCE_ROOT = new URL('../../js/games/gw2/professions/', import.meta.url);
 
 // Walk only profession source so the boundary check stays filesystem-driven instead of maintaining a file manifest.
 function sourceFiles(directory) {

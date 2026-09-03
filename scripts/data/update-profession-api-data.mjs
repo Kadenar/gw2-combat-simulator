@@ -62,7 +62,7 @@ export async function updateProfessionApiData(
     ? path.resolve(requestedOutput)
     : path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        `../../js/games/gw2/content/professions/${id}/data/${id}-api-metadata.ts`
+        `../../js/games/gw2/professions/${id}/data/${id}-api-metadata.ts`
       );
   const snapshot = await fetchProfessionSnapshot({
     professionName: normalizedProfession,

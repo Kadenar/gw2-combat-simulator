@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { thiefCatalog } from '#gw2/content/professions/thief/catalog.js';
-import { createThiefCoreState } from '#gw2/content/professions/thief/core/state.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import {
   applyStealCompletionTraits,
   emitStealTraitEffects,
@@ -12,8 +12,8 @@ import {
   reactToThiefCoreDamage,
   thiefCoreCriticalReactions,
   updateThiefTraitCastState
-} from '#gw2/content/professions/thief/core/traits/index.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+} from '#gw2/professions/thief/core/traits/index.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 const STEAL = thiefCatalog.skillsById.get(ID.STEAL);
 
@@ -342,7 +342,7 @@ test('cast-state updates preserve Lead, Fluid, Hard to Catch, then Deadly Ambiti
 
 test('condition dispatcher preserves Leeching, Panic, Cloaked, then base bonus order', () => {
   const source = readFileSync(
-    new URL('../../../js/games/gw2/content/professions/thief/core/traits/index.ts', import.meta.url),
+    new URL('../../../js/games/gw2/professions/thief/core/traits/index.ts', import.meta.url),
     'utf8'
   );
   const calls = [

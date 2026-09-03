@@ -3,10 +3,10 @@ import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
-import { engineerCoreCriticalHitDefinitions } from '#gw2/content/professions/engineer/core/traits/index.js';
-import { engineerCoreSchedulerHooks } from '#gw2/content/professions/engineer/core/traits/modifiers.js';
+import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/index.js';
+import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/traits/modifiers.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -227,7 +227,7 @@ function assertSourceOrder(source, startToken, orderedTokens) {
 }
 
 test('Engineer trait dispatchers preserve cast, damage, condition, and nested Tools order', async () => {
-  const directory = new URL('../../../js/games/gw2/content/professions/engineer/core/traits/', import.meta.url);
+  const directory = new URL('../../../js/games/gw2/professions/engineer/core/traits/', import.meta.url);
   const [indexSource, toolsSource] = await Promise.all([
     readFile(new URL('index.ts', directory), 'utf8'),
     readFile(new URL('tools.ts', directory), 'utf8')
@@ -274,7 +274,7 @@ test('Engineer critical and scheduled-event definitions preserve their public or
 });
 
 test('Engineer trait-line modules stay private and registration-free', async () => {
-  const core = new URL('../../../js/games/gw2/content/professions/engineer/core/', import.meta.url);
+  const core = new URL('../../../js/games/gw2/professions/engineer/core/', import.meta.url);
   const files = (await readdir(core, { recursive: true })).filter((file) => file.endsWith('.ts'));
   const lineImport = /core\/traits\/(?:alchemy|explosives|firearms|tools)\.js/;
   const lineFiles = new Set(['traits/alchemy.ts', 'traits/explosives.ts', 'traits/firearms.ts', 'traits/tools.ts']);

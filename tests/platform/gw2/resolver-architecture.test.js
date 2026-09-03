@@ -7,14 +7,14 @@ import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { createEventQueue, enqueueOrdered, takeNextEvent } from '#kernel/events/queue.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createCloneAttackScheduler } from '#gw2/content/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 
 // Locks the named Mesmer effect boundaries so generic runtime filenames cannot return.
 test('Mesmer skill damage scheduling is split into focused modules', () => {
-  const core = new URL('../../../js/games/gw2/content/professions/mesmer/core/', import.meta.url);
+  const core = new URL('../../../js/games/gw2/professions/mesmer/core/', import.meta.url);
 
   for (const path of [
     'mechanics/illusions/clone-attacks.ts',

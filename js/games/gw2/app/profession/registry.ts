@@ -75,11 +75,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/elementalist/definition.js');
+      const module = await import('#gw2/professions/elementalist/definition.js');
       return module.elementalistProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/elementalist/app/app-definition.js');
+      const module = await import('#gw2/professions/elementalist/app/app-definition.js');
       return module.elementalistAppAdapter;
     }
   },
@@ -118,11 +118,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/mesmer/definition.js');
+      const module = await import('#gw2/professions/mesmer/definition.js');
       return module.mesmerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/mesmer/app/app-definition.js');
+      const module = await import('#gw2/professions/mesmer/app/app-definition.js');
       return module.mesmerAppAdapter;
     }
   },
@@ -161,11 +161,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/necromancer/definition.js');
+      const module = await import('#gw2/professions/necromancer/definition.js');
       return module.necromancerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/necromancer/app/app-definition.js');
+      const module = await import('#gw2/professions/necromancer/app/app-definition.js');
       return module.necromancerAppAdapter;
     }
   },
@@ -205,11 +205,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/ranger/definition.js');
+      const module = await import('#gw2/professions/ranger/definition.js');
       return module.rangerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/ranger/app/app-definition.js');
+      const module = await import('#gw2/professions/ranger/app/app-definition.js');
       return module.rangerAppAdapter;
     }
   },
@@ -248,11 +248,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/thief/definition.js');
+      const module = await import('#gw2/professions/thief/definition.js');
       return module.thiefProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/thief/app/app-definition.js');
+      const module = await import('#gw2/professions/thief/app/app-definition.js');
       return module.thiefAppAdapter;
     }
   },
@@ -291,11 +291,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/engineer/definition.js');
+      const module = await import('#gw2/professions/engineer/definition.js');
       return module.engineerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/engineer/app/app-definition.js');
+      const module = await import('#gw2/professions/engineer/app/app-definition.js');
       return module.engineerAppAdapter;
     }
   },
@@ -335,11 +335,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/guardian/definition.js');
+      const module = await import('#gw2/professions/guardian/definition.js');
       return module.guardianProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/guardian/app/app-definition.js');
+      const module = await import('#gw2/professions/guardian/app/app-definition.js');
       return module.guardianAppAdapter;
     }
   },
@@ -378,11 +378,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/warrior/definition.js');
+      const module = await import('#gw2/professions/warrior/definition.js');
       return module.warriorProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/warrior/app/app-definition.js');
+      const module = await import('#gw2/professions/warrior/app/app-definition.js');
       return module.warriorAppAdapter;
     }
   },
@@ -416,11 +416,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/content/professions/revenant/definition.js');
+      const module = await import('#gw2/professions/revenant/definition.js');
       return module.revenantProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import('#gw2/content/professions/revenant/app/app-definition.js');
+      const module = await import('#gw2/professions/revenant/app/app-definition.js');
       return module.revenantAppAdapter;
     }
   }

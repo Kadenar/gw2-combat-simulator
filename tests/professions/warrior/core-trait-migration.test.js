@@ -3,8 +3,8 @@ import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -246,7 +246,7 @@ function assertSourceOrder(source, startToken, orderedTokens) {
 
 test('Warrior dispatchers preserve cast, burst, critical, advancement, and weapon-swap order', async () => {
   const source = await readFile(
-    new URL('../../../js/games/gw2/content/professions/warrior/core/traits/index.ts', import.meta.url),
+    new URL('../../../js/games/gw2/professions/warrior/core/traits/index.ts', import.meta.url),
     'utf8'
   );
 
@@ -305,7 +305,7 @@ test('Warrior dispatchers preserve cast, burst, critical, advancement, and weapo
 });
 
 test('Warrior trait-line modules stay private and registration-free', async () => {
-  const core = new URL('../../../js/games/gw2/content/professions/warrior/core/', import.meta.url);
+  const core = new URL('../../../js/games/gw2/professions/warrior/core/', import.meta.url);
   const files = (await readdir(core, { recursive: true })).filter((file) => file.endsWith('.ts'));
   const lineImport = /core\/traits\/(?:arms|defense|discipline|strength|tactics)\.js/;
   const lineFiles = new Set([

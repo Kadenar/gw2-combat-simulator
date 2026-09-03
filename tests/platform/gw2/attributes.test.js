@@ -4,8 +4,8 @@ import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
 } from '#gw2/app/build/state/persistence.js';
-import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/content/professions/mesmer/build/attributes.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import {
   calculateCommonAttributes,
   createCalculateAttributes,
@@ -18,7 +18,7 @@ import {
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifier-contributions.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { MESMER_SKILL_IDS } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calcAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);

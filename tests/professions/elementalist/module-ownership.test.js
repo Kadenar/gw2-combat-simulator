@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
-import { elementalistCoreModule } from '#gw2/content/professions/elementalist/core/module.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
-import { catalystModule } from '#gw2/content/professions/elementalist/specializations/catalyst/module.js';
-import { evokerModule } from '#gw2/content/professions/elementalist/specializations/evoker/module.js';
-import { weaverModule } from '#gw2/content/professions/elementalist/specializations/weaver/module.js';
-import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
-import { WEAVER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
+import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
+import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
+import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 
 const SPECIALIZATION_STATE_KEYS = Object.freeze({
   Tempest: ['latentStaminaReadyAt'],

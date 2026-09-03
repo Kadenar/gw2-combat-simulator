@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
-import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
-import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
-import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
-import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
-import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
-import { projectRangerEndState } from '#gw2/content/professions/ranger/state.js';
-import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
-import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
-import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { projectRangerEndState } from '#gw2/professions/ranger/state.js';
+import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 
 function snapshot(profession, specialization, professionState, atSeconds, result) {
   return profession.ui.rotationStateSnapshot({ specialization, professionState, atSeconds, result });

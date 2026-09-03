@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 
 function createHammerApp(hammerOrbs, time = 0) {
   const build = elementalistAppAdapter.toApplicationBuild({

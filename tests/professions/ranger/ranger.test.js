@@ -1,3 +1,4 @@
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -21,60 +22,57 @@ import {
   createRangerBuildDefaults,
   migrateRangerBuild,
   validateRangerBuild
-} from '#gw2/content/professions/ranger/build/build.js';
-import { applyRangerBuildAttributeRules } from '#gw2/content/professions/ranger/build/attributes.js';
-import { rangerCatalog } from '#gw2/content/professions/ranger/catalog.js';
-import { DATA_SNAPSHOT } from '#gw2/content/professions/ranger/data/ranger-api-metadata.js';
+} from '#gw2/professions/ranger/build/build.js';
+import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { DATA_SNAPSHOT } from '#gw2/professions/ranger/data/ranger-api-metadata.js';
 import {
   RANGER_SKILL_IDS as ID,
   RANGER_SPECIALIZATION_IDS as SPECIALIZATION,
   RANGER_TRAIT_IDS as TRAIT
-} from '#gw2/content/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
+} from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/ranger.js';
-import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/core/profiles.js';
-import { RANGER_CORE_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/core/skills/index.js';
-import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/core/state.js';
-import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
-import { DRUID_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/druid/skills/index.js';
+import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/index.js';
+import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
+import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
+import { DRUID_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/druid/skills/index.js';
 import {
   druidAttributeRules,
   druidCastAvailability
-} from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
-import {
-  createDruidState,
-  DRUID_PUBLIC_END_STATE_KEYS
-} from '#gw2/content/professions/ranger/specializations/druid/state.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/soulbeast/profiles.js';
-import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/soulbeast/skills/index.js';
+} from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import { createDruidState, DRUID_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/specializations/druid/state.js';
+import { SOULBEAST_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
+import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';
 import {
   createSoulbeastState,
   SOULBEAST_PUBLIC_END_STATE_KEYS
-} from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
-import { UNTAMED_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
-import { UNTAMED_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/untamed/skills/index.js';
+} from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import { UNTAMED_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
+import { UNTAMED_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/index.js';
 import {
   createUntamedState,
   UNTAMED_PUBLIC_END_STATE_KEYS
-} from '#gw2/content/professions/ranger/specializations/untamed/state.js';
-import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
-import { GALESHOT_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/galeshot/skills/index.js';
-import { GALESHOT_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
-import { rangerPetCombatMetadata } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+} from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
+import { GALESHOT_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
+import { GALESHOT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
   rangerCoreAttributeRules,
   rangerCoreCastRules,
   rangerCoreModifierRules
-} from '#gw2/content/professions/ranger/core/traits/modifiers.js';
+} from '#gw2/professions/ranger/core/traits/modifiers.js';
 import {
   soulbeastAttributeRules,
   soulbeastCastRules,
   soulbeastModifierRules
-} from '#gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
-import { untamedCastRules } from '#gw2/content/professions/ranger/specializations/untamed/mechanics/unleash.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/content/professions/ranger/state.js';
-import { rangerAppAdapter } from '#gw2/content/professions/ranger/app/app-definition.js';
+} from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+import { untamedCastRules } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/state.js';
+import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
 const calculateAttributes = createCalculateAttributes(applyRangerBuildAttributeRules);
@@ -132,6 +130,8 @@ function simulate(specialization, rotation, config = {}) {
 
 const applyRangerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(rangerCatalog, patch), patch);
 
+const authoringRangerProfession = withActivePatchPreview(rangerProfession);
+
 test('Ranger scheduler snapshots expose flat profession state', () => {
   const result = simulate('Soulbeast', []);
 
@@ -154,7 +154,7 @@ test('Ranger public state is composed from Core and specialization-owned manifes
 });
 
 test('Ranger Core source stays specialization-agnostic', async () => {
-  const directory = new URL('../../../js/games/gw2/content/professions/ranger/core/', import.meta.url);
+  const directory = new URL('../../../js/games/gw2/professions/ranger/core/', import.meta.url);
   const files = (await readdir(directory, { recursive: true })).filter((file) => file.endsWith('.ts'));
   const sources = await Promise.all(files.map((file) => readFile(new URL(file, directory), 'utf8')));
   const coreSource = sources.join('\n');
@@ -276,7 +276,7 @@ test('Ranger catalog pins API identity and explicit module-owned mechanics', () 
 });
 
 test('Ranger modules expose isolated balance-profile authoring', () => {
-  const modules = new Map(rangerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  const modules = new Map(authoringRangerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 
   assert.deepEqual([...modules.keys()], ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']);
   assert.equal(
