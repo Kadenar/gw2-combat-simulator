@@ -23,7 +23,11 @@ test('native build manifests and assets stay profession-scoped', async () => {
 
     assert.ok(presets.length > 0, profession);
     for (const preset of presets) {
-      assert.match(preset.build, new RegExp(`^data/gw2/builds/${profession}/[^/]+\\.json$`));
+      // Checked-in presets use b-/r- prefixes and the short tokens "condi" and "bench"; EVTC suffixes retain provenance.
+      assert.match(
+        preset.build,
+        new RegExp(`^data/gw2/builds/${profession}/b-(?!condition-)[a-z0-9]+(?:-[a-z0-9]+)*\\.json$`)
+      );
       const build = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
 
       assert.equal(build.profession, profession);
@@ -34,7 +38,12 @@ test('native build manifests and assets stay profession-scoped', async () => {
       assert.equal(build.targetHealth, 4_000_000, preset.build);
 
       if (preset.rotation) {
-        assert.match(preset.rotation, new RegExp(`^data/gw2/rotations/${profession}/[^/]+\\.json$`));
+        assert.match(
+          preset.rotation,
+          new RegExp(
+            `^data/gw2/rotations/${profession}/r-(?!condition-)(?!.*-benchmark\\.json$)[a-z0-9]+(?:-[a-z0-9]+)*\\.json$`
+          )
+        );
         const rotation = JSON.parse(await readFile(new URL(`../../${preset.rotation}`, import.meta.url), 'utf8'));
 
         assert.ok(Array.isArray(rotation.rotation));
