@@ -50,6 +50,19 @@ export const STANDARD_POSITION_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssu
   })
 ]);
 
+/** Standard target-size choice for professions whose packet counts depend on the target hitbox. */
+export const STANDARD_HITBOX_SIZE_ASSUMPTION_CONTROL = Object.freeze({
+  key: 'hitboxSize',
+  label: 'Target hitbox',
+  type: 'select',
+  defaultValue: 'small',
+  options: [
+    { value: 'large', label: 'Large' },
+    { value: 'small', label: 'Small' }
+  ],
+  section: 'target'
+});
+
 function normalizedSpecializations(value: unknown): readonly string[] | undefined {
   if (!Array.isArray(value) || !value.length) return undefined;
   return Object.freeze([...new Set(value.map(String))]);

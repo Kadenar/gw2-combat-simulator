@@ -5,7 +5,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventInput, SkillId } from '#gw2/platform/engine/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -132,7 +132,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   };
   const activePrimaryWeapon = () => {
     const weaponSet = state.activeWeaponSet === 1 ? 1 : 2;
-    return gw2PrimaryWeapon(config, weaponSet) || gw2PrimaryWeapon(config, 1) || '';
+    return gw2ActivePrimaryWeapon(config, weaponSet) || '';
   };
 
   const emit = (event: SimulationEventInput): SimulationEvent | null => {

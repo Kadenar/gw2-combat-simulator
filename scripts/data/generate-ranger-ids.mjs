@@ -1,6 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
+import { constantName } from './lib/generator-utils.mjs';
+
 const SUPPLEMENTAL_SKILLS = [
   ['Twin Darts', 12676],
   ['Pet Tail Lash', 12673],
@@ -48,15 +50,6 @@ async function rangerPetSkills() {
   }
 
   return skills;
-}
-
-function constantName(value) {
-  return String(value || '')
-    .normalize('NFKD')
-    .replace(/['\u2019]/g, '')
-    .replace(/[^a-z0-9]+/gi, '_')
-    .replace(/^_+|_+$/g, '')
-    .toUpperCase();
 }
 
 function stableEntries(entries) {

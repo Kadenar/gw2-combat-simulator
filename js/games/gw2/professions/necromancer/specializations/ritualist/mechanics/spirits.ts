@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/scheduler/skill-events.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 /**
@@ -129,7 +129,7 @@ function spiritDefinition(
 
 function activePrimaryWeapon(context: NecromancerCastContext): string {
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
-  return String(gw2PrimaryWeapon(context.config, weaponSet) || gw2PrimaryWeapon(context.config, 1) || '');
+  return String(gw2ActivePrimaryWeapon(context.config, weaponSet) || '');
 }
 
 // Snapshot the equipped main-hand profile so delayed player-owned spirit packets keep their cast-time weapon roll.

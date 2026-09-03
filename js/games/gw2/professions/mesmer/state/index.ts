@@ -1,7 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerCoreState,
@@ -94,7 +94,7 @@ export function projectMesmerEndState({
       remaining: Math.max(0, Math.round((expiresAt - endTime) * 1000))
     }));
   const weaponSet = state.activeWeaponSet === 1 ? 1 : 2;
-  const activeWeapon = gw2PrimaryWeapon(config, weaponSet) || gw2PrimaryWeapon(config, 1) || '';
+  const activeWeapon = gw2ActivePrimaryWeapon(config, weaponSet) || '';
   return {
     resource: definition.singular === 'clone' ? publicState.clones.length : publicState.numericResource,
     resourceDefinition: definition,

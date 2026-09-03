@@ -13,3 +13,8 @@ export function gw2ConfiguredWeaponSet(config: Gw2Config | null | undefined, set
 export function gw2PrimaryWeapon(config: Gw2Config | null | undefined, set: number): string | undefined {
   return gw2ConfiguredWeaponSet(config, set)[0];
 }
+
+/** Reads the active main-hand, falling back to weapon set 1 when the selected set is empty. */
+export function gw2ActivePrimaryWeapon(config: Gw2Config | null | undefined, activeSet: number): string | undefined {
+  return gw2PrimaryWeapon(config, activeSet) || gw2PrimaryWeapon(config, 1);
+}

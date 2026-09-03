@@ -1,6 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
+import { constantName, mapConcurrent } from './lib/generator-utils.mjs';
+
 const API_ROOT = 'https://api.guildwars2.com/v2';
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
 
@@ -207,32 +209,6 @@ async function fetchWikiPetMetadata(pet) {
     family: String(source.match(/^\|\s*family\s*=\s*([^\n]+)/im)?.[1] || '').trim(),
     archetype: String(source.match(/^\|\s*archetype\s*=\s*([^\n]+)/im)?.[1] || '').trim()
   };
-}
-
-async function mapConcurrent(values, limit, callback) {
-  const output = new Array(values.length);
-  let next = 0;
-
-  await Promise.all(
-    Array.from({ length: limit }, async () => {
-      while (next < values.length) {
-        const index = next++;
-
-        output[index] = await callback(values[index]);
-      }
-    })
-  );
-
-  return output;
-}
-
-function constantName(value) {
-  return String(value || '')
-    .normalize('NFKD')
-    .replace(/['\u2019]/g, '')
-    .replace(/[^a-z0-9]+/gi, '_')
-    .replace(/^_+|_+$/g, '')
-    .toUpperCase();
 }
 
 // Generates pet records against the same fetched skill snapshot used by the

@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import {
+  gw2ActivePrimaryWeapon,
+  gw2ConfiguredWeaponSet,
+  gw2PrimaryWeapon
+} from '#gw2/platform/equipment/weapons/loadout.js';
 
 test('configured weapon accessors read the caller-selected set without fallback', () => {
   const config = {
@@ -20,4 +24,12 @@ test('configured weapon accessors normalize non-second sets and tolerate absent 
   assert.deepEqual(gw2ConfiguredWeaponSet({ primaryWeapon: 'Dagger' }, 0), ['Dagger', undefined]);
   assert.deepEqual(gw2ConfiguredWeaponSet(undefined, 2), [undefined, undefined]);
   assert.equal(gw2PrimaryWeapon(undefined, 1), undefined);
+});
+
+test('active primary weapon prefers the selected set and falls back to set 1', () => {
+  const config = { primaryWeapon: 'Sword', weaponSet2Primary: 'Longbow' };
+
+  assert.equal(gw2ActivePrimaryWeapon(config, 2), 'Longbow');
+  assert.equal(gw2ActivePrimaryWeapon({ primaryWeapon: 'Sword' }, 2), 'Sword');
+  assert.equal(gw2ActivePrimaryWeapon(undefined, 2), undefined);
 });

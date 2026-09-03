@@ -9,7 +9,7 @@ import type { SimulationEventInput, Skill } from '#gw2/platform/engine/types.js'
 import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2WeaponStrengthProfile } from '#gw2/platform/equipment/types.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 const PROFILE_ROWS: ReadonlyArray<readonly [string, number, number]> = Object.freeze([
   ['weapon.axe', 900, 1100],
@@ -200,7 +200,7 @@ export function weaponStrengthProfileIdForEvent(
 
   if (event.weaponStrengthSource === 'equipped') {
     const activeSet = Number(state?.activeWeaponSet) === 2 ? 2 : 1;
-    const configured = gw2PrimaryWeapon(config, activeSet) || gw2PrimaryWeapon(config, 1);
+    const configured = gw2ActivePrimaryWeapon(config, activeSet);
     const profile = weaponStrengthProfileForName(configured);
     if (profile) return profile.id;
   }
@@ -240,6 +240,6 @@ export function weaponStrengthProfileIdForEvent(
   // This final configured-weapon branch only runs in the scheduler, where the
   // active set still represents activation time.
   const activeSet = Number(state?.activeWeaponSet) === 2 ? 2 : 1;
-  const configured = gw2PrimaryWeapon(config, activeSet) || gw2PrimaryWeapon(config, 1);
+  const configured = gw2ActivePrimaryWeapon(config, activeSet);
   return weaponStrengthProfileForName(configured)?.id || null;
 }
