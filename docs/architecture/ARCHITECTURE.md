@@ -1,7 +1,8 @@
 # Profession-neutral simulator architecture
 
 How the simulator is composed, the contracts each layer exposes, and the workflow for adding a profession. For a
-directory-level reference of what each module and folder owns, see [MODULES.md](./MODULES.md).
+directory-level reference of what each module and folder owns, see [MODULES.md](./MODULES.md). For rotation, scheduler
+task, and same-time resolver event ordering, see [SKILL-EVENT-ORDERING.md](./SKILL-EVENT-ORDERING.md).
 
 ## Contents
 
