@@ -1,4 +1,7 @@
-/** Applies Core Elementalist one-shot, weapon, and attunement recharge policy. */
+/**
+ * Owns Core Elementalist cross-cast recharge policy and one-shot modifier consumption.
+ * Skill fragments declare base cooldowns; persistent systems decide when and how they recharge.
+ */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -22,7 +25,7 @@ export function modifyElementalistRechargeDuration(
 ): number {
   const skill = context.skill;
   if (!skill) return duration;
-  // The summon owns this recharge: `elementals.ts` starts the glyph cooldown
+  // The summon owns this recharge: `mechanics/elementals/runtime.ts` starts the glyph cooldown
   // when the elemental expires, so the cast itself must not start one.
   if (skill.id === ID.GLYPH_OF_ELEMENTALS) return 0;
   const state = professionCoreState(context);

@@ -25,7 +25,7 @@ import { getActiveTraits } from '#gw2/content/professions/elementalist/data/trai
 
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/content/professions/elementalist/core/state.js';
 import { elementalistUiState } from '#gw2/content/professions/elementalist/core/presentation.js';
-import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import type { ElementalistBuildSpecialization } from '#gw2/content/professions/elementalist/build/types.js';
 
 const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));

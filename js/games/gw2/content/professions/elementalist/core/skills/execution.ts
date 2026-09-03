@@ -1,4 +1,7 @@
-/** Owns Core Elementalist cast effects shared by weapon and slot skill families. */
+/**
+ * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
+ * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
+ */
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
@@ -36,18 +39,18 @@ import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistSchedulerContext
 } from '#gw2/content/professions/elementalist/types.js';
-import { applyConjureState } from '#gw2/content/professions/elementalist/core/skills/conjures.js';
+import { applyConjureState } from '#gw2/content/professions/elementalist/core/mechanics/conjures.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   beginElementalistGlyphCast,
   completeElementalistElementalCommand,
   completeElementalistGlyphCast
-} from '#gw2/content/professions/elementalist/core/skills/elementals.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/elementals/runtime.js';
 import {
   applyHammerState,
   scheduleGrandFinaleProfile
-} from '#gw2/content/professions/elementalist/core/skills/hammer.js';
-import { applyPistolState } from '#gw2/content/professions/elementalist/core/skills/pistol.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { applyPistolState } from '#gw2/content/professions/elementalist/core/mechanics/pistol-bullets.js';
 
 /** scheduleSkill hook: offers the cast to the Grand Finale profile, which reports true when it authored the packets itself. */
 export function scheduleElementalistSkill(context: ElementalistLifecycleContext, skill: Skill): boolean {

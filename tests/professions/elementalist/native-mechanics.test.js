@@ -15,7 +15,7 @@ import { elementalistCatalog } from '#gw2/content/professions/elementalist/catal
 import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
 import { targetAttunement } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import { createElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
-import { applyPistolState } from '#gw2/content/professions/elementalist/core/skills/pistol.js';
+import { applyPistolState } from '#gw2/content/professions/elementalist/core/mechanics/pistol-bullets.js';
 import { elementalistCoreModifierRules } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import { availability as evokerAvailability } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/availability.js';

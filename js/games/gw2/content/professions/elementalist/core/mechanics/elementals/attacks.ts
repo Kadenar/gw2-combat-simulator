@@ -1,8 +1,12 @@
+/**
+ * Owns elemental attack identities and their immutable runtime profile selection.
+ * Scheduler lifecycle and packet execution live in `runtime.ts`.
+ */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
-} from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/elementals/profiles.js';
 
 export type ElementalKind = 'Fire' | 'Earth';
 export type ElementalImpact =

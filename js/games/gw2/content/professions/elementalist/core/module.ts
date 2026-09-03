@@ -7,8 +7,8 @@ import {
   elementalistOnCastComplete,
   elementalistOnCastStart,
   scheduleElementalistSkill
-} from '#gw2/content/professions/elementalist/core/skills/cast-effects.js';
-import { elementalistCoreCastRules } from '#gw2/content/professions/elementalist/core/skills/recharge.js';
+} from '#gw2/content/professions/elementalist/core/skills/execution.js';
+import { elementalistCoreCastRules } from '#gw2/content/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistCoreAttributeRules } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
 import { projectElementalistEndState } from '#gw2/content/professions/elementalist/state.js';
 import { createElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
@@ -35,12 +35,12 @@ import { prepareElementalistHitboxEvent } from '#gw2/content/professions/element
 import {
   advanceElementalistState,
   observeElementalistEvent
-} from '#gw2/content/professions/elementalist/core/mechanics/transient-state.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/scheduler-state.js';
 import { elementalistWeaponStateTaskHandlers } from '#gw2/content/professions/elementalist/core/mechanics/weapon-state.js';
 import {
   elementalistElementalCompanionId,
   elementalistElementalTaskHandlers
-} from '#gw2/content/professions/elementalist/core/skills/elementals.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/elementals/runtime.js';
 
 /** Registers ordered Core Elementalist hooks while implementations stay with their owning concepts. */
 const elementalistCoreSchedulerHooks = Object.freeze({

@@ -1,7 +1,7 @@
 /**
  * Log-derived damage and timing constants for the Glyph of Elementals summons.
  *
- * Pure data: the elemental subsystem in `elementals.ts` reads lifetimes, packet
+ * Pure data: the elemental subsystem in `runtime.ts` reads lifetimes, packet
  * timings, and post-expiry recharge from these profiles, so every field here
  * directly shapes simulated elemental output.
  */

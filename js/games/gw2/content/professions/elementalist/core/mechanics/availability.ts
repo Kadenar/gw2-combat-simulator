@@ -22,13 +22,13 @@ import {
   HAMMER_ORB_SKILLS
 } from '#gw2/content/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
-import { elementalistElementalAvailability } from '#gw2/content/professions/elementalist/core/skills/elementals.js';
+import { elementalistElementalAvailability } from '#gw2/content/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { targetAttunement } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import { projectedFreshAirReadyAt } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   activeHammerOrbElements,
   hammerOrbMatchesAttunement
-} from '#gw2/content/professions/elementalist/core/skills/hammer.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { activeAura, etchingChain, skillWeapon } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   elementalistEnduranceRegenerationRate,

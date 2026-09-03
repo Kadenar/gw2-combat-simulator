@@ -6,18 +6,12 @@
  * Glyph of Elementals summons.
  *
  * These are pure data fragments — no behavior. Anything stateful is delegated by marker field:
- * `elementalistStateMachine` hands the skill to a subsystem (core/skills/elementals.ts for the
- * summons), and `mechanicTriggers` names a handler in core/skills/cast-effects.ts.
+ * `elementalistStateMachine` hands the skill to a subsystem (`core/mechanics/elementals/` for
+ * summons), and `mechanicTriggers` names a handler in `core/skills/execution.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
-import {
-  CAST_SCALED_PACKET_TIMING,
-  GLYPH_OF_STORMS_AIR_STRIKE_TICK_LAYERS,
-  GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS,
-  GLYPH_OF_STORMS_WATER_STRIKE_TICKS
-} from '#gw2/content/professions/elementalist/core/skills/skill-timelines.js';
 
 /**
  * Skill-id → fragment table for the Core heal, utility, and elite slot skills. Entries are keyed
@@ -91,7 +85,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // --- Arcane -----------------------------------------------------------------
   // Blast and Wave are ammo skills: `cooldown` is the short between-charge lockout while
   // `ammoRecharge` refills a charge. Arcane Echo carries no packets — its recast window is
-  // driven from core/skills/cast-effects.ts.
+  // driven from core/skills/execution.ts.
   [ID.ARCANE_BLAST]: {
     name: 'Arcane Blast',
     type: 'Utility',
@@ -177,8 +171,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   // --- Conjures ---------------------------------------------------------------
   // Summoning a bundle has no packets of its own; the cast swaps the equipped conjure and arms
-  // the ground pickup in core/skills/conjures.ts, and the bundle's weapon skills live in
-  // misc-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
+  // the ground pickup in core/mechanics/conjures.ts, and the bundle's weapon skills live in
+  // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
   [ID.CONJURE_FROST_BOW]: {
     name: 'Conjure Frost Bow',
     type: 'Utility',
@@ -310,7 +304,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+        ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
           coefficient: 0.5,
           damageKind: 'field-tick'
@@ -320,7 +314,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       },
       {
         type: 'condition',
-        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+        ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
           condition: 'Burning',
           stacks: 1,
@@ -342,15 +336,39 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 30,
     skillFamily: 'Glyph',
     effects: [
-      strikeTimeline(GLYPH_OF_STORMS_WATER_STRIKE_TICKS, CAST_SCALED_PACKET_TIMING),
+      strikeTimeline(
+        [
+          { atMs: 1600, coefficient: 0.8 },
+          { atMs: 1920, coefficient: 0.72 },
+          { atMs: 2240, coefficient: 0.64 },
+          { atMs: 2560, coefficient: 0.56 },
+          { atMs: 2880, coefficient: 0.48 },
+          { atMs: 3200, coefficient: 0.4 },
+          { atMs: 3520, coefficient: 0.32 },
+          { atMs: 3840, coefficient: 0.32 },
+          { atMs: 4160, coefficient: 0.32 },
+          { atMs: 4480, coefficient: 0.32 },
+          { atMs: 4800, coefficient: 0.32 },
+          { atMs: 5120, coefficient: 0.32 },
+          { atMs: 5440, coefficient: 0.32 },
+          { atMs: 5760, coefficient: 0.32 },
+          { atMs: 6080, coefficient: 0.32 },
+          { atMs: 6400, coefficient: 0.32 },
+          { atMs: 6720, coefficient: 0.32 },
+          { atMs: 7040, coefficient: 0.32 }
+        ],
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      ),
       conditionTimeline(
-        GLYPH_OF_STORMS_WATER_STRIKE_TICKS.map(({ atMs }) => ({
+        [
+          1600, 1920, 2240, 2560, 2880, 3200, 3520, 3840, 4160, 4480, 4800, 5120, 5440, 5760, 6080, 6400, 6720, 7040
+        ].map((atMs) => ({
           atMs,
           condition: 'Chilled',
           stacks: 1,
           duration: 3
         })),
-        CAST_SCALED_PACKET_TIMING
+        { timingAnchor: 'castStart', timingScale: 'cast' }
       )
     ]
   },
@@ -365,8 +383,49 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     quicknessCastTimeMs: 1120,
     cooldown: 60,
     skillFamily: 'Glyph',
-    effects: GLYPH_OF_STORMS_AIR_STRIKE_TICK_LAYERS.flatMap((ticks) => [
-      strikeTimeline(ticks, CAST_SCALED_PACKET_TIMING),
+    effects: [
+      [
+        { atMs: 880, coefficient: 0.825 },
+        { atMs: 1400, coefficient: 0.70125 },
+        { atMs: 1560, coefficient: 0.66 },
+        { atMs: 1680, coefficient: 0.61875 },
+        { atMs: 1890, coefficient: 0.5775 },
+        { atMs: 2200, coefficient: 0.53625 },
+        { atMs: 2400, coefficient: 0.495 },
+        { atMs: 2480, coefficient: 0.45375 },
+        { atMs: 2840, coefficient: 0.4125 },
+        { atMs: 2880, coefficient: 0.37125 },
+        { atMs: 3280, coefficient: 0.33 },
+        { atMs: 3400, coefficient: 0.28875 },
+        { atMs: 3480, coefficient: 0.2475 },
+        { atMs: 3880, coefficient: 0.2475 },
+        { atMs: 4080, coefficient: 0.2475 },
+        { atMs: 4160, coefficient: 0.2475 },
+        { atMs: 4400, coefficient: 0.2475 },
+        { atMs: 4800, coefficient: 0.2475 },
+        { atMs: 4880, coefficient: 0.2475 },
+        { atMs: 5400, coefficient: 0.2475 },
+        { atMs: 5440, coefficient: 0.2475 },
+        { atMs: 5680, coefficient: 0.2475 },
+        { atMs: 5880, coefficient: 0.2475 },
+        { atMs: 6080, coefficient: 0.2475 },
+        { atMs: 6400, coefficient: 0.2475 },
+        { atMs: 6480, coefficient: 0.2475 },
+        { atMs: 6760, coefficient: 0.2475 },
+        { atMs: 7290, coefficient: 0.2475 },
+        { atMs: 7400, coefficient: 0.2475 },
+        { atMs: 8040, coefficient: 0.2475 },
+        { atMs: 8080, coefficient: 0.2475 },
+        { atMs: 8880, coefficient: 0.2475 },
+        { atMs: 9680, coefficient: 0.2475 }
+      ],
+      [
+        { atMs: 880, coefficient: 0.78375 },
+        { atMs: 4880, coefficient: 0.2475 }
+      ],
+      [{ atMs: 880, coefficient: 0.7425 }]
+    ].flatMap((ticks) => [
+      strikeTimeline(ticks, { timingAnchor: 'castStart', timingScale: 'cast' }),
       conditionTimeline(
         ticks.map(({ atMs }) => ({
           atMs,
@@ -374,7 +433,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
           stacks: 2,
           duration: 8
         })),
-        CAST_SCALED_PACKET_TIMING
+        { timingAnchor: 'castStart', timingScale: 'cast' }
       )
     ])
   },
@@ -392,7 +451,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+        ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
           coefficient: 0.045454545454545456,
           damageKind: 'field-tick'
@@ -402,7 +461,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       },
       {
         type: 'condition',
-        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+        ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
           condition: 'Bleeding',
           stacks: 1,
@@ -560,7 +619,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
   // packets themselves: `elementalistStateMachine: 'summoned-elemental'` routes the cast to the
-  // companion subsystem in core/skills/elementals.ts, which owns the summon's lifetime, attack
+  // companion subsystem in core/mechanics/elementals/, which owns the summon's lifetime, attack
   // loop, and post-expiry recharge — that subsystem also blocks a recast while the elemental is
   // alive and re-arms the cooldown from the moment it expires.
   [ID.GLYPH_OF_ELEMENTALS]: {

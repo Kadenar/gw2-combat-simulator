@@ -1,4 +1,7 @@
-/** Catalyst Elementalist skill mechanics. */
+/**
+ * Owns Catalyst Jade Sphere and augment skill catalog fragments only.
+ * Energy, sphere, and empowerment state lives under `mechanics/`.
+ */
 import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/content/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';

@@ -1,4 +1,7 @@
-/** Tempest Elementalist skill mechanics. */
+/**
+ * Owns Tempest overload and slot-skill catalog fragments only.
+ * Persistent overload and aura behavior lives under `mechanics/`.
+ */
 import { TEMPEST_OVERLOAD_EFFECTS } from '#gw2/content/professions/elementalist/specializations/tempest/mechanics/overload-effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';

@@ -1,3 +1,7 @@
+/**
+ * Owns Tempest resolver reactions to accepted Elementalist auras.
+ * Core aura application and shared resolver helpers remain under Core mechanics.
+ */
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext

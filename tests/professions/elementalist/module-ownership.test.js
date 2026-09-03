@@ -7,10 +7,8 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elemental
 import { catalystModule } from '#gw2/content/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '#gw2/content/professions/elementalist/specializations/evoker/module.js';
 import { weaverModule } from '#gw2/content/professions/elementalist/specializations/weaver/module.js';
-import {
-  WEAVER_SKILL_MECHANICS,
-  weaverDualAttunements
-} from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { WEAVER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
 
 const SPECIALIZATION_STATE_KEYS = Object.freeze({
   Tempest: ['latentStaminaReadyAt'],

@@ -4,7 +4,7 @@
  * Covers slots 1-3 in all four attunements plus the attunement-independent
  * Elemental Explosion. Most slot-2 and slot-3 skills either stock or spend an
  * elemental bullet; the bullet bookkeeping and the bonus effects a spent bullet
- * unlocks live in `core/skills/pistol.ts`, not in these fragments.
+ * unlocks live in `core/mechanics/pistol-bullets.ts`, not in these fragments.
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';

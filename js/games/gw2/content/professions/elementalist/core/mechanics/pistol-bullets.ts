@@ -1,9 +1,9 @@
 /**
- * Core pistol bullet mechanics.
+ * Owns Core pistol-bullet loading, consumption, and enhanced payloads.
  *
  * Each elemental pistol skill either loads its element's bullet or spends an
  * already loaded one for an enhanced payload; this module owns that flip at
- * cast completion. Pistol skill data lives in `weapons/pistol.ts`.
+ * cast completion. Pistol skill fragments live in `skills/weapons/pistol.ts`.
  */
 import {
   balanceProfileEffectFromContext,
@@ -86,12 +86,12 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       );
     } else if (skill.id === ID.DAZING_DISCHARGE) {
       // Arms a window that shortens the next pistol skill's recharge; the
-      // reduction is consumed in `recharge.ts`.
+      // reduction is consumed in `mechanics/recharge.ts`.
       state.dazingDischargeUntil =
         at + balanceProfileValueFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier', 5);
     } else if (skill.id === ID.SHATTERING_STONE) {
       // Arms a limited number of player strikes inside a window; each armed hit
-      // is converted to Bleeding by the event observer in `transient-state.ts`.
+      // is converted to Bleeding by the event observer in `scheduler-state.ts`.
       state.shatteringStoneHitsRemaining = balanceProfileValueFromContext(
         context,
         PROFILE.shatteringStone,

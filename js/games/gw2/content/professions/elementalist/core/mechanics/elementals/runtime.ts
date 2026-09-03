@@ -1,8 +1,5 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 /**
- * Summoned-elemental subsystem for Glyph of Elementals (Fire / Earth).
+ * Owns the summoned-elemental lifecycle for Glyph of Elementals (Fire / Earth).
  *
  * An elemental is a scheduler-driven autonomous companion. Once summoned it runs
  * its own attack loop off three scheduler tasks:
@@ -22,6 +19,9 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
  * Auto-summon: when enabled and a glyph is slotted, the elemental is re-summoned on
  * combat start (or first offensive event) without an explicit cast in the rotation.
  */
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2BuffActiveForAudience,
@@ -46,7 +46,7 @@ import {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   ELEMENTAL_LIGHTNING_JOLT_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
-} from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import {
   elementalCommandName,
@@ -57,12 +57,12 @@ import {
   STOMP_ID,
   type ElementalImpact,
   type ElementalKind
-} from '#gw2/content/professions/elementalist/core/skills/elemental-runtime-profile.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/elementals/attacks.js';
 
 export {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
-} from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/elementals/profiles.js';
 
 // Payload carried by every elemental scheduler task. The two generation stamps are the
 // staleness guard; `impact`/`hitIndex` identify which hit of an action is landing.
@@ -81,10 +81,7 @@ const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 const ELEMENTAL_EXPIRE_TASK = 'elementalist.elemental-expire';
 const ELEMENTAL_TASK_OWNER = 'elementalist.summoned-elemental';
 
-export {
-  FLAME_BARRAGE_ID,
-  STOMP_ID
-} from '#gw2/content/professions/elementalist/core/skills/elemental-runtime-profile.js';
+export { FLAME_BARRAGE_ID, STOMP_ID } from '#gw2/content/professions/elementalist/core/mechanics/elementals/attacks.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };

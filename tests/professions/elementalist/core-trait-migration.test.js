@@ -321,11 +321,11 @@ function assertSourceOrder(source, startToken, orderedTokens) {
 
 test('Elementalist dispatchers preserve attunement, post-cast, event, and condition order', async () => {
   const root = new URL('../../../js/games/gw2/content/professions/elementalist/core/', import.meta.url);
-  const [indexSource, reactionsSource, transientSource, castsSource] = await Promise.all([
+  const [indexSource, reactionsSource, schedulerStateSource, castsSource] = await Promise.all([
     readFile(new URL('traits/index.ts', root), 'utf8'),
     readFile(new URL('mechanics/reactions.ts', root), 'utf8'),
-    readFile(new URL('mechanics/transient-state.ts', root), 'utf8'),
-    readFile(new URL('skills/cast-effects.ts', root), 'utf8')
+    readFile(new URL('mechanics/scheduler-state.ts', root), 'utf8'),
+    readFile(new URL('skills/execution.ts', root), 'utf8')
   ]);
 
   assertSourceOrder(indexSource, 'export function applyElementalistAttunementTraits', [
@@ -358,7 +358,7 @@ test('Elementalist dispatchers preserve attunement, post-cast, event, and condit
     'applyStrengthOfStone(context, event);',
     "if (event.condition === 'Burning') grantPersistingFlames(context, event);"
   ]);
-  assertSourceOrder(transientSource, 'export function advanceElementalistState', [
+  assertSourceOrder(schedulerStateSource, 'export function advanceElementalistState', [
     'processFreshAirCandidates(context, at);',
     'updateEndurance(context, state, at'
   ]);

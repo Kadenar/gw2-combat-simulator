@@ -1,4 +1,7 @@
-/** Advances and expires transient Core Elementalist state on the scheduler clock. */
+/**
+ * Owns Core Elementalist state maintenance performed by scheduler advance and event-observation hooks.
+ * Skill-family transitions remain with their named mechanics.
+ */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
@@ -11,7 +14,7 @@ import {
   observeElementalistTraitEvent,
   processFreshAirCandidates
 } from '#gw2/content/professions/elementalist/core/traits/index.js';
-import { observeElementalistElementalEvent } from '#gw2/content/professions/elementalist/core/skills/elementals.js';
+import { observeElementalistElementalEvent } from '#gw2/content/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { emitProfiledCondition } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { updateEndurance } from '#gw2/content/professions/elementalist/core/mechanics/endurance.js';
 

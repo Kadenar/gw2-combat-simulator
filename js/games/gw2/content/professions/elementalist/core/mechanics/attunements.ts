@@ -1,3 +1,7 @@
+/**
+ * Owns Core Elementalist attunement selection, recharge, and cast-completion transitions.
+ * Specializations may intercept the shared hooks but keep their extra state locally.
+ */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

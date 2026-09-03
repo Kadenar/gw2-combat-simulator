@@ -3,7 +3,7 @@
  *
  * Covers the main-hand slot 1-3 skills across all four attunements, including the
  * Earth-attunement Rock Barrier/Hurl flip pair. Declarative data only: the named
- * `mechanicTriggers` are implemented by `core/skills/cast-effects.ts`, and the table
+ * `mechanicTriggers` are implemented by `core/skills/execution.ts`, and the table
  * is merged into the Core skill catalog by `core/skills/index.ts`.
  */
 

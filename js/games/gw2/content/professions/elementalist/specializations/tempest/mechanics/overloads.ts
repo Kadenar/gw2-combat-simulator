@@ -31,7 +31,7 @@ import {
 } from '#gw2/content/professions/elementalist/core/traits/index.js';
 import { elementalistEventSkill } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import { setElementalistAttunementReadyAt } from '#gw2/content/professions/elementalist/core/state.js';
-import { armElementalistElementalLightningJolt } from '#gw2/content/professions/elementalist/core/skills/elementals.js';
+import { armElementalistElementalLightningJolt } from '#gw2/content/professions/elementalist/core/mechanics/elementals/runtime.js';
 import {
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID

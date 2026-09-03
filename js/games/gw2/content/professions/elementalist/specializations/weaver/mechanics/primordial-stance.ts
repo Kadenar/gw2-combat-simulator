@@ -1,3 +1,7 @@
+/**
+ * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
+ * Skill packet templates remain in `skills/slot-skills.ts`.
+ */
 import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

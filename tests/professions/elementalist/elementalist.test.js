@@ -24,7 +24,7 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/content/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/core/skills/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';

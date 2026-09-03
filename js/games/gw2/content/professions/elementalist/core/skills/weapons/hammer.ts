@@ -3,7 +3,7 @@
  *
  * Covers slots 1-5 in all four attunements plus the attunement-independent Grand
  * Finale flipover. The slot-3 skills create the elemental orbs that Grand Finale
- * spends; the orb bookkeeping itself lives in `core/skills/hammer.ts`.
+ * spends; the orb bookkeeping itself lives in `core/mechanics/hammer-orbs.ts`.
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';

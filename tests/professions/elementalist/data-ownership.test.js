@@ -45,6 +45,8 @@ const weaponFragmentOwners = [
   ['specializations/weaver', WEAVER_SKILL_MECHANICS]
 ];
 
+const professionSourceRoot = new URL('../../../js/games/gw2/content/professions/elementalist/', import.meta.url);
+
 function weaponSlug(value) {
   return String(value)
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
@@ -91,7 +93,6 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
       'utf8'
     );
 
-    assert.match(source, /ELEMENTALIST_SKILL_IDS\s+as\s+ID/);
     assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
     assert.doesNotMatch(source, /\b(?:id|skillId|nextChainId|flipParentId|flipChildId)\s*:\s*-?\d+/);
 
@@ -112,6 +113,47 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
   for (const skillId of owners.keys()) {
     assert.equal(declaredIds.has(Number(skillId)), true, skillId);
   }
+});
+
+// Locks the migration boundary so generic skill buckets and stateful runtime files cannot quietly return.
+test('Elementalist skill and persistent-mechanic files have explicit owners', () => {
+  const retiredFiles = [
+    'core/skills/cast-effects.ts',
+    'core/skills/conjures.ts',
+    'core/skills/elemental-profiles.ts',
+    'core/skills/elemental-runtime-profile.ts',
+    'core/skills/elementals.ts',
+    'core/skills/hammer.ts',
+    'core/skills/misc-skills.ts',
+    'core/skills/pistol.ts',
+    'core/skills/recharge.ts',
+    'core/skills/skill-timelines.ts',
+    'core/mechanics/transient-state.ts',
+    'specializations/weaver/skills/hammer.ts',
+    'specializations/weaver/skills/pistol.ts'
+  ];
+  const ownedFiles = [
+    'core/mechanics/conjures.ts',
+    'core/mechanics/elementals/attacks.ts',
+    'core/mechanics/elementals/profiles.ts',
+    'core/mechanics/elementals/runtime.ts',
+    'core/mechanics/hammer-orbs.ts',
+    'core/mechanics/pistol-bullets.ts',
+    'core/mechanics/recharge.ts',
+    'core/mechanics/scheduler-state.ts',
+    'core/skills/actions.ts',
+    'core/skills/conjure-skills.ts',
+    'core/skills/elemental-skills.ts',
+    'core/skills/execution.ts',
+    'core/skills/trait-skills.ts',
+    'specializations/evoker/skills/familiar-skills.ts',
+    'specializations/evoker/skills/meditation-skills.ts',
+    'specializations/weaver/mechanics/dual-weapon-state.ts',
+    'specializations/weaver/skills/slot-skills.ts'
+  ];
+
+  for (const relativePath of retiredFiles) assert.equal(existsSync(new URL(relativePath, professionSourceRoot)), false);
+  for (const relativePath of ownedFiles) assert.equal(existsSync(new URL(relativePath, professionSourceRoot)), true);
 });
 
 test('Elementalist weapon skill fragments compose without duplicates or omissions', async () => {

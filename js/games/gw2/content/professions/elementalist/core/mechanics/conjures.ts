@@ -1,3 +1,7 @@
+/**
+ * Owns conjured-bundle equip, pickup, and recharge state across casts.
+ * Conjure skill fragments live in `skills/conjure-skills.ts`.
+ */
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,

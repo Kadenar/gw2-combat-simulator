@@ -36,7 +36,6 @@ import {
 import { weaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/content/professions/elementalist/core/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
-import { applyWeaverPistolState } from '#gw2/content/professions/elementalist/specializations/weaver/skills/pistol.js';
 import {
   elementalistEventSkill,
   emitProfiledBuff,
@@ -50,9 +49,10 @@ import {
 } from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import {
   applyWeaverHammerState,
+  applyWeaverPistolState,
+  weaverDualAttunements,
   weaverHammerAvailability
-} from '#gw2/content/professions/elementalist/specializations/weaver/skills/hammer.js';
-import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+} from '#gw2/content/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import {
   applyWeaveSelfAttunement,
   handleWeaveSelfActivation,

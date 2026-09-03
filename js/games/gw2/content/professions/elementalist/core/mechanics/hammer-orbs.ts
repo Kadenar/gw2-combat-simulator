@@ -1,9 +1,9 @@
 /**
- * Core hammer orb mechanics.
+ * Owns Core hammer orb state, availability, and Grand Finale scheduling.
  *
  * Owns the orb timers the hammer attunement skills create and the Grand Finale
  * payload that spends them, plus the queries availability uses to gate both.
- * Hammer skill data itself lives in `weapons/hammer.ts`.
+ * Hammer skill fragments live in `skills/weapons/hammer.ts`.
  */
 import {
   balanceProfileEffectFromContext,
