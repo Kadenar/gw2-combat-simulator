@@ -14,6 +14,7 @@ import {
   numericEditValue,
   patchSearchText
 } from '#gw2/integrations/patches/app/model.js';
+import { editorState, loadEditorPayload, setNumericEdit } from '#gw2/integrations/patches/app/editor-state.js';
 import {
   balanceProfileAuthoringReference,
   balanceProfileEffectNumericFieldTier,
@@ -344,6 +345,42 @@ test('patch authoring numeric controls preserve stale live-value checks', () => 
   assert.equal(numericEditForValue(10, 10), undefined);
 });
 
+test('patch authoring editor state prunes a restored numeric edit', () => {
+  loadEditorPayload({
+    preview: null,
+    professions: [
+      {
+        professionId: 'warrior',
+        professionName: 'Warrior',
+        modules: []
+      }
+    ],
+    sourceFile: 'active-preview.ts'
+  });
+  const input = {
+    entity: 'effect',
+    id: '1',
+    field: 'duration',
+    current: 1,
+    effectIndex: 0,
+    tickIndex: 1
+  };
+
+  setNumericEdit({ ...input, next: 2 });
+  assert.deepEqual(editorState.draft.professions, {
+    warrior: {
+      skills: {
+        1: {
+          effects: [{ effectIndex: 0, tickIndex: 1, duration: { from: 1, to: 2 } }]
+        }
+      }
+    }
+  });
+
+  setNumericEdit({ ...input, next: 1 });
+  assert.equal(editorState.draft.professions, undefined);
+});
+
 test('patch authoring compacts empty edits without dropping numeric zero', () => {
   assert.deepEqual(
     compactPatchPreview({
@@ -502,7 +539,7 @@ test('patch authoring generates an overview and discards manual notes', () => {
 
 test('patch authoring UI uses an official source and read-only overview', async () => {
   const source = await readFile(
-    new URL('../../js/games/gw2/integrations/patches/app/index.ts', import.meta.url),
+    new URL('../../js/games/gw2/integrations/patches/app/render.ts', import.meta.url),
     'utf8'
   );
   const simulatorSource = await readFile(
