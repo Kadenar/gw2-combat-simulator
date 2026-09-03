@@ -278,8 +278,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.randomDistributionRunner.run?.();
   }
 
-  runRelicComparison(): void {
-    this.relicComparisonRunner.run?.();
+  runRelicComparison(initialStacks?: number): void {
+    this.relicComparisonRunner.run?.(initialStacks);
   }
 
   selectPatch(patchId: string): void {

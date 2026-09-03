@@ -1007,6 +1007,7 @@ test('Relic of Fireworks accepts weapon-strength profession mechanics', () => {
 test('Relic of Thorns adds +30 Condition Damage per stack to condition ticks', () => {
   const rotation = ['Grenade Kit', 'Poison Grenade', 'Shrapnel Grenade', { type: 'wait', durationMs: 60000 }];
   const withThorns = simulate('Amalgam', rotation, { relic: 'Thorns' });
+  const withStartingStacks = simulate('Amalgam', rotation, { relic: 'Thorns', initialThornsStacks: 5 });
   const withoutRelic = simulate('Amalgam', rotation, { relic: '' });
 
   // Thorns is a condition-damage attribute buff: strike output must be identical
@@ -1016,6 +1017,7 @@ test('Relic of Thorns adds +30 Condition Damage per stack to condition ticks', (
     withThorns.conditionDamage > withoutRelic.conditionDamage,
     `expected Thorns to raise condition damage (${withThorns.conditionDamage} vs ${withoutRelic.conditionDamage})`
   );
+  assert.ok(withStartingStacks.conditionDamage > withThorns.conditionDamage);
 
   // Stacks ramp on the display timeline: first at 3s, one more every 5s, capped at 10.
   const stackDetails = withThorns.procSteps
@@ -1024,6 +1026,16 @@ test('Relic of Thorns adds +30 Condition Damage per stack to condition ticks', (
 
   assert.equal(stackDetails[0], '1/10 stacks');
   assert.equal(stackDetails.at(-1), '10/10 stacks');
+  assert.deepEqual(
+    withStartingStacks.procSteps
+      .filter((step) => step.skill === 'Relic of Thorns')
+      .slice(0, 2)
+      .map((step) => [step.start, step.detail]),
+    [
+      [0, '5/10 stacks'],
+      [3000, '6/10 stacks']
+    ]
+  );
 });
 
 test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {

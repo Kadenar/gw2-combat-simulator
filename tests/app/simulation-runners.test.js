@@ -693,7 +693,7 @@ test('relic comparison scheduling publishes availability without simulating', ()
 test('relic comparison run simulates Thorns once and stores the break-even model', (t) => {
   runTimersImmediately(t);
   let renderCount = 0;
-  const simulatedRelics = [];
+  const simulatedConfigs = [];
   const results = minimalResult(4000);
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
@@ -710,7 +710,7 @@ test('relic comparison run simulates Thorns once and stores the break-even model
         };
       },
       simulateBuild(_rotation, config) {
-        simulatedRelics.push(config.relic);
+        simulatedConfigs.push(config);
 
         return minimalResult(4200);
       },
@@ -721,9 +721,14 @@ test('relic comparison run simulates Thorns once and stores the break-even model
   };
   const runner = new RelicComparisonRunner(app);
 
-  runner.run();
+  runner.run(4);
 
-  assert.deepEqual(simulatedRelics, ['Thorns'], 'exactly one Thorns simulation runs');
+  assert.deepEqual(
+    simulatedConfigs.map(({ relic, initialThornsStacks }) => ({ relic, initialThornsStacks })),
+    [{ relic: 'Thorns', initialThornsStacks: 4 }],
+    'exactly one Thorns simulation runs with the selected opening stacks'
+  );
+  assert.equal(results.relicComparisonInitialStacks, 4);
   assert.equal(results.relicComparisonStale, false);
   assert.equal(results.relicComparisonError, '');
   assert.ok(results.relicComparison, 'break-even model is stored');

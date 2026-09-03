@@ -4,6 +4,8 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { eventLogCsv } from '#gw2/app/presentation/results/event-log-view.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
 import { moveRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
@@ -1348,6 +1350,15 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
     equipped.procSteps.filter((proc) => proc.skill === 'Relic of Thorns').map((proc) => proc.start),
     [3000, 8000]
   );
+
+  // Mesmer uses the shared relic bonus once, including configured opening stacks.
+  const queryConfig = defaultSimulationConfig({ boons: {}, relic: 'Thorns', initialThornsStacks: 5 });
+  const query = createGw2CombatQuery({
+    profession: resolveProfessionRuntime(mesmerProfession, queryConfig),
+    config: queryConfig
+  });
+  assert.equal(query.statsAt(0).conditionDamage, 1150);
+  assert.equal(query.statsAt(3).conditionDamage, 1180);
 });
 
 test('weapon swap only starts its cooldown in combat', () => {

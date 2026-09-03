@@ -4,6 +4,7 @@ import type { SchedulerRecord, SimulationActorType, SimulationEvent, Skill } fro
 
 /** Minimal configuration surface consumed by relic rules. */
 export interface Gw2RelicConfig extends SchedulerRecord {
+  readonly initialThornsStacks?: number;
   readonly target?: {
     readonly health?: number;
   };

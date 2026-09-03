@@ -111,6 +111,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({ config, events });
   const historicalRelicContext = Object.freeze({
+    config,
     relic: createRelicTimelineRuntime(config.relic, events)
   });
   // `query` is assigned after `completedQuery` is constructed. Hook handlers

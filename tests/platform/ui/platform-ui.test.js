@@ -1136,6 +1136,36 @@ test('randomized DPS range waits for its calculate button', () => {
   assert.equal(runCount, 1);
 });
 
+test('Thorns comparison passes the selected starting stacks to the runner', () => {
+  const runButton = {};
+  const stackInput = { value: '4' };
+  const container = {
+    ...inertContainer(),
+    querySelector: (selector) =>
+      selector === '[data-role="relic-comparison-run"]'
+        ? runButton
+        : selector === '[data-role="relic-comparison-stacks"]'
+          ? stackInput
+          : null
+  };
+  let startingStacks = null;
+
+  mountRotationResults(
+    container,
+    { metrics: [], relicComparisonAvailable: true, relicComparisonInitialStacks: 4 },
+    {
+      onRunRelicComparison(value) {
+        startingStacks = value;
+      }
+    }
+  );
+
+  assert.match(container.innerHTML, /aria-label="Starting Thorns stacks"/);
+  assert.match(container.innerHTML, /min="0" max="10" step="1" value="4"/);
+  runButton.onclick();
+  assert.equal(startingStacks, 4);
+});
+
 test('randomized DPS range renders completed simulations and percentage progress', () => {
   const container = inertContainer();
 

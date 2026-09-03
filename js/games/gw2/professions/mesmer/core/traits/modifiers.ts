@@ -1,6 +1,5 @@
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -24,16 +23,10 @@ export function timedActive(context: Gw2ModifierContext, kind: string): boolean 
   return Boolean(context.timeline?.timedActive(kind, context.time));
 }
 
-function thornsStacksAt(time: number): number {
-  if (time < 3 - EPSILON) return 0;
-  return Math.min(10, Math.floor((time - 3 + EPSILON) / 5) + 1);
-}
-
-// Reconcile build-time Mesmer bonuses with live relic stacks, timed trait stacks,
-// and signet cooldowns so panel-visible attributes are neither lost nor doubled.
+// Reconcile build-time Mesmer bonuses with timed trait stacks and signet
+// cooldowns so panel-visible attributes are neither lost nor doubled.
 export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const selectedSkills = selectedSkillNameSet(context.config?.selectedSkills);
-  const thorns = context.config?.relic === 'Thorns' ? thornsStacksAt(context.time) * 30 : 0;
   const midnightSelected = selectedSkills.has('Signet of Midnight');
   const midnightBonus = balanceProfileValueFromContext(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180);
   const midnight = midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time) ? midnightBonus : 0;
@@ -63,7 +56,7 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
       ) *
         balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'attributePerStack', 15),
     conditionDamage:
-      Number(attributes.conditionDamage || 0) + thorns + (dominationSelected ? dominationBonus - 180 : 0) - domination,
+      Number(attributes.conditionDamage || 0) + (dominationSelected ? dominationBonus - 180 : 0) - domination,
     expertise:
       Number(attributes.expertise || 0) +
       chaoticExpertiseDelta +

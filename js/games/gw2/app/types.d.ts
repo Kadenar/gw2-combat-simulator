@@ -320,7 +320,7 @@ export interface ProfessionAppState {
   renderAssumptions(): void;
   addRotation(name: string, options?: RotationActionOptions): void;
   runRandomDistribution(): void;
-  runRelicComparison(): void;
+  runRelicComparison(initialStacks?: number): void;
   resetBuild(): void;
   selectPatch(patchId: string): void;
 }
@@ -371,6 +371,7 @@ export interface ProfessionAppResult extends Gw2SimulationResult {
   relicComparisonStale?: boolean;
   relicComparisonError?: string;
   relicComparisonOpponent?: string;
+  relicComparisonInitialStacks?: number;
   relicComparison?: RelicComparisonModel;
 }
 
@@ -437,7 +438,7 @@ export interface ProfessionRuntimeApi {
 export interface ProfessionFeatureRunner {
   readonly isRunning?: boolean;
   schedule(run?: boolean): void;
-  run?(): void;
+  run?(value?: number): void;
 }
 
 export interface Gw2AppCapabilities {

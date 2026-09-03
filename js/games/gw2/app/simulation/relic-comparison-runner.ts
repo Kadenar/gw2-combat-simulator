@@ -15,11 +15,13 @@ export class RelicComparisonRunner {
   readonly app: ProfessionAppState;
   timer: ReturnType<typeof setTimeout> | null;
   requestId: number;
+  initialStacks: number;
 
   constructor(app: ProfessionAppState) {
     this.app = app;
     this.timer = null;
     this.requestId = 0;
+    this.initialStacks = 0;
   }
 
   /**
@@ -49,6 +51,7 @@ export class RelicComparisonRunner {
     }
 
     results.relicComparisonAvailable = true;
+    results.relicComparisonInitialStacks = this.initialStacks;
     results.relicComparisonStale = false;
     results.relicComparisonError = '';
     // A cached model is only meaningful for the opponent it was computed against.
@@ -60,7 +63,7 @@ export class RelicComparisonRunner {
   }
 
   /** Runs the single comparison simulation and renders the break-even chart. */
-  run(): void {
+  run(initialStacks: number = this.initialStacks): void {
     const app = this.app;
     const requestId = ++this.requestId;
     if (this.timer !== null) clearTimeout(this.timer);
@@ -68,6 +71,9 @@ export class RelicComparisonRunner {
 
     const results = app.results;
     if (!results) return;
+    // User-entered stacks are whole and capped by the relic's in-game maximum.
+    this.initialStacks = Math.min(10, Math.max(0, Math.trunc(Number(initialStacks) || 0)));
+    results.relicComparisonInitialStacks = this.initialStacks;
     const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app) : null;
     if (!request) {
       this.schedule();
@@ -90,7 +96,8 @@ export class RelicComparisonRunner {
       try {
         const thornsResult = app.adapter.simulateBuild(request.rotation, {
           ...request.baseConfig,
-          relic: request.comparisonRelic
+          relic: request.comparisonRelic,
+          initialThornsStacks: this.initialStacks
         });
         const opponentSeries = buildChartSeries(opponentResult);
         const thornsSeries = buildChartSeries(thornsResult);
