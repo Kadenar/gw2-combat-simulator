@@ -220,6 +220,68 @@ test('Radiant Forge damage packets use measured cast-start offsets', () => {
   assert.deepEqual(result.warnings, []);
 });
 
+test('Sword Glaring Burst alternates its cadence and every weapon variant applies vulnerability', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Enter Radiant Forge',
+      'Dazzling Hammer',
+      'Glaring Burst',
+      'Luminous Staff',
+      'Glaring Burst',
+      'Gleaming Blade',
+      'Glaring Burst',
+      'Glaring Burst',
+      'Glaring Burst',
+      'Radiant Bulwark',
+      'Glaring Burst'
+    ],
+    config: { ...config, specialization: 'Luminary', boons: { quickness: true } }
+  });
+  const swordActions = result.events.filter(
+    (event) =>
+      event.type === 'action' &&
+      event.skillName === 'Glaring Burst' &&
+      event.at >= result.events.find((candidate) => candidate.skillName === 'Gleaming Blade').endsAt &&
+      event.at < result.events.find((candidate) => candidate.skillName === 'Radiant Bulwark').at
+  );
+  const swordDamage = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'damage' &&
+      event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST &&
+      event.metadata?.radiantWeapon === 'blade'
+  );
+  const vulnerability = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'condition' &&
+      event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST &&
+      event.condition === 'Vulnerability'
+  );
+  const variants = result.events
+    .filter((event) => event.type === 'action' && event.skillName === 'Glaring Burst')
+    .map((event) => event.detail);
+
+  assert.deepEqual(variants, [
+    'Variant: Hammer',
+    'Variant: Staff',
+    'Variant: Sword (fast)',
+    'Variant: Sword (slow)',
+    'Variant: Sword (fast)',
+    'Variant: Shield'
+  ]);
+  assert.deepEqual(
+    swordActions.map((event) => Math.round((event.endsAt - event.at) * 1000)),
+    [440, 680, 440]
+  );
+  assert.deepEqual(
+    swordDamage.map((event, index) => Math.round((event.at - swordActions[index].at) * 1000)),
+    [360, 440, 360]
+  );
+  assert.equal(vulnerability.length, 6);
+  assert.ok(vulnerability.every((event) => event.stacks === 1 && event.duration === 8));
+  assert.deepEqual(result.warnings, []);
+});
+
 test('Luminary Radiant Forge transitions reset weapon autoattack chains', () => {
   const result = simulateGw2({
     profession: guardianProfession,

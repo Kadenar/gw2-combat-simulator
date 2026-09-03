@@ -102,6 +102,7 @@ export interface GuardianLuminaryState {
   radiantForgeEnteredAt: number;
   radiantWeapon: string;
   radiantWeaponsUsed: Record<string, boolean>;
+  glaringBurstSwordSlow: boolean;
   empoweredArmamentsUntil: number;
   piercingStanceUntil: number;
   lightAuraUntil: number;

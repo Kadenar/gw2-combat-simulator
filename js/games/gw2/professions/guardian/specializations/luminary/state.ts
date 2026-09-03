@@ -9,6 +9,8 @@ export function createLuminaryState(): GuardianLuminaryState {
     radiantWeapon: '',
     // Tracks distinct weapon types so zero or one used weapon receives the reduced forge recharge.
     radiantWeaponsUsed: {},
+    // Sword Glaring Burst alternates fast then slow until the sword is equipped again.
+    glaringBurstSwordSlow: false,
     empoweredArmamentsUntil: 0,
     piercingStanceUntil: 0,
     lightAuraUntil: 0,

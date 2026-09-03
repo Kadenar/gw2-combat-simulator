@@ -9,12 +9,48 @@ import {
   advanceRadiantForgeState,
   radiantForgeAvailability
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
+import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import {
   observeLuminaryScheduledEvent,
   updateLuminaryTraitCastState
 } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { GuardianSchedulerContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type {
+  GuardianPrecastContext,
+  GuardianSchedulerContext,
+  GuardianSkill
+} from '#gw2/professions/guardian/types.js';
+
+const GLARING_BURST_VARIANT_LABELS: Readonly<Record<string, string>> = Object.freeze({
+  hammer: 'Hammer',
+  staff: 'Staff',
+  blade: 'Sword',
+  bulwark: 'Shield'
+});
+
+/** Labels each Glaring Burst action with the runtime-selected weapon variant for timeline tooltips. */
+function prepareGlaringBurstAction(
+  context: GuardianSchedulerContext,
+  event: SimulationEventInput
+): SimulationEventInput {
+  if (event.type !== 'action' || event.skillId !== GUARDIAN_SKILL_IDS.GLARING_BURST) return event;
+  const state = luminaryState.from(context);
+  const weapon = state.radiantWeapon;
+  const label = GLARING_BURST_VARIANT_LABELS[weapon] || 'No radiant weapon';
+  return {
+    ...event,
+    detail: `Variant: ${label}${weapon === 'blade' ? ` (${state.glaringBurstSwordSlow ? 'slow' : 'fast'})` : ''}`
+  };
+}
+
+/** Uses the sword variant's observed fast/slow cadence while preserving Quickness scaling. */
+function modifyGlaringBurstCastDuration(context: GuardianPrecastContext, duration: number): number {
+  if (context.skill.id !== GUARDIAN_SKILL_IDS.GLARING_BURST || luminaryState.from(context).radiantWeapon !== 'blade')
+    return duration;
+  const quicknessMs = luminaryState.from(context).glaringBurstSwordSlow ? 680 : 440;
+  return duration * (quicknessMs / Number(context.skill.quicknessCastTimeMs || 600));
+}
 
 /** Applies a stance modifier to its own impact or proc only when an older application was already active. */
 function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId: number, skillName: string): boolean {
@@ -107,6 +143,7 @@ export const luminaryAttributeRules = Object.freeze({
 });
 
 export const luminaryCastRules = Object.freeze({
+  modifyCastDuration: modifyGlaringBurstCastDuration,
   availability: Object.freeze([
     {
       id: 'guardian.radiant-forge',
@@ -130,6 +167,11 @@ export const luminarySkillMechanicHandlers = Object.freeze({
 });
 
 export const luminarySchedulerHooks = Object.freeze({
+  prepareEvent: Object.freeze({
+    id: 'guardian.glaring-burst-variant',
+    order: 20,
+    handler: prepareGlaringBurstAction
+  }),
   advance: Object.freeze([
     {
       id: 'guardian.radiant-forge',

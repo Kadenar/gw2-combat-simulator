@@ -738,6 +738,12 @@ export function renderTimeline(app: ProfessionAppState): void {
   element.classList.remove('is-empty');
   const results = currentTimelineResults(app);
   const resultSteps = results?.steps || [];
+  // Action details carry runtime-selected variants and other cast facts into the generic timeline tooltip.
+  const actionDetails = new Map(
+    (results?.events || [])
+      .filter((event) => event.type === 'action' && event.activationId && event.detail)
+      .map((event) => [String(event.activationId), String(event.detail)])
+  );
   // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
   const steps = new Map<number, SchedulerStep>(
     resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step])
@@ -1118,9 +1124,13 @@ export function renderTimeline(app: ProfessionAppState): void {
             `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`
           ]
         : [];
+      const actionDetail = step?.activationId ? actionDetails.get(step.activationId) : undefined;
       const skillTooltip =
         step && !invalid && item.type === 'cast'
-          ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, chargeOutcomeDetails)
+          ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, [
+              ...(actionDetail ? [actionDetail] : []),
+              ...chargeOutcomeDetails
+            ])
           : display;
       const titleSuffix = invalid
         ? `\n${step?.invalidReason || 'Not valid here — will not be simulated'}`

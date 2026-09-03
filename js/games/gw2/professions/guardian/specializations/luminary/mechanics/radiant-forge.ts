@@ -165,6 +165,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
   state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
   // Reset active weapon so traits don't carry stale weapon state across entries.
   state.radiantWeapon = '';
+  state.glaringBurstSwordSlow = false;
   // Autoattack chains must be wiped because the weapon bar changes entirely.
   resetAutoattackChains(context);
   if (entering) {
@@ -194,7 +195,10 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   // handler owns all output and must suppress on interrupt.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   if (skill.radiantWeapon && skill.flipParentId == null) {
-    luminaryState.from(context).radiantWeapon = skill.radiantWeapon;
+    const state = luminaryState.from(context);
+    state.radiantWeapon = skill.radiantWeapon;
+    // Equipping the sword restarts its Glaring Burst pattern on the fast attack.
+    if (skill.radiantWeapon === 'blade') state.glaringBurstSwordSlow = false;
     emitForgeWeaponSwap(context, skill);
   }
 
@@ -259,8 +263,14 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
   const elapsedMs = (context.effectiveEnd - context.start) * 1000;
   // A committed cancel keeps the earlier replacement packet; only a cancel
   // before the measured safe point suppresses it.
-  if (elapsedMs + context.epsilon * 1000 < Number(skill.interruptCommitMs || 0)) return;
-  const radiantWeapon = luminaryState.from(context).radiantWeapon;
+  if (
+    context.effectiveEnd < context.fullEnd - context.epsilon &&
+    elapsedMs + context.epsilon * 1000 < Number(skill.interruptCommitMs || 0)
+  )
+    return;
+  const state = luminaryState.from(context);
+  const radiantWeapon = state.radiantWeapon;
+  const swordSlow = radiantWeapon === 'blade' && state.glaringBurstSwordSlow;
   const profileId =
     radiantWeapon === 'hammer'
       ? PROFILE.glaringBurstHammer
@@ -271,20 +281,35 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
     balanceProfileEffect(profileId ? balanceProfileFromContext(context, profileId) : undefined, 'strike')
       ?.coefficient || 0
   );
-  if (coefficient <= 0) return;
   const runtimeCastMs = (context.fullEnd - context.start) * 1000;
-  const impactAt = context.start + projectCastRelativeEffectTimingMs(skill, runtimeCastMs, 480) / 1000;
-  context.emit(
-    buildGuardianStrike({
-      at: impactAt,
-      sourceId: skill.id,
-      skillId: skill.id,
-      skillName: skill.name,
-      name: skill.name,
-      coefficient,
-      metadata: { radiantWeapon }
-    })
-  );
+  // The linked sword trace lands its fast/slow packets at 360/440 ms; other variants retain the measured 480 ms path.
+  const impactMs =
+    radiantWeapon === 'blade'
+      ? runtimeCastMs * ((swordSlow ? 440 : 360) / (swordSlow ? 680 : 440))
+      : projectCastRelativeEffectTimingMs(skill, runtimeCastMs, 480);
+  const impactAt = context.start + impactMs / 1000;
+  if (radiantWeapon === 'blade') state.glaringBurstSwordSlow = !swordSlow;
+  if (coefficient > 0) {
+    context.emit(
+      buildGuardianStrike({
+        at: impactAt,
+        sourceId: skill.id,
+        skillId: skill.id,
+        skillName: skill.name,
+        name: skill.name,
+        coefficient,
+        metadata: { radiantWeapon }
+      })
+    );
+  }
+
+  // Apply vulnerability after the simultaneous strike so it affects later attacks, not its own packet.
+  emitSkillCondition(context, skill, {
+    at: impactAt,
+    condition: 'Vulnerability',
+    stacks: 1,
+    duration: 8
+  });
 }
 
 /**
@@ -370,6 +395,7 @@ export function advanceRadiantForgeState(context: GuardianSchedulerContext, targ
     state.radiantForgeEndsAt = 0;
     state.radiantForgeEnteredAt = 0;
     state.radiantWeapon = '';
+    state.glaringBurstSwordSlow = false;
     resetAutoattackChains(context);
     professionCoreState(context).availableFlips = {};
   }
