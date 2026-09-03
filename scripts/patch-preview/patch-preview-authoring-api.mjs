@@ -5,7 +5,7 @@
  *   import { createPatchPreviewAuthoringApi } from './patch-preview-authoring-api.mjs';
  *   const handlePatchPreviewAuthoring = createPatchPreviewAuthoringApi({ root, buildRoot });
  */
-import { writeFile } from 'node:fs/promises';
+import { writeFile as writeFileToDisk } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -119,7 +119,7 @@ export function validateAuthoringPreview(preview, runtime) {
 }
 
 // Creates a patch preview authoring API handler for the given root and buildRoot directories.
-export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
+export function createPatchPreviewAuthoringApi({ root, buildRoot, writeFile = writeFileToDisk }) {
   const sourceFile = path.join(root, 'js', 'games', 'gw2', 'integrations', 'patches', 'active-preview.ts');
   let runtimePromise;
   let savedPreview;
@@ -186,7 +186,10 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
       const candidate = isRecord(body) && 'preview' in body ? body.preview : body;
       const validated = validateAuthoringPreview(candidate, runtime);
 
-      saveQueue = saveQueue.then(() => writeFile(sourceFile, serializeActivePatchPreview(validated), 'utf8'));
+      // Recover a failed predecessor without hiding this request's own write failure.
+      saveQueue = saveQueue
+        .catch(() => undefined)
+        .then(() => writeFile(sourceFile, serializeActivePatchPreview(validated), 'utf8'));
       await saveQueue;
       savedPreview = validated;
       jsonResponse(response, 200, {

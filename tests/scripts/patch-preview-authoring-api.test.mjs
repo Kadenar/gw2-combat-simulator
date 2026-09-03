@@ -41,6 +41,43 @@ test('patch authoring API loads the compiled GW2 runtime', async () => {
   assert.equal(JSON.parse(response.body).sourceFile, 'js/games/gw2/integrations/patches/active-preview.ts');
 });
 
+test('patch authoring save queue recovers after a failed write', async () => {
+  const preview = { id: 'queue-test', label: 'Queue Test' };
+  const request = () => ({
+    method: 'PUT',
+    async *[Symbol.asyncIterator]() {
+      yield Buffer.from(JSON.stringify(preview));
+    }
+  });
+  const response = () => ({
+    end(body) {
+      this.body = body;
+    },
+    writeHead(status) {
+      this.status = status;
+    }
+  });
+  let writeAttempts = 0;
+  const handle = createPatchPreviewAuthoringApi({
+    root: process.cwd(),
+    buildRoot: path.join(process.cwd(), 'dist'),
+    writeFile: async () => {
+      writeAttempts += 1;
+      if (writeAttempts === 1) throw new Error('Temporary write failure.');
+    }
+  });
+  const failed = response();
+  const succeeded = response();
+
+  await handle(request(), failed, '/api/patch-preview');
+  await handle(request(), succeeded, '/api/patch-preview');
+
+  assert.equal(failed.status, 500);
+  assert.equal(JSON.parse(failed.body).error, 'Temporary write failure.');
+  assert.equal(succeeded.status, 200);
+  assert.equal(writeAttempts, 2);
+});
+
 test('patch authoring validation dispatches each profession patch', () => {
   const validatedPatches = [];
   const runtime = {
