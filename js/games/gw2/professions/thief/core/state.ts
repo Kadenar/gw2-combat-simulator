@@ -1,6 +1,6 @@
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { ThiefConfig, ThiefCoreState } from '#gw2/professions/thief/types.js';
 
 export const THIEF_BASE_HEALTH = 1645;
@@ -12,9 +12,7 @@ export function snapshotThiefState<TState extends object = Record<string, unknow
 
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
   // State initialization normalizes the canonical trait-ID selection once.
-  return new Set(
-    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
-  );
+  return normalizeSelectedTraitIds(config.selectedTraitIds);
 }
 
 export function thiefBaseMaximumHealth(config: ThiefConfig = {}): number {

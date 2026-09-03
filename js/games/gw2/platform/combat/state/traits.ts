@@ -14,6 +14,11 @@ export interface Gw2TraitLookupContext extends Gw2TraitLookupConfig {
   readonly catalog?: { readonly traits?: readonly CatalogEntity[] | null } | null;
 }
 
+/** Normalizes selected trait IDs once so runtime membership checks use stable numeric IDs where possible. */
+export function normalizeSelectedTraitIds(values?: readonly SkillId[] | null): Set<SkillId> {
+  return new Set((values || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value)));
+}
+
 function lookupContext(value: unknown): Gw2TraitLookupContext | null {
   return typeof value === 'object' && value !== null ? (value as Gw2TraitLookupContext) : null;
 }

@@ -1,5 +1,5 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerConfig, NecromancerCoreState } from '#gw2/professions/necromancer/types.js';
 
@@ -69,9 +69,7 @@ export function syncNecromancerResources<TState extends NecromancerCoreState>(st
 /** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
 export function createNecromancerCoreState(config: NecromancerConfig = {}): NecromancerCoreState {
   // Normalize canonical selected IDs once for all initial state calculations.
-  const traits = new Set(
-    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
-  );
+  const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
   const soulBattery = hasTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY);
   const maximumLifeForce = soulBattery ? 120 : 100;
   const maximumHealth = necromancerMaximumHealth(config, traits);

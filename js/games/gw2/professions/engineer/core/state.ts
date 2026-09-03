@@ -1,4 +1,5 @@
 import type { SkillId } from '#gw2/platform/engine/types.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { EngineerConfig, EngineerCoreState } from '#gw2/professions/engineer/types.js';
 
 // Core owns the stable public fields that exist for every Engineer runtime.
@@ -18,9 +19,7 @@ export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
 
 /** Normalizes canonical trait IDs for state initialization and runtime membership checks. */
 export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId> {
-  return new Set(
-    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
-  );
+  return normalizeSelectedTraitIds(config.selectedTraitIds);
 }
 
 /** Creates a fresh Core Engineer state with resources, kit state, flips, and proc windows reset. */
