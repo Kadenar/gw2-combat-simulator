@@ -131,8 +131,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'spear-followup'
+    ]
   },
   [ID.METEOR]: {
     name: 'Meteor',
@@ -189,8 +188,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   // Early payoff: six eruption packets whose coefficients decay from 0.63 down to 0.315.
   [ID.LESSER_VOLCANO]: {
@@ -270,8 +268,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   // Full payoff: twelve eruption packets decaying from 1.21 to a 0.05 floor.
   [ID.VOLCANO]: {
@@ -304,8 +301,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   [ID.RESTORATIVE_SPEAR]: {
     name: 'Restorative Spear',
@@ -437,8 +433,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [],
-    elementalistStateMachine: 'spear-followup'
+    effects: []
   },
   [ID.UNDERTOW]: {
     name: 'Undertow',
@@ -491,8 +486,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [],
-    elementalistStateMachine: 'spear-etching'
+    effects: []
   },
   [ID.LESSER_JO_KULHLAUP]: {
     name: 'Lesser Jökulhlaup',
@@ -516,8 +510,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   [ID.JO_KULHLAUP]: {
     name: 'Jökulhlaup',
@@ -541,8 +534,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   [ID.LIGHTNING_JAVELIN]: {
     name: 'Lightning Javelin',
@@ -755,8 +747,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'spear-followup'
+    ]
   },
   [ID.TWISTER]: {
     name: 'Twister',
@@ -842,8 +833,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   [ID.LESSER_DERECHO]: {
     name: 'Lesser Derecho',
@@ -876,8 +866,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         controlKind: 'crowd-control'
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   [ID.DERECHO]: {
     name: 'Derecho',
@@ -910,8 +899,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         controlKind: 'crowd-control'
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   [ID.STONE_STRIKE]: {
     name: 'Stone Strike',
@@ -1014,8 +1002,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [],
-    elementalistStateMachine: 'spear-followup'
+    effects: []
   },
   [ID.FISSURE]: {
     name: 'Fissure',
@@ -1088,8 +1075,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [],
-    elementalistStateMachine: 'spear-etching'
+    effects: []
   },
   [ID.LESSER_HABOOB]: {
     name: 'Lesser Haboob',
@@ -1135,8 +1121,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   },
   // Full payoff: the Lesser version's strike and blind plus Vulnerability and Weakness.
   [ID.HABOOB]: {
@@ -1211,7 +1196,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'spear-etching'
+    ]
   }
 });

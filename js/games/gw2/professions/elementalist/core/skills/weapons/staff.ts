@@ -846,8 +846,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    elementalistStateMachine: 'aura-transmute'
+    ]
   },
   [ID.UNSTEADY_GROUND]: {
     name: 'Unsteady Ground',

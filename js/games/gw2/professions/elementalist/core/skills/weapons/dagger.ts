@@ -412,8 +412,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     skillFamily: 'Weapon skill',
     effects: []
   },
-  // Consumes the Frost Aura and flips the slot back to Frost Aura; the `aura-transmute` marker keeps
-  // the flipover visible to rotation loop analysis as a state-gated action.
+  // Consumes the Frost Aura and flips the slot back to Frost Aura.
   [ID.TRANSMUTE_FROST]: {
     name: 'Transmute Frost',
     type: 'Weapon',
@@ -447,8 +446,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'aura-transmute'
+    ]
   },
   // Heal/cleanse only: no offensive packets, so the fragment exists to occupy cast time and recharge.
   [ID.CLEANSING_WAVE]: {
@@ -604,8 +602,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         controlKind: 'crowd-control'
       }
-    ],
-    elementalistStateMachine: 'aura-transmute'
+    ]
   },
   [ID.RIDE_THE_LIGHTNING]: {
     name: 'Ride the Lightning',

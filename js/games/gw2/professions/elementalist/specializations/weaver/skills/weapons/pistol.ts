@@ -6,8 +6,6 @@
  * its pair in `attunement`, and Weaver availability only offers the skill when
  * both of those elements are currently attuned.
  *
- * Most entries also carry `elementalistStateMachine: 'pistol-bullets'`, the
- * declarative marker tying them to the Elementalist pistol bullet mechanic.
  * Stocking and spending bullets is keyed by skill id elsewhere (the core
  * `PISTOL_SKILL_ELEMENTS` table), so nothing in this file mutates bullet state.
  */
@@ -109,8 +107,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         metadata: {}
       }
     ],
-    specialization: 'Weaver',
-    elementalistStateMachine: 'pistol-bullets'
+    specialization: 'Weaver'
   },
   // Fire+Air. Single Projectile finisher carrying the blind and five stacks of
   // Vulnerability.
@@ -167,8 +164,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         metadata: {}
       }
     ],
-    specialization: 'Weaver',
-    elementalistStateMachine: 'pistol-bullets'
+    specialization: 'Weaver'
   },
   [ID.MOLTEN_METEOR]: {
     name: 'Molten Meteor',
@@ -221,8 +217,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         metadata: {}
       }
     ],
-    specialization: 'Weaver',
-    elementalistStateMachine: 'pistol-bullets'
+    specialization: 'Weaver'
   },
   // Air+Water. The one dual with no offensive packet at all: it only self-boons
   // (Regeneration and Stability) at cast start.
@@ -258,12 +253,9 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         metadata: {}
       }
     ],
-    specialization: 'Weaver',
-    elementalistStateMachine: 'pistol-bullets'
+    specialization: 'Weaver'
   },
   // Water+Earth. Two shots at 280/480 ms, each applying two Bleeding stacks.
-  // Unlike the other five entries this one carries no `elementalistStateMachine`
-  // marker.
   [ID.ECHOING_EROSION]: {
     name: 'Echoing Erosion',
     type: 'Weapon',
@@ -388,7 +380,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         metadata: {}
       }
     ],
-    specialization: 'Weaver',
-    elementalistStateMachine: 'pistol-bullets'
+    specialization: 'Weaver'
   }
 });

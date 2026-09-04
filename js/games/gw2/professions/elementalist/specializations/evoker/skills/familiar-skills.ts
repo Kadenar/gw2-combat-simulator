@@ -9,10 +9,9 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
  * Simulator-owned skill definitions merged over the API catalog for Evoker.
  *
  * The eight familiar skills form four basic/empowered pairs linked by
- * `nextChainId` and tagged `elementalistStateMachine: 'evoker-familiar'`, which
- * is what routes them through the familiar hooks in `mechanics/familiars.ts`;
- * their gating is charge/empowered state in `mechanics/availability.ts`, not the
- * `cooldown: 0` declared here.
+ * `nextChainId`. Familiar hooks own their behavior, and their gating is
+ * charge/empowered state in `mechanics/availability.ts`, not the `cooldown: 0`
+ * declared here.
  */
 export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.IGNITE]: {
@@ -53,8 +52,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   },
   [ID.CONFLAGRATION]: {
     name: 'Conflagration',
@@ -94,8 +92,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   },
   [ID.SPLASH]: {
     name: 'Splash',
@@ -120,8 +117,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   },
   [ID.BUOYANT_DELUGE]: {
     name: 'Buoyant Deluge',
@@ -152,8 +148,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast',
         controlKind: 'crowd-control'
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   },
   [ID.ZAP]: {
     name: 'Zap',
@@ -179,8 +174,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   },
   [ID.LIGHTNING_BLITZ]: {
     name: 'Lightning Blitz',
@@ -260,8 +254,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   },
   [ID.CALCIFY]: {
     name: 'Calcify',
@@ -296,8 +289,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast',
         controlKind: 'crowd-control'
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   },
   [ID.SEISMIC_IMPACT]: {
     name: 'Seismic Impact',
@@ -354,7 +346,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast',
         controlKind: 'crowd-control'
       }
-    ],
-    elementalistStateMachine: 'evoker-familiar'
+    ]
   }
 });

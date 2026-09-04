@@ -133,8 +133,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'hammer-orbs'
+    ]
   },
   // Three simultaneous strike/Burning pairs at a single packet time.
   [ID.TRIPLE_SEAR]: {
@@ -478,8 +477,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'hammer-orbs'
+    ]
   },
   // Leap finisher; the single impact is its whole payload.
   [ID.CRASHING_FONT]: {
@@ -634,8 +632,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'hammer-orbs'
+    ]
   },
   // Small strike that mainly exists for its self-Superspeed and crowd-control application.
   [ID.WIND_STORM]: {
@@ -932,8 +929,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'hammer-orbs'
+    ]
   },
   // Defensive channel with no packets; only its long cast time and recharge affect the rotation.
   [ID.IMMUTABLE_STONE]: {
@@ -1041,7 +1037,6 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    elementalistStateMachine: 'hammer-orbs'
+    ]
   }
 });

@@ -104,8 +104,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   },
   // Blast finisher up front, then a four-shot salvo landing together a second later. Spending a Fire
   // bullet additionally grants a Fire Aura through the pistol cast handler.
@@ -253,8 +252,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   },
   [ID.SOOTHING_SPLASH]: {
     name: 'Soothing Splash',
@@ -419,8 +417,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   },
   // Lays an ice field on impact. Spending a Water bullet also schedules a delayed detonation strike and
   // Bleeding from the pistol cast handler, which is why none of that appears in the declared effects.
@@ -468,8 +465,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   },
   [ID.ELECTRIC_EXPOSURE]: {
     name: 'Electric Exposure',
@@ -556,8 +552,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         controlKind: 'crowd-control'
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   },
   // First link of the three-step Aerial Agility flipover chain. The zero-coefficient packet exists only
   // to fire the leap finisher. The chain reads the Air bullet without spending it, and the two later
@@ -754,8 +749,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   },
   [ID.BOULDER_BLAST]: {
     name: 'Boulder Blast',
@@ -815,8 +809,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   },
   [ID.ELEMENTAL_EXPLOSION]: {
     name: 'Elemental Explosion',
@@ -935,7 +928,6 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'pistol-bullets'
+    ]
   }
 });

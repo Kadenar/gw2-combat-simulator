@@ -5,9 +5,8 @@
  * attunement-specific Elemental Power and Storms variants), conjures, cantrips, and the two
  * Glyph of Elementals summons.
  *
- * These are pure data fragments — no behavior. Anything stateful is delegated by marker field:
- * `elementalistStateMachine` hands the skill to a subsystem (`core/mechanics/elementals/` for
- * summons), and `mechanicTriggers` names a handler in `core/execution/index.ts`.
+ * These are pure data fragments — no behavior. Stateful behavior is owned by the corresponding
+ * mechanic subsystem, while `mechanicTriggers` names handlers in `core/execution/index.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
@@ -625,11 +624,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
-  // packets themselves. Their base cast time is quickness-scaled, and
-  // `elementalistStateMachine: 'summoned-elemental'` routes the cast to the
-  // companion subsystem in core/mechanics/elementals/, which owns the summon's lifetime, attack
-  // loop, and post-expiry recharge — that subsystem also blocks a recast while the elemental is
-  // alive and re-arms the cooldown from the moment it expires.
+  // packets themselves. Their base cast time is quickness-scaled. The companion subsystem in
+  // core/mechanics/elementals/ owns the summon's lifetime, attack loop, and post-expiry recharge;
+  // it also blocks a recast while the elemental is alive and re-arms the cooldown on expiry.
   [ID.GLYPH_OF_ELEMENTALS]: {
     name: 'Glyph of Elementals',
     type: 'Elite',
@@ -638,8 +635,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 1250,
     cooldown: 190,
     skillFamily: 'Glyph',
-    effects: [],
-    elementalistStateMachine: 'summoned-elemental'
+    effects: []
   },
   [ID.GLYPH_OF_ELEMENTALS_EARTH]: {
     name: 'Glyph of Elementals (Earth)',
@@ -649,8 +645,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 1250,
     cooldown: 190,
     skillFamily: 'Glyph',
-    effects: [],
-    elementalistStateMachine: 'summoned-elemental'
+    effects: []
   },
   // --- Cantrips ---------------------------------------------------------------
   // Instant cast; only the offensive burn and the self Might are modelled (the condition

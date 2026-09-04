@@ -579,8 +579,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'rock-barrier'
+    ]
   },
   // Throws the stored barrier as five projectile-finisher packets 200ms apart, each bleeding.
   [ID.HURL]: {
@@ -767,8 +766,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'rock-barrier'
+    ]
   },
   // The travelling projectile outlives the cast, so its pulses use fixed (cast-speed
   // independent) offsets and persist after an interrupt past the 160ms commit point.

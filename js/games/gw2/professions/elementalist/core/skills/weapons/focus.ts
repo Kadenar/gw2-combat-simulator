@@ -77,8 +77,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     skillFamily: 'Weapon skill',
     effects: []
   },
-  // Consumes the Fire Aura for a strike, Burning, and five Might, then flips back to Fire Shield; the
-  // `aura-transmute` marker keeps the flipover visible to rotation loop analysis as a state-gated action.
+  // Consumes the Fire Aura for a strike, Burning, and five Might, then flips back to Fire Shield.
   [ID.TRANSMUTE_FIRE]: {
     name: 'Transmute Fire',
     type: 'Weapon',
@@ -126,8 +125,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'cast',
         metadata: {}
       }
-    ],
-    elementalistStateMachine: 'aura-transmute'
+    ]
   },
   [ID.FREEZING_GUST]: {
     name: 'Freezing Gust',
