@@ -511,16 +511,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   context.rechargeDurationFor = rechargeDurationFor;
   context.maximumAmmoFor = maximumAmmoFor;
 
-  const completeReservation: ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord> = (
-    _taskContext,
-    task
-  ) => {
-    const reservationId = task.payload?.reservationId;
-    if (typeof reservationId !== 'string') return;
-    const reservation = reservations.get(reservationId);
-    if (!reservation) return;
+  /** Keeps cast-hook emissions and tasks attached to the cast's activation lineage. */
+  function createCastLifecycleContext(
+    reservation: CastReservation<TProfessionState>
+  ): CastLifecycleContext<TProfessionState> {
     const {
-      skill,
+      id: reservationId,
       castContext,
       action,
       fullEnd,
@@ -530,6 +526,49 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       rechargeStart,
       rechargeReadyAt
     } = reservation;
+    if (!action) throw new Error(`Cast reservation ${reservationId} has no action.`);
+
+    return {
+      ...castContext,
+      action,
+      fullEnd,
+      effectiveEnd,
+      rechargeDuration,
+      ammoLockoutDuration,
+      rechargeStart,
+      rechargeReadyAt,
+      reservationId,
+      emit(event) {
+        return context.emit({
+          activationId: reservationId,
+          ...event
+        });
+      },
+      tasks: {
+        ...context.tasks,
+        schedule(task) {
+          return context.tasks.schedule({
+            ...task,
+            payload: {
+              activationId: reservationId,
+              ...(task.payload || {})
+            }
+          });
+        }
+      }
+    };
+  }
+
+  const completeReservation: ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord> = (
+    _taskContext,
+    task
+  ) => {
+    const reservationId = task.payload?.reservationId;
+    if (typeof reservationId !== 'string') return;
+    const reservation = reservations.get(reservationId);
+    if (!reservation) return;
+    const { skill, castContext, fullEnd, effectiveEnd, rechargeDuration, ammoLockoutDuration, rechargeStart } =
+      reservation;
     const active = inFlight.get(skill.id);
     active?.delete(reservation.id);
     if (active?.size === 0) inFlight.delete(skill.id);
@@ -544,35 +583,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
     // Cooldown/ammo commitment precedes the profession completion hook so the
     // hook observes the state players would have immediately after the cast.
-    const completionContext: CastLifecycleContext<TProfessionState> = {
-      ...castContext,
-      action: action as SimulationEvent,
-      fullEnd,
-      effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
-      rechargeStart,
-      rechargeReadyAt,
-      reservationId: reservation.id,
-      emit(event) {
-        return context.emit({
-          activationId: reservation.id,
-          ...event
-        });
-      },
-      tasks: {
-        ...context.tasks,
-        schedule(task) {
-          return context.tasks.schedule({
-            ...task,
-            payload: {
-              activationId: reservation.id,
-              ...(task.payload || {})
-            }
-          });
-        }
-      }
-    };
+    const completionContext = createCastLifecycleContext(reservation);
     activeProfession.onCastComplete(completionContext, skill);
 
     // Skill metadata owns trigger timing; the task executes profession state
@@ -1023,35 +1034,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ...(cancelledBeforeCommit ? { cancelled: true } : {})
     });
     reservation.action = action;
-    const lifecycleContext: CastLifecycleContext<TProfessionState> = {
-      ...castContext,
-      action,
-      fullEnd,
-      effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
-      rechargeStart,
-      rechargeReadyAt,
-      reservationId,
-      emit(event) {
-        return context.emit({
-          activationId: reservationId,
-          ...event
-        });
-      },
-      tasks: {
-        ...context.tasks,
-        schedule(task) {
-          return context.tasks.schedule({
-            ...task,
-            payload: {
-              activationId: reservationId,
-              ...(task.payload || {})
-            }
-          });
-        }
-      }
-    };
+    const lifecycleContext = createCastLifecycleContext(reservation);
     activeProfession.onCastStart(lifecycleContext, skill);
     const handler = activeProfession.skillHandlerFor?.(skill);
     const handlerMode = resolveSkillHandlerMode(handler, lifecycleContext, skill);
