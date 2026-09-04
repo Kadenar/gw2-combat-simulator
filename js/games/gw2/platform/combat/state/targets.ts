@@ -135,16 +135,6 @@ export function permanentTargetConditionStacks(config: Gw2Config, name: string):
   return Math.max(0, Number(value) || 0);
 }
 
-/**
- * Checks whether target has active permanent condition.
- * True if condition stacks > 0
- * @example
- * targetHasPermanentCondition(config, "Vulnerability") // → true
- */
-export function targetHasPermanentCondition(config: Gw2Config, name: string): boolean {
-  return permanentTargetConditionStacks(config, name) > 0;
-}
-
 function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
   const appliedAt = Number(stack?.appliedAt ?? -Infinity);
   const expiresAt = Number(stack?.expiresAt ?? Infinity);

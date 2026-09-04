@@ -50,13 +50,6 @@ export interface Gw2AlliedPlayerProc {
 }
 
 /**
- * Target selection for a party effect that may also affect pets, minions, or
- * other profession-owned companions. Player party members take priority over
- * companions, matching GW2's allied-target priority.
- */
-export type Gw2AlliedEffectRecipients = ResolvedEffectAudience;
-
-/**
  * Normalizes the small party model used by effects that are triggered by
  * allied player strikes. The simulator owns the build user's damage; allied
  * strikes exist only as proc triggers and never contribute their own damage.

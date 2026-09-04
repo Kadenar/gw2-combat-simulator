@@ -28,8 +28,7 @@ function simulate(rotation, config = {}) {
       specialization: 'Core',
       stats: { ...baseConfig.stats, ...(config.stats || {}) },
       target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    mode: 'sequence'
+    }
   });
 }
 

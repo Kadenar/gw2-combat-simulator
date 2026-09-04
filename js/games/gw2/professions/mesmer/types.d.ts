@@ -13,13 +13,7 @@ import type {
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
-import type {
-  Gw2ApplicationBuild,
-  Gw2Build,
-  Gw2BuildAttributeRuleContext,
-  Gw2CanonicalBuild
-} from '#gw2/platform/builds/types.js';
-import type { Gw2SelectedSkillValue } from '#gw2/platform/builds/selected-skills.js';
+import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
@@ -94,12 +88,6 @@ export interface MesmerCanonicalBuild extends Gw2CanonicalBuild {
 export interface MesmerApplicationBuild extends Gw2ApplicationBuild {
   initialResource: number;
 }
-
-export interface MesmerBuildAttributeRuleContext extends Omit<Gw2BuildAttributeRuleContext, 'build'> {
-  readonly build: MesmerBuild;
-}
-
-export type MesmerSelectedSkill = Gw2SelectedSkillValue;
 
 /** Prepared family-wide scheduler input after build normalization. */
 export interface MesmerConfig extends Gw2Config {

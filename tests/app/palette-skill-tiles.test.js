@@ -41,129 +41,98 @@ function projectionApp(
   };
 }
 
-function isReplacementAttack(skill) {
-  return Boolean(skill.ambush || (skill.stealthAttack && skill.slot === 'Weapon_1') || skill.unleashedAmbushSkill);
-}
-
-function isSequenceLink(parent, child) {
-  return (
-    (parent.chainRoot != null && child.chainRoot != null && Number(parent.chainRoot) === Number(child.chainRoot)) ||
-    (parent.weaponBarChainRootId != null &&
-      child.weaponBarChainRootId != null &&
-      Number(parent.weaponBarChainRootId) === Number(child.weaponBarChainRootId)) ||
-    (parent.nextChainId === child.id && child.nextChainId !== parent.id)
-  );
-}
-
-// Builds the same catalog-level family inventory that the palette consumes:
-// explicit flip links plus reciprocal next-skill pairs, excluding replacements.
-function catalogFlipFamilies(catalog) {
-  const neighborsBySkillId = new Map();
-  const order = new Map(catalog.skills.map((skill, index) => [Number(skill.id), index]));
-  const register = (parent, child) => {
-    if (
-      !parent ||
-      !child ||
-      parent.paletteFlip === false ||
-      child.paletteFlip === false ||
-      (child.simulatorExcluded && child.type === 'Weapon') ||
-      isReplacementAttack(child) ||
-      isSequenceLink(parent, child)
-    ) {
-      return;
-    }
-
-    const parentId = Number(parent.id);
-    const childId = Number(child.id);
-    neighborsBySkillId.set(parentId, new Set([...(neighborsBySkillId.get(parentId) || []), childId]));
-    neighborsBySkillId.set(childId, new Set([...(neighborsBySkillId.get(childId) || []), parentId]));
-  };
-
-  for (const child of catalog.skills) {
-    if (child.flipParentId != null) register(catalog.skillsById.get(Number(child.flipParentId)), child);
-  }
-
-  for (const parent of catalog.skills) {
-    if (parent.flipSkillId != null && parent.flipSkillId !== parent.nextChainId) {
-      register(parent, catalog.skillsById.get(Number(parent.flipSkillId)));
-    }
-  }
-
-  for (const skill of catalog.skills) {
-    if (skill.nextChainId == null) continue;
-    const linked = catalog.skillsById.get(Number(skill.nextChainId));
-
-    if (!linked || linked.nextChainId !== skill.id) continue;
-
-    if ((order.get(Number(skill.id)) || 0) > (order.get(Number(linked.id)) || 0)) continue;
-    register(skill, linked);
-  }
-
-  const visited = new Set();
-  const families = [];
-  for (const skill of catalog.skills) {
-    const startId = Number(skill.id);
-
-    if (visited.has(startId) || !neighborsBySkillId.has(startId)) continue;
-    const pending = [startId];
-    const memberIds = [];
-    while (pending.length) {
-      const id = pending.pop();
-
-      if (visited.has(id)) continue;
-      visited.add(id);
-      memberIds.push(id);
-      for (const neighbor of neighborsBySkillId.get(id) || []) {
-        if (!visited.has(neighbor)) pending.push(neighbor);
-      }
-    }
-
-    memberIds.sort((left, right) => order.get(left) - order.get(right));
-    families.push(memberIds.map((id) => catalog.skillsById.get(id)));
-  }
-
-  return families;
-}
-
-test('shared flip families preserve every branch from a root-only caller', () => {
-  const root = { id: 1, name: 'Root', flipSkillId: 2 };
-  const left = { id: 2, name: 'Left', flipParentId: 1 };
-  const right = { id: 3, name: 'Right', flipParentId: 1 };
-  const skills = [root, left, right];
+// Tiny catalogs keep family expectations independent of the production grouping algorithm.
+function catalogApp(skills, professionState = {}) {
   const catalog = {
     skills,
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
     skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
   };
-  const app = {
-    build: { rotation: [], startingWeaponSet: 1 },
-    adapter: { eliteSpecialization: () => 'Core' },
-    profession: { catalog, ui: {} },
-    activeCatalog: catalog,
-    skills,
-    results: {
-      endState: {
-        time: 0,
-        activeWeaponSet: 1,
-        cooldowns: {},
-        profession: { availableFlips: { 3: true } }
+  return projectionApp({ catalog }, { professionState, useProfessionUi: false });
+}
+
+for (const [label, skills, states] of [
+  [
+    'flip pair',
+    [
+      { id: 1, name: 'Root', flipSkillId: 2 },
+      { id: 2, name: 'Flip' }
+    ],
+    [
+      [{}, [1]],
+      [{ 2: true }, [2]]
+    ]
+  ],
+  [
+    'reciprocal pair',
+    [
+      { id: 1, name: 'Root', nextChainId: 2 },
+      { id: 2, name: 'Flip', nextChainId: 1 }
+    ],
+    [
+      [{}, [1]],
+      [{ 2: true }, [2]]
+    ]
+  ],
+  [
+    'branching family',
+    [
+      { id: 1, name: 'Root', flipSkillId: 2 },
+      { id: 2, name: 'Left', flipParentId: 1 },
+      { id: 3, name: 'Right', flipParentId: 1 }
+    ],
+    [
+      [{}, [1]],
+      [{ 2: true }, [2]],
+      [{ 3: true }, [3]]
+    ]
+  ]
+]) {
+  test(`shared ${label} selects one live tile from the full family or its root alone`, () => {
+    for (const [availableFlips, expected] of states) {
+      const app = catalogApp(skills, { availableFlips });
+      for (const input of [skills, [skills[0]]]) {
+        assert.deepEqual(
+          displayedSkillTiles(app, input).map((skill) => skill.id),
+          expected
+        );
       }
     }
-  };
+  });
+}
 
-  assert.deepEqual(
-    displayedSkillTiles(app, [root]).map((skill) => skill.name),
-    ['Right']
-  );
+test('autoattack links, replacements, and excluded flips never expand a root-only tile', () => {
+  for (const [label, parent, child] of [
+    ['autoattack chain', { chainRoot: 1 }, { chainRoot: 1 }],
+    ['weapon bar chain', { weaponBarChainRootId: 1 }, { weaponBarChainRootId: 1 }],
+    ['one-way next skill', { nextChainId: 2 }, {}],
+    ['ambush', {}, { ambush: true }],
+    ['stealth attack', {}, { stealthAttack: true, slot: 'Weapon_1' }],
+    ['unleashed ambush', {}, { unleashedAmbushSkill: true }],
+    ['parent opt-out', { paletteFlip: false }, {}],
+    ['child opt-out', {}, { paletteFlip: false }],
+    ['excluded weapon', {}, { simulatorExcluded: true, type: 'Weapon' }]
+  ]) {
+    const skills = [
+      { id: 1, name: 'Root', flipSkillId: 2, ...parent },
+      { id: 2, name: 'Excluded', flipParentId: 1, ...child }
+    ];
+    const app = catalogApp(skills, { availableFlips: { 2: true }, autoattackChains: { 1: 2 } });
+    assert.deepEqual(
+      displayedSkillTiles(app, [skills[0]]).map((skill) => skill.id),
+      [1],
+      label
+    );
+  }
 });
 
-test('every profession catalog autoattack and flip family uses the shared tile projector', async () => {
+test('every profession catalog projects tiles and active autoattack stages', async () => {
   let autoattackFamilyCount = 0;
-  let flipFamilyCount = 0;
 
   for (const option of professionOptions) {
     const profession = await loadProfession(option.id);
     const baseApp = projectionApp(profession, { useProfessionUi: false });
+    assert.ok(displayedSkillTiles(baseApp, profession.catalog.skills).length > 0, option.id);
 
     for (const chain of profession.catalog.autoattackChains) {
       const skills = chain.map((skillId) => profession.catalog.skillsById.get(skillId));
@@ -182,32 +151,9 @@ test('every profession catalog autoattack and flip family uses the shared tile p
 
       autoattackFamilyCount += 1;
     }
-
-    for (const family of catalogFlipFamilies(profession.catalog)) {
-      const [root, ...descendants] = family;
-      assert.deepEqual(
-        displayedSkillTiles(baseApp, [root]).map((skill) => skill.id),
-        [root.id],
-        `${option.id}: ${root.name}`
-      );
-      for (const descendant of descendants) {
-        const app = projectionApp(profession, {
-          professionState: { availableFlips: { [descendant.id]: true } },
-          useProfessionUi: false
-        });
-        assert.deepEqual(
-          displayedSkillTiles(app, [root]).map((skill) => skill.id),
-          [descendant.id],
-          `${option.id}: ${root.name} -> ${descendant.name}`
-        );
-      }
-
-      flipFamilyCount += 1;
-    }
   }
 
   assert.ok(autoattackFamilyCount > 0);
-  assert.ok(flipFamilyCount > 0);
 });
 
 test('UI-only tile declarations collapse through the same profession-neutral hook', async () => {

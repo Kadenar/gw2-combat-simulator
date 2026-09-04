@@ -26,8 +26,7 @@ function simulate(rotation) {
         defiant: true,
         conditions: { Vulnerability: 25 }
       }
-    },
-    mode: 'sequence'
+    }
   });
 }
 

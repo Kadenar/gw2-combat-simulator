@@ -17,7 +17,6 @@ import type {
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2HitResolutionContext, Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/types.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
@@ -320,14 +319,6 @@ export type ThiefResolverContext = Gw2ResolverRuntime & {
 export interface ThiefResolverReactionDetails extends SchedulerRecord {
   readonly hitContext?: Gw2HitResolutionContext;
 }
-
-export type ThiefQueryRuntime = Gw2QueryRuntime & {
-  readonly profession?: ThiefRuntimeState | Partial<ThiefState> | null;
-  readonly totals?: {
-    readonly strike?: number;
-    readonly condition?: number;
-  };
-};
 
 export interface ThiefEndStateProjectionOptions {
   readonly schedulerState: SchedulerState<ThiefRuntimeState>;

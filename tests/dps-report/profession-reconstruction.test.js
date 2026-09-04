@@ -499,8 +499,7 @@ test('orders simultaneous dps.report instant casts before cast-time skills', () 
   const simulation = simulateGw2({
     profession: warriorProfession,
     rotation: result.rotation.slice(0, 2),
-    config: defaultSimulationConfig({ specialization: 'Berserker' }),
-    mode: 'sequence'
+    config: defaultSimulationConfig({ specialization: 'Berserker' })
   });
   assert.ok(
     simulation.resolvedEvents.some(
@@ -722,8 +721,7 @@ test('aligns dps.report combat start with an opening Symbol of Luminance packet'
   const simulation = simulateGw2({
     profession: guardianProfession,
     rotation: result.rotation,
-    config: defaultSimulationConfig({ specialization: 'Luminary', primaryWeapon: 'Spear' }),
-    mode: 'sequence'
+    config: defaultSimulationConfig({ specialization: 'Luminary', primaryWeapon: 'Spear' })
   });
 
   assert.ok(

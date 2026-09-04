@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { renderPaletteMarkup } from '../../helpers/palette.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
@@ -39,22 +39,6 @@ function createHammerApp(hammerOrbs, time = 0) {
       }
     }
   };
-}
-
-function renderPaletteMarkup(app) {
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  return palette.innerHTML;
 }
 
 test('hammer orb generators remain visible while an orb is active', () => {

@@ -79,7 +79,6 @@ export function simulateMesmer(rotation, userConfig = {}) {
   return simulateGw2({
     profession: mesmerProfession,
     rotation,
-    config,
-    execution: { mode: 'sequence' }
+    config
   });
 }

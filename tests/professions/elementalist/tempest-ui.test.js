@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { renderPaletteMarkup } from '../../helpers/palette.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
@@ -68,22 +68,6 @@ function paletteContext(app) {
   };
 }
 
-function paletteHtml(app) {
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  return palette.innerHTML;
-}
-
 test('Tempest overload palette availability follows the active attunement', () => {
   const app = createTempestApp();
   const context = paletteContext(app);
@@ -129,7 +113,7 @@ test('Tempest overload singularity delays a newly entered attunement but not the
   assert.equal(enteredView.contextDisabled, false);
   assert.equal(enteredView.cooldownLabel, '4.80s');
   assert.match(
-    paletteHtml(enteredApp),
+    renderPaletteMarkup(enteredApp),
     /class="pal-skill pal-disabled" data-skill="Overload Fire"[\s\S]*?<span class="pal-cd">4\.80s<\/span>/
   );
 
@@ -163,7 +147,7 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
   assert.equal(view.disabled, true);
   assert.equal(view.contextDisabled, false);
   assert.equal(view.cooldownLabel, '0.10s');
-  assert.doesNotMatch(paletteHtml(nearlyReadyApp), /pal-context-disabled[^>]*data-skill="Overload Fire"/);
+  assert.doesNotMatch(renderPaletteMarkup(nearlyReadyApp), /pal-context-disabled[^>]*data-skill="Overload Fire"/);
 
   const queuedApp = createTempestApp(['Fire Attunement', 4700, 'Overload Fire']);
   const overload = queuedApp.results.events.find(

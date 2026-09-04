@@ -83,8 +83,7 @@ function simulate(specialization, rotation, config = {}) {
       },
       stats: { ...baseConfig.stats, ...(config.stats || {}) },
       target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    mode: 'sequence'
+    }
   });
 }
 

@@ -84,8 +84,7 @@ test('places EVTC combat start at the opening Head Butt strike so replay retains
       specialization: 'Berserker',
       stats: { power: 2_000, precision: 1_500, ferocity: 500, conditionDamage: 0, expertise: 0 },
       target: { armor: 2_597, health: 1_000_000, conditions: { Vulnerability: 25 }, defiant: true }
-    },
-    mode: 'sequence'
+    }
   });
 
   assert.deepEqual(reconstruction.rotation, [

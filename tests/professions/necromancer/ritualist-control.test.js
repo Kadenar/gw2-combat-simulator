@@ -13,8 +13,7 @@ function simulate(rotation, config = {}) {
       specialization: 'Ritualist',
       initialResource: 100,
       ...config
-    },
-    mode: 'sequence'
+    }
   });
 }
 

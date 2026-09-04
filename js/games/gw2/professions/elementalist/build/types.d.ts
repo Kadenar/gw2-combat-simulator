@@ -1,5 +1,5 @@
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2ApplicationBuild, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface ElementalistBuildSpecialization {
@@ -14,20 +14,6 @@ export interface CatalystEmpowermentPool {
   readonly conditionDamage: number;
   readonly expertise: number;
   readonly concentration: number;
-}
-
-/** Persisted Elementalist build input kept independent from runtime state ownership. */
-export interface ElementalistBuild extends Gw2Build {
-  specializations?: ElementalistBuildSpecialization[];
-  assumptions?: SchedulerRecord;
-  startAttunement?: string;
-  secondaryAttunement?: string;
-  initialCatalystEnergy?: number;
-  evokerElement?: string;
-  initialEvokerCharges?: number;
-  initialEvokerEmpowered?: number;
-  pistolBullets?: Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>;
-  selectedSkills?: readonly string[] | Record<string, string>;
 }
 
 export interface ElementalistCanonicalBuild extends Gw2CanonicalBuild {
