@@ -6,6 +6,7 @@ import {
   recordedActionSkill
 } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
@@ -67,7 +68,7 @@ function recoverChakShield(
       if (pendingPackets !== packetsPerCast) continue;
       if (packetsBeforeBoundary > 0) {
         const at = phase.start - (packetsBeforeBoundary - 0.5) * CHAK_SHIELD_PACKET_INTERVAL_MS;
-        inferred.push(inferredAction(skill, at, at, phase.start - 0.1, 'thief-damage-evidence'));
+        inferred.push(createInferredAction(skill, at, at, phase.start - 0.1, 'thief-damage-evidence'));
         missing -= 1;
       }
 
@@ -84,28 +85,6 @@ function recoverChakShield(
 function median(values: readonly number[]): number {
   const sorted = [...values].sort((left, right) => left - right);
   return sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
-}
-
-function inferredAction(
-  skill: Skill,
-  start: number,
-  end: number,
-  eventIndex: number,
-  inference: NonNullable<DpsReportRecordedAction['inference']>
-): DpsReportRecordedAction {
-  return {
-    start,
-    end,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: end > start ? 'completed' : 'instant',
-    eventIndex,
-    isSwap: false,
-    metadataAccurate: false,
-    inference,
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
-  };
 }
 
 /** Collapses Elite Insights' Rockout/Smash rows into the one Guitar input that produced both animations. */
@@ -159,7 +138,7 @@ function recoverOpeningSkrittSwipe(
     anchor.start - observedDuration
   );
   const inferred = {
-    ...inferredAction(skill, start, start, Math.min(-1, anchor.eventIndex - 1), 'thief-opening'),
+    ...createInferredAction(skill, start, start, Math.min(-1, anchor.eventIndex - 1), 'thief-opening'),
     ...(Number.isFinite(firstAware) ? { combatStartOverride: firstAware } : {})
   };
   return [inferred, ...sorted].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
@@ -190,7 +169,13 @@ function recoverOpeningCaltrops(
   const recastGap = firstRecorded.start - swipe.start;
   if (!(duration > 0) || recastGap < recharge || recastGap > recharge + duration + 500) return [...actions];
 
-  const inferred = inferredAction(skill, swipe.start - duration, swipe.start, swipe.eventIndex - 0.1, 'thief-opening');
+  const inferred = createInferredAction(
+    skill,
+    swipe.start - duration,
+    swipe.start,
+    swipe.eventIndex - 0.1,
+    'thief-opening'
+  );
   return [...actions, inferred].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
 }
 
@@ -236,7 +221,9 @@ function recoverThousandNeedles(
     if (matches[index]) continue;
     const at = prepares[index].end + delay;
     if (!(delay > 0) || at >= context.phase.end) continue;
-    inferred.push(inferredAction(activationSkill, at, at, prepares[index].eventIndex + 0.1, 'thief-damage-evidence'));
+    inferred.push(
+      createInferredAction(activationSkill, at, at, prepares[index].eventIndex + 0.1, 'thief-damage-evidence')
+    );
     missing -= 1;
   }
 
@@ -246,8 +233,8 @@ function recoverThousandNeedles(
   if (missing === 1 && context.phase.phaseType === 'Encounter' && Number.isFinite(firstAware) && cooldownMs > 0) {
     const start = firstAware - cooldownMs - durationMs;
     inferred.push(
-      inferredAction(prepareSkill, start, start + durationMs, -3, 'thief-opening'),
-      inferredAction(activationSkill, context.phase.start, context.phase.start, -2, 'thief-damage-evidence')
+      createInferredAction(prepareSkill, start, start + durationMs, -3, 'thief-opening'),
+      createInferredAction(activationSkill, context.phase.start, context.phase.start, -2, 'thief-damage-evidence')
     );
   }
 
@@ -303,7 +290,13 @@ function normalizeAntiquaryDoubleEdge(
     cannons[0]
   ) {
     normalized.push({
-      ...inferredAction(cannonSkill, cannons[0].end, cannons[0].end, cannons[0].eventIndex + 0.1, 'thief-double-edge'),
+      ...createInferredAction(
+        cannonSkill,
+        cannons[0].end,
+        cannons[0].end,
+        cannons[0].eventIndex + 0.1,
+        'thief-double-edge'
+      ),
       replayInterruptMs: 0,
       doubleEdgeOutcome: 'backfire'
     });

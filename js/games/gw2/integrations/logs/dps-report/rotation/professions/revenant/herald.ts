@@ -1,5 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -19,19 +20,7 @@ function inferredAction(
 ): DpsReportRecordedAction | null {
   const skill = namedSkill(context, name);
   if (!skill || typeof skill.id !== 'number') return null;
-  return {
-    start,
-    end,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: end > start ? 'completed' : 'instant',
-    eventIndex: anchor.eventIndex + eventOffset,
-    isSwap: false,
-    metadataAccurate: false,
-    inference: 'herald-opening',
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
-  };
+  return createInferredAction(skill, start, end, anchor.eventIndex + eventOffset, 'herald-opening');
 }
 
 function hasOpeningDependency(

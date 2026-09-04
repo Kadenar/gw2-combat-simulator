@@ -1,4 +1,5 @@
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -31,19 +32,13 @@ function recoverHarbingerOpening(
   if (recordedEntry && recordedEntry.start <= openingEvidence.start) return sorted;
 
   const at = Math.min(openingEvidence.start, context.phase.start);
-  const inferred: DpsReportRecordedAction = {
-    start: at,
-    end: at,
-    rawSkillId: HARBINGER_SHROUD.skillId,
-    rawName: HARBINGER_SHROUD.name,
-    status: 'instant',
-    eventIndex: Math.min(-1, ...sorted.map((action) => action.eventIndex - 1)),
-    isSwap: false,
-    metadataAccurate: false,
-    inference: 'harbinger-shroud',
-    canonicalSkillId: HARBINGER_SHROUD.skillId,
-    canonicalName: HARBINGER_SHROUD.name
-  };
+  const inferred = createInferredAction(
+    { id: HARBINGER_SHROUD.skillId, name: HARBINGER_SHROUD.name },
+    at,
+    at,
+    Math.min(-1, ...sorted.map((action) => action.eventIndex - 1)),
+    'harbinger-shroud'
+  );
   return [inferred, ...sorted];
 }
 

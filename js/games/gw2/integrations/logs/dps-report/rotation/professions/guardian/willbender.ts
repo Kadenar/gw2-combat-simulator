@@ -1,4 +1,5 @@
 import { catalogSkillById } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -23,20 +24,14 @@ function inferredOpeningJurisdiction(
   if (!skill || typeof skill.id !== 'number') return null;
   const duration = Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
   const start = context.phase.start - JURISDICTION_COMBAT_OFFSET_MS;
-  return {
+  return createInferredAction(
+    { id: JURISDICTION_ID, name: skill.name },
     start,
-    end: start + duration,
-    rawSkillId: JURISDICTION_ID,
-    rawName: skill.name,
-    status: 'completed',
-    eventIndex: signal.eventIndex,
-    isSwap: false,
-    metadataAccurate: false,
-    expectedDurationMs: duration,
-    inference: 'willbender-jurisdiction',
-    canonicalSkillId: JURISDICTION_ID,
-    canonicalName: skill.name
-  };
+    start + duration,
+    signal.eventIndex,
+    'willbender-jurisdiction',
+    { status: 'completed', expectedDurationMs: duration }
+  );
 }
 
 /** Collapses Willbender's EI child animations and recovers the Jurisdiction precast that produced an opening fireball. */

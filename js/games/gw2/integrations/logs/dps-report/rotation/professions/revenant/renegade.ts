@@ -1,5 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -66,19 +67,14 @@ function inferredWarbandAction(
   const skill = catalogSkill(context, identity.name);
   if (!skill || typeof skill.id !== 'number') return null;
   const duration = instant ? 0 : Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
-  return {
+  return createInferredAction(
+    { id: identity.skillId, name: identity.name },
     start,
-    end: start + duration,
-    rawSkillId: identity.skillId,
-    rawName: identity.name,
-    status: instant ? 'instant' : 'completed',
-    eventIndex: anchor.eventIndex + eventOffset,
-    isSwap: false,
-    metadataAccurate: false,
-    inference: 'renegade-warband',
-    canonicalSkillId: identity.skillId,
-    canonicalName: identity.name
-  };
+    start + duration,
+    anchor.eventIndex + eventOffset,
+    'renegade-warband',
+    { status: instant ? 'instant' : 'completed' }
+  );
 }
 
 function recurringOpeningWarband(actions: readonly DpsReportRecordedAction[]): ReadonlySet<string> {

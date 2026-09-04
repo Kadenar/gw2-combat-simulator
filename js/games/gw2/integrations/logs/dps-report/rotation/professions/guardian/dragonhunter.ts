@@ -1,6 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { catalogSkillById, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
@@ -45,20 +46,14 @@ export function reconstructDragonhunterDpsReportActions(
   let start = anchor.start - missing.reduce((total, skill) => total + quicknessReferenceCastTimeMs(skill), 0);
   const inferred = missing.map((skill, index): DpsReportRecordedAction => {
     const duration = quicknessReferenceCastTimeMs(skill);
-    const action = {
+    const action = createInferredAction(
+      skill,
       start,
-      end: start + duration,
-      rawSkillId: Number(skill.id),
-      rawName: skill.name,
-      status: 'completed' as const,
-      eventIndex: anchor.eventIndex - missing.length + index,
-      isSwap: false,
-      metadataAccurate: false,
-      expectedDurationMs: duration,
-      inference: 'dragonhunter-opening' as const,
-      canonicalSkillId: Number(skill.id),
-      canonicalName: skill.name
-    };
+      start + duration,
+      anchor.eventIndex - missing.length + index,
+      'dragonhunter-opening',
+      { status: 'completed', expectedDurationMs: duration }
+    );
     start = action.end;
     return action;
   });

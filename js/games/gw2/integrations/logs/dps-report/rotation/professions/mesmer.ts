@@ -1,6 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { catalogSkillById } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
@@ -32,20 +33,9 @@ function inferredAction(
   duration = 0,
   inference: NonNullable<DpsReportRecordedAction['inference']> = 'virtuoso-opening'
 ): DpsReportRecordedAction {
-  return {
-    start,
-    end: start + duration,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: duration > 0 ? 'completed' : 'instant',
-    eventIndex,
-    isSwap: false,
-    metadataAccurate: false,
-    expectedDurationMs: duration,
-    inference,
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
-  };
+  return createInferredAction(skill, start, start + duration, eventIndex, inference, {
+    expectedDurationMs: duration
+  });
 }
 
 /** Recovers the Troubadour precast chain from later Mimic timing and single-target Bladestorm packet totals. */

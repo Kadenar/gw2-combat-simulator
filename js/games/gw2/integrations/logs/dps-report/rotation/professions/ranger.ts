@@ -3,6 +3,7 @@ import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { catalogSkillById, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
@@ -23,28 +24,6 @@ function actionId(action: DpsReportRecordedAction): number {
 
 function sorted(actions: readonly DpsReportRecordedAction[]): DpsReportRecordedAction[] {
   return [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
-}
-
-function inferredAction(
-  skill: Skill,
-  start: number,
-  end: number,
-  eventIndex: number,
-  inference: NonNullable<DpsReportRecordedAction['inference']>
-): DpsReportRecordedAction {
-  return {
-    start,
-    end,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: end > start ? 'completed' : 'instant',
-    eventIndex,
-    isSwap: false,
-    metadataAccurate: false,
-    inference,
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
-  };
 }
 
 /** Collapses Ranger's split smash animations into their single simulator inputs. */
@@ -131,7 +110,10 @@ function recoverInitialCycloneBow(
   if (!summon || !firstAction) return ordered;
   const firstSkill = recordedActionSkill(firstAction, context) as Skill & { readonly cycloneBowSkill?: boolean };
   const start = firstAction.start + (firstSkill?.cycloneBowSkill === true ? 0 : 1);
-  return sorted([...ordered, inferredAction(summon, start, start, firstAction.eventIndex - 0.1, 'ranger-opening')]);
+  return sorted([
+    ...ordered,
+    createInferredAction(summon, start, start, firstAction.eventIndex - 0.1, 'ranger-opening')
+  ]);
 }
 
 interface BowWindow {
@@ -179,7 +161,13 @@ function recoverMissingBlusters(
     const start = firstBowAction.start - duration;
     if (start < window.start - SIGNAL_WINDOW_MS) continue;
     inferred.push(
-      inferredAction(skill, start, firstBowAction.start, firstBowAction.eventIndex - 0.1, 'ranger-damage-evidence')
+      createInferredAction(
+        skill,
+        start,
+        firstBowAction.start,
+        firstBowAction.eventIndex - 0.1,
+        'ranger-damage-evidence'
+      )
     );
     missing -= 1;
     if (missing === 0) break;
@@ -212,7 +200,9 @@ function recoverMissingQuarries(
       (action) => actionId(action) === ID.QUARRYS_PERIL && Math.abs(action.start - start) <= SIGNAL_WINDOW_MS
     );
     if (!followsSupersonic || alreadyRecorded || !insideWindow(windows, start, mistral.start)) continue;
-    inferred.push(inferredAction(skill, start, mistral.start, mistral.eventIndex - 0.1, 'ranger-damage-evidence'));
+    inferred.push(
+      createInferredAction(skill, start, mistral.start, mistral.eventIndex - 0.1, 'ranger-damage-evidence')
+    );
     missing -= 1;
     if (missing === 0) break;
   }

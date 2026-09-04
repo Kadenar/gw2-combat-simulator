@@ -1,5 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -41,19 +42,7 @@ function inferredAction(
 ): DpsReportRecordedAction | null {
   const skill = context.catalog?.skills.find((candidate) => normalized(candidate.name) === normalized(name));
   if (!skill || typeof skill.id !== 'number') return null;
-  return {
-    start: anchor.start,
-    end: anchor.start,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: 'instant',
-    eventIndex: anchor.eventIndex + eventOffset,
-    isSwap: false,
-    metadataAccurate: false,
-    inference: 'luminary-opening',
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
-  };
+  return createInferredAction(skill, anchor.start, anchor.start, anchor.eventIndex + eventOffset, 'luminary-opening');
 }
 
 /** Recovers Luminary's opening Forge state and rejects EI's internal transition/proc signals. */

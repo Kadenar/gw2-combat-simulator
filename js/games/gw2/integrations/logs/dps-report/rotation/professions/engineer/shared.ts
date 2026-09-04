@@ -1,5 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -33,19 +34,7 @@ function kitEquip(
       normalized(candidate.kitName || candidate.name) === normalized(kit)
   );
   if (!skill || typeof skill.id !== 'number') return null;
-  return {
-    start: action.start,
-    end: action.start,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: 'instant',
-    eventIndex: action.eventIndex - 0.25,
-    isSwap: false,
-    metadataAccurate: false,
-    inference: 'initial-kit',
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
-  };
+  return createInferredAction(skill, action.start, action.start, action.eventIndex - 0.25, 'initial-kit');
 }
 
 function kitStow(
@@ -75,18 +64,14 @@ function inferredMineSetup(
   if (!skill || typeof skill.id !== 'number') return null;
   const duration = Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
   return {
-    start: firstActionStart - duration,
-    end: firstActionStart,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: duration > 0 ? 'completed' : 'instant',
-    eventIndex: detonate.eventIndex - 0.5,
-    isSwap: false,
-    metadataAccurate: false,
-    followingWaitMs: MINE_SETUP_WAIT_MS,
-    inference: 'mine-setup',
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
+    ...createInferredAction(
+      skill,
+      firstActionStart - duration,
+      firstActionStart,
+      detonate.eventIndex - 0.5,
+      'mine-setup'
+    ),
+    followingWaitMs: MINE_SETUP_WAIT_MS
   };
 }
 

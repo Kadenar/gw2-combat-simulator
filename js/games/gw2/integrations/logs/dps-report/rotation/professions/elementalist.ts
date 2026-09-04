@@ -6,6 +6,7 @@ import {
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import { primaryTargetHits } from '#gw2/integrations/logs/dps-report/rotation/target-damage.js';
 import type {
   DpsReportProfessionReconstructionContext,
@@ -237,19 +238,7 @@ function inferredAction(
   eventIndex: number,
   inference: NonNullable<DpsReportRecordedAction['inference']>
 ): DpsReportRecordedAction {
-  return {
-    start: at,
-    end: at,
-    rawSkillId: identity.skillId,
-    rawName: identity.name,
-    status: 'instant',
-    eventIndex,
-    isSwap: false,
-    metadataAccurate: false,
-    inference,
-    canonicalSkillId: identity.skillId,
-    canonicalName: identity.name
-  };
+  return createInferredAction({ id: identity.skillId, name: identity.name }, at, at, eventIndex, inference);
 }
 
 function activationTimes(states: readonly (readonly [number, number])[] | undefined, exactOne: boolean): number[] {
@@ -301,20 +290,14 @@ function recoverOpeningDragonsTooth(
   // One surplus Dragon's Tooth hit proves EI clipped exactly one cast. Place that
   // setup cast against the first reported action, matching the scepter precast lane.
   return [
-    {
-      start: firstAction.start - duration,
-      end: firstAction.start,
-      rawSkillId: ID.DRAGONS_TOOTH,
-      rawName: "Dragon's Tooth",
-      status: 'completed',
-      eventIndex: firstAction.eventIndex - 0.1,
-      isSwap: false,
-      metadataAccurate: false,
-      expectedDurationMs: duration,
-      inference: 'elementalist-damage-evidence',
-      canonicalSkillId: ID.DRAGONS_TOOTH,
-      canonicalName: "Dragon's Tooth"
-    }
+    createInferredAction(
+      { id: ID.DRAGONS_TOOTH, name: "Dragon's Tooth" },
+      firstAction.start - duration,
+      firstAction.start,
+      firstAction.eventIndex - 0.1,
+      'elementalist-damage-evidence',
+      { status: 'completed', expectedDurationMs: duration }
+    )
   ];
 }
 
@@ -495,20 +478,14 @@ function recoverOpeningSpearEtching(
   // A full etching before its first base cast proves EI clipped the opening setup;
   // place that setup immediately before the earliest surviving report action.
   return [
-    {
-      start: end - duration,
+    createInferredAction(
+      { id: identity.skillId, name: identity.name },
+      end - duration,
       end,
-      rawSkillId: identity.skillId,
-      rawName: identity.name,
-      status: 'completed',
-      eventIndex: nextEventIndex(),
-      isSwap: false,
-      metadataAccurate: false,
-      expectedDurationMs: duration,
-      inference: 'elementalist-spear-etching',
-      canonicalSkillId: identity.skillId,
-      canonicalName: identity.name
-    }
+      nextEventIndex(),
+      'elementalist-spear-etching',
+      { status: 'completed', expectedDurationMs: duration }
+    )
   ];
 }
 
@@ -537,19 +514,13 @@ function recoverOpeningFlameBarrage(
   // Four packets are the maximum per Flame Barrage command. Surplus minion hits
   // therefore prove EI clipped one pre-combat command from the player's rotation.
   return [
-    {
-      start: at,
-      end: at,
-      rawSkillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
-      rawName: 'Flame Barrage',
-      status: 'instant',
-      eventIndex: nextEventIndex(),
-      isSwap: false,
-      metadataAccurate: false,
-      inference: 'elementalist-damage-evidence',
-      canonicalSkillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
-      canonicalName: 'Flame Barrage'
-    }
+    createInferredAction(
+      { id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, name: 'Flame Barrage' },
+      at,
+      at,
+      nextEventIndex(),
+      'elementalist-damage-evidence'
+    )
   ];
 }
 

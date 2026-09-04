@@ -1,5 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
@@ -23,21 +24,11 @@ function inferredSkillAction(
 ): DpsReportRecordedAction | null {
   const skill = namedSkill(context, name);
   if (!skill || typeof skill.id !== 'number') return null;
-  return {
-    start,
-    end,
-    rawSkillId: Number(skill.id),
-    rawName: skill.name,
-    status: end > start ? 'completed' : 'instant',
-    // Recorded event indexes are non-negative. A negative synthetic index only
-    // orders inferred setup before real casts that share its timestamp.
-    eventIndex: sameTimestampOrder,
-    isSwap: normalized(skill.name) === 'swap weapons',
-    metadataAccurate: false,
-    inference: 'conduit-opening',
-    canonicalSkillId: Number(skill.id),
-    canonicalName: skill.name
-  };
+  // Recorded event indexes are non-negative. A negative synthetic index only
+  // orders inferred setup before real casts that share its timestamp.
+  return createInferredAction(skill, start, end, sameTimestampOrder, 'conduit-opening', {
+    isSwap: normalized(skill.name) === 'swap weapons'
+  });
 }
 
 function cooldownResetAction(at: number, sameTimestampOrder: number): DpsReportRecordedAction {
