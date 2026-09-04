@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { paletteSkillView } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import {
   createRevenantBuildDefaults,

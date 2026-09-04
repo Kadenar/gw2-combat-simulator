@@ -1,19 +1,10 @@
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/result-tables.js';
+import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/results/result-transform.js';
+import { timelineIdleTimeMetric } from '#gw2/app/rotation/timeline/timing/model.js';
 import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/state/boons.js';
-import {
-  buildChartSeries as buildSharedChartSeries,
-  chartValueAt
-} from '#gw2/app/presentation/results/charts/time-series-model.js';
-import { formatTimelineDuration, timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
-import {
-  skillBreakdownRows as transformSkillBreakdownRows,
-  skillDamageIdentityKey,
-  skillDamageKeyByIdentity
-} from '#gw2/app/presentation/results/result-tables.js';
-import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/presentation/results/result-transform.js';
-import type { ResultSummaryMetricDetail } from '#gw2/app/presentation/results/result-transform.js';
-import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionEffectPresentation, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 const STANDARD_BOON_PRESENTATIONS = GW2_STANDARD_BOONS.map(standardBoonPresentation).filter(
   (presentation) => presentation != null
@@ -34,43 +25,6 @@ const STANDARD_DURATION_CAPS: Readonly<Record<string, number>> = Object.freeze(
   )
 );
 
-/** Groups marker durations into the concise contributor rows shown by the dead-time summary disclosure. */
-function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMarkers>): ResultSummaryMetricDetail[] {
-  const legitimateMs = markers
-    .filter((marker) => marker.reason == null)
-    .reduce((total, marker) => total + marker.durationMs, 0);
-  const explicitWaitMs = markers
-    .filter((marker) => marker.reason === 'explicit-wait')
-    .reduce((total, marker) => total + marker.durationMs, 0);
-  const cancellations = new Map<string, { count: number; durationMs: number }>();
-  for (const marker of markers) {
-    if (marker.reason == null || marker.reason === 'explicit-wait') continue;
-    const skill = marker.skill || 'Unknown skill';
-    const current = cancellations.get(skill) || { count: 0, durationMs: 0 };
-    current.count += 1;
-    current.durationMs += marker.durationMs;
-    cancellations.set(skill, current);
-  }
-
-  const details: ResultSummaryMetricDetail[] = [];
-  if (legitimateMs > 0) {
-    details.push({ label: 'Idle time between skills', value: formatTimelineDuration(legitimateMs) });
-  }
-
-  if (explicitWaitMs > 0) {
-    details.push({ label: 'Explicit waits', value: formatTimelineDuration(explicitWaitMs) });
-  }
-
-  for (const [skill, cancellation] of cancellations) {
-    details.push({
-      label: `Skill cancelled '${skill}'${cancellation.count > 1 ? ` (${cancellation.count} casts)` : ''}`,
-      value: formatTimelineDuration(cancellation.durationMs)
-    });
-  }
-
-  return details.length ? details : [{ label: 'No idle time', value: formatTimelineDuration(0) }];
-}
-
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
   // Metric duration follows the resolver's DPS clock. This is intentionally
   // independent from the explicit marker used as timeline display zero.
@@ -85,48 +39,11 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
         };
   const metrics = transformResultSummaryMetrics(normalizedResult);
 
-  // Match the timeline's charge-aware markers so the strip includes idle gaps
-  // and the complete attempted duration of interrupted casts that never committed.
-  const combatStartMs = resultCombatReferenceMs(result);
-  // Pre-combat waits are setup time, so keep them on the timeline without charging them to the combat idle metric.
-  const deadTimeMarkers = timelineDeadTimeMarkers(
-    timelineStepsWithChargeFills(result.steps || [], shatterResourceSpends(result)),
-    result.resolvedEvents || []
-  ).filter((marker) => marker.reason !== 'explicit-wait' || marker.start >= combatStartMs);
-  const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);
-  metrics.splice(1, 0, {
-    label: 'Total Idle Time',
-    value: formatTimelineDuration(deadTimeMs),
-    className: '',
-    details: deadTimeBreakdownDetails(deadTimeMarkers)
-  });
+  metrics.splice(1, 0, timelineIdleTimeMetric(result));
   return metrics;
 }
 
-export function resultCombatReferenceMs(result: Gw2SimulationResult | null | undefined): number {
-  const marker = result?.events?.find((event) => event.type === 'combat_start');
-  if (!marker) return 0;
-  return Number(marker.at || 0) * 1000;
-}
-
-export function formatTimelineTime(timeMs: unknown, referenceMs: unknown = 0, digits = 2): string {
-  const precision = 10 ** digits;
-  const seconds = (Number(timeMs || 0) - Number(referenceMs || 0)) / 1000;
-  const normalized = Math.abs(seconds) < 0.5 / precision ? 0 : seconds;
-  return `${normalized.toFixed(digits)}s`;
-}
-
-export function formatResultTimelineTime(
-  timeMs: unknown,
-  result: Gw2SimulationResult | null | undefined,
-  digits = 2
-): string {
-  return formatTimelineTime(timeMs, resultCombatReferenceMs(result), digits);
-}
-
-export function skillBreakdownRows(result: Gw2SimulationResult) {
-  return transformSkillBreakdownRows(result);
-}
+export { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 
 /** Finds the active profession contribution for an internal effect kind. */
 function effectPresentation(

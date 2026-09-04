@@ -2,7 +2,8 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import {
   conditionEffectTicks,
   effectFirstAtMs,

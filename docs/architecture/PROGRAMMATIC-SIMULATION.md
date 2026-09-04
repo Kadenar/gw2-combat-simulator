@@ -31,7 +31,7 @@ Create `run-engineer.mjs` in the repository root:
 ```js
 import { prepareSimulationConfig } from './js/games/gw2/platform/engine/config.js';
 import { simulateGw2 } from './js/games/gw2/platform/index.js';
-import { skillBreakdownRows } from './js/games/gw2/app/presentation/results/result-tables.js';
+import { skillBreakdownRows } from './js/games/gw2/app/results/result-tables.js';
 import { engineerProfession } from './js/games/gw2/professions/engineer/definition.js';
 
 const baseConfig = Object.freeze({
@@ -311,8 +311,8 @@ longer than `duration`.
 For UI-equivalent formatted data, the existing transforms are also callable headlessly:
 
 ```js
-import { simulationEventLogRows } from './js/games/gw2/app/rotation/result/simulation-event-log.js';
-import { resultSummaryMetrics } from './js/games/gw2/app/rotation/result/model.js';
+import { simulationEventLogRows } from './js/games/gw2/app/results/simulation-event-log.js';
+import { resultSummaryMetrics } from './js/games/gw2/app/results/model.js';
 
 console.table(resultSummaryMetrics(result));
 console.table(simulationEventLogRows(result, null, engineerProfession));

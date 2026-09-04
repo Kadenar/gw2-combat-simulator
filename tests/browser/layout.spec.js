@@ -51,6 +51,35 @@ test('simulation config controls and result-dependent palette state work in the 
   await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
 });
 
+// A palette drop and a timeline edit must share the authored wait duration through rerenders.
+test('a palette wait drop opens its editor and the timeline can edit the inserted wait', async ({ page }) => {
+  await openSimulator(page);
+  const timeline = page.locator('#rotation-timeline');
+  const wait = page.locator('.pal-skill[data-skill="__wait"]');
+  // Exercise the DOM drag handlers independently of Chrome's mouse gesture recognition.
+  const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+  await wait.dispatchEvent('dragstart', { dataTransfer });
+  await timeline.dispatchEvent('dragover', { dataTransfer });
+  await timeline.dispatchEvent('drop', { dataTransfer });
+  await wait.dispatchEvent('dragend', { dataTransfer });
+  await dataTransfer.dispose();
+
+  const addWait = page.getByRole('dialog', { name: 'Add wait' });
+  await expect(addWait).toBeVisible();
+  await addWait.getByLabel('Duration', { exact: true }).fill('333');
+  await addWait.getByRole('button', { name: 'Apply' }).click();
+  await expect(timeline.locator('.rot-wait-badge')).toContainText('333ms');
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+
+  await timeline.locator('.rot-skill[data-idx="0"]').hover();
+  await timeline.getByRole('button', { name: 'Edit Wait duration' }).click();
+  const editWait = page.getByRole('dialog', { name: 'Edit wait' });
+  await expect(editWait.getByLabel('Duration', { exact: true })).toHaveValue('333');
+  await editWait.getByLabel('Duration', { exact: true }).fill('125');
+  await editWait.getByRole('button', { name: 'Apply' }).click();
+  await expect(timeline.locator('.rot-wait-badge')).toContainText('125ms');
+});
+
 test('timing skill selection submits the picker and details expand below DPS', async ({ page }) => {
   await openSimulator(page);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();

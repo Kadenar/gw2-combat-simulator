@@ -3,8 +3,8 @@ import { renderRotationHistoryControls } from '#gw2/app/rotation/editing/history
 import { mountRotationHotkeys } from '#gw2/app/rotation/input/hotkeys.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
-import { renderEventLog } from '#gw2/app/rotation/result/simulation-event-log.js';
-import { renderWarnings } from '#gw2/app/rotation/result/warnings.js';
+import { renderEventLog } from '#gw2/app/results/simulation-event-log.js';
+import { renderWarnings } from '#gw2/app/results/warnings.js';
 import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';

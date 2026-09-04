@@ -2,18 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { chartValueAt } from '#gw2/app/presentation/results/charts/time-series-model.js';
-import { eventLogCsv } from '#gw2/app/presentation/results/event-log-view.js';
-import { nextResultSortState, sortResultRows } from '#gw2/app/presentation/results/rotation-results.js';
-import {
-  buildChartSeries,
-  formatResultTimelineTime,
-  resultSummaryMetrics,
-  skillBreakdownRows
-} from '#gw2/app/rotation/result/model.js';
+import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { eventLogCsv } from '#gw2/app/results/event-log-view.js';
+import { nextResultSortState, sortResultRows } from '#gw2/app/results/rotation-results.js';
+import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/results/model.js';
+import { formatResultTimelineTime } from '#gw2/app/rotation/timeline/timing/model.js';
 import { continuumEndTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
-import { rotationWarningItems } from '#gw2/app/rotation/result/warnings.js';
+import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { rotationWarningItems } from '#gw2/app/results/warnings.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 

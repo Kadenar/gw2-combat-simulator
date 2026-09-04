@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';

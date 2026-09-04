@@ -222,7 +222,7 @@ js/ui/
 ```
 
 Neutral UI owns stable summary, breakdown, timeline, effect-lane, warning, state-snapshot, and extension-panel models.
-GW2 adapts its existing output through `js/games/gw2/app/presentation.ts`.
+GW2 adapts its existing output through `js/games/gw2/app/results/view.ts`.
 
 ---
 
@@ -1105,11 +1105,13 @@ See [PATCH-PREVIEW.md](./PATCH-PREVIEW.md).
 js/ui/
 ```
 
-This layer contains reusable UI models and primitives that are independent of any game. GW2-specific result transforms,
-tables, charts, event rendering, icons, and rotation presentation live under:
+This layer contains reusable UI models and primitives that are independent of any game. GW2-specific presentation
+follows these owners:
 
 ```text
-js/games/gw2/app/presentation/
+js/games/gw2/app/results/              # Result models, tables, charts, event logs, warnings, and shell adapter
+js/games/gw2/app/rotation/             # Palette, timeline, editing, and timeline timing analysis
+js/games/gw2/app/presentation/shared/  # Shared HTML and icon fallback helpers
 ```
 
 The dependency direction should remain:

@@ -6,7 +6,7 @@ import {
   type ChartEffectType,
   type ChartPoint,
   type ChartSeries
-} from '#gw2/app/presentation/results/charts/time-series-model.js';
+} from '#gw2/app/results/charts/time-series-model.js';
 import {
   bindHitTimelineHover,
   drawHitTimeline,

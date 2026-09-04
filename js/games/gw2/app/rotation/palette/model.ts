@@ -1,8 +1,33 @@
-import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
-import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
+import { gw2ApiText } from '#gw2/app/presentation/shared/html.js';
+import {
+  rotationHotkeyActionForSkillName,
+  rotationHotkeyActionForSkillSlot,
+  rotationLoadoutHotkeyActions,
+  rotationUtilityHotkeyAction
+} from '#gw2/app/rotation/input/hotkeys.js';
+import {
+  activeSpecialization,
+  paletteEndState,
+  paletteProfessionState,
+  seconds
+} from '#gw2/app/rotation/shared/context.js';
+import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/rotation/shared/icons.js';
+import { resultCombatReferenceMs } from '#gw2/app/rotation/timeline/timing/model.js';
+import { ammoDisplayView } from '#ui/rotation/ammo-display.js';
+
+import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
+import type { ProfessionAppState, ProfessionSlotLoadoutContext } from '#gw2/app/types.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionPaletteGroup,
+  SchedulerRecord,
+  Skill,
+  SkillId
+} from '#gw2/platform/engine/types.js';
+
 import { groupWeaponSkillsByAttunement } from '#gw2/app/profession/weapon-attunement-groups.js';
-import { activeSpecialization, paletteEndState, paletteProfessionState } from '#gw2/app/rotation/shared/context.js';
+import type { ProfessionAppContract } from '#gw2/app/types.js';
+import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 
 /** Owns the normalized palette declaration consumed by this feature's views. */
 export interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
@@ -576,4 +601,345 @@ export function paletteSkillIsInstant(
     Number(skill?.castTimeMs || 0) === 0 ||
     (skill != null && app.profession.ui.isPaletteSkillInstant?.(context, skill) === true)
   );
+}
+
+export interface AmmoView {
+  readonly current?: number;
+  readonly maximum?: number;
+  readonly pips?: readonly boolean[];
+}
+
+export interface PaletteStatusIconView {
+  readonly icon: string;
+  readonly label: string;
+  readonly title?: string;
+}
+
+export interface PaletteControlView {
+  readonly id: string;
+  readonly label: string;
+  readonly icon?: string;
+  readonly title?: string;
+  readonly color?: string;
+  readonly className?: string;
+  readonly active?: boolean;
+  readonly pressed?: boolean;
+  readonly muted?: boolean;
+  readonly badge?: string;
+}
+
+export interface PaletteSkillView extends SchedulerRecord {
+  readonly name?: string;
+  readonly skillId?: SkillId | null;
+  readonly hotkeyAction?: string;
+  readonly title?: string;
+  readonly icon?: string;
+  readonly variantBadge?: string;
+  readonly color?: string;
+  readonly disabled?: boolean;
+  readonly contextDisabled?: boolean;
+  readonly concealed?: boolean;
+  readonly highlighted?: boolean;
+  readonly draggable?: boolean;
+  readonly cooldownLabel?: string;
+  readonly ammo?: AmmoView | null;
+  readonly resource?: PaletteResourceView | null;
+  readonly virtual?: boolean;
+}
+
+export interface PaletteGroupView {
+  readonly id?: string;
+  readonly label?: string;
+  readonly color?: string;
+  readonly className?: string;
+  readonly skills?: readonly PaletteSkillView[];
+  readonly controls?: readonly PaletteControlView[];
+  readonly statusIcon?: PaletteStatusIconView;
+}
+
+export type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
+export type PaletteContext = ProfessionSlotLoadoutContext & SchedulerRecord;
+
+/** Builds the current context once for every palette render or interaction projection. */
+export function createPaletteContext(app: ProfessionAppState): PaletteContext {
+  const endState = paletteEndState(app);
+  return {
+    specialization: activeSpecialization(app),
+    catalog: app.activeCatalog,
+    professionState: paletteProfessionState(app),
+    cooldowns: endState?.cooldowns || {},
+    activeWeaponSet: endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
+    time: Number(endState?.time || 0) / 1000,
+    build: app.build,
+    activeAutoattack: currentAutoattackSkill(app),
+    // Expose resolved traits so profession replacements only appear when their trait is selected.
+    traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
+  };
+}
+
+function currentCooldown(
+  app: ProfessionAppState,
+  name: string
+): { readonly remaining: number; readonly readyAt: number } {
+  return paletteEndState(app)?.cooldowns?.[name] || { remaining: 0, readyAt: 0 };
+}
+
+function currentAmmo(app: ProfessionAppState, skill: Skill): SchedulerRecord | null {
+  const endState = paletteEndState(app);
+  const ammoBySkillId = endState?.ammoBySkillId;
+  // Prefer exact IDs so duplicate API names cannot leak another variant's ammo into this skill.
+  const rawAmmo =
+    ammoBySkillId && typeof ammoBySkillId === 'object' ? ammoBySkillId[String(skill.id)] : endState?.ammo?.[skill.name];
+  if (!rawAmmo || typeof rawAmmo !== 'object') return null;
+  const ammo = rawAmmo as SchedulerRecord;
+  if (ammo.remaining != null) return ammo;
+  // Scheduler ammo uses `nextRechargeAt` in seconds, while UI projections may
+  // already expose `nextChargeAt` in milliseconds. Normalize both to UI time.
+  const nextChargeAt =
+    ammo.nextChargeAt != null
+      ? Number(ammo.nextChargeAt)
+      : ammo.nextRechargeAt == null
+        ? 0
+        : Number(ammo.nextRechargeAt) * 1000;
+  return {
+    ...ammo,
+    nextChargeAt,
+    remaining: nextChargeAt ? Math.max(0, nextChargeAt - Number(endState?.time || 0)) : 0
+  };
+}
+
+/**
+ * Projects a skill and the latest simulation state into generic palette UI.
+ * `contextAvailable` is the caller's combined state/placement decision;
+ * cooldown and ammo state are derived here so styling, dragging, and tooltips
+ * share one decision.
+ */
+export function paletteSkillView(
+  app: ProfessionAppState,
+  skill: Skill,
+  contextAvailable = true,
+  contextMessage = '',
+  contextRetryAt: number | null = null
+): PaletteSkillView {
+  const displayName = skill.displayName || skill.name;
+  const cd = currentCooldown(app, skill.name);
+  const endTime = Number(paletteEndState(app)?.time || 0);
+  const contextReadyAt = Number(contextRetryAt) * 1000;
+  const contextRemaining = Number.isFinite(contextReadyAt) ? Math.max(0, Math.round(contextReadyAt - endTime)) : 0;
+  // A future retryAt is scheduler-queueable: keep the countdown styling, but
+  // allow clicks so the inserted action can wait for the temporary lockout.
+  const retryableContext =
+    !contextAvailable && contextRetryAt != null && Number.isFinite(contextReadyAt) && contextReadyAt > endTime;
+  // Context lockouts such as Tempest singularity share the cooldown badge;
+  // show whichever restriction keeps the skill unavailable for longer.
+  const remaining = Math.max(Number(cd.remaining || 0), contextRemaining);
+  const readyAt = contextRemaining > Number(cd.remaining || 0) ? contextReadyAt : cd.readyAt;
+  const ammo = currentAmmo(app, skill);
+  const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
+  const recharge =
+    maximumAmmo && Number(skill.ammoRecharge || 0) > 0 ? Number(skill.ammoRecharge) : Number(skill.cooldown || 0);
+  const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
+  // Show the cast lockout while disabled, then the next charge timer once usable; the tooltip reuses this precision.
+  const displayedRemaining = remaining || Number(ammo?.remaining || 0);
+  const cooldownLabel = displayedRemaining ? `${(displayedRemaining / 1000).toFixed(2)}s` : '';
+  const unavailable = remaining > 0 || !contextAvailable;
+  const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
+  const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
+  const hasEnergyCost = skill.energyCost != null;
+  const energyCost = Number(skill.energyCost || 0);
+  const title = [
+    displayName,
+    castTimeSeconds ? `Cast: ${castTimeSeconds.toFixed(2)}s` : 'Instant cast',
+    hasEnergyCost ? `Energy cost: ${energyCost}` : '',
+    recharge ? `${maximumAmmo ? 'Count recharge' : 'Cooldown'}: ${recharge}s` : '',
+    !contextAvailable
+      ? [contextMessage || 'Unavailable in the current state', remaining ? `Remaining: ${cooldownLabel}` : '']
+          .filter(Boolean)
+          .join(' · ')
+      : ammoDisplay
+        ? `${ammoDisplay.label}${
+            displayedRemaining ? ` · ${remaining ? 'available' : 'next charge'} in ${cooldownLabel}` : ''
+          }`
+        : remaining
+          ? `Remaining: ${cooldownLabel} · available at ${seconds(
+              // Show absolute scheduler deadlines on the combat-relative rotation clock.
+              readyAt - resultCombatReferenceMs(app.results)
+            )}`
+          : 'Available now',
+    gw2ApiText(skill.description)
+  ]
+    .filter(Boolean)
+    .join('\n');
+  return {
+    name: skill.name,
+    skillId: skill.id,
+    hotkeyAction:
+      String(skill.hotkeyAction || '') ||
+      rotationHotkeyActionForSkillSlot(skill.slot) ||
+      rotationHotkeyActionForSkillName(skill.name),
+    icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
+    variantBadge: String(skill.variantBadge || ''),
+    title,
+    color: unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8',
+    disabled: unavailable,
+    contextDisabled: !contextAvailable && !retryableContext,
+    concealed: Boolean(skill.concealed),
+    highlighted,
+    draggable: contextAvailable,
+    cooldownLabel,
+    ammo: ammoDisplay,
+    resource: paletteSkillResourceView(app, skill.id)
+  };
+}
+
+/** Projects groups and availability once so every palette layout uses the same live state. */
+export function projectPalette(app: ProfessionAppState, paletteContext: PaletteContext) {
+  const spec = paletteContext.specialization;
+  const professionState = paletteContext.professionState as SchedulerRecord;
+  const professionGroups = paletteView(app.profession, paletteContext);
+  const loadoutGroups = app.adapter.slotLoadout?.paletteGroups(paletteContext) || [];
+  const renderGroups = (groups: readonly ProfessionPaletteGroup[]): RenderedPaletteGroup[] =>
+    groups.map((group) => {
+      const skillIds = group.skillIds || [];
+      const reservedSkillIds = group.reservedSkillIds || [];
+      // Reserved IDs keep a group's declared positions stable while inactive
+      // alternatives remain concealed rather than disappearing from the model.
+      const skills = [
+        ...(reservedSkillIds.length ? reservedSkillIds : skillIds).flatMap((id) => {
+          const skill = app.skillById.get(id);
+          return skill && (group.includeActionSkills || skill.type !== 'Action')
+            ? [
+                {
+                  ...skill,
+                  concealed: reservedSkillIds.length > 0 && !skillIds.includes(skill.id)
+                }
+              ]
+            : [];
+        }),
+        ...(group.skillEntries || []).flatMap((entry) => {
+          const skill = app.skillById.get(Number(entry.skillId));
+          return skill && (group.includeActionSkills || skill.type !== 'Action')
+            ? [{ ...skill, ...entry, name: skill.name } as Skill]
+            : [];
+        })
+      ];
+      return {
+        ...group,
+        // Reserved groups intentionally retain stable placeholders; ordinary
+        // profession groups project sequence families to the live bar tile.
+        skills: reservedSkillIds.length ? skills : displayedSkillTiles(app, skills, paletteContext)
+      };
+    });
+  const renderedProfessionGroups = renderGroups(professionGroups);
+  const loadoutHotkeys = rotationLoadoutHotkeyActions(
+    app.adapter.slotLoadout?.view(paletteContext).bars || [],
+    (skillId) => app.adapter.slotLoadout?.skillChildren?.(paletteContext, skillId) || []
+  );
+  const renderedLoadoutGroups = renderGroups(loadoutGroups).map((group) => ({
+    ...group,
+    skills: group.skills.map((skill) => ({
+      ...skill,
+      hotkeyAction: loadoutHotkeys.get(Number(skill.id)) || ''
+    }))
+  }));
+  const selected = rotationSelectedSlotSkills(app);
+  // The shared projector discovers and selects descendants from the catalog;
+  // selected utilities only need to contribute their root tile and hotkey.
+  const selectedWithFlipChains = uniqueByName(selected).map((skill, index) => ({
+    ...skill,
+    hotkeyAction: rotationUtilityHotkeyAction(index)
+  }));
+  const groupedActionSkillIds = new Set(
+    [...renderedProfessionGroups, ...renderedLoadoutGroups].flatMap((group) =>
+      group.skills.filter((skill) => skill.type === 'Action' && !skill.concealed).map((skill) => String(skill.id))
+    )
+  );
+  // Actions explicitly placed by a profession or loadout group must not also
+  // appear in the shared action row.
+  const actions = paletteActionSkills(app, spec, paletteContext).filter(
+    (skill) => !groupedActionSkillIds.has(String(skill.id))
+  );
+  const weaponSwapActions = actions.filter((skill) => skill.name === 'Swap Weapons');
+  const generalActions = actions.filter((skill) => skill.name !== 'Swap Weapons');
+  const activeWeaponSet = Number(paletteContext.activeWeaponSet || 1);
+
+  const availableAmbush =
+    professionState.availableAmbush && typeof professionState.availableAmbush === 'object'
+      ? (professionState.availableAmbush as SchedulerRecord)
+      : null;
+
+  const autoattackChains =
+    professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
+      ? (professionState.autoattackChains as SchedulerRecord)
+      : {};
+  const loadoutUnavailableMessage = (skill: Skill): string =>
+    app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || '';
+
+  // Loadout and profession availability are independent vetoes. Cache the
+  // structured profession result because both its flag and message are read.
+  const paletteAvailabilityBySkill = new Map<Skill, PaletteSkillAvailability>();
+  const professionPaletteAvailability = (skill: Skill): PaletteSkillAvailability => {
+    if (!paletteAvailabilityBySkill.has(skill)) {
+      paletteAvailabilityBySkill.set(skill, app.profession.ui.paletteSkillAvailability(paletteContext, skill));
+    }
+
+    return paletteAvailabilityBySkill.get(skill) as PaletteSkillAvailability;
+  };
+
+  const professionAllowsPaletteSkill = (skill: Skill): boolean =>
+    !loadoutUnavailableMessage(skill) && professionPaletteAvailability(skill).available;
+
+  const professionPaletteUnavailableMessage = (skill: Skill): string =>
+    loadoutUnavailableMessage(skill) || professionPaletteAvailability(skill).message;
+
+  const professionPaletteRetryAt = (skill: Skill): number | null =>
+    professionPaletteAvailability(skill).retryAt ?? null;
+
+  const weaponSkillAvailable = (skill: Skill, weaponSet: number): boolean => {
+    if (weaponSet !== activeWeaponSet) return false;
+    if (!professionAllowsPaletteSkill(skill)) return false;
+    if (skill.ambush) return String(availableAmbush?.name || '') === skill.name;
+    if (availableAmbush && skill.slot === 'Weapon_1') return false;
+    return true;
+  };
+
+  const weaponSkillUnavailableMessage = (skill: Skill, weaponSet: number): string => {
+    if (weaponSet !== activeWeaponSet) {
+      return `Swap to weapon set ${weaponSet} to use this skill`;
+    }
+
+    if (!professionAllowsPaletteSkill(skill)) {
+      return professionPaletteUnavailableMessage(skill);
+    }
+
+    if (skill.ambush) {
+      return availableAmbush
+        ? `Current ambush is ${String(availableAmbush.name || '')}`
+        : 'Gain Mirage Cloak to use this ambush';
+    }
+
+    if (availableAmbush && skill.slot === 'Weapon_1') {
+      return `${String(availableAmbush.name || '')} currently replaces weapon skill 1`;
+    }
+
+    return '';
+  };
+
+  const selectedWithFlips = displayedSkillTiles(app, selectedWithFlipChains, paletteContext);
+
+  return {
+    renderedProfessionGroups,
+    renderedLoadoutGroups,
+    actions,
+    weaponSwapActions,
+    generalActions,
+    activeWeaponSet,
+    autoattackChains,
+    professionAllowsPaletteSkill,
+    professionPaletteUnavailableMessage,
+    professionPaletteRetryAt,
+    weaponSkillAvailable,
+    weaponSkillUnavailableMessage,
+    selectedWithFlips
+  };
 }

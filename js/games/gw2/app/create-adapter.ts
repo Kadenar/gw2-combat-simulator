@@ -7,7 +7,7 @@ import { renderRotationBuilder } from '#gw2/app/rotation/index.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build-editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
-import { gw2SimulationPresentation } from '#gw2/app/presentation.js';
+import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import type { Skill } from '#gw2/platform/engine/types.js';
 import type {
   DefineProfessionAppOptions,

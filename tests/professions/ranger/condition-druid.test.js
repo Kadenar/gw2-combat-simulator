@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

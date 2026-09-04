@@ -6,9 +6,10 @@ import {
   paletteSkillIsInstant,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
-import { paletteSkillView, resolvePaletteDropItem } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
-import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,

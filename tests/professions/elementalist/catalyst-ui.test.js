@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
-import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';

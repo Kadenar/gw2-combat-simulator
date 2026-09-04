@@ -3,7 +3,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
+import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 // Chronomancer clone refunds, phantasm repeats, and Continuum snapshots retain their timing contracts.

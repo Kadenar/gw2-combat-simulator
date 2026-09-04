@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
-import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';

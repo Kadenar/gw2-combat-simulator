@@ -5,20 +5,17 @@ import {
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   chartValueAt
-} from '#gw2/app/presentation/results/charts/time-series-model.js';
-import { mountTimeSeriesCharts } from '#gw2/app/presentation/results/charts/time-series-view.js';
-import { eventLogCsv, mountEventLog } from '#gw2/app/presentation/results/event-log-view.js';
-import {
-  resultSummaryMetrics,
-  targetHealthBreakpointSnapshots
-} from '#gw2/app/presentation/results/result-transform.js';
+} from '#gw2/app/results/charts/time-series-model.js';
+import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
+import { eventLogCsv, mountEventLog } from '#gw2/app/results/event-log-view.js';
+import { resultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import {
   dismissResultMetricDetails,
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
   sortResultRows
-} from '#gw2/app/presentation/results/rotation-results.js';
+} from '#gw2/app/results/rotation-results.js';
 import { inertContainer } from '../helpers/dom.js';
 
 // GW2 results preserve chart projections, result controls, and escaped event-log rendering.

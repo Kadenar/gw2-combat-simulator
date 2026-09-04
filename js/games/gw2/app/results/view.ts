@@ -1,12 +1,12 @@
-import { targetHealthBreakpointSnapshots } from '#gw2/app/presentation/results/result-transform.js';
+import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import {
   mountRotationResults,
   SKILL_COLS,
   type RotationResultsModel,
   type RotationResultsOptions
-} from '#gw2/app/presentation/results/rotation-results.js';
+} from '#gw2/app/results/rotation-results.js';
 import { PLACEHOLDER_ICON, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
-import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
+import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/results/model.js';
 import { renderSimulationViewModel } from '#app/shell/result-view.js';
 import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';

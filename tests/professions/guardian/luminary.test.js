@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';

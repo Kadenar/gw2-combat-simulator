@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  bindRelicComparisonChartHover,
-  relicComparisonChartSvg
-} from '#gw2/app/presentation/results/charts/relic-comparison.js';
+import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/results/charts/relic-comparison.js';
 import {
   CROSSOVER_EVALUATION_START_MS,
   buildRelicComparisonModel,

@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import {
-  buildChartSeries,
   formatResultTimelineTime,
   formatTimelineTime,
-  resultCombatReferenceMs,
-  resultSummaryMetrics
-} from '#gw2/app/rotation/result/model.js';
+  resultCombatReferenceMs
+} from '#gw2/app/rotation/timeline/timing/model.js';
 
 const PLAYER_AUDIENCE = Object.freeze({
   includesSelf: true,

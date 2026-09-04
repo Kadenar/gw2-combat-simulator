@@ -1,7 +1,10 @@
-import type { RotationCommand, SchedulerStep, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { RotationCommand, SchedulerRecord, SchedulerStep, SkillId } from '#gw2/platform/engine/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+
+import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import { targetHealthBreakpointSnapshots } from '#gw2/app/presentation/results/result-transform.js';
 
 export type TimelineRotationEntry = RotationCommand;
 
@@ -754,4 +757,41 @@ export function timelineStepsWithChargeFills(
       }
     };
   });
+}
+
+export type TimelineItem = SchedulerRecord & {
+  command: RotationCommand;
+  type: RotationCommand['type'];
+  name: string;
+  skillId?: SkillId;
+  concurrentOffsetMs?: number;
+  interruptAfterMs?: number;
+  offTarget?: boolean;
+  releaseAtCharges?: unknown;
+  doubleEdgeOutcome?: unknown;
+  durationMs?: number;
+};
+
+// Projects canonical commands into the uniform fields needed by timeline rendering.
+export function timelineItem(command: RotationCommand): TimelineItem {
+  if (command.type === 'cast') {
+    return { ...command, command, name: String(command.skillId) };
+  }
+
+  if (command.type === 'wait') {
+    return { ...command, command, name: '__wait' };
+  }
+
+  return {
+    ...command,
+    command,
+    name: command.type === 'combat-start' ? '__combat_start' : '__cooldown_reset'
+  };
+}
+
+/** Prevents a newly changed rotation from displaying timings produced for the previous build revision. */
+export function currentTimelineResults(
+  app: Pick<ProfessionAppState, 'buildRevision' | 'resultRevision' | 'results'>
+): ProfessionAppState['results'] {
+  return app.resultRevision === app.buildRevision ? app.results : null;
 }

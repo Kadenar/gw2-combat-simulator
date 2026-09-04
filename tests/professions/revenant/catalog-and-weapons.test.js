@@ -10,10 +10,11 @@ import {
   rotationSelectedSlotSkills,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
-import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';

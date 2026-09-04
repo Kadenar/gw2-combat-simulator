@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
+import { buildChartSeries, skillBreakdownRows } from '#gw2/app/results/model.js';
 import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';

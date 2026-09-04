@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { loadProfession, professionOptions } from '#gw2/app/profession/registry.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { paletteSkillView } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 
 function projectionApp(
   profession,

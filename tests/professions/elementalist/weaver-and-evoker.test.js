@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';

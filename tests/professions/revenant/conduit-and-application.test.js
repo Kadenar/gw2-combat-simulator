@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { defaultPaletteInterruptMs } from '#gw2/app/rotation/palette/view.js';
-import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
+import { defaultPaletteInterruptMs } from '#gw2/app/rotation/palette/interactions.js';
+import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,

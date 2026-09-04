@@ -5,7 +5,7 @@ import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/re
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
-import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog, thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/catalog.js';
 import {

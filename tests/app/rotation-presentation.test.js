@@ -8,12 +8,8 @@ import {
   validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
 } from '#gw2/app/rotation/editing/activation-editor.js';
-import {
-  bindPaletteInteractions,
-  paletteGroupHtml,
-  paletteSkillHtml,
-  virtualPaletteSkillHtml
-} from '#gw2/app/rotation/palette/view.js';
+import { bindPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
+import { paletteGroupHtml, paletteSkillHtml, virtualPaletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { escapeHtml, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
 import {
   formatTimelineCastDetails,

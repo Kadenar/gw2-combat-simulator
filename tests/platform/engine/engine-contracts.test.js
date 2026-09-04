@@ -4,7 +4,7 @@ import test from 'node:test';
 import { assertSimulationEvent, COMMON_EVENT_TYPES, createEvent } from '#gw2/platform/engine/events/events.js';
 import { assertScheduledEventStream, buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { emitStateSnapshot, sameSnapshotValue } from '#gw2/platform/engine/events/state-snapshots.js';
-import { skillDamageIdentityKey } from '#gw2/app/presentation/results/result-tables.js';
+import { skillDamageIdentityKey } from '#gw2/app/results/result-tables.js';
 
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.equal(

@@ -1,9 +1,9 @@
 import { enterRotationFocus } from '#app/shell/workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/build/io/rotation-import-dialog.js';
-import { buildChartSeries, chartValueAt } from '#gw2/app/rotation/result/model.js';
+import { buildChartSeries, chartValueAt } from '#gw2/app/results/model.js';
 import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
-import type { ChartSeries } from '#gw2/app/presentation/results/charts/time-series-model.js';
+import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGuardianBuildDefaults, migrateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';

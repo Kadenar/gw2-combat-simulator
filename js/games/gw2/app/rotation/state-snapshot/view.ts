@@ -5,7 +5,7 @@
  */
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { formatResultTimelineTime } from '#gw2/app/rotation/result/model.js';
+import { formatResultTimelineTime } from '#gw2/app/rotation/timeline/timing/model.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 
 /** Fills `#rotation-active-buffs` with the current state snapshot when available. */

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { dispatchPaletteActivation } from '#gw2/app/rotation/palette/view.js';
+import { dispatchPaletteActivation } from '#gw2/app/rotation/palette/interactions.js';
 
 // Builds only the app surface used by palette activation so each branch stays isolated.
 function activationApp(skills) {

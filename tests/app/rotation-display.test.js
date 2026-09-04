@@ -22,7 +22,8 @@ import {
   reduceRotationWorkspaceState,
   updateFloatingDps
 } from '#app/shell/workspace.js';
-import { currentTimelineResults, reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
+import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
