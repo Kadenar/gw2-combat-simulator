@@ -8,7 +8,7 @@ import {
   stateTimingAnalysis,
   weaponSetActiveSegments,
   weaponSetDurationTotals
-} from '#gw2/app/rotation/timeline/model.js';
+} from '#gw2/app/rotation/timeline/timing/model.js';
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 
 const FIRE_BOMB_ID = 5823;

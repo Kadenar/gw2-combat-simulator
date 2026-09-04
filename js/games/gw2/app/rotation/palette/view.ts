@@ -15,7 +15,7 @@ import { activationDamageCommitMs, openActivationEditor } from '#gw2/app/rotatio
 import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
 import { resultCombatReferenceMs } from '#gw2/app/rotation/result/model.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
-import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/view.js';
+import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/interactions.js';
 import { escapeHtml as esc, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
 import { createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release.js';

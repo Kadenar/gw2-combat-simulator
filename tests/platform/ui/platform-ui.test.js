@@ -51,7 +51,7 @@ import {
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals
 } from '#gw2/app/rotation/timeline/model.js';
-import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/view.js';
+import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
 
 function inertContainer() {
   return {
