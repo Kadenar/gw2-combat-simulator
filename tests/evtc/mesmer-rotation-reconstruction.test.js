@@ -392,8 +392,7 @@ test('matches partial Mesmer handler packets while preserving an unrelated exact
     castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     interruptMode: 'per-packet',
-    effects: [],
-    mesmerEffects: [
+    effects: [
       {
         type: 'strike',
         ticks: [

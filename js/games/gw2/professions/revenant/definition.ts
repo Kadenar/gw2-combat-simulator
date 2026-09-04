@@ -19,20 +19,6 @@ export const revenantProfession = defineNativeProfession({
   autoattackChains: {
     overrides: [
       {
-        // Revenant's explicit interruption rules apply only after the
-        // interrupting action commits, matching its former lifecycle guard.
-        id: 'revenant.precommit-cancellation-preserves',
-        when: ({ cast }) => cast.action?.cancelled === true,
-        decision: 'preserve'
-      },
-      {
-        // Temporal Rift is chain-neutral only for the Mace sequence it accompanies.
-        id: 'revenant.temporal-rift-preserves-mace',
-        chainRootIds: [ID.MISERY_SWIPE],
-        interruptingSkillIds: [ID.TEMPORAL_RIFT],
-        decision: 'preserve'
-      },
-      {
         id: 'revenant.dodge-resets',
         interruptingSkillIds: [ID.DODGE],
         decision: 'reset'

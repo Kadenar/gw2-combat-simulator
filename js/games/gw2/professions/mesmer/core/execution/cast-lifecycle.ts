@@ -199,9 +199,11 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
       const resolution = runtime.actions.handleShatter(context, skill, at, details.shatterSpent ?? null, context.start);
       if (resolution) dispatchShatterResolved(context, resolution);
     } else {
-      if (skill.mesmerEffects) {
+      // Non-declarative Mesmer handlers own emission; their canonical effects
+      // stay on the skill for timing inspection and other metadata consumers.
+      if (skill.handlerId && skill.handlerId !== 'mesmer.declarative') {
         clarityConsumed = runtime.skillEffects.schedule(
-          { ...skill, effects: skill.mesmerEffects },
+          skill,
           at,
           context.start,
           completedInterruptedPhantasm

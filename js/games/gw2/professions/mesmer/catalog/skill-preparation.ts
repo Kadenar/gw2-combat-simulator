@@ -97,10 +97,7 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
   return (skill.effects || []).length ? 'mesmer.declarative' : null;
 }
 
-/**
- * Moves replacing profiles out of the shared effect list while retaining the
- * accepted legacy profile as handler-owned Mesmer data.
- */
+/** Assigns the stable handler that owns emission while retaining canonical effect metadata. */
 export function prepareMesmerSkillForCatalog<TSkill extends MesmerSkillCatalogFragment>(skill: TSkill): TSkill {
   const handlerId = mesmerHandlerIdFor(skill);
   const flipParentId = MESMER_FLIP_PARENT_BY_CHILD_ID[Number(skill.id)];
@@ -114,15 +111,5 @@ export function prepareMesmerSkillForCatalog<TSkill extends MesmerSkillCatalogFr
         }
       : skill.mesmerMechanic;
   const prepared: TSkill = mechanic ? { ...skill, mesmerMechanic: mechanic } : skill;
-  if (!handlerId) return prepared;
-  if (handlerId === 'mesmer.declarative') {
-    return { ...prepared, handlerId };
-  }
-
-  return {
-    ...prepared,
-    handlerId,
-    mesmerEffects: skill.effects || [],
-    effects: []
-  };
+  return handlerId ? { ...prepared, handlerId } : prepared;
 }

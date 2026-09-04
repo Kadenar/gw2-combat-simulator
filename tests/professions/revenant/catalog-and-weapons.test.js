@@ -982,8 +982,8 @@ test('Temporal Rift preserves the Mace autoattack chain', () => {
   assert.equal(result.endState.profession.autoattackChains[SKILL.MISERY_SWIPE], SKILL.MANIFEST_TOXIN);
 });
 
-test('Temporal Rift resets the Sword autoattack chain', () => {
-  const result = simulate('Core', ['Preparation Thrust', 'Temporal Rift', 'Preparation Thrust'], {
+test('Temporal Rift preserves the Sword autoattack chain until its delayed hit', () => {
+  const result = simulate('Core', ['Preparation Thrust', 'Temporal Rift', 'Brutal Blade'], {
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Axe'
   });
@@ -991,9 +991,9 @@ test('Temporal Rift resets the Sword autoattack chain', () => {
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.steps.map((step) => step.skill),
-    ['Preparation Thrust', 'Temporal Rift', 'Preparation Thrust']
+    ['Preparation Thrust', 'Temporal Rift', 'Brutal Blade']
   );
-  assert.equal(result.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
+  assert.equal(result.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.RIFT_SLASH);
 });
 
 test('Beguiling Haze resets the Sword autoattack chain', () => {

@@ -158,10 +158,6 @@ test('Mesmer conforms to native handler and state contracts', () => {
     const strategy = mesmerCatalog.skillHandlers.get(skill.handlerId);
 
     assert.ok(strategy, `${skill.name} has an unresolved handler`);
-
-    if (strategy.mode === SKILL_HANDLER_MODES.REPLACE) {
-      assert.deepEqual(skill.effects, [], skill.name);
-    }
   }
 
   const mechanicSkillIds = ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'].flatMap((specialization) =>

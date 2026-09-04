@@ -297,6 +297,28 @@ test('Ride the Lightning preserves sword roots without exempting other dagger sk
   );
 });
 
+test('Relentless Fire preserves the sword autoattack chain', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Catalyst']],
+    rotation: ['Charged Strike', 'Relentless Fire', 'Polaric Slash'],
+    startAttunement: 'Air',
+    weapons: ['Sword', 'Dagger'],
+    selectedSkills: {
+      Heal: 'Glyph of Elemental Harmony',
+      Utility1: 'Relentless Fire',
+      Utility2: 'Signet of Fire',
+      Utility3: 'Arcane Wave',
+      Elite: 'Glyph of Elementals'
+    }
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => step.skill),
+    ['Charged Strike', 'Relentless Fire', 'Polaric Slash']
+  );
+});
+
 test('Ride the Lightning preserves the timed Aerial Agility flip sequence', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],

@@ -66,13 +66,6 @@ export function isRecordedAutoattack(
 
 export { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, strikePacketOffsets };
 
-/** Reads the strike definition retained by a profession handler after it replaces the shared effect runner. */
-function packetEffects(skill: Skill): NonNullable<Skill['effects']> {
-  const effects = skill.effects || [];
-  if (effects.length) return effects;
-  return (skill as Skill & { readonly mesmerEffects?: Skill['effects'] }).mesmerEffects || [];
-}
-
 export function createStrikePacketMatcher(
   context: EvtcProfessionReconstructionContext,
   options: StrikePacketMatcherOptions = {}
@@ -99,7 +92,7 @@ export function createStrikePacketMatcher(
       ? (options.runtimeDurationMs?.(skill, action) ?? quicknessRuntimeDurationMs(skill))
       : 0;
     const packets: ExpectedStrikePacket[] = skill
-      ? packetEffects(skill).flatMap((effect) => {
+      ? (skill.effects || []).flatMap((effect) => {
           if (effect.type !== 'strike' || effect.actorType === 'summon') {
             return [];
           }

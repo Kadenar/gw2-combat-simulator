@@ -3,7 +3,7 @@
  * boundary where generated API data, hand-authored mechanics, explicit
  * overrides, and resolver handlers become one validated immutable lookup.
  */
-import { normalizeSkillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
+import { normalizeSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 import { toEntries } from '#kernel/core/collections.js';
@@ -85,6 +85,7 @@ const EFFECT_FIELDS = new Set([
   'timingScale',
   'castProgress',
   'packetLabel',
+  'phantasmEntityIndex',
   'requiredTrait',
   'source',
   'sourceId',
@@ -778,16 +779,6 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): CanonicalCa
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
     if (skill.handlerId && !catalog.skillHandlers?.has(String(skill.handlerId))) {
       throw new Error(`Skill ${skill.id} references missing handler ${skill.handlerId}.`);
-    }
-
-    const handler = catalog.skillHandlers?.get(String(skill.handlerId || ''));
-    // REPLACE handlers own the entire skill execution; declarative effects would be
-    // silently ignored at runtime. Require an empty list to surface authoring mistakes.
-    // Exception: handlers with resolveMode still process effects in the resolve phase.
-    if (handler?.mode === SKILL_HANDLER_MODES.REPLACE && !handler.resolveMode && (skill.effects || []).length > 0) {
-      throw new Error(
-        `Skill ${skill.id} uses replacing handler ${skill.handlerId} ` + 'and must declare an empty effects list.'
-      );
     }
 
     for (const reference of [skill.parentId, skill.flipParentId]) {

@@ -418,7 +418,6 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     cooldown: 90,
     nextChainId: ID.TAILORED_VICTORY,
     skillFamily: 'Stance',
-    preservesAutoattackChain: true,
     effects: []
   },
   [ID.TAILORED_VICTORY]: {

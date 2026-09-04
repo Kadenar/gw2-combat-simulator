@@ -59,9 +59,51 @@ function chainProfession(autoattackChains) {
           weapon: 'Sword',
           slot: 'Weapon_2',
           castTimeMs: 1000,
-          interruptCommitMs: 500
+          interruptCommitMs: 500,
+          effects: [
+            {
+              type: 'strike',
+              coefficient: 1,
+              atMs: 500,
+              timingAnchor: 'castStart'
+            }
+          ]
         }),
-        skill(8, 'Utility', { type: 'Utility' })
+        skill(8, 'Instant Damage', {
+          type: 'Utility',
+          effects: [{ type: 'strike', coefficient: 1 }]
+        }),
+        skill(9, 'Non-damaging Cast', { type: 'Utility', castTimeMs: 1000 }),
+        skill(10, 'Delayed Damage', {
+          type: 'Utility',
+          castTimeMs: 1000,
+          effects: [
+            {
+              type: 'strike',
+              coefficient: 1,
+              atMs: 1200,
+              timingAnchor: 'castStart'
+            }
+          ]
+        }),
+        skill(11, 'Cast-end Damage', {
+          type: 'Utility',
+          castTimeMs: 1000,
+          effects: [{ type: 'strike', coefficient: 1 }]
+        }),
+        skill(12, 'Independent Damage', {
+          type: 'Profession',
+          castTimeMs: 1000,
+          independentCast: true,
+          effects: [
+            {
+              type: 'strike',
+              coefficient: 1,
+              atMs: 500,
+              timingAnchor: 'castStart'
+            }
+          ]
+        })
       ]
     },
     state: {
@@ -94,15 +136,27 @@ test('native professions automatically gate and advance autoattack chains', () =
   assert.deepEqual(chainState(completed), {});
 });
 
-test('another weapon resets pending roots while utilities preserve them', () => {
+test('only nonzero player casts with damage by cast end reset pending roots', () => {
   const profession = chainProfession();
-  const preserved = createScheduler({ profession }).run(['Root A', 'Utility', 'Second A']);
-  const reset = createScheduler({ profession }).run(['Root A', 'Interrupting Weapon', 'Second A']);
+  const instant = createScheduler({ profession }).run(['Root A', 'Instant Damage', 'Second A']);
+  const nonDamaging = createScheduler({ profession }).run(['Root A', 'Non-damaging Cast', 'Second A']);
+  const delayed = createScheduler({ profession }).run(['Root A', 'Delayed Damage', 'Second A']);
+  const independent = createScheduler({ profession }).run(['Root A', 'Independent Damage', 'Second A']);
+  const weapon = createScheduler({ profession }).run(['Root A', 'Interrupting Weapon', 'Root A']);
+  const inclusive = createScheduler({ profession }).run(['Root A', 'Cast-end Damage', 'Root A']);
 
-  assert.deepEqual(preserved.warnings, []);
-  assert.deepEqual(chainState(preserved), { 1: 3 });
-  assert.match(reset.warnings[0], /cast Root A first/);
-  assert.deepEqual(chainState(reset), {});
+  assert.deepEqual(instant.warnings, []);
+  assert.deepEqual(chainState(instant), { 1: 3 });
+  assert.deepEqual(nonDamaging.warnings, []);
+  assert.deepEqual(chainState(nonDamaging), { 1: 3 });
+  assert.deepEqual(delayed.warnings, []);
+  assert.deepEqual(chainState(delayed), { 1: 3 });
+  assert.deepEqual(independent.warnings, []);
+  assert.deepEqual(chainState(independent), { 1: 3 });
+  assert.deepEqual(weapon.warnings, []);
+  assert.deepEqual(chainState(weapon), { 1: 2 });
+  assert.deepEqual(inclusive.warnings, []);
+  assert.deepEqual(chainState(inclusive), { 1: 2 });
 });
 
 test('pre-commit cancellation does not advance but a committed interruption does', () => {

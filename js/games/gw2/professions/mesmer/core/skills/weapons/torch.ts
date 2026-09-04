@@ -78,6 +78,7 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         ticks: [{ atMs: 3000, coefficient: 1 }],
         timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
         weapon: 'torch'
@@ -85,12 +86,14 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'condition',
         ticks: [{ atMs: 3000, condition: 'Burning', stacks: 1, duration: 9 }],
-        timingAnchor: 'castStart'
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 3000, condition: 'Burning', stacks: 2, duration: 3 }],
         timingAnchor: 'castStart',
+        timingScale: 'fixed',
         requiredTrait: TRAIT.THE_PLEDGE
       }
     ]

@@ -324,8 +324,8 @@ identical output when rerun with an already-converged result.
 
 The platform scheduler handles ordinary declarative skills and invokes profession hooks for complex behavior. Catalog
 skill handlers use a shared strategy contract: augmenting handlers may prepare state, observe each emitted declarative
-effect, and finalize the cast; replacing handlers own the complete profile and must declare an empty `effects` list. The
-catalog rejects ambiguous replacing-handler/nonempty-effect combinations and undeclared effect fields. Mesmer clone
+effect, and finalize the cast; replacing handlers own emission while retaining `effects` as canonical profile metadata.
+The scheduler skips declarative emission for replacing handlers, and the catalog rejects undeclared effect fields. Mesmer clone
 attacks, resource gains, expected procs, and Continuum expiry are profession-owned typed tasks on that clock. Mesmer
 selects every exceptional cast through a stable-ID handler and stores scheduler-local controllers explicitly on its
 context; it has no all-skills scheduling hook or module-level runtime registry. Scheduler and UI availability share pure

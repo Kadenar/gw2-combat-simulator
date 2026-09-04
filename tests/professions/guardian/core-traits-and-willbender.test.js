@@ -675,6 +675,20 @@ test('Guardian autoattack chains and torch flips enforce sequence state', () => 
   assert.ok(flip.conditionDamage > 0);
 });
 
+test('Guardian greatsword autoattacks restart after another skill', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Strike', 'Whirling Wrath', 'Strike'],
+    config: { ...config, primaryWeapon: 'Greatsword' }
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => step.skill),
+    ['Strike', 'Whirling Wrath', 'Strike']
+  );
+});
+
 test("Zealot's Flame preserves one-handed roots without exempting its flip", () => {
   const sword = simulateGw2({
     profession: guardianProfession,

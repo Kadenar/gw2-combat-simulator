@@ -4,6 +4,7 @@
  * transition observers; this controller performs every live map mutation.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import { resolveAutoattackChainStep } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import type {
@@ -155,6 +156,31 @@ function availability(context: CastContext, skill: Skill): AvailabilityResult {
   );
 }
 
+/** A player cast interrupts a pending chain only when its own damage lands no later than the cast's actual end. */
+function interruptsAutoattackChain(context: CastLifecycleContext, skill: Skill): boolean {
+  if (
+    context.action?.cancelled === true ||
+    skill.independentCast === true ||
+    context.fullEnd <= context.start + context.epsilon
+  )
+    return false;
+  const emittedByCastEnd = context
+    .eventsOfType('damage')
+    .some(
+      (event) =>
+        event.activationId === context.reservationId && Number(event.at) <= context.effectiveEnd + context.epsilon
+    );
+  if (emittedByCastEnd) return true;
+
+  // Replacing handlers can retain their profile until cast completion, so use
+  // that authored timing when no damage event exists yet.
+  return (skill.effects || []).some((effect) => {
+    if (effect.type !== 'strike') return false;
+    const timing = context.schedulerPolicy.effectTiming?.(context, skill, effect) ?? effect;
+    return effectFirstAt(context.start, context.fullEnd, timing) <= context.effectiveEnd + context.epsilon;
+  });
+}
+
 function transition(
   context: CastLifecycleContext,
   skill: Skill,
@@ -185,9 +211,9 @@ function transition(
       interruptingChainRootId: castChainRootId
     };
     const override = matchingOverride(options.overrides || [], overrideContext);
-    // A cancelled cast never gets the universal weapon reset, but an explicit
-    // per-root rule may still treat the attempted skill as an interruption.
-    const decision = override?.decision || (committed && skill.type === 'Weapon' ? 'reset' : 'preserve');
+    // Skill type is irrelevant: only a nonzero cast whose damage lands by cast end
+    // interrupts the pending chain unless a profession declares a narrow exception.
+    const decision = override?.decision || (interruptsAutoattackChain(context, skill) ? 'reset' : 'preserve');
     if (decision === 'reset') delete chains[root];
     changes.push(
       Object.freeze({

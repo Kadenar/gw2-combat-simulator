@@ -27,10 +27,7 @@ export const elementalistProfession = defineNativeProfession({
   },
   modules: elementalistNativeModules,
   autoattackChains: {
-    // Elementalist resets on substantive casts, while chain-neutral metadata and
-    // Ride the Lightning preserve only the sword roots that can coexist with its offhand dagger.
-    // The engine applies the first matching override, so the narrow exemptions must be
-    // declared ahead of the broad cast-time rules at the end of the list.
+    // Elementalist's explicit exceptions run before the shared damage-timing rule.
     overrides: [
       {
         // Aerial Agility is a timed slot-three flip, not an autoattack; only its
@@ -40,31 +37,10 @@ export const elementalistProfession = defineNativeProfession({
         decision: 'preserve'
       },
       {
-        // A cast cancelled before it commits never landed, so it must not spend the chain step.
-        id: 'elementalist.precommit-cancellation-preserves',
-        when: ({ cast }) => cast.action?.cancelled === true,
-        decision: 'preserve'
-      },
-      {
-        id: 'elementalist.declared-chain-neutral',
-        when: ({ interruptingSkill }) => interruptingSkill.preservesAutoattackChain === true,
-        decision: 'preserve'
-      },
-      {
         id: 'elementalist.ride-the-lightning-preserves-sword',
         chainRootIds: [ID.FIRE_STRIKE, ID.SEICHE, ID.CHARGED_STRIKE, ID.CRYSTAL_SLASH],
         interruptingSkillIds: [ID.RIDE_THE_LIGHTNING],
         decision: 'preserve'
-      },
-      {
-        id: 'elementalist.instant-casts-preserve',
-        when: ({ interruptingSkill }) => Number(interruptingSkill.castTimeMs || 0) <= 0,
-        decision: 'preserve'
-      },
-      {
-        id: 'elementalist.substantive-casts-reset',
-        when: ({ interruptingSkill }) => Number(interruptingSkill.castTimeMs || 0) > 0,
-        decision: 'reset'
       }
     ],
     onTransition: observeElementalistAutoattackTransition

@@ -2,8 +2,8 @@
  * Skill-handler strategy contract. Defines the augment/replace modes and cast
  * lifecycle phases a handler may own, with builders, validation, and
  * normalization. Augmenting handlers keep declarative effects scheduler-owned;
- * replacing handlers own the entire emitted profile and require no declarative
- * effects; a mode resolver supports skills whose profile changes at runtime.
+ * replacing handlers own emission while retaining effects as canonical profile
+ * metadata; a mode resolver supports skills whose profile changes at runtime.
  */
 import type {
   SchedulerRecord,
@@ -25,9 +25,9 @@ type SkillHandlerOptions<TContext extends object> = Omit<
  * Shared skill-handler strategy contract.
  *
  * Declarative effects remain scheduler-owned for augmenting handlers. Replacing
- * handlers explicitly own the complete emitted profile and therefore require an
- * empty declarative effect list. A mode resolver supports the small number of
- * skills whose profile changes at runtime.
+ * handlers explicitly own emission, so the scheduler does not emit their retained
+ * canonical effect metadata. A mode resolver supports the small number of skills
+ * whose profile changes at runtime.
  */
 
 export const SKILL_HANDLER_MODES = Object.freeze({

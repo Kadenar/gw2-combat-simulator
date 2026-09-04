@@ -95,11 +95,10 @@ export const necromancerProfession = defineNativeProfession({
         decision: 'preserve'
       },
       {
-        id: 'necromancer.timed-and-form-casts-reset',
+        // Entering or leaving shroud resets weapon-chain state even without a direct damage packet.
+        id: 'necromancer.form-casts-reset',
         when: ({ interruptingSkill }) =>
-          Number(interruptingSkill.castTimeMs || 0) > 0 ||
-          Boolean(interruptingSkill.shroud) ||
-          interruptingSkill.handlerId === 'necromancer.shroud',
+          Boolean(interruptingSkill.shroud) || interruptingSkill.handlerId === 'necromancer.shroud',
         decision: 'reset'
       }
     ],

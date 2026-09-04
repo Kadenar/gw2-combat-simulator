@@ -956,7 +956,7 @@ test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigg
   );
 });
 
-test("interrupted weapon skills and shroud entry reset Reaper's greatsword chain", () => {
+test("delayed interrupted weapon damage preserves Reaper's chain while shroud entry resets it", () => {
   const config = {
     initialResource: 100,
     primaryWeapon: 'Greatsword',
@@ -964,7 +964,7 @@ test("interrupted weapon skills and shroud entry reset Reaper's greatsword chain
   };
   const interrupted = simulate(
     'Reaper',
-    ['Dusk Strike', { name: 'Grasping Darkness', interruptMs: 120 }, 'Dusk Strike'],
+    ['Dusk Strike', { name: 'Grasping Darkness', interruptMs: 120 }, 'Fading Twilight'],
     config
   );
   const enteredShroud = simulate('Reaper', ['Dusk Strike', "Reaper's Shroud"], config);
@@ -977,7 +977,7 @@ test("interrupted weapon skills and shroud entry reset Reaper's greatsword chain
   assert.deepEqual(interrupted.warnings, []);
   assert.deepEqual(
     interrupted.steps.map((step) => step.skill),
-    ['Dusk Strike', 'Grasping Darkness', 'Dusk Strike']
+    ['Dusk Strike', 'Grasping Darkness', 'Fading Twilight']
   );
   assert.equal(interrupted.steps[1].interrupted, true);
   assert.equal(enteredShroud.endState.profession.autoattackChains[ID.DUSK_STRIKE], undefined);

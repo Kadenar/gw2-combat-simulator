@@ -154,8 +154,7 @@ const TRAIT_DAMAGE = Object.freeze({
 });
 
 const catalogSkill = (name) => mesmerCatalog.skillsByName.get(name);
-const profileEffects = (skill) => (skill.effects.length > 0 ? skill.effects : skill.mesmerEffects || []);
-const strikeEffects = (skill) => profileEffects(skill).filter((effect) => effect.type === 'strike');
+const strikeEffects = (skill) => skill.effects.filter((effect) => effect.type === 'strike');
 const strikeCoefficient = (effect) =>
   effect.ticks ? effect.ticks.reduce((sum, tick) => sum + tick.coefficient, 0) : Number(effect.coefficient || 0);
 const totalStrikeCoefficient = (skill) =>
@@ -764,7 +763,7 @@ test('Lingering Thoughts models the supplied clone, packets, conditions, and fin
     atMs: 160
   });
   assert.deepEqual(
-    profileEffects(skill).map((effect) =>
+    skill.effects.map((effect) =>
       effect.type === 'strike'
         ? [effect.type, effect.coefficient, effect.hits]
         : [effect.type, effect.condition, effect.stacks, effect.duration]
@@ -1013,8 +1012,7 @@ test('Mesmer supplemental identities and handler profiles are explicit', () => {
   const replacing = mesmerCatalog.skillsByName.get('Phantasmal Swordsman');
 
   assert.equal(replacing.handlerId, 'mesmer.phantasm');
-  assert.deepEqual(replacing.effects, []);
-  assert.ok(replacing.mesmerEffects.length > 0);
+  assert.ok(replacing.effects.length > 0);
 });
 
 test('duplicate Mesmer skill names resolve explicitly by specialization', () => {

@@ -267,25 +267,46 @@ test('canonical augmenting skill handlers observe declarative effects', () => {
   assert.ok(result.totalDamage > 0);
 });
 
-test('replacing skill handlers require empty declarative effects', () => {
-  assert.throws(
-    () =>
-      createCanonicalCatalog({
-        generated: [
-          {
-            id: 930032,
-            name: 'Invalid Replacing Skill',
-            handlerId: 'fixture.replacing',
-            castTimeMs: 0,
-            effects: [{ type: 'strike', coefficient: 10 }]
-          }
-        ],
-        skillHandlers: {
-          'fixture.replacing': replaceSkillHandler(() => {})
-        }
-      }),
-    /empty effects list/
-  );
+test('replacing skill handlers retain effects metadata without declarative double emission', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930032,
+        name: 'Replacing Skill',
+        handlerId: 'fixture.replacing',
+        castTimeMs: 0,
+        effects: [{ type: 'strike', flatDamage: 10 }]
+      }
+    ],
+    skillHandlers: {
+      'fixture.replacing': replaceSkillHandler((context, skill) => {
+        context.emit({
+          type: 'damage',
+          at: context.start,
+          source: 'fixture',
+          sourceId: skill.id,
+          actorType: 'player',
+          skillId: skill.id,
+          skillName: skill.name,
+          name: skill.name,
+          flatDamage: 1,
+          hits: 1,
+          canCrit: false
+        });
+      })
+    }
+  });
+  const profession = defineProfession({
+    id: 'replacing-fixture',
+    name: 'Replacing Fixture',
+    catalog
+  });
+  const result = simulateGw2({ profession, rotation: ['Replacing Skill'] });
+  const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === 930032);
+
+  assert.equal(catalog.skillsById.get(930032).effects.length, 1);
+  assert.equal(packets.length, 1);
+  assert.equal(packets[0].flatDamage, 1);
 });
 
 test('the shared handler contract rejects undeclared strategy fields', () => {

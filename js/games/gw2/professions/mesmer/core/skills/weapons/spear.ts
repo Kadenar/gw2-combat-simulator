@@ -31,6 +31,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'condition',
         condition: 'Crippled',
         duration: 3,
+        stacks: 1,
         actorType: 'summon',
         summonKind: 'phantasm',
         phantasmEntityIndex: 0
@@ -39,6 +40,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'condition',
         condition: 'Immobilized',
         duration: 2,
+        stacks: 1,
         actorType: 'summon',
         summonKind: 'phantasm',
         phantasmEntityIndex: 1

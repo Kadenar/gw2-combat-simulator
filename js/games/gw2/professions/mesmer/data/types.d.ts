@@ -100,7 +100,6 @@ export interface MesmerSkill extends Skill {
   readonly effects?: readonly MesmerSkillEffect[];
   readonly resource?: MesmerSkillResource | null;
   readonly mesmerMechanic?: MesmerMechanic;
-  readonly mesmerEffects?: readonly MesmerSkillEffect[];
 }
 
 export type MesmerSkillCatalogFragment = SkillFragment & {
