@@ -6,7 +6,7 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
-        "benchmarkDps": 43830,
+        "benchmarkDps": 43826,
         "referenceDps": 44179
       },
       {
@@ -20,7 +20,7 @@
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46720
+        "benchmarkDps": 46773
       }
     ]
   },

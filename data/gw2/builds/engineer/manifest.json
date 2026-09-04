@@ -35,7 +35,7 @@
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
-        "benchmarkDps": 35508,
+        "benchmarkDps": 35642,
         "upToDate": true
       },
       {
@@ -51,7 +51,7 @@
         "build": "data/gw2/builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-3kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-three-kits-spear",
-        "benchmarkDps": 42678,
+        "benchmarkDps": 43049,
         "upToDate": true
       }
     ]
@@ -64,7 +64,7 @@
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-holosmith-pistol-pistol",
-        "benchmarkDps": 43341,
+        "benchmarkDps": 43542,
         "upToDate": true
       },
       {
@@ -113,7 +113,7 @@
         "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-quickness-scrapper-spear",
-        "benchmarkDps": 33167,
+        "benchmarkDps": 33306,
         "upToDate": true
       },
       {
