@@ -37,6 +37,46 @@ function resolvedAudience({ includesSelf = true, alliedPlayerCount = 0, companio
   };
 }
 
+test('palette availability supplies defaults and normalizes a single policy result', () => {
+  const context = { time: 2 };
+  const skill = { name: 'Fixture' };
+  assert.deepEqual(queryProfession.ui.paletteSkillAvailability(context, skill), { available: true, message: '' });
+  assert.equal(Object.hasOwn(queryProfession.ui, 'isPaletteSkillAvailable'), false);
+  assert.equal(Object.hasOwn(queryProfession.ui, 'paletteSkillUnavailableMessage'), false);
+
+  // One policy evaluation supplies the lockout state and text without losing retry timing.
+  let calls = 0;
+  let result = { available: false, message: 'Locked', retryAt: '3' };
+  const profession = defineProfession({
+    id: 'palette-fixture',
+    name: 'Palette Fixture',
+    ui: {
+      paletteSkillAvailability(receivedContext, receivedSkill) {
+        assert.equal(receivedContext, context);
+        assert.equal(receivedSkill, skill);
+        calls += 1;
+        return result;
+      }
+    }
+  });
+
+  assert.deepEqual(profession.ui.paletteSkillAvailability(context, skill), {
+    available: false,
+    message: 'Locked',
+    retryAt: 3
+  });
+  assert.equal(calls, 1);
+  result = { available: true };
+  assert.deepEqual(profession.ui.paletteSkillAvailability(context, skill), { available: true, message: '' });
+  result = { available: 'yes' };
+  assert.throws(() => profession.ui.paletteSkillAvailability(context, skill), /available must be boolean/);
+  result = { available: false, retryAt: Infinity };
+  assert.throws(
+    () => profession.ui.paletteSkillAvailability(context, skill),
+    /retryAt must be a finite number or null/
+  );
+});
+
 test('profession composition validates UI callbacks and scheduler refiners', () => {
   assert.throws(
     () =>

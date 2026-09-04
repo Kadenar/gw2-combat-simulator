@@ -74,9 +74,7 @@ const UI_CALLBACK_NAMES = Object.freeze([
   'eventLogRow',
   'isPaletteSkillInstant',
   'paletteSkillAvailability',
-  'isPaletteSkillAvailable',
   'isSlotSkillSelectable',
-  'paletteSkillUnavailableMessage',
   'paletteGroups',
   'paletteActionSkills',
   'paletteWeaponSkills',
@@ -423,14 +421,7 @@ export function defineProfession<TProfessionState extends object>(
   // Resource presentation is plural throughout the contract; professions
   // without resource UI normalize directly to an empty collection.
   const resourceViews = ui.resourceViews || (() => []);
-  const structuredPaletteAvailability = ui.paletteSkillAvailability;
-  const paletteSkillAvailability = structuredPaletteAvailability
-    ? (context: SchedulerRecord, skill: Skill) =>
-        normalizePaletteAvailability(structuredPaletteAvailability(context, skill), definition.id)
-    : (context: SchedulerRecord, skill: Skill) => ({
-        available: ui.isPaletteSkillAvailable?.(context, skill) !== false,
-        message: String(ui.paletteSkillUnavailableMessage?.(context, skill) || '')
-      });
+  const paletteSkillAvailability = ui.paletteSkillAvailability;
 
   const normalizedUi: ProfessionUiContract = {
     ...ui,
@@ -444,12 +435,11 @@ export function defineProfession<TProfessionState extends object>(
     resolvePaletteAction: ui.resolvePaletteAction || (() => undefined),
     resourceViews,
     isPaletteSkillInstant: ui.isPaletteSkillInstant || (() => false),
-    paletteSkillAvailability,
-    isPaletteSkillAvailable: (context: SchedulerRecord, skill: Skill) =>
-      paletteSkillAvailability(context, skill).available,
+    // Keep availability, its explanation, and retry timing together; missing policies impose no restriction.
+    paletteSkillAvailability: paletteSkillAvailability
+      ? (context, skill) => normalizePaletteAvailability(paletteSkillAvailability(context, skill), definition.id)
+      : () => ({ available: true, message: '' }),
     isSlotSkillSelectable: ui.isSlotSkillSelectable || (() => true),
-    paletteSkillUnavailableMessage: (context: SchedulerRecord, skill: Skill) =>
-      paletteSkillAvailability(context, skill).message,
     skillBarGroups: ui.skillBarGroups || (() => []),
     startControls: ui.startControls || (() => []),
     slotLoadout: ui.slotLoadout || null,

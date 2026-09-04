@@ -127,9 +127,7 @@ function assertUiContracts(entry, profession, specialization) {
   for (const callback of [
     'isPaletteSkillInstant',
     'paletteSkillAvailability',
-    'isPaletteSkillAvailable',
     'isSlotSkillSelectable',
-    'paletteSkillUnavailableMessage',
     'paletteGroups',
     'resourceViews',
     'skillBarGroups',

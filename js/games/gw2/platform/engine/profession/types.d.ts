@@ -242,10 +242,9 @@ export interface ProfessionUiContract {
     event: SimulationEvent
   ) => ProfessionEventLogDescriptor | null | undefined;
   readonly isPaletteSkillInstant: (context: SchedulerRecord, skill: Skill) => boolean;
+  /** Reports whether a palette skill is usable, why it is blocked, and when a temporary lockout ends. */
   readonly paletteSkillAvailability: (context: SchedulerRecord, skill: Skill) => PaletteSkillAvailability;
-  readonly isPaletteSkillAvailable: (context: SchedulerRecord, skill: Skill) => boolean;
   readonly isSlotSkillSelectable: (context: SchedulerRecord, skill: Skill) => boolean;
-  readonly paletteSkillUnavailableMessage: (context: SchedulerRecord, skill: Skill) => string;
   readonly paletteGroups: (context: SchedulerRecord) => ProfessionPaletteGroup[];
   /** Adds or projects profession-owned actions before the shell renders them. */
   readonly paletteActionSkills: (context: SchedulerRecord, skills: readonly Skill[]) => Skill[];

@@ -186,7 +186,7 @@ export const exampleProfession = defineProfession({
     assumptionControls,
     eventLogRow,
     isPaletteSkillInstant,
-    paletteSkillAvailability, // { available, message }
+    paletteSkillAvailability, // { available, message, retryAt? }
     isSlotSkillSelectable,
     paletteGroups,
     resourceViews, // zero, one, or multiple resource view models
@@ -208,13 +208,19 @@ All hooks are optional. Missing validation accepts the cast, missing modifier ho
 are no-ops. Scheduler hooks and resolver event reactions accept `{ id, order, handler }`; lower order runs first and
 declaration order breaks ties deterministically.
 
+`ui.paletteSkillAvailability(context, skill)` is the sole palette availability callback. Read `.available` for the
+boolean state and `.message` for its explanation; optional `.retryAt` is an absolute simulator time in seconds. The
+normalizer requires a boolean state, defaults missing messages to `''`, and validates finite retry times. Omitting the
+callback yields `{ available: true, message: '' }`. The former `isPaletteSkillAvailable()` and
+`paletteSkillUnavailableMessage()` callbacks have been removed; programmatic callers must use the structured result.
+
 Every native profession uses `defineNativeProfession()` and `defineNativeModule()`, which compile to the engine's
 `defineProfessionFamily()` and `defineProfessionModule()` boundary. A family is an application contract: it exposes
 identity, the complete catalog, build codec, normalized application UI, optional simulation refinement, and
 `resolveRuntime(config)`. It does not expose runtime handlers, hooks, rules, or mutable state. `resolveRuntime(config)`
 returns the cached executable contract containing Core plus only the selected elite module. `simulateGw2()` and the
-direct scheduler normalize family sources before constructing runtime state. Ordinary
-`defineProfession()` contracts, including test fixtures, pass through unchanged.
+direct scheduler normalize family sources before constructing runtime state. Ordinary `defineProfession()` contracts,
+including test fixtures, pass through unchanged.
 
 Module composition rejects duplicate hook IDs, skill IDs, trait IDs, specialization IDs, task handlers, event handlers,
 skill handlers, and weapon-hand declarations. Runtime state is stored as `{ core, specialization: { kind, state } }`.
@@ -322,11 +328,11 @@ identical output when rerun with an already-converged result.
 The platform scheduler handles ordinary declarative skills and invokes profession hooks for complex behavior. Catalog
 skill handlers use a shared strategy contract: augmenting handlers may prepare state, observe each emitted declarative
 effect, and finalize the cast; replacing handlers own emission while retaining `effects` as canonical profile metadata.
-The scheduler skips declarative emission for replacing handlers, and the catalog rejects undeclared effect fields. Mesmer clone
-attacks, resource gains, expected procs, and Continuum expiry are profession-owned typed tasks on that clock. Mesmer
-selects every exceptional cast through a stable-ID handler and stores scheduler-local controllers explicitly on its
-context; it has no all-skills scheduling hook or module-level runtime registry. Scheduler and UI availability share pure
-profession predicates. Mesmer does not own a scheduler, resolver wrapper, or result builder.
+The scheduler skips declarative emission for replacing handlers, and the catalog rejects undeclared effect fields.
+Mesmer clone attacks, resource gains, expected procs, and Continuum expiry are profession-owned typed tasks on that
+clock. Mesmer selects every exceptional cast through a stable-ID handler and stores scheduler-local controllers
+explicitly on its context; it has no all-skills scheduling hook or module-level runtime registry. Scheduler and UI
+availability share pure profession predicates. Mesmer does not own a scheduler, resolver wrapper, or result builder.
 
 ## Events
 
