@@ -28,8 +28,8 @@ function confidenceLabel(confidence: RotationLoopConfidence): string {
 function countLabel(step: RotationLoopStep): string {
   if (step.maximumCount <= 1) return '';
   const count =
-    step.minimumCount === step.maximumCount ? String(step.maximumCount) : `${step.minimumCount}–${step.maximumCount}`;
-  return `${count}×`;
+    step.minimumCount === step.maximumCount ? String(step.maximumCount) : `${step.minimumCount}-${step.maximumCount}`;
+  return `${count}x`;
 }
 
 /** Names detected visit cadences so alternating cooldowns read as instructions instead of vague flexibility. */
@@ -97,7 +97,7 @@ function occurrenceDetailsHtml(loop: DetectedRotationLoop): string {
       ${loop.occurrences
         .map(
           (occurrence) => `<li>
-        <span>${formatTimestamp(occurrence.startMs)}–${formatTimestamp(occurrence.endMs)}</span>
+        <span>${formatTimestamp(occurrence.startMs)}-${formatTimestamp(occurrence.endMs)}</span>
         <span>${formatDuration(occurrence.durationMs)}</span>
         <span>${occurrence.editCount ? `${occurrence.editCount} variation${occurrence.editCount === 1 ? '' : 's'}` : 'Exact match'}</span>
       </li>`

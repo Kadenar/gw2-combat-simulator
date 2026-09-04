@@ -92,8 +92,8 @@ export function dragonSlashCoefficient(
   return minimum + (maximum - minimum) * ((resolvedCharges - 1) / (maximumCharges - 1));
 }
 
-// Maps charges to adrenaline bars spent (1 bar = 10): 1–4 charges → 10,
-// 5–9 → 20, 10 → 30. Used by burst traits that scale on adrenaline bars.
+// Maps charges to adrenaline bars spent (1 bar = 10): 1-4 charges → 10,
+// 5-9 → 20, 10 → 30. Used by burst traits that scale on adrenaline bars.
 export function dragonChargesToAdrenalineSpent(charges: number): number {
   if (charges >= 10) return 30;
   if (charges >= 5) return 20;

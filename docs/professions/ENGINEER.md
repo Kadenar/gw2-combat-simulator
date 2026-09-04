@@ -16,20 +16,20 @@ state, mechanics, and UI under `specializations/<name>/`.
 
 ## Implemented systems
 
-- **Core** — eight terrestrial weapon families and both equipment sets;
+- **Core** - eight terrestrial weapon families and both equipment sets;
   engineering kits as weapon-bar replacements (a kit swap emits a sigil-swap
   trigger without changing the equipped set); tool-belt skills derived from the
   selected heal/utility/elite; ammo, cooldowns, autoattack chains, damage,
   conditions, controls, boons, and offensive traits.
-- **Holosmith** — Photon Forge, passive and skill heat, the six-second kit
+- **Holosmith** - Photon Forge, passive and skill heat, the six-second kit
   lockout, overheat, and piecewise cooling.
-- **Mechanist** — trait-selected F1–F3 commands, summon/recall state, inherited
+- **Mechanist** - trait-selected F1-F3 commands, summon/recall state, inherited
   mech attributes with base caps, persistent mech basic attacks, signets, and
   damage-relevant mech trait reactions. The mech resolves an independent
   attribute set inherited from the owner and emits summon-owned strikes and
   conditions.
-- **Amalgam** — F2–F4 morph loadout persistence and Evolve state.
-- **Scrapper** — Hammer, gyros, Function Gyro, superspeed, and whirl-finisher /
+- **Amalgam** - F2-F4 morph loadout persistence and Evolve state.
+- **Scrapper** - Hammer, gyros, Function Gyro, superspeed, and whirl-finisher /
   kinetic trait reactions.
 - All 108 traits have a validated coverage disposition.
 

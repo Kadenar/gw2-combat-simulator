@@ -21,7 +21,7 @@ interface LightningRodTaskPayload extends SchedulerRecord {
 const LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS = 0.16;
 const LIGHTNING_ROD_PULSE_INTERVAL_SECONDS = 0.5;
 const LIGHTNING_ROD_PULSE_COUNT = 8;
-// measured from EVTC across eleven activations — EA becomes available 4.196–4.203s after LR starts
+// measured from EVTC across eleven activations — EA becomes available 4.196-4.203s after LR starts
 const ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS = 4.2;
 
 /** Emits the standard player-sourced event envelope used by Engineer spear mechanics. */

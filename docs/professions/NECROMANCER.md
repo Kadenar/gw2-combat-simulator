@@ -27,7 +27,7 @@ in that runtime.
   transfers; Lich Form; Spear Soul Shards; Weaponmaster Training presentation.
 - **Reaper** — Reaper's Shroud (full bar, autoattack chain, flips, channels,
   control, chill), wells, shouts, and Reaper trait modifiers.
-- **Scourge** — F1–F5, three-charge Manifest Sand Shade, fixed base-health
+- **Scourge** — F1-F5, three-charge Manifest Sand Shade, fixed base-health
   life-force costs, Desert/Sandstorm Shroud, and barrier-reactive traits.
   Scourge is the non-transform exception.
 - **Harbinger** — Harbinger Shroud (zero-resource entry, Blight generation to a

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { chartValueAt } from '#gw2/app/presentation/results/charts/time-series.js';
+import { chartValueAt } from '#gw2/app/presentation/results/charts/time-series-model.js';
 import { eventLogCsv } from '#gw2/app/presentation/results/event-log-view.js';
 import { nextResultSortState, sortResultRows } from '#gw2/app/presentation/results/rotation-results.js';
 import {

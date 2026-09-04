@@ -1,4 +1,4 @@
-import type { ChartPoint } from '#gw2/app/presentation/results/charts/time-series.js';
+import type { ChartPoint } from '#gw2/app/presentation/results/charts/time-series-model.js';
 
 /** Ignore volatile opener crossovers that do not represent a useful fight-duration decision. */
 export const CROSSOVER_EVALUATION_START_MS = 8000;

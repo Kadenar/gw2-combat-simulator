@@ -15,9 +15,9 @@ import {
   buildChartSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
-  chartValueAt,
-  mountTimeSeriesCharts
-} from '#gw2/app/presentation/results/charts/time-series.js';
+  chartValueAt
+} from '#gw2/app/presentation/results/charts/time-series-model.js';
+import { mountTimeSeriesCharts } from '#gw2/app/presentation/results/charts/time-series-view.js';
 import { eventLogCsv, mountEventLog } from '#gw2/app/presentation/results/event-log-view.js';
 import {
   bindPaletteInteractions,

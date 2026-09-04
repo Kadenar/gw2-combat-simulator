@@ -3,7 +3,7 @@ import { durationStackingBoonCapSeconds, isStandardBoon } from '#gw2/platform/co
 import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt
-} from '#gw2/app/presentation/results/charts/time-series.js';
+} from '#gw2/app/presentation/results/charts/time-series-model.js';
 import { formatTimelineDuration, timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import {
   skillBreakdownRows as transformSkillBreakdownRows,
