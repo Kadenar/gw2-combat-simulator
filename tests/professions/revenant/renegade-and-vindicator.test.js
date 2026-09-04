@@ -9,7 +9,6 @@ import {
 import { paletteSkillView, resolvePaletteDropItem } from '#gw2/app/rotation/palette/view.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
@@ -21,6 +20,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
@@ -65,20 +65,7 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: revenantProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(revenantProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 

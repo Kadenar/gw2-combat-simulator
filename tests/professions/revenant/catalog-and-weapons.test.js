@@ -12,7 +12,6 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
@@ -25,6 +24,7 @@ import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/cor
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
@@ -48,20 +48,7 @@ const baseConfig = Object.freeze({
 
 const applyRevenantPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(revenantCatalog, patch), patch);
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: revenantProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(revenantProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 

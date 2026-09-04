@@ -3,10 +3,10 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import {
   DRAGON_TRIGGER_DURATION_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
@@ -34,21 +34,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: warriorProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    mode: 'sequence',
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(warriorProfession, baseConfig);
 
 test('Bladesworn gates gunsaber and Dragon Slash state', () => {
   const blocked = simulate('Bladesworn', ['Swift Cut'], {

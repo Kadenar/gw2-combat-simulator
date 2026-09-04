@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
@@ -16,6 +15,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],
@@ -41,24 +41,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: thiefProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      deterministicChoices: {
-        ...baseConfig.deterministicChoices,
-        ...(config.deterministicChoices || {})
-      },
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(thiefProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 

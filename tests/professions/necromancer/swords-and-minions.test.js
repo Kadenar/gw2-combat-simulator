@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 const baseConfig = Object.freeze({
@@ -25,21 +25,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: necromancerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    mode: 'sequence',
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 

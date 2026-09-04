@@ -5,38 +5,7 @@ import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/in
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
-
-const PLAYER = 0x1000n;
-
-function event(overrides = {}) {
-  return {
-    time: 1_000,
-    source: PLAYER,
-    target: 0n,
-    value: 0,
-    buffDamage: 0,
-    overstackValue: 0,
-    skillId: 0,
-    sourceInstance: 1,
-    targetInstance: 0,
-    sourceMasterInstance: 0,
-    targetMasterInstance: 0,
-    iff: 0,
-    buff: 0,
-    result: 0,
-    activation: 0,
-    buffRemove: 0,
-    ninety: 0,
-    fifty: 0,
-    moving: 0,
-    stateChange: 0,
-    flanking: 0,
-    shields: 0,
-    offcycle: 0,
-    pad: 0,
-    ...overrides
-  };
-}
+import { EVTC_FIXTURE_PLAYER as PLAYER, event } from '../helpers/evtc-fixture.js';
 
 function warriorLog(elite, skills, events) {
   return {

@@ -3,12 +3,12 @@ import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { scrapperSchedulerHooks } from '#gw2/professions/engineer/specializations/scrapper/traits/modifiers.js';
 import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
@@ -32,20 +32,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: engineerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);

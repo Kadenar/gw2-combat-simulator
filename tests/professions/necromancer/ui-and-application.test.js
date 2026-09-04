@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
@@ -14,6 +13,7 @@ import {
 } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 const baseConfig = Object.freeze({
@@ -34,21 +34,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: necromancerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    mode: 'sequence',
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
 
 test('Necromancer resources and palette change with specialization state', () => {
   const harbingerResources = necromancerProfession.ui.resourceViews({

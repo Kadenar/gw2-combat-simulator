@@ -1,74 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-
-const PLAYER = 0x1000n;
-
-function event(overrides = {}) {
-  return {
-    time: 1_000,
-    source: PLAYER,
-    target: 0n,
-    value: 0,
-    buffDamage: 0,
-    overstackValue: 0,
-    skillId: 0,
-    sourceInstance: 1,
-    targetInstance: 0,
-    sourceMasterInstance: 0,
-    targetMasterInstance: 0,
-    iff: 0,
-    buff: 0,
-    result: 0,
-    activation: 0,
-    buffRemove: 0,
-    ninety: 0,
-    fifty: 0,
-    moving: 0,
-    stateChange: 0,
-    flanking: 0,
-    shields: 0,
-    offcycle: 0,
-    pad: 0,
-    ...overrides
-  };
-}
-
-function log(overrides = {}) {
-  return {
-    header: {
-      magic: 'EVTC',
-      arcdpsBuild: '20260815',
-      revision: 1,
-      encounterId: 16199,
-      agentCount: 1,
-      skillCount: 4,
-      eventCount: 0
-    },
-    agents: [
-      {
-        address: PLAYER,
-        profession: 7,
-        elite: 40,
-        toughness: 0,
-        concentration: 0,
-        healing: 0,
-        condition: 0,
-        character: 'Fixture Chronomancer',
-        account: ':Fixture.1234',
-        subgroup: '1'
-      }
-    ],
-    skills: [
-      { id: 1_000, name: 'Mind Stab' },
-      { id: 2_000, name: 'Time Sink' },
-      { id: 3_000, name: 'Blink' },
-      { id: 65_001, name: 'Dodge' }
-    ],
-    events: [],
-    ...overrides
-  };
-}
+import { EVTC_FIXTURE_PLAYER as PLAYER, event, log } from '../helpers/evtc-fixture.js';
 
 describe('Ritualist initial-state reconstruction', () => {
   const boneMinion1 = 0x2001n;

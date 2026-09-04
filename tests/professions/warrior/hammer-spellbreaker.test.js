@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -26,22 +26,7 @@ const baseConfig = Object.freeze({
   boons: { quickness: true }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: warriorProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) },
-      boons: { ...baseConfig.boons, ...(config.boons || {}) }
-    },
-    mode: 'sequence',
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(warriorProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 

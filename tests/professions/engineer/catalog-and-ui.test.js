@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   conditionEffectTicks,
   effectFirstAtMs,
@@ -32,6 +31,7 @@ import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/special
 import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapper/module.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -50,20 +50,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: engineerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 

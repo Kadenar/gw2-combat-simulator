@@ -4,7 +4,6 @@ import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { defaultPaletteInterruptMs } from '#gw2/app/rotation/palette/view.js';
 import { simulationEventLogRows } from '#gw2/app/rotation/result/simulation-event-log.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
@@ -14,6 +13,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
@@ -50,20 +50,7 @@ const baseConfig = Object.freeze({
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 
-function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
-  return simulateGw2({
-    profession: revenantProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    },
-    observationPolicy
-  });
-}
+const simulate = createProfessionSimulator(revenantProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
