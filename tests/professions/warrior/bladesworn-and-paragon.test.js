@@ -1169,7 +1169,17 @@ test("Berserker's Power retains applications beyond its visible stack cap", () =
     bolasHits.map((hit, index) => Number((hit.damage / baselineBolasHits[index].damage).toFixed(9))),
     [1.15, 1.15]
   );
-  assert.equal(Math.max(...buildChartSeries(result, 100).effects["Berserker's Power"].map((point) => point.v)), 4);
+  const effectPresentations = warriorProfession.ui.effectPresentations({
+    specialization: 'Core',
+    catalog: warriorProfession.catalog
+  });
+
+  assert.equal(
+    Math.max(
+      ...buildChartSeries(result, 100, effectPresentations).effects["Berserker's Power"].map((point) => point.v)
+    ),
+    4
+  );
 });
 
 test('Axe packets and burst coefficients use the supplied PvE values', () => {

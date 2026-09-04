@@ -1,5 +1,6 @@
 import type {
   PaletteSkillAvailability,
+  ProfessionEffectPresentation,
   ProfessionResourceView,
   ProfessionUiContract,
   RotationStateSnapshotItem,
@@ -7,7 +8,9 @@ import type {
   SimulationEvent,
   Skill
 } from '#gw2/platform/engine/types.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import {
   CATALYST_MAXIMUM_ENERGY,
   type CatalystState
@@ -107,11 +110,24 @@ function catalystStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
   return items;
 }
 
+/** Publishes Catalyst effect presentation from its active balance profile. */
+function catalystEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+  return [
+    {
+      id: 'elementalist-elemental-empowerment',
+      kind: 'elemental empowerment',
+      name: 'Elemental Empowerment',
+      maximumStacks: balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks', 10)
+    }
+  ];
+}
+
 /**
  * Catalyst UI contract: the F5 Jade Sphere skill and palette groups, palette gating,
  * the energy resource bar, and the timed state shown at a rotation point.
  */
 export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  effectPresentations: catalystEffectPresentations,
   skillBarGroups: () => [
     {
       id: 'elementalist-catalyst-spheres',

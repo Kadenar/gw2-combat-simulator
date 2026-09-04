@@ -4,7 +4,10 @@ import {
   guardianUiSkillIdsByName,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type {
+  ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem,
   SchedulerRecord
@@ -50,7 +53,21 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   return items;
 }
 
+/** Treats each Lethal Tempo event as the complete refreshed stack state rather than an additive grant. */
+function willbenderEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+  return [
+    {
+      id: 'guardian-lethal-tempo',
+      kind: 'lethal-tempo',
+      name: 'Lethal Tempo',
+      maximumStacks: balanceProfileValueFromContext(context, PROFILE.lethalTempo, 'maximumStacks', 5),
+      replacementGroup: 'guardian-lethal-tempo'
+    }
+  ];
+}
+
 export const willbenderUi = Object.freeze({
+  effectPresentations: willbenderEffectPresentations,
   eventLogRow: willbenderEventLogRow,
   rotationStateSnapshot: willbenderStateSnapshot,
   skillBarGroups: (context: GuardianUiContext) => [

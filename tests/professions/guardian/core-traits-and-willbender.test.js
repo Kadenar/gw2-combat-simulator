@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGuardianBuildDefaults, migrateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
@@ -16,6 +17,14 @@ const config = {
   },
   target: { armor: 2597 }
 };
+
+const PLAYER_AUDIENCE = Object.freeze({
+  includesSelf: true,
+  includesSummons: false,
+  alliedPlayerCount: 0,
+  companionIds: [],
+  recipientCount: 1
+});
 
 test('Guardian player strikes trigger shared player-owned sigils', () => {
   const result = simulateGw2({
@@ -467,6 +476,43 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     [440, 440]
   );
   assert.equal(rushingJusticeAction.rechargeReadyAt - rushingJusticeAction.at, 12);
+});
+
+test('Willbender chart treats Lethal Tempo events as refreshed stack snapshots', () => {
+  const effectPresentations = guardianProfession.ui.effectPresentations({
+    specialization: 'Willbender',
+    catalog: guardianProfession.catalog
+  });
+  const series = buildChartSeries(
+    {
+      duration: 3,
+      events: [
+        {
+          type: 'buff',
+          at: 0,
+          kind: 'lethal-tempo',
+          duration: 4,
+          stacks: 1,
+          resolvedAudience: PLAYER_AUDIENCE
+        },
+        {
+          type: 'buff',
+          at: 1,
+          kind: 'lethal-tempo',
+          duration: 4,
+          stacks: 2,
+          resolvedAudience: PLAYER_AUDIENCE
+        }
+      ]
+    },
+    1000,
+    effectPresentations
+  );
+
+  assert.deepEqual(
+    series.effects['Lethal Tempo'].map((point) => point.v),
+    [1, 2, 2, 2]
+  );
 });
 
 test('Willbender flame replacement and Phoenix Protocol follow virtue triggers', () => {

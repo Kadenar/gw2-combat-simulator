@@ -10,6 +10,7 @@ import {
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type {
   PaletteSkillAvailability,
+  ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem,
   SchedulerRecord
@@ -57,6 +58,12 @@ const RADIANT_FORGE_INSPECTION_CHAIN_ROOTS = Object.freeze({
   [ID.RESTORATIVE_GLOW]: ID.LUMINOUS_STAFF,
   [ID.LUCENT_THRUST]: ID.GLEAMING_BLADE,
   [ID.BRILLIANT_SLAM]: ID.RADIANT_BULWARK
+});
+const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = Object.freeze({
+  hammer: 'Hammer',
+  staff: 'Staff',
+  blade: 'Sword',
+  bulwark: 'Shield'
 });
 
 function professionState(context: GuardianUiContext): Partial<GuardianState> {
@@ -128,7 +135,30 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   return items;
 }
 
+/** Labels Luminary armament effects and makes mutually exclusive radiant weapons replace one another. */
+function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
+  return [
+    {
+      id: 'guardian-empowered-armaments',
+      kind: 'guardian-empowered-armaments',
+      name: 'Empowered Armaments',
+      maximumStacks: 1
+    },
+    {
+      id: 'guardian-radiant-armaments',
+      kind: 'guardian-radiant-armaments',
+      name: (event) => {
+        const weapon = RADIANT_ARMAMENT_NAMES[String(event.metadata?.radiantWeapon || '')];
+        return weapon ? `Radiant Armaments (${weapon})` : 'Radiant Armaments';
+      },
+      maximumStacks: 1,
+      replacementGroup: 'guardian-radiant-armaments'
+    }
+  ];
+}
+
 export const luminaryUi = Object.freeze({
+  effectPresentations: luminaryEffectPresentations,
   eventLogRow: luminaryEventLogRow,
   rotationStateSnapshot: luminaryStateSnapshot,
   skillBarGroups: (context: GuardianUiContext) => [

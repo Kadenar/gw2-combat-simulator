@@ -4,6 +4,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulat
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {
   CanonicalCatalog,
+  ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
   RotationStateSnapshotItem,
@@ -129,9 +130,19 @@ function guardianPaletteWeaponSkills(context: GuardianUiContext, skills: readonl
 }
 
 const CORE_VIRTUE_NAMES = Object.freeze(['Virtue of Justice', 'Virtue of Resolve', 'Virtue of Courage']);
+const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
+  {
+    id: 'guardian-inspiring-virtue',
+    kind: 'guardian-inspiring-virtue',
+    name: 'Inspiring Virtue',
+    maximumStacks: 1
+  }
+]);
 
 export const guardianCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.
+  effectPresentations: () => [...GUARDIAN_CORE_EFFECT_PRESENTATIONS],
   eventLogRow: guardianEventLogRow,
   rotationStateSnapshot: guardianCoreStateSnapshot,
   paletteWeaponSkills: guardianPaletteWeaponSkills,

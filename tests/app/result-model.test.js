@@ -57,57 +57,37 @@ test('total idle time excludes explicit waits before combat start', () => {
   });
 });
 
-test('Empowered Armaments chart series remains capped at one stack', () => {
+test('profession effect descriptors supply chart labels and stack caps', () => {
   const series = buildChartSeries(
     {
       duration: 8,
       events: [
         playerBuff({
           at: 0,
-          kind: 'guardian-empowered-armaments',
+          kind: 'custom-armaments',
           duration: 6
         }),
         playerBuff({
           at: 1,
-          kind: 'guardian-empowered-armaments',
+          kind: 'custom-armaments',
           duration: 7
         })
       ]
     },
-    1000
+    1000,
+    [
+      {
+        id: 'custom-armaments',
+        kind: 'custom-armaments',
+        name: 'Custom Armaments',
+        maximumStacks: 1
+      }
+    ]
   );
 
   assert.deepEqual(
-    series.effects['Empowered Armaments'].map((point) => point.v),
+    series.effects['Custom Armaments'].map((point) => point.v),
     [1, 1, 1, 1, 1, 1, 1, 1, 0]
-  );
-});
-
-test('Elemental Empowerment chart series includes emitted stacks and caps at ten', () => {
-  const series = buildChartSeries(
-    {
-      duration: 3,
-      events: [
-        playerBuff({
-          at: 0,
-          kind: 'elemental empowerment',
-          stacks: 3,
-          duration: 15
-        }),
-        playerBuff({
-          at: 1,
-          kind: 'elemental empowerment',
-          stacks: 8,
-          duration: 15
-        })
-      ]
-    },
-    1000
-  );
-
-  assert.deepEqual(
-    series.effects['Elemental Empowerment'].map((point) => point.v),
-    [3, 10, 10, 10]
   );
 });
 
@@ -115,16 +95,16 @@ test('generic buffs remain visible on the timed-effects chart', () => {
   const series = buildChartSeries(
     {
       duration: 3,
-      events: [playerBuff({ at: 0, kind: 'taste-for-blood', stacks: 3, duration: 2 })]
+      events: [playerBuff({ at: 0, kind: 'custom-effect', stacks: 3, duration: 2 })]
     },
     1000
   );
 
   assert.deepEqual(
-    series.effects['Taste for Blood'].map((point) => point.v),
+    series.effects['Custom Effect'].map((point) => point.v),
     [3, 3, 0, 0]
   );
-  assert.equal(series.effectTypes['Taste for Blood'], 'buff');
+  assert.equal(series.effectTypes['Custom Effect'], 'buff');
 });
 
 test('timed relic proc chart series shows binary uptime across refreshes', () => {
@@ -191,7 +171,7 @@ test('chart series classify boons, conditions, and profession buffs', () => {
         playerBuff({ at: 0, kind: 'might', duration: 2 }),
         playerBuff({
           at: 0,
-          kind: 'guardian-empowered-armaments',
+          kind: 'custom-effect',
           duration: 2
         })
       ]
@@ -202,7 +182,7 @@ test('chart series classify boons, conditions, and profession buffs', () => {
   assert.deepEqual(series.effectTypes, {
     Burning: 'condition',
     Might: 'boon',
-    'Empowered Armaments': 'buff'
+    'Custom Effect': 'buff'
   });
 });
 
@@ -286,40 +266,6 @@ test('Swiftness duration stacking caps at 60 seconds', () => {
   assert.equal(series.effects.Swiftness[1].v, 60);
   assert.equal(series.effects.Swiftness[60].v, 1);
   assert.equal(series.effects.Swiftness[61].v, 0);
-});
-
-test('Radiant Armaments chart series identifies the active radiant weapon', () => {
-  const radiantBuff = (at, radiantWeapon) =>
-    playerBuff({
-      at,
-      kind: 'guardian-radiant-armaments',
-      metadata: { radiantWeapon },
-      duration: 10
-    });
-  const series = buildChartSeries(
-    {
-      duration: 8,
-      events: [radiantBuff(0, 'hammer'), radiantBuff(2, 'staff'), radiantBuff(4, 'blade'), radiantBuff(6, 'bulwark')]
-    },
-    1000
-  );
-
-  assert.deepEqual(
-    series.effects['Radiant Armaments (Hammer)'].map((point) => point.v),
-    [1, 1, 0, 0, 0, 0, 0, 0, 0]
-  );
-  assert.deepEqual(
-    series.effects['Radiant Armaments (Staff)'].map((point) => point.v),
-    [0, 0, 1, 1, 0, 0, 0, 0, 0]
-  );
-  assert.deepEqual(
-    series.effects['Radiant Armaments (Sword)'].map((point) => point.v),
-    [0, 0, 0, 0, 1, 1, 0, 0, 0]
-  );
-  assert.deepEqual(
-    series.effects['Radiant Armaments (Shield)'].map((point) => point.v),
-    [0, 0, 0, 0, 0, 0, 1, 1, 1]
-  );
 });
 
 test('chart series excludes buffs that do not affect the simulated player', () => {

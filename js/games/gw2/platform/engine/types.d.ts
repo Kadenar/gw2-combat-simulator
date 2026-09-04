@@ -980,9 +980,21 @@ export interface RotationStateSnapshotItem {
   readonly title?: string;
 }
 
+/** Describes one profession-owned timed effect without coupling shared result code to that profession. */
+export interface ProfessionEffectPresentation {
+  readonly id: string;
+  readonly kind: string;
+  readonly name: string | ((event: SimulationEvent) => string);
+  readonly color?: string;
+  readonly maximumStacks?: number;
+  /** Effects that publish complete state snapshots replace earlier applications in this group. */
+  readonly replacementGroup?: string;
+}
+
 export interface ProfessionUiContract {
   readonly assumptionControls: readonly SchedulerRecord[];
   readonly chargeReleaseProjection: (context: SchedulerRecord) => SchedulerRecord | null;
+  readonly effectPresentations: (context: SchedulerRecord) => ProfessionEffectPresentation[];
   readonly eventLogRow?: (
     context: SchedulerRecord,
     event: SimulationEvent

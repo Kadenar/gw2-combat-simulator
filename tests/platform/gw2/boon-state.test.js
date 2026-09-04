@@ -4,7 +4,8 @@ import test from 'node:test';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
-  remainingDurationStackSeconds
+  remainingDurationStackSeconds,
+  standardBoonPresentation
 } from '#gw2/platform/combat/state/boons.js';
 
 test('duration-stacking boons use their in-game duration caps', () => {
@@ -18,6 +19,10 @@ test('duration-stacking boons use their in-game duration caps', () => {
   ]) {
     assert.equal(isDurationStackingBoon(kind), true, kind);
     assert.equal(durationStackingBoonCapSeconds(kind), cap, kind);
+    assert.deepEqual(standardBoonPresentation(kind), {
+      name: `${kind[0].toUpperCase()}${kind.slice(1)}`,
+      maximumDuration: cap
+    });
     assert.equal(
       remainingDurationStackSeconds(
         [
@@ -31,4 +36,9 @@ test('duration-stacking boons use their in-game duration caps', () => {
       kind
     );
   }
+});
+
+test('standard boon presentation owns the Might stack cap', () => {
+  assert.deepEqual(standardBoonPresentation('might'), { name: 'Might', maximumStacks: 25 });
+  assert.equal(standardBoonPresentation('profession-effect'), null);
 });

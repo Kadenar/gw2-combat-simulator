@@ -12,20 +12,14 @@ import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/rotation/shared/icons.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { ProfessionEffectPresentation } from '#gw2/platform/engine/types.js';
 
-const EFFECT_COLORS: Readonly<Record<string, string>> = {
+const STANDARD_EFFECT_COLORS: Readonly<Record<string, string>> = {
   Bleeding: '#d84b4b',
   Burning: '#f28b3c',
   Confusion: '#b874e8',
   Poisoned: '#62b565',
   Torment: '#a96bd3',
-  'Compounding Power': '#cfb5ff',
-  'Phantom Pain': '#df79bd',
-  'Illusionary Membrane': '#6ec9d8',
-  'Deadly Blades': '#e38a8a',
-  'Altered Chord': '#80bce8',
-  "Fencer's Finesse": '#e1c070',
-  'Mirage Cloak': '#d6b46b',
   Alacrity: '#9069d8',
   Protection: '#4f9ec2',
   Resolution: '#d48f45',
@@ -36,6 +30,18 @@ const EFFECT_COLORS: Readonly<Record<string, string>> = {
   Swiftness: '#62a7cb',
   Aegis: '#d9b85f'
 };
+
+/** Merges active profession colors into the shared GW2 effect palette. */
+function effectColors(presentations: readonly ProfessionEffectPresentation[]): Readonly<Record<string, string>> {
+  return {
+    ...STANDARD_EFFECT_COLORS,
+    ...Object.fromEntries(
+      presentations.flatMap((presentation) =>
+        presentation.color && typeof presentation.name === 'string' ? [[presentation.name, presentation.color]] : []
+      )
+    )
+  };
+}
 
 const EMPTY_RESULT_METRICS = Object.freeze([
   { label: 'Duration', value: '—', className: '' },
@@ -88,6 +94,16 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     };
   }
 
+  // Resolve only Core plus the active specialization so unrelated profession effects never enter the shared view.
+  const effectPresentations =
+    app.profession?.ui?.effectPresentations?.({
+      result,
+      build: app.build,
+      catalog: app.activeCatalog,
+      profession: app.profession,
+      specialization: app.adapter.eliteSpecialization(app.build)
+    }) || [];
+
   const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'Player DPS'
       ? { ...metric, label: 'Baseline Player DPS' }
@@ -138,7 +154,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         contributionsStale: result.modifierContributionsStale === true,
         contributionsError: result.modifierContributionsError || '',
         ...randomDistributionModel(result),
-        chartSeries: buildChartSeries(result),
+        chartSeries: buildChartSeries(result, 250, effectPresentations),
         relicComparison: result.relicComparison || null,
         relicComparisonAvailable: result.relicComparisonAvailable === true,
         relicComparisonStale: result.relicComparisonStale === true,
@@ -156,7 +172,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
           title: 'DPS & Effects Over Time',
           dpsLabel: 'Average DPS',
           dpsColor: '#54c96b',
-          colors: EFFECT_COLORS,
+          colors: effectColors(effectPresentations),
           defaultVisibleEffectLimit: 8,
           emptyEffectsText: 'No timed effects in this rotation'
         },

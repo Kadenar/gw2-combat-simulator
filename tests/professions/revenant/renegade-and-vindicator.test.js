@@ -8,6 +8,7 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView, resolvePaletteDropItem } from '#gw2/app/rotation/palette/view.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
+import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
@@ -54,6 +55,14 @@ const baseConfig = Object.freeze({
     vitality: 1000
   },
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
+});
+
+const PLAYER_AUDIENCE = Object.freeze({
+  includesSelf: true,
+  includesSummons: false,
+  alliedPlayerCount: 0,
+  companionIds: [],
+  recipientCount: 1
 });
 
 function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
@@ -488,6 +497,30 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
       .map((event) => event.at),
     [0, 1, 2, 3, 4, 5]
   );
+});
+
+test("Kalla's Fervor chart uses the Renegade stack cap", () => {
+  const effectPresentations = revenantProfession.ui.effectPresentations({
+    specialization: 'Renegade',
+    catalog: revenantProfession.catalog
+  });
+  const series = buildChartSeries(
+    {
+      duration: 2,
+      events: Array.from({ length: 7 }, (_, index) => ({
+        type: 'buff',
+        at: index * 0.01,
+        kind: 'kallas-fervor',
+        duration: 8,
+        stacks: 1,
+        resolvedAudience: PLAYER_AUDIENCE
+      }))
+    },
+    100,
+    effectPresentations
+  );
+
+  assert.equal(Math.max(...series.effects["Kalla's Fervor"].map((point) => point.v)), 5);
 });
 
 test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () => {

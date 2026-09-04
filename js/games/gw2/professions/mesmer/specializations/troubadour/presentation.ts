@@ -5,6 +5,7 @@ import {
   mesmerResourceViews
 } from '#gw2/professions/mesmer/core/presentation.js';
 import type {
+  ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
   SchedulerRecord
@@ -25,6 +26,15 @@ const TROUBADOUR_MECHANIC_SKILLS = Object.freeze([
   ID.HARMONIOUS_HARP_ALTERNATE,
   ID.CRESCENDO
 ]);
+const TROUBADOUR_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
+  {
+    id: 'mesmer-altered-chord',
+    kind: 'altered-chord',
+    name: 'Altered Chord',
+    color: '#80bce8',
+    maximumStacks: 1
+  }
+]);
 
 function troubadourEventLogRow(
   _context: SchedulerRecord,
@@ -42,6 +52,8 @@ function troubadourEventLogRow(
 }
 
 export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  // Altered Chord remains a binary effect when its activation window is refreshed.
+  effectPresentations: () => [...TROUBADOUR_EFFECT_PRESENTATIONS],
   eventLogRow: troubadourEventLogRow,
   paletteGroups: (context: MesmerUiContext) =>
     mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS, 'notes'),

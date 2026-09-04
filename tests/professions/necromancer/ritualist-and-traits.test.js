@@ -856,7 +856,11 @@ test('Soul Barbs and Dark Gunslinger change their documented outputs', () => {
     soulBarbs.events.filter((event) => event.kind === 'necromancer-soul-barbs').map((event) => event.duration),
     [15, 15]
   );
-  const soulBarbsSeries = buildChartSeries(soulBarbs, 100).effects['Soul Barbs'];
+  const effectPresentations = necromancerProfession.ui.effectPresentations({
+    specialization: 'Harbinger',
+    catalog: necromancerProfession.catalog
+  });
+  const soulBarbsSeries = buildChartSeries(soulBarbs, 100, effectPresentations).effects['Soul Barbs'];
 
   assert.ok(soulBarbsSeries.some((point) => point.v === 1));
   assert.ok(soulBarbsSeries.every((point) => point.v === 0 || point.v === 1));

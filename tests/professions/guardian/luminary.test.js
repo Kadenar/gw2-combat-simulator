@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
+import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
@@ -19,6 +20,41 @@ const config = {
   },
   target: { armor: 2597 }
 };
+
+const PLAYER_AUDIENCE = Object.freeze({
+  includesSelf: true,
+  includesSummons: false,
+  alliedPlayerCount: 0,
+  companionIds: [],
+  recipientCount: 1
+});
+
+test('Luminary chart labels radiant weapons and replaces the previous armament', () => {
+  const radiantBuff = (at, radiantWeapon) => ({
+    type: 'buff',
+    at,
+    kind: 'guardian-radiant-armaments',
+    metadata: { radiantWeapon },
+    duration: 10,
+    resolvedAudience: PLAYER_AUDIENCE
+  });
+  const effectPresentations = guardianProfession.ui.effectPresentations({
+    specialization: 'Luminary',
+    catalog: guardianProfession.catalog
+  });
+  const series = buildChartSeries(
+    {
+      duration: 4,
+      events: [radiantBuff(0, 'hammer'), radiantBuff(2, 'staff')]
+    },
+    1000,
+    effectPresentations
+  );
+
+  assert.equal(series.effects['Radiant Armaments (Hammer)'][0].v, 1);
+  assert.equal(series.effects['Radiant Armaments (Hammer)'][2].v, 0);
+  assert.equal(series.effects['Radiant Armaments (Staff)'][2].v, 1);
+});
 
 test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   const unavailable = simulateGw2({

@@ -19,6 +19,7 @@ import {
 } from '#gw2/platform/engine/profession/ui-combinators.js';
 
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
+  'effectPresentations',
   'paletteGroups',
   'resourceViews',
   'skillBarGroups',

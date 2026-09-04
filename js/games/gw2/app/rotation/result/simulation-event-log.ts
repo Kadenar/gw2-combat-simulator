@@ -44,6 +44,15 @@ export function simulationEventLogRows(
     String(build?.specialization || '').trim() ||
     build?.specializations?.find((selection) => eliteNames.has(selection.name))?.name ||
     'Core';
+  // Reuse the active profession's effect labels in the event log instead of maintaining a second name table.
+  const effectPresentations =
+    professionUi?.effectPresentations?.({
+      result,
+      build,
+      catalog: profession?.catalog,
+      profession,
+      specialization
+    }) || [];
   const resourceDefinition =
     endState.resourceDefinition && typeof endState.resourceDefinition === 'object'
       ? (endState.resourceDefinition as SchedulerRecord)
@@ -168,7 +177,7 @@ export function simulationEventLogRows(
         push(
           event.at,
           'trigger',
-          `BUFF ${effectName(event.kind)} x${event.stacks || 1}${event.duration ? ` (${event.duration}s)` : ''}`,
+          `BUFF ${effectName(event.kind, event, effectPresentations)} x${event.stacks || 1}${event.duration ? ` (${event.duration}s)` : ''}`,
           'trigger'
         );
         break;

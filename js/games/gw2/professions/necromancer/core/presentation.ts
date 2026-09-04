@@ -5,6 +5,7 @@ import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.j
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
+  ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -33,6 +34,19 @@ const LICH_SKILLS: readonly SkillId[] = Object.freeze([
   ID.EXIT_LICH_FORM
 ]);
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
+const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
+  {
+    id: 'necromancer-taste-for-blood',
+    kind: 'taste-for-blood',
+    name: 'Taste for Blood'
+  },
+  {
+    id: 'necromancer-soul-barbs',
+    kind: 'necromancer-soul-barbs',
+    name: 'Soul Barbs',
+    maximumStacks: 1
+  }
+]);
 
 /** Flattens Core and active-specialization state for Necromancer UI projections. */
 export function necromancerUiState(context: NecromancerUiContext = {}): Partial<NecromancerState> {
@@ -381,6 +395,8 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 /** Defines the Core Necromancer UI projections and delegates transform-specific groups to shared builders. */
 export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  // Core owns both labels because the effects remain available across Necromancer specializations.
+  effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],
   eventLogRow: necromancerEventLogRow,
   targetHealthThresholds: necromancerCoreTargetHealthThresholds,
   paletteGroups: (context: NecromancerUiContext) =>

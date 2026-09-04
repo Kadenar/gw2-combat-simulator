@@ -1,11 +1,14 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
+  ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -244,8 +247,21 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
   return items;
 }
 
+/** Publishes the Core Warrior stack cap from the same patchable profile used by its modifier. */
+function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEffectPresentation[] {
+  return [
+    {
+      id: 'warrior-berserkers-power',
+      kind: 'berserkers-power',
+      name: "Berserker's Power",
+      maximumStacks: balanceProfileValueFromContext(context, PROFILE.berserkersPower, 'maximumStacks', 4)
+    }
+  ];
+}
+
 export const warriorCoreUi: Partial<ProfessionUiContract> = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  effectPresentations: warriorCoreEffectPresentations,
   eventLogRow: warriorEventLogRow,
   rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),

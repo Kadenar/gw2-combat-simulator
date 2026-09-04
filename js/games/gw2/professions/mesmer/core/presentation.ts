@@ -1,9 +1,12 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isMesmerBuildSkillAvailable } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import type {
+  ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -157,8 +160,36 @@ export function mesmerPaletteSkillAvailability(
 
 const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
+/** Publishes Core Mesmer effect labels, colors, and patch-aware stack caps to result views. */
+function mesmerCoreEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+  return [
+    {
+      id: 'mesmer-compounding-power',
+      kind: 'compounding',
+      name: 'Compounding Power',
+      color: '#cfb5ff',
+      maximumStacks: balanceProfileValueFromContext(context, PROFILE.compoundingPower, 'maximumStacks', 5)
+    },
+    {
+      id: 'mesmer-illusionary-membrane',
+      kind: 'illusionary-membrane',
+      name: 'Illusionary Membrane',
+      color: '#6ec9d8',
+      maximumStacks: 1
+    },
+    {
+      id: 'mesmer-fencers-finesse',
+      kind: 'fencer',
+      name: "Fencer's Finesse",
+      color: '#e1c070',
+      maximumStacks: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'maximumStacks', 10)
+    }
+  ];
+}
+
 export const mesmerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  effectPresentations: mesmerCoreEffectPresentations,
   eventLogRow: mesmerEventLogRow,
   rotationStateSnapshot: mesmerCoreStateSnapshot,
   paletteGroups: (context: MesmerUiContext) =>

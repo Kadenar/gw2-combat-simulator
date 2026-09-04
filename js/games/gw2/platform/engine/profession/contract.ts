@@ -72,6 +72,7 @@ const READY_CAST: ComposableHook = (..._args) => CAST_READY;
 
 const UI_CALLBACK_NAMES = Object.freeze([
   'chargeReleaseProjection',
+  'effectPresentations',
   'eventLogRow',
   'isPaletteSkillInstant',
   'paletteSkillAvailability',
@@ -437,6 +438,7 @@ export function defineProfession<TProfessionState extends object>(
     ...ui,
     assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
     chargeReleaseProjection: ui.chargeReleaseProjection || (() => null),
+    effectPresentations: ui.effectPresentations || (() => []),
     paletteGroups: ui.paletteGroups || (() => []),
     paletteActionSkills: ui.paletteActionSkills || ((_context, skills) => [...skills]),
     paletteWeaponSkills: ui.paletteWeaponSkills || ((_context, skills) => [...skills]),

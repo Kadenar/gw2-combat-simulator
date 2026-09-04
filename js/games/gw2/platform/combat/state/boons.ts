@@ -47,6 +47,12 @@ const DURATION_STACKING_BOON_CAPS = new Map([
   ['swiftness', GW2_SWIFTNESS_DURATION_CAP_SECONDS]
 ]);
 
+export interface StandardBoonPresentation {
+  readonly name: string;
+  readonly maximumStacks?: number;
+  readonly maximumDuration?: number;
+}
+
 /** Restricts boon-only rules to GW2's standard boon set. */
 export function isStandardBoon(kind: unknown): boolean {
   return STANDARD_BOON_SET.has(String(kind || '').toLowerCase());
@@ -60,6 +66,19 @@ export function isDurationStackingBoon(kind: unknown): boolean {
 /** Returns the in-game duration cap for a duration-stacking boon. */
 export function durationStackingBoonCapSeconds(kind: unknown): number {
   return DURATION_STACKING_BOON_CAPS.get(String(kind || '').toLowerCase()) ?? GW2_BOON_DURATION_CAP_SECONDS;
+}
+
+/** Supplies shared labels and caps for standard boons so result views do not redeclare GW2 rules. */
+export function standardBoonPresentation(kind: unknown): StandardBoonPresentation | null {
+  const normalized = String(kind || '').toLowerCase();
+  if (!STANDARD_BOON_SET.has(normalized)) return null;
+  return {
+    name: normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    ...(normalized === 'might' ? { maximumStacks: 25 } : {}),
+    ...(DURATION_STACKING_BOON_CAPS.has(normalized)
+      ? { maximumDuration: DURATION_STACKING_BOON_CAPS.get(normalized) }
+      : {})
+  };
 }
 
 /**

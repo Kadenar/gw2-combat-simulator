@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
+import { buildChartSeries } from '#gw2/app/rotation/result/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -14,6 +15,51 @@ const sphereNames = [
   'Deploy Jade Sphere (Air)',
   'Deploy Jade Sphere (Earth)'
 ];
+
+const PLAYER_AUDIENCE = Object.freeze({
+  includesSelf: true,
+  includesSummons: false,
+  alliedPlayerCount: 0,
+  companionIds: [],
+  recipientCount: 1
+});
+
+test('Catalyst chart uses the Elemental Empowerment stack cap', () => {
+  const effectPresentations = elementalistProfession.ui.effectPresentations({
+    specialization: 'Catalyst',
+    catalog: elementalistProfession.catalog
+  });
+  const series = buildChartSeries(
+    {
+      duration: 2,
+      events: [
+        {
+          type: 'buff',
+          at: 0,
+          kind: 'elemental empowerment',
+          stacks: 3,
+          duration: 15,
+          resolvedAudience: PLAYER_AUDIENCE
+        },
+        {
+          type: 'buff',
+          at: 1,
+          kind: 'elemental empowerment',
+          stacks: 8,
+          duration: 15,
+          resolvedAudience: PLAYER_AUDIENCE
+        }
+      ]
+    },
+    1000,
+    effectPresentations
+  );
+
+  assert.deepEqual(
+    series.effects['Elemental Empowerment'].map((point) => point.v),
+    [3, 10, 10]
+  );
+});
 
 test('Catalyst exposes every Jade Sphere beside its energy in the rotation palette', () => {
   const context = {

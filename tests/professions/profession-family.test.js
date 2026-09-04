@@ -378,6 +378,7 @@ test('family UI uses active slices, Core-first event precedence, and family veto
   const descriptor = (description) => ({ type: 'test', description });
   const core = testModule('Core', {
     ui: {
+      effectPresentations: () => [{ id: 'core-effect', kind: 'core-effect', name: 'Core Effect' }],
       eventLogRow: (context, event) => {
         if (event.type === 'shared') return descriptor('core');
 
@@ -391,6 +392,7 @@ test('family UI uses active slices, Core-first event precedence, and family veto
   });
   const elite = testModule('Elite', {
     ui: {
+      effectPresentations: () => [{ id: 'elite-effect', kind: 'elite-effect', name: 'Elite Effect' }],
       eventLogRow: (_context, event) =>
         event.type === 'shared' || event.type === 'elite-only' ? descriptor('elite') : undefined
     }
@@ -412,6 +414,14 @@ test('family UI uses active slices, Core-first event precedence, and family veto
   assert.equal(family.ui.eventLogRow({ specialization: 'Elite' }, shared).description, 'core');
   assert.equal(family.ui.eventLogRow({ specialization: 'Core' }, eliteOnly), undefined);
   assert.equal(family.ui.eventLogRow({ build: { specialization: 'Elite' } }, eliteOnly).description, 'elite');
+  assert.deepEqual(
+    family.ui.effectPresentations({ specialization: 'Elite' }).map((effect) => effect.id),
+    ['core-effect', 'elite-effect']
+  );
+  assert.deepEqual(
+    family.ui.effectPresentations({ specialization: 'Core' }).map((effect) => effect.id),
+    ['core-effect']
+  );
   assert.equal(
     family.ui.eventLogRow({ config: { specialization: 'Core Line' } }, { type: 'context', at: 0 }).description,
     'Core'

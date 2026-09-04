@@ -399,7 +399,11 @@ test('Compounding Power chart series caps at five stacks', () => {
         resolvedAudience: PLAYER_RESOLVED_AUDIENCE
       }))
     },
-    100
+    100,
+    mesmerProfession.ui.effectPresentations({
+      specialization: 'Core',
+      catalog: mesmerProfession.catalog
+    })
   );
 
   assert.equal(Math.max(...series.effects['Compounding Power'].map((point) => point.v)), 5);
@@ -444,25 +448,34 @@ test('Might chart series caps at 25 stacks', () => {
   assert.equal(Math.max(...series.effects.Might.map((point) => point.v)), 25);
 });
 
-test("Kalla's Fervor chart series caps at five stacks", () => {
-  const series = buildChartSeries(
-    {
-      duration: 10,
-      resolvedEvents: [],
-      events: Array.from({ length: 7 }, (_, index) => ({
-        type: 'buff',
-        at: index * 0.01,
-        kind: 'kallas-fervor',
-        duration: 8,
-        stacks: 1,
-        resolvedAudience: PLAYER_RESOLVED_AUDIENCE
-      }))
-    },
-    100
-  );
+for (const [specialization, kind, name, maximumStacks] of [
+  ['Core', 'fencer', "Fencer's Finesse", 10],
+  ['Mirage', 'phantom-pain', 'Phantom Pain', 4]
+]) {
+  test(`${name} chart series uses its profession-owned stack cap`, () => {
+    const series = buildChartSeries(
+      {
+        duration: 10,
+        resolvedEvents: [],
+        events: Array.from({ length: maximumStacks + 2 }, (_, index) => ({
+          type: 'buff',
+          at: index * 0.01,
+          kind,
+          duration: 8,
+          stacks: 1,
+          resolvedAudience: PLAYER_RESOLVED_AUDIENCE
+        }))
+      },
+      100,
+      mesmerProfession.ui.effectPresentations({
+        specialization,
+        catalog: mesmerProfession.catalog
+      })
+    );
 
-  assert.equal(Math.max(...series.effects["Kalla's Fervor"].map((point) => point.v)), 5);
-});
+    assert.equal(Math.max(...series.effects[name].map((point) => point.v)), maximumStacks);
+  });
+}
 
 test('Continuum Shift is available only while Continuum Split is active', () => {
   const config = defaultSimulationConfig({
