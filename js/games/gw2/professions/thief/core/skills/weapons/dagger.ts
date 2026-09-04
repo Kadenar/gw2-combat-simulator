@@ -1,6 +1,6 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DOUBLE_STRIKE]: {

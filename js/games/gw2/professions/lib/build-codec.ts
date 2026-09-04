@@ -3,7 +3,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulat
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 export interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
   readonly assumptionControls?: readonly ProfessionAssumptionControl[];

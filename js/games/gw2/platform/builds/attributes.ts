@@ -15,7 +15,7 @@ import {
 } from '#gw2/platform/combat/damage/stat-scaling.js';
 import { normalizeWeaponSigils, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
 
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,

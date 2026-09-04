@@ -8,7 +8,8 @@ import {
 } from '#gw2/app/rotation/timeline/model.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
-import type { SchedulerStep, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface SkillTimingOccurrence {
   readonly rotationIndex: number;

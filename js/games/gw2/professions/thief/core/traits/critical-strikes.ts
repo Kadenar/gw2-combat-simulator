@@ -6,7 +6,8 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { EffectAudience, SkillId } from '#gw2/platform/engine/types.js';
+import type { EffectAudience } from '#gw2/platform/engine/events/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import type {
   ThiefResolverContext,

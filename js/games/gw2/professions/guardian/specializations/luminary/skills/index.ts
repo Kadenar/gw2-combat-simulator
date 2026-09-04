@@ -5,7 +5,7 @@
 import { LUMINARY_RADIANT_FORGE_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { LUMINARY_STANCE_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
 import { LUMINARY_VIRTUE_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies the complete Luminary catalog without owning family-specific fragments. */
 export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({

@@ -12,7 +12,8 @@ import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/rotation/shared/icons.js'
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, timelineItem } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SchedulerStep, Skill } from '#gw2/platform/engine/types.js';
+import type { SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
 
 /** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */

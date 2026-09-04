@@ -1,7 +1,7 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/engine/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerHandlerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {

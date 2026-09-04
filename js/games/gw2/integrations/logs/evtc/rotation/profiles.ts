@@ -67,3 +67,6 @@ export function evtcRotationProfile(
 ): EvtcRotationProfessionProfile | null {
   return profilesById.get(`${professionId}:${specializationId}`) || null;
 }
+
+/** Coalesces duplicate buff and weapon-swap signals for both player evidence and transition reconstruction. */
+export const TRANSITION_WINDOW_MS = 150;

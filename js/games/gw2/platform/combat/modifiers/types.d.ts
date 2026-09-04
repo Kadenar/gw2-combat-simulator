@@ -1,5 +1,6 @@
 /** Owns the combat/modifiers/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   Gw2CombatQuery,
   Gw2CriticalChanceContributor,

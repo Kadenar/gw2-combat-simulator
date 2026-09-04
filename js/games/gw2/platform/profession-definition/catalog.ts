@@ -4,12 +4,12 @@ import type {
   CanonicalCatalog,
   BalanceProfile,
   CatalogEntity,
-  ProfessionModuleCatalogFragment,
   Skill,
   SkillFragment,
-  SkillHandlerStrategy,
   SkillId
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 import type {
   AnyNativeModule,
   NativeAutoattackChains,

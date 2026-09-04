@@ -8,7 +8,7 @@ import {
   type AutoattackChainTransitionContext
 } from '#gw2/platform/skills/autoattack-chains.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { NecromancerCastContext, NecromancerSchedulerContext } from '#gw2/professions/necromancer/types.js';
 
 const SWORD_AUTOATTACK_EXPIRY_OWNER = 'necromancer.sword-autoattack-chain';

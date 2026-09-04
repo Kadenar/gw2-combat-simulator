@@ -26,7 +26,7 @@ import {
 } from '#gw2/professions/revenant/specializations/vindicator/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantPrecastContext,
   RevenantSchedulerContext,

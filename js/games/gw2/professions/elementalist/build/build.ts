@@ -12,7 +12,7 @@ import { createProfessionBuildCodec } from '#gw2/professions/lib/build-codec.js'
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 import type {
   ElementalistApplicationBuild,

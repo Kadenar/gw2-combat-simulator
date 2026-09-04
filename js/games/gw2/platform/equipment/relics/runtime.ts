@@ -14,7 +14,7 @@ import {
 } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   Gw2RelicContext,
   Gw2RelicRule,

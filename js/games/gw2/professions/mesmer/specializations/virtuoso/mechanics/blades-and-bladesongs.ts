@@ -19,7 +19,7 @@ import {
   handleVirtuosoExpectedProcTask,
   observeVirtuosoExpectedProcEvent
 } from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerPrecastContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 

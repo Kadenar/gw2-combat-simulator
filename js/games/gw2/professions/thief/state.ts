@@ -4,7 +4,7 @@ import type {
   ProfessionStateSnapshotEmissionContext,
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { snapshotThiefState, THIEF_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/core/state.js';
 export { snapshotThiefState } from '#gw2/professions/thief/core/state.js';
 import {

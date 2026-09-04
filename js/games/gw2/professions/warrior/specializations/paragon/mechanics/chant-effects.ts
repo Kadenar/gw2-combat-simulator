@@ -1,4 +1,4 @@
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorResolverContext, WarriorResolverEvent } from '#gw2/professions/warrior/types.js';
 

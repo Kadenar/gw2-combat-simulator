@@ -4,7 +4,7 @@ import { readProfessionSpecializationState } from '#gw2/platform/engine/professi
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';

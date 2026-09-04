@@ -1,4 +1,5 @@
-import type { SchedulerContext, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';

@@ -8,7 +8,7 @@ import type {
   ProfessionStateSnapshotEmissionContext,
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import {
   NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
   syncNecromancerResources

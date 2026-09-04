@@ -24,7 +24,7 @@ import {
   observeEngineerMechEvent
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { EngineerRechargeContext } from '#gw2/professions/engineer/types.js';
 

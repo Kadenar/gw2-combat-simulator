@@ -9,14 +9,13 @@
  * because its dual-attunement model is owned by the Weaver presentation.
  */
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   ProfessionStartControl,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 

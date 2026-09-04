@@ -5,7 +5,7 @@
  * scaled with the cast, so a slower unquickened channel stretches the same pulses proportionally.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillEffect } from '#gw2/platform/engine/types.js';
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 // Packet builders: one pulse each, anchored to cast start and scaled with the channel's duration.
 // `tick` carries per-pulse extras such as combo finishers.

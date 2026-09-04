@@ -3,7 +3,7 @@
  * Trait-created skills and regular slot or weapon catalogs live in their named owners.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Defines supplemental Core fragments that do not belong to a regular weapon or slot-skill catalog. */
 export const ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({

@@ -1,6 +1,6 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Defines Engineer spear fragments and binds stateful spear skills to their execution handlers. */
 export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({

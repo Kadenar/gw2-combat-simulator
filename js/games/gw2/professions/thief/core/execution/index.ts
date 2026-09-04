@@ -14,7 +14,7 @@ import { activateAssassinsSignet, kneel, stand } from '#gw2/professions/thief/co
 import { summonThievesGuild } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { completeSteal, consumeStoredStolenSkill } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { beginStealthAttack, completeStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
+import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { ThiefCastContext } from '#gw2/professions/thief/types.js';
 import { emitStealTraitEffects } from '#gw2/professions/thief/core/traits/index.js';
 

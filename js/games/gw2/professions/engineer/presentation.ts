@@ -1,6 +1,8 @@
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { ProfessionUiContract, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerSkill, EngineerUiContext } from '#gw2/professions/engineer/types.js';
 
 const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([

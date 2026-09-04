@@ -1,4 +1,6 @@
-import type { CanonicalCatalog, ProfessionModuleCatalogFragment, SchedulerConfig } from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import type {
@@ -10,16 +12,18 @@ import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,
   applySkillPatch,
-  balanceProfileAuthoringReference,
-  balanceProfileHasAuthorableControls,
-  balanceProfilePatchableNumericFields,
   patchRuntimeValuesFor,
   professionPatchFor,
-  skillAuthoringReference,
-  skillPatchableNumericFields,
   validatePatchOverview,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
+import {
+  balanceProfileAuthoringReference,
+  balanceProfileHasAuthorableControls,
+  balanceProfilePatchableNumericFields,
+  skillAuthoringReference,
+  skillPatchableNumericFields
+} from '#gw2/integrations/patches/authoring/fields.js';
 import type {
   NativePatchAuthoringMetadata,
   NativeProfessionContract,

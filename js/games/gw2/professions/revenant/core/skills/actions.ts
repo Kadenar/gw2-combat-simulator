@@ -3,7 +3,7 @@
  * Their runtime behavior is registered through `execution/index.ts`.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 const actions: readonly Skill[] = [
   {

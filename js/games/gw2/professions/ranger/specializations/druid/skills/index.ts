@@ -1,6 +1,6 @@
 /** Explicit PvE skill mechanics owned by the Druid Ranger module. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GLYPH_OF_THE_TIDES]: {

@@ -13,7 +13,8 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
  * pulses. Elite specializations own any additional upkeep lifecycle.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantCastContext,
   RevenantScheduledTask,

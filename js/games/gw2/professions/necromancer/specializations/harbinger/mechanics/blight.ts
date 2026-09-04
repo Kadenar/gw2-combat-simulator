@@ -29,7 +29,7 @@ import type {
   NecromancerSchedulerContext,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 import {
   HARBINGER_BALANCE_PROFILE_IDS as PROFILE,

@@ -9,7 +9,7 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/timelines.js';
-import type { SkillEffect } from '#gw2/platform/engine/types.js';
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 export function conduitHasLegend(context: RevenantSchedulerContext, legendId: string): boolean {

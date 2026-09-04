@@ -27,7 +27,8 @@ import {
 } from '#gw2/professions/revenant/core/traits/devastation.js';
 import { applyDwarvenBattleTraining, applyViciousReprisal } from '#gw2/professions/revenant/core/traits/retribution.js';
 import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
-import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,

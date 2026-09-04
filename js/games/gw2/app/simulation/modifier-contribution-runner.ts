@@ -4,7 +4,8 @@ import {
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifier-contributions.js';
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
-import type { ModifierContribution, ProfessionAppState } from '#gw2/app/types.js';
+import type { ModifierContribution } from '#gw2/app/simulation/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
 

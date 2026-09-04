@@ -4,7 +4,7 @@ import { clamp } from '#gw2/platform/combat/numeric.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import { createMesmerRuntime } from '#gw2/professions/mesmer/core/mechanics/illusions/controller.js';

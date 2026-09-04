@@ -24,7 +24,7 @@ import {
 import { necromancerCoreSkillHandlers } from '#gw2/professions/necromancer/core/execution/index.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import type { NecromancerSchedulerContext } from '#gw2/professions/necromancer/types.js';
 import { observeNecromancerPlagueSendingEvent } from '#gw2/professions/necromancer/core/mechanics/conditions.js';

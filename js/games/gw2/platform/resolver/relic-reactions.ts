@@ -1,5 +1,6 @@
 /** Applies relic reactions only after resolver events have acquired chronological combat facts. */
-import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import type {

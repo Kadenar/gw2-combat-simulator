@@ -1,4 +1,5 @@
-import type { RotationCommand, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface RotationDragState extends SchedulerRecord {
   readonly source?: string;

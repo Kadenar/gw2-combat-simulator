@@ -15,7 +15,7 @@ import type {
   MesmerRechargeContext,
   MesmerSchedulerContext
 } from '#gw2/professions/mesmer/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 

@@ -3,7 +3,7 @@
  * Runtime behavior remains in the named execution and mechanic owners.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   {

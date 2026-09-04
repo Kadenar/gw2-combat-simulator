@@ -20,7 +20,8 @@ import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engin
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,

@@ -1,4 +1,4 @@
-import type { ConditionEffect, ConditionTick, StrikeEffect, StrikeTick } from '#gw2/platform/engine/types.js';
+import type { ConditionEffect, ConditionTick, StrikeEffect, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 
 /** Projects either canonical strike form into the packet descriptors consumed by profession mechanics. */
 export function strikeEffectTicks(effect: StrikeEffect): readonly StrikeTick[] {

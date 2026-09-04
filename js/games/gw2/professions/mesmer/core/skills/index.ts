@@ -2,7 +2,7 @@
  * Composes owner-local Core Mesmer skill catalogs without owning behavior.
  * Runtime execution lives in sibling controller files and persistent illusion state lives under `mechanics/`.
  */
-import type { SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import { MESMER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/slot-skills.js';

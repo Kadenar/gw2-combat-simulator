@@ -1,4 +1,4 @@
-import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';

@@ -1,4 +1,5 @@
-import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 /** Leaf resource contracts keep state and mechanic consumers independent of the Mesmer family type root. */
 export interface MesmerResourceCause extends SchedulerRecord {

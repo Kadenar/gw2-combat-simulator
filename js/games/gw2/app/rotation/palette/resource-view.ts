@@ -12,7 +12,9 @@
  * Mesmer notes and Revenant affinity emblems. Pip capacity is also exposed so
  * density can follow the resource shape without specialization selectors.
  */
-import type { ProfessionResourceView, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
 import {

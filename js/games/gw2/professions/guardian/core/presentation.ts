@@ -2,15 +2,14 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,

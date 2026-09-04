@@ -1,0 +1,1121 @@
+/* Owns authored timeline rows, comparison timelines, state summaries, and proc presentation. */
+
+/* Reads active state (crit chance, profession timers, target debuffs) at the
+   current rotation point — or at the insertion cursor when one is set. Sits
+   above the internally-scrolling timeline, reusing the controls divider above. */
+.rotation-active-buffs {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 4px;
+  padding: 5px 9px;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.rotation-active-buffs[hidden] {
+  display: none;
+}
+
+.rotation-active-buffs .rot-state-label {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+}
+
+.rotation-active-buffs .rot-state-item {
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
+.rotation-active-buffs .rot-state-item strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Empty and authored rotations share a viewport-sized canvas so adding the
+   first skill does not collapse the builder around the user. */
+.rotation-timeline {
+  flex: 1 1 auto;
+  height: clamp(280px, 52vh, 600px);
+  min-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+
+.rotation-timeline.is-empty {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at center, rgba(157, 123, 208, 0.1), transparent 55%), var(--bg-dark);
+  border: 1px dashed var(--border-light);
+}
+
+.rotation-dps-summary {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-dps-summary:empty {
+  display: none;
+}
+
+.rotation-dps-summary .res-summary {
+  margin-bottom: 0;
+}
+
+.rotation-timing-details {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-timing-details:empty {
+  display: none;
+}
+
+/* Match Event Log behavior: an opened analysis panel rejoins page flow instead of being clipped by the builder. */
+body:not([data-rotation-focus]) .rotation-panel:has(.rotation-timing-details-wrap[open]) {
+  max-height: none;
+  overflow: visible;
+}
+
+.timing-details-list {
+  max-height: 230px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  scrollbar-gutter: stable;
+}
+
+.timing-skill-details {
+  border-bottom: 1px solid var(--border);
+}
+
+.timing-skill-details > summary {
+  display: flex;
+  padding: 6px 9px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timing-skill-details > summary:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.timing-skill-details > summary strong {
+  min-width: 150px;
+  color: var(--text-bright);
+  font-size: 11px;
+}
+
+.timing-skill-detail-body {
+  padding: 0 9px 8px;
+  overflow-x: auto;
+}
+
+.timing-skill-detail-body table {
+  width: min(100%, 620px);
+  border-collapse: collapse;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timing-skill-detail-body th,
+.timing-skill-detail-body td {
+  padding: 3px 6px;
+  border-bottom: 1px dotted var(--border);
+  text-align: right;
+}
+
+.timing-skill-detail-body th:first-child {
+  text-align: left;
+}
+
+.timing-skill-detail-body thead th {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.timing-details-empty {
+  color: var(--text-dim);
+  text-align: center !important;
+}
+
+.timing-show-all {
+  margin-top: 6px;
+  padding: 3px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 9px;
+}
+
+/* Offset both DPS summaries from surrounding content so each strip stays easy to scan. */
+:is(.rotation-dps-summary, .analysis-dps-summary) .res-summary {
+  background: var(--bg-panel-alt);
+}
+
+/* Keep the primary result readable and profession-themed while the user scrolls or switches simulator views. */
+.floating-dps {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(100% + 12px);
+  z-index: 900;
+  display: flex;
+  min-width: 116px;
+  padding: 8px 12px 9px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--bg-panel-alt) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-light));
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.floating-dps.floating-dps-viewport {
+  position: fixed;
+  bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+.floating-dps-label {
+  padding-bottom: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.floating-dps-value {
+  color: var(--accent);
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.rotation-timeline.drag-over-empty {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.rot-empty {
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  text-align: center;
+  padding: 28px;
+  pointer-events: none;
+}
+
+.rot-empty strong {
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Comparison reuses the focused builder and splits only its timeline region into two independently scrollable rows. */
+body[data-rotation-comparison] .rotation-panel-shell,
+body[data-rotation-comparison] .rotation-panel-shell > .rotation-panel {
+  min-height: 0;
+}
+
+body[data-rotation-comparison][data-rotation-focus] .build-editor > :is(.build-section, .skills-section) {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-panel-shell > .rotation-panel {
+  max-height: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 6px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel-alt);
+}
+
+body[data-rotation-comparison] .rotation-comparison-summary[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-stat {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-stat > span,
+body[data-rotation-comparison] .rotation-comparison-stat > small,
+body[data-rotation-comparison] .rotation-comparison-time > span,
+body[data-rotation-comparison] [data-comparison-status] {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-stat strong {
+  color: var(--text-bright);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time,
+body[data-rotation-comparison] .rotation-comparison-time-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time input {
+  width: clamp(120px, 15vw, 220px);
+}
+
+body[data-rotation-comparison] .rotation-comparison-time-controls {
+  flex-wrap: wrap;
+}
+
+body[data-rotation-comparison] .rotation-comparison-time output {
+  min-width: 4.25em;
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+body[data-rotation-comparison] .rotation-comparison-timeline-label {
+  flex: 0 0 auto;
+  margin: 3px 0;
+  color: var(--text-bright);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-label {
+  margin: 0;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-header,
+body[data-rotation-comparison] .rotation-comparison-reference-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-header {
+  flex: 0 0 auto;
+  justify-content: space-between;
+  margin: 3px 0;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference-actions[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-reference {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+}
+
+body[data-rotation-comparison] :is(#rotation-timeline, .rotation-reference-timeline) {
+  height: auto;
+  min-height: 120px;
+  flex: 1 1 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body[data-rotation-comparison] .rotation-reference-timeline {
+  border-color: color-mix(in srgb, #d6b46b 45%, transparent);
+}
+
+body[data-rotation-comparison] .rotation-reference-timeline[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-empty {
+  display: flex;
+  min-height: 120px;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 28px;
+  border: 1px solid color-mix(in srgb, #d6b46b 45%, transparent);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 11px;
+  text-align: center;
+}
+
+body[data-rotation-comparison] .rotation-comparison-empty[hidden] {
+  display: none;
+}
+
+body[data-rotation-comparison] .rotation-comparison-empty strong {
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+body[data-rotation-comparison] :is(.rotation-dps-summary, .rotation-warnings, .rotation-procs, .rotation-event-log) {
+  display: none;
+}
+
+body[data-rotation-comparison] .rot-skill.rot-preview-active {
+  outline: 2px solid var(--text-bright);
+  outline-offset: -2px;
+  filter: brightness(1.25);
+}
+
+@media (max-width: 900px) {
+  body[data-rotation-comparison] .rotation-comparison-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-rotation-comparison] .rotation-comparison-time {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  body[data-rotation-comparison] .rotation-comparison-reference-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  body[data-rotation-comparison][data-rotation-focus] .rotation-section {
+    display: grid;
+    overflow: hidden;
+  }
+
+  body[data-rotation-comparison][data-rotation-focus] .rotation-panel-shell > .rotation-panel {
+    height: 100%;
+  }
+
+  body[data-rotation-comparison][data-rotation-focus] .rotation-palette {
+    max-height: 26vh;
+    overflow-y: auto;
+  }
+
+  body[data-rotation-comparison] .rotation-comparison-metrics {
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+    overflow-x: auto;
+  }
+
+  body[data-rotation-comparison] :is(#rotation-timeline, .rotation-reference-timeline) {
+    height: auto;
+    min-height: 140px;
+    flex: 1 1 0;
+    overflow-y: auto;
+  }
+}
+
+/* One weapon-set label spans its preserved transform lines so state boundaries stay visible without repeated labels. */
+.rot-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 0 0 8px;
+  margin-bottom: 2px;
+}
+
+.rot-row + .rot-row {
+  border-top: 1px solid var(--border-light);
+}
+
+.rot-row-label,
+.rot-row-line-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--row-color, var(--text-dim));
+  min-width: 14px;
+  text-align: center;
+  user-select: none;
+}
+
+.rot-row-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--row-color) 8%, transparent);
+}
+
+.rot-row-label-content {
+  /* Center normal groups, but clamp labels inside the viewport when a group is taller than it. */
+  position: sticky;
+  top: 4px;
+  bottom: 4px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rot-row-label-text {
+  color: var(--row-color, var(--text-dim));
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.rot-row-duration {
+  color: #c9a55a;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.rot-row-lines {
+  min-width: 0;
+}
+
+.rot-row-line {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.rot-row-line + .rot-row-line {
+  border-top: 1px dotted var(--border-light);
+}
+
+.rot-row-line-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  padding: 0 1px;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+.rot-row-skills {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.rot-row-skills.drag-over {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent);
+  border-radius: 6px;
+}
+
+.rot-skill {
+  width: 40px;
+  border-radius: 5px;
+  border: 2px solid var(--att-border, var(--border-light));
+  overflow: visible;
+  position: relative;
+  cursor: grab;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.rot-skill img {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  border-radius: 3px;
+}
+
+.rot-variant-badge {
+  top: 25px;
+  left: 1px;
+}
+
+.rot-skill:hover {
+  transform: scale(1.08);
+}
+
+.rot-skill.dragging {
+  opacity: 0.4;
+}
+
+.rot-skill.drag-over {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.rot-skill.drag-insert-before {
+  box-shadow: -3px 0 0 0 var(--accent);
+}
+
+.rot-skill.drag-insert-after {
+  box-shadow: 3px 0 0 0 var(--accent);
+}
+
+.rot-x {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  background: var(--condi);
+  color: #fff;
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 2;
+}
+
+.rot-skill:hover .rot-x {
+  opacity: 1;
+}
+
+/* Touch devices have no hover, so the remove button would stay invisible and
+   the timeline becomes read-only. Reveal it permanently (matches the edit
+   button's `@media (hover: none)` treatment) and enlarge the tap target. */
+@media (hover: none) {
+  .rot-x {
+    opacity: 1;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 12px;
+  }
+}
+
+.rot-time {
+  display: block;
+  text-align: center;
+  font-size: 8px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.rot-arrow {
+  color: var(--text-dim);
+  font-size: 10px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.rot-concurrent {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.rot-gapfill {
+  border-style: dotted;
+  opacity: 0.9;
+}
+
+.rot-skill.rot-injected {
+  border-style: dashed;
+  cursor: default;
+}
+
+/* Separate automatic state changes from the authored skill immediately before them. */
+.rot-skill.rot-automatic-transition {
+  margin-left: 6px;
+}
+
+.rot-proc-overlay {
+  width: 34px;
+  border-style: dotted;
+}
+
+/* Keep a proc card attached to its skill-sized gutter when the timeline wraps. */
+.rot-proc-entry {
+  padding-left: 16px;
+}
+
+.rot-proc-overlay[data-skill-highlight-key] {
+  cursor: pointer;
+}
+
+/* Crossed relic cards mark the exact end of a timed effect window. */
+.proc-expired-cross {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.proc-expired-cross::before,
+.proc-expired-cross::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -12%;
+  width: 124%;
+  height: 3px;
+  background: #f02e2e;
+  box-shadow: 0 0 0 1px rgba(30, 5, 5, 0.9);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.proc-expired-cross::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.rot-proc-overlay .proc-count {
+  top: 8px;
+}
+
+.rot-sigil-proc .rot-injected-badge {
+  right: -5px;
+  background: #4488cc;
+  color: #fff;
+}
+
+.rot-relic-proc .rot-injected-badge {
+  right: -5px;
+  background: #ddaa33;
+  color: #201b28;
+}
+
+/* Trait-proc overlays use the same green identity as their timeline proc entries. */
+.rot-trait-proc .rot-injected-badge {
+  right: -5px;
+  background: #77cc77;
+  color: #201b28;
+}
+
+.rot-injected-badge {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #d6b46b;
+  color: #201b28;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 10px;
+  pointer-events: none;
+}
+
+.rot-resource-spend-badge {
+  position: absolute;
+  top: -6px;
+  left: -7px;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #c49cff;
+  color: #201b28;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 10px;
+  white-space: nowrap;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* A queued command that is not valid in this position (e.g. Power Spike woven
+   into the Mantra of Pain channel). Shown smaller and muted; never simulated. */
+.rot-skill.rot-invalid {
+  width: 26px;
+  border: 1px dashed #e0555f;
+  opacity: 0.55;
+  filter: grayscale(0.55);
+}
+
+.rot-skill.rot-invalid:hover {
+  opacity: 0.8;
+}
+
+.rot-skill.skill-faded,
+.rot-skill.skill-faded:hover {
+  opacity: 0.25;
+  filter: grayscale(0.65);
+}
+
+.rot-skill.skill-highlight {
+  opacity: 1;
+  border-color: var(--att-border, var(--border-light));
+  box-shadow: 0 0 0 2px var(--att-border, var(--border-light));
+}
+
+.rot-invalid-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 13px;
+  height: 13px;
+  background: #e0555f;
+  color: #fff;
+  font-size: 9px;
+  line-height: 13px;
+  text-align: center;
+  border-radius: 50%;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.rot-gapfill-badge {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 50, 0.88);
+  color: #c8e87e;
+  font-size: 7px;
+  line-height: 10px;
+  padding: 0 3px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.rot-charge-release-badge {
+  color: #ffb454;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.rot-charge-release-badge:hover {
+  background: #a46020;
+  color: #fff;
+}
+
+.rot-double-edge-badge {
+  color: #ef9b9b;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.rot-double-edge-badge:hover {
+  background: #923c3c;
+  color: #fff;
+}
+
+.rot-skill.rot-charge-mismatch {
+  border-color: #ff7c55;
+  box-shadow: 0 0 0 2px #ff7c5577;
+}
+
+.rot-skill.rot-charge-mismatch .rot-charge-release-badge {
+  background: #8d3325;
+  color: #fff;
+}
+
+/* Proc panel */
+.rotation-procs {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-procs:empty {
+  display: none;
+}
+
+.rotation-warnings {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-warnings:empty {
+  display: none;
+}
+
+.rotation-warnings-wrap {
+  background: rgba(160, 95, 35, 0.12);
+  border: 1px solid rgba(160, 95, 35, 0.35);
+  border-radius: var(--radius);
+}
+
+.rotation-warnings-wrap > summary {
+  padding: 8px 10px;
+  color: #e5b36e;
+  cursor: pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.rotation-warnings-wrap > summary:hover {
+  background: rgba(160, 95, 35, 0.08);
+}
+
+.rotation-warnings-content {
+  max-height: 210px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  margin: 0;
+  padding: 8px 10px 10px 30px;
+  color: #e5b36e;
+  border-top: 1px solid rgba(160, 95, 35, 0.35);
+}
+
+.rotation-warnings-content li + li {
+  margin-top: 5px;
+}
+
+.rotation-warning-time {
+  display: inline-block;
+  min-width: 6ch;
+  margin-right: 8px;
+  color: #f0c98f;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.rotation-procs-wrap {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.rotation-procs-wrap > summary {
+  padding: 8px 10px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.rotation-procs-wrap > summary:hover {
+  background: transparent;
+}
+
+.rotation-procs-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.proc-icons-row {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.proc-icon {
+  width: 30px;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.proc-icon img {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  border-radius: 3px;
+  border: 1px solid var(--proc-color, var(--border-light));
+  opacity: 0.88;
+  transition:
+    opacity 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+
+.proc-icon:hover img {
+  opacity: 1;
+}
+
+.proc-icon.proc-faded {
+  opacity: 0.25;
+}
+
+.proc-icon.proc-highlight img {
+  opacity: 1;
+  border-color: var(--proc-color, var(--border-light));
+  box-shadow: 0 0 0 2px var(--proc-color, var(--border-light));
+}
+
+.proc-count,
+.proc-stack {
+  position: absolute;
+  top: -3px;
+  min-width: 17px;
+  padding: 1px 2px;
+  border-radius: 5px;
+  background: #171820;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 10px;
+  text-align: center;
+  box-shadow: 0 0 0 1px var(--proc-color, var(--border-light));
+  pointer-events: none;
+}
+
+.proc-count {
+  left: -4px;
+  min-width: 20px;
+  padding: 1px 3px;
+  background: #08080d;
+  color: var(--text-bright);
+  font-size: 9px;
+  line-height: 12px;
+  z-index: 2;
+}
+
+.proc-stack {
+  right: -3px;
+  color: #f4cf69;
+}
+
+.proc-time {
+  display: block;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.proc-filter {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.proc-filter summary {
+  cursor: pointer;
+  list-style: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.proc-filter summary::-webkit-details-marker {
+  display: none;
+}
+
+.proc-filter summary::after {
+  content: ' ▾';
+  color: var(--accent);
+}
+
+.proc-filter[open] summary::after {
+  content: ' ▴';
+}
+
+.proc-filter-count {
+  color: var(--accent);
+  font-size: 8px;
+}
+
+.proc-filter-menu {
+  margin-top: 5px;
+  min-width: 220px;
+  max-height: 165px;
+  overflow-y: auto;
+  padding: 5px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.proc-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 3px;
+  color: var(--text);
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.proc-filter-option:hover {
+  background: var(--bg-panel-alt);
+}
+
+.proc-filter-option input {
+  margin: 0;
+}
+
+.rot-offset-badge {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 50, 0.88);
+  color: #7ec8e3;
+  font-size: 7px;
+  line-height: 10px;
+  padding: 0 3px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.rot-skill .rot-timed-action-badge {
+  position: static;
+  display: block;
+  transform: none;
+  width: max-content;
+  margin: 1px auto 0;
+  line-height: 9px;
+  text-align: center;
+  white-space: pre-line;
+}

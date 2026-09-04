@@ -6,7 +6,8 @@ import {
 import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { SimulationEvent, SimulationEventInput, SkillId } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceDefinition, mesmerResourceProfileId } from '#gw2/professions/mesmer/state/index.js';

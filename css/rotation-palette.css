@@ -1,0 +1,1064 @@
+/* Owns palette skill tiles, profession groups, and their responsive layouts. */
+
+@media (min-width: 900px) {
+  body[data-rotation-focus] .rotation-palette {
+    --focus-palette-skill-size: clamp(48px, 3.25vw, 56px);
+    --focus-palette-tool-size: clamp(38px, 2.5vw, 44px);
+
+    gap: 8px;
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-skill,
+  body[data-rotation-focus] .rotation-palette .pal-status-icon {
+    width: var(--focus-palette-skill-size);
+    height: var(--focus-palette-skill-size);
+    flex-basis: var(--focus-palette-skill-size);
+  }
+
+  body[data-rotation-focus] .rotation-palette .pistol-bullet {
+    width: var(--focus-palette-tool-size);
+    height: var(--focus-palette-tool-size);
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-row {
+    gap: 5px;
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-cd {
+    font-size: 10px;
+  }
+
+  body[data-rotation-focus] .rotation-palette .pal-charges {
+    font-size: 11px;
+  }
+}
+
+.rotation-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+  align-items: flex-start;
+}
+
+/* Keep weapon rows and adjacent actions grouped while allowing standard weapon sets to wrap. */
+.weapon-palette-section,
+.weapon-palette-stack {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.weapon-palette-stack {
+  flex-flow: row wrap;
+}
+
+.weapon-palette-stack.loadout-palette-stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.profession-palette-section,
+.timeline-tools-palette-stack {
+  display: contents;
+}
+
+.palette-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.pal-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 0;
+  border-right: 1px solid var(--border);
+}
+
+.pal-group.pal-group-concealed,
+.pal-skill.pal-concealed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.profession-palette-stack,
+.profession-resource-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.profession-palette-resource-group {
+  display: flex;
+  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
+}
+
+.profession-palette-resource-group.resource-above,
+.profession-palette-resource-group.resource-below {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.profession-palette-resource-group.resource-beside {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/* Evoker's supplied layers stay on their original canvases: outer pips become
+   the ready ring, while inner wedges become a top-layer familiar at three stacks. */
+.profession-palette-resource-group.resource-beside:has(.elementalist-evoker-familiar) {
+  align-items: center;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource-group:has([class*='elementalist-evoker-']) {
+  padding-left: 0;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource-group:has([class*='elementalist-evoker-'])
+  > .pal-label {
+  display: none;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource:has([class*='elementalist-evoker-']) {
+  min-width: 48px;
+  gap: 0;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0;
+  background-image: var(--evoker-inner-two, none), var(--evoker-inner-one, none), var(--evoker-outer-image, none);
+  background-position: center;
+  background-size:
+    20px 20px,
+    20px 20px,
+    48px 48px;
+  background-repeat: no-repeat;
+}
+
+.active-resource-pips[class*='elementalist-evoker-']::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: var(--evoker-familiar-image, none) center / 48px 48px no-repeat;
+  pointer-events: none;
+  content: '';
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  background-position: center;
+  background-size: 48px 48px;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  transform: none;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip.active {
+  display: block;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(1) {
+  background-image: url('../assets/elementalist/evoker/Ring1.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(2) {
+  background-image: url('../assets/elementalist/evoker/Ring2.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(3) {
+  background-image: url('../assets/elementalist/evoker/Ring3.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(4) {
+  background-image: url('../assets/elementalist/evoker/Ring4.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(5) {
+  background-image: url('../assets/elementalist/evoker/Ring5.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(6) {
+  background-image: url('../assets/elementalist/evoker/Ring6.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'][class*='-ready'] {
+  --evoker-outer-image: var(--evoker-ready-ring);
+}
+
+.active-resource-pips[class*='elementalist-evoker-'][class*='-ready'] .active-resource-pip.active {
+  display: none;
+}
+
+.active-resource-pips[class*='elementalist-evoker-fire-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Fire.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarFire.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-water-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Water.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarWater.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-air-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Air.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarAir.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-earth-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Earth.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarEarth.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-1'],
+  [class*='elementalist-evoker-water-1'],
+  [class*='elementalist-evoker-air-1'],
+  [class*='elementalist-evoker-earth-1'],
+  [class*='elementalist-evoker-fire-2'],
+  [class*='elementalist-evoker-water-2'],
+  [class*='elementalist-evoker-air-2'],
+  [class*='elementalist-evoker-earth-2']
+) {
+  --evoker-inner-one: url('../assets/elementalist/evoker/Charge1.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-2'],
+  [class*='elementalist-evoker-water-2'],
+  [class*='elementalist-evoker-air-2'],
+  [class*='elementalist-evoker-earth-2']
+) {
+  --evoker-inner-two: url('../assets/elementalist/evoker/Charge2.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-3'],
+  [class*='elementalist-evoker-water-3'],
+  [class*='elementalist-evoker-air-3'],
+  [class*='elementalist-evoker-earth-3']
+) {
+  --evoker-familiar-image: var(--evoker-ready-familiar);
+}
+
+.profession-palette-resource-group > .pal-group,
+.profession-palette-resource-group > .active-resource-stack > .pal-group {
+  border-radius: 0;
+  background: transparent;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.bladesworn-f-skills {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='bladesworn-profession'])
+  .active-resource-group:has([data-resource-id='flow']) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.bladesworn-dragon-slash {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.bladesworn-dragon-trigger {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.bladesworn-gunsaber {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.antiquary-artifact-group {
+  min-height: 48px;
+}
+
+/* Seat Skritt Swipe (F) beside its artifact rows: F over the initiative pips in
+   column one, the offensive and defensive artifact rows stacked in column two. */
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+  gap: 6px;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.antiquary-f-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.antiquary-artifacts-offensive {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.antiquary-artifacts-defensive {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts'])
+  .active-resource-group:has([data-resource-id='initiative']) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* Keep the base stolen-skill choices visible beside Steal, with initiative
+   directly beneath the skill that grants those choices. */
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+  gap: 6px;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.thief-steal-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.thief-stolen-skill-choices {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  .active-resource-group:has([data-resource-id='initiative']) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.pal-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  min-width: 12px;
+  text-align: center;
+}
+
+.pal-row {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.pal-status-icon {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  flex: 0 0 42px;
+  border: 2px solid #7ca64a;
+  border-radius: 4px;
+  background: #232632;
+}
+
+.pal-status-icon::after {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #d8efbc;
+  border-radius: 50%;
+  background: #7fc34b;
+  box-shadow: 0 0 5px rgba(127, 195, 75, 0.9);
+  content: '';
+}
+
+.pal-status-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Remove the redundant pet marker and zoom its padded portrait without resizing the skill row. */
+[data-palette-group='ranger-pet'] .pal-status-icon::after {
+  content: none;
+}
+
+[data-palette-group='ranger-pet'] .pal-status-icon img {
+  transform: scale(1.5);
+}
+
+/* Full-width spacer that forces the following pal-groups onto a new line. */
+.pal-break {
+  flex-basis: 100%;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.endurance-readout {
+  min-width: 46px;
+  padding: 0 6px;
+  color: #d8e7ef;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 32px;
+  border-radius: 4px;
+  background: rgba(127, 182, 216, 0.12);
+  border: 1px solid rgba(127, 182, 216, 0.3);
+  text-align: center;
+}
+
+.pal-skill {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+  border: 2px solid var(--att-border, var(--border-light));
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.pal-skill img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Dormant virtues keep their Tome usable, so tint the icon red without using
+   disabled styling or suppressing palette interaction. */
+.guardian-tome-f-keys.tome-justice-dormant .pal-skill[data-skill='Tome of Justice'],
+.guardian-tome-f-keys.tome-resolve-dormant .pal-skill[data-skill='Tome of Resolve'],
+.guardian-tome-f-keys.tome-courage-dormant .pal-skill[data-skill='Tome of Courage'] {
+  border-color: #b74343;
+}
+
+.guardian-tome-f-keys.tome-justice-dormant .pal-skill[data-skill='Tome of Justice']::after,
+.guardian-tome-f-keys.tome-resolve-dormant .pal-skill[data-skill='Tome of Resolve']::after,
+.guardian-tome-f-keys.tome-courage-dormant .pal-skill[data-skill='Tome of Courage']::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: rgba(190, 35, 35, 0.38);
+  box-shadow: inset 0 0 12px rgba(255, 70, 55, 0.65);
+  content: '';
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.skill-variant-badge {
+  position: absolute;
+  z-index: 3;
+  padding: 1px 3px;
+  border: 1px solid rgba(170, 235, 255, 0.8);
+  border-radius: 3px;
+  background: rgba(9, 44, 62, 0.92);
+  color: #b9efff;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 9px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.pal-variant-badge {
+  bottom: 1px;
+  left: 1px;
+}
+
+.pal-skill:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--att-border, var(--border-light)) 60%, transparent);
+  z-index: 2;
+}
+
+.pal-skill.pal-disabled {
+  opacity: 0.18;
+  filter: grayscale(0.85);
+  cursor: not-allowed;
+}
+
+.pal-skill.pal-disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.pal-skill[draggable='true'] {
+  cursor: grab;
+}
+
+.pal-skill.dragging {
+  opacity: 0.45;
+  transform: none;
+}
+
+.pal-skill.pal-has-ammo {
+  margin-bottom: 11px;
+  overflow: visible;
+}
+
+.pal-skill.pal-has-resource {
+  margin-bottom: 22px;
+  overflow: visible;
+}
+
+.pal-skill-resource-value {
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: -21px;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted, #9aa4b2);
+  pointer-events: none;
+}
+
+.pal-skill-resource-value[data-resource-id='endurance'] {
+  color: #e5c35a;
+}
+
+.pal-skill-resource {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 5px;
+  overflow: hidden;
+  border: 1px solid var(--accent-dim);
+  border-radius: 3px;
+  background: #20252a;
+  pointer-events: none;
+}
+
+.pal-skill-resource > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.pal-skill-resource[data-resource-id='endurance'] {
+  border-color: #c7a343;
+  background: #292412;
+}
+
+.pal-skill-resource[data-resource-id='endurance'] > span {
+  background: #e5c35a;
+  box-shadow: 0 0 5px rgba(229, 195, 90, 0.75);
+}
+
+.pal-skill.pal-has-ammo img {
+  border-radius: 2px;
+}
+
+.pal-skill.pal-ammo-available {
+  box-shadow: 0 0 7px color-mix(in srgb, var(--att-border) 55%, transparent);
+}
+
+.pal-ammo-pips {
+  position: absolute;
+  right: 1px;
+  bottom: -10px;
+  left: 1px;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  height: 7px;
+  pointer-events: none;
+}
+
+.pal-ammo-pip {
+  width: 7px;
+  height: 7px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--att-border) 55%, #25202d);
+  border-radius: 50%;
+  background: #25202d;
+}
+
+.pal-ammo-pip.filled {
+  border-color: color-mix(in srgb, var(--att-border) 75%, white);
+  background: var(--att-border);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--att-border) 80%, transparent);
+}
+
+.pistol-bullet {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 4px;
+  border: 2px dashed var(--att-border, var(--border-light));
+  background: #171722;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.pistol-bullet img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: opacity 0.12s;
+}
+
+.pistol-bullet:not(.pal-control-active) img {
+  opacity: 0.35;
+}
+
+.pistol-bullet:hover {
+  transform: scale(1.15);
+  z-index: 2;
+}
+
+.pistol-bullet.pal-control-active {
+  border-style: solid;
+  opacity: 1;
+  box-shadow: 0 0 6px var(--att-border);
+}
+
+.pistol-bullet.pal-control-muted {
+  filter: saturate(0.4);
+}
+
+.pistol-bullet .pal-control-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 11px;
+  padding: 0 2px;
+  border-radius: 0 0 0 3px;
+  background: var(--att-border);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 11px;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.pal-charges {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  background: #000b;
+  color: #eee;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.1;
+  padding: 2px 3px;
+  border-radius: 3px 0 3px 0;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.pal-cd {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  background: #000c;
+  color: #ffaa44;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 0 0 3px 0;
+  pointer-events: none;
+}
+@container rotation-builder (min-width: 701px) and (max-width: 1050px) {
+  body[data-profession]:not(.elementalist-theme)
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .mesmer-theme .rotation-palette {
+    grid-template-areas:
+      'profession profession'
+      'weapons utility'
+      'tools tools';
+  }
+
+  .necromancer-theme .rotation-palette {
+    grid-template-areas:
+      'profession weapons'
+      'profession utility'
+      'tools tools';
+  }
+
+  .thief-theme .rotation-palette:has(.specter-shroud-skills) {
+    display: grid;
+    grid-template-areas:
+      'profession weapons'
+      'profession utility'
+      'tools tools';
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .thief-theme
+    .rotation-palette:has(.specter-shroud-skills)
+    > .profession-palette-section
+    > .profession-resource-stack:has(.specter-f-skills) {
+    grid-area: profession;
+    justify-self: start;
+  }
+
+  .thief-theme .rotation-palette:has(.specter-shroud-skills) > .weapon-palette-section {
+    min-width: 0;
+    grid-area: weapons;
+    justify-self: start;
+  }
+
+  .thief-theme .rotation-palette:has(.specter-shroud-skills) > .utility-palette-group {
+    grid-area: utility;
+    justify-self: end;
+  }
+
+  .engineer-theme .rotation-palette {
+    display: grid;
+    grid-template-areas:
+      'profession weapons utility'
+      'forge kits utility'
+      'action kits utility'
+      'tools tools tools';
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+  }
+
+  .engineer-theme
+    .rotation-palette
+    > .profession-palette-section
+    > :is(.engineer-profession-skills, .profession-resource-stack:has(> .engineer-profession-skills)) {
+    grid-area: profession;
+    justify-self: start;
+  }
+
+  .engineer-theme .rotation-palette > .profession-palette-section > .engineer-forge-skills {
+    grid-area: forge;
+    justify-self: start;
+  }
+
+  .engineer-theme
+    .rotation-palette
+    > .profession-palette-section
+    > .profession-palette-stack[data-palette-stack='engineer-kits'] {
+    width: max-content;
+    grid-area: kits;
+    justify-self: start;
+  }
+
+  .engineer-theme .rotation-palette > .weapon-palette-section {
+    display: contents !important;
+  }
+
+  .engineer-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
+    width: max-content;
+    grid-area: weapons;
+    justify-self: start;
+  }
+
+  .engineer-theme .weapon-palette-section > .action-palette-group {
+    grid-area: action;
+    justify-self: start;
+  }
+
+  .engineer-theme .rotation-palette > .utility-palette-group {
+    grid-area: utility;
+    justify-self: end;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette > .profession-palette-section > .profession-resource-stack {
+    grid-area: profession;
+    justify-self: start;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette > .weapon-palette-section {
+    min-width: 0;
+    grid-area: weapons;
+    justify-self: start;
+  }
+
+  :is(.mesmer-theme, .necromancer-theme) .rotation-palette > .utility-palette-group {
+    grid-area: utility;
+    justify-self: end;
+  }
+
+  :is(.engineer-theme, .mesmer-theme, .necromancer-theme, .thief-theme) .timeline-tools-palette-stack {
+    display: flex;
+    grid-area: tools;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  :is(.engineer-theme, .mesmer-theme, .necromancer-theme, .thief-theme) .timeline-tools-palette-stack > .pal-break {
+    display: none;
+  }
+
+  .revenant-theme .rotation-palette {
+    display: grid;
+    grid-template-areas:
+      'legends weapons action'
+      'mechanic weapons action'
+      'utility utility utility'
+      'tools tools tools';
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+  }
+
+  .revenant-theme .rotation-palette > .profession-palette-section > .revenant-f-skills {
+    grid-area: mechanic;
+    justify-self: start;
+  }
+
+  .revenant-theme .rotation-palette > .profession-palette-section > .profession-resource-stack {
+    grid-area: legends;
+  }
+
+  .revenant-theme .profession-resource-stack > .active-resource-stack {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .revenant-theme .rotation-palette > .weapon-palette-section {
+    display: contents !important;
+  }
+
+  .revenant-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
+    grid-area: weapons;
+  }
+
+  .revenant-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) > .pal-group {
+    padding-inline: 4px;
+  }
+
+  .revenant-theme .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) > .pal-group > .pal-row {
+    gap: 2px;
+  }
+
+  .revenant-theme .weapon-palette-section > .action-palette-group {
+    grid-area: action;
+  }
+
+  .revenant-theme .rotation-palette > .utility-palette-group {
+    grid-area: utility;
+    justify-self: start;
+  }
+
+  .revenant-theme .timeline-tools-palette-stack {
+    display: flex;
+    grid-area: tools;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .revenant-theme .timeline-tools-palette-stack > .pal-break {
+    display: none;
+  }
+}
+
+@container rotation-builder (min-width: 701px) and (max-width: 820px) {
+  .revenant-theme .rotation-palette {
+    grid-template-areas:
+      'legends weapons'
+      'mechanic weapons'
+      'action action'
+      'utility utility'
+      'tools tools';
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .revenant-theme .weapon-palette-section > .action-palette-group {
+    justify-self: start;
+  }
+}
+
+/* Keep selected utilities at their intrinsic one-row width. Palette sections
+   then wrap as units, allowing combat/wait tools to use right-side slack or
+   move to the next row without compressing profession-neutral utilities. */
+.rotation-palette .pal-group.utility-palette-group {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+
+.rotation-palette .pal-group.utility-palette-group > .pal-row {
+  flex-wrap: nowrap;
+}
+
+@container rotation-builder (min-width: 701px) {
+  body[data-profession] .rotation-palette:not(:has(.weaver-weapon-palette)) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  body[data-profession] .rotation-palette > .profession-palette-section {
+    display: flex;
+    max-width: 100%;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    order: 1;
+  }
+
+  body[data-profession] .rotation-palette > .weapon-palette-section {
+    display: flex !important;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    order: 2;
+  }
+
+  body[data-profession] .rotation-palette .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+  }
+
+  body[data-profession] .rotation-palette > .utility-palette-group {
+    order: 3;
+  }
+
+  body[data-profession] .rotation-palette > .timeline-tools-palette-stack {
+    display: flex;
+    max-width: 100%;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-inline-start: auto;
+    order: 4;
+  }
+
+  body[data-profession] .rotation-palette > .timeline-tools-palette-stack > .pal-break {
+    display: none;
+  }
+}
+
+@container rotation-builder (min-width: 701px) {
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex: 1 1 700px;
+    min-width: min(100%, 700px);
+    max-width: 720px;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start;
+    gap: 4px !important;
+  }
+
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack)
+    > .pal-group {
+    flex: 0 0 auto;
+    padding-inline: 4px;
+  }
+
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack)
+    > .pal-group
+    > .pal-row {
+    gap: 2px;
+  }
+}
+
+@container rotation-builder (max-width: 700px) {
+  .elementalist-theme
+    .rotation-palette:not(:has(.weaver-weapon-palette))
+    .weapon-palette-section
+    > .weapon-palette-stack:not(.loadout-palette-stack) {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+  }
+}
+
+.pal-skill.pal-ambush-active {
+  box-shadow:
+    0 0 0 1px rgba(255, 229, 150, 0.8),
+    0 0 14px rgba(240, 199, 102, 0.9);
+  animation: ambush-pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes ambush-pulse {
+  from {
+    filter: brightness(1);
+  }
+  to {
+    filter: brightness(1.25);
+  }
+}

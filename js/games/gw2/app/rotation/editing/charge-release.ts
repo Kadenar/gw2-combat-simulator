@@ -3,7 +3,8 @@ import {
   type ChargeReleaseEditorHandle,
   type ChargeReleaseEditorRow
 } from '#ui/rotation/editors/charge-release-editor.js';
-import type { SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /**

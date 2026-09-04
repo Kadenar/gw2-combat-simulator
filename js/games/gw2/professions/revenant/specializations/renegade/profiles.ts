@@ -1,5 +1,5 @@
 /** Owns patchable Renegade mechanic, skill-variant, and trait balance profiles. */
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export const RENEGADE_PROFILE_IDS = Object.freeze({
   spiritBoon: 'revenant.renegade.spirit-boon-renegade',

@@ -9,9 +9,9 @@ import {
 import type {
   ProfessionResourceView,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */

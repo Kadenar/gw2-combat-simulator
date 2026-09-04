@@ -3,11 +3,11 @@ import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  SimulationEvent,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';

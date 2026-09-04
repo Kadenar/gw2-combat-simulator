@@ -8,7 +8,7 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/ranger/data/ranger-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/core/mechanics/hammer-variants.js';
-import type { CatalogEntity, SkillId } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const petSkillIds = new Set<SkillId>(RANGER_PET_SKILLS.map((skill) => skill.id));

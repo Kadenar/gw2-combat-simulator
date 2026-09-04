@@ -12,7 +12,7 @@ import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/rotation/shared/icons.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { ProfessionEffectPresentation } from '#gw2/platform/engine/types.js';
+import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
 
 const STANDARD_EFFECT_COLORS: Readonly<Record<string, string>> = {
   Bleeding: '#d84b4b',

@@ -3,7 +3,7 @@
  * Persistent stance windows and scheduled effects remain in `mechanics/stances.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 export const PIERCING_STANCE_IMPACT_MS = 160;

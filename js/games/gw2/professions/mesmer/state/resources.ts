@@ -1,5 +1,5 @@
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 

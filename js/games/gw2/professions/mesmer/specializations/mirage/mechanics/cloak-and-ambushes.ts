@@ -2,7 +2,8 @@ import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/stat
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { BalanceProfile, SchedulerState, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext

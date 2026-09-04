@@ -9,7 +9,7 @@ import { radiantWeaponImpactAt } from '#gw2/professions/guardian/specializations
 import { LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianCastContext,
   GuardianLuminaryState,

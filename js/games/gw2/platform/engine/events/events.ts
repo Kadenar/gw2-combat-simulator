@@ -3,7 +3,7 @@
  * Professions may add custom types, but every event crossing the boundary must
  * still satisfy this base shape.
  */
-import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
 

@@ -12,7 +12,7 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   AntiquaryState,
   ThiefArtifactSlot,

@@ -1,5 +1,5 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait

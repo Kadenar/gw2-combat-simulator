@@ -1,4 +1,4 @@
-import type { SkillEffect } from '#gw2/platform/engine/types.js';
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringModule

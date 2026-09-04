@@ -250,11 +250,21 @@ Resolves recorded skills against the active simulator skill catalog.
 
 ### `rotation/reconstruct.ts`
 
-Builds the generic action timeline from animations, activation records, state changes, buff transitions, weapon swaps,
-and supported effect evidence.
+Orchestrates player selection, animation pairing, state changes, buff transitions, weapon swaps, and supported effect
+evidence to build the action timeline.
 
 It also preserves cancelled actions, explicit idle waits, combat start, and overlapping actions when converting that
 timeline into simulator commands.
+
+### `rotation/players.ts`
+
+Ranks source-specific player evidence and resolves explicit addresses. Dispatch and direct profile reconstruction use
+the shared log-selection helper through this module while retaining EVTC validation errors.
+
+### `rotation/animations.ts`
+
+Pairs modern start/stop events and both legacy activation encodings, preserving event order, unmatched starts, and
+clipped precasts before profession inference.
 
 ### `rotation/effect-packets.ts`
 

@@ -1,6 +1,6 @@
 /** Owns patchable Conduit mechanic, trait, and skill-variant balance profiles. */
 import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 
 export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
   affinity: 'revenant.conduit.affinity',

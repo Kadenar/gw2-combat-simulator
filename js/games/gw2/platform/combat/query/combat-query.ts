@@ -31,12 +31,10 @@ import {
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
-import type {
-  CatalogEntity,
-  NormalizedProfessionContract,
-  SchedulerRecord,
-  SimulationEvent
-} from '#gw2/platform/engine/types.js';
+import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
+import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
 import type {
   Gw2CombatQuery,

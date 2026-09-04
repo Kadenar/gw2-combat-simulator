@@ -2,7 +2,8 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
-import type { SchedulerRecord, SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type {
   ComboEvent,
   ComboFieldBinding,

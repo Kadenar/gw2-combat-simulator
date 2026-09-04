@@ -4,7 +4,7 @@
  * `balanceProfileValueFromContext`/`balanceProfileEffectFromContext`, so patch data can retune
  * Catalyst numbers without touching handler code.
  */
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,

@@ -1,4 +1,4 @@
-import type { CatalogEntity } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Defines the checked shape shared by generated profession API snapshots so

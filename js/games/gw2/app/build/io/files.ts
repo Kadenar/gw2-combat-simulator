@@ -1,6 +1,6 @@
 // File I/O utilities for import/export of builds and rotations.
 
-import type { BuildTemplatePreset } from '#gw2/app/types.js';
+import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 interface FetchJsonAssetOptions {

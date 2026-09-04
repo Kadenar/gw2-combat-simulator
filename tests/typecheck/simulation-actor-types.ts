@@ -1,4 +1,4 @@
-import type { SimulationActorType } from '#gw2/platform/engine/types.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/types.js';
 
 type Assert<T extends true> = T;
 type Equal<Left, Right> =

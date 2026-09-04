@@ -24,7 +24,7 @@ import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/speciali
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import type { CatalogEntity, Skill, SkillFragment } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Catalog generation needs the complete module-owned declaration set, and the
 // duplicate check prevents one module from silently overwriting another.

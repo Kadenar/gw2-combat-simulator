@@ -25,7 +25,7 @@ import {
   conduitSkillWeapon,
   conduitStrikeCoefficient as strikeCoefficient
 } from '#gw2/professions/revenant/specializations/conduit/execution/helpers.js';
-import type { SkillEffect } from '#gw2/platform/engine/types.js';
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 function sharedWisdomEffect(context: RevenantSchedulerContext, trigger: string): SkillEffect | undefined {

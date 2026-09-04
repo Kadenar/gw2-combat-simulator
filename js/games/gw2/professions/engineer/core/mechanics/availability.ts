@@ -5,7 +5,7 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { engineerEnduranceReadyAt } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/professions/lib/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { EngineerConfig, EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Returns the normalized names of slot skills currently equipped by the Engineer build. */

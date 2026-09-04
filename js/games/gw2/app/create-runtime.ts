@@ -9,25 +9,23 @@ import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { ObservationPolicy, RotationCommand, Skill } from '#gw2/platform/engine/types.js';
+import type { ObservationPolicy, RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type {
   BaselineSimulationOutput,
   BaselineSimulationRequest,
   ModifierContributionRequest,
-  ProfessionAppState,
-  ProfessionAttributeData,
   ProfessionModifier,
-  ProfessionRuntimeApi,
-  ProfessionRuntimeOptions,
-  ProfessionSlotLoadout,
   RandomDistributionJobRequest,
   RandomDistributionOptions,
   RandomDistributionRequest,
   RandomDistributionSummary,
   RelicComparisonJobRequest
-} from '#gw2/app/types.js';
+} from '#gw2/app/simulation/types.js';
+import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
+import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
 import type { Gw2ApplicationBuild, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 /**

@@ -14,7 +14,8 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import type { BalanceProfile, SimulationEvent, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   RenegadeState,
   RevenantCastContext,

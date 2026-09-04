@@ -21,10 +21,10 @@ import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
   ProfessionPaletteGroup,
-  ProfessionPaletteSkillRenderOptions,
-  SchedulerRecord,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  ProfessionPaletteSkillRenderOptions
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 function ammoView(ammo: AmmoView | null | undefined): {
   readonly current: number;

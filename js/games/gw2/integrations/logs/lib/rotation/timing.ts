@@ -1,4 +1,4 @@
-import type { Skill, StrikeEffect } from '#gw2/platform/engine/types.js';
+import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import { castRelativeEffectTimingScale, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 export function quicknessRuntimeDurationMs(skill: Skill | null): number {

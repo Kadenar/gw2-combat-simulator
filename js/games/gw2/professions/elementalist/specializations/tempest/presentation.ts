@@ -3,12 +3,9 @@
  * previews overload availability so the editor can grey out casts the scheduler would reject.
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionUiContract,
-  SchedulerRecord,
-  Skill
-} from '#gw2/platform/engine/types.js';
+import type { PaletteSkillAvailability, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
 import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';

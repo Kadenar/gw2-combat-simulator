@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/professions/elementalist/types.js';
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';

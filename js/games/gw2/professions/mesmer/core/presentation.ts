@@ -12,11 +12,10 @@ import type {
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerProfessionState } from '#gw2/professions/mesmer/state/types.js';
 

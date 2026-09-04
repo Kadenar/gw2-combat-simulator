@@ -22,7 +22,7 @@ import { rangerCoreEventHandlers, rangerCoreEventReactions } from '#gw2/professi
 import { RANGER_CORE_BALANCE_PROFILES } from '#gw2/professions/ranger/core/profiles.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import { snapshotRangerState } from '#gw2/professions/ranger/state.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { applyRangerWeaponSwapTraits, completeRangerTraits } from '#gw2/professions/ranger/core/traits/index.js';

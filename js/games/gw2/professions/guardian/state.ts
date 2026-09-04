@@ -3,7 +3,7 @@ import {
   projectPublicProfessionState,
   snapshotProfessionState
 } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import {
   GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
   GUARDIAN_CORE_RESOLVER_END_STATE_KEYS

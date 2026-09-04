@@ -8,15 +8,14 @@ import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build-editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
 import type {
-  DefineProfessionAppOptions,
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
   ProfessionSkillAvailabilityContext,
-  Gw2AppAdapter,
   ProfessionSlotLoadout
-} from '#gw2/app/types.js';
+} from '#gw2/app/build/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 
 /**

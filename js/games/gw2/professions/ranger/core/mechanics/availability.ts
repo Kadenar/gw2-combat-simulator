@@ -2,7 +2,7 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast } from '#gw2/professions/lib/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { RangerPrecastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import {
   isRangerHammerVariant,

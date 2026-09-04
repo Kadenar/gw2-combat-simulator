@@ -1,6 +1,6 @@
 /** Owns patchable Vindicator dodge and legend-invocation balance profiles. */
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 
 export const VINDICATOR_BALANCE_PROFILE_IDS = Object.freeze({
   spiritBoon: 'revenant.spirit-boon.alliance',

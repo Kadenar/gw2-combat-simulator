@@ -19,7 +19,7 @@ import { emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/even
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,

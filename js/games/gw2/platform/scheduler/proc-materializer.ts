@@ -1,4 +1,5 @@
-import type { ScheduledTask, SchedulerContext, SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';

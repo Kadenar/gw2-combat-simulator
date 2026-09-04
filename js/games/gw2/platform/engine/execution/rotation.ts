@@ -2,7 +2,8 @@
  * Rotation normalization utilities keep legacy files and shorthand inputs at
  * the boundary while the scheduler and application use canonical commands.
  */
-import type { CatalogLookup, RotationCommand } from '#gw2/platform/engine/types.js';
+import type { CatalogLookup } from '#gw2/platform/engine/skills/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 function finiteMilliseconds(

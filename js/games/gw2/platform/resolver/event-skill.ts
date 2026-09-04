@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 
 /**

@@ -6,12 +6,11 @@ import type {
   BalanceProfile,
   CatalogEntity,
   CanonicalCatalog,
-  ProfessionModuleDefinition,
-  SchedulerConfig,
-  SchedulerRecord,
   Skill,
   SkillId
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionModuleDefinition } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerConfig, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { toEntries } from '#kernel/core/collections.js';
 

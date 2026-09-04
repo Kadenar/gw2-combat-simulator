@@ -11,7 +11,9 @@ import {
   mirageControllerFor
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { AvailabilityResult, SimulationEvent, SkillMechanicTrigger } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SkillMechanicTrigger } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   MesmerCastContext,

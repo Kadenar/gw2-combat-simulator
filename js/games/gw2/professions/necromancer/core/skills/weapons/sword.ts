@@ -1,6 +1,6 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Sword follow-ups remain available for their measured reactivation window.
 const OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS = 3;

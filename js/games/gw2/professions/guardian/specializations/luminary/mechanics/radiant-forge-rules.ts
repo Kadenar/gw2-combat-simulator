@@ -15,7 +15,7 @@ import {
   updateLuminaryTraitCastState
 } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type {
   GuardianPrecastContext,
   GuardianSchedulerContext,

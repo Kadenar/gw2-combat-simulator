@@ -1,5 +1,5 @@
 import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
-import type { BaselineSimulationRequest } from '#gw2/app/types.js';
+import type { BaselineSimulationRequest } from '#gw2/app/simulation/types.js';
 import type { Gw2AppAdapter } from '#gw2/app/types.js';
 
 interface BaselineSimulationWorkerMessage {

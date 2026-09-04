@@ -3,7 +3,7 @@
  * Hammer skill fragments remain in `skills/weapons/hammer.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_HAMMER_VARIANT_PAIRS: readonly (readonly [number, number])[] = Object.freeze([
   Object.freeze([ID.WILD_SWING, ID.UNLEASHED_WILD_SWING]) as readonly [number, number],

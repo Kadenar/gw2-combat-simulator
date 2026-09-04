@@ -3,7 +3,8 @@ import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/resul
 import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/results/result-transform.js';
 import { timelineIdleTimeMetric } from '#gw2/app/rotation/timeline/timing/model.js';
 import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/state/boons.js';
-import type { ProfessionEffectPresentation, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 const STANDARD_BOON_PRESENTATIONS = GW2_STANDARD_BOONS.map(standardBoonPresentation).filter(

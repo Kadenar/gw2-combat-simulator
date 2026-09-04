@@ -1,6 +1,6 @@
 import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/platform/builds/templates/data.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2BuildSpecialization } from '#gw2/platform/builds/types.js';
 
 const BUILD_TEMPLATE_HEADER = 0x0d;

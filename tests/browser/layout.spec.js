@@ -173,6 +173,40 @@ test('hidden template states stay out of layout', async ({ page }) => {
   expect(displays).toEqual(['none', 'none', 'none']);
 });
 
+// Component styles must keep hidden controls out of layout and reserve a motion-safe loading chart.
+test('relic comparison controls and loading layout survive a narrow host', async ({ page }) => {
+  await openSimulator(page, { width: 390, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(async () => {
+    const { mountRotationResults } = await import('/js/games/gw2/app/results/rotation-results.ts');
+    const host = document.createElement('div');
+    host.dataset.layoutFixture = 'relic-comparison';
+    host.style.width = '350px';
+    document.body.append(host);
+    mountRotationResults(host, {
+      relicComparisonAvailable: true,
+      relicComparisonStale: true,
+      relicComparisonTarget: 'Fireworks',
+      relicComparisonTargets: ['Fireworks']
+    });
+  });
+  const comparison = page.locator('[data-layout-fixture="relic-comparison"] .relic-cmp');
+  await expect(comparison.locator('[data-role="relic-comparison-stacks-control"]')).toBeHidden();
+  await expect(comparison.getByRole('button', { name: 'Running' })).toBeDisabled();
+  const layout = await comparison.evaluate((element) => {
+    const skeleton = element.querySelector('.relic-cmp-skeleton');
+    const bounds = skeleton.getBoundingClientRect();
+    return {
+      fits: element.scrollWidth <= element.clientWidth,
+      ratio: bounds.width / bounds.height,
+      animation: getComputedStyle(skeleton).animationName
+    };
+  });
+  expect(layout.fits).toBe(true);
+  expect(layout.ratio).toBeCloseTo(640 / 300, 2);
+  expect(layout.animation).toBe('none');
+});
+
 test('empty and authored rotations keep a usable timeline and an open event log is not clipped', async ({ page }) => {
   await openSimulator(page);
 

@@ -2,7 +2,7 @@
  * Composes Core Ranger pet, slot, weapon, and simulator-action skill catalogs.
  * Persistent pet and weapon state remain in `core/mechanics/`.
  */
-import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { RANGER_CORE_ACTION_SKILLS } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_CORE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/index.js';
 import { RANGER_CORE_SLOT_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/slot-skills.js';

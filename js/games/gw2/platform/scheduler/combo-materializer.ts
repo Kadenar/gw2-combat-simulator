@@ -14,13 +14,8 @@ import {
   gw2StatsForWeaponSet
 } from '#gw2/platform/combat/query/runtime-rules.js';
 
-import type {
-  ScheduledTask,
-  SchedulerContext,
-  SchedulerRecord,
-  SimulationActorType,
-  SimulationEvent
-} from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   ComboEvent,
   ComboFieldBinding,

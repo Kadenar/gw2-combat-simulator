@@ -1,4 +1,4 @@
-import type { SimulationRandomnessConfig } from '#gw2/platform/engine/types.js';
+import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
 import {
   DEFAULT_SIMULATION_RANDOMNESS,
   SIMULATION_RANDOMNESS_MODES,

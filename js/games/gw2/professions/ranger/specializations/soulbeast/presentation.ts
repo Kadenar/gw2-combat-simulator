@@ -4,15 +4,14 @@ import {
   rangerUiState,
   selectedRangerUiPet
 } from '#gw2/professions/ranger/core/presentation.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { RangerSkill, RangerUiContext } from '#gw2/professions/ranger/types.js';
 
 // Populated lazily at bind time from the catalog; can't be a const because the catalog isn't available at module load.

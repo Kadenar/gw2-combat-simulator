@@ -1,4 +1,4 @@
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /**

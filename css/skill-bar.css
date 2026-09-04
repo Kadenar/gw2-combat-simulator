@@ -1,0 +1,460 @@
+/* Owns shared equipped skill bars, build selections, inspection chains, and fixed loadout controls. */
+
+/* Both loadout layouts render the equipped skill bar with the same presentation. */
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar.has-inspection {
+  align-items: stretch;
+  gap: 16px;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-slot {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  border-color: #313344;
+  border-radius: 3px;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-slot.heal-border .sbar-icon {
+  border-color: #53a540;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key,
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-type {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key {
+  position: relative;
+  margin-top: 5px;
+  color: #c4c4cc;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key::after {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 1px;
+  height: 5px;
+  background: var(--border-light);
+  content: '';
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-type {
+  margin-top: 7px;
+  padding-top: 5px;
+  color: #777785;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  line-height: 1;
+  text-transform: uppercase;
+  border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon-arrow {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  z-index: 2;
+  display: grid;
+  width: 17px;
+  height: 15px;
+  color: #e7e7ed;
+  font-size: 8px;
+  line-height: 1;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 3px;
+  background: rgba(5, 5, 10, 0.82);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  place-items: center;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-arrow {
+  display: none;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-group {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px 5px;
+  color: var(--inspection-color);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 11px;
+  letter-spacing: 0.7px;
+  border-bottom: 1px solid var(--border);
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-label::before {
+  color: var(--inspection-color);
+  font-size: 10px;
+  content: '◆';
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-skills {
+  justify-content: flex-start;
+  gap: 8px;
+  width: max-content;
+  max-width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-slot .sbar-icon {
+  width: 52px;
+  height: 52px;
+  border-width: 2px;
+  border-radius: 3px;
+}
+
+@media (max-width: 620px) {
+  :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected {
+    gap: 5px;
+  }
+
+  :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon {
+    width: min(58px, 14vw);
+    height: min(58px, 14vw);
+  }
+}
+
+.profession-loadout-theme .skill-bar-selected .skill-bar-slot.elite-border .sbar-icon {
+  border-color: var(--accent);
+}
+
+.profession-loadout-theme .skill-bar-inspection-group {
+  justify-self: stretch;
+}
+
+.profession-loadout-theme .skill-bar-inspection-chain-step .skill-bar-inspection-slot.child-skill .sbar-icon {
+  width: 29px;
+  height: 29px;
+}
+
+/* Keep build-selectable skills beside the fixed-width traits column. */
+.skill-selection-section {
+  grid-template-columns: 647px minmax(0, 1fr);
+}
+
+.selectable-skills-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+}
+
+.selectable-skills-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 9px;
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  border-bottom: 1px solid var(--border);
+  text-transform: none;
+}
+
+.selectable-skills-bar {
+  display: flex;
+  align-content: start;
+  align-items: stretch;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 16px;
+  min-height: 0;
+  padding: 14px 16px 16px;
+}
+
+.selectable-skills-bar .skill-bar-selected {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.selectable-skills-bar .skill-bar-selected .sbar-icon {
+  width: 52px;
+  height: 52px;
+}
+
+/* Build-changing profession selectors sit below the standard slot skills. */
+.selectable-skills-bar .profession-build-selections {
+  min-width: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.selectable-skills-bar .skill-bar-inspection-group,
+.selectable-skills-bar .skill-bar-inspection-skills {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.selectable-skills-bar .skill-bar-inspection-skills {
+  width: 100%;
+}
+
+.selectable-skills-bar .fixed-loadout-pairs {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container profession-main (max-width: 1270px) {
+  .skill-selection-section {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .selectable-skills-panel {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+}
+
+@container profession-main (max-width: 420px) {
+  .selectable-skills-bar .skill-bar-selected .sbar-icon {
+    width: min(50px, 14vw);
+    height: min(50px, 14vw);
+  }
+}
+
+.fixed-loadout-selectors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.fixed-loadout-selectors label {
+  display: grid;
+  gap: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.fixed-loadout-icon-selector {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+  cursor: default;
+}
+
+.fixed-loadout-trigger {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px 6px 6px;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  background: var(--bg-panel-alt);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.fixed-loadout-trigger:hover,
+.fixed-loadout-trigger[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--accent) 72%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-panel-alt));
+}
+
+.fixed-loadout-trigger > img {
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.fixed-loadout-trigger-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.fixed-loadout-trigger-copy strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixed-loadout-trigger-copy small {
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+}
+
+.fixed-loadout-trigger-arrow {
+  color: var(--accent);
+  font-size: 9px;
+}
+
+.fixed-loadout-dropdown {
+  right: 0;
+  left: 0;
+  width: 100%;
+  min-width: 0;
+  transform: none;
+}
+
+.fixed-loadout-option {
+  width: 100%;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+
+.fixed-loadout-option.selected {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.fixed-loadout-option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fixed-loadout-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--border-light);
+}
+
+.fixed-loadout-bar.static {
+  border-color: transparent;
+}
+
+.fixed-loadout-bar.inactive {
+  opacity: 0.55;
+}
+
+.fixed-loadout-bar.active {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.fixed-loadout-pairs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.fixed-loadout-pair {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  padding: 11px 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--accent) 7%, transparent), transparent 42%),
+    rgba(8, 10, 17, 0.72);
+}
+
+.fixed-loadout-pair .fixed-loadout-bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 0 0;
+  border-width: 1px 0 0;
+  border-radius: 0;
+}
+
+.fixed-loadout-pair .fixed-loadout-bar.static {
+  border-color: var(--border);
+}
+
+.fixed-loadout-skill-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  gap: 3px;
+}
+
+.fixed-loadout-bar .fixed-loadout-skill {
+  cursor: default;
+}
+
+.skills-section .fixed-loadout-bar .fixed-loadout-skill:not(.child-skill):hover .sbar-icon {
+  border-color: #313344;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
+  filter: none;
+  transform: none;
+}
+
+.skills-section .fixed-loadout-bar .fixed-loadout-skill.heal-border:hover .sbar-icon {
+  border-color: #53a540;
+}
+
+.skills-section .fixed-loadout-bar .fixed-loadout-skill.elite-border:hover .sbar-icon {
+  border-color: var(--accent);
+}
+
+.fixed-loadout-chain-step {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.fixed-loadout-chain-step .skill-bar-slot.child-skill .sbar-icon {
+  width: 30px;
+  height: 30px;
+  border-width: 1px;
+  opacity: 0.72;
+}
+
+.fixed-loadout-chain-step .skill-bar-slot.child-skill .sbar-icon:hover {
+  opacity: 1;
+}
+
+.fixed-loadout-pair .fixed-loadout-bar .sbar-icon {
+  width: min(62px, 14cqi);
+  height: min(62px, 14cqi);
+}

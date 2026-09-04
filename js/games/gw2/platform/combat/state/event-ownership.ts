@@ -1,4 +1,4 @@
-import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 
 export type Gw2EventActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
 

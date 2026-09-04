@@ -6,7 +6,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/revenant/data/traits-data.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.DOME_OF_THE_MISTS,

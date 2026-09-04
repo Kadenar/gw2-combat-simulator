@@ -1,5 +1,4 @@
 import { enqueueOrdered } from '#kernel/events/queue.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
@@ -65,7 +64,7 @@ interface CriticalFoodProc {
   readonly nightEffect?: CriticalFoodEffect;
 }
 
-function conditionHelpers(context: Gw2ResolverRuntime, details: SchedulerRecord): Gw2ConditionHelpers {
+function conditionHelpers(context: Gw2ResolverRuntime, details: Record<string, unknown>): Gw2ConditionHelpers {
   const activeConditionStackCount =
     details.activeConditionStackCount as Gw2ConditionResolution['activeConditionStackCount'];
   return {

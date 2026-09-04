@@ -2,16 +2,14 @@
  * Profession contract normalization. Validates sparse profession definitions
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
+import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  AvailabilityResult,
-  CanonicalCatalog,
   NormalizedProfessionContract,
   PaletteSkillAvailability,
   ProfessionDefinition,
-  ProfessionUiContract,
-  SchedulerRecord,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
 import { CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
 
 type ComposableHook = (...args: any[]) => unknown;

@@ -17,7 +17,7 @@ import { buildGuardianStrike, emitGuardianEvent } from '#gw2/professions/guardia
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianCastContext,
   GuardianEventContext,

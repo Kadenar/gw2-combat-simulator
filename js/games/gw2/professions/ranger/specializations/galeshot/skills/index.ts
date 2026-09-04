@@ -1,6 +1,6 @@
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Cyclone Bow entry and exit are state-selected variants of one F5 UI tile.
 const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';

@@ -1,7 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/state/resources.js';
 import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddEvent,

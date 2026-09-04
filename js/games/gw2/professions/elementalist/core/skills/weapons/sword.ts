@@ -9,7 +9,7 @@
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Canonical Sword timelines keep condition applications aligned with their originating strike packets.
 const QUANTUM_STRIKE_TICKS = [

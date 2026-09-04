@@ -2,7 +2,8 @@
  * Marks an Elementalist skill's chronological packets so the runtime can exclude
  * only the hits that do not fit on a small target.
  */
-import type { SchedulerRecord, SkillEffect, SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillEffect, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
   return {

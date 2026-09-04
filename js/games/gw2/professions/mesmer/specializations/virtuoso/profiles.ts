@@ -1,4 +1,4 @@
-import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerShatterProfile, mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';

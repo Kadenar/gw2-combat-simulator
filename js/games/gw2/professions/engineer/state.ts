@@ -9,7 +9,8 @@ import type {
   ProfessionStateSnapshotEmissionContext,
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
-import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/core/state.js';
 import {
   AMALGAM_PUBLIC_END_STATE_KEYS,

@@ -15,7 +15,7 @@ import {
   necromancerCriticalExpectedFactor,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   NecromancerRechargeModifierContext,

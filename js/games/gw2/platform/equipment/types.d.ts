@@ -1,5 +1,5 @@
 /** Owns the equipment/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 export interface Gw2Stats extends SchedulerRecord {
   readonly power?: number;

@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 /** Verified external skill IDs that represent an existing canonical simulator skill. */
 export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.freeze({

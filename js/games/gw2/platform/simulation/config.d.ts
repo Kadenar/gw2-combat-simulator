@@ -1,5 +1,6 @@
 /** Owns the simulation/config.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord, SimulationRandomnessConfig } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
 import type { Gw2AttributeProvenance } from '#gw2/platform/builds/types.js';
 import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/types.js';

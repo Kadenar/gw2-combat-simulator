@@ -1,5 +1,6 @@
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
-import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#gw2/app/results/event-log-view.js';
 import type { EventLogRow } from '#gw2/app/results/event-log-view.js';

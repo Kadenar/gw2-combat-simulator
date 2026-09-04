@@ -6,7 +6,7 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
 const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;

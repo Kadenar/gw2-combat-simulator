@@ -7,7 +7,7 @@ import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc
 import type { NecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 import type { WarriorBloodlustObservation } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
-import type { RotationCommand } from '#gw2/platform/engine/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/build/io/log-rotation-import.js';
 import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';

@@ -5,7 +5,8 @@
  * autoattack chain carryover across attunement swaps, and the Aerial Agility flip
  * window.
  */
-import type { AvailabilityResult, ScheduledTask, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   resetAutoattackChains,

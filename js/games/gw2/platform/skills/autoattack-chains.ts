@@ -7,13 +7,8 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import { resolveAutoattackChainStep } from '#gw2/platform/engine/skills/autoattack-chains.js';
-import type {
-  AvailabilityResult,
-  CastContext,
-  CastLifecycleContext,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, CastContext, CastLifecycleContext } from '#gw2/platform/engine/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 interface AutoattackChainCoreState {
   readonly autoattackChains?: Record<string, SkillId>;

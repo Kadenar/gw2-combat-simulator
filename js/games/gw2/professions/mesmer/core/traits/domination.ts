@@ -1,5 +1,5 @@
 /** Owns imperative Core Mesmer Domination trait effects. */
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 

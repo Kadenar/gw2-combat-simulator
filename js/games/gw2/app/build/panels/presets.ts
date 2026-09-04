@@ -2,7 +2,8 @@ import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
 import { replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
-import type { BuildTemplatePreset, BuildTemplateSection, ProfessionAppState } from '#gw2/app/types.js';
+import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 type TemplateLoadAction = 'build' | 'rotation' | 'template';

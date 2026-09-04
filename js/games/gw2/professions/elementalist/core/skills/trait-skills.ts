@@ -3,7 +3,7 @@
  * Trait runtime behavior remains under `core/traits/`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Keeps trait packets nameable while excluding them from skill selection and the rotation palette. */
 export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({

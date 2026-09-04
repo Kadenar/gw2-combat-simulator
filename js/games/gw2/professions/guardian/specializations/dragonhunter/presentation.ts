@@ -4,11 +4,8 @@ import {
   guardianUiSkillIdsByName,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
-import type {
-  ProfessionEventLogDescriptor,
-  RotationStateSnapshotItem,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+import type { ProfessionEventLogDescriptor, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { GuardianResolverEvent, GuardianUiContext } from '#gw2/professions/guardian/types.js';
 
 function dragonhunterEventLogRow(

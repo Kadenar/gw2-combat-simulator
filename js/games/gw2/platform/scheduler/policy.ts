@@ -45,15 +45,9 @@ import {
   gw2StatsForWeaponSet
 } from '#gw2/platform/combat/query/runtime-rules.js';
 import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
-import type {
-  CanonicalCatalog,
-  CastContext,
-  SchedulerContext,
-  SchedulerRecord,
-  SimulationEvent,
-  Skill,
-  SkillEffect
-} from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { CastContext, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2CombatQuery } from '#gw2/platform/combat/query/types.js';

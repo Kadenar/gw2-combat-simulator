@@ -1,7 +1,7 @@
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/professions/lib/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const RECALL_MECH_SKILL_IDS = new Set([ID.RECALL_MECH, ID.RECALL_MECH_ID_63300]);

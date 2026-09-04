@@ -3,7 +3,8 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import type {

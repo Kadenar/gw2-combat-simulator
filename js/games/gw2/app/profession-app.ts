@@ -18,21 +18,19 @@ import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/profession/navigation.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/workspace.js';
 import type { ShellSession } from '#app/shell/types.js';
 
+import type { BuildTemplatePreset, BuildTemplateSelection, ProfessionAttributeData } from '#gw2/app/build/types.js';
 import type {
-  BuildTemplatePreset,
-  BuildTemplateSelection,
   Gw2AppAdapter,
   ProfessionAppResult,
   ProfessionAppState,
-  BaselineSimulationOutput,
   ProfessionChangeOptions,
-  ProfessionAttributeData,
   ProfessionFeatureRunner,
   ProfessionRotationDragState,
   RotationActionOptions
 } from '#gw2/app/types.js';
+import type { BaselineSimulationOutput } from '#gw2/app/simulation/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
-import type { RotationCommand } from '#gw2/platform/engine/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 
 const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
   isRunning: false,

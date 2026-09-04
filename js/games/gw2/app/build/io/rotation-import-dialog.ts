@@ -5,8 +5,9 @@ import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { errorMessage } from '#ui/shared/dom.js';
 
-import type { RotationCommand } from '#gw2/platform/engine/types.js';
-import type { BuildTemplatePreset, ProfessionAppState } from '#gw2/app/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 

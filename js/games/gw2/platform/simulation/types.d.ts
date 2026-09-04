@@ -1,14 +1,16 @@
 /** Owns the simulation/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type {
   NormalizedProfessionContract,
-  ObservationPolicy,
   ProfessionApplicationContract,
-  ProfessionSource,
+  ProfessionSource
+} from '#gw2/platform/engine/profession/types.js';
+import type {
+  ObservationPolicy,
   SchedulerContext,
   SchedulerRecord,
   SchedulerState,
   SchedulerStep
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/execution/types.js';
 import type {
   Gw2ResolverEventHandlers,
   Gw2ResolverReactions,

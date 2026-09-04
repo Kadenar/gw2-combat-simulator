@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ReconstructedCommand, ReconstructedRotationCommand } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 

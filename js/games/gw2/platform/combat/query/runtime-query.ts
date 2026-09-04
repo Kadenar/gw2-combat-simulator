@@ -6,7 +6,7 @@ import {
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
 

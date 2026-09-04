@@ -28,7 +28,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/state.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/event-handlers.js';

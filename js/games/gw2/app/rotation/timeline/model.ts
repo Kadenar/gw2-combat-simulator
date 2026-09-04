@@ -1,9 +1,10 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationCommand, SchedulerRecord, SchedulerStep, SkillId } from '#gw2/platform/engine/types.js';
+import type { RotationCommand, SchedulerRecord, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 export type TimelineRotationEntry = RotationCommand;

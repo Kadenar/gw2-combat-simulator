@@ -5,7 +5,7 @@
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext } from '#gw2/professions/elementalist/types.js';
 import { ALTRUISTIC_ASPECT_BOONS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';

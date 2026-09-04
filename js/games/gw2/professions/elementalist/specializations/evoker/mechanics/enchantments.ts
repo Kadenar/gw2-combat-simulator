@@ -8,7 +8,7 @@
  */
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELECTRIC_ENCHANTMENT_ICON } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';

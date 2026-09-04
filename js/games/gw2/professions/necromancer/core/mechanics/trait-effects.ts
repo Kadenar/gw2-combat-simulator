@@ -1,7 +1,7 @@
 /** Shares resolver-side Necromancer trait effects without coupling trait-line modules to the public dispatcher. */
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 

@@ -1,4 +1,4 @@
-import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';

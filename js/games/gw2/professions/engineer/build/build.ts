@@ -5,7 +5,8 @@ import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.j
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import type { RotationCommand, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
 /**

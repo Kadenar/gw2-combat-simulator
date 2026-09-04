@@ -1,4 +1,5 @@
-import type { BaselineSimulationOutput, BaselineSimulationRequest, ProfessionAppState } from '#gw2/app/types.js';
+import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface BaselineJob {
   readonly requestId: number;

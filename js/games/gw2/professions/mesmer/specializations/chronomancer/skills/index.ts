@@ -3,7 +3,7 @@
  * Continuum Split, Time Bomb, and shatter behavior live under `mechanics/` and `traits/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

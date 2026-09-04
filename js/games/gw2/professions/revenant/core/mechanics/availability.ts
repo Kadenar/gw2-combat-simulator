@@ -4,7 +4,7 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import { revenantEnduranceReadyAt, revenantEnergyReadyAt } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
 import { denySkillCast as denyRevenantSkill } from '#gw2/professions/lib/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantPrecastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Centralize Revenant cast gates for legends, energy, endurance, upkeeps, timed

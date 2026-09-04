@@ -1,4 +1,5 @@
-import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 export interface MesmerVirtuosoState {
   numericResource: number;

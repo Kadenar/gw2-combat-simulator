@@ -5,7 +5,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { ConditionEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { ConditionEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ThiefCastContext,
   ThiefCoreState,

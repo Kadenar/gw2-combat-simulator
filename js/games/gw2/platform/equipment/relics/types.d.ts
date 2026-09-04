@@ -1,6 +1,8 @@
 /** Owns the equipment/relics/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { StableEventQueue } from '#kernel/events/queue.js';
-import type { SchedulerRecord, SimulationActorType, SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Minimal configuration surface consumed by relic rules. */
 export interface Gw2RelicConfig extends SchedulerRecord {
@@ -50,13 +52,13 @@ export interface Gw2EventDraft extends SchedulerRecord {
   readonly type: string;
   readonly at: number;
   readonly source: string;
-  readonly sourceId?: import('#gw2/platform/engine/types.js').SkillId;
+  readonly sourceId?: import('#gw2/platform/engine/skills/types.js').SkillId;
   readonly actorType?: SimulationActorType;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
   readonly damageBreakdownName?: string;
-  readonly skillId?: import('#gw2/platform/engine/types.js').SkillId | null;
+  readonly skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
   readonly icon?: string;
   readonly kind?: string;
   readonly duration?: number;

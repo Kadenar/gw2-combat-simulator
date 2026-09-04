@@ -7,7 +7,7 @@ import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/ava
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,

@@ -8,7 +8,7 @@ import {
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
-import type { ProfessionUiContract, RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
+import type { ProfessionUiContract, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);

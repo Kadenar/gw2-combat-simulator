@@ -3,7 +3,7 @@
  * Persistent forge resources and weapon behavior remain under `mechanics/`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID = 25_518;
 export const LUMINARY_INITIAL_STATE_SKILL_IDS = Object.freeze({

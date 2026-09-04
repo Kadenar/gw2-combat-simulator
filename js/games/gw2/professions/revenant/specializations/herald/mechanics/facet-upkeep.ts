@@ -1,5 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';

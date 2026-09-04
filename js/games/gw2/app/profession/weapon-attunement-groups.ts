@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 const ATTUNEMENT_ORDER = new Map(
   ['Fire', 'Water', 'Air', 'Earth', 'Dual', 'Special'].map((attunement, index) => [attunement, index])

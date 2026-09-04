@@ -3,7 +3,7 @@
  * Persistent mech state and autonomous behavior remain under `mechanics/mech.ts`.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { MECHANIST_COMMAND_DURATIONS } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 
 // Crash Down and Recall Mech occupy the same profession-mechanic tile.

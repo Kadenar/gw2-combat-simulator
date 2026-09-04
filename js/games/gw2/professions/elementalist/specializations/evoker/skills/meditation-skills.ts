@@ -3,7 +3,7 @@
  * Meditation trait reactions are registered by the Evoker module.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Declares the meditation catalog while the shared handler applies Altruistic Aspect. */
 export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({

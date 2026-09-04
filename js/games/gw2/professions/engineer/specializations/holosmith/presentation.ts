@@ -8,15 +8,14 @@ import {
   namedSkillId,
   uniqueIdsBySkillName
 } from '#gw2/professions/engineer/core/presentation.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionResourceView,
-  ProfessionUiContract,
-  SchedulerRecord,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { EngineerResolverEvent, EngineerUiContext } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 

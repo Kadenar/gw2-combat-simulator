@@ -7,7 +7,8 @@ import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
 import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
 
-import type { SchedulerContext, SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2EventPreparer {

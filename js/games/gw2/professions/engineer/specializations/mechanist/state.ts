@@ -2,7 +2,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerConfig,
   EngineerMechAttributes,

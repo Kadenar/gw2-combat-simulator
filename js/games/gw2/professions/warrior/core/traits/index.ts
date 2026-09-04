@@ -8,7 +8,7 @@ import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { ScheduledTask } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainWarriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';

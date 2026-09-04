@@ -1,7 +1,7 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
 
 import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
-import type { ResolvedEffectAudience } from '#gw2/platform/engine/types.js';
+import type { ResolvedEffectAudience } from '#gw2/platform/engine/events/types.js';
 
 interface BuffAudienceMetadata {
   readonly source?: unknown;

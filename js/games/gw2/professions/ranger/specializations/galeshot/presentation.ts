@@ -6,9 +6,9 @@ import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { RangerSkill, RangerUiContext } from '#gw2/professions/ranger/types.js';
 
 const BOW_SKILLS = Object.freeze([

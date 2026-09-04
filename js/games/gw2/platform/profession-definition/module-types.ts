@@ -2,14 +2,12 @@ import type {
   CanonicalCatalog,
   BalanceProfile,
   CatalogEntity,
-  ProfessionBuildDefinition,
-  ProfessionFamilyContract,
-  SchedulerConfig,
   Skill,
   SkillFragment,
-  SkillHandlerStrategy,
   SkillId
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionBuildDefinition, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerConfig, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 import type {
   Gw2HitResolutionContext,

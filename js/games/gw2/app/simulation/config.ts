@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2AttributeBreakdown, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
@@ -9,7 +9,8 @@ import {
   isSimulationRandomnessControl,
   simulationRandomnessFromAssumptions
 } from '#gw2/platform/simulation/randomness.js';
-import type { Gw2SimulationConfigOptions, ProfessionAttributeData } from '#gw2/app/types.js';
+import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
+import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 
 /**
  * Assembles common equipment, boon, target, weapon, and stat simulation input.

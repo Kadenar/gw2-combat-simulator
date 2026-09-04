@@ -26,7 +26,7 @@ import {
   conduitSkillWeapon,
   conduitStrikeCoefficient as strikeCoefficient
 } from '#gw2/professions/revenant/specializations/conduit/execution/helpers.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 function effectiveAffinity(context: RevenantSchedulerContext): number {

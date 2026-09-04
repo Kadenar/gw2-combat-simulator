@@ -3,7 +3,7 @@
  * Persistent mantra state and behavior remain in `mechanics/mantras.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PORTENT_OF_FREEDOM]: {

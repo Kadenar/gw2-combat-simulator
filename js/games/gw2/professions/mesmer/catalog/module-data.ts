@@ -13,7 +13,7 @@ import {
   MESMER_FLIP_PARENT_BY_CHILD_ID,
   prepareMesmerSkillForCatalog
 } from '#gw2/professions/mesmer/catalog/skill-preparation.js';
-import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
 const generated: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS].map((skill) => ({

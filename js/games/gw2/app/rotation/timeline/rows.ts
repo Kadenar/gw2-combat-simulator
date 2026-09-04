@@ -48,7 +48,7 @@ import {
 } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
-import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/types.js';
+import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 
 export interface TimelineRowRender {

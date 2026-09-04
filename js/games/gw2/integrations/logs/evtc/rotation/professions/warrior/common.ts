@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import {
   createStrikePacketMatcher,

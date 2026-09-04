@@ -2,9 +2,9 @@ import type {
   ModifierContribution,
   ModifierContributionRequest,
   ProfessionModifierComparison
-} from '#gw2/app/types.js';
+} from '#gw2/app/simulation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RotationCommand } from '#gw2/platform/engine/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 
 export const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;
 

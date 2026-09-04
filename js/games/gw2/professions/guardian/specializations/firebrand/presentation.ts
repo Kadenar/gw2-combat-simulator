@@ -4,9 +4,9 @@ import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
-  ProfessionSkillBarGroup,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  ProfessionSkillBarGroup
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,

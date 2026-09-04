@@ -1,4 +1,4 @@
-import type { CanonicalCatalog } from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';

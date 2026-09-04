@@ -14,7 +14,7 @@ import type {
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   GW2_ACTION_TICK_MS,
   observedCommittedInterruptMs,

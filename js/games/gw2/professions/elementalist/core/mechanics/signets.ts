@@ -1,7 +1,7 @@
 /** Owns Signet of Fire's passive-disable window across its active recharge. */
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 
 /** Disables the passive until recharge unless Written in Stone preserves it. */

@@ -11,7 +11,7 @@ import type {
   MesmerAddTraitProc,
   MesmerConfig
 } from '#gw2/professions/mesmer/types.js';
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import type {
   MesmerPhantasmEffectController,

@@ -1,4 +1,10 @@
-import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  BalanceProfile,
+  CanonicalCatalog,
+  CatalogEntity,
+  Skill,
+  SkillId
+} from '#gw2/platform/engine/skills/types.js';
 import type {
   AnyNativeModule,
   NativeProfessionContract as StableNativeProfessionContract

@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { conditionDurationFractionFromExpertise } from '#gw2/platform/combat/damage/stat-scaling.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';

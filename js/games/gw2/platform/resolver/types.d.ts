@@ -1,14 +1,10 @@
 /** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { StableEventQueue } from '#kernel/events/queue.js';
 import type { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
-import type {
-  ScheduledEventStream,
-  SchedulerRecord,
-  SimulationActorType,
-  SimulationEvent,
-  SimulationRandom,
-  Skill
-} from '#gw2/platform/engine/types.js';
+import type { ScheduledEventStream, SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
+// Resolution consumes kernel randomness and generic records without execution dependencies.
+import type { SimulationRandom } from '#kernel/core/simulation-random.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   Gw2CombatQuery,
   Gw2CriticalChanceContributor,
@@ -31,7 +27,7 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly skillName?: string;
   readonly parentSkillName?: string;
   readonly damageBreakdownName?: string;
-  readonly skillId?: import('#gw2/platform/engine/types.js').SkillId | null;
+  readonly skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
   readonly icon?: string;
   readonly kind?: string;
   readonly duration?: number;
@@ -127,8 +123,8 @@ export interface Gw2DamageBreakdownEntry {
   parentSkill: string;
   damageBreakdownName?: string;
   icon: string;
-  skillId?: import('#gw2/platform/engine/types.js').SkillId | null;
-  sourceId?: import('#gw2/platform/engine/types.js').SkillId;
+  skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
+  sourceId?: import('#gw2/platform/engine/skills/types.js').SkillId;
   actorType?: SimulationActorType;
   summonKind?: string;
   source?: string;
@@ -174,19 +170,19 @@ export interface Gw2ProcStep {
   expiresAt?: number;
 }
 
-export interface Gw2ResolverHelpers extends SchedulerRecord {
+export interface Gw2ResolverHelpers extends Record<string, unknown> {
   conditionName(value: unknown): string;
-  readonly skillsById?: ReadonlyMap<import('#gw2/platform/engine/types.js').SkillId, Skill>;
+  readonly skillsById?: ReadonlyMap<import('#gw2/platform/engine/skills/types.js').SkillId, Skill>;
   readonly skillsByName?: ReadonlyMap<string, Skill>;
   readonly balanceProfilesById?: ReadonlyMap<
-    import('#gw2/platform/engine/types.js').SkillId,
-    import('#gw2/platform/engine/types.js').BalanceProfile
+    import('#gw2/platform/engine/skills/types.js').SkillId,
+    import('#gw2/platform/engine/skills/types.js').BalanceProfile
   >;
 }
 
 export type Gw2EventQueue = Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
 
-export interface Gw2ResolverRuntime extends SchedulerRecord {
+export interface Gw2ResolverRuntime extends Record<string, unknown> {
   config: Gw2Config;
   traits: ReadonlySet<string | number>;
   horizon: number;
@@ -223,7 +219,11 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
-  dispatchReaction(stage: Gw2ResolverStage, event: Gw2ResolverEvent, details?: SchedulerRecord): SchedulerRecord | void;
+  dispatchReaction(
+    stage: Gw2ResolverStage,
+    event: Gw2ResolverEvent,
+    details?: Record<string, unknown>
+  ): Record<string, unknown> | void;
   applyCondition(event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
   recordProc(
     type: string,
@@ -293,8 +293,8 @@ export type Gw2ResolverHandlerRegistry = HandlerRegistry<Gw2ResolverRuntime, Gw2
 export type Gw2ResolverReaction = (
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
-  details?: SchedulerRecord
-) => SchedulerRecord | void;
+  details?: Record<string, unknown>
+) => Record<string, unknown> | void;
 
 export type Gw2ResolverStage =
   | 'aura.applied'
@@ -327,8 +327,8 @@ export interface Gw2ResolverReactionRegistry {
     stage: Gw2ResolverStage,
     context: Gw2ResolverRuntime,
     event: Gw2ResolverEvent,
-    details?: SchedulerRecord
-  ): SchedulerRecord | void;
+    details?: Record<string, unknown>
+  ): Record<string, unknown> | void;
 }
 
 export interface Gw2ResolverExtensions {
@@ -343,7 +343,7 @@ export interface Gw2ResolverExtensions {
   ) => void;
 }
 
-export interface Gw2ResolverResult extends SchedulerRecord {
+export interface Gw2ResolverResult extends Record<string, unknown> {
   readonly duration: number;
   readonly combatStartTime: number | null;
   readonly hasExplicitCombatStart: boolean;

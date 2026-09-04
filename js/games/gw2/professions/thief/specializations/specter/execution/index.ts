@@ -6,7 +6,7 @@ import {
   enterShadowShroud,
   exitShadowShroud
 } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
-import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
+import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { ThiefCastContext } from '#gw2/professions/thief/types.js';
 import { completeShadowShroudSkill } from '#gw2/professions/thief/specializations/specter/traits/index.js';
 

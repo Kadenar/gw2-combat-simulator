@@ -8,7 +8,7 @@ import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/s
 import { thiefTrapCastAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {
   ThiefCoreState,
   ThiefPrecastContext,

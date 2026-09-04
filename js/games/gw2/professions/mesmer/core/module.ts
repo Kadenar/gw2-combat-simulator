@@ -2,7 +2,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { onResolvedBlind, onResolvedControl } from '#gw2/platform/profession-definition/mechanics.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/catalog/module-data.js';
 import {
   advanceMesmerScheduler,

@@ -2,7 +2,7 @@ import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/c
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   handleNecromancerPainfulBond,
@@ -10,7 +10,7 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
 import { materializeNecromancerSummonAttack } from '#gw2/professions/necromancer/core/mechanics/event-handlers.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
-import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 

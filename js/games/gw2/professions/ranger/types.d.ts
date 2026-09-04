@@ -1,12 +1,10 @@
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   CastLifecycleContext,
   SchedulerContext,
   SchedulerRecord,
-  SchedulerState,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  SchedulerState
+} from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';

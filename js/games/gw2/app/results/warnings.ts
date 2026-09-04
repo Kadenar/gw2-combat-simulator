@@ -1,4 +1,4 @@
-import type { SchedulerStep } from '#gw2/platform/engine/types.js';
+import type { SchedulerStep } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { mountRotationWarnings } from '#ui/results/rotation-warnings.js';

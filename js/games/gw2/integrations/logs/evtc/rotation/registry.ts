@@ -2,17 +2,13 @@ import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import type { EvtcRotationAction, EvtcRotationPlayer, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import type { RotationReconstructionBase } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { EvtcRotationCatalog } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import {
-  detectEvtcRotationPlayers,
-  reconstructWithProfile,
-  type EvtcRotationOptions
-} from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
+import { reconstructWithProfile, type EvtcRotationOptions } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
 import {
   EVTC_ROTATION_PROFILES,
   evtcRotationProfile,
   type EvtcRotationProfessionProfile
 } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
-import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
+import { selectPlayerAgent } from '#gw2/integrations/logs/evtc/rotation/players.js';
 
 export interface EvtcProfessionRotationParser {
   readonly id: string;
@@ -61,35 +57,8 @@ export function reconstructEvtcRotation(
   catalog: EvtcRotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
-  const players = detectEvtcRotationPlayers(log);
-  let explicitMatch: ((candidate: (typeof players)[number]) => boolean) | undefined;
-  if (options.playerAddress != null) {
-    let address: bigint | null = null;
-    try {
-      address = typeof options.playerAddress === 'bigint' ? options.playerAddress : BigInt(options.playerAddress);
-    } catch {
-      address = null;
-    }
-
-    explicitMatch = (candidate) => address != null && BigInt(candidate.address) === address;
-  }
-
-  const selection = selectRotationPlayer(players, explicitMatch);
-
-  if (selection.status !== 'selected') {
-    if (selection.status === 'no-player') {
-      throw new EvtcError('NO_PLAYER', 'The EVTC log contains no known player.');
-    }
-
-    throw new EvtcError(
-      selection.status === 'selection-required' ? 'PLAYER_SELECTION_REQUIRED' : 'PLAYER_NOT_FOUND',
-      selection.status === 'selection-required'
-        ? 'Multiple players have the same recorded action count; select one by address.'
-        : 'The requested player is not present in the EVTC log.'
-    );
-  }
-
-  const player = selection.player;
+  // Dispatch and direct profile reconstruction use the same player-selection contract.
+  const { player } = selectPlayerAgent(log, options.playerAddress);
 
   const parser = getEvtcProfessionRotationParser(player.professionId, player.specializationId);
   if (!parser) {

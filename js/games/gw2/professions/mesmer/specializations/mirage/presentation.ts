@@ -9,10 +9,10 @@ import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/s
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
-  ProfessionUiContract,
-  SchedulerRecord,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerUiContext } from '#gw2/professions/mesmer/types.js';
 
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);

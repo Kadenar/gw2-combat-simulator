@@ -22,13 +22,11 @@ import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '#gw2/platform/engi
 import type {
   AmmoState,
   AvailabilityResult,
-  CanonicalCatalog,
   CastCommand,
   CastContext,
   CastLifecycleContext,
   CooldownController,
   ObservationPolicy,
-  ProfessionSource,
   ScheduledTask,
   ScheduledTaskHandler,
   ScheduledTaskInput,
@@ -40,14 +38,17 @@ import type {
   SchedulerRunResult,
   SchedulerStep,
   SchedulerTaskAccess,
+  TaskQueue
+} from '#gw2/platform/engine/execution/types.js';
+import type {
+  CanonicalCatalog,
   SkillEffect,
   SkillMechanicTrigger,
-  SimulationEvent,
-  SimulationEventInput,
   Skill,
-  SkillId,
-  TaskQueue
-} from '#gw2/platform/engine/types.js';
+  SkillId
+} from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionSource } from '#gw2/platform/engine/profession/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 
 interface CastReservation<TProfessionState extends object> {
   id: string;

@@ -4,7 +4,7 @@
  * sequences, then index each skill's position within its chain using the same
  * lookup shape.
  */
-import type { AutoattackChainPosition, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { AutoattackChainPosition, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface AutoattackChainState {
   readonly [root: number]: SkillId | undefined;

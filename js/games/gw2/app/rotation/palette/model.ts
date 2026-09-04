@@ -16,14 +16,11 @@ import { resultCombatReferenceMs } from '#gw2/app/rotation/timeline/timing/model
 import { ammoDisplayView } from '#ui/rotation/ammo-display.js';
 
 import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
-import type { ProfessionAppState, ProfessionSlotLoadoutContext } from '#gw2/app/types.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionPaletteGroup,
-  SchedulerRecord,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { ProfessionSlotLoadoutContext } from '#gw2/app/build/types.js';
+import type { PaletteSkillAvailability, ProfessionPaletteGroup } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import { groupWeaponSkillsByAttunement } from '#gw2/app/profession/weapon-attunement-groups.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';

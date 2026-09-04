@@ -25,7 +25,7 @@ import {
   runNecromancerResourceAdvance,
   runNecromancerShroudExit
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerCastContext,
   NecromancerConfig,

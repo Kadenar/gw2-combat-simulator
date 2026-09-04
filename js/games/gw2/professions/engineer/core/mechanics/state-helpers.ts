@@ -6,7 +6,9 @@ import {
   type EnqueueGw2OwnedComboFinisherOptions
 } from '#gw2/platform/resolver/combo-resolution.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
-import type { SchedulerRecord, SimulationActorType, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 

@@ -3,7 +3,7 @@
  * Familiar charge, flip, and attunement state lives in `mechanics/familiars.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Simulator-owned skill definitions merged over the API catalog for Evoker.

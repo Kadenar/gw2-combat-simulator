@@ -5,8 +5,8 @@ import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
@@ -15,7 +15,7 @@ import type {
   ProfessionSkillBarGroup,
   ProfessionUiContract,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/profession/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { WarriorSpecializationSelection } from '#gw2/professions/warrior/data/traits-data.js';
 import type {

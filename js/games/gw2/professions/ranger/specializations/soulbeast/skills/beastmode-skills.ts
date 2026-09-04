@@ -3,7 +3,7 @@
  * Persistent merge state and transitions remain in `mechanics/beastmode.ts` and `execution/index.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Entering and leaving Beastmode are two states of the same F5 palette tile.
 const BEASTMODE_PALETTE_TILE = 'ranger-soulbeast-beastmode-toggle';

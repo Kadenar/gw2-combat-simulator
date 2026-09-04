@@ -2,7 +2,7 @@
  * Composes Core Guardian weapon, profession, and slot-skill catalogs.
  * Synthetic actions live in `actions.ts`; runtime behavior lives under `mechanics/`.
  */
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/profession-skills.js';
 import { GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/slot-skills.js';
 import { GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/weapons/axe.js';

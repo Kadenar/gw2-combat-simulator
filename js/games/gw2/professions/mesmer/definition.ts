@@ -7,7 +7,7 @@ import {
 } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/catalog/module-data.js';
 import { mesmerNativeModules } from '#gw2/professions/mesmer/modules.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 

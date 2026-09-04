@@ -1,4 +1,5 @@
-import type { SimulationActorType, SkillId } from '#gw2/platform/engine/types.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2DamageBreakdownEntry, Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 

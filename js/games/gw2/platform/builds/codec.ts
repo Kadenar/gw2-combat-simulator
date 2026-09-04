@@ -10,7 +10,8 @@ import { clamp, finiteNumber } from '#gw2/platform/combat/numeric.js';
 import { boundedInteger, boundedNumber, enumValue } from '#gw2/platform/builds/normalization.js';
 import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import type { CanonicalCatalog, SchedulerRecord, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   Gw2ApplicationBuild,
   Gw2BuildCodec,

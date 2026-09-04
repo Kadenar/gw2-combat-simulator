@@ -8,7 +8,8 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import type {

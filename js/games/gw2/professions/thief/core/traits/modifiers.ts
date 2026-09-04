@@ -25,7 +25,8 @@ import { observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechan
 import { thiefCoreTaskHandlers } from '#gw2/professions/thief/core/mechanics/task-handlers.js';
 import { applyThiefWeaponSwapEffects } from '#gw2/professions/thief/core/execution/actions.js';
 import { observeThievesGuildCombatEvent } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
-import type { SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierHooks, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { ThiefCoreState, ThiefPrecastContext, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';

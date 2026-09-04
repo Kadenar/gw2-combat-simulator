@@ -1,6 +1,6 @@
 /** Owns hit history that survives one Mesmer cast and triggers threshold packets across activations. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerAddDamage } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';

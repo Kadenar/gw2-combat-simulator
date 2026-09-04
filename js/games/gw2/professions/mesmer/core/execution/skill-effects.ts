@@ -9,7 +9,7 @@ import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanic
 import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { applyMesmerSignetReset } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,

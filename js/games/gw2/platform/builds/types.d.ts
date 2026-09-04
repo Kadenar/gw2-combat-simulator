@@ -1,5 +1,6 @@
 /** Owns the builds/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { CanonicalCatalog, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
@@ -166,8 +167,8 @@ export interface Gw2CanonicalBuild extends SchedulerRecord {
   targetHealth: number;
   targetStartingHealthPercent: number;
   targetArmor: number;
-  rotation: import('#gw2/platform/engine/types.js').RotationCommand[];
-  selectedSkillIds?: import('#gw2/platform/engine/types.js').SkillId[];
+  rotation: import('#gw2/platform/engine/execution/types.js').RotationCommand[];
+  selectedSkillIds?: import('#gw2/platform/engine/skills/types.js').SkillId[];
   sigils?: string[];
 }
 
@@ -258,7 +259,7 @@ export interface Gw2ApplicationBuild extends SchedulerRecord {
   targetHealth: number;
   targetStartingHealthPercent: number;
   targetArmor: number;
-  rotation: import('#gw2/platform/engine/types.js').RotationCommand[];
+  rotation: import('#gw2/platform/engine/execution/types.js').RotationCommand[];
 }
 
 export interface Gw2BuildCodec<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {

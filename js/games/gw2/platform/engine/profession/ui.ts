@@ -2,14 +2,13 @@
  * Profession UI composition. Combines Core, active-specialization, and family
  * UI slices without leaking runtime ownership policy into the application.
  */
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionModuleDefinition,
-  ProfessionUiContract,
-  SchedulerRecord,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
 import {
   everyUiSlice,

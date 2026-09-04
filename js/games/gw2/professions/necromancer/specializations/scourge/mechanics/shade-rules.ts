@@ -9,7 +9,7 @@ import {
   cloneNecromancerAttributes,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   NecromancerAmmoModifierContext,

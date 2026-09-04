@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Keep the imported Weapon Stow action visually distinct in the simulator timeline.
 // Resolve the shared icon from the repository asset root so Vite can bundle it with the profession module.

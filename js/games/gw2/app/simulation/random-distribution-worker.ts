@@ -1,5 +1,6 @@
 import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
-import type { Gw2AppAdapter, RandomDistributionJobRequest } from '#gw2/app/types.js';
+import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import type { RandomDistributionJobRequest } from '#gw2/app/simulation/types.js';
 
 /**
  * The single request message this worker accepts. Cancellation and

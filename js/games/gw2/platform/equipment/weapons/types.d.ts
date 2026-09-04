@@ -1,5 +1,6 @@
 /** Owns the equipment/weapons/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { CanonicalCatalog, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2WeaponMatcherContext extends SchedulerRecord {

@@ -3,7 +3,7 @@
  * Mech commands and autonomous attack identities live in their named catalogs.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies Mechanist signet fragments to specialization composition. */
 export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({

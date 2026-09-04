@@ -7,7 +7,7 @@ import type {
   SkillId,
   StatusEffect,
   StrikeEffect
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/skills/types.js';
 
 export type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
   ? StrikeEffect

@@ -7,7 +7,7 @@
  * reads these through the shared balance-profile accessors and always passes
  * a hardcoded fallback, so a build with no patch data still simulates.
  */
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait

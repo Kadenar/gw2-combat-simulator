@@ -3,11 +3,10 @@ import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js'
 import type {
   ProfessionPaletteActionIdentity,
   ProfessionUiContract,
-  RotationCommand,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantUiContext } from '#gw2/professions/revenant/types.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.

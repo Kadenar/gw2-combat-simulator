@@ -8,7 +8,7 @@ import {
   completeStealthAttack as completeBaseStealthAttack
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ThiefCastContext,
   ThiefPrecastContext,

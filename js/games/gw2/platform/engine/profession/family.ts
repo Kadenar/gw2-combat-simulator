@@ -8,10 +8,9 @@ import type {
   ProfessionFamilyContract,
   ProfessionFamilyDefinition,
   ProfessionModuleDefinition,
-  ProfessionSource,
-  SchedulerConfig,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  ProfessionSource
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerConfig, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import {
   ATTRIBUTE_HOOK_NAMES,
   CAST_HOOK_NAMES,

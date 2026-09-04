@@ -1,4 +1,4 @@
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RotationActionKind } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';

@@ -1,6 +1,6 @@
 /** Core Engineer Elite Mortar Kit skill mechanics. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Elite Mortar Kit. */
 export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({

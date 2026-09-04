@@ -3,9 +3,9 @@ import type {
   ScheduledTask,
   SchedulerContext,
   SchedulerPolicy,
-  SchedulerRecord,
-  SimulationEvent
-} from '#gw2/platform/engine/types.js';
+  SchedulerRecord
+} from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
 
 export interface Gw2TriggerMaterializer {

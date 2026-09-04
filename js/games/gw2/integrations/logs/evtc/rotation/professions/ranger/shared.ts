@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { playerInstance, rawSkillName } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';

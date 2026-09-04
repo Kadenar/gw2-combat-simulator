@@ -6,9 +6,9 @@ import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/speci
 import type {
   ProfessionEffectPresentation,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantSkill, RevenantUiContext } from '#gw2/professions/revenant/types.js';
 
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */

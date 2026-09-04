@@ -1,7 +1,7 @@
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export function antiquaryCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {

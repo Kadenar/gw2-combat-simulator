@@ -10,7 +10,8 @@ import {
 } from '#gw2/platform/combat/state/boons.js';
 import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 
-import type { SimulationEvent, SkillId } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';

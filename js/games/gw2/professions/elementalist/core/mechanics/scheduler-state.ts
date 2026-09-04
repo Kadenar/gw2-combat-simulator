@@ -3,7 +3,7 @@
  * Skill-family transitions remain with their named mechanics.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';

@@ -1,5 +1,5 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
 import { THIEF_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/profession-skills.js';

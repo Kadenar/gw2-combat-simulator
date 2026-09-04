@@ -11,7 +11,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { applyCosmicWisdomAfterCast } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,

@@ -3,7 +3,7 @@
  * Summon lifecycle and attack execution live in `mechanics/elementals/`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies command flipovers absent from the API catalog for active Fire and Earth elementals. */
 export const ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS: readonly Skill[] = Object.freeze([

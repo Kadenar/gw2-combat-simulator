@@ -1,17 +1,18 @@
 import type {
   AmmoState,
-  BalanceProfile,
-  CanonicalCatalog,
   CastCommand,
   SchedulerContext,
   SchedulerPolicy,
-  SchedulerRecord,
-  SimulationEvent,
-  SimulationEventInput,
+  SchedulerRecord
+} from '#gw2/platform/engine/execution/types.js';
+import type {
+  BalanceProfile,
+  CanonicalCatalog,
   Skill,
   SkillId,
   StrikeTick
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type {
   Gw2ApplicationBuild,
   Gw2Build,

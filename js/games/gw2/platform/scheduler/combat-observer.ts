@@ -1,4 +1,5 @@
-import type { SchedulerContext, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';

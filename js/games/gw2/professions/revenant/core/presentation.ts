@@ -9,9 +9,9 @@ import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   RevenantResolverEvent,
   RevenantSkill,

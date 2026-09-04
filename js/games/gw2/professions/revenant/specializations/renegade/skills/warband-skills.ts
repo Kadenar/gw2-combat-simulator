@@ -4,7 +4,7 @@
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export const RENEGADE_ENHANCED_SKILL_BY_ID: Readonly<Record<number, SkillId>> = Object.freeze({
   [ID.ICERAZORS_IRE]: ID.ICERAZORS_IRE_ID_72359,

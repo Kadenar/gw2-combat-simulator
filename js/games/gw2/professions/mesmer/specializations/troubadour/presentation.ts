@@ -7,9 +7,9 @@ import {
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
-  ProfessionUiContract,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
 
 interface TroubadourUiState {

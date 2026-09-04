@@ -6,7 +6,7 @@ import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,

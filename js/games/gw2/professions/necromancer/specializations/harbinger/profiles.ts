@@ -1,4 +1,4 @@
-import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait

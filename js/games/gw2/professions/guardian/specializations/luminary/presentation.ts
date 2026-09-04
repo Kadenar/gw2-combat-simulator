@@ -12,9 +12,9 @@ import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
-  RotationStateSnapshotItem,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,

@@ -1,7 +1,8 @@
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { cloneProfessionState, flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
-import type { SchedulerRunResult, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';

@@ -1,4 +1,5 @@
-import type { SchedulerContext, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import {
   advanceCriticalProc,
   criticalOpportunity,

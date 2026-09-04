@@ -7,7 +7,8 @@ import { WAIT_ICON } from '#gw2/app/rotation/shared/icons.js';
 import { clearTimelineDropIndicators, type RotationDragState } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
-import type { RotationCommand, Skill } from '#gw2/platform/engine/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 

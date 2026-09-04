@@ -29,7 +29,8 @@ import type {
   RevenantRuntimeState,
   RevenantState
 } from '#gw2/professions/revenant/types.js';
-import type { SchedulerState, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 /** Flattens the family runtime state for stable scheduler and resolver handoff. */
 export function snapshotRevenantState(state: unknown): RevenantState {

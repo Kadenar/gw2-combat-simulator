@@ -1,5 +1,5 @@
 /** Builds the app-owned snapshot at the insertion cursor or rotation end. */
-import type { RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import { criticalChanceEventAt } from '#gw2/platform/results/query.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

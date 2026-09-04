@@ -7,3 +7,4 @@ export * from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-i
 export * from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 export * from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 export * from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
+export { detectEvtcRotationPlayers } from '#gw2/integrations/logs/evtc/rotation/players.js';

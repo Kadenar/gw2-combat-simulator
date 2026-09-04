@@ -1,6 +1,6 @@
 /** Owns the Clarity window that one spear cast arms and a later spear cast consumes. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';

@@ -13,7 +13,7 @@ import { BERSERKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializati
 import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/index.js';
 import { BLADESWORN_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { PARAGON_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
 
 const WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS = new Set<number>([

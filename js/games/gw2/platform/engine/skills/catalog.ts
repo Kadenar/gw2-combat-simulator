@@ -13,15 +13,14 @@ import type {
   CanonicalCatalog,
   CatalogEntity,
   ConditionTick,
-  SchedulerRecord,
   Skill,
   SkillEffect,
   SkillFragment,
-  SkillHandlerStrategy,
   SkillId,
   SkillLockout,
   StrikeTick
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerRecord, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 
 interface AutoattackChainOptions {
   readonly additional?: readonly (readonly SkillId[])[];

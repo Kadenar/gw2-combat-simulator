@@ -20,7 +20,7 @@ import {
   HOLOSMITH_HEAT,
   HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,

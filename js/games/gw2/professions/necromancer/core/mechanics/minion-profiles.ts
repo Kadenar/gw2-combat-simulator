@@ -3,7 +3,8 @@ import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   NECROMANCER_MINION_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/core/profiles.js';
-import type { SchedulerRecord, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export interface MinionAttack {

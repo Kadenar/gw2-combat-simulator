@@ -5,17 +5,15 @@
  * union that pairs core state with exactly one specialization's state, and the
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   CastContext,
   CastLifecycleContext,
   SchedulerContext,
   SchedulerRecord,
-  SchedulerState,
-  SimulationEvent,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  SchedulerState
+} from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';

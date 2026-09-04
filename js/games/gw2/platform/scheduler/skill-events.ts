@@ -9,14 +9,12 @@ import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/
 import type {
   EffectAudience,
   EffectMetadata,
-  SchedulerContext,
-  SchedulerRecord,
   SimulationActorType,
   SimulationEvent,
-  SimulationEventInput,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  SimulationEventInput
+} from '#gw2/platform/engine/events/types.js';
+import type { SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 interface SkillEventOwnership extends SchedulerRecord {
   /** Optional identity for procedural events that do not have a catalog skill in scope. */

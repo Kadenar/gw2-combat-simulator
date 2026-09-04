@@ -1,5 +1,6 @@
 /** Ordered public dispatcher for Core Elementalist trait behavior. */
-import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,

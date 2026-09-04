@@ -3,9 +3,9 @@ import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/co
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
-  ProfessionUiContract,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { RangerSkill, RangerUiContext } from '#gw2/professions/ranger/types.js';
 
 const AVATAR_SKILLS = Object.freeze([

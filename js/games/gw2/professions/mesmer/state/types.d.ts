@@ -1,11 +1,6 @@
-import type {
-  ScheduledTask,
-  SchedulerRecord,
-  SchedulerState,
-  SimulationEvent,
-  SimulationEventInput,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerRecord, SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   MesmerClone,
   MesmerExpectedProcCandidate

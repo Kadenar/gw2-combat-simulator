@@ -18,7 +18,7 @@ import {
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/stances.js';
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,

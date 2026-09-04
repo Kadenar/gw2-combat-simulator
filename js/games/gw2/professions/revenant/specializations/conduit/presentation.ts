@@ -1,12 +1,9 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import type {
-  ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+import type { ProfessionUiContract, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantUiContext } from '#gw2/professions/revenant/types.js';
 
 // Bridges the string-keyed legend map to skill IDs; the legend map returns names, not IDs.

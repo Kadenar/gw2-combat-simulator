@@ -7,7 +7,7 @@ import type {
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
 
-import type { Skill, SkillId } from '#gw2/platform/engine/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Minimum trait shape required by the shared build-attribute helpers.

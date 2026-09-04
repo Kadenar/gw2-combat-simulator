@@ -8,10 +8,10 @@ import {
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
-  ProfessionUiContract,
-  SchedulerRecord,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerSimulationEvent,
   NecromancerSkill,

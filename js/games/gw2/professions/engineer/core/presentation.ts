@@ -10,16 +10,14 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
   PaletteSkillAvailability,
-  CanonicalCatalog,
-  CatalogEntity,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionSkillBarGroup,
-  ProfessionUiContract,
-  SchedulerRecord,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { CanonicalCatalog, CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,

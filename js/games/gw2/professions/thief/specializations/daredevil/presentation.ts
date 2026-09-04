@@ -1,6 +1,6 @@
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { thiefStealPaletteGroups, thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 /** Shows the Bounding Dodger damage bonus only during its post-dodge window. */

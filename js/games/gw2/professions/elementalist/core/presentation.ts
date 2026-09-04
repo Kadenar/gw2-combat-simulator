@@ -16,17 +16,16 @@ import {
 } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistState } from '#gw2/professions/elementalist/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  SimulationEvent,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import {
   bindElementalistFamilyUiCatalog,
   elementalistAttunementResourceAnchor

@@ -2,15 +2,15 @@
 import type {
   ConditionEffect,
   ConditionTick,
-  SchedulerRecord,
-  SimulationActorType,
   Skill,
   SkillEffect,
   SkillFragment,
   SkillId,
   StrikeEffect,
   StrikeTick
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/types.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 

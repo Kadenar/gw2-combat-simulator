@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { skillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
-import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
+import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { NecromancerCastContext } from '#gw2/professions/necromancer/types.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/catalog/module-data.js';
 import {

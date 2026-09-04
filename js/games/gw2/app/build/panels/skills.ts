@@ -1,8 +1,11 @@
 import { escapeHtml as esc, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
-import type { ProfessionSkillBarGroup, SchedulerRecord, Skill, SkillId } from '#gw2/platform/engine/types.js';
-import type { ProfessionAppState, ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '#gw2/app/types.js';
+import type { ProfessionSkillBarGroup } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '#gw2/app/build/types.js';
 import { requiredElement } from '#ui/shared/dom.js';
 
 const BUILD_SELECTION_GROUP_IDS = new Set([
@@ -283,9 +286,7 @@ export function renderSkills(app: ProfessionAppState): void {
 
   // Keep build-changing profession selectors while omitting static mechanic previews.
   skillBar.innerHTML = `${selectedSkillsHtml}${
-    inspectionGroups.length
-      ? `<section class="profession-build-selections">${professionSelectionsHtml}</section>`
-      : ''
+    inspectionGroups.length ? `<section class="profession-build-selections">${professionSelectionsHtml}</section>` : ''
   }`;
 
   // Wire dropdown selection for the standard heal, utility, and elite slots.

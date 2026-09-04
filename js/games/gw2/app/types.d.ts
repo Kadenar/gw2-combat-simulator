@@ -1,171 +1,48 @@
+/** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
+import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { PatchPreview, PatchRuntimeValues } from '#gw2/integrations/patches/authoring/patches.js';
+import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerRecord, RotationCommand, ObservationPolicy } from '#gw2/platform/engine/execution/types.js';
 import type {
-  CatalogEntity,
-  CanonicalCatalog,
-  ObservationPolicy,
-  ProfessionPaletteGroup,
-  ProfessionResourceView,
-  ProfessionUiContract,
-  RotationCommand,
-  SchedulerRecord,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/types.js';
+  PatchComparison,
+  BaselineSimulationOutput,
+  ModifierContribution,
+  RandomDistributionProgress,
+  RandomDistributionSummary,
+  ProfessionModifier,
+  ModifierContributionRequest,
+  RandomDistributionJobRequest,
+  RelicComparisonJobRequest,
+  RandomDistributionRequest,
+  RandomDistributionOptions,
+  BaselineSimulationRequest
+} from '#gw2/app/simulation/types.js';
 import type {
-  Gw2ApplyBuildAttributeRules,
   Gw2ApplicationBuild,
   Gw2CalculateAttributes,
-  Gw2FinalizedAttributeResult,
-  ProfessionAssumptionControl
+  ProfessionAssumptionControl,
+  Gw2ApplyBuildAttributeRules
 } from '#gw2/platform/builds/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
-import type { PatchPreview, PatchRuntimeValues } from '#gw2/integrations/patches/authoring/patches.js';
+import type { ProfessionResourceView, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type {
+  ProfessionAttributeData,
+  BuildTemplatePreset,
+  BuildTemplateSelection,
+  ProfessionIsSkillAvailable,
+  ProfessionDefaultOffhand,
+  ProfessionSlotLoadout
+} from '#gw2/app/build/types.js';
 import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison.js';
-import type { BuildEditor, GameContentAddress, SimulationPresentation } from '#app/shell/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RotationHotkeyImport } from '#gw2/app/rotation/input/hotkeys.js';
+import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
   readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly patchValuesFor?: (patchId?: string) => PatchRuntimeValues;
 };
-
-export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
-  activeTraits: CatalogEntity[];
-}
-
-export type ProfessionModifierType = 'Boon' | 'Target' | 'Sigil' | 'Relic' | 'Food' | 'Trait';
-
-export interface ProfessionModifier {
-  readonly id: string;
-  readonly type: ProfessionModifierType;
-  readonly name: string;
-  readonly label: string;
-}
-
-export interface ProfessionModifierComparison {
-  readonly modifier: ProfessionModifier;
-  readonly config: Gw2Config;
-}
-
-export interface ModifierContributionRequest extends GameContentAddress {
-  readonly rotation: readonly RotationCommand[];
-  readonly baseConfig: Gw2Config;
-  readonly comparisons: readonly ProfessionModifierComparison[];
-}
-
-export interface ModifierContribution {
-  readonly id: string;
-  readonly name: string;
-  readonly dpsIncrease: number;
-  readonly pctIncrease: number;
-}
-
-export interface RandomDistributionRequest {
-  readonly rotation: readonly RotationCommand[];
-  readonly baseConfig: Gw2Config;
-  readonly trials?: number;
-  readonly seedStart?: number;
-}
-
-export interface RandomDistributionJobRequest extends RandomDistributionRequest, GameContentAddress {
-  readonly trials: number;
-}
-
-export interface RelicComparisonJobRequest extends GameContentAddress {
-  readonly rotation: readonly RotationCommand[];
-  readonly baseConfig: Gw2Config;
-  readonly opponentRelic: string;
-  readonly comparisonRelic: string;
-}
-
-export interface RandomDistributionOptions {
-  readonly includeSamples?: boolean;
-  readonly onProgress?: (progress: {
-    readonly completed: number;
-    readonly total: number;
-    readonly percent: number;
-  }) => void;
-}
-
-export interface RandomDistributionProgress {
-  readonly completed: number;
-  readonly total: number;
-  readonly percent: number;
-}
-
-export type RandomDistributionMetricCategory = 'critical' | 'condition' | 'proc' | 'effect' | 'weapon-strength';
-
-export type RandomDistributionMetricUnit = 'count' | 'stacks' | 'value';
-
-/** One compact, profession-neutral observation collected from an RNG trial. */
-export interface RandomDistributionMetricSample {
-  readonly id: string;
-  readonly group: string;
-  readonly label: string;
-  readonly category: RandomDistributionMetricCategory;
-  readonly unit: RandomDistributionMetricUnit;
-  readonly value: number;
-}
-
-/** Internal worker payload used to merge explanation data across trial batches. */
-export interface RandomDistributionOutcome {
-  readonly dps: number;
-  readonly metrics: readonly RandomDistributionMetricSample[];
-}
-
-export interface RandomDistributionDriver {
-  readonly id: string;
-  readonly label: string;
-  readonly category: RandomDistributionMetricCategory;
-  readonly unit: RandomDistributionMetricUnit;
-  readonly lowAverage: number;
-  readonly overallAverage: number;
-  readonly highAverage: number;
-  readonly delta: number;
-  readonly correlation: number;
-  readonly estimatedDpsDelta: number;
-}
-
-export interface RandomDistributionExplanation {
-  readonly cohortPercent: number;
-  readonly lowDpsMean: number;
-  readonly highDpsMean: number;
-  readonly drivers: readonly RandomDistributionDriver[];
-}
-
-export interface RandomDistributionSummary {
-  readonly trials: number;
-  readonly mean: number;
-  readonly p01: number;
-  readonly p10: number;
-  readonly p50: number;
-  readonly p90: number;
-  readonly p99: number;
-  readonly samples?: readonly number[];
-  readonly outcomes?: readonly RandomDistributionOutcome[];
-  readonly explanation?: RandomDistributionExplanation;
-}
-
-export interface BuildTemplatePreset extends SchedulerRecord {
-  readonly label: string;
-  readonly build: string;
-  readonly rotation?: string;
-  readonly snowCrowsUrl?: string;
-  readonly benchmarkDps?: number;
-  readonly section?: string | null;
-}
-
-export interface BuildTemplateSection {
-  readonly section?: string | null;
-  readonly presets?: readonly BuildTemplatePreset[];
-}
-
-export interface BuildTemplateSelection {
-  readonly build: string;
-  readonly signature: string;
-}
 
 export interface RotationActionOptions extends SchedulerRecord {
   readonly skillId?: SkillId | null;
@@ -175,86 +52,6 @@ export interface RotationActionOptions extends SchedulerRecord {
   readonly releaseAtCharges?: number | null;
   readonly doubleEdgeOutcome?: 'success' | 'backfire' | null;
   readonly durationMs?: number | null;
-}
-
-export interface ProfessionSpecializationTrait extends CatalogEntity {
-  readonly icon: string;
-  readonly description: string;
-}
-
-export interface ProfessionSpecialization extends CatalogEntity {
-  readonly icon: string;
-  readonly elite: boolean;
-  readonly minorTraits: readonly ProfessionSpecializationTrait[];
-  readonly majorTraits: readonly (readonly ProfessionSpecializationTrait[])[];
-}
-
-export interface ProfessionSlotLoadout extends SchedulerRecord {
-  readonly startingKey: string;
-  readonly palettePlacement?: string;
-  normalizeBuild(
-    build: Gw2ApplicationBuild,
-    context: {
-      readonly build: Gw2ApplicationBuild;
-      readonly specialization: string;
-      readonly professionState?: unknown;
-      readonly catalog: CanonicalCatalog;
-    }
-  ): Partial<Gw2ApplicationBuild> & SchedulerRecord;
-  selectedSkillIds(context: {
-    readonly build: Gw2ApplicationBuild;
-    readonly specialization: string;
-    readonly professionState?: unknown;
-    readonly catalog: CanonicalCatalog;
-  }): readonly SkillId[];
-  skillChildren?(context: ProfessionSlotLoadoutContext, skillId: SkillId): readonly SkillId[];
-  paletteGroups(context: ProfessionSlotLoadoutContext): ProfessionPaletteGroup[];
-  unavailableReason(skill: Skill, context: ProfessionSlotLoadoutContext): string;
-  view(context: ProfessionSlotLoadoutContext): ProfessionSlotLoadoutView;
-  updateBuild(
-    build: Gw2ApplicationBuild,
-    selectorKey: string,
-    value: string,
-    context: ProfessionSlotLoadoutContext
-  ): Gw2ApplicationBuild;
-}
-
-export interface ProfessionSlotLoadoutContext {
-  readonly build: Gw2ApplicationBuild;
-  readonly specialization: string;
-  readonly professionState?: unknown;
-  readonly catalog: CanonicalCatalog;
-}
-
-export interface ProfessionSlotLoadoutOption {
-  readonly value: string;
-  readonly label: string;
-  readonly icon?: string;
-  readonly disabled?: boolean;
-}
-
-export interface ProfessionSlotLoadoutSelector {
-  readonly key: string;
-  readonly label: string;
-  readonly value: string;
-  readonly options: readonly ProfessionSlotLoadoutOption[];
-}
-
-export interface ProfessionSlotLoadoutBar {
-  readonly id: string;
-  readonly label: string;
-  readonly compactLabel?: string;
-  readonly icon?: string;
-  readonly active: boolean;
-  readonly skillIds: readonly SkillId[];
-}
-
-export interface ProfessionSlotLoadoutView {
-  readonly label: string;
-  readonly selectionControl: string;
-  readonly formatActiveBar: boolean;
-  readonly selectors: readonly ProfessionSlotLoadoutSelector[];
-  readonly bars: readonly ProfessionSlotLoadoutBar[];
 }
 
 export interface RotationComparisonState {
@@ -344,28 +141,6 @@ export interface ProfessionChangeOptions {
   readonly deferRotationRender?: boolean;
 }
 
-export interface PatchComparison {
-  readonly patchId: string;
-  readonly current: Gw2SimulationResult;
-  readonly preview: Gw2SimulationResult;
-}
-
-/** Serializable input sent to the dedicated baseline-simulation worker. */
-export interface BaselineSimulationRequest extends GameContentAddress {
-  readonly rotation: readonly RotationCommand[];
-  readonly referenceRotation?: readonly RotationCommand[];
-  readonly baseConfig: Gw2Config;
-  readonly selectedPatchId: string;
-  readonly previewPatchId?: string;
-}
-
-/** Complete baseline output, including both sides of an optional patch preview. */
-export interface BaselineSimulationOutput {
-  readonly result: Gw2SimulationResult;
-  readonly patchComparison: PatchComparison | null;
-  readonly referenceResult?: Gw2SimulationResult;
-}
-
 export interface ProfessionRotationDragState extends SchedulerRecord {
   readonly source?: string;
   readonly index?: number;
@@ -397,21 +172,6 @@ export interface ProfessionAppFilenames {
   readonly rotation: string;
   readonly eventLog: string;
 }
-
-export interface ProfessionSkillAvailabilityContext {
-  readonly build?: Gw2ApplicationBuild;
-  readonly specialization?: string;
-  readonly professionState?: unknown;
-}
-
-export interface ProfessionOffhandContext {
-  readonly mainHand?: string;
-  readonly offHands?: readonly string[];
-}
-
-export type ProfessionIsSkillAvailable = (skill: Skill, context?: ProfessionSkillAvailabilityContext) => boolean;
-
-export type ProfessionDefaultOffhand = (context?: ProfessionOffhandContext) => string;
 
 export interface ProfessionRuntimeConfigContext {
   readonly attributeData: ProfessionAttributeData;

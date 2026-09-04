@@ -5,7 +5,8 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ScheduledTask, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { elementalistAlacrityAdjustedDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,

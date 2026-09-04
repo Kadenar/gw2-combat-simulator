@@ -8,7 +8,7 @@ import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 type GuardianSpearEffect = SkillEffect & { readonly at?: number };

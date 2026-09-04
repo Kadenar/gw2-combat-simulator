@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { produceGw2OwnedComboEvents } from '#gw2/platform/scheduler/combo-materializer.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { AURA_TRANSMUTE_SKILLS, DODGE_ENDURANCE_COST } from '#gw2/professions/elementalist/core/constants.js';

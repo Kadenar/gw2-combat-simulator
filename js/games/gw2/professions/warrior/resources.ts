@@ -1,4 +1,4 @@
-import type { ScheduledTask } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import {
   gainCoreWarriorAdrenaline,
   spendCoreWarriorAdrenaline

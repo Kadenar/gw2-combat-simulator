@@ -1,7 +1,7 @@
 import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/antiquary-assumptions.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */

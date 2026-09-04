@@ -1,6 +1,6 @@
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export function daredevilCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {

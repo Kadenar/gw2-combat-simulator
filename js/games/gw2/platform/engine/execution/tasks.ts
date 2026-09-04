@@ -6,7 +6,12 @@
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
-import type { ScheduledTask, ScheduledTaskHandler, ScheduledTaskInput, TaskQueue } from '#gw2/platform/engine/types.js';
+import type {
+  ScheduledTask,
+  ScheduledTaskHandler,
+  ScheduledTaskInput,
+  TaskQueue
+} from '#gw2/platform/engine/execution/types.js';
 
 function cloneSerializable<T>(value: T, label: string): T {
   try {

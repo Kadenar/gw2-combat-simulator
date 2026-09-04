@@ -1,16 +1,16 @@
-import type { SkillEffect } from '#gw2/platform/engine/types.js';
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringSkill
 } from '#gw2/integrations/patches/authoring/module-types.js';
 import {
-  PATCHABLE_EFFECT_NUMERIC_FIELDS,
   type EffectPatch,
   type ModifierRulePatchEdit,
   type PatchOverviewEntry,
   type PatchPreview,
   type SkillPatchEdit
 } from '#gw2/integrations/patches/authoring/patches.js';
+import { PATCHABLE_EFFECT_NUMERIC_FIELDS } from '#gw2/integrations/patches/authoring/fields.js';
 import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 
 type MutableRecord = Record<string, unknown>;

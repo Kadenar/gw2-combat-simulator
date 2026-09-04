@@ -2,7 +2,7 @@
  * Owns the ordered Core Mesmer effect-controller pipeline used by replacing handlers.
  * Packet emission and stateful effects remain in their focused sibling modules.
  */
-import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import { createIllusionResourceController } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';

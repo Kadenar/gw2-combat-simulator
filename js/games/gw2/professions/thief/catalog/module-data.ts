@@ -9,7 +9,7 @@ import { TRAITS } from '#gw2/professions/thief/data/traits-data.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
 import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { deadeyeWeaponSkillMatchesSet } from '#gw2/professions/thief/specializations/deadeye/mechanics/weapon-state.js';
-import type { CatalogEntity, SkillId } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefSkill, ThiefWeaponMatcherContext } from '#gw2/professions/thief/types.js';
 
 export function thiefWeaponSkillMatchesSet(

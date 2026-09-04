@@ -12,7 +12,7 @@ import type {
   ProfessionResourceView,
   ProfessionUiContract,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/types.js';
+} from '#gw2/platform/engine/profession/types.js';
 import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';

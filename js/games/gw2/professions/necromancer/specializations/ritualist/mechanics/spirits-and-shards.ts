@@ -11,7 +11,8 @@ import {
   necromancerRuntimeSpecializationState,
   necromancerTargetControlled
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import type { AvailabilityResult, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';

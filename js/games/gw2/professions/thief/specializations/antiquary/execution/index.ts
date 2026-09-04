@@ -11,7 +11,7 @@ import {
   reshuffleArtifacts,
   resolveDoubleEdge
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import type { SkillHandlerPhase } from '#gw2/platform/engine/types.js';
+import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { ThiefCastContext } from '#gw2/professions/thief/types.js';
 import { applySkrittSwipeTraits } from '#gw2/professions/thief/specializations/antiquary/traits/index.js';
 

@@ -11,11 +11,11 @@ import type {
   ProfessionUiContract,
   ProfessionWeaponPaletteRenderContext,
   ProfessionWeaponPaletteView,
-  RotationStateSnapshotItem,
-  SchedulerRecord,
-  SimulationEvent,
-  Skill
-} from '#gw2/platform/engine/types.js';
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,

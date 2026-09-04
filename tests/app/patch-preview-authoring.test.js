@@ -23,7 +23,7 @@ import {
   balanceProfilePatchableNumericFields,
   skillAuthoringReference,
   skillPatchableNumericFields
-} from '#gw2/integrations/patches/authoring/patches.js';
+} from '#gw2/integrations/patches/authoring/fields.js';
 import { elementalistProfession as baseElementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import { engineerProfession as baseEngineerProfession } from '#gw2/professions/engineer/definition.js';
 import { guardianProfession as baseGuardianProfession } from '#gw2/professions/guardian/definition.js';
@@ -275,7 +275,8 @@ test('patch authoring keeps skill timing in the runtime catalog', () => {
   };
 
   assert.deepEqual(skillPatchableNumericFields(skill), { cooldown: 12 });
-  assert.deepEqual(skillAuthoringReference(skill), {
+  const reference = skillAuthoringReference(skill);
+  assert.deepEqual(reference, {
     id: 1,
     name: 'Fixture',
     cooldown: 12,
@@ -284,6 +285,11 @@ test('patch authoring keeps skill timing in the runtime catalog', () => {
   });
   assert.equal(skill.castTimeMs, 900);
   assert.equal(skill.summonAttack.initialDelay, 1);
+  // Sanitized references must remain immutable without freezing the runtime source.
+  assert.equal(Object.isFrozen(reference), true);
+  assert.equal(Object.isFrozen(reference.summonAttack), true);
+  assert.equal(Object.isFrozen(reference.effects[0]), true);
+  assert.equal(Object.isFrozen(skill), false);
 });
 
 test('patch authoring separates skill variants and emits no runtime cast fields', () => {

@@ -3,7 +3,7 @@
  * Blade storage and bladesong runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.THOUSAND_CUTS]: {

@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { catalogSkillById, normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';

@@ -6,7 +6,7 @@ import {
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   EngineerMechAttributes,

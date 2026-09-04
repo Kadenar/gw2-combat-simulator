@@ -1,7 +1,11 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { normalizeEffectAudience } from '#gw2/platform/engine/effects/contracts.js';
 
-import type { EffectAudience, ResolvedEffectAudience, SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type {
+  EffectAudience,
+  ResolvedEffectAudience,
+  SimulationEventInput
+} from '#gw2/platform/engine/events/types.js';
 
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc

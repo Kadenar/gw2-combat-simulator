@@ -1,5 +1,5 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/ranger/data/ranger-api-metadata.js';
-import type { CatalogEntity } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 import { createProfessionTraitData } from '#gw2/professions/lib/traits.js';
 
 export const {

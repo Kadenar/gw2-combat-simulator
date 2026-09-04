@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';

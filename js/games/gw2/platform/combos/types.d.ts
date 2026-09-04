@@ -1,5 +1,6 @@
 /** Owns the combos/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord, SimulationActorType, SimulationEventBase } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationActorType, SimulationEventBase } from '#gw2/platform/engine/events/types.js';
 
 export type ComboFieldType =
   'Dark' | 'Ethereal' | 'Fire' | 'Ice' | 'Light' | 'Lightning' | 'Poison' | 'Smoke' | 'Water';
@@ -39,7 +40,7 @@ export interface ComboEvent extends SimulationEventBase<'combo'> {
   readonly fieldId: string;
   readonly fieldType: ComboFieldType;
   readonly finisherType: ComboFinisherType;
-  readonly fieldSourceId: import('#gw2/platform/engine/types.js').SkillId;
+  readonly fieldSourceId: import('#gw2/platform/engine/skills/types.js').SkillId;
   readonly bindingKind: ComboFieldBinding['kind'];
   readonly applicationCount: number;
   readonly outcome: Readonly<Record<string, unknown>>;

@@ -8,7 +8,8 @@
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { AvailabilityResult, Skill } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { denySkillCast as unavailable } from '#gw2/professions/lib/availability.js';

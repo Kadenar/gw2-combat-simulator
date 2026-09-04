@@ -14,13 +14,9 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import type {
-  AvailabilityResult,
-  ScheduledTask,
-  SchedulerRecord,
-  SimulationEvent,
-  Skill
-} from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

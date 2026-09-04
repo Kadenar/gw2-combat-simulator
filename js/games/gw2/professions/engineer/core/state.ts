@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { EngineerConfig, EngineerCoreState } from '#gw2/professions/engineer/types.js';
 

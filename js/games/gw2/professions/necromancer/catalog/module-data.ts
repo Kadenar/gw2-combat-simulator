@@ -6,7 +6,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necro
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/necromancer/data/necromancer-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
 
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(

@@ -1,13 +1,12 @@
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
-  CanonicalCatalog,
   ProfessionFamilyDefinition,
   ProfessionModuleCatalogFragment,
   ProfessionModuleDefinition,
-  ProfessionUiContract,
-  SchedulerConfig,
-  SchedulerRecord
-} from '#gw2/platform/engine/types.js';
+  ProfessionUiContract
+} from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerConfig, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import type {
   AnyNativeModule,

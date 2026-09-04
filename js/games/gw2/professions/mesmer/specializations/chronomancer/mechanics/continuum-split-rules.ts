@@ -14,7 +14,8 @@ import {
 } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/runtime.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/time-bomb.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { AvailabilityResult, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   MesmerPrecastContext,
   MesmerRechargeContext,

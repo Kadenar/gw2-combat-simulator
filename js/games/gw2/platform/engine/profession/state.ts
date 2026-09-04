@@ -2,7 +2,7 @@
  * Profession state ownership helpers. Keeps Core and active-specialization
  * state explicitly separated while providing stable public projections.
  */
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 /**
  * Flattens Core plus the active specialization solely for stable public

@@ -1,6 +1,7 @@
 import { skillBreakdownRows } from '#gw2/app/results/model.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
-import type { PatchComparison, ProfessionAppState } from '#gw2/app/types.js';
+import type { PatchComparison } from '#gw2/app/simulation/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/patches.js';
 
 function httpUrl(value: string | undefined): string | null {

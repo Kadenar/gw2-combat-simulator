@@ -18,7 +18,8 @@ import {
   gainNecromancerLifeForce,
   necromancerCreatureStrikeMultiplier
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import {
   commandDefinitionFor,

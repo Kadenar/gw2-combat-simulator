@@ -4,8 +4,8 @@ import { applyElementalistBuildAttributeRules } from '#gw2/professions/elemental
 import { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 
-import type { Skill } from '#gw2/platform/engine/types.js';
-import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '#gw2/app/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '#gw2/app/build/types.js';
 import type {
   CatalystEmpowermentPool,
   ElementalistApplicationBuild

@@ -1,7 +1,7 @@
 /** Shared resolver-side state, attribution, boon, and condition helpers for Elementalist behavior. */
 import { EPSILON } from '#kernel/core/clock.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';

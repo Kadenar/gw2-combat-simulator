@@ -1,6 +1,6 @@
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/simulation/randomness.js';
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
-import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 export const DEFAULT_TARGET_HEALTH = 4_000_000;
 export const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;

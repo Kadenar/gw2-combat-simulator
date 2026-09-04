@@ -4,7 +4,7 @@
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies Harbinger elixir fragments to specialization composition. */
 export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({

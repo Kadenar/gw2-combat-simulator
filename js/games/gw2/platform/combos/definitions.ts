@@ -1,4 +1,5 @@
-import type { SimulationEventInput, SkillId } from '#gw2/platform/engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 
 const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([

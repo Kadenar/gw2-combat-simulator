@@ -1,5 +1,5 @@
 /** Materializes relic-created boon and condition events while the scheduler still owns event production. */
-import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import type {
