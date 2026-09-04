@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { bleedingDuration } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 import {
   analyzeEngineerSerratedSteelObservation,
   analyzeEngineerShrapnelObservation
@@ -21,6 +22,25 @@ const TIGER = 0x5000n;
 const SPIDER = 0x6000n;
 const EXPLOSION_SKILL_ID = 1_000;
 const STRIKE_SKILL_ID = 2_000;
+
+// Proc duration lookup uses the first Bleeding condition and tolerates absent profile effects.
+test('Bleeding duration lookup ignores unrelated effects and defaults missing durations to zero', () => {
+  assert.equal(bleedingDuration({}), 0);
+  assert.equal(bleedingDuration({ effects: [] }), 0);
+  assert.equal(bleedingDuration({ effects: [{ type: 'condition', condition: 'Burning', duration: 8 }] }), 0);
+  assert.equal(bleedingDuration({ effects: [{ type: 'condition', condition: 'Bleeding' }] }), 0);
+  assert.equal(
+    bleedingDuration({
+      effects: [
+        { type: 'strike', condition: 'Bleeding', duration: 9 },
+        { type: 'condition', condition: 'Burning', duration: 8 },
+        { type: 'condition', condition: 'bLeEdInG', duration: '3' },
+        { type: 'condition', condition: 'Bleeding', duration: 5 }
+      ]
+    }),
+    3
+  );
+});
 
 function event(overrides = {}) {
   return {

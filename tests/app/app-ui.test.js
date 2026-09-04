@@ -17,13 +17,13 @@ import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/st
 import { groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/app/profession/registry.js';
 import {
-  autoattackChainSkillAvailable,
   displayedSkillTiles,
   displayedWeaponSkills,
   paletteActionSkills,
   weaponSkills,
   weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
 import { weaponPaletteSectionHtml, weaponPaletteStackHtml } from '#gw2/app/rotation/palette/view.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
@@ -1522,7 +1522,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     false
   );
   assert.equal(
-    engineer.profession.ui.isPaletteSkillAvailable({ professionState: { activeKit: '' } }, swapWeapons),
+    engineer.profession.ui.paletteSkillAvailability({ professionState: { activeKit: '' } }, swapWeapons).available,
     false
   );
   engineer.results = {
@@ -1535,7 +1535,8 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     true
   );
   assert.equal(
-    engineer.profession.ui.isPaletteSkillAvailable({ professionState: { activeKit: 'Grenade Kit' } }, swapWeapons),
+    engineer.profession.ui.paletteSkillAvailability({ professionState: { activeKit: 'Grenade Kit' } }, swapWeapons)
+      .available,
     true
   );
   assert.equal(

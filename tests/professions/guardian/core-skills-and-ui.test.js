@@ -952,82 +952,82 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
 });
 
 test('Guardian palette availability follows the active tome or forge', () => {
-  const isAvailable = guardianProfession.ui.isPaletteSkillAvailable;
+  const paletteSkillAvailability = guardianProfession.ui.paletteSkillAvailability;
   const trueStrike = guardianCatalog.skillsByName.get('True Strike');
   const searingSpell = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SEARING_SPELL);
   const desertBloom = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DESERT_BLOOM);
   const dazzlingHammer = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
 
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { activeTome: '', tomePages: 5 }
       },
       trueStrike
-    ),
+    ).available,
     true
   );
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { activeTome: '', tomePages: 5 }
       },
       searingSpell
-    ),
+    ).available,
     false
   );
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { activeTome: 'justice', tomePages: 5 }
       },
       trueStrike
-    ),
+    ).available,
     false
   );
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { activeTome: 'justice', tomePages: 5 }
       },
       searingSpell
-    ),
+    ).available,
     true
   );
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { activeTome: 'justice', tomePages: 5 }
       },
       desertBloom
-    ),
+    ).available,
     false
   );
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { radiantForge: false }
       },
       dazzlingHammer
-    ),
+    ).available,
     false
   );
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { radiantForge: true }
       },
       trueStrike
-    ),
+    ).available,
     false
   );
   assert.equal(
-    isAvailable(
+    paletteSkillAvailability(
       {
         professionState: { radiantForge: true }
       },
       dazzlingHammer
-    ),
+    ).available,
     true
   );
 });

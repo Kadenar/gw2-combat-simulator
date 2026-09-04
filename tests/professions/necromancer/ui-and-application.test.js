@@ -330,22 +330,26 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
     }
 
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(inactiveContext, necromancerCatalog.skillsById.get(entryId)),
+      necromancerProfession.ui.paletteSkillAvailability(inactiveContext, necromancerCatalog.skillsById.get(entryId))
+        .available,
       true,
       specialization
     );
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(inactiveContext, necromancerCatalog.skillsById.get(exitId)),
+      necromancerProfession.ui.paletteSkillAvailability(inactiveContext, necromancerCatalog.skillsById.get(exitId))
+        .available,
       false,
       specialization
     );
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(activeContext, necromancerCatalog.skillsById.get(entryId)),
+      necromancerProfession.ui.paletteSkillAvailability(activeContext, necromancerCatalog.skillsById.get(entryId))
+        .available,
       false,
       specialization
     );
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(activeContext, necromancerCatalog.skillsById.get(exitId)),
+      necromancerProfession.ui.paletteSkillAvailability(activeContext, necromancerCatalog.skillsById.get(exitId))
+        .available,
       true,
       specialization
     );
@@ -475,13 +479,13 @@ test('slot skills are inaccessible in transformed shrouds', () => {
     ['Ritualist', 'ritualist', "Ritualist's Shroud"]
   ]) {
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(
+      necromancerProfession.ui.paletteSkillAvailability(
         {
           specialization,
           professionState: { activeShroud: shroud }
         },
         slotSkill
-      ),
+      ).available,
       false,
       specialization
     );
@@ -494,13 +498,13 @@ test('slot skills are inaccessible in transformed shrouds', () => {
   }
 
   assert.equal(
-    necromancerProfession.ui.isPaletteSkillAvailable(
+    necromancerProfession.ui.paletteSkillAvailability(
       {
         specialization: 'Scourge',
         professionState: { activeShroud: '' }
       },
       slotSkill
-    ),
+    ).available,
     true
   );
 });

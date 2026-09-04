@@ -68,6 +68,17 @@ export interface Gw2AutoattackChainMechanics {
   readonly castLifecycle: AutoattackChainHook;
 }
 
+/** Shows the expected chain step, accepting stored names or IDs and defaulting an unstarted chain to its root. */
+export function autoattackChainSkillAvailable(
+  skill: Skill,
+  chainState: Readonly<Record<string, unknown>> = {}
+): boolean {
+  if (!skill.chainRoot) return true;
+  const chainRoot = String(skill.chainRoot);
+  const expected = chainState[chainRoot] ?? skill.chainRoot;
+  return skill.name === expected || skill.id === Number(expected);
+}
+
 function chainState(context: object): Record<string, SkillId> | null {
   const core = professionCoreState(context) as AutoattackChainCoreState | undefined;
   const chains = core?.autoattackChains;

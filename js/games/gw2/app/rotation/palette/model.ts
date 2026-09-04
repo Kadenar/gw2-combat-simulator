@@ -25,6 +25,7 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { groupWeaponSkillsByAttunement } from '#gw2/app/profession/weapon-attunement-groups.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
 
 /** Owns the normalized palette declaration consumed by this feature's views. */
 export interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
@@ -509,13 +510,6 @@ export function weaponPaletteRows(
       skills
     }));
   });
-}
-
-export function autoattackChainSkillAvailable(skill: Skill, chainState: SchedulerRecord = {}): boolean {
-  if (!skill.chainRoot) return true;
-  const chainRoot = String(skill.chainRoot);
-  const expected = chainState[chainRoot] ?? skill.chainRoot;
-  return skill.name === expected || skill.id === Number(expected);
 }
 
 export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {

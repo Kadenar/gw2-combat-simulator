@@ -1,4 +1,5 @@
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import { shouldIgnoreHotkey } from '#ui/shared/dom.js';
 
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';
 export const ROTATION_HOTKEY_ENABLED_STORAGE_KEY = 'gw2-rotation-hotkeys-enabled-v1';
@@ -350,12 +351,6 @@ export function formatRotationHotkeyBadge(code: string): string {
     ? `N${keyCode.slice(-1)}`
     : BADGE_CODES[keyCode] || formatRotationHotkey(keyCode);
   return modifiers ? `${modifiers}+${keyLabel}` : keyLabel;
-}
-
-function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
-  const target = event.target;
-  if (!(target instanceof Element)) return false;
-  return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
 }
 
 function currentHotkeyTarget(root: HTMLElement, action: RotationHotkeyAction): HTMLElement | null {

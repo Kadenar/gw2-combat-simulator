@@ -37,6 +37,14 @@ export function traitBalanceProfile(
   return catalog.balanceProfilesById?.get(traitId) || catalog.balanceProfilesByName?.get(traitName) || null;
 }
 
+/** Reads the first Bleeding condition's base duration for proc matching, or zero when the profile has none. */
+export function bleedingDuration(profile: BalanceProfile): number {
+  return Number(
+    profile.effects?.find((effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding')
+      ?.duration || 0
+  );
+}
+
 export function isOutgoingStrike(event: ParsedEvtcEvent, sourceAddress: bigint): boolean {
   return (
     event.source === sourceAddress &&
@@ -153,10 +161,7 @@ export function analyzeCriticalBleedingProcObservation(
   if (!profile) return null;
 
   const expectedProcChance = Number(profile.criticalChance || profile.procChance || 0);
-  const baseDurationSeconds = Number(
-    profile.effects?.find((effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding')
-      ?.duration || 0
-  );
+  const baseDurationSeconds = bleedingDuration(profile);
   const matchedDurationsMs = expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config);
   if (!(expectedProcChance > 0) || !matchedDurationsMs.length) return null;
 

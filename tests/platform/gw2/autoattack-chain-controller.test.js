@@ -3,7 +3,11 @@ import test from 'node:test';
 
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { replaceAutoattackChains, resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import {
+  autoattackChainSkillAvailable,
+  replaceAutoattackChains,
+  resetAutoattackChains
+} from '#gw2/platform/skills/autoattack-chains.js';
 
 const skill = (id, name, extra = {}) => ({
   id,
@@ -122,6 +126,23 @@ function chainProfession(autoattackChains) {
 function chainState(result) {
   return result.state.profession.core.autoattackChains;
 }
+
+// Palette projection accepts both legacy names and IDs without changing the captured chain state.
+test('autoattack availability defaults to the root and accepts named or numeric steps', () => {
+  assert.equal(autoattackChainSkillAvailable(skill(3, 'Unchained')), true);
+  for (const chainRoot of [1, '1', 'Root A']) {
+    const root = skill(1, 'Root A', { chainRoot });
+    const next = skill(2, 'Second A', { chainRoot });
+    assert.equal(autoattackChainSkillAvailable(root), true);
+    assert.equal(autoattackChainSkillAvailable(next), false);
+    assert.equal(autoattackChainSkillAvailable(root, { [chainRoot]: null }), true);
+    for (const expected of [2, '2', 'Second A']) {
+      const state = Object.freeze({ [chainRoot]: expected });
+      assert.equal(autoattackChainSkillAvailable(next, state), true);
+      assert.equal(autoattackChainSkillAvailable(root, state), false);
+    }
+  }
+});
 
 test('native professions automatically gate and advance autoattack chains', () => {
   const profession = chainProfession();

@@ -684,7 +684,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.ok(group.skillEntries.every((entry) => !/Legendary|Stance/.test(entry.displayName)));
   const [destination] = group.skillEntries;
 
-  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(context, destination), true);
+  assert.equal(revenantProfession.ui.paletteSkillAvailability(context, destination).available, true);
   const cooldownContext = {
     ...context,
     time: 1,

@@ -1,3 +1,5 @@
+import { shouldIgnoreHotkey } from '#ui/shared/dom.js';
+
 export interface RotationInsertionCursorOptions {
   root: HTMLElement;
   insertionIndex: unknown;
@@ -31,12 +33,6 @@ export function rotationTimelineEntryHtml(index: number, activeIndex: unknown, e
     ${rotationInsertionGapHtml(index, activeIndex)}
     ${entryHtml}
   </div>`;
-}
-
-function shouldIgnoreArrowKey(event: KeyboardEvent): boolean {
-  const target = event.target;
-  if (!(target instanceof Element)) return false;
-  return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
 }
 
 export function mountRotationInsertionCursor({
@@ -79,7 +75,7 @@ export function mountRotationInsertionCursor({
 
   const handleArrow = (event: KeyboardEvent): void => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-    if (shouldIgnoreArrowKey(event)) return;
+    if (shouldIgnoreHotkey(event)) return;
     if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
     const focused = document.activeElement;
     if (focused && focused !== document.body && !scope.contains(focused)) return;

@@ -68,7 +68,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
     ['Haunt Shot', 'Grasping Shadows', "Dawn's Repose", 'Eternal Night', 'Mind Shock']
   );
   assert.equal(
-    thiefProfession.ui.isPaletteSkillAvailable(
+    thiefProfession.ui.paletteSkillAvailability(
       {
         specialization: 'Specter',
         professionState: {
@@ -77,7 +77,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
         }
       },
       thiefCatalog.skillsByName.get('Enter Shadow Shroud')
-    ),
+    ).available,
     false
   );
 
@@ -109,7 +109,7 @@ test('Specter can use its shroud autoattack while stealth is active', () => {
     }
   };
 
-  assert.equal(thiefProfession.ui.isPaletteSkillAvailable(paletteContext, hauntShot), true);
+  assert.equal(thiefProfession.ui.paletteSkillAvailability(paletteContext, hauntShot).available, true);
   const result = simulate('Specter', ['Hide in Shadows', 'Enter Shadow Shroud', 'Haunt Shot'], {
     initialShadowForce: 100
   });

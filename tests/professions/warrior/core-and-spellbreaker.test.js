@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
-import { autoattackChainSkillAvailable } from '#gw2/app/rotation/palette/model.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';

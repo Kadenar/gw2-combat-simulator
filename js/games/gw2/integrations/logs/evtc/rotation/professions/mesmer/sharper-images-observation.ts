@@ -1,4 +1,4 @@
-import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -10,6 +10,7 @@ import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
   EVTC_DURATION_TOLERANCE_MS,
+  bleedingDuration,
   countPairedApplications,
   expectedConditionDurationsMs,
   hasSelectedTrait,
@@ -26,13 +27,6 @@ export interface MesmerSharperImagesObservation {
   readonly expectedProcChance: number;
   readonly expectedApplications: number;
   readonly matchedDurationsMs: readonly number[];
-}
-
-function bleedingDuration(profile: BalanceProfile): number {
-  return Number(
-    profile.effects?.find((effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding')
-      ?.duration || 0
-  );
 }
 
 function removeExpertiseBonus(stats: Gw2Stats | undefined, bonus: number): Gw2Stats | undefined {

@@ -1,4 +1,11 @@
-// Shared DOM lookup guards for build/config panels.
+// Shared DOM lookup and interaction guards.
+
+/** Leaves keyboard input to editable controls and dialogs instead of activating surrounding shortcuts. */
+export function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
+  const target = event.target;
+  if (!(target instanceof Element)) return false;
+  return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
+}
 
 /**
  * Returns the element with the given id or throws when it is missing.

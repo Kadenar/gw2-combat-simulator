@@ -1,4 +1,4 @@
-import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -7,6 +7,7 @@ import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
+  bleedingDuration,
   expectedConditionDurationsMs,
   hasSelectedTrait,
   isOutgoingStrike,
@@ -36,13 +37,6 @@ export interface RangerSharpenedEdgesObservation {
   readonly expectedApplications: number;
   readonly playerMatchedDurationsMs: readonly number[];
   readonly pets: readonly RangerSharpenedEdgesPetObservation[];
-}
-
-function bleedingDuration(profile: BalanceProfile): number {
-  return Number(
-    profile.effects?.find((effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding')
-      ?.duration || 0
-  );
 }
 
 function rangerPet(character: string): RangerPetDefinition | null {

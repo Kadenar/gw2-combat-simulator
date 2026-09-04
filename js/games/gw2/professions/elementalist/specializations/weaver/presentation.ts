@@ -16,6 +16,7 @@ import type {
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -231,14 +232,6 @@ export function weaverWeaponPaletteLayout(skills: readonly Skill[]): WeaverWeapo
     secondaryRows,
     extraSkills: skills.filter((skill) => !assigned.has(skill.id))
   };
-}
-
-// Show only the chain step the live autoattack chain state is currently on.
-function autoattackChainSkillAvailable(skill: Skill, chainState: SchedulerRecord): boolean {
-  if (!skill.chainRoot) return true;
-  const chainRoot = String(skill.chainRoot);
-  const expected = chainState[chainRoot] ?? skill.chainRoot;
-  return skill.name === expected || skill.id === Number(expected);
 }
 
 // Condense an attunement or dual pair into initials, e.g. "Fire+Air" -> "F/A".

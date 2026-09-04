@@ -899,8 +899,8 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
   const relinquish = revenantCatalog.skillsByName.get('Relinquish Power');
 
-  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(context, impossible), false);
-  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(context, relinquish), true);
+  assert.equal(revenantProfession.ui.paletteSkillAvailability(context, impossible).available, false);
+  assert.equal(revenantProfession.ui.paletteSkillAvailability(context, relinquish).available, true);
 
   const lowEnergyContext = {
     ...context,
@@ -914,10 +914,10 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
   const chilling = revenantCatalog.skillsByName.get('Chilling Isolation');
   const phase = revenantCatalog.skillsByName.get('Phase Traversal');
 
-  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(lowEnergyContext, chilling), false);
-  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(lowEnergyContext, phase), false);
+  assert.equal(revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, chilling).available, false);
+  assert.equal(revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, phase).available, false);
   assert.equal(
-    revenantProfession.ui.isPaletteSkillAvailable(
+    revenantProfession.ui.paletteSkillAvailability(
       {
         ...lowEnergyContext,
         cooldowns: {
@@ -925,11 +925,11 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
         }
       },
       phase
-    ),
+    ).available,
     true
   );
   assert.equal(
-    revenantProfession.ui.paletteSkillUnavailableMessage(lowEnergyContext, phase),
+    revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, phase).message,
     'Requires 30 Energy; currently 4'
   );
   assert.match(paletteSkillView({ results: null }, phase).title, /Energy cost: 30/);
@@ -1004,11 +1004,13 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
 
   assert.ok(demon.skillIds.includes(SKILL.UNYIELDING_IMPACT));
   assert.equal(
-    revenantProfession.ui.isPaletteSkillAvailable(context, revenantCatalog.skillsById.get(SKILL.CALL_TO_ANGUISH)),
+    revenantProfession.ui.paletteSkillAvailability(context, revenantCatalog.skillsById.get(SKILL.CALL_TO_ANGUISH))
+      .available,
     false
   );
   assert.equal(
-    revenantProfession.ui.isPaletteSkillAvailable(context, revenantCatalog.skillsById.get(SKILL.UNYIELDING_IMPACT)),
+    revenantProfession.ui.paletteSkillAvailability(context, revenantCatalog.skillsById.get(SKILL.UNYIELDING_IMPACT))
+      .available,
     true
   );
 

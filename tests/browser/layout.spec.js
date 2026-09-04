@@ -26,6 +26,36 @@ test('landing page exposes profession navigation and restores focus after its tu
   await expect(trigger).toBeFocused();
 });
 
+// Native closest() matching must protect controls and dialog descendants for both rotation keyboard handlers.
+test('shared hotkey exclusion protects editable controls and dialogs', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const failures = await page.evaluate(async () => {
+    const { shouldIgnoreHotkey } = await import('/js/ui/shared/dom.ts');
+    const cases = [
+      ['<input>', true],
+      ['<textarea></textarea>', true],
+      ['<select><option>Choice</option></select>', true],
+      ['<div contenteditable="true"><span>Text</span></div>', true],
+      ['<div role="dialog"><button>Action</button></div>', true],
+      ['<dialog><button>Action</button></dialog>', true],
+      ['<div contenteditable="false"><span>Text</span></div>', false],
+      ['<button>Action</button>', false]
+    ];
+    const failures = cases.flatMap(([html, ignored]) => {
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      const targets = [...container.querySelectorAll('*')];
+      return targets.some((target) => shouldIgnoreHotkey({ target }) !== ignored) ? [html] : [];
+    });
+    for (const target of [null, document, document.createTextNode('Text')]) {
+      if (shouldIgnoreHotkey({ target })) failures.push(String(target));
+    }
+
+    return failures;
+  });
+  expect(failures).toEqual([]);
+});
+
 test('simulation config controls and result-dependent palette state work in the browser', async ({ page }) => {
   await openSimulator(page);
 

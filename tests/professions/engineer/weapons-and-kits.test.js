@@ -1283,9 +1283,9 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
   const rod = engineerCatalog.skillsByName.get('Lightning Rod');
   const artillery = engineerCatalog.skillsByName.get('Electric Artillery');
 
-  assert.equal(engineerProfession.ui.isPaletteSkillAvailable(chargingContext, rod), false);
-  assert.equal(engineerProfession.ui.isPaletteSkillAvailable(chargingContext, artillery), false);
-  assert.equal(engineerProfession.ui.isPaletteSkillAvailable(chargedContext, artillery), true);
+  assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, rod).available, false);
+  assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, artillery).available, false);
+  assert.equal(engineerProfession.ui.paletteSkillAvailability(chargedContext, artillery).available, true);
   assert.equal(charging.endState.profession.availableFlips[artillery.id], false);
   assert.equal(charged.endState.profession.availableFlips[artillery.id], true);
 });
