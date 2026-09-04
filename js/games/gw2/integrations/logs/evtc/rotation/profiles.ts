@@ -1,8 +1,4 @@
-import {
-  ROTATION_PROFILES,
-  type RotationActionIdentity,
-  type RotationProfessionProfile
-} from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { elementalistProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/profile.js';
 import { engineerProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/profile.js';
 import { guardianProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/profile.js';
@@ -12,38 +8,18 @@ import { rangerProfileSource } from '#gw2/integrations/logs/evtc/rotation/profes
 import { revenantProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/profile.js';
 import { thiefProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/thief/profile.js';
 import { warriorProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/profile.js';
+import type {
+  EvtcProfessionProfileSource,
+  EvtcRotationProfessionProfile
+} from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 
-export type EvtcRotationActionIdentity = RotationActionIdentity;
-
-export interface EvtcRotationBuffTransition {
-  readonly buffSkillId: number;
-  readonly gain?: EvtcRotationActionIdentity;
-  readonly loss?: EvtcRotationActionIdentity;
-  readonly lossRequiresRemainingDuration?: boolean;
-  readonly suppressWeaponSwap: boolean;
-}
-
-export interface EvtcRotationInitialSummon {
-  readonly agentSpeciesId: number;
-  readonly action: EvtcRotationActionIdentity;
-}
-
-export interface EvtcRotationProfessionProfile extends RotationProfessionProfile {
-  readonly ignoredInstantSkillIds: ReadonlySet<number>;
-  readonly buffTransitions: readonly EvtcRotationBuffTransition[];
-  readonly initialSummons: readonly EvtcRotationInitialSummon[];
-  readonly inferCombatStartFromFirstCast: boolean;
-}
-
-export interface EvtcProfessionProfileSource {
-  readonly professionId: string;
-  readonly ignoredInstantSkillIds?: readonly number[];
-  readonly buffTransitions?: readonly EvtcRotationBuffTransition[];
-  readonly buffTransitionsBySpecialization?: Readonly<Record<string, readonly EvtcRotationBuffTransition[]>>;
-  readonly initialSummons?: readonly EvtcRotationInitialSummon[];
-  readonly initialSummonsBySpecialization?: Readonly<Record<string, readonly EvtcRotationInitialSummon[]>>;
-  readonly inferCombatStartFromFirstCast?: boolean;
-}
+export type {
+  EvtcProfessionProfileSource,
+  EvtcRotationActionIdentity,
+  EvtcRotationBuffTransition,
+  EvtcRotationInitialSummon,
+  EvtcRotationProfessionProfile
+} from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 
 const sourceConfigurations: readonly EvtcProfessionProfileSource[] = [
   elementalistProfileSource,

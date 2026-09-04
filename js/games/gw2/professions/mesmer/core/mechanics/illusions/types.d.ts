@@ -1,6 +1,6 @@
 import type { SchedulerRecord, SimulationEvent, SkillId, StrikeTick } from '#gw2/platform/engine/types.js';
 
-import type { MesmerResourceCause } from '#gw2/professions/mesmer/state/types.js';
+import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerClone {

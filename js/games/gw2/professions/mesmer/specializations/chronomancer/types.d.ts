@@ -1,6 +1,7 @@
 import type { SkillId } from '#gw2/platform/engine/types.js';
 
-import type { MesmerResourceSpendDetails, MesmerShatterResolution } from '#gw2/professions/mesmer/types.js';
+import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerContinuumAmmo {

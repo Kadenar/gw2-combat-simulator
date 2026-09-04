@@ -16,9 +16,9 @@ import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerRuntime,
-  MesmerShatter,
   MesmerInstrument
 } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 

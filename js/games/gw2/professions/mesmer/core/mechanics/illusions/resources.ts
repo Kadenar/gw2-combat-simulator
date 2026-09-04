@@ -4,7 +4,7 @@ import type {
   MesmerPhantasmExecution
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import type { MesmerQueueResources } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/state/types.js';
+import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

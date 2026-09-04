@@ -9,11 +9,8 @@ import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-f
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type {
-  MesmerCastContext,
-  MesmerSchedulerContext,
-  MesmerShatterResolution
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */

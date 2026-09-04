@@ -25,9 +25,18 @@ import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
 import type {
   MesmerProfessionState,
   MesmerResolverState,
-  MesmerResourceDefinition,
   MesmerRuntimeState
 } from '#gw2/professions/mesmer/state/types.js';
+import type {
+  MesmerResourceDefinition,
+  MesmerResourceSpendDetails
+} from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import type {
+  MesmerShatter,
+  MesmerShatterResolution,
+  MesmerShatterResolverRequest,
+  MesmerShatterTraitHit
+} from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
   MesmerAttackStatus,
   MesmerCloneAttack,
@@ -53,6 +62,14 @@ import type {
   MesmerEventExtra,
   MesmerSkill
 } from '#gw2/professions/mesmer/data/types.js';
+
+export type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+export type {
+  MesmerShatter,
+  MesmerShatterResolution,
+  MesmerShatterResolverRequest,
+  MesmerShatterTraitHit
+} from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 export interface MesmerSpecializationSelection {
   readonly name: string;
   readonly traits?: string;
@@ -238,30 +255,10 @@ export interface MesmerInstrument {
   readonly conditions?: readonly MesmerAttackStatus[];
 }
 
-export interface MesmerShatterTraitHit {
-  readonly at: number;
-  readonly count: number;
-}
-
-export interface MesmerShatterResolverRequest {
-  readonly skill: MesmerSkill;
-  readonly shatter: MesmerShatter;
-  readonly at: number;
-  readonly castStart: number;
-  readonly spent: number;
-}
-
 export type MesmerShatterResolver = (
   context: MesmerCastContext,
   request: MesmerShatterResolverRequest
 ) => readonly MesmerShatterTraitHit[];
-
-export interface MesmerShatterResolution {
-  readonly skill: MesmerSkill;
-  readonly at: number;
-  readonly spent: number;
-  readonly traitHits: readonly MesmerShatterTraitHit[];
-}
 
 export type MesmerSkillCompletionHandler = (
   context: MesmerCastContext,
@@ -305,11 +302,6 @@ export type MesmerAddDamage = (
 
 export type MesmerActivePrimaryWeapon = () => string;
 
-export interface MesmerResourceSpendDetails {
-  readonly sourceSkill?: string;
-  readonly rotationIndex?: number | null;
-}
-
 export interface MesmerProfessionActionController {
   commitReservedResources(at: number, reserved: number, details?: MesmerResourceSpendDetails): number;
   consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
@@ -339,20 +331,4 @@ export interface MesmerRechargeContext extends SchedulerRecord {
 export interface MesmerMaximumAmmoContext extends SchedulerRecord {
   readonly skill: MesmerSkill;
   readonly mesmerRuntime?: MesmerRuntime;
-}
-
-export interface MesmerShatter {
-  readonly balanceProfileId?: SkillId;
-  readonly slot: number;
-  readonly kind: string;
-  readonly resolver: string;
-  readonly coefficients: readonly number[];
-  readonly minimumResource?: number;
-  readonly consumesResources?: boolean;
-  readonly resetBySignetOfIllusions?: boolean;
-  readonly hitsPerSource?: number;
-  readonly ticks?: readonly (readonly StrikeTick[])[];
-  readonly rechargeReductionPerSource?: number;
-  readonly resourceSpendProgress?: number;
-  readonly damageAtMs?: number;
 }

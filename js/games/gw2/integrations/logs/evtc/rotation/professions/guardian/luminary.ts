@@ -1,6 +1,6 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction

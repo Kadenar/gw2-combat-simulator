@@ -8,9 +8,9 @@ import type {
   MesmerEndState,
   MesmerProfessionState,
   MesmerProjectedFlip,
-  MesmerResourceDefinition,
   MesmerStateSnapshot
 } from '#gw2/professions/mesmer/state/types.js';
+import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
 export function mesmerResourceDefinition(specialization: string): MesmerResourceDefinition {

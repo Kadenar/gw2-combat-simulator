@@ -3,12 +3,8 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { EPSILON } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type {
-  MesmerAddEvent,
-  MesmerInstrument,
-  MesmerSchedulerContext,
-  MesmerShatter
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerAddEvent, MesmerInstrument, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import type { MesmerRuntimeState, MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';

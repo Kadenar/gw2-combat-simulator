@@ -1,10 +1,10 @@
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/index.js';
+import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {
-  MesmerCastContext,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
-} from '#gw2/professions/mesmer/types.js';
+} from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 /** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */
 export function resolveCloneShatter(

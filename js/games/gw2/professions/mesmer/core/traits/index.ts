@@ -1,6 +1,7 @@
 /** Public dispatcher for imperative Core Mesmer trait behavior. */
 import type { SimulationEvent } from '#gw2/platform/engine/types.js';
-import type { MesmerSchedulerContext, MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/types.js';
+import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import {
   triggerChaoticInterruption,
   triggerIllusionaryMembrane,

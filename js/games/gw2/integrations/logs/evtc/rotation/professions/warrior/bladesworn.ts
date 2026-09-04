@@ -1,4 +1,4 @@
-import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import type {
   EvtcProfessionReconstructionContext,

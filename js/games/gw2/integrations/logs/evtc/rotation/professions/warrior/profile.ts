@@ -1,4 +1,4 @@
-import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 import { BLADESWORN_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bladesworn.js';
 
 /**

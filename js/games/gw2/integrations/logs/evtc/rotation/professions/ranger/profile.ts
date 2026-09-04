@@ -1,4 +1,4 @@
-import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 import { DRUID_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/druid.js';
 import { SOULBEAST_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/soulbeast.js';
 import { UNTAMED_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/untamed.js';

@@ -3,7 +3,8 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerCastContext, MesmerShatterResolution } from '#gw2/professions/mesmer/types.js';
+import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 

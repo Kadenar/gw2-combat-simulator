@@ -1,10 +1,10 @@
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
+import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {
-  MesmerCastContext,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
-} from '#gw2/professions/mesmer/types.js';
+} from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(

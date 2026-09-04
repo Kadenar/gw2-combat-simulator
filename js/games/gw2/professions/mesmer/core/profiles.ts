@@ -10,7 +10,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({

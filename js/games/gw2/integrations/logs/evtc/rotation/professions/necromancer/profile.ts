@@ -1,4 +1,4 @@
-import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 import { HARBINGER_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/harbinger.js';
 import { REAPER_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/reaper.js';
 import { RITUALIST_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/ritualist.js';

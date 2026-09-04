@@ -9,6 +9,10 @@ import type {
   MesmerClone,
   MesmerExpectedProcCandidate
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type {
+  MesmerPendingResource,
+  MesmerResourceDefinition
+} from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
 import type { MesmerMirageMirror, MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type {
@@ -20,20 +24,11 @@ import type {
   MesmerTroubadourState
 } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
 
-export interface MesmerPendingResource extends SchedulerRecord {
-  at: number;
-  count: number;
-  weapon?: string | null;
-  reason?: string;
-  cause?: MesmerResourceCause;
-}
-
-export interface MesmerResourceCause extends SchedulerRecord {
-  readonly kind?: string;
-  readonly sourceSkillId?: SkillId;
-  readonly traitId?: number;
-  readonly traitName?: string;
-}
+export type {
+  MesmerPendingResource,
+  MesmerResourceCause,
+  MesmerResourceDefinition
+} from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 export interface MesmerAvailableFlip {
   readonly availableAt: number;
@@ -73,12 +68,6 @@ export interface MesmerRuntimeState {
 
 export interface MesmerResolverState {
   ineptitudeReadyAt: number;
-}
-
-export interface MesmerResourceDefinition {
-  singular: string;
-  plural: string;
-  maximum: number;
 }
 
 export interface MesmerStateSnapshot {

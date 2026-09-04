@@ -1,7 +1,7 @@
 import type { EvtcRotationEvidence, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { EvtcRotationCatalog } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import type { EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 
 export interface EvtcRecordedRotationAction {
   readonly start: number;

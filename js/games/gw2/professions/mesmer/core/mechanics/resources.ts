@@ -17,9 +17,9 @@ import type {
 import type {
   MesmerPendingResource,
   MesmerResourceCause,
-  MesmerResourceDefinition,
-  MesmerRuntimeState
-} from '#gw2/professions/mesmer/state/types.js';
+  MesmerResourceDefinition
+} from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 
 interface ResourceControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

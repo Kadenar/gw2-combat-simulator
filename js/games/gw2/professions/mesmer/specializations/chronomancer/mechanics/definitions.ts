@@ -2,7 +2,7 @@
  * Chronomancer-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
   MesmerPhantasmAttackTiming,
   MesmerTraitDamage

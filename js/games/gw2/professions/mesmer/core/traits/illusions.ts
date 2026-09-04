@@ -4,9 +4,9 @@ import type {
   MesmerAddCondition,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerRuntime,
-  MesmerShatterResolution
+  MesmerRuntime
 } from '#gw2/professions/mesmer/types.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
