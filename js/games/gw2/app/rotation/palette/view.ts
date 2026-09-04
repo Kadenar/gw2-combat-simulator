@@ -5,7 +5,7 @@
  * can project groups, controls, actions, and custom weapon layouts. This module
  * combines those declarations with the latest simulation state to resolve
  * cooldowns, ammo, flips, ambushes, autoattack chains, and availability, then
- * delegates generic markup and pointer handling to `platform/ui/palette`.
+ * composes the markup and binds palette interactions locally.
  *
  * The palette is rebuilt after application changes; event handlers therefore
  * read current build and result state instead of retaining DOM-local state.
@@ -46,12 +46,10 @@ import {
   displayedWeaponSkills,
   paletteActionSkills,
   paletteSkillIsInstant,
-  rotationLoadoutPaletteGroups,
-  rotationPaletteGroups,
+  paletteView,
   rotationSelectedSlotSkills,
   uniqueByName,
   weaponPaletteRows,
-  weaponPaletteSectionHtml,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
 import {
@@ -68,7 +66,7 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { ProfessionAppState, ProfessionSlotLoadoutContext } from '#gw2/app/types.js';
 
 export interface AmmoView {
   readonly current?: number;
@@ -263,6 +261,22 @@ export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   </div>`;
 }
 
+export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
+  const content = groups.filter(Boolean).join('');
+  return content ? `<div class="weapon-palette-stack" data-role="weapon-set-stack">${content}</div>` : '';
+}
+
+export function weaponPaletteSectionHtml(
+  weaponGroups: readonly string[] = [],
+  actionGroup = '',
+  trailingGroup = ''
+): string {
+  const weapons = weaponPaletteStackHtml(weaponGroups);
+  return weapons || actionGroup || trailingGroup
+    ? `<div class="weapon-palette-section" data-role="weapon-palette-section">${weapons}${actionGroup}${trailingGroup}</div>`
+    : '';
+}
+
 export function bindPaletteInteractions(
   root: HTMLElement | null | undefined,
   handlers: PaletteInteractionHandlers = {}
@@ -330,17 +344,10 @@ export function bindPaletteInteractions(
 const CONCURRENT_OFFSET_MS = 120;
 
 type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
+type PaletteContext = ProfessionSlotLoadoutContext & SchedulerRecord;
 
-/** Defaults palette interruption to the skill's commit point, or its normal cast time when none is declared. */
-export function defaultPaletteInterruptMs(skill: Skill | null | undefined): number {
-  return Math.round(Number(skill?.interruptCommitMs ?? skill?.castTimeMs ?? 0));
-}
-
-/**
- * Builds fresh action context for clicks and drops, which may occur after the
- * palette markup was produced from an earlier simulation result.
- */
-function paletteActionContext(app: ProfessionAppState): SchedulerRecord {
+/** Builds the current context once for every palette render or interaction projection. */
+function createPaletteContext(app: ProfessionAppState): PaletteContext {
   const endState = paletteEndState(app);
   return {
     specialization: activeSpecialization(app),
@@ -350,17 +357,25 @@ function paletteActionContext(app: ProfessionAppState): SchedulerRecord {
     activeWeaponSet: endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
     time: Number(endState?.time || 0) / 1000,
     build: app.build,
-    activeAutoattack: currentAutoattackSkill(app)
+    activeAutoattack: currentAutoattackSkill(app),
+    // Expose resolved traits so profession replacements only appear when their trait is selected.
+    traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
   };
+}
+
+/** Defaults palette interruption to the skill's commit point, or its normal cast time when none is declared. */
+export function defaultPaletteInterruptMs(skill: Skill | null | undefined): number {
+  return Math.round(Number(skill?.interruptCommitMs ?? skill?.castTimeMs ?? 0));
 }
 
 function resolveProfessionPaletteAction(
   app: ProfessionAppState,
   name: string,
-  skillId: number | null
+  skillId: number | null,
+  context: PaletteContext = createPaletteContext(app)
 ): RotationCommand | RotationCommand[] | null | undefined {
   const resolveAction = app.profession.ui?.resolvePaletteAction;
-  return typeof resolveAction === 'function' ? resolveAction(paletteActionContext(app), { name, skillId }) : undefined;
+  return typeof resolveAction === 'function' ? resolveAction(context, { name, skillId }) : undefined;
 }
 
 /**
@@ -376,7 +391,7 @@ export function resolvePaletteDropItem(
   skillId: number | null = null
 ): RotationCommand | RotationCommand[] | null {
   if (!name) return null;
-  const professionAction = resolveProfessionPaletteAction(app, name, skillId);
+  const professionAction = resolveProfessionPaletteAction(app, name, skillId, createPaletteContext(app));
   if (professionAction !== undefined) return professionAction;
   if (name === '__combat_start' && app.build.rotation.some((entry) => rotationEntryName(entry) === '__combat_start')) {
     return null;
@@ -384,6 +399,127 @@ export function resolvePaletteDropItem(
 
   if (name === '__wait') return null;
   return createRotationItem(app, name, skillId == null ? {} : { skillId });
+}
+
+type PaletteActivationEditors = {
+  readonly openDuration: typeof openDurationEditor;
+  readonly openDragonSlash: typeof openDragonSlashReleaseEditor;
+  readonly openDoubleEdge: typeof openDoubleEdgeEditor;
+  readonly openActivation: typeof openActivationEditor;
+};
+
+const PALETTE_ACTIVATION_EDITORS: PaletteActivationEditors = {
+  openDuration: openDurationEditor,
+  openDragonSlash: openDragonSlashReleaseEditor,
+  openDoubleEdge: openDoubleEdgeEditor,
+  openActivation: openActivationEditor
+};
+
+/** Routes a palette activation through profession actions and the smallest applicable cast editor. */
+export function dispatchPaletteActivation(
+  app: ProfessionAppState,
+  name: string,
+  event: Pick<PaletteMouseEvent, 'currentTarget' | 'shiftKey' | 'ctrlKey'>,
+  editors: PaletteActivationEditors = PALETTE_ACTIVATION_EDITORS
+): void {
+  const icon = event.currentTarget;
+  const parsedSkillId = Number(icon.dataset.skillId);
+  const skillId = icon.dataset.skillId != null && Number.isFinite(parsedSkillId) ? parsedSkillId : null;
+  const identity = skillId == null ? {} : { skillId };
+  const context = createPaletteContext(app);
+  const professionAction = resolveProfessionPaletteAction(app, name, skillId, context);
+  // `undefined` means the profession does not own the action. `null` means it handled the activation without insertion.
+  if (professionAction !== undefined) {
+    if (professionAction !== null) {
+      insertRotationItems(app, Array.isArray(professionAction) ? professionAction : [professionAction]);
+    }
+
+    return;
+  }
+
+  if (name === '__combat_start' && icon.classList.contains('pal-disabled')) return;
+
+  if (name === '__wait') {
+    editors.openDuration({
+      anchor: icon,
+      heading: 'Add wait',
+      name: 'Wait',
+      icon: WAIT_ICON,
+      label: 'Duration',
+      value: 1000,
+      onApply(waitMs) {
+        app.addRotation(name, { durationMs: waitMs });
+      }
+    });
+    return;
+  }
+
+  const skill = skillId == null ? app.skillByName.get(name) : app.skillById.get(skillId);
+  if (skill?.dragonSlash) {
+    const insertionIndex =
+      normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length) ??
+      app.build.rotation.length;
+    editors.openDragonSlash({
+      app,
+      anchor: icon,
+      skill,
+      insertionIndex,
+      onApply(releaseAtCharges) {
+        app.addRotation(name, {
+          ...identity,
+          ...(releaseAtCharges == null ? {} : { releaseAtCharges })
+        });
+      }
+    });
+    return;
+  }
+
+  if (hasConfigurableDoubleEdgeOutcome(skill)) {
+    editors.openDoubleEdge({
+      anchor: icon,
+      skillName: String(skill.displayName || skill.name),
+      icon: skill.icon || undefined,
+      outcome: 'success',
+      onApply(outcome) {
+        app.addRotation(name, {
+          ...identity,
+          doubleEdgeOutcome: outcome
+        });
+      }
+    });
+    return;
+  }
+
+  const instant = paletteSkillIsInstant(app, context, skill, name);
+  if (event.shiftKey && instant && skill?.canCastConcurrently !== false && app.build.rotation.length) {
+    app.addRotation(name, {
+      ...identity,
+      concurrentOffsetMs: CONCURRENT_OFFSET_MS
+    });
+    return;
+  }
+
+  if (event.ctrlKey && !instant) {
+    const suggestedInterruptMs = defaultPaletteInterruptMs(skill);
+    editors.openActivation({
+      anchor: icon,
+      skillName: String(skill?.displayName || skill?.name || name),
+      icon: skill?.icon || icon.querySelector('img')?.getAttribute('src') || undefined,
+      interruptMs: suggestedInterruptMs,
+      fullCastMs: Number(skill?.castTimeMs) || null,
+      suggestedInterruptMs,
+      damageCommitMs: activationDamageCommitMs(skill),
+      onApply(interruptMs) {
+        app.addRotation(name, {
+          ...identity,
+          ...(interruptMs == null ? {} : { interruptAfterMs: interruptMs })
+        });
+      }
+    });
+    return;
+  }
+
+  app.addRotation(name, identity);
 }
 
 function currentCooldown(
@@ -529,35 +665,12 @@ export function paletteSkillView(
   };
 }
 
-/**
- * Replaces the rotation palette markup and binds activation and drag behavior.
- *
- * The standard surface composes profession groups/resources, selected slot
- * skills, loadout groups, weapon rows/actions, and timeline controls. Profession
- * contracts may position individual groups or replace the weapon layout while
- * reusing the generic skill renderer. Activation also supports profession-owned
- * composite actions, Shift-click concurrent instants, and Ctrl-click interrupts.
- */
-export function renderPalette(app: ProfessionAppState): void {
-  const element = document.getElementById('rotation-palette');
-  if (!element) return;
-  const spec = activeSpecialization(app);
-  const endState = paletteEndState(app);
-  const professionState = paletteProfessionState(app);
-  const paletteContext = {
-    specialization: spec,
-    catalog: app.activeCatalog,
-    professionState,
-    cooldowns: endState?.cooldowns || {},
-    activeWeaponSet: endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
-    time: Number(endState?.time || 0) / 1000,
-    build: app.build,
-    // Expose resolved traits to profession palette contracts so replacement
-    // skills appear only when the build actually selects their trait.
-    traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
-  };
-  const professionGroups = rotationPaletteGroups(app, paletteContext);
-  const loadoutGroups = rotationLoadoutPaletteGroups(app, paletteContext);
+/** Composes palette markup from one immutable point-in-time context without mutating the DOM. */
+function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): string {
+  const spec = paletteContext.specialization;
+  const professionState = paletteContext.professionState as SchedulerRecord;
+  const professionGroups = paletteView(app.profession, paletteContext);
+  const loadoutGroups = app.adapter.slotLoadout?.paletteGroups(paletteContext) || [];
   const renderGroups = (groups: readonly ProfessionPaletteGroup[]): RenderedPaletteGroup[] =>
     groups.map((group) => {
       const skillIds = group.skillIds || [];
@@ -587,7 +700,7 @@ export function renderPalette(app: ProfessionAppState): void {
         ...group,
         // Reserved groups intentionally retain stable placeholders; ordinary
         // profession groups project sequence families to the live bar tile.
-        skills: reservedSkillIds.length ? skills : displayedSkillTiles(app, skills)
+        skills: reservedSkillIds.length ? skills : displayedSkillTiles(app, skills, paletteContext)
       };
     });
   const renderedProfessionGroups = renderGroups(professionGroups);
@@ -616,10 +729,12 @@ export function renderPalette(app: ProfessionAppState): void {
   );
   // Actions explicitly placed by a profession or loadout group must not also
   // appear in the shared action row.
-  const actions = paletteActionSkills(app, spec).filter((skill) => !groupedActionSkillIds.has(String(skill.id)));
+  const actions = paletteActionSkills(app, spec, paletteContext).filter(
+    (skill) => !groupedActionSkillIds.has(String(skill.id))
+  );
   const weaponSwapActions = actions.filter((skill) => skill.name === 'Swap Weapons');
   const generalActions = actions.filter((skill) => skill.name !== 'Swap Weapons');
-  const activeWeaponSet = endState?.activeWeaponSet || 1;
+  const activeWeaponSet = Number(paletteContext.activeWeaponSet || 1);
 
   const availableAmbush =
     professionState.availableAmbush && typeof professionState.availableAmbush === 'object'
@@ -683,43 +798,21 @@ export function renderPalette(app: ProfessionAppState): void {
     return '';
   };
 
-  const selectedWithFlips = displayedSkillTiles(app, selectedWithFlipChains);
-
-  const utilitySkillAvailable = (skill: Skill): boolean => {
-    return professionAllowsPaletteSkill(skill);
-  };
-
-  const utilitySkillUnavailableMessage = (skill: Skill): string => {
-    if (!professionAllowsPaletteSkill(skill)) {
-      return professionPaletteUnavailableMessage(skill);
-    }
-
-    return '';
-  };
-
-  const professionSkillAvailable = (skill: Skill): boolean => professionAllowsPaletteSkill(skill);
-
-  const professionSkillUnavailableMessage = (skill: Skill): string => {
-    if (!professionAllowsPaletteSkill(skill)) {
-      return professionPaletteUnavailableMessage(skill);
-    }
-
-    return '';
-  };
+  const selectedWithFlips = displayedSkillTiles(app, selectedWithFlipChains, paletteContext);
 
   const loadoutHasResourceAnchor = renderedLoadoutGroups.some((group) => group.resourceAnchor);
   const loadoutStackHtml = renderedLoadoutGroups.length
     ? `<div class="weapon-palette-stack loadout-palette-stack"
             data-role="loadout-palette-stack"
-            style="display:flex;flex-direction:column;align-items:stretch;gap:6px">${renderedLoadoutGroups
+            >${renderedLoadoutGroups
               .map((group) =>
                 addGroup(
                   app,
                   group.label,
                   group.skills,
                   group.color || '#c49cff',
-                  professionSkillAvailable,
-                  professionSkillUnavailableMessage,
+                  professionAllowsPaletteSkill,
+                  professionPaletteUnavailableMessage,
                   group.className,
                   group.statusIcon
                 )
@@ -769,8 +862,8 @@ export function renderPalette(app: ProfessionAppState): void {
       group.label,
       group.skills,
       group.color || '#c49cff',
-      professionSkillAvailable,
-      professionSkillUnavailableMessage,
+      professionAllowsPaletteSkill,
+      professionPaletteUnavailableMessage,
       group.className,
       group.statusIcon,
       group.controls,
@@ -819,8 +912,8 @@ export function renderPalette(app: ProfessionAppState): void {
     'Skill',
     selectedWithFlips,
     '#cbb8ea',
-    utilitySkillAvailable,
-    utilitySkillUnavailableMessage,
+    professionAllowsPaletteSkill,
+    professionPaletteUnavailableMessage,
     'utility-palette-group',
     undefined,
     [],
@@ -843,7 +936,7 @@ export function renderPalette(app: ProfessionAppState): void {
 
   const customWeaponPalette = app.profession.ui.renderWeaponPalette({
     ...paletteContext,
-    skills: paletteWeaponSkills(displayedWeaponSkills(app, weaponSkills(app, 1), 1), { weaponSet: 1 }),
+    skills: paletteWeaponSkills(displayedWeaponSkills(app, weaponSkills(app, 1), 1, paletteContext), { weaponSet: 1 }),
     autoattackChains,
     isSkillAvailable: (skill) => weaponSkillAvailable(skill, 1),
     unavailableMessage: (skill) => weaponSkillUnavailableMessage(skill, 1),
@@ -862,7 +955,7 @@ export function renderPalette(app: ProfessionAppState): void {
       ].filter(Boolean);
     }
 
-    const weaponRows = weaponPaletteRows(app, activeWeaponSet)
+    const weaponRows = weaponPaletteRows(app, activeWeaponSet, paletteContext)
       .map((row) => ({
         ...row,
         skills: paletteWeaponSkills(row.skills, {
@@ -880,10 +973,12 @@ export function renderPalette(app: ProfessionAppState): void {
         [...row.skills, ...rowWeaponSwapActions],
         row.active ? '#a98fd8' : '#625a73',
         (skill) =>
-          skill.name === 'Swap Weapons' ? professionSkillAvailable(skill) : weaponSkillAvailable(skill, row.weaponSet),
+          skill.name === 'Swap Weapons'
+            ? professionAllowsPaletteSkill(skill)
+            : weaponSkillAvailable(skill, row.weaponSet),
         (skill) =>
           skill.name === 'Swap Weapons'
-            ? professionSkillUnavailableMessage(skill)
+            ? professionPaletteUnavailableMessage(skill)
             : weaponSkillUnavailableMessage(skill, row.weaponSet)
       );
       const positionedGroups = activeWeaponProfessionGroups.filter(
@@ -949,8 +1044,8 @@ export function renderPalette(app: ProfessionAppState): void {
     'Act',
     weaponSwapEmbedded ? generalActions : actions,
     '#70b6d0',
-    professionSkillAvailable,
-    professionSkillUnavailableMessage,
+    professionAllowsPaletteSkill,
+    professionPaletteUnavailableMessage,
     'action-palette-group'
   );
 
@@ -964,13 +1059,22 @@ export function renderPalette(app: ProfessionAppState): void {
         </div>${customWeaponPalette.placeUtilityInPrimary ? '' : utilityGroupHtml}`
     : professionPaletteSectionHtml + utilityGroupHtml;
 
-  element.innerHTML =
+  return (
     primaryPaletteHtml +
     weaponPaletteSectionHtml(weaponGroupsHtml, customWeaponPalette?.placeActionsInPrimary ? '' : actionGroupHtml) +
     loadoutUtilityGroup +
     // Timeline-only controls stay in a named region so responsive layouts can
     // move the row as one unit.
-    timelineToolsHtml;
+    timelineToolsHtml
+  );
+}
+
+/** Replaces the rotation palette markup and binds activation and drag behavior. */
+export function renderPalette(app: ProfessionAppState): void {
+  const element = document.getElementById('rotation-palette');
+  if (!element) return;
+  const paletteContext = createPaletteContext(app);
+  element.innerHTML = paletteHtml(app, paletteContext);
 
   bindPaletteInteractions(element, {
     onControlActivate(controlId) {
@@ -979,103 +1083,7 @@ export function renderPalette(app: ProfessionAppState): void {
       }
     },
     onActivate(name, event) {
-      const icon = event.currentTarget;
-      const parsedSkillId = Number(icon.dataset.skillId);
-      const skillId = icon.dataset.skillId != null && Number.isFinite(parsedSkillId) ? parsedSkillId : null;
-      const identity = skillId == null ? {} : { skillId };
-      const professionAction = resolveProfessionPaletteAction(app, name, skillId);
-      // `undefined` means the profession does not own the action. `null` means
-      // it handled the activation intentionally without inserting an item.
-      if (professionAction !== undefined) {
-        if (professionAction !== null) {
-          insertRotationItems(app, Array.isArray(professionAction) ? professionAction : [professionAction]);
-        }
-
-        return;
-      }
-
-      if (name === '__combat_start' && icon.classList.contains('pal-disabled')) return;
-
-      if (name === '__wait') {
-        openDurationEditor({
-          anchor: icon,
-          heading: 'Add wait',
-          name: 'Wait',
-          icon: WAIT_ICON,
-          label: 'Duration',
-          value: 1000,
-          onApply(waitMs) {
-            app.addRotation(name, { durationMs: waitMs });
-          }
-        });
-
-        return;
-      }
-
-      const skill = skillId == null ? app.skillByName.get(name) : app.skillById.get(skillId);
-      if (skill?.dragonSlash) {
-        const insertionIndex =
-          normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length) ??
-          app.build.rotation.length;
-        openDragonSlashReleaseEditor({
-          app,
-          anchor: icon,
-          skill,
-          insertionIndex,
-          onApply(releaseAtCharges) {
-            app.addRotation(name, {
-              ...identity,
-              ...(releaseAtCharges == null ? {} : { releaseAtCharges })
-            });
-          }
-        });
-
-        return;
-      }
-
-      if (hasConfigurableDoubleEdgeOutcome(skill)) {
-        openDoubleEdgeEditor({
-          anchor: icon,
-          skillName: String(skill.displayName || skill.name),
-          icon: skill.icon || undefined,
-          outcome: 'success',
-          onApply(outcome) {
-            app.addRotation(name, {
-              ...identity,
-              doubleEdgeOutcome: outcome
-            });
-          }
-        });
-
-        return;
-      }
-
-      const instant = paletteSkillIsInstant(app, paletteContext, skill, name);
-      if (event.shiftKey && instant && skill?.canCastConcurrently !== false && app.build.rotation.length) {
-        app.addRotation(name, {
-          ...identity,
-          concurrentOffsetMs: CONCURRENT_OFFSET_MS
-        });
-      } else if (event.ctrlKey && !instant) {
-        const suggestedInterruptMs = defaultPaletteInterruptMs(skill);
-        openActivationEditor({
-          anchor: icon,
-          skillName: String(skill?.displayName || skill?.name || name),
-          icon: skill?.icon || icon.querySelector('img')?.getAttribute('src') || undefined,
-          interruptMs: suggestedInterruptMs,
-          fullCastMs: Number(skill?.castTimeMs) || null,
-          suggestedInterruptMs,
-          damageCommitMs: activationDamageCommitMs(skill),
-          onApply(interruptMs) {
-            app.addRotation(name, {
-              ...identity,
-              ...(interruptMs == null ? {} : { interruptAfterMs: interruptMs })
-            });
-          }
-        });
-      } else {
-        app.addRotation(name, identity);
-      }
+      dispatchPaletteActivation(app, name, event);
     },
     onDragStart(name, event) {
       const parsedSkillId = Number(event.currentTarget.dataset.skillId);

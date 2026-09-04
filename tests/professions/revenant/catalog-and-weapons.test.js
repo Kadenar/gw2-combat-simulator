@@ -6,8 +6,7 @@ import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import {
   displayedSkillTiles,
-  rotationLoadoutPaletteGroups,
-  rotationPaletteGroups,
+  paletteView,
   rotationSelectedSlotSkills,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
@@ -767,7 +766,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.deepEqual(revenantLegendLoadout.skillChildren(context, SKILL.FACET_OF_ELEMENTS), [SKILL.ELEMENTAL_BLAST]);
   assert.deepEqual(revenantLegendLoadout.skillChildren(context, SKILL.FACET_OF_STRENGTH), [SKILL.BURST_OF_STRENGTH]);
   assert.deepEqual(revenantLegendLoadout.skillChildren(context, SKILL.CALL_TO_ANGUISH), [SKILL.UNYIELDING_IMPACT]);
-  const rotationGroups = rotationPaletteGroups({ profession: revenantProfession }, context);
+  const rotationGroups = paletteView(revenantProfession, context);
 
   assert.deepEqual(
     rotationGroups.map((group) => group.id),
@@ -781,10 +780,6 @@ test('legend palette shows only the destination legend with the shared swap cool
     skillByName: revenantCatalog.skillsByName
   };
 
-  assert.deepEqual(
-    rotationLoadoutPaletteGroups(rotationApp, context).map((group) => group.label),
-    ['Assassin', 'Demon']
-  );
   assert.deepEqual(rotationSelectedSlotSkills(rotationApp), []);
 
   const adapter = await loadProfessionAppAdapter('revenant');

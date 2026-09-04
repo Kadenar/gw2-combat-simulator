@@ -1010,7 +1010,6 @@ test('Evoker renders stacked starting controls for basic and empowered charges',
   const empowered = resources.find((resource) => resource.id === 'evoker-empowered-charges');
 
   assert.equal(empowered.maximum, 3);
-  assert.equal(empowered.startValue, 2);
   assert.equal(empowered.buildKey, 'initialEvokerEmpowered');
   assert.equal(empowered.showInPalette, false);
 });

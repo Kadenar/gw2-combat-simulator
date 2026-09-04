@@ -42,7 +42,6 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       maximum: 100,
       value: Number(state.flow ?? context.initialResource ?? 0),
       startMaximum: 100,
-      startValue: Number(context.initialResource ?? 0),
       canStart: true,
       buildKey: 'initialResource',
       step: 1,

@@ -146,7 +146,6 @@ export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
         maximum: CATALYST_MAXIMUM_ENERGY,
         value: Number(state.energy ?? build?.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY),
         startMaximum: CATALYST_MAXIMUM_ENERGY,
-        startValue: Number(build?.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY),
         canStart: true,
         buildKey: 'initialCatalystEnergy',
         step: 1,

@@ -1,6 +1,6 @@
 import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import type { ProfessionAppContract, ProfessionAppState, ProfessionSlotLoadoutContext } from '#gw2/app/types.js';
+import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { groupWeaponSkillsByAttunement } from '#gw2/app/profession/weapon-attunement-groups.js';
 import { activeSpecialization, paletteEndState, paletteProfessionState } from '#gw2/app/rotation/shared/context.js';
 
@@ -310,7 +310,11 @@ function paletteTileCandidateOrder(skill: Skill, fallback: number): number {
  * autoattack roots and flip links work automatically; `paletteTileId` covers
  * UI-only families whose API records do not declare their shared tile.
  */
-export function displayedSkillTiles(app: ProfessionAppState, skills: readonly Skill[]): Skill[] {
+export function displayedSkillTiles(
+  app: ProfessionAppState,
+  skills: readonly Skill[],
+  context: SchedulerRecord = paletteProjectionContext(app)
+): Skill[] {
   const endState = paletteEndState(app);
   const professionState = paletteProfessionState(app);
   const availableFlips =
@@ -321,7 +325,6 @@ export function displayedSkillTiles(app: ProfessionAppState, skills: readonly Sk
   const catalogSkills = app.skills || app.activeCatalog?.skills || app.profession.catalog.skills || skills;
   const skillById = new Map<number, Skill>(catalogSkills.map((skill) => [Number(skill.id), skill]));
   const { familyIdBySkillId, membersByFamilyId } = paletteFlipFamilies(catalogSkills, skillById);
-  const context = paletteProjectionContext(app);
   const autoattackChains =
     professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
       ? (professionState.autoattackChains as SchedulerRecord)
@@ -403,23 +406,13 @@ export function displayedSkillTiles(app: ProfessionAppState, skills: readonly Sk
 export function displayedWeaponSkills(
   app: ProfessionAppState,
   skills: readonly Skill[],
-  weaponSet = Number(paletteEndState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1)
+  weaponSet = Number(paletteEndState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1),
+  paletteContext: SchedulerRecord = paletteProjectionContext(app)
 ): Skill[] {
   const endState = paletteEndState(app);
   const professionState = paletteProfessionState(app);
-  const catalog = app.activeCatalog || app.profession.catalog;
-  const specialization = app.adapter?.eliteSpecialization?.(app.build) || '';
   const equippedWeapons = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
   const matcher = app.adapter?.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet;
-  const paletteContext = {
-    build: app.build,
-    specialization,
-    professionState,
-    catalog,
-    cooldowns: endState?.cooldowns || {},
-    activeWeaponSet: endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
-    time: Number(endState?.time || 0) / 1000
-  };
   // Linked non-autoattack chains (currently Thief spear slots 2 and 3) use
   // their profession matcher to choose the stage occupying each combat-bar tile.
   const stagedSkills = skills.filter(
@@ -432,7 +425,7 @@ export function displayedWeaponSkills(
         weaponBarPreview: false
       })
   );
-  const projected = displayedSkillTiles(app, stagedSkills);
+  const projected = displayedSkillTiles(app, stagedSkills, paletteContext);
 
   const isWeaponOneReplacement = (skill: Skill): boolean => skill.slot === 'Weapon_1' && isReplacementAttack(skill);
   const activeWeaponSet = Number(endState?.activeWeaponSet || app.build.startingWeaponSet || 1);
@@ -465,14 +458,18 @@ export function displayedWeaponSkills(
   return insertedReplacement ? replaced : [activeReplacement, ...replaced];
 }
 
-export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1): WeaponPaletteRow[] {
+export function weaponPaletteRows(
+  app: ProfessionAppState,
+  activeWeaponSet = 1,
+  context?: SchedulerRecord
+): WeaponPaletteRow[] {
   const rows = [1, 2]
     .map((weaponSet) => ({
       id: `weapon-set-${weaponSet}`,
       label: `W${weaponSet}`,
       weaponSet,
       active: weaponSet === activeWeaponSet,
-      skills: displayedWeaponSkills(app, weaponSkills(app, weaponSet), weaponSet)
+      skills: displayedWeaponSkills(app, weaponSkills(app, weaponSet), weaponSet, context)
     }))
     .filter((row) => row.skills.length);
   return rows.flatMap((row) => {
@@ -490,29 +487,6 @@ export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1):
       skills
     }));
   });
-}
-
-export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
-  const content = groups.filter(Boolean).join('');
-  if (!content) return '';
-  return (
-    `<div class="weapon-palette-stack" data-role="weapon-set-stack" ` +
-    `style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:6px">${content}</div>`
-  );
-}
-
-export function weaponPaletteSectionHtml(
-  weaponGroups: readonly string[] = [],
-  actionGroup = '',
-  trailingGroup = ''
-): string {
-  const weapons = weaponPaletteStackHtml(weaponGroups);
-  if (!weapons && !actionGroup && !trailingGroup) return '';
-  return (
-    `<div class="weapon-palette-section" data-role="weapon-palette-section" ` +
-    `style="display:flex;align-items:flex-start;gap:6px">` +
-    `${weapons}${actionGroup}${trailingGroup}</div>`
-  );
 }
 
 export function autoattackChainSkillAvailable(skill: Skill, chainState: SchedulerRecord = {}): boolean {
@@ -536,7 +510,11 @@ export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
   );
 }
 
-export function paletteActionSkills(app: ProfessionAppState, specialization = activeSpecialization(app)): Skill[] {
+export function paletteActionSkills(
+  app: ProfessionAppState,
+  specialization = activeSpecialization(app),
+  context?: SchedulerRecord
+): Skill[] {
   const professionState = paletteProfessionState(app);
   const actions = uniqueByName(
     app.skills.filter(
@@ -561,34 +539,16 @@ export function paletteActionSkills(app: ProfessionAppState, specialization = ac
       (PALETTE_ACTION_ORDER.get(left.name) ?? Number.MAX_SAFE_INTEGER) -
         (PALETTE_ACTION_ORDER.get(right.name) ?? Number.MAX_SAFE_INTEGER) || left.name.localeCompare(right.name)
   );
-  const endState = paletteEndState(app);
   const projectActions = app.profession.ui?.paletteActionSkills;
   return typeof projectActions === 'function'
     ? projectActions(
-        {
-          specialization,
-          catalog: app.activeCatalog,
-          professionState,
-          cooldowns: endState?.cooldowns || {},
-          activeWeaponSet: endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
-          time: Number(endState?.time || 0) / 1000,
-          build: app.build,
+        context || {
+          ...paletteProjectionContext(app),
           activeAutoattack: currentAutoattackSkill(app)
         },
         actions
       )
     : actions;
-}
-
-export function rotationPaletteGroups(app: ProfessionAppState, context: SchedulerRecord): NormalizedPaletteGroup[] {
-  return paletteView(app.profession, context);
-}
-
-export function rotationLoadoutPaletteGroups(
-  app: ProfessionAppState,
-  context: ProfessionSlotLoadoutContext
-): ProfessionPaletteGroup[] {
-  return app.adapter.slotLoadout?.paletteGroups(context) || [];
 }
 
 export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {

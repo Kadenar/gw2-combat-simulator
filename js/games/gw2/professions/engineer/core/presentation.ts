@@ -334,7 +334,6 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
       maximum: Number(state.maximumEndurance || 100),
       value: Number(state.endurance ?? 100),
       startMaximum: 100,
-      startValue: 100,
       canStart: false,
       displayMode: 'bar',
       shortLabel: 'End',

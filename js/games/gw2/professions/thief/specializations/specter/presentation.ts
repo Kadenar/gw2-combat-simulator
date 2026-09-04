@@ -56,7 +56,6 @@ export const specterUi = Object.freeze({
         maximum: 100,
         value: Number(state.shadowForce ?? context.initialShadowForce ?? 0),
         startMaximum: 100,
-        startValue: Number(context.initialShadowForce ?? 0),
         canStart: true,
         buildKey: 'initialShadowForce',
         step: 1,

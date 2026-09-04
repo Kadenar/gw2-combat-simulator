@@ -189,7 +189,6 @@ export const thiefCoreUi = Object.freeze({
         maximum: Number(state.maximumInitiative || 12),
         value: Number(state.initiative ?? context.initialInitiative ?? 12),
         startMaximum: 15,
-        startValue: Number(context.initialInitiative ?? 12),
         canStart: true,
         buildKey: 'initialInitiative',
         step: 1,

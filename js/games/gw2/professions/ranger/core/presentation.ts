@@ -305,7 +305,6 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
         maximum: Number(state.maximumEndurance || 100),
         value: Number(state.endurance ?? 100),
         startMaximum: 100,
-        startValue: 100,
         canStart: false,
         step: 1,
         displayMode: 'bar',

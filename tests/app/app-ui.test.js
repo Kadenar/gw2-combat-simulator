@@ -22,10 +22,9 @@ import {
   displayedWeaponSkills,
   paletteActionSkills,
   weaponSkills,
-  weaponPaletteSectionHtml,
-  weaponPaletteStackHtml,
   weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
+import { weaponPaletteSectionHtml, weaponPaletteStackHtml } from '#gw2/app/rotation/palette/view.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import {
@@ -1442,8 +1441,6 @@ test('weapon-set palette groups render side by side in set order', () => {
   const html = weaponPaletteStackHtml(['<div data-weapon-set="1">W1</div>', '<div data-weapon-set="2">W2</div>']);
 
   assert.match(html, /data-role="weapon-set-stack"/);
-  assert.match(html, /flex-direction:row/);
-  assert.match(html, /flex-wrap:wrap/);
   assert.equal(html.indexOf('data-weapon-set="1"') < html.indexOf('data-weapon-set="2"'), true);
 });
 

@@ -365,7 +365,6 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
       maximum,
       value: (normalizedValue / normalizedMaximum) * maximum,
       startMaximum: 100,
-      startValue: Number(context.initialResource ?? 100),
       canStart: true,
       buildKey: 'initialResource',
       step: 1,

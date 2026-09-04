@@ -220,7 +220,6 @@ export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
         maximum: 100,
         value: displayedRevenantEnergy(state.energy ?? context.initialEnergy ?? 50),
         startMaximum: 100,
-        startValue: Number(context.initialEnergy ?? 50),
         canStart: true,
         buildKey: 'initialEnergy',
         step: 1,

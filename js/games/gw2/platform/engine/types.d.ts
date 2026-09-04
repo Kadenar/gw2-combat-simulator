@@ -803,7 +803,6 @@ export interface ProfessionResourceView {
   readonly shortLabel: string;
   readonly statusLabel: string;
   readonly startMaximum?: number;
-  readonly startValue?: number;
   readonly buildKey?: string;
   readonly step?: number;
   readonly displayMode?: string;

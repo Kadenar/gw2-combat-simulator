@@ -189,7 +189,6 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
         maximum,
         value: Number(state.heat ?? context.initialHeat ?? 0),
         startMaximum: maximum,
-        startValue: Number(context.initialHeat ?? 0),
         canStart: true,
         buildKey: 'initialHeat',
         step: 1,

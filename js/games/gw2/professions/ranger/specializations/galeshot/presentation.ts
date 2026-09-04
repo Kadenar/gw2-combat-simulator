@@ -161,9 +161,6 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
         maximum: 8,
         value: Number(state.arrows ?? context.initialArrows ?? 8),
         startMaximum: 8,
-        // startValue drives the "starting arrows" control in the build panel,
-        // so it must fall back to the build-level setting, not the live state.
-        startValue: Number(context.initialArrows ?? 8),
         canStart: true,
         buildKey: 'initialArrows',
         step: 1,
@@ -180,7 +177,6 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
         maximum: 5,
         value: Number(state.windForce || 0),
         startMaximum: 5,
-        startValue: 0,
         canStart: false,
         displayMode: 'pips',
         pipStyle: 'ranger-wind-force',

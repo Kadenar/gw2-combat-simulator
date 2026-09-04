@@ -370,6 +370,23 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   align-items: flex-start;
 }
 
+/* Keep weapon rows and adjacent actions grouped while allowing standard weapon sets to wrap. */
+.weapon-palette-section,
+.weapon-palette-stack {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.weapon-palette-stack {
+  flex-flow: row wrap;
+}
+
+.weapon-palette-stack.loadout-palette-stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .profession-palette-section,
 .timeline-tools-palette-stack {
   display: contents;

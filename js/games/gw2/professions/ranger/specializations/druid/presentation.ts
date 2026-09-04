@@ -101,7 +101,6 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.f
         maximum: 100,
         value: Number(state.astralForce ?? context.initialAstralForce ?? 100),
         startMaximum: 100,
-        startValue: Number(context.initialAstralForce ?? 100),
         canStart: true,
         // buildKey links this value to the config field that persists initial force across sessions
         buildKey: 'initialAstralForce',
