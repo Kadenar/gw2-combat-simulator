@@ -29,8 +29,7 @@ js/
   app/             game-neutral registry, bootstrap, worker harness, and shell
   games/gw2/
     platform/      shared GW2 engine, combat, builds, equipment, and simulation
-    content/
-      professions/ profession-owned builds, skills, state, mechanics, and UI
+    professions/   profession-owned builds, skills, state, mechanics, and UI
     app/           GW2 browser composition, persistence, and presentation
     integrations/  logs, keybinds, and patch-preview adapters
 ```
@@ -85,8 +84,8 @@ and independent persisted builds.
   modules.
 - `js/app` and `js/games/gw2/app` are composition roots for their respective neutral and GW2 browser concerns.
 
-`tests/platform/platform-architecture.test.js` enforces these rules and rejects profession terminology inside the
-platform tree.
+ESLint enforces the configured import boundaries in `eslint.config.js`. Focused architecture contracts live under
+`tests/architecture/` and in `tests/platform/migration-and-boundaries.test.js`.
 
 ## Declarative profession mechanics layout
 
