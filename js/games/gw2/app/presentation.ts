@@ -7,8 +7,6 @@ import {
 } from '#gw2/app/presentation/results/rotation-results.js';
 import { PLACEHOLDER_ICON, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
-import { analyzeRotationLoops } from '#gw2/app/rotation/result/loop-analysis.js';
-import { removeRotationLoopAnalysis, renderRotationLoopAnalysis } from '#gw2/app/rotation/result/loop-analysis-view.js';
 import { renderSimulationViewModel } from '#app/shell/result-view.js';
 import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';
@@ -86,8 +84,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       analysisEmptyHtml: `<div class="analysis-empty-state">
         <strong>No analysis yet</strong>
         <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
-      </div>`,
-      onAnalysisEmpty: removeRotationLoopAnalysis
+      </div>`
     };
   }
 
@@ -181,7 +178,6 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       }
     ),
     afterAnalysisRender(container) {
-      renderRotationLoopAnalysis(container, app, analyzeRotationLoops(app));
       void app.adapter?.capabilities?.patchPreview?.render(container, app);
     }
   };
