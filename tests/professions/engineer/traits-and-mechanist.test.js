@@ -141,6 +141,86 @@ test('Explosives traits use the requested packets, gates, and health modifiers',
   assert.ok(Math.abs(firstStrike(modifiers).damage / firstStrike(noModifiers).damage - 1.07 * 1.05 * 1.15) < 1e-12);
 });
 
+test('each Shred slot emits projectile hits that trigger one Aim-Assisted Rocket', () => {
+  // One three-disk cast must grant one rocket opportunity regardless of the equipped morph slot.
+  for (const skillId of [
+    ID.OFFENSIVE_PROTOCOL_SHRED,
+    ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866,
+    ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103
+  ]) {
+    const result = simulate('Amalgam', [{ name: 'Offensive Protocol: Shred', skillId }], {
+      selectedMorphSkillIds: [skillId],
+      selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET]
+    });
+    assert.deepEqual(result.warnings, []);
+    const disks = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillName === 'Offensive Protocol: Shred'
+    );
+    assert.equal(disks.length, 3);
+    assert.ok(disks.every((event) => event.projectile === true));
+    const rockets = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket'
+    );
+    assert.equal(rockets.length, 1);
+    assert.ok(Math.abs(rockets[0].at - disks[0].at - 0.04) < 1e-12);
+  }
+});
+
+test('generated rocket explosions contribute to deterministic Shrapnel progress', () => {
+  // Shred itself is not an explosion: four rockets alone must cross Shrapnel's 33% accumulator threshold.
+  const result = simulate(
+    'Amalgam',
+    Array.from({ length: 4 }, () => [
+      { name: 'Offensive Protocol: Shred', skillId: 77103 },
+      { type: 'wait', durationMs: 20000 }
+    ]).flat(),
+    {
+      selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET, TRAIT.SHRAPNEL]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const bleed = result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === 'Shrapnel');
+  assert.equal(bleed.length, 1);
+  assert.equal(bleed[0].triggeredBy, 'Aim-Assisted Rocket');
+  assert.equal(bleed[0].stacks, 1);
+  assert.equal(bleed[0].duration, 6);
+});
+
+test('Serrated Steel counts critical projectile and effect hits without an explosion requirement', () => {
+  const config = { stats: { precision: 3100 }, selectedTraitIds: [TRAIT.SERRATED_STEEL] };
+  const rotation = [{ name: 'Offensive Protocol: Shred', skillId: 77103 }];
+  const withoutRocket = simulate('Amalgam', rotation, config);
+  const withRocket = simulate('Amalgam', rotation, {
+    ...config,
+    selectedTraitIds: [...config.selectedTraitIds, TRAIT.AIM_ASSISTED_ROCKET]
+  });
+  // Three guaranteed critical disks bank 0.99; the fourth critical hit from the rocket earns one bleed.
+  const serrated = (result) =>
+    result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === 'Serrated Steel');
+  assert.equal(serrated(withoutRocket).length, 0);
+  assert.equal(serrated(withRocket).length, 1);
+  assert.equal(serrated(withRocket)[0].stacks, 1);
+});
+
+test('Electric Artillery and Devastator each contribute their explosion to Shrapnel', () => {
+  for (const [name, attacks] of [
+    ['Electric Artillery', ['Lightning Rod', { type: 'wait', durationMs: 4500 }, 'Electric Artillery']],
+    ['Devastator', ['Conduit Surge', 'Devastator', { type: 'wait', durationMs: 1000 }]]
+  ]) {
+    // Three grenades bank 0.99; the spear explosion must earn the bleed, while focused follow-ups must not.
+    const result = simulate('Core', ['Grenade Kit', 'Grenade', 'Stow Grenade Kit', ...attacks], {
+      selectedTraitIds: [TRAIT.SHRAPNEL]
+    });
+    assert.deepEqual(result.warnings, []);
+    const bleeds = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === 'Shrapnel'
+    );
+    assert.equal(bleeds.length, 1, name);
+    assert.equal(bleeds[0].triggeredBy, name);
+    assert.ok(Math.abs(result.profession.traitProcReadyAt.shrapnelProgress - 0.32) < 1e-12, name);
+  }
+});
+
 test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
   const result = simulate(
     'Core',
