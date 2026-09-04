@@ -1,7 +1,10 @@
 /Builds/
 /Rotations/
+# Keep bulk formatting scoped; format touched Markdown explicitly as documented in scripts/README.md.
+# npx prettier --write --ignore-path .gitignore <touched-files>
 /docs/
 *.md
+/.scratch/
 /node_modules/
 /reference-repos/
 package-lock.json

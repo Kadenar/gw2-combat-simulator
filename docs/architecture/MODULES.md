@@ -163,10 +163,10 @@ Important modules include:
 | `palette/`        | Palette state, resources, rendering, and interaction         |
 | `timeline/`       | Timeline model, rendering, interaction, and display controls |
 | `state-snapshot/` | Insertion-aware state queries and active-state rendering     |
-| `result/`         | Results, event log, and warnings                             |
 | `shared/`         | Cross-feature context and icon helpers                       |
 
-Profession-specific rotation presentation is supplied through profession UI hooks rather than hard-coded here.
+Profession-specific rotation presentation is supplied through profession UI hooks rather than hard-coded here. Result
+models, tables, charts, event logs, and warnings live in the sibling `js/games/gw2/app/results/` directory.
 
 ---
 
@@ -244,20 +244,21 @@ Examples include:
 
 Important modules include:
 
-| Module                         | Responsibility                                     |
-| ------------------------------ | -------------------------------------------------- |
-| `execution/scheduler.ts`       | Declarative scheduler and profession-hook dispatch |
-| `execution/state.ts`           | Profession-neutral scheduler state                 |
-| `execution/tasks.ts`           | Ordered delayed state work                         |
-| `events/scheduled-stream.ts`   | Scheduler-to-resolver event boundary               |
-| `execution/cooldowns.ts`       | Cooldown and ammo state machine                    |
-| `effects/factories.ts`         | Canonical effect constructors                      |
-| `effects/materializer.ts`      | Converts effects into scheduled events             |
-| `skills/autoattack-chains.ts`  | Autoattack-chain indexing                          |
-| `profession/family.ts`         | Core + specialization contract composition         |
-| `profession/module.ts`         | Profession module composition                      |
-| `profession/ui-combinators.ts` | Composition helpers for profession UI slices       |
-| `types.d.ts`                   | Shared engine contracts                            |
+| Module                                                                                    | Responsibility                                     |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `execution/scheduler.ts`                                                                  | Declarative scheduler and profession-hook dispatch |
+| `execution/state.ts`                                                                      | Profession-neutral scheduler state                 |
+| `execution/tasks.ts`                                                                      | Ordered delayed state work                         |
+| `events/scheduled-stream.ts`                                                              | Scheduler-to-resolver event boundary               |
+| `execution/cooldowns.ts`                                                                  | Cooldown and ammo state machine                    |
+| `effects/factories.ts`                                                                    | Canonical effect constructors                      |
+| `effects/materializer.ts`                                                                 | Converts effects into scheduled events             |
+| `skills/autoattack-chains.ts`                                                             | Autoattack-chain indexing                          |
+| `profession/family.ts`                                                                    | Core + specialization contract composition         |
+| `profession/module.ts`                                                                    | Profession module composition                      |
+| `profession/ui-combinators.ts`                                                            | Composition helpers for profession UI slices       |
+| `events/types.d.ts`, `skills/types.d.ts`, `execution/types.d.ts`, `profession/types.d.ts` | Domain-owned engine contracts                      |
+| `types.d.ts`                                                                              | Type-only compatibility exports from those domains |
 
 Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
 
@@ -271,7 +272,8 @@ If a new abstraction would still make sense in a non-GW2 simulator, consider `js
 js/games/gw2/platform/
 ```
 
-This layer owns behavior shared by multiple Guild Wars 2 professions.
+This layer owns behavior shared by multiple Guild Wars 2 professions. The
+[platform directory map](../../js/games/gw2/platform/README.md) lists each domain and its placement rules.
 
 Examples include:
 
@@ -283,35 +285,31 @@ Examples include:
 - sigils;
 - relics;
 - profession module assembly;
-- modifier rules;
-- patch overlays.
+- modifier rules.
 
 Important modules include:
 
-| Module                            | Responsibility                                  |
-| --------------------------------- | ----------------------------------------------- |
-| `simulation/simulate.ts`          | Canonical `simulateGw2()` entry point           |
-| `combat/modifiers/rules.ts`       | Declarative scalar modifier system              |
-| `builds/attributes.ts`            | Shared attribute calculations                   |
-| `combat/damage/calculations.ts`   | Strike and condition damage formulas            |
-| `equipment/weapons/strength.ts`   | Weapon-strength profiles                        |
-| `equipment/sigils/rules.ts`       | Shared sigil behavior                           |
-| `equipment/`                      | Gear, consumable, relic, sigil, and weapon data |
-| `combat/state/targets.ts`         | Target assumptions                              |
-| `combat/state/traits.ts`          | Shared selected-trait lookup                    |
-| `combat/state/event-ownership.ts` | Player/summon/effect ownership rules            |
+| Module                            | Responsibility                                                                          |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| `simulation/simulate.ts`          | Canonical `simulateGw2()` entry point                                                   |
+| `engine/`                         | Runtime contracts, scheduler execution, cooldowns, effects, and profession composition  |
+| `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations |
+| `combat/modifiers/rules.ts`       | Declarative scalar modifier system                                                      |
+| `builds/attributes.ts`            | Shared attribute calculations                                                           |
+| `combat/damage/calculations.ts`   | Strike and condition damage formulas                                                    |
+| `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                |
+| `equipment/sigils/rules.ts`       | Shared sigil behavior                                                                   |
+| `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                         |
+| `combat/state/targets.ts`         | Target assumptions                                                                      |
+| `combat/state/traits.ts`          | Shared selected-trait lookup                                                            |
+| `combat/state/event-ownership.ts` | Player/summon/effect ownership rules                                                    |
 
 Stable profession authoring lives under `js/games/gw2/platform/profession-definition/`. Optional balance-preview
 decoration and validation live under `js/games/gw2/integrations/patches/`.
 
-Subdirectories such as:
-
-```text
-scheduler/
-resolver/
-```
-
-contain the shared Guild Wars 2 scheduling and resolution pipeline.
+`engine/execution/` owns scheduler execution and runtime state. `scheduler/` prepares GW2 events, observes combat, and
+materializes combo/equipment procs; `resolver/` resolves those events and processes reactions. `simulation/` coordinates
+the phases without direct imports between scheduler and resolver implementations.
 
 ---
 

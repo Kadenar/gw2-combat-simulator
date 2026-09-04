@@ -34,6 +34,7 @@ export default [
       'coverage/**',
       'build/**',
       'reference-repos/**',
+      '.scratch/**',
       '**/.analysis-inputs/**',
       '**/.claude/**',
       '**/.git/**',

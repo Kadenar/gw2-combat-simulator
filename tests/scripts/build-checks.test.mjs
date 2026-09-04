@@ -16,6 +16,7 @@ test('lint owns JavaScript syntax coverage outside generated and local-tool dire
     'js/app/github-pages-redirect.js',
     'scripts/data/syntax-probe.mjs',
     'scripts/build/syntax-probe.mjs',
+    'scripts/analysis/syntax-probe.mjs',
     'tests/scripts/syntax-probe.cjs',
     'tests/ui/syntax-probe.jsx',
     'docs/example.js',
@@ -32,6 +33,7 @@ test('lint owns JavaScript syntax coverage outside generated and local-tool dire
     'coverage',
     'build',
     'reference-repos',
+    '.scratch',
     '.analysis-inputs',
     '.claude',
     '.git',
@@ -39,6 +41,13 @@ test('lint owns JavaScript syntax coverage outside generated and local-tool dire
   ]) {
     assert.equal(await eslint.isPathIgnored(`${directory}/syntax-probe.mjs`), true, directory);
   }
+
+  // Repeatable analysis tools retain Node globals and normal linting outside the disposable scratch directory.
+  const [analysis] = await eslint.lintText('console.log(process.argv);', {
+    filePath: 'scripts/analysis/runtime-probe.mjs'
+  });
+
+  assert.equal(analysis.errorCount, 0);
 });
 
 test('dist validation retains nested missing, duplicate, and stale-output checks', async () => {

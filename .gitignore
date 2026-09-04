@@ -1,5 +1,7 @@
 node_modules/
 .lavish/
+# Disposable scripts and captured logs stay local; maintained tools belong in scripts/analysis/.
+/.scratch/
 dist/
 _site/
 coverage/
