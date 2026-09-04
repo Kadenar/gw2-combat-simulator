@@ -1850,13 +1850,13 @@ test('critical-strike food procs remain unmodified without profession effects', 
   assert.equal(nourishmentProc.icon, 'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png');
 });
 
-test('slot-skill strikes select utility weapon strength generically', () => {
+test('slot-skill strikes select nonweapon strength generically', () => {
   const result = simulateMesmer(['Power Spike'], defaultSimulationConfig({ specialization: 'Core' }));
   const powerSpike = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Power Spike'
   );
 
-  assert.equal(powerSpike.skillWeapon, 'Utility');
+  assert.equal(powerSpike.skillWeapon, 'Unequipped');
 });
 
 test('Egotism does not increase condition damage', () => {
@@ -1967,7 +1967,7 @@ test('Severance affects strikes after its control trigger', () => {
     });
   const base = run([]);
   const severance = run(['Severance']);
-  const mindSlashDamage = (result) => result.breakdown.find((entry) => entry.name === 'Mind Slash').strikeDamage;
+  const mindSlashDamage = (result) => result.breakdown.find((entry) => entry.sourceSkill === 'Mind Slash').strikeDamage;
 
   assert.ok(mindSlashDamage(severance) > mindSlashDamage(base));
   assert.ok(

@@ -2,6 +2,7 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { illusionSource, timedActive } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { initializeVirtuosoRuntime } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/runtime.js';
@@ -69,7 +70,7 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.15,
-    when: (context) => context.event?.source === 'Phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
+    when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
   },
   {
     id: 'mesmer.quiet-intensity-critical-chance',
@@ -107,7 +108,7 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       hasTrait(context, TRAIT.MENTAL_FOCUS) &&
       Boolean(context.config?.target?.nearby) &&
-      context.event?.source === 'Player'
+      isGw2PlayerActorEvent(context.event)
   },
   {
     id: 'mesmer.bloodsong',

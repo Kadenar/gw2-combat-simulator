@@ -11,6 +11,7 @@ export interface MesmerActiveEmission {
 }
 
 export interface MesmerCastDetails {
+  clarityConsumed?: boolean;
   earlyResourceAt?: number | null;
   earlyResourceOwnerId?: string;
   resourceScheduledDuringCast?: boolean;
@@ -20,11 +21,16 @@ export interface MesmerCastDetails {
 }
 
 export interface MesmerExceptionalProfileOptions {
+  readonly clarityConsumed?: boolean;
   readonly phantasmSummonAt?: number;
   readonly playerEffectEnd?: number;
   readonly skipDirectResource?: boolean;
 }
 
 export interface MesmerSkillEffectController {
-  schedule(skill: MesmerSkill, at: number, castStart?: number, options?: MesmerExceptionalProfileOptions): boolean;
+  consumeClarity(skill: MesmerSkill, castStart: number): boolean;
+  complete(skill: MesmerSkill, at: number, castStart?: number): void;
+  schedule(skill: MesmerSkill, at: number, castStart?: number, options?: MesmerExceptionalProfileOptions): void;
+  scheduleSpecial(skill: MesmerSkill, at: number, castStart?: number): void;
+  scheduleResources(skill: MesmerSkill, at: number, castStart?: number): void;
 }

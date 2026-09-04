@@ -29,13 +29,18 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'confusion',
-        duration: 7,
-        stacks: 7
+        ticks: Array.from({ length: 7 }, (_, index) => ({
+          // Confusion applies once per channel pulse, independently of the strike packet cadence.
+          atMs: (1920 * (index + 1)) / 7,
+          condition: 'confusion',
+          duration: 7,
+          stacks: 1
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 1920,
-    pulseCount: 7
+    quicknessCastTimeMs: 1920
   },
   [ID.ILLUSIONARY_COUNTER]: {
     type: 'Weapon',
@@ -98,6 +103,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ETHER_CLONE]: {
+    interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',

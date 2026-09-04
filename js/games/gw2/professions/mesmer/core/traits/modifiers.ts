@@ -12,7 +12,7 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 
 export function illusionSource(context: Gw2ModifierContext): boolean {
-  return context.event?.source === 'Clone' || context.event?.source === 'Phantasm';
+  return ['clone', 'phantasm'].includes(String(context.event?.summonKind || ''));
 }
 
 export function timedStacks(context: Gw2ModifierContext, kind: string, duration: number, maximum: number): number {
@@ -99,7 +99,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.25,
-    when: (context) => context.event?.source === 'Phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
+    when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
   },
   {
     id: 'mesmer.superiority-complex',
@@ -191,7 +191,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
       parameters.baseFactor +
       context.query!.mightStacksAt(context.time, context.runtime, context.event) * parameters.damagePerMight,
     order: 100,
-    when: (context) => context.event?.source === 'Phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FORCE)
+    when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FORCE)
   },
   {
     id: 'mesmer.mental-anguish',

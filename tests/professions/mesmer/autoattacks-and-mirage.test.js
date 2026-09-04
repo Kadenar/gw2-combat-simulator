@@ -99,7 +99,7 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
   assert.equal(flipped.steps[1].start, 120);
   assert.equal(flipped.endState.profession.resource, 1);
   assert.equal(flipped.endState.profession.counterspellAvailable, false);
-  assert.ok(flipped.breakdown.some((entry) => entry.name === 'Counterspell'));
+  assert.ok(flipped.breakdown.some((entry) => entry.sourceSkill === 'Counterspell'));
 
   const interrupted = simulateMesmer(
     ['Illusionary Counter', { name: 'Counterspell', interruptMs: 360 }, 'Swap Weapons'],
@@ -547,7 +547,7 @@ test('Abstraction records its detonation strike damage', () => {
     })
   );
 
-  assert.ok(result.breakdown.some((entry) => entry.name === 'Abstraction' && entry.strikeDamage > 0));
+  assert.ok(result.breakdown.some((entry) => entry.sourceSkill === 'Abstraction' && entry.strikeDamage > 0));
 });
 
 test('Shatter Storm gives Split Second two ammo charges', () => {
@@ -765,11 +765,12 @@ test('a weapon swap after Fractured Glass packets keeps the spear ambush', () =>
 
 test('Split Surge resolves its three beam packets with per-hit Might and Vulnerability', () => {
   const result = simulateMesmer(
-    ['Dodge / Mirage Cloak', 'Split Surge'],
+    ['Dodge / Mirage Cloak', 'Split Surge', { name: 'Signet of Midnight', offset: 700 }],
     defaultSimulationConfig({
       specialization: 'Mirage',
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
+      selectedSkills: ['Signet of Midnight'],
       initialResource: 0
     })
   );
@@ -810,6 +811,22 @@ test('Split Surge resolves its three beam packets with per-hit Might and Vulnera
       [680, 2, 5]
     ]
   );
+  assert.ok(
+    vulnerability.every(
+      (event) =>
+        event.name === 'Split Surge — Vulnerability' &&
+        event.sourceId === ID.SPLIT_SURGE &&
+        event.skillId === ID.SPLIT_SURGE &&
+        event.applicationIndex === 1 &&
+        event.totalApplications === 1
+    )
+  );
+  const overlappingAction = result.events.find(
+    (event) => event.type === 'action' && event.skillName === 'Signet of Midnight'
+  );
+
+  assert.ok(vulnerability.at(-1).at < overlappingAction.at);
+  assert.ok(vulnerability.at(-1).eventOrder < overlappingAction.eventOrder);
 });
 
 test('Fractured Glass resolves seven measured packets with per-hit Vulnerability', () => {
@@ -936,6 +953,24 @@ test('Infinite Horizon commands active clones to ambush when cloak is gained', (
     ),
     false
   );
+});
+
+test('Chaos Vortex selects clone boon recipients when its boon packet lands', () => {
+  const result = simulateMesmer(
+    ['Dodge / Mirage Cloak', 'Chaos Vortex', { name: 'Phase Retreat', offset: 120 }],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      primaryWeapon: 'Staff',
+      secondaryWeapon: '',
+      initialResource: 0,
+      sharePlayerBoonsWithSummons: true
+    })
+  );
+  const boons = result.events.filter((event) => event.type === 'buff' && event.skillName === 'Chaos Vortex');
+
+  assert.equal(boons.length, 2);
+  assert.ok(boons.every((event) => event.at === 0.72));
+  assert.ok(boons.every((event) => event.resolvedAudience.companionIds.includes('mesmer.clone:1')));
 });
 
 test('Deceptive Evasion clone immediately ambushes with Infinite Horizon', () => {
@@ -1328,7 +1363,7 @@ test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
 test('Power Spike records its strike damage', () => {
   const result = simulateMesmer(['Power Spike'], defaultSimulationConfig({ specialization: 'Core' }));
 
-  assert.ok(result.breakdown.some((entry) => entry.name === 'Power Spike' && entry.strikeDamage > 0));
+  assert.ok(result.breakdown.some((entry) => entry.sourceSkill === 'Power Spike' && entry.strikeDamage > 0));
 });
 
 test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulated', () => {

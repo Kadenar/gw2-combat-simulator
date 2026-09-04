@@ -44,7 +44,9 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         type: 'strike',
         coefficient: 1.75,
         hits: 1,
-        castProgress: 0.92,
+        atMs: 920,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         name: 'Damage',
         actorType: 'player',
         weapon: 'axe'

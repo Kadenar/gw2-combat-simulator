@@ -5,6 +5,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { timedActive } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import {
@@ -80,7 +81,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) =>
       hasTrait(context, TRAIT.FLOW_OF_TIME) &&
       Boolean(context.config?.boons?.alacrity) &&
-      ['Player', 'Clone', 'Phantasm'].includes(String(context.event?.source || ''))
+      ['player', 'summon'].includes(gw2EventActorType(context.event))
   },
   {
     id: 'mesmer.danger-time',
@@ -89,7 +90,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     factor: 1.05,
     when: (context) =>
       hasTrait(context, TRAIT.DANGER_TIME) &&
-      ['Player', 'Clone', 'Phantasm'].includes(String(context.event?.source || '')) &&
+      ['player', 'summon'].includes(gw2EventActorType(context.event)) &&
       timedActive(context, 'danger-time')
   },
   {
@@ -98,7 +99,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.1,
     order: 100,
-    when: (context) => String(context.event?.source || '') === 'Player' && timedActive(context, 'time-bomb')
+    when: (context) => isGw2PlayerActorEvent(context.event) && timedActive(context, 'time-bomb')
   }
 ]);
 

@@ -1,5 +1,6 @@
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import {
   balanceProfileEffectFromContext as profileEffect,
@@ -170,15 +171,13 @@ function instrumentAttack(
   }
 }
 
-/** Spends notes, performs the instrument attack, and opens its active-instrument window. */
-function resolveInstrument(context: MesmerCastContext, skill: MesmerSkill, data: MesmerInstrument, at: number): void {
+/** Spends notes and commits the active-instrument state after its cast completes. */
+function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: MesmerInstrument, at: number): void {
   const runtime = mesmerRuntimeFor(context);
   const spent = runtime.actions.consumeResources(at, {
     sourceSkill: skill.name,
     rotationIndex: context.commandIndex
   });
-  const damageAt = context.start + Number(data.damageAtMs || 0) / 1000;
-  instrumentAttack(context, skill, data, damageAt);
   const baseDuration = profileValue(runtime, PROFILE.instruments, 'durationMultiplier', 5);
   const durationPerNote = profileValue(runtime, PROFILE.instruments, 'durationPerTier', 5);
   const expiresAt = at + baseDuration + spent * durationPerNote;
@@ -191,18 +190,6 @@ function resolveInstrument(context: MesmerCastContext, skill: MesmerSkill, data:
     instrument: data.instrument,
     expiresAt
   });
-
-  if (data.instrument === 'Harp') {
-    const distortion = profileEffect(runtime, PROFILE.instruments, 'buff');
-    runtime.addEvent({
-      type: 'buff',
-      at: context.start,
-      kind: 'distortion',
-      stacks: Number(distortion?.stacks || 1),
-      duration: Number(distortion?.duration || 2),
-      sourceSkill: skill.name
-    });
-  }
 
   if (
     runtime.traits.has(TRAIT.CALL_AND_RESPONSE) &&
@@ -334,27 +321,38 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
   }
 }
 
-/** Owns Troubadour performance completion while preserving packet attribution and Harp's interrupt commit point. */
-export function completeTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
+/** Registers performance packets at cast start while leaving note spending and instrument state at completion. */
+export function scheduleTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   const instrument = runtime.instruments[skill.id];
   if (!instrument && skill.id !== ID.CRESCENDO) return;
+  withMesmerCastEmission(context, skill, () => {
+    if (instrument) {
+      instrumentAttack(context, skill, instrument, context.start + Number(instrument.damageAtMs || 0) / 1000);
+      if (instrument.instrument === 'Harp') {
+        const distortion = profileEffect(runtime, PROFILE.instruments, 'buff');
+        runtime.addEvent({
+          type: 'buff',
+          at: context.start,
+          kind: 'distortion',
+          stacks: Number(distortion?.stacks || 1),
+          duration: Number(distortion?.duration || 2),
+          sourceSkill: skill.name
+        });
+      }
+    } else {
+      resolveCrescendo(context, skill, context.fullEnd);
+    }
+  });
+}
+
+/** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
+export function completeTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
+  const runtime = mesmerRuntimeFor(context);
+  const instrument = runtime.instruments[skill.id];
+  if (!instrument) return;
 
   const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
   const at = interrupted && instrument?.instrument === 'Harp' ? context.effectiveEnd : context.fullEnd;
-  const previousEmission = runtime.activeEmission;
-  runtime.activeEmission = {
-    skill,
-    effectiveEnd: interrupted ? context.effectiveEnd : Infinity,
-    activationId: context.reservationId
-  };
-  try {
-    if (instrument) {
-      resolveInstrument(context, skill, instrument, at);
-    } else {
-      resolveCrescendo(context, skill, at);
-    }
-  } finally {
-    runtime.activeEmission = previousEmission;
-  }
+  withMesmerCastEmission(context, skill, () => commitInstrument(context, skill, instrument, at));
 }

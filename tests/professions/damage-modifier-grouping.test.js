@@ -314,8 +314,11 @@ test('Mesmer Lute Playing damage excludes illusion attacks', () => {
     sigils: { strike: 1, strikeAdd: 0, condition: 1, conditionAdd: 0 }
   };
   const player = modifierContext(shared);
-  const phantasm = modifierContext({ ...shared, event: { source: 'Phantasm' } });
-  const clone = modifierContext({ ...shared, event: { source: 'Clone' } });
+  const phantasm = modifierContext({
+    ...shared,
+    event: { source: 'Phantasm', actorType: 'summon', summonKind: 'phantasm' }
+  });
+  const clone = modifierContext({ ...shared, event: { source: 'Clone', actorType: 'summon', summonKind: 'clone' } });
 
   assertClose(mesmerRules('Troubadour').modifyStrikeDamage(player, 1), 1.1);
   assert.equal(mesmerRules('Troubadour').modifyStrikeDamage(phantasm, 1), 1);
@@ -324,7 +327,7 @@ test('Mesmer Lute Playing damage excludes illusion attacks', () => {
 
 test('Mesmer Deadly Blades does not increase phantasm damage', () => {
   const context = modifierContext({
-    event: { source: 'Phantasm' },
+    event: { source: 'Phantasm', actorType: 'summon', summonKind: 'phantasm' },
     active: ['deadly-blades']
   });
 
@@ -436,9 +439,11 @@ test('Vicious Expression always applies its base multiplicative modifier', () =>
 });
 
 test('Mesmer strike sigils apply to the player but not illusion sources', () => {
-  const player = modifierContext({ event: { source: 'Player' } });
-  const clone = modifierContext({ event: { source: 'Clone' } });
-  const phantasm = modifierContext({ event: { source: 'Phantasm' } });
+  const player = modifierContext({ event: { source: 'Player', actorType: 'player' } });
+  const clone = modifierContext({ event: { source: 'Clone', actorType: 'summon', summonKind: 'clone' } });
+  const phantasm = modifierContext({
+    event: { source: 'Phantasm', actorType: 'summon', summonKind: 'phantasm' }
+  });
 
   assert.equal(mesmerRules('Core').modifyStrikeDamage(player, 1.08), 1.08);
   assert.equal(mesmerRules('Core').modifyStrikeDamage(clone, 1.08), 1);

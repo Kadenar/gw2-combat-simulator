@@ -1,4 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/catalog/module-data.js';
 import {
@@ -14,8 +15,15 @@ import {
   MESMER_TROUBADOUR_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
-import { mesmerReplaceProfile } from '#gw2/professions/mesmer/core/execution/index.js';
 import { TROUBADOUR_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
+import { scheduleTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
+import type { MesmerHandlerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+
+// Performance handlers replace fixed profiles with packets registered at cast start.
+const troubadourPerformanceProfile = replaceSkill<MesmerHandlerContext>({
+  beforeEffects: (context, skill) => scheduleTroubadourPerformance(context, skill as MesmerSkill)
+});
 
 export const troubadourModule = defineNativeModule({
   id: 'Troubadour',
@@ -35,8 +43,8 @@ export const troubadourModule = defineNativeModule({
     execution: {
       // Instrument actions replace their declarative profiles with stateful handlers.
       skillHandlers: Object.freeze({
-        'mesmer.instrument': mesmerReplaceProfile,
-        'mesmer.crescendo': mesmerReplaceProfile
+        'mesmer.instrument': troubadourPerformanceProfile,
+        'mesmer.crescendo': troubadourPerformanceProfile
       }),
       castRules: troubadourCastRules,
       skillMechanicHandlers: troubadourSkillMechanicHandlers,

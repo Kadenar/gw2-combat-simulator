@@ -61,12 +61,6 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     }
   });
   runtime.mirage = mirage;
-  // Ambush casts replace the shared skill-effect path and stay owned by the active Mirage runtime.
-  runtime.skillCompletionHandlers.push((_castContext, skill, at) => {
-    if (!skill.ambush) return false;
-    mirage.executePlayerAmbush(skill, at, _castContext.start);
-    return true;
-  });
   runtime.shatterResolvedHandlers.push((_castContext, resolution) => {
     mirage.handleMirageShatter(resolution.skill, resolution.at, resolution.spent);
   });

@@ -65,7 +65,7 @@ test('Maim the Disillusioned resolves before Illusionary Membrane', () => {
   assert.ok(maim.eventOrder < membrane.eventOrder);
 });
 
-test('Master Fencer dispatches before Sharper Images for one critical observation', () => {
+test('canonical phantasm ownership triggers Sharper Images without Master Fencer', () => {
   const procs = [];
   const context = {
     state: {
@@ -85,14 +85,15 @@ test('Master Fencer dispatches before Sharper Images for one critical observatio
     balanceProfile: () => undefined
   };
 
-  // Explicit player ownership plus an illusion source exercises both effects on one candidate.
+  // Canonical summon ownership prevents an illusion hit from also counting as a player hit.
   triggerMesmerCriticalTraits(
     context,
     {
       type: 'damage',
       at: 1,
-      actorType: 'player',
       source: 'Phantasm',
+      actorType: 'summon',
+      summonKind: 'phantasm',
       name: 'Phantasm strike',
       skillName: 'Phantasm strike',
       coefficient: 1,
@@ -101,5 +102,5 @@ test('Master Fencer dispatches before Sharper Images for one critical observatio
     1
   );
 
-  assert.deepEqual(procs, ['Master Fencer', 'Sharper Images']);
+  assert.deepEqual(procs, ['Sharper Images']);
 });

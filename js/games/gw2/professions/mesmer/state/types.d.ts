@@ -3,6 +3,7 @@ import type {
   SchedulerRecord,
   SchedulerState,
   SimulationEvent,
+  SimulationEventInput,
   SkillId
 } from '#gw2/platform/engine/types.js';
 import type {
@@ -120,8 +121,10 @@ export interface MesmerEndState extends SchedulerRecord {
 
 export interface MesmerSchedulerTaskPayloads {
   readonly cloneAttack: { readonly cloneId: number };
+  readonly partyBuff: { readonly event: SimulationEventInput };
   readonly resourceGain: MesmerPendingResource;
   readonly expectedProc: MesmerExpectedProcCandidate;
+  readonly trackedHit: { readonly skillId: SkillId };
   readonly virtuosoExpectedProc: MesmerVirtuosoExpectedProcCandidate;
   readonly deadlyBladesCritical: { readonly event: Extract<SimulationEvent, { readonly type: 'damage' }> };
   readonly chaoticInterruption: { readonly skillId: SkillId; readonly skillName: string };

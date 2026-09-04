@@ -128,12 +128,12 @@ export function createSkillEffectController({
     at: number,
     castStart = at,
     {
+      clarityConsumed = false,
       phantasmSummonAt = at,
       playerEffectEnd = Infinity,
       skipDirectResource = false
     }: MesmerExceptionalProfileOptions = {}
-  ): boolean => {
-    const clarityConsumed = specialEffects.consumeClarity(skill, castStart);
+  ): void => {
     const pulseCount = Math.max(1, Math.trunc(Number(skill.pulseCount || 1)));
     const pulseTimes =
       pulseCount > 1
@@ -159,10 +159,14 @@ export function createSkillEffectController({
       illusionResources.schedule(skill, at, castStart, phantasmExecutions);
     }
 
-    specialEffects.apply(skill, at, castStart);
     damage.finish(skill, damageResult);
-    return clarityConsumed;
   };
 
-  return { schedule };
+  return {
+    consumeClarity: specialEffects.consumeClarity,
+    complete: specialEffects.apply,
+    schedule,
+    scheduleSpecial: specialEffects.schedule,
+    scheduleResources: (skill, at, castStart = at) => illusionResources.schedule(skill, at, castStart, [])
+  };
 }

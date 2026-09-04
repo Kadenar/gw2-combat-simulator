@@ -540,7 +540,9 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
   );
   assert.deepEqual(
     bladecall.resolvedEvents
-      .filter((event) => event.type === 'condition' && event.name === 'Bladecall — Jagged Mind')
+      .filter(
+        (event) => event.type === 'condition' && event.skillName === 'Bladecall' && event.sourceId === TRAIT.JAGGED_MIND
+      )
       .map((event) => Number(event.at.toFixed(3))),
     [0.199, 0.199, 0.199, 2.716, 2.716, 2.766]
   );
@@ -553,11 +555,11 @@ test('Flying Cutter commits its projectile before an interrupt and retains Cutte
     secondaryWeapon: 'Sword'
   });
   const afterRelease = simulateMesmer(
-    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 317 }, { name: '__wait', waitMs: 1000 }],
+    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 320 }, { name: '__wait', waitMs: 1000 }],
     config
   );
   const beforeRelease = simulateMesmer(
-    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 316 }, { name: '__wait', waitMs: 1000 }],
+    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 319 }, { name: '__wait', waitMs: 1000 }],
     config
   );
 
@@ -953,6 +955,27 @@ test('Troubadour instruments use configured packets and normalized strength', ()
         event.activationId !== stochasticDrumHit.activationId
     )
   );
+});
+
+test('Troubadour performance packets register before later overlapping actions', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Troubadour',
+    selectedSkills: ['Signet of Midnight'],
+    initialResource: 3
+  });
+  for (const [skillName, offset] of [
+    ['Lively Lute', 500],
+    ['Crescendo', 900]
+  ]) {
+    const result = simulateMesmer([skillName, { name: 'Signet of Midnight', offset }], config);
+    const hit = result.events.find((event) => event.type === 'damage' && event.skillName === skillName);
+    const overlappingAction = result.events.find(
+      (event) => event.type === 'action' && event.skillName === 'Signet of Midnight'
+    );
+
+    assert.ok(hit.at < overlappingAction.at, skillName);
+    assert.ok(hit.eventOrder < overlappingAction.eventOrder, skillName);
+  }
 });
 
 test('Troubadour skills use measured Quickness cast times', () => {

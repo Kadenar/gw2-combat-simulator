@@ -140,10 +140,6 @@ export type MesmerSchedulerContext = Omit<
   mesmerRuntime?: MesmerRuntime;
 };
 
-export type MesmerHandlerContext = MesmerSchedulerContext & {
-  readonly mesmerRuntime: MesmerRuntime;
-};
-
 export type MesmerPrecastContext = MesmerSchedulerContext & {
   readonly command: CastCommand;
   readonly commandIndex: number;
@@ -161,6 +157,10 @@ export type MesmerCastContext = MesmerPrecastContext & {
   readonly rechargeStart: number;
   readonly rechargeReadyAt: number | null;
   readonly reservationId: string;
+};
+
+export type MesmerHandlerContext = MesmerCastContext & {
+  readonly mesmerRuntime: MesmerRuntime;
 };
 
 /** Scheduler-local dependencies assembled once for the active Mesmer module. */

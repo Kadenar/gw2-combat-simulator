@@ -117,18 +117,19 @@ export function createMirageActionController({
 
   const addAmbushVulnerability = (at: number, ambush: MesmerAmbushAttack) => {
     if (!ambush.vulnerability) return;
-    addEvent({
-      type: 'condition',
+    // Ambush Vulnerability uses the canonical condition envelope and application metadata.
+    addCondition(
+      ambush.name,
       at,
-      condition: 'Vulnerability',
-      stacks: ambush.vulnerability.stacks,
-      duration: ambush.vulnerability.duration,
-      source: 'Player',
-      actorType: 'player',
-      skillId: ambush.id,
-      skillName: ambush.name,
-      sourceSkill: ambush.name
-    });
+      {
+        name: 'Vulnerability',
+        stacks: ambush.vulnerability.stacks,
+        duration: ambush.vulnerability.duration
+      },
+      'Player',
+      '',
+      { source: 'Player', sourceId: ambush.id, skillId: ambush.id, actorType: 'player' }
+    );
     addEvent({
       type: 'weakness_vulnerability',
       at,

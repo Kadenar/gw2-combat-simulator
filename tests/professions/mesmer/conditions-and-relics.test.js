@@ -134,7 +134,7 @@ test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
   const axesStep = existingClones.steps.find((step) => step.skill === 'Axes of Symmetry');
   const axesStart = axesStep.start / 1000;
   const playerHit = existingClones.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillName === 'Axes of Symmetry' && event.source === 'Player'
+    (event) => event.type === 'damage' && event.skillName === 'Axes of Symmetry' && event.actorType === 'player'
   );
   const cloneHits = existingClones.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name.includes('Axes of Symmetry') && event.source === 'Clone'
@@ -153,7 +153,7 @@ test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
   assert.equal(cloneConfusion.length, 2);
   assert.ok(cloneConfusion.every((event) => event.stacks === 1 && event.duration === 6));
   const playerConfusion = existingClones.resolvedEvents.find(
-    (event) => event.type === 'condition' && event.skillName === 'Axes of Symmetry' && event.source === 'Player'
+    (event) => event.type === 'condition' && event.skillName === 'Axes of Symmetry' && event.actorType === 'player'
   );
 
   assert.equal(playerConfusion.stacks, 5);
@@ -173,6 +173,35 @@ test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
     ),
     false
   );
+});
+
+test('Axes of Symmetry registers clone packets before a later overlapping action', () => {
+  const result = simulateMesmer(
+    [
+      'Mirror Images',
+      { name: '__wait', waitMs: 1 },
+      { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY },
+      { name: 'Signet of Midnight', offset: 970 }
+    ],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      selectedSkills: ['Mirror Images', 'Signet of Midnight'],
+      selectedTraitIds: [],
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Torch',
+      initialResource: 0
+    })
+  );
+  const cloneHits = result.events.filter(
+    (event) => event.type === 'damage' && event.name.includes('Axes of Symmetry') && event.source === 'Clone'
+  );
+  const overlappingAction = result.events.find(
+    (event) => event.type === 'action' && event.skillName === 'Signet of Midnight'
+  );
+
+  assert.equal(cloneHits.length, 2);
+  assert.ok(cloneHits.every((event) => event.at < overlappingAction.at));
+  assert.ok(cloneHits.every((event) => event.eventOrder < overlappingAction.eventOrder));
 });
 
 test('Imaginary Axes lands 360ms from cast start with two 3-stack torment hits', () => {
@@ -710,7 +739,10 @@ test('weapon swaps activate only the equipped set damage sigils', () => {
       { strike: 1, condition: 1 }
     ]
   });
-  const strike = (result, name) => result.breakdown.find((entry) => entry.name === name).strikeDamage;
+  const strike = (result, name) =>
+    result.breakdown
+      .filter((entry) => entry.sourceSkill === name)
+      .reduce((total, entry) => total + entry.strikeDamage, 0);
 
   assert.ok(Math.abs(strike(equipped, 'Bladecall') / strike(base, 'Bladecall') - 1.05) < 1e-12);
   assert.ok(Math.abs(strike(equipped, 'Psycut') / strike(base, 'Psycut') - 1) < 1e-12);
@@ -760,7 +792,10 @@ test('Relic of the Claw buffs strikes after a control skill for eight seconds', 
     ...config,
     relic: 'Claw'
   });
-  const damage = (result, name) => result.breakdown.find((entry) => entry.name === name).strikeDamage;
+  const damage = (result, name) =>
+    result.breakdown
+      .filter((entry) => entry.sourceSkill === name)
+      .reduce((total, entry) => total + entry.strikeDamage, 0);
 
   assert.equal(damage(equipped, 'Bladesong Dissonance'), damage(base, 'Bladesong Dissonance'));
   assert.ok(Math.abs(damage(equipped, 'Bladecall') / damage(base, 'Bladecall') - 1.07) < 1e-12);
@@ -963,8 +998,12 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
   });
   const active = simulateMesmer(['Signet of Domination', 'Mind Slash'], config);
   const expired = simulateMesmer(['Signet of Domination', { name: '__wait', waitMs: 8001 }, 'Mind Slash'], config);
-  const activeDamage = active.breakdown.find((entry) => entry.name === 'Mind Slash').strikeDamage;
-  const expiredDamage = expired.breakdown.find((entry) => entry.name === 'Mind Slash').strikeDamage;
+  const strikeDamage = (result) =>
+    result.breakdown
+      .filter((entry) => entry.sourceSkill === 'Mind Slash')
+      .reduce((total, entry) => total + entry.strikeDamage, 0);
+  const activeDamage = strikeDamage(active);
+  const expiredDamage = strikeDamage(expired);
 
   assert.ok(Math.abs(activeDamage / expiredDamage - 1.07) < 1e-12);
 });
@@ -1291,7 +1330,10 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
   ];
   const base = simulateMesmer(rotation, config);
   const equipped = simulateMesmer(rotation, { ...config, relic: 'Peitha' });
-  const damage = (result) => result.breakdown.find((entry) => entry.name === 'Winds of Chaos').strikeDamage;
+  const damage = (result) =>
+    result.breakdown
+      .filter((entry) => entry.sourceSkill === 'Winds of Chaos')
+      .reduce((total, entry) => total + entry.strikeDamage, 0);
 
   assert.ok(Math.abs(damage(equipped) / damage(base) - 1.1) < 1e-12);
   assert.ok(

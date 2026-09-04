@@ -678,6 +678,28 @@ test('Phantasmal Swordsman independently gates its summon and player hit', () =>
   );
 });
 
+test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {
+  const result = simulateMesmer(
+    ['Phantasmal Swordsman', { name: 'Signet of Midnight', offset: 800 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Sword',
+      selectedSkills: ['Signet of Midnight'],
+      initialResource: 0
+    })
+  );
+  const playerHit = result.events.find(
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman' && event.source === 'Player'
+  );
+  const overlappingAction = result.events.find(
+    (event) => event.type === 'action' && event.skillName === 'Signet of Midnight'
+  );
+
+  assert.ok(playerHit.at < overlappingAction.at);
+  assert.ok(playerHit.eventOrder < overlappingAction.eventOrder);
+});
+
 test('Phantasmal Swordsman converts on its measured base and Chronophantasma timelines', () => {
   const conversionAt = (specialization, selectedTraitIds, waitMs) =>
     simulateMesmer(
@@ -782,7 +804,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
   assert.ok(Math.abs(repeat.at - 6.4) < 0.00001);
 
   const normalDamage = normal.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Phantasmal Warlock'
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Warlock' && event.summonKind === 'phantasm'
   );
   const normalTorment = normal.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name === 'Phantasmal Warlock — Torment'
@@ -884,7 +906,7 @@ test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => 
       event.type === 'condition' &&
       event.skillName === 'Phantasmal Mage' &&
       event.condition === 'Burning' &&
-      event.source === 'Player'
+      event.actorType === 'player'
   );
   const phantasmConditions = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Phantasmal Mage' && event.source === 'Phantasm'
@@ -896,7 +918,7 @@ test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => 
   assert.equal(result.steps[0].end, 760);
   assert.equal(phantasmStrike.weaponStrength, 2615.5);
   assert.deepEqual(
-    playerBurning.map((event) => [event.stacks, event.duration, event.at]),
+    playerBurning.map((event) => [event.stacks, event.duration, event.at]).sort((left, right) => left[0] - right[0]),
     [
       [1, 6, 0.76],
       [2, 3, 0.76]
@@ -947,7 +969,10 @@ test('Compounding Power excludes illusion strikes but applies to their condition
     );
   const warlockDamage = (result) =>
     result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.name === 'Phantasmal Warlock')
+      .filter(
+        (event) =>
+          event.type === 'damage' && event.skillName === 'Phantasmal Warlock' && event.summonKind === 'phantasm'
+      )
       .reduce((sum, event) => sum + event.damage, 0);
   const warlockConditionDamage = (result) =>
     result.resolvedEvents
@@ -1036,7 +1061,7 @@ test('Compounding Power gives player strikes two percent and conditions one perc
     );
   const playerStrike = (result) =>
     result.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.name === 'Winds of Chaos' && event.source === 'Player'
+      (event) => event.type === 'damage' && event.skillName === 'Winds of Chaos' && event.actorType === 'player'
     ).damage;
   const playerCondition = (result) =>
     result.resolvedEvents.find(
@@ -1442,16 +1467,16 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
     const initialEvents = result.events.filter(
       (event) =>
         event.type === 'damage' &&
-        event.source === 'Phantasm' &&
-        (testCase.attackNames ? testCase.attackNames.includes(event.name) : event.name === testCase.skill)
+        event.skillName === testCase.skill &&
+        event.summonKind === 'phantasm' &&
+        !String(event.name).endsWith(' - Chronophantasma')
     );
     const repeatEvents = result.events.filter(
       (event) =>
         event.type === 'damage' &&
-        event.source === 'Phantasm' &&
-        (testCase.attackNames
-          ? testCase.attackNames.some((name) => event.name === `${name} - Chronophantasma`)
-          : event.name === `${testCase.skill} - Chronophantasma`)
+        event.skillName === testCase.skill &&
+        event.summonKind === 'phantasm' &&
+        String(event.name).endsWith(' - Chronophantasma')
     );
     const offsets = (events) => events.map((event) => Math.round((event.at - castEnd) * 1000)).sort((a, b) => a - b);
 
@@ -1467,7 +1492,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
     for (const [skill, stepIndex, expected] of expectations) {
       const castStart = result.steps[stepIndex].start / 1000;
       const offsets = result.resolvedEvents
-        .filter((event) => event.type === 'damage' && event.source === 'Player' && event.skillName === skill)
+        .filter((event) => event.type === 'damage' && event.actorType === 'player' && event.skillName === skill)
         .map((event) => Math.round((event.at - castStart) * 1000));
 
       assert.deepEqual(offsets, expected, skill);

@@ -33,31 +33,9 @@ const INSTRUMENT_SKILL_IDS = new Set<number>([
 
 export { MESMER_FLIP_CHILD_BY_PARENT_ID, MESMER_FLIP_PARENT_BY_CHILD_ID };
 
-const FLIP_SKILL_IDS = new Set<number>([
-  ...Object.keys(MESMER_FLIP_PARENT_BY_CHILD_ID).map(Number),
-  ...Object.values(MESMER_FLIP_PARENT_BY_CHILD_ID)
-]);
-
-const SPECIAL_PROFILE_SKILL_IDS = new Set<number>([
-  ID.CONFUSING_IMAGES,
-  ID.SPATIAL_SURGE,
-  ID.MIND_SPIKE,
-  ID.FLYING_CUTTER,
-  ID.TROUBADOUR_AXES_OF_SYMMETRY,
-  ID.MIND_THE_GAP,
-  ID.IMAGINARY_INVERSION,
-  ID.MENTAL_COLLAPSE,
-  ID.SAND_THROUGH_GLASS,
-  ID.ILLUSIONARY_AMBUSH,
-  ID.SIGNET_OF_DOMINATION,
-  ID.SIGNET_OF_MIDNIGHT,
-  ID.SIGNET_OF_HUMILITY,
-  ID.SIGNET_OF_THE_ETHER,
-  ID.SIGNET_OF_ILLUSIONS
-]);
-
 /**
- * Selects a stable handler family using IDs and mechanic metadata only.
+ * Assigns handlers only when packet emission itself is runtime-dependent.
+ * Fixed effects remain scheduler-owned even when Mesmer's cast hook changes profession state.
  */
 export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | null {
   const id = Number(skill.id);
@@ -75,41 +53,34 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
   if (INSTRUMENT_SKILL_IDS.has(id)) return 'mesmer.instrument';
   if (id === ID.CRESCENDO) return 'mesmer.crescendo';
   if (skill.ambush) return 'mesmer.ambush';
+  if (id === ID.AXES_OF_SYMMETRY) return 'mesmer.axes-of-symmetry';
   if (skill.phantasm || resource?.mode === 'phantasm') {
     return 'mesmer.phantasm';
   }
 
-  if (FLIP_SKILL_IDS.has(id)) return 'mesmer.flip';
-  if (id === ID.FLYING_CUTTER) return 'mesmer.tracked-hits';
-  if (skill.resource) return 'mesmer.resource-skill';
-  if (
-    SPECIAL_PROFILE_SKILL_IDS.has(id) ||
-    skill.type === 'Heal' ||
-    skill.weapon === 'Sword' ||
-    skill.pulseCount ||
-    skill.boonlessCoefficient ||
-    skill.maxCloneEffects ||
-    (skill.effects || []).some((effect) => effect.requiredTrait || effect.castProgress != null || effect.packetLabel)
-  ) {
-    return 'mesmer.special-profile';
-  }
-
-  return (skill.effects || []).length ? 'mesmer.declarative' : null;
+  if (id === ID.MIND_SPIKE) return 'mesmer.mind-spike';
+  return null;
 }
 
-/** Assigns the stable handler that owns emission while retaining canonical effect metadata. */
+/** Keeps trait-owned packets out of the base profile while assigning only genuinely dynamic handlers. */
 export function prepareMesmerSkillForCatalog<TSkill extends MesmerSkillCatalogFragment>(skill: TSkill): TSkill {
   const handlerId = mesmerHandlerIdFor(skill);
   const flipParentId = MESMER_FLIP_PARENT_BY_CHILD_ID[Number(skill.id)];
   const flipChildId = MESMER_FLIP_CHILD_BY_PARENT_ID[Number(skill.id)];
+  const traitEffects = (skill.effects || []).filter((effect) => effect.requiredTrait);
   const mechanic =
-    flipParentId || flipChildId
+    flipParentId || flipChildId || traitEffects.length
       ? {
           ...(skill.mesmerMechanic && typeof skill.mesmerMechanic === 'object' ? skill.mesmerMechanic : {}),
           ...(flipParentId ? { flipParentId } : {}),
-          ...(flipChildId ? { flipChildId } : {})
+          ...(flipChildId ? { flipChildId } : {}),
+          ...(traitEffects.length ? { traitEffects } : {})
         }
       : skill.mesmerMechanic;
-  const prepared: TSkill = mechanic ? { ...skill, mesmerMechanic: mechanic } : skill;
+  const prepared: TSkill = {
+    ...skill,
+    ...(traitEffects.length ? { effects: (skill.effects || []).filter((effect) => !effect.requiredTrait) } : {}),
+    ...(mechanic ? { mesmerMechanic: mechanic } : {})
+  };
   return handlerId ? { ...prepared, handlerId } : prepared;
 }

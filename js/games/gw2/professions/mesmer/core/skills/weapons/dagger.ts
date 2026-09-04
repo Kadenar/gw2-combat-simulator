@@ -4,6 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FLYING_CUTTER]: {
+    interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: '',
@@ -18,7 +19,10 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
         hits: 1,
         name: 'Projectile',
         actorType: 'player',
-        castProgress: 0.72
+        // Preserve the measured Quickness projectile while the shared scheduler scales slower casts.
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
     trackedHitDamage: {

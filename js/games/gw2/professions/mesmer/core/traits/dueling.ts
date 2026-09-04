@@ -212,7 +212,7 @@ export function triggerSharperImages(
   event: SimulationEvent,
   chance: number
 ): void {
-  if (!context.traits.has(TRAIT.SHARPER_IMAGES) || (event.source !== 'Clone' && event.source !== 'Phantasm')) {
+  if (!context.traits.has(TRAIT.SHARPER_IMAGES) || !['clone', 'phantasm'].includes(String(event.summonKind || ''))) {
     return;
   }
 

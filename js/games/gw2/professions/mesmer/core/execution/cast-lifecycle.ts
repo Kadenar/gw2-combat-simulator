@@ -1,5 +1,6 @@
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { effectFirstAt, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -22,6 +23,52 @@ function dispatchShatterResolved(context: MesmerCastContext, resolution: MesmerS
   for (const handler of mesmerRuntimeFor(context).shatterResolvedHandlers) {
     handler(context, resolution);
   }
+}
+
+/** Registers procedural packets with cast attribution while preserving interruption filtering. */
+export function withMesmerCastEmission(
+  context: MesmerCastContext,
+  skill: MesmerSkill,
+  emit: () => void,
+  interruptedEnd = context.effectiveEnd
+): void {
+  const runtime = mesmerRuntimeFor(context);
+  const previousEmission = runtime.activeEmission;
+  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  runtime.activeEmission = {
+    skill,
+    effectiveEnd: interrupted ? interruptedEnd : Infinity,
+    activationId: context.reservationId
+  };
+  try {
+    emit();
+  } finally {
+    runtime.activeEmission = previousEmission;
+  }
+}
+
+/** Registers phantasm packets at cast start so observers see their authored timeline in order. */
+export function scheduleMesmerPhantasmEffects(context: MesmerCastContext, skill: MesmerSkill): void {
+  const runtime = mesmerRuntimeFor(context);
+  const details = runtime.castDetails.get(context.reservationId) || {};
+  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const summonProgress = Number(skill.phantasmSummonProgress);
+  const summonThreshold = context.start + (context.fullEnd - context.start) * summonProgress;
+  const completedInterruptedPhantasm =
+    interrupted && Number.isFinite(summonProgress) && context.effectiveEnd >= summonThreshold - EPSILON;
+  withMesmerCastEmission(
+    context,
+    skill,
+    () =>
+      runtime.skillEffects.schedule(skill, context.fullEnd, context.start, {
+        clarityConsumed: Boolean(details.clarityConsumed),
+        ...(completedInterruptedPhantasm
+          ? { phantasmSummonAt: context.effectiveEnd, playerEffectEnd: context.effectiveEnd }
+          : {}),
+        skipDirectResource: details.resourceScheduledDuringCast
+      }),
+    completedInterruptedPhantasm ? Infinity : context.effectiveEnd
+  );
 }
 
 // Completion steps remain named and ordered so specialization dispatch and
@@ -154,16 +201,6 @@ function emitCompletionEvents(
       skillName: skill.name
     });
   }
-
-  if (runtime.peithaSkills.has(skill.id)) {
-    // Movement skills trigger Peitha on activation rather than at cast end.
-    runtime.addEvent({
-      type: 'peitha',
-      at: context.start,
-      projectileDelay: runtime.peithaProjectileDelays[skill.id] ?? 0,
-      skillName: skill.name
-    });
-  }
 }
 
 function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): void {
@@ -191,7 +228,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
     }
 
     if (skill.id === ID.SWAP_WEAPONS) return;
-    let clarityConsumed = false;
+    const clarityConsumed = Boolean(details.clarityConsumed);
     const specializationHandled = dispatchSpecializationCompletion(context, skill, at);
 
     if (specializationHandled) {
@@ -200,33 +237,52 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
       const resolution = runtime.actions.handleShatter(context, skill, at, details.shatterSpent ?? null, context.start);
       if (resolution) dispatchShatterResolved(context, resolution);
     } else {
-      // Non-declarative Mesmer handlers own emission; their canonical effects
-      // stay on the skill for timing inspection and other metadata consumers.
-      if (skill.handlerId && skill.handlerId !== 'mesmer.declarative') {
-        clarityConsumed = runtime.skillEffects.schedule(
-          skill,
-          at,
-          context.start,
-          completedInterruptedPhantasm
-            ? {
-                phantasmSummonAt: context.effectiveEnd,
-                playerEffectEnd: context.effectiveEnd,
-                skipDirectResource: details.resourceScheduledDuringCast
-              }
-            : {
-                skipDirectResource: details.resourceScheduledDuringCast
-              }
-        );
+      // Default and augmented profiles still leave direct resource scheduling to Mesmer completion.
+      if ((!skill.handlerId || skill.handlerId === 'mesmer.mind-spike') && !details.resourceScheduledDuringCast) {
+        runtime.skillEffects.scheduleResources(skill, at, context.start);
       }
 
       settleSkillFlips(context, skill, at);
     }
 
+    runtime.skillEffects.complete(skill, at, context.start);
     applyMimicCompletion(context, skill, at);
     emitCompletionEvents(context, skill, at, clarityConsumed);
   } finally {
     runtime.activeEmission = null;
     runtime.castDetails.delete(context.reservationId);
+  }
+}
+
+/** Materializes selected trait packets at cast registration so their timing remains scheduler-owned and chronological. */
+function scheduleSelectedTraitEffects(context: MesmerCastContext, skill: MesmerSkill): void {
+  const runtime = mesmerRuntimeFor(context);
+  for (const effect of skill.mesmerMechanic?.traitEffects || []) {
+    if (!effect.requiredTrait || !runtime.traits.has(Number(effect.requiredTrait))) continue;
+    const timing = context.schedulerPolicy.effectTiming?.(context, skill, effect) ?? effect;
+    const firstAt = effectFirstAt(context.start, context.fullEnd, timing);
+    const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+    if (interrupted && effect.persistsAfterInterrupt !== true && firstAt > context.effectiveEnd + EPSILON) continue;
+    const applications = materializeSkillEffectApplications({
+      skill,
+      effect: timing,
+      start: context.start,
+      fullEnd: context.fullEnd,
+      baseEvent: {
+        activationId: context.reservationId,
+        source: effect.source || context.profession.id,
+        sourceId: effect.sourceId ?? skill.id,
+        actorType: effect.actorType || 'player',
+        skillId: skill.id,
+        skillName: skill.name
+      },
+      skillWeaponFallback: ['Heal', 'Utility', 'Elite'].includes(String(skill.type || '')) ? 'Unequipped' : ''
+    });
+    for (const application of applications) {
+      if (!interrupted || effect.persistsAfterInterrupt === true || application.at <= context.effectiveEnd + EPSILON) {
+        context.emit(application.event);
+      }
+    }
   }
 }
 
@@ -236,6 +292,18 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
  */
 export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
+  if (runtime.peithaSkills.has(skill.id)) {
+    // Movement relic triggers register on activation so overlapping casts observe the correct ICD state.
+    runtime.addEvent({
+      type: 'peitha',
+      activationId: context.reservationId,
+      at: context.start,
+      projectileDelay: runtime.peithaProjectileDelays[skill.id] ?? 0,
+      skillName: skill.name
+    });
+  }
+
+  scheduleSelectedTraitEffects(context, skill);
   const shatter = runtime.shatters[skill.id];
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);
@@ -273,6 +341,7 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
   }
 
   runtime.castDetails.set(context.reservationId, {
+    clarityConsumed: runtime.skillEffects.consumeClarity(skill, context.start),
     earlyResourceAt,
     earlyResourceOwnerId,
     resourceScheduledDuringCast,

@@ -25,6 +25,7 @@ export interface MesmerSkillResource {
 export interface MesmerMechanic extends SchedulerRecord {
   readonly flipParentId?: number;
   readonly flipChildId?: number;
+  readonly traitEffects?: readonly MesmerSkillEffect[];
 }
 
 export interface MesmerStrikeEffect extends StrikeEffect {

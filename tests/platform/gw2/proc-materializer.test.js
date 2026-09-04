@@ -56,6 +56,6 @@ test('sigils retrigger on a hit at the exact internal-cooldown boundary', () => 
 
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Sigil of Torment').map((step) => step.start),
-    [357, 5357]
+    [360, 5360]
   );
 });

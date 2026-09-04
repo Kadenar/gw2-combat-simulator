@@ -8,6 +8,7 @@ import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/gu
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import {
@@ -909,7 +910,9 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
   const flyingCutter = normalized('Flying Cutter');
 
   assert.equal(strikeEffects(flyingCutter)[0].coefficient, 0.5);
-  assert.equal(strikeEffects(flyingCutter)[0].castProgress, 0.72);
+  assert.equal(strikeEffects(flyingCutter)[0].atMs, 320);
+  assert.equal(strikeEffects(flyingCutter)[0].timingAnchor, 'castStart');
+  assert.equal(strikeEffects(flyingCutter)[0].timingScale, 'cast');
   assert.deepEqual(flyingCutter.trackedHitDamage, {
     hitsRequired: 3,
     duration: 5,
@@ -994,7 +997,7 @@ test('dodge models two endurance charges with a ten-second base recharge', () =>
   assert.equal(dodge.rechargeAnchor, 'castStart');
 });
 
-test('Mesmer supplemental identities and handler profiles are explicit', () => {
+test('Mesmer supplemental identities and dynamic handler profiles are explicit', () => {
   assert.equal(MESMER_SUPPLEMENTAL_SKILLS.length, 15);
   assert.ok(MESMER_SUPPLEMENTAL_SKILLS.every((skill) => skill.id > 0));
   assert.ok(PSEUDO_SKILLS.every((skill) => skill.id < 0));
@@ -1007,12 +1010,42 @@ test('Mesmer supplemental identities and handler profiles are explicit', () => {
   );
   const shared = mesmerCatalog.skillsByName.get('Mind Stab');
 
-  assert.equal(shared.handlerId, 'mesmer.declarative');
+  assert.equal(shared.handlerId, undefined);
   assert.ok(shared.effects.length > 0);
   const replacing = mesmerCatalog.skillsByName.get('Phantasmal Swordsman');
 
   assert.equal(replacing.handlerId, 'mesmer.phantasm');
   assert.ok(replacing.effects.length > 0);
+});
+
+test('Mesmer replacement handlers are limited to dynamic mechanic families', () => {
+  const allowed = new Set([
+    'mesmer.ambush',
+    'mesmer.bladesong',
+    'mesmer.continuum-shift',
+    'mesmer.continuum-split',
+    'mesmer.crescendo',
+    'mesmer.instrument',
+    'mesmer.mirage-dodge',
+    'mesmer.phantasm',
+    'mesmer.shatter',
+    'mesmer.weapon-swap'
+  ]);
+
+  for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
+    const runtime = resolveProfessionRuntime(mesmerProfession, { specialization });
+    const replacements = runtime.catalog.skills.filter((skill) => runtime.skillHandlerFor(skill)?.mode === 'replace');
+
+    assert.ok(replacements.length > 0, specialization);
+    assert.ok(
+      replacements.every((skill) => allowed.has(skill.handlerId)),
+      specialization
+    );
+    assert.ok(
+      runtime.catalog.skills.some((skill) => skill.effects.length > 0 && !skill.handlerId),
+      specialization
+    );
+  }
 });
 
 test('duplicate Mesmer skill names resolve explicitly by specialization', () => {

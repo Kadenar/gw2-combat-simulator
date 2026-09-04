@@ -10,7 +10,13 @@ import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import { createMesmerRuntime } from '#gw2/professions/mesmer/core/mechanics/illusions/controller.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { restartSignetIllusionsPassive } from '#gw2/professions/mesmer/core/mechanics/signets.js';
-import { triggerChaoticInterruption, triggerDazzling } from '#gw2/professions/mesmer/core/traits/index.js';
+import {
+  emitFencersFinesseStacks,
+  recordFencersFinesseProc,
+  triggerChaoticInterruption,
+  triggerDazzling
+} from '#gw2/professions/mesmer/core/traits/index.js';
+import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import type { MesmerExpectedProcCandidate } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 
@@ -101,13 +107,41 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
 
   let candidate: MesmerExpectedProcCandidate | null = null;
   if (event.type === 'damage') {
+    const skill = runtime.skillsById.get(Number(event.skillId));
+    if (skill && skill.handlerId !== 'mesmer.phantasm' && isGw2PlayerActorEvent(event)) {
+      // Default-scheduled sword and tracked-hit packets drive Mesmer state at their canonical impact timestamps.
+      const firstFencerTriggerAt = emitFencersFinesseStacks(
+        { traits: runtime.traits, epsilon: EPSILON, addEvent: runtime.addEvent, addTraitProc: runtime.addTraitProc },
+        skill,
+        [event.at],
+        1
+      );
+      if (Number(event.hitIndex || 1) === 1) {
+        recordFencersFinesseProc(
+          { traits: runtime.traits, epsilon: EPSILON, addEvent: runtime.addEvent, addTraitProc: runtime.addTraitProc },
+          skill,
+          firstFencerTriggerAt
+        );
+      }
+
+      if (skill.trackedHitDamage) {
+        context.tasks.schedule({
+          type: 'mesmer.tracked-hit',
+          at: event.at,
+          priority: -45,
+          ownerId: event.activationId,
+          payload: { skillId: skill.id }
+        });
+      }
+    }
+
     const tracksCriticalTrait =
       (runtime.traits.has(TRAIT.MASTER_FENCER) &&
         isGw2PlayerActorEvent(event) &&
         Number(event.coefficient) > 0 &&
         event.noCrit !== true &&
         event.canCrit !== false) ||
-      (runtime.traits.has(TRAIT.SHARPER_IMAGES) && (event.source === 'Clone' || event.source === 'Phantasm'));
+      (runtime.traits.has(TRAIT.SHARPER_IMAGES) && ['clone', 'phantasm'].includes(String(event.summonKind || '')));
 
     if (!tracksCriticalTrait) return;
     candidate = {
@@ -133,6 +167,11 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
  */
 export function handleCloneAttackTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'cloneAttack'>): void {
   mesmerRuntimeFor(context).cloneAttackScheduler.handleTask(task.payload.cloneId, task.at);
+}
+
+/** Emits a future party boon only when its dynamic companion audience can be selected. */
+export function handlePartyBuffTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'partyBuff'>): void {
+  context.emit(task.payload.event);
 }
 
 /**
@@ -177,4 +216,11 @@ export function handleExpectedProcTask(
   // original candidate (such as a skill-derived `blade` flag).
   const event = payloadEvent ? { ...payloadEvent, ...(canonicalEvent || {}) } : null;
   runtime.expected.process(task.payload.type === 'hit' && event ? { ...task.payload, event } : task.payload);
+}
+
+/** Records a landed default-scheduled hit only when the shared clock reaches its packet time. */
+export function handleTrackedHitTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'trackedHit'>): void {
+  const runtime = mesmerRuntimeFor(context);
+  const skill = runtime.skillsById.get(task.payload.skillId);
+  if (skill) scheduleMesmerTrackedHits(context.state, EPSILON, runtime.addDamage, skill, [task.at]);
 }

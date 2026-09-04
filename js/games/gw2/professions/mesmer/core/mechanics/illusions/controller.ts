@@ -36,7 +36,7 @@ import {
 import { createSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-controller.js';
 import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { createExpectedProcTracker } from '#gw2/professions/mesmer/core/mechanics/illusions/expected-procs.js';
-import { createMesmerEventMaterializer } from '#gw2/professions/mesmer/core/mechanics/illusions/event-materializer.js';
+import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
 import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type {
   MesmerClone,
@@ -150,13 +150,31 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
       });
     }
 
-    return context.emit({
+    const attributed = {
       ...(active ? { activationId: active.activationId } : {}),
       ...event
-    });
+    };
+    if (
+      event.type === 'buff' &&
+      event.audience &&
+      event.audience.recipients !== 'self' &&
+      Number(event.at) > state.time + EPSILON
+    ) {
+      // Party boons select currently active companions when their packet lands, after same-time state changes.
+      context.tasks.schedule({
+        type: 'mesmer.party-buff',
+        at: Number(event.at),
+        priority: 10,
+        payload: { event: attributed }
+      });
+      return null;
+    }
+
+    return context.emit(attributed);
   };
 
-  const { addEvent, addTraitProc, addCondition, addDamage } = createMesmerEventMaterializer({
+  const { addEvent, addTraitProc, addCondition, addDamage } = createMesmerEventEmitters({
+    context,
     emit,
     activePrimaryWeapon,
     weaponStrength: runtime.weaponStrength
