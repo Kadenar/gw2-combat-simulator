@@ -208,6 +208,41 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
   );
 });
 
+test('preserves shortened per-packet cast durations from dps.report', () => {
+  const report = parseDpsReport({
+    players: [
+      {
+        name: 'Fixture Dragonhunter',
+        profession: 'Dragonhunter',
+        rotation: [
+          {
+            id: 9_081,
+            skills: [
+              { castTime: 0, duration: 1_480, timeGained: 0 },
+              { castTime: 2_000, duration: 1_401, timeGained: 0 }
+            ]
+          }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 4_000, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: { s9081: { name: 'Whirling Wrath' } }
+  });
+  const result = reconstructDpsReportRotation(report, {
+    skills: [
+      skill(9_081, 'Whirling Wrath', {
+        type: 'weapon',
+        quicknessCastTimeMs: 1_480,
+        interruptMode: 'per-packet'
+      })
+    ]
+  });
+  const casts = result.rotation.filter((command) => command.name === 'Whirling Wrath');
+
+  assert.equal(casts[0].interruptMs, undefined);
+  assert.equal(casts[1].interruptMs, 1_400);
+});
+
 test('reconstructs generic report casts and applies Amalgam report corrections', () => {
   const report = parseDpsReport(reportFixture());
   const players = detectDpsReportRotationPlayers(report);

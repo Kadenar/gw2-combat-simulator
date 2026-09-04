@@ -207,11 +207,21 @@ function resolveAction(
 /** Returns a safe, action-tick-aligned observed duration only when the skill declares its commit contract. */
 function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   const sourceDurationMs = action.end - action.start;
+  const quantizedDurationMs = quantizeGw2ActionTimingMs(sourceDurationMs);
+  const runtimeDurationMs = quicknessReferenceCastTimeMs(action.skill);
+  // Per-packet channels can safely replay any shortened observed duration because the scheduler retains only landed packets.
+  if (
+    action.skill?.interruptMode === 'per-packet' &&
+    quantizedDurationMs > 0 &&
+    quantizedDurationMs < runtimeDurationMs
+  ) {
+    return quantizedDurationMs;
+  }
+
   const observedMs = observedCommittedInterruptMs(action.skill, sourceDurationMs);
   if (observedMs != null || action.status === 'interrupted') return observedMs;
 
   const commitMs = Number(action.skill?.interruptCommitMs);
-  const quantizedDurationMs = quantizeGw2ActionTimingMs(sourceDurationMs);
   // EI reduced-aftercast rows can end just before the packet-backed commit, so clamp only nearby completed casts.
   if (
     quantizedDurationMs > 0 &&
