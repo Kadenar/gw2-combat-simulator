@@ -10,6 +10,7 @@
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
 // Meteor Shower's canonical timeline retains the observed coefficient decay and packet timestamps.
 const METEOR_SHOWER_STRIKE_TICKS = [
@@ -340,23 +341,26 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   // Twenty-four meteors over roughly ten seconds; the shared tick table decays the coefficient
   // from 1.6 down to a 0.32 floor.
-  [ID.METEOR_SHOWER]: {
-    name: 'Meteor Shower',
-    type: 'Weapon',
-    slot: 'Weapon_5',
-    weapon: 'Staff',
-    attunement: 'Fire',
-    categories: ['Weapon skill'],
-    quicknessCastTimeMs: 2640,
-    cooldown: 30,
-    skillFamily: 'Weapon skill',
-    effects: [
-      strikeTimeline(METEOR_SHOWER_STRIKE_TICKS, {
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      })
-    ]
-  },
+  [ID.METEOR_SHOWER]: withSmallHitboxCap(
+    {
+      name: 'Meteor Shower',
+      type: 'Weapon',
+      slot: 'Weapon_5',
+      weapon: 'Staff',
+      attunement: 'Fire',
+      categories: ['Weapon skill'],
+      quicknessCastTimeMs: 2640,
+      cooldown: 30,
+      skillFamily: 'Weapon skill',
+      effects: [
+        strikeTimeline(METEOR_SHOWER_STRIKE_TICKS, {
+          timingAnchor: 'castStart',
+          timingScale: 'cast'
+        })
+      ]
+    },
+    12
+  ),
   [ID.WATER_BLAST]: {
     name: 'Water Blast',
     type: 'Weapon',

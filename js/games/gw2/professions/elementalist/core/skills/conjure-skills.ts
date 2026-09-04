@@ -7,6 +7,7 @@
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
 /**
  * Skill-id → fragment table for the conjured-bundle weapon skills.
@@ -153,59 +154,62 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   // Channelled field: strikes reuse the shared tick timeline, and Bleeding rides every tick
   // except the opening one.
-  [ID.FROST_STORM]: {
-    name: 'Frost Storm',
-    type: 'Weapon',
-    slot: 'Weapon_4',
-    skillWeapon: 'Frost Bow',
-    categories: ['Weapon skill'],
-    quicknessCastTimeMs: 2360,
-    cooldown: 20,
-    skillFamily: 'Weapon skill',
-    effects: [
-      strikeTimeline(
-        [
-          { atMs: 1040, coefficient: 0.7 },
-          { atMs: 1320, coefficient: 0.63 },
-          { atMs: 1520, coefficient: 0.56 },
-          { atMs: 1560, coefficient: 0.49 },
-          { atMs: 1800, coefficient: 0.42 },
-          { atMs: 1800, coefficient: 0.35 },
-          { atMs: 2000, coefficient: 0.28 },
-          { atMs: 2040, coefficient: 0.21 },
-          { atMs: 2280, coefficient: 0.14 },
-          { atMs: 2280, coefficient: 0.14 },
-          { atMs: 2480, coefficient: 0.14 },
-          { atMs: 2520, coefficient: 0.14 },
-          { atMs: 2760, coefficient: 0.14 },
-          { atMs: 2760, coefficient: 0.14 },
-          { atMs: 2960, coefficient: 0.14 },
-          { atMs: 3000, coefficient: 0.14 },
-          { atMs: 3240, coefficient: 0.14 },
-          { atMs: 3240, coefficient: 0.14 },
-          { atMs: 3480, coefficient: 0.14 },
-          { atMs: 3720, coefficient: 0.14 },
-          { atMs: 3960, coefficient: 0.14 },
-          { atMs: 4240, coefficient: 0.14 },
-          { atMs: 4480, coefficient: 0.14 },
-          { atMs: 4720, coefficient: 0.14 }
-        ],
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      ),
-      conditionTimeline(
-        [
-          1320, 1520, 1560, 1800, 1800, 2000, 2040, 2280, 2280, 2480, 2520, 2760, 2760, 2960, 3000, 3240, 3240, 3480,
-          3720, 3960, 4240, 4480, 4720
-        ].map((atMs) => ({
-          atMs,
-          condition: 'Bleeding',
-          stacks: 1,
-          duration: 3
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      )
-    ]
-  },
+  [ID.FROST_STORM]: withSmallHitboxCap(
+    {
+      name: 'Frost Storm',
+      type: 'Weapon',
+      slot: 'Weapon_4',
+      skillWeapon: 'Frost Bow',
+      categories: ['Weapon skill'],
+      quicknessCastTimeMs: 2360,
+      cooldown: 20,
+      skillFamily: 'Weapon skill',
+      effects: [
+        strikeTimeline(
+          [
+            { atMs: 1040, coefficient: 0.7 },
+            { atMs: 1320, coefficient: 0.63 },
+            { atMs: 1520, coefficient: 0.56 },
+            { atMs: 1560, coefficient: 0.49 },
+            { atMs: 1800, coefficient: 0.42 },
+            { atMs: 1800, coefficient: 0.35 },
+            { atMs: 2000, coefficient: 0.28 },
+            { atMs: 2040, coefficient: 0.21 },
+            { atMs: 2280, coefficient: 0.14 },
+            { atMs: 2280, coefficient: 0.14 },
+            { atMs: 2480, coefficient: 0.14 },
+            { atMs: 2520, coefficient: 0.14 },
+            { atMs: 2760, coefficient: 0.14 },
+            { atMs: 2760, coefficient: 0.14 },
+            { atMs: 2960, coefficient: 0.14 },
+            { atMs: 3000, coefficient: 0.14 },
+            { atMs: 3240, coefficient: 0.14 },
+            { atMs: 3240, coefficient: 0.14 },
+            { atMs: 3480, coefficient: 0.14 },
+            { atMs: 3720, coefficient: 0.14 },
+            { atMs: 3960, coefficient: 0.14 },
+            { atMs: 4240, coefficient: 0.14 },
+            { atMs: 4480, coefficient: 0.14 },
+            { atMs: 4720, coefficient: 0.14 }
+          ],
+          { timingAnchor: 'castStart', timingScale: 'cast' }
+        ),
+        conditionTimeline(
+          [
+            1320, 1520, 1560, 1800, 1800, 2000, 2040, 2280, 2280, 2480, 2520, 2760, 2760, 2960, 3000, 3240, 3240, 3480,
+            3720, 3960, 4240, 4480, 4720
+          ].map((atMs) => ({
+            atMs,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 3
+          })),
+          { timingAnchor: 'castStart', timingScale: 'cast' }
+        )
+      ]
+    },
+    14
+  ),
   [ID.DEEP_FREEZE]: {
     name: 'Deep Freeze',
     type: 'Weapon',
@@ -426,43 +430,46 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.INVOKE_LIGHTNING]: {
-    name: 'Invoke Lightning',
-    type: 'Weapon',
-    slot: 'Weapon_4',
-    skillWeapon: 'Lightning Hammer',
-    categories: ['Weapon skill'],
-    quicknessCastTimeMs: 920,
-    cooldown: 20,
-    skillFamily: 'Weapon skill',
-    effects: [
-      strikeTimeline(
-        [
-          { atMs: 360, coefficient: 0.825 },
-          { atMs: 360, coefficient: 0.7425 },
-          { atMs: 360, coefficient: 0.66 },
-          { atMs: 480, coefficient: 0.5775 },
-          { atMs: 480, coefficient: 0.495 },
-          { atMs: 480, coefficient: 0.4125 },
-          { atMs: 600, coefficient: 0.33 },
-          { atMs: 600, coefficient: 0.2475 },
-          { atMs: 600, coefficient: 0.24 },
-          { atMs: 760, coefficient: 0.24 },
-          { atMs: 760, coefficient: 0.24 },
-          { atMs: 760, coefficient: 0.24 },
-          { atMs: 880, coefficient: 0.24 },
-          { atMs: 880, coefficient: 0.24 },
-          { atMs: 880, coefficient: 0.24 },
-          { atMs: 880, coefficient: 0.24 },
-          { atMs: 880, coefficient: 0.24 },
-          { atMs: 880, coefficient: 0.24 },
-          { atMs: 1000, coefficient: 0.24 },
-          { atMs: 1000, coefficient: 0.24 }
-        ],
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      )
-    ]
-  },
+  [ID.INVOKE_LIGHTNING]: withSmallHitboxCap(
+    {
+      name: 'Invoke Lightning',
+      type: 'Weapon',
+      slot: 'Weapon_4',
+      skillWeapon: 'Lightning Hammer',
+      categories: ['Weapon skill'],
+      quicknessCastTimeMs: 920,
+      cooldown: 20,
+      skillFamily: 'Weapon skill',
+      effects: [
+        strikeTimeline(
+          [
+            { atMs: 360, coefficient: 0.825 },
+            { atMs: 360, coefficient: 0.7425 },
+            { atMs: 360, coefficient: 0.66 },
+            { atMs: 480, coefficient: 0.5775 },
+            { atMs: 480, coefficient: 0.495 },
+            { atMs: 480, coefficient: 0.4125 },
+            { atMs: 600, coefficient: 0.33 },
+            { atMs: 600, coefficient: 0.2475 },
+            { atMs: 600, coefficient: 0.24 },
+            { atMs: 760, coefficient: 0.24 },
+            { atMs: 760, coefficient: 0.24 },
+            { atMs: 760, coefficient: 0.24 },
+            { atMs: 880, coefficient: 0.24 },
+            { atMs: 880, coefficient: 0.24 },
+            { atMs: 880, coefficient: 0.24 },
+            { atMs: 880, coefficient: 0.24 },
+            { atMs: 880, coefficient: 0.24 },
+            { atMs: 880, coefficient: 0.24 },
+            { atMs: 1000, coefficient: 0.24 },
+            { atMs: 1000, coefficient: 0.24 }
+          ],
+          { timingAnchor: 'castStart', timingScale: 'cast' }
+        )
+      ]
+    },
+    9
+  ),
   // Lays a 4s Lightning combo field that opens at cast end (not cast start), and lands two
   // separate strike + crowd-control pulses of its own.
   [ID.STATIC_FIELD_LIGHTNING_HAMMER]: {
@@ -641,50 +648,53 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.FIERY_WHIRL]: {
-    name: 'Fiery Whirl',
-    type: 'Weapon',
-    slot: 'Weapon_3',
-    skillWeapon: 'Fiery Greatsword',
-    categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1320,
-    cooldown: 5,
-    skillFamily: 'Weapon skill',
-    effects: [
-      strikeTimeline(
-        [
-          { atMs: 280, coefficient: 0.688 },
-          { atMs: 400, coefficient: 0.688 },
-          { atMs: 530, coefficient: 0.688 },
-          { atMs: 640, coefficient: 0.688 },
-          { atMs: 760, coefficient: 0.688 },
-          { atMs: 880, coefficient: 0.688 },
-          { atMs: 990, coefficient: 0.688 },
-          { atMs: 1130, coefficient: 0.688 }
-        ],
-        {
-          timingAnchor: 'castStart',
-          timingScale: 'cast',
-          comboFinishers: [
-            {
-              ownerId: 'elementalist',
-              finisherType: 'Whirl',
-              ambiguousFieldSelection: 'oldest'
-            }
-          ]
-        }
-      ),
-      conditionTimeline(
-        [280, 400, 530, 640, 760, 880, 990, 1130].map((atMs) => ({
-          atMs,
-          condition: 'Cripple',
-          stacks: 1,
-          duration: 3
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      )
-    ]
-  },
+  [ID.FIERY_WHIRL]: withSmallHitboxCap(
+    {
+      name: 'Fiery Whirl',
+      type: 'Weapon',
+      slot: 'Weapon_3',
+      skillWeapon: 'Fiery Greatsword',
+      categories: ['Weapon skill'],
+      quicknessCastTimeMs: 1320,
+      cooldown: 5,
+      skillFamily: 'Weapon skill',
+      effects: [
+        strikeTimeline(
+          [
+            { atMs: 280, coefficient: 0.688 },
+            { atMs: 400, coefficient: 0.688 },
+            { atMs: 530, coefficient: 0.688 },
+            { atMs: 640, coefficient: 0.688 },
+            { atMs: 760, coefficient: 0.688 },
+            { atMs: 880, coefficient: 0.688 },
+            { atMs: 990, coefficient: 0.688 },
+            { atMs: 1130, coefficient: 0.688 }
+          ],
+          {
+            timingAnchor: 'castStart',
+            timingScale: 'cast',
+            comboFinishers: [
+              {
+                ownerId: 'elementalist',
+                finisherType: 'Whirl',
+                ambiguousFieldSelection: 'oldest'
+              }
+            ]
+          }
+        ),
+        conditionTimeline(
+          [280, 400, 530, 640, 760, 880, 990, 1130].map((atMs) => ({
+            atMs,
+            condition: 'Cripple',
+            stacks: 1,
+            duration: 3
+          })),
+          { timingAnchor: 'castStart', timingScale: 'cast' }
+        )
+      ]
+    },
+    4
+  ),
   [ID.FIERY_RUSH]: {
     name: 'Fiery Rush',
     type: 'Weapon',

@@ -12,6 +12,7 @@
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
 /**
  * Skill-id → fragment table for the Core heal, utility, and elite slot skills. Entries are keyed
@@ -326,117 +327,123 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
-  [ID.GLYPH_OF_STORMS_WATER]: {
-    name: 'Glyph of Storms (Water)',
-    type: 'Utility',
-    slot: 'Utility',
-    attunement: 'Water',
-    categories: ['Glyph'],
-    quicknessCastTimeMs: 1120,
-    cooldown: 30,
-    skillFamily: 'Glyph',
-    effects: [
-      strikeTimeline(
-        [
-          { atMs: 1600, coefficient: 0.8 },
-          { atMs: 1920, coefficient: 0.72 },
-          { atMs: 2240, coefficient: 0.64 },
-          { atMs: 2560, coefficient: 0.56 },
-          { atMs: 2880, coefficient: 0.48 },
-          { atMs: 3200, coefficient: 0.4 },
-          { atMs: 3520, coefficient: 0.32 },
-          { atMs: 3840, coefficient: 0.32 },
-          { atMs: 4160, coefficient: 0.32 },
-          { atMs: 4480, coefficient: 0.32 },
-          { atMs: 4800, coefficient: 0.32 },
-          { atMs: 5120, coefficient: 0.32 },
-          { atMs: 5440, coefficient: 0.32 },
-          { atMs: 5760, coefficient: 0.32 },
-          { atMs: 6080, coefficient: 0.32 },
-          { atMs: 6400, coefficient: 0.32 },
-          { atMs: 6720, coefficient: 0.32 },
-          { atMs: 7040, coefficient: 0.32 }
-        ],
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      ),
-      conditionTimeline(
-        [
-          1600, 1920, 2240, 2560, 2880, 3200, 3520, 3840, 4160, 4480, 4800, 5120, 5440, 5760, 6080, 6400, 6720, 7040
-        ].map((atMs) => ({
-          atMs,
-          condition: 'Chilled',
-          stacks: 1,
-          duration: 3
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      )
-    ]
-  },
+  [ID.GLYPH_OF_STORMS_WATER]: withSmallHitboxCap(
+    {
+      name: 'Glyph of Storms (Water)',
+      type: 'Utility',
+      slot: 'Utility',
+      attunement: 'Water',
+      categories: ['Glyph'],
+      quicknessCastTimeMs: 1120,
+      cooldown: 30,
+      skillFamily: 'Glyph',
+      effects: [
+        strikeTimeline(
+          [
+            { atMs: 1600, coefficient: 0.8 },
+            { atMs: 1920, coefficient: 0.72 },
+            { atMs: 2240, coefficient: 0.64 },
+            { atMs: 2560, coefficient: 0.56 },
+            { atMs: 2880, coefficient: 0.48 },
+            { atMs: 3200, coefficient: 0.4 },
+            { atMs: 3520, coefficient: 0.32 },
+            { atMs: 3840, coefficient: 0.32 },
+            { atMs: 4160, coefficient: 0.32 },
+            { atMs: 4480, coefficient: 0.32 },
+            { atMs: 4800, coefficient: 0.32 },
+            { atMs: 5120, coefficient: 0.32 },
+            { atMs: 5440, coefficient: 0.32 },
+            { atMs: 5760, coefficient: 0.32 },
+            { atMs: 6080, coefficient: 0.32 },
+            { atMs: 6400, coefficient: 0.32 },
+            { atMs: 6720, coefficient: 0.32 },
+            { atMs: 7040, coefficient: 0.32 }
+          ],
+          { timingAnchor: 'castStart', timingScale: 'cast' }
+        ),
+        conditionTimeline(
+          [
+            1600, 1920, 2240, 2560, 2880, 3200, 3520, 3840, 4160, 4480, 4800, 5120, 5440, 5760, 6080, 6400, 6720, 7040
+          ].map((atMs) => ({
+            atMs,
+            condition: 'Chilled',
+            stacks: 1,
+            duration: 3
+          })),
+          { timingAnchor: 'castStart', timingScale: 'cast' }
+        )
+      ]
+    },
+    11
+  ),
   // Air is authored as several parallel tick layers so that same-timestamp Vulnerability lands
   // after the hit that caused it; each layer contributes its own strike + condition pair.
-  [ID.GLYPH_OF_STORMS_AIR]: {
-    name: 'Glyph of Storms (Air)',
-    type: 'Utility',
-    slot: 'Utility',
-    attunement: 'Air',
-    categories: ['Glyph'],
-    quicknessCastTimeMs: 1120,
-    cooldown: 60,
-    skillFamily: 'Glyph',
-    effects: [
-      [
-        { atMs: 880, coefficient: 0.825 },
-        { atMs: 1400, coefficient: 0.70125 },
-        { atMs: 1560, coefficient: 0.66 },
-        { atMs: 1680, coefficient: 0.61875 },
-        { atMs: 1890, coefficient: 0.5775 },
-        { atMs: 2200, coefficient: 0.53625 },
-        { atMs: 2400, coefficient: 0.495 },
-        { atMs: 2480, coefficient: 0.45375 },
-        { atMs: 2840, coefficient: 0.4125 },
-        { atMs: 2880, coefficient: 0.37125 },
-        { atMs: 3280, coefficient: 0.33 },
-        { atMs: 3400, coefficient: 0.28875 },
-        { atMs: 3480, coefficient: 0.2475 },
-        { atMs: 3880, coefficient: 0.2475 },
-        { atMs: 4080, coefficient: 0.2475 },
-        { atMs: 4160, coefficient: 0.2475 },
-        { atMs: 4400, coefficient: 0.2475 },
-        { atMs: 4800, coefficient: 0.2475 },
-        { atMs: 4880, coefficient: 0.2475 },
-        { atMs: 5400, coefficient: 0.2475 },
-        { atMs: 5440, coefficient: 0.2475 },
-        { atMs: 5680, coefficient: 0.2475 },
-        { atMs: 5880, coefficient: 0.2475 },
-        { atMs: 6080, coefficient: 0.2475 },
-        { atMs: 6400, coefficient: 0.2475 },
-        { atMs: 6480, coefficient: 0.2475 },
-        { atMs: 6760, coefficient: 0.2475 },
-        { atMs: 7290, coefficient: 0.2475 },
-        { atMs: 7400, coefficient: 0.2475 },
-        { atMs: 8040, coefficient: 0.2475 },
-        { atMs: 8080, coefficient: 0.2475 },
-        { atMs: 8880, coefficient: 0.2475 },
-        { atMs: 9680, coefficient: 0.2475 }
-      ],
-      [
-        { atMs: 880, coefficient: 0.78375 },
-        { atMs: 4880, coefficient: 0.2475 }
-      ],
-      [{ atMs: 880, coefficient: 0.7425 }]
-    ].flatMap((ticks) => [
-      strikeTimeline(ticks, { timingAnchor: 'castStart', timingScale: 'cast' }),
-      conditionTimeline(
-        ticks.map(({ atMs }) => ({
-          atMs,
-          condition: 'Vulnerability',
-          stacks: 2,
-          duration: 8
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      )
-    ])
-  },
+  [ID.GLYPH_OF_STORMS_AIR]: withSmallHitboxCap(
+    {
+      name: 'Glyph of Storms (Air)',
+      type: 'Utility',
+      slot: 'Utility',
+      attunement: 'Air',
+      categories: ['Glyph'],
+      quicknessCastTimeMs: 1120,
+      cooldown: 60,
+      skillFamily: 'Glyph',
+      effects: [
+        [
+          { atMs: 880, coefficient: 0.825 },
+          { atMs: 1400, coefficient: 0.70125 },
+          { atMs: 1560, coefficient: 0.66 },
+          { atMs: 1680, coefficient: 0.61875 },
+          { atMs: 1890, coefficient: 0.5775 },
+          { atMs: 2200, coefficient: 0.53625 },
+          { atMs: 2400, coefficient: 0.495 },
+          { atMs: 2480, coefficient: 0.45375 },
+          { atMs: 2840, coefficient: 0.4125 },
+          { atMs: 2880, coefficient: 0.37125 },
+          { atMs: 3280, coefficient: 0.33 },
+          { atMs: 3400, coefficient: 0.28875 },
+          { atMs: 3480, coefficient: 0.2475 },
+          { atMs: 3880, coefficient: 0.2475 },
+          { atMs: 4080, coefficient: 0.2475 },
+          { atMs: 4160, coefficient: 0.2475 },
+          { atMs: 4400, coefficient: 0.2475 },
+          { atMs: 4800, coefficient: 0.2475 },
+          { atMs: 4880, coefficient: 0.2475 },
+          { atMs: 5400, coefficient: 0.2475 },
+          { atMs: 5440, coefficient: 0.2475 },
+          { atMs: 5680, coefficient: 0.2475 },
+          { atMs: 5880, coefficient: 0.2475 },
+          { atMs: 6080, coefficient: 0.2475 },
+          { atMs: 6400, coefficient: 0.2475 },
+          { atMs: 6480, coefficient: 0.2475 },
+          { atMs: 6760, coefficient: 0.2475 },
+          { atMs: 7290, coefficient: 0.2475 },
+          { atMs: 7400, coefficient: 0.2475 },
+          { atMs: 8040, coefficient: 0.2475 },
+          { atMs: 8080, coefficient: 0.2475 },
+          { atMs: 8880, coefficient: 0.2475 },
+          { atMs: 9680, coefficient: 0.2475 }
+        ],
+        [
+          { atMs: 880, coefficient: 0.78375 },
+          { atMs: 4880, coefficient: 0.2475 }
+        ],
+        [{ atMs: 880, coefficient: 0.7425 }]
+      ].flatMap((ticks) => [
+        strikeTimeline(ticks, { timingAnchor: 'castStart', timingScale: 'cast' }),
+        conditionTimeline(
+          ticks.map(({ atMs }) => ({
+            atMs,
+            condition: 'Vulnerability',
+            stacks: 2,
+            duration: 8
+          })),
+          { timingAnchor: 'castStart', timingScale: 'cast' }
+        )
+      ])
+    },
+    20
+  ),
   // Earth (Sandstorm) trades damage for control: a near-zero strike coefficient plus eleven
   // one-second blind applications expressed as a single repeating packet.
   [ID.GLYPH_OF_STORMS_EARTH]: {
@@ -618,7 +625,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
-  // packets themselves: `elementalistStateMachine: 'summoned-elemental'` routes the cast to the
+  // packets themselves. Their base cast time is quickness-scaled, and
+  // `elementalistStateMachine: 'summoned-elemental'` routes the cast to the
   // companion subsystem in core/mechanics/elementals/, which owns the summon's lifetime, attack
   // loop, and post-expiry recharge — that subsystem also blocks a recast while the elemental is
   // alive and re-arms the cooldown from the moment it expires.
@@ -627,7 +635,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 1250,
     cooldown: 190,
     skillFamily: 'Glyph',
     effects: [],
@@ -638,7 +646,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 1250,
     cooldown: 190,
     skillFamily: 'Glyph',
     effects: [],

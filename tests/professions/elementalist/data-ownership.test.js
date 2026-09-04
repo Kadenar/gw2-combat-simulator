@@ -178,13 +178,15 @@ test('Elementalist weapon skill fragments compose without duplicates or omission
   }
 });
 
-test('Glyph of Elementals delegates all damage to the summoned actor', () => {
+test('Glyph of Elementals owns its summon cast profile without direct damage', () => {
   for (const skillId of [
     ELEMENTALIST_SKILL_IDS.GLYPH_OF_ELEMENTALS,
     ELEMENTALIST_SKILL_IDS.GLYPH_OF_ELEMENTALS_EARTH
   ]) {
     const glyph = ELEMENTALIST_CORE_SKILL_MECHANICS[skillId];
 
+    assert.equal(glyph.castTimeMs, 1250);
+    assert.equal(Object.hasOwn(glyph, 'quicknessCastTimeMs'), false);
     assert.deepEqual(glyph.effects, []);
     assert.equal(Object.hasOwn(glyph, 'referenceEffects'), false);
   }
@@ -309,7 +311,7 @@ test('Flamewall shares its tick timing across damage and burning', () => {
 
 test('Core repeated packets use compact tick sequences', () => {
   const sharedOffsets = [
-    [ELEMENTALIST_SKILL_IDS.WILDFIRE, [1560, 2560, 3560, 4560, 5560, 6560, 7560], 2],
+    [ELEMENTALIST_SKILL_IDS.WILDFIRE, [1560, 2560, 3560, 4560, 5560, 6560, 7560, 8560, 9560], 2],
     [ELEMENTALIST_SKILL_IDS.DUST_STORM, [1560, 2640, 3560, 4640, 5560, 6640, 7560, 8640], 2],
     [ELEMENTALIST_SKILL_IDS.FROST_VOLLEY, [360, 680, 1000, 1320, 1640], 2],
     [

@@ -13,6 +13,9 @@ import type { SkillFragment } from '#gw2/platform/engine/types.js';
 // Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.
 const HURRICANE_OF_PAIN_TICKS = [200, 360, 600, 840, 1080, 1320, 1560, 1800, 2040] as const;
 
+// Each active hammer orb contacts the target once per second for its fifteen-second lifetime.
+const HAMMER_ORB_PACKET_OFFSETS_MS = Array.from({ length: 15 }, (_, index) => (index + 1) * 1000);
+
 /**
  * Skill-id keyed fragments the Core module contributes to the hammer catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
@@ -94,7 +97,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
-  // Fire orb creator. The near-zero-coefficient packet stands in for the orb's own contact damage; the
+  // Fire orb creator. The near-zero-coefficient packets represent the orb's repeated contact damage; the
   // orb's real payoff is the projectile Grand Finale later fires for it. `hammer-orbs` marks the skill
   // as state-gated (it is unavailable while its own orb is still active).
   [ID.FLAME_WHEEL]: {
@@ -110,26 +113,22 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.001,
+          damageKind: 'field-tick'
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 0.75
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 0.75
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -459,26 +458,22 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.001,
+          damageKind: 'field-tick'
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 6
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -619,26 +614,22 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.001,
+          damageKind: 'field-tick'
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: 'Weakness',
+          stacks: 1,
+          duration: 1.5
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -921,26 +912,22 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.001,
+          damageKind: 'field-tick'
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 2.5
-          }
-        ],
+        ticks: HAMMER_ORB_PACKET_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 2.5
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}

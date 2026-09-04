@@ -3,8 +3,8 @@
  *
  * Turns each module's authored skill mechanics into finished catalog skills: it merges
  * the declarations from core and every elite, layers Guild Wars 2 API metadata (icons,
- * descriptions) onto them, applies the profession's hitbox/packet corrections, derives
- * the autoattack chains, and hands each module back only the entries it owns.
+ * descriptions) onto them, derives the autoattack chains, and hands each module back
+ * only the entries it owns. Combat behavior remains in each owner-local skill fragment.
  */
 import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
 import { defineProfessionWeapons } from '#gw2/professions/lib/catalog-data.js';
@@ -24,7 +24,7 @@ import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/speciali
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import type { CatalogEntity, SchedulerRecord, Skill, SkillEffect, SkillFragment } from '#gw2/platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Catalog generation needs the complete module-owned declaration set, and the
 // duplicate check prevents one module from silently overwriting another.
@@ -82,234 +82,6 @@ const API_SKILLS_BY_NAME = new Map(ELEMENTALIST_API_SKILLS.map((skill) => [skill
 const API_SKILLS_BY_ID = new Map(ELEMENTALIST_API_SKILLS.map((skill) => [Number(skill.id), skill]));
 const SLOT_SKILL_TYPES = new Set(['Heal', 'Utility', 'Elite']);
 const ATTUNEMENT_VARIANT_PATTERN = /\s*\((?:Fire|Water|Air|Earth)\)$/;
-const HAMMER_ORB_PACKET_SKILLS = new Set(['Flame Wheel', 'Icy Coil', 'Crescent Wind', 'Rocky Loop']);
-const HAMMER_ORB_PACKET_COUNT = 15;
-
-/**
- * Maximum number of packets each listed skill can land against a small hitbox. Packets
- * past the cap are stamped with their chronological hit index and later cancelled by the
- * hitbox event handler when the build assumes a small target.
- */
-export const ELEMENTALIST_SMALL_HITBOX_CAPS: ReadonlyMap<string, number> = new Map([
-  ['Meteor Shower', 12],
-  ['Lightning Orb', 11],
-  ['Frost Storm', 14],
-  ['Invoke Lightning', 9],
-  ['Glyph of Storms (Air)', 20],
-  ['Glyph of Storms (Water)', 11],
-  ['Dust Storm', 6],
-  ['Fiery Whirl', 4]
-]);
-
-function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
-  return {
-    hitboxIndex: hitIndex,
-    smallHitboxCap
-  };
-}
-
-// Stamp every damage packet with its chronological hit index and the skill's cap, so the
-// runtime can drop the packets that a small hitbox would never absorb. Non-strike effects
-// (conditions applied alongside a hit) inherit the index of the strike they accompany.
-function withSmallHitboxCap(skill: Skill, smallHitboxCap: number): readonly SkillEffect[] {
-  const effects = skill.effects || [];
-  const chronologicalStrikeIndices = new Map<string, number>();
-  // Hitbox caps follow chronological packet order even when separate canonical timelines preserve same-time causality.
-  effects
-    .flatMap((effect, effectIndex) => {
-      if (effect.type !== 'strike') return [];
-      if (Array.isArray(effect.ticks)) {
-        return effect.ticks.map((tick, tickIndex) => ({ effectIndex, tickIndex, atMs: Number(tick.atMs) }));
-      }
-
-      return [{ effectIndex, tickIndex: 0, atMs: Number(effect.atMs || 0) }];
-    })
-    .sort(
-      (left, right) =>
-        left.atMs - right.atMs || left.effectIndex - right.effectIndex || left.tickIndex - right.tickIndex
-    )
-    .forEach(({ effectIndex, tickIndex }, index) => {
-      chronologicalStrikeIndices.set(`${effectIndex}:${tickIndex}`, index + 1);
-    });
-
-  let lastStrikeIndices: number[] = [];
-
-  return effects.map((effect, effectIndex) => {
-    if (effect.type === 'strike') {
-      const hitCount = Array.isArray(effect.ticks)
-        ? effect.ticks.length
-        : Math.max(1, Math.trunc(Number(effect.hits || 1)));
-
-      lastStrikeIndices = Array.from(
-        { length: hitCount },
-        (_, tickIndex) => chronologicalStrikeIndices.get(`${effectIndex}:${tickIndex}`) || 0
-      );
-
-      if (Array.isArray(effect.ticks)) {
-        return {
-          ...effect,
-          ticks: effect.ticks.map((tick, index) => ({
-            ...tick,
-            metadata: {
-              ...(tick.metadata || {}),
-              ...hitboxMetadata(lastStrikeIndices[index], smallHitboxCap)
-            }
-          }))
-        };
-      }
-
-      if (hitCount !== 1) {
-        throw new TypeError(`${skill.name} needs individually timed strikes for hitbox caps.`);
-      }
-
-      return {
-        ...effect,
-        metadata: {
-          ...(effect.metadata || {}),
-          ...hitboxMetadata(lastStrikeIndices[0], smallHitboxCap)
-        }
-      };
-    }
-
-    if (!lastStrikeIndices.length) {
-      return effect;
-    }
-
-    if (Array.isArray(effect.ticks) && effect.ticks.length === lastStrikeIndices.length) {
-      return {
-        ...effect,
-        ticks: effect.ticks.map((tick, index) => ({
-          ...tick,
-          metadata: {
-            ...((tick as SchedulerRecord).metadata as SchedulerRecord),
-            ...hitboxMetadata(lastStrikeIndices[index], smallHitboxCap)
-          }
-        }))
-      } as SkillEffect;
-    }
-
-    return {
-      ...effect,
-      metadata: {
-        ...(effect.metadata || {}),
-        ...hitboxMetadata(lastStrikeIndices[lastStrikeIndices.length - 1], smallHitboxCap)
-      }
-    } as SkillEffect;
-  });
-}
-
-// Expand Wildfire's field lifetime from its packet timing while leaving every
-// other generated effect unchanged.
-function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
-  return (skill.effects || []).map((effect) => {
-    if (effect.type === 'strike') {
-      return {
-        ...effect,
-        ticks: [
-          ...(effect.ticks || []),
-          ...[8560, 9560].map((atMs) => ({
-            atMs,
-            coefficient: 0.44,
-            damageKind: 'field-tick',
-            metadata: { largeHitboxOnly: true }
-          }))
-        ]
-      };
-    }
-
-    if (effect.type === 'condition') {
-      return {
-        ...effect,
-        ticks: [
-          ...(effect.ticks || []),
-          ...[8560, 9560].map((atMs) => ({
-            atMs,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3,
-            metadata: {
-              largeHitboxOnly: true
-            }
-          }))
-        ]
-      };
-    }
-
-    return effect;
-  });
-}
-
-// Catalyst's hammer orbs are authored as a single representative packet; expand it into
-// the one-per-second ticks the orb actually delivers over its lifetime.
-function withHammerOrbPackets(skill: Skill): Skill {
-  if (!HAMMER_ORB_PACKET_SKILLS.has(skill.name)) {
-    return skill;
-  }
-
-  return {
-    ...skill,
-    effects: (skill.effects || []).map((effect) => {
-      if (!Array.isArray(effect.ticks) || effect.ticks.length !== 1) {
-        return effect;
-      }
-
-      const [packet] = effect.ticks;
-
-      return {
-        ...effect,
-        ticks: Array.from(
-          {
-            length: HAMMER_ORB_PACKET_COUNT
-          },
-          (_, index) => ({
-            ...packet,
-            atMs: (index + 1) * 1000
-          })
-        )
-      } as SkillEffect;
-    })
-  };
-}
-
-// Glyph of Elementals summons a pet rather than dealing skill damage, so drop the
-// generated effects and cast profile in favor of the summon's own cast time.
-function withElementalRuntimeProfiles(skill: Skill): Skill {
-  if (!skill.name.startsWith('Glyph of Elementals')) {
-    return skill;
-  }
-
-  const { quicknessCastTimeMs: _generatedCast, ...withoutGeneratedCast } = skill;
-
-  return {
-    ...withoutGeneratedCast,
-    castTimeMs: 1250,
-    cooldown: skill.cooldown,
-    effects: []
-  };
-}
-
-// Applies the packet-shape corrections in order: orb expansion, Wildfire's extended
-// field, then hitbox indexing for any skill with a declared small-hitbox cap.
-function withElementalistHitboxBehavior(skill: Skill): Skill {
-  const withHammerPackets = withHammerOrbPackets(skill);
-
-  const withLargeDuration =
-    withHammerPackets.name === 'Wildfire'
-      ? {
-          ...withHammerPackets,
-          effects: withLargeWildfireDuration(withHammerPackets)
-        }
-      : withHammerPackets;
-
-  const smallHitboxCap = ELEMENTALIST_SMALL_HITBOX_CAPS.get(withHammerPackets.name);
-
-  return smallHitboxCap == null
-    ? withLargeDuration
-    : {
-        ...withLargeDuration,
-        effects: withSmallHitboxCap(withLargeDuration, smallHitboxCap)
-      };
-}
 
 // Finds API metadata by name, tolerating the aliases, attunement suffixes, and quoted or
 // exclamation-marked spellings the API uses for the same skill.
@@ -346,68 +118,66 @@ const ELEMENTALIST_DECLARED_SKILLS: readonly Skill[] = Object.freeze(
 // display and selection flags the editor needs (Weaver-only dual attunements, attunement
 // variants collapsed under one display name, non-selectable and palette-only entries).
 const generated: readonly Skill[] = Object.freeze(
-  ELEMENTALIST_DECLARED_SKILLS.map(withElementalistHitboxBehavior)
-    .map(withElementalRuntimeProfiles)
-    .map((skill) => {
-      const skillId = Number(skill.id);
+  ELEMENTALIST_DECLARED_SKILLS.map((skill) => {
+    const skillId = Number(skill.id);
 
-      const apiSkillId = ELEMENTALIST_API_SKILL_ID_OVERRIDES.get(skillId) ?? skillId;
+    const apiSkillId = ELEMENTALIST_API_SKILL_ID_OVERRIDES.get(skillId) ?? skillId;
 
-      const loadoutSkillId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(skillId);
+    const loadoutSkillId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(skillId);
 
-      const metadata =
-        API_SKILLS_BY_ID.get(apiSkillId) ||
-        (loadoutSkillId == null ? undefined : API_SKILLS_BY_ID.get(loadoutSkillId)) ||
-        apiSkill(skill.name);
+    const metadata =
+      API_SKILLS_BY_ID.get(apiSkillId) ||
+      (loadoutSkillId == null ? undefined : API_SKILLS_BY_ID.get(loadoutSkillId)) ||
+      apiSkill(skill.name);
 
-      const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, '');
+    const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, '');
 
-      const isAttunementSlotVariant =
-        SLOT_SKILL_TYPES.has(String(skill.type)) && Boolean(skill.attunement) && selectionName !== skill.name;
+    const isAttunementSlotVariant =
+      SLOT_SKILL_TYPES.has(String(skill.type)) && Boolean(skill.attunement) && selectionName !== skill.name;
 
-      return {
-        ...skill,
-        ...(apiSkillId === skillId ? {} : { apiSkillId }),
-        ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
-        ...(skill.type === 'Weapon' && String(skill.attunement || '').includes('+')
-          ? {
-              specialization: 'Weaver'
-            }
-          : {}),
-        ...(isAttunementSlotVariant
-          ? {
-              displayName: selectionName
-            }
-          : {}),
-        ...(skill.name === 'Tailored Victory'
-          ? {
-              slotSelectable: false
-            }
-          : {}),
-        ...(skill.name === 'Dodge'
-          ? {
-              paletteAction: true
-            }
-          : {}),
-        ...(metadata?.description
-          ? {
-              description: metadata.description
-            }
-          : {}),
-        ...(skill.name === 'Glyph of Elementals'
-          ? {
-              displayName: 'Glyph of Elementals (Fire)',
-              description: 'Glyph. Summon a Fire Elemental regardless of attunement.'
-            }
-          : {}),
-        ...(skill.name === 'Glyph of Elementals (Earth)'
-          ? {
-              description: 'Glyph. Summon an Earth Elemental regardless of attunement.'
-            }
-          : {}),
-        icon: SKILL_ICON_OVERRIDES.get(skill.name) || metadata?.icon || ELEMENTALIST_FALLBACK_ICON
-      };
-    })
+    return {
+      ...skill,
+      ...(apiSkillId === skillId ? {} : { apiSkillId }),
+      ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
+      ...(skill.type === 'Weapon' && String(skill.attunement || '').includes('+')
+        ? {
+            specialization: 'Weaver'
+          }
+        : {}),
+      ...(isAttunementSlotVariant
+        ? {
+            displayName: selectionName
+          }
+        : {}),
+      ...(skill.name === 'Tailored Victory'
+        ? {
+            slotSelectable: false
+          }
+        : {}),
+      ...(skill.name === 'Dodge'
+        ? {
+            paletteAction: true
+          }
+        : {}),
+      ...(metadata?.description
+        ? {
+            description: metadata.description
+          }
+        : {}),
+      ...(skill.name === 'Glyph of Elementals'
+        ? {
+            displayName: 'Glyph of Elementals (Fire)',
+            description: 'Glyph. Summon a Fire Elemental regardless of attunement.'
+          }
+        : {}),
+      ...(skill.name === 'Glyph of Elementals (Earth)'
+        ? {
+            description: 'Glyph. Summon an Earth Elemental regardless of attunement.'
+          }
+        : {}),
+      icon: SKILL_ICON_OVERRIDES.get(skill.name) || metadata?.icon || ELEMENTALIST_FALLBACK_ICON
+    };
+  })
 );
 
 const FINALIZED_SKILL_MECHANICS_BY_ID = new Map(
