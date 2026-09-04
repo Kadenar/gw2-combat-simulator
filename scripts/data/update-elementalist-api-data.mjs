@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { updateProfessionApiData } from './update-profession-api-data.mjs';
 
 // The profession endpoint omits conjured-weapon, attunement-variant, and
@@ -11,8 +13,15 @@ const EXTRA_ELEMENTALIST_SKILL_IDS = Object.freeze([
   5725, 5726, 5727, 5728, 5733
 ]);
 
-await updateProfessionApiData('Elementalist', {
-  snapshotConfig: {
-    extraSkillIds: EXTRA_ELEMENTALIST_SKILL_IDS
-  }
-});
+// Refresh on explicit invocation while retaining skills missing from the profession endpoint.
+export async function updateElementalistApiData() {
+  await updateProfessionApiData('Elementalist', {
+    snapshotConfig: {
+      extraSkillIds: EXTRA_ELEMENTALIST_SKILL_IDS
+    }
+  });
+}
+
+const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
+
+if (import.meta.url === invokedPath) await updateElementalistApiData();

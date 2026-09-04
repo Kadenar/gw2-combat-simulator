@@ -26,11 +26,22 @@ function restrictedImports(...patterns) {
 }
 
 export default [
+  // ESLint owns source syntax coverage; exclude dependencies, generated artifacts, and local analysis/tool state.
   {
-    ignores: ['node_modules/**', 'dist/**', 'coverage/**', 'build/**', 'reference-repos/**']
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'coverage/**',
+      'build/**',
+      'reference-repos/**',
+      '**/.analysis-inputs/**',
+      '**/.claude/**',
+      '**/.git/**',
+      '**/.lavish/**'
+    ]
   },
 
-  // Apply ESLint's baseline correctness checks to JavaScript while TypeScript remains compiler-checked.
+  // Parse all owned JavaScript (including root config, scripts, and tests); TypeScript remains compiler-checked.
   {
     files: ['**/*.{js,jsx,mjs,cjs}'],
 
