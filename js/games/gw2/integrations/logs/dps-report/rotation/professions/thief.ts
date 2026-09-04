@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/types.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
   catalogSkillById,
   normalizedName as normalized,
@@ -11,19 +12,9 @@ import type {
   DpsReportRecordedAction
 } from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
-const SKRITT_SWIPE_ID = 77_397;
-const SKRITT_SCUFFLE_ID = 77_255;
-const STONE_SUMMIT_CANNON_ID = 76_725;
-const CANACH_COIN_TOSS_ID = 77_230;
-const FLAWLESS_EXECUTION_ID = 80_244;
-const METAL_LEGION_GUITAR_ID = 76_582;
 const METAL_LEGION_GUITAR_FINISH_ID = 76_596;
-const PREPARE_THOUSAND_NEEDLES_ID = 13_026;
-const CALTROPS_ID = 13_028;
-const THOUSAND_NEEDLES_ID = 56_898;
 const THOUSAND_NEEDLES_DAMAGE_ID = 56_897;
-const CHAK_SHIELD_ID = 76_816;
-const METICULOUS_CUSTODIAN_ID = 2_431;
+const PILFER_IDS: ReadonlySet<number> = new Set([ID.SKRITT_SWIPE, ID.SKRITT_SCUFFLE]);
 const THOUSAND_NEEDLES_PACKETS = 5;
 const CHAK_SHIELD_BASE_PACKETS = 5;
 const CHAK_SHIELD_PACKET_INTERVAL_MS = 1_000;
@@ -48,16 +39,16 @@ function recoverChakShield(
     return [...actions];
   }
 
-  const skill = catalogSkillById(context.catalog, CHAK_SHIELD_ID);
+  const skill = catalogSkillById(context.catalog, ID.CHAK_SHIELD);
   if (!skill) return [...actions];
   const selectedTraits = new Set(
     Array.isArray(context.professionConfig?.selectedTraitIds)
       ? context.professionConfig.selectedTraitIds.map(Number)
       : []
   );
-  const packetsPerCast = CHAK_SHIELD_BASE_PACKETS + Number(selectedTraits.has(METICULOUS_CUSTODIAN_ID));
-  const recorded = actions.filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === CHAK_SHIELD_ID).length;
-  let missing = primaryTargetHits(context, CHAK_SHIELD_ID) / packetsPerCast - recorded;
+  const packetsPerCast = CHAK_SHIELD_BASE_PACKETS + Number(selectedTraits.has(TRAIT.METICULOUS_CUSTODIAN));
+  const recorded = actions.filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === ID.CHAK_SHIELD).length;
+  let missing = primaryTargetHits(context, ID.CHAK_SHIELD) / packetsPerCast - recorded;
   if (!Number.isInteger(missing) || missing <= 0) return [...actions];
 
   const encounterIndex = context.report.phases.indexOf(context.phase);
@@ -67,7 +58,7 @@ function recoverChakShield(
   const inferred: DpsReportRecordedAction[] = [];
   let pendingPackets = 0;
   for (const phase of subphases) {
-    let phasePackets = primaryTargetHits(context, CHAK_SHIELD_ID, phase);
+    let phasePackets = primaryTargetHits(context, ID.CHAK_SHIELD, phase);
     let packetsBeforeBoundary = pendingPackets;
     while (phasePackets > 0 && missing > 0) {
       const consumed = Math.min(packetsPerCast - pendingPackets, phasePackets);
@@ -123,7 +114,7 @@ function mergeMetalLegionGuitar(actions: readonly DpsReportRecordedAction[]): Dp
     actions,
     [
       {
-        startId: METAL_LEGION_GUITAR_ID,
+        startId: ID.METAL_LEGION_GUITAR,
         finishId: METAL_LEGION_GUITAR_FINISH_ID,
         maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS,
         dropUnmatchedFinish: true
@@ -137,7 +128,7 @@ function mergeMetalLegionGuitar(actions: readonly DpsReportRecordedAction[]): Dp
       expectedDurationMs:
         Number(action.expectedDurationMs || action.end - action.start) +
         Number(finish.expectedDurationMs || finish.end - finish.start),
-      canonicalSkillId: METAL_LEGION_GUITAR_ID,
+      canonicalSkillId: ID.METAL_LEGION_GUITAR,
       canonicalName: 'Metal Legion Guitar'
     })
   );
@@ -151,17 +142,15 @@ function recoverOpeningSkrittSwipe(
   if (context.profile.specializationId !== 'antiquary') return [...actions];
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const artifact = sorted.find((action) => recordedActionSkill(action, context)?.handlerId === 'thief.artifact');
-  const recordedPilfer = sorted.find((action) =>
-    [SKRITT_SWIPE_ID, SKRITT_SCUFFLE_ID].includes(action.canonicalSkillId ?? action.rawSkillId)
-  );
-  const skill = catalogSkillById(context.catalog, SKRITT_SWIPE_ID);
+  const recordedPilfer = sorted.find((action) => PILFER_IDS.has(action.canonicalSkillId ?? action.rawSkillId));
+  const skill = catalogSkillById(context.catalog, ID.SKRITT_SWIPE);
   if (!artifact || !skill || (recordedPilfer && recordedPilfer.start < artifact.start)) return sorted;
 
   const anchor = sorted[0];
   const firstAware = Number(context.player.firstAware);
   const observedDuration = median(
     context.player.rotation
-      .find((group) => group.id === SKRITT_SWIPE_ID)
+      .find((group) => group.id === ID.SKRITT_SWIPE)
       ?.skills.map((cast) => cast.duration)
       .filter((duration) => duration > 0) || []
   );
@@ -181,18 +170,18 @@ function recoverOpeningCaltrops(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
 ): DpsReportRecordedAction[] {
-  const skill = catalogSkillById(context.catalog, CALTROPS_ID);
+  const skill = catalogSkillById(context.catalog, ID.CALTROPS);
   const swipe = actions.find(
-    (action) => action.inference === 'thief-opening' && action.canonicalSkillId === SKRITT_SWIPE_ID
+    (action) => action.inference === 'thief-opening' && action.canonicalSkillId === ID.SKRITT_SWIPE
   );
   const firstRecorded = actions.find(
-    (action) => action.inference == null && (action.canonicalSkillId ?? action.rawSkillId) === CALTROPS_ID
+    (action) => action.inference == null && (action.canonicalSkillId ?? action.rawSkillId) === ID.CALTROPS
   );
   if (!skill || !swipe || !firstRecorded || !selectedSkill(context, skill)) return [...actions];
 
   const duration = median(
     context.player.rotation
-      .find((group) => group.id === CALTROPS_ID)
+      .find((group) => group.id === ID.CALTROPS)
       ?.skills.map((cast) => cast.duration)
       .filter((value) => value > 0) || []
   );
@@ -210,8 +199,8 @@ function recoverThousandNeedles(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
 ): DpsReportRecordedAction[] {
-  const prepareSkill = catalogSkillById(context.catalog, PREPARE_THOUSAND_NEEDLES_ID);
-  const activationSkill = catalogSkillById(context.catalog, THOUSAND_NEEDLES_ID);
+  const prepareSkill = catalogSkillById(context.catalog, ID.PREPARE_THOUSAND_NEEDLES);
+  const activationSkill = catalogSkillById(context.catalog, ID.THOUSAND_NEEDLES);
   const totalPackets = primaryTargetHits(context, THOUSAND_NEEDLES_DAMAGE_ID);
   if (
     !prepareSkill ||
@@ -225,9 +214,9 @@ function recoverThousandNeedles(
 
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const prepares = sorted.filter(
-    (action) => (action.canonicalSkillId ?? action.rawSkillId) === PREPARE_THOUSAND_NEEDLES_ID
+    (action) => (action.canonicalSkillId ?? action.rawSkillId) === ID.PREPARE_THOUSAND_NEEDLES
   );
-  const activations = sorted.filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === THOUSAND_NEEDLES_ID);
+  const activations = sorted.filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === ID.THOUSAND_NEEDLES);
   let missing = totalPackets / THOUSAND_NEEDLES_PACKETS - activations.length;
   if (missing <= 0) return sorted;
 
@@ -272,7 +261,7 @@ function normalizeAntiquaryDoubleEdge(
 ): DpsReportRecordedAction[] {
   if (context.profile.specializationId !== 'antiquary') return [...actions];
   const cannons = actions
-    .filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === STONE_SUMMIT_CANNON_ID)
+    .filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === ID.STONE_SUMMIT_CANNON)
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const cannonOutcomes = new Map<DpsReportRecordedAction, 'success' | 'backfire'>();
   for (let index = 0; index < cannons.length; index += 1) {
@@ -288,15 +277,15 @@ function normalizeAntiquaryDoubleEdge(
     (total, outcome) => total + (outcome === 'success' ? CANNON_SUCCESS_PACKETS : CANNON_BACKFIRE_PACKETS),
     0
   );
-  const observedCannonHits = primaryTargetHits(context, STONE_SUMMIT_CANNON_ID);
+  const observedCannonHits = primaryTargetHits(context, ID.STONE_SUMMIT_CANNON);
   const cannonEvidenceMatches =
     observedCannonHits === expectedCannonHits || observedCannonHits === expectedCannonHits + CANNON_BACKFIRE_PACKETS;
 
   const flawlessCount = actions.filter(
-    (action) => (action.canonicalSkillId ?? action.rawSkillId) === FLAWLESS_EXECUTION_ID
+    (action) => (action.canonicalSkillId ?? action.rawSkillId) === ID.FLAWLESS_EXECUTION
   ).length;
   const coinTosses = actions
-    .filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === CANACH_COIN_TOSS_ID)
+    .filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === ID.CANACH_COIN_TOSS_ID_77230)
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const coinOutcomes = new Map<DpsReportRecordedAction, 'success' | 'backfire'>(
     flawlessCount >= 30 ? coinTosses.map((action, index) => [action, index === 0 ? 'success' : 'backfire']) : []
@@ -306,7 +295,7 @@ function normalizeAntiquaryDoubleEdge(
     return outcome ? { ...action, doubleEdgeOutcome: outcome } : action;
   });
 
-  const cannonSkill = catalogSkillById(context.catalog, STONE_SUMMIT_CANNON_ID);
+  const cannonSkill = catalogSkillById(context.catalog, ID.STONE_SUMMIT_CANNON);
   if (
     cannonSkill &&
     cannonEvidenceMatches &&

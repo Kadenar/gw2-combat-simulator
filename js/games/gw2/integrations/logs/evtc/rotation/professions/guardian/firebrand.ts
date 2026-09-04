@@ -1,4 +1,5 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { catalogSkillById } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -13,27 +14,27 @@ import {
 
 const TOME_OF_JUSTICE = Object.freeze({
   name: 'Tome of Justice',
-  skillId: 44364
+  skillId: ID.TOME_OF_JUSTICE
 });
 const TOME_OF_RESOLVE = Object.freeze({
   name: 'Tome of Resolve',
-  skillId: 41780
+  skillId: ID.TOME_OF_RESOLVE
 });
 const TOME_OF_COURAGE = Object.freeze({
   name: 'Tome of Courage',
-  skillId: 42259
+  skillId: ID.TOME_OF_COURAGE
 });
-const STOW_TOME = Object.freeze({ name: 'Stow Tome', skillId: 41380 });
+const STOW_TOME = Object.freeze({ name: 'Stow Tome', skillId: ID.STOW_TOME });
 const RESTORING_REPRIEVE = Object.freeze({
   name: 'Restoring Reprieve',
-  skillId: 41475
+  skillId: ID.RESTORING_REPRIEVE
 });
 const REJUVENATING_RESPITE = Object.freeze({
   name: 'Rejuvenating Respite',
-  skillId: 42960
+  skillId: ID.REJUVENATING_RESPITE
 });
-const FLAME_RUSH = Object.freeze({ name: 'Flame Rush', skillId: 45082 });
-const FLAME_SURGE = Object.freeze({ name: 'Flame Surge', skillId: 42924 });
+const FLAME_RUSH = Object.freeze({ name: 'Flame Rush', skillId: ID.FLAME_RUSH });
+const FLAME_SURGE = Object.freeze({ name: 'Flame Surge', skillId: ID.FLAME_SURGE });
 
 const FIREBRAND_TOME_SET = 2;
 const PROTECTION_BUFF = 717;
@@ -41,21 +42,21 @@ const RESOLUTION_BUFF = 873;
 const AEGIS_BUFF = 743;
 
 const FIREBRAND_TOME_CHAPTERS = new Map<number, GuardianActionIdentity>([
-  [41258, TOME_OF_JUSTICE],
-  [40635, TOME_OF_JUSTICE],
-  [42449, TOME_OF_JUSTICE],
-  [40015, TOME_OF_JUSTICE],
-  [42898, TOME_OF_JUSTICE],
-  [45022, TOME_OF_RESOLVE],
-  [40679, TOME_OF_RESOLVE],
-  [45128, TOME_OF_RESOLVE],
-  [42008, TOME_OF_RESOLVE],
-  [42925, TOME_OF_RESOLVE],
-  [42986, TOME_OF_COURAGE],
-  [41968, TOME_OF_COURAGE],
-  [41836, TOME_OF_COURAGE],
-  [40988, TOME_OF_COURAGE],
-  [44455, TOME_OF_COURAGE]
+  [ID.SEARING_SPELL, TOME_OF_JUSTICE],
+  [ID.IGNITING_BURST, TOME_OF_JUSTICE],
+  [ID.HEATED_REBUKE, TOME_OF_JUSTICE],
+  [ID.SCORCHED_AFTERMATH, TOME_OF_JUSTICE],
+  [ID.ASHES_OF_THE_JUST, TOME_OF_JUSTICE],
+  [ID.DESERT_BLOOM, TOME_OF_RESOLVE],
+  [ID.RADIANT_RECOVERY, TOME_OF_RESOLVE],
+  [ID.AZURE_SUN, TOME_OF_RESOLVE],
+  [ID.SHINING_RIVER, TOME_OF_RESOLVE],
+  [ID.ETERNAL_OASIS, TOME_OF_RESOLVE],
+  [ID.UNFLINCHING_CHARGE, TOME_OF_COURAGE],
+  [ID.DARING_CHALLENGE, TOME_OF_COURAGE],
+  [ID.VALIANT_BULWARK, TOME_OF_COURAGE],
+  [ID.STALWART_STAND, TOME_OF_COURAGE],
+  [ID.UNBROKEN_LINES, TOME_OF_COURAGE]
 ]);
 
 const FIREBRAND_TOME_ACTION_IDS = new Set<number>([
@@ -64,11 +65,8 @@ const FIREBRAND_TOME_ACTION_IDS = new Set<number>([
   TOME_OF_COURAGE.skillId
 ]);
 const FIREBRAND_TOME_IDS = new Set<number>(FIREBRAND_TOME_ACTION_IDS);
-const TWO_PAGE_CHAPTER_IDS = new Set<number>([42925, 44455]);
-const FINAL_MANTRA_CHARGE_IDS = new Set<number>([41328, 42924, 42960]);
-const ARCHIVIST_OF_WHISPERS = 2086;
-const WEIGHTY_TERMS = 2063;
-const LOREMASTER = 2159;
+const TWO_PAGE_CHAPTER_IDS = new Set<number>([ID.ETERNAL_OASIS, ID.UNBROKEN_LINES]);
+const FINAL_MANTRA_CHARGE_IDS = new Set<number>([ID.UNHINDERED_DELIVERY, ID.FLAME_SURGE, ID.REJUVENATING_RESPITE]);
 
 interface FirebrandTomeResourceEvent {
   readonly action: EvtcRecordedRotationAction;
@@ -154,13 +152,15 @@ function omitAutomaticTomeStows(
 ): EvtcRecordedRotationAction[] {
   const config = context.professionConfig || {};
   const selectedTraitIds = new Set((Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []).map(Number));
-  const maximumPages = selectedTraitIds.has(ARCHIVIST_OF_WHISPERS) ? 8 : 5;
+  const maximumPages = selectedTraitIds.has(TRAIT.ARCHIVIST_OF_WHISPERS) ? 8 : 5;
   const configuredInitialPages = Number(config.initialTomePages ?? maximumPages);
   const normalizedInitialPages = Number.isFinite(configuredInitialPages) ? configuredInitialPages : maximumPages;
   const initialPages =
-    selectedTraitIds.has(ARCHIVIST_OF_WHISPERS) && normalizedInitialPages === 5 ? maximumPages : normalizedInitialPages;
+    selectedTraitIds.has(TRAIT.ARCHIVIST_OF_WHISPERS) && normalizedInitialPages === 5
+      ? maximumPages
+      : normalizedInitialPages;
   let pages = Math.max(0, Math.min(maximumPages, initialPages));
-  const pageInterval = selectedTraitIds.has(LOREMASTER) ? 5_000 : 8_000;
+  const pageInterval = selectedTraitIds.has(TRAIT.LOREMASTER) ? 5_000 : 8_000;
   const timelineOriginMs = Math.min(context.timelineOriginMs, ...actions.map((action) => action.start));
   let nextPageAt = pages < maximumPages ? timelineOriginMs + pageInterval : Number.POSITIVE_INFINITY;
   let activeTomeId: number | null = null;
@@ -215,7 +215,7 @@ function omitAutomaticTomeStows(
     }
 
     if (event.kind === 'page-gain') {
-      if (selectedTraitIds.has(WEIGHTY_TERMS)) {
+      if (selectedTraitIds.has(TRAIT.WEIGHTY_TERMS)) {
         pages = Math.min(maximumPages, pages + 2);
         if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
       }
