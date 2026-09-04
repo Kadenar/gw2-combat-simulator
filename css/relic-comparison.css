@@ -76,25 +76,6 @@
   margin-bottom: 10px;
 }
 
-.relic-cmp-run-button {
-  flex: none;
-  padding: 6px 10px;
-  color: var(--text-bright);
-  font: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  background: color-mix(in srgb, var(--health) 18%, var(--bg-card));
-  border: 1px solid color-mix(in srgb, var(--health) 55%, var(--border));
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.relic-cmp-run-button:hover,
-.relic-cmp-run-button:focus-visible {
-  background: color-mix(in srgb, var(--health) 28%, var(--bg-card));
-  outline: none;
-}
-
 .relic-cmp-run-button:disabled {
   cursor: wait;
   opacity: 0.65;

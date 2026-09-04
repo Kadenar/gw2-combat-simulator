@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
+import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
 
 import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
 import { NECROMANCER_CORE_EXTRA_SKILLS } from '#gw2/professions/necromancer/core/skills/index.js';
@@ -13,18 +14,6 @@ import { REAPER_SHOUT_SKILL_MECHANICS } from '#gw2/professions/necromancer/speci
 import { REAPER_SHROUD_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/shroud-skills.js';
 
 const professionSourceRoot = new URL('../../../js/games/gw2/professions/necromancer/', import.meta.url);
-
-// Verifies a public owner catalog is exactly the disjoint union of its named family catalogs.
-function assertComposedCatalog(aggregate, families) {
-  const entries = families.flatMap((family) => Object.entries(family));
-
-  assert.equal(new Set(entries.map(([skillId]) => skillId)).size, entries.length);
-  assert.deepEqual(
-    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right)),
-    entries.map(([skillId]) => skillId).sort((left, right) => Number(left) - Number(right))
-  );
-  for (const [skillId, fragment] of entries) assert.equal(aggregate[skillId], fragment, skillId);
-}
 
 test('Necromancer owner-local skill families compose without duplicates or omissions', () => {
   assertComposedCatalog(REAPER_BASE_SKILL_MECHANICS, [REAPER_SHROUD_SKILL_MECHANICS, REAPER_SHOUT_SKILL_MECHANICS]);

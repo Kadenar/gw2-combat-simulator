@@ -527,7 +527,9 @@
   border-radius: 6px;
 }
 
-.rng-run-button {
+/* Keep comparison actions consistent, including their keyboard focus treatment. */
+.rng-run-button,
+.relic-cmp-run-button {
   flex: none;
   padding: 6px 10px;
   color: var(--text-bright);
@@ -541,7 +543,9 @@
 }
 
 .rng-run-button:hover,
-.rng-run-button:focus-visible {
+.rng-run-button:focus-visible,
+.relic-cmp-run-button:hover,
+.relic-cmp-run-button:focus-visible {
   background: color-mix(in srgb, var(--health) 28%, var(--bg-card));
   outline: none;
 }

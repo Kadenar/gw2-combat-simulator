@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
 
 import { REVENANT_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/index.js';
 import { REVENANT_LEGEND_CALL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
@@ -23,18 +24,6 @@ import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/speci
 import { VINDICATOR_ALLIANCE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/alliance-skills.js';
 import { VINDICATOR_DODGE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import { VINDICATOR_PROFESSION_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/profession-skills.js';
-
-// Proves each composed owner catalog is exactly the disjoint union of its named skill families.
-function assertComposedCatalog(aggregate, families) {
-  const entries = families.flatMap((family) => Object.entries(family));
-
-  assert.equal(new Set(entries.map(([skillId]) => skillId)).size, entries.length);
-  assert.deepEqual(
-    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right)),
-    entries.map(([skillId]) => skillId).sort((left, right) => Number(left) - Number(right))
-  );
-  for (const [skillId, fragment] of entries) assert.equal(aggregate[skillId], fragment, skillId);
-}
 
 test('Revenant Core moved skill families compose without duplicates', () => {
   const families = [

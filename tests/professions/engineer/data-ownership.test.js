@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
 
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
@@ -32,18 +33,6 @@ const KIT_SLUGS = new Map([
 
 function ownedKit(skill) {
   return [skill.kitName, skill.kit, skill.toolbeltParentName].find((name) => KIT_SLUGS.has(name));
-}
-
-// Verifies a public owner catalog is exactly the disjoint union of its named family catalogs.
-function assertComposedCatalog(aggregate, families) {
-  const entries = families.flatMap((family) => Object.entries(family));
-
-  assert.equal(new Set(entries.map(([skillId]) => skillId)).size, entries.length);
-  assert.deepEqual(
-    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right)),
-    entries.map(([skillId]) => skillId).sort((left, right) => Number(left) - Number(right))
-  );
-  for (const [skillId, fragment] of entries) assert.equal(aggregate[skillId], fragment, skillId);
 }
 
 // Loads every Core kit fragment so the aggregate contract proves disjoint ownership without a hand-maintained file list.

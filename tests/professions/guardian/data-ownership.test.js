@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
+import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
 
 import { GUARDIAN_CORE_EXTRA_SKILLS } from '#gw2/professions/guardian/core/skills/index.js';
 import { GUARDIAN_CORE_EXTRA_SKILLS as GUARDIAN_CORE_ACTIONS } from '#gw2/professions/guardian/core/skills/actions.js';
@@ -16,18 +17,6 @@ import { LUMINARY_STANCE_SKILL_MECHANICS } from '#gw2/professions/guardian/speci
 import { LUMINARY_VIRTUE_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
 
 const professionSourceRoot = new URL('../../../js/games/gw2/professions/guardian/', import.meta.url);
-
-// Verifies an owner catalog is exactly the disjoint union of its named family catalogs.
-function assertComposedCatalog(aggregate, families) {
-  const entries = families.flatMap((family) => Object.entries(family));
-
-  assert.equal(new Set(entries.map(([skillId]) => skillId)).size, entries.length);
-  assert.deepEqual(
-    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right)),
-    entries.map(([skillId]) => skillId).sort((left, right) => Number(left) - Number(right))
-  );
-  for (const [skillId, fragment] of entries) assert.equal(aggregate[skillId], fragment, skillId);
-}
 
 test('Guardian owner-local skill families compose without duplicates or omissions', () => {
   assert.equal(GUARDIAN_CORE_EXTRA_SKILLS, GUARDIAN_CORE_ACTIONS);
