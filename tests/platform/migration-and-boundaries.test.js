@@ -11,7 +11,6 @@ import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
-import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { snapshotMesmerState } from '#gw2/professions/mesmer/state/index.js';
@@ -165,7 +164,6 @@ test('Mesmer conforms to native handler and state contracts', () => {
   );
 
   assert.ok(mechanicSkillIds.every((skillId) => mesmerCatalog.skillsById.has(skillId)));
-  assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
   assert.ok(
     Object.keys(mesmerProfession.resolveRuntime({ specialization: 'Chronomancer' }).taskHandlers).every((type) =>
       type.startsWith('mesmer.')

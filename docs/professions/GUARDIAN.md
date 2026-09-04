@@ -34,7 +34,6 @@ under `core/` or `specializations/<name>/`.
   Avenger, Piercing Stance share one additive bucket; Fiery Wrath, Symbolic Exposure, gates, vulnerability, and relics
   stay separate multipliers). Permanent Protection/Resolution/ Regeneration/Swiftness are on by default; Aegis is an
   off-by-default toggle.
-- All 108 traits have a validated coverage disposition.
 
 ## Modeling boundaries
 

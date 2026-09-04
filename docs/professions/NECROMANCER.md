@@ -38,7 +38,6 @@ in that runtime.
   shroud/chill/fear/minion/spirit/Blight modifiers, with additive vs.
   multiplicative grouping. Deterministic expected-value procs replace random
   critical-hit chances.
-- All 108 traits have a validated coverage disposition.
 
 Core, Reaper, Harbinger, and Ritualist shroud skills stay visible while the
 matching shroud is inactive but are disabled until entry; weapon/slot skills are

@@ -30,7 +30,6 @@ elite module is present in a given runtime.
 - **Vindicator** — Alliance-side state and explicit dodge selection.
 - **Conduit** — affinity, legend-specific Release Potential, and Cosmic Wisdom
   state.
-- All 108 traits have a validated coverage disposition.
 
 ## Modeling boundaries
 

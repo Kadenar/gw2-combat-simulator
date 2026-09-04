@@ -29,7 +29,6 @@ rotations are resolved at the build-migration boundary.
 - **Mirage** — Mirage Cloak dodge charges and ambush attacks.
 - **Virtuoso** — bladesongs that require and spend all stocked blades.
 - **Troubadour** — instruments resource, Crescendo, Dagger, and its dodge/ ambush interactions.
-- All 108 traits have a validated coverage disposition.
 
 ## Modeling boundaries
 

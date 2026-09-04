@@ -31,7 +31,6 @@ state, mechanics, and UI under `specializations/<name>/`.
 - **Amalgam** - F2-F4 morph loadout persistence and Evolve state.
 - **Scrapper** - Hammer, gyros, Function Gyro, superspeed, and whirl-finisher /
   kinetic trait reactions.
-- All 108 traits have a validated coverage disposition.
 
 ## Modeling boundaries
 

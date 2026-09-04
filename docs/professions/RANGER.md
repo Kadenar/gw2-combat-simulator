@@ -22,7 +22,6 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 - **Soulbeast** — merge state, Beast skills, pet-family bonuses, and stance / damage modifiers.
 - **Untamed** — player/pet unleash state, Hammer variants, ambush windows, and specialization traits.
 - **Galeshot** — Cyclone Bow, rechargeable arrows, Wind Force, bow transitions, and its pet interactions.
-- All catalog traits have a validated coverage disposition.
 
 `data/gw2/builds/ranger/manifest.json` and `data/gw2/rotations/ranger/` hold the supported build and rotation corpus.
 

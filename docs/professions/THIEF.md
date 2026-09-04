@@ -29,7 +29,6 @@ vertical slice under `specializations/<name>/`.
   shroud hit packets, wells, Siphon, and initiative-to-Shadow-Force gain.
 - **Antiquary** — artifact uses with all artifacts selectable, per-cast Double
   Edge outcomes, backfire state, and persistent Antiquary summons.
-- All 108 traits have a validated coverage disposition.
 
 Core Steal exposes Throw Gunk, Consume Plasma, and Whirling Axe as its standard
 stolen-skill choice pool. Double Edge success/backfire is saved per rotation

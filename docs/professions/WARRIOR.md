@@ -35,7 +35,6 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
   scaling Dragon Slash packets. Normal weapon swapping is disabled.
 - **Paragon** — 10-point adrenaline cap, chants, motivation, active refrains,
   periodic motivation drain, and refrain traits.
-- All 108 traits have a validated coverage disposition.
 
 ## Dragon Trigger (Bladesworn) rotations
 

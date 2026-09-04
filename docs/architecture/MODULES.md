@@ -1225,7 +1225,6 @@ Also update:
 
 - profession catalog/generated data where required;
 - build specialization metadata;
-- trait coverage;
 - relevant tests;
 - profession documentation.
 

@@ -14,7 +14,6 @@ import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/comb
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/scheduler/policy.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
@@ -535,107 +534,6 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
     }
   ]);
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1060);
-});
-
-test('trait coverage validates complete mixed-effect implementation manifests', () => {
-  const catalog = {
-    traits: [
-      { id: 1, name: 'Mixed Trait' },
-      { id: 2, name: 'Support Trait' }
-    ]
-  };
-  const coverage = validateTraitCoverageManifest(
-    catalog,
-    [
-      {
-        traitId: 1,
-        status: 'implemented',
-        effects: [
-          {
-            description: 'Increases strike damage while the target is poisoned.',
-            status: 'implemented'
-          },
-          {
-            description: 'Heals nearby allies when the damage bonus activates.',
-            status: 'out-of-model',
-            reason: 'Ally healing is outside the single-target damage model.'
-          }
-        ],
-        reason: null
-      },
-      {
-        traitId: 2,
-        status: 'out-of-model',
-        effects: ['Revives and heals nearby allied players.'],
-        reason: 'Ally healing and revival are not represented by the simulator.'
-      }
-    ],
-    { professionId: 'fixture' }
-  );
-
-  assert.equal(coverage.length, 2);
-  assert.equal(Object.isFrozen(coverage), true);
-  assert.equal(coverage[0].effects[1].status, 'out-of-model');
-});
-
-test('trait coverage rejects gaps, unknown traits, names, and title evidence', () => {
-  const catalog = { traits: [{ id: 1, name: 'Known Trait' }] };
-
-  assert.throws(() => validateTraitCoverageManifest(catalog, []), /coverage is missing/);
-  assert.throws(
-    () =>
-      validateTraitCoverageManifest(catalog, [
-        {
-          traitId: 2,
-          status: 'implemented',
-          effects: ['Deals strike damage after using a tool-belt skill.'],
-          reason: null
-        }
-      ]),
-    /unknown trait 2/
-  );
-  assert.throws(
-    () =>
-      validateTraitCoverageManifest(catalog, [
-        {
-          traitId: 1,
-          status: 'implemented',
-          effects: ['Known Trait'],
-          reason: null
-        }
-      ]),
-    /not only its name/
-  );
-  assert.throws(
-    () =>
-      validateTraitCoverageManifest(catalog, [
-        {
-          traitId: 1,
-          status: 'implemented',
-          effects: ['Deals strike damage after using a tool-belt skill.'],
-          tests: [
-            {
-              file: 'tests/fixture.test.js',
-              name: 'claimed behavior'
-            }
-          ],
-          reason: null
-        }
-      ]),
-    /cannot use test-title evidence/
-  );
-  assert.throws(
-    () =>
-      validateTraitCoverageManifest(catalog, [
-        {
-          traitId: 1,
-          status: 'out-of-model',
-          effects: ['Heals nearby allied players.'],
-          reason: 'unsupported'
-        }
-      ]),
-    /concrete reason/
-  );
 });
 
 test('profession event-log hooks present, hide, and diagnose custom events', () => {

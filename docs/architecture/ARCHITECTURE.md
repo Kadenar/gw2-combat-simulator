@@ -137,8 +137,6 @@ Every native profession otherwise uses the same source roles:
   coefficients or damaging conditions.
 - `data/<profession>-supplemental-skills.ts`, when present, owns identity and presentation for positive-ID skills
   missing from the generated snapshot.
-- `data/trait-coverage.ts` classifies every catalog trait with validated behavioral evidence or an explicit out-of-model
-  reason.
 - `data/traits-data.ts` is the only module that exports the flattened runtime `TRAITS` collection; it derives that view
   from specialization metadata.
 - Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts` or grouped

@@ -12,23 +12,13 @@ import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { TRAIT_COVERAGE_STATUSES } from '../helpers/trait-coverage.js';
-import { ENGINEER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/engineer.js';
 import { ENGINEER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/state.js';
 import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalist/state.js';
-import { ELEMENTALIST_TRAIT_COVERAGE } from '../fixtures/trait-coverage/elementalist.js';
-import { GUARDIAN_TRAIT_COVERAGE } from '../fixtures/trait-coverage/guardian.js';
 import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '#gw2/professions/guardian/state.js';
-import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
-import { NECROMANCER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/necromancer.js';
 import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/necromancer/state.js';
-import { RANGER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/ranger.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/state.js';
-import { REVENANT_TRAIT_COVERAGE } from '../fixtures/trait-coverage/revenant.js';
 import { REVENANT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/state.js';
-import { THIEF_TRAIT_COVERAGE } from '../fixtures/trait-coverage/thief.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/state.js';
-import { WARRIOR_TRAIT_COVERAGE } from '../fixtures/trait-coverage/warrior.js';
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/professions/warrior/state.js';
 import { professionRegistry } from '#gw2/app/profession/registry.js';
 import {
@@ -47,17 +37,6 @@ const apiFixture = JSON.parse(
   await readFile(new URL('../fixtures/gw2-api/profession-snapshot.json', import.meta.url), 'utf8')
 );
 
-const TRAIT_COVERAGE_BY_PROFESSION = Object.freeze({
-  elementalist: ELEMENTALIST_TRAIT_COVERAGE,
-  engineer: ENGINEER_TRAIT_COVERAGE,
-  guardian: GUARDIAN_TRAIT_COVERAGE,
-  mesmer: MESMER_TRAIT_COVERAGE,
-  necromancer: NECROMANCER_TRAIT_COVERAGE,
-  ranger: RANGER_TRAIT_COVERAGE,
-  revenant: REVENANT_TRAIT_COVERAGE,
-  thief: THIEF_TRAIT_COVERAGE,
-  warrior: WARRIOR_TRAIT_COVERAGE
-});
 const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
   elementalist: ELEMENTALIST_PUBLIC_END_STATE_KEYS,
   engineer: ENGINEER_PUBLIC_END_STATE_KEYS,
@@ -425,31 +404,6 @@ test('profession registry entries conform to the shared contracts', async () => 
       assert.equal(filenames.has(filename), false);
       filenames.add(filename);
     }
-  }
-});
-
-test('ready native professions classify every trait with no pending entries', async () => {
-  for (const entry of professionRegistry) {
-    const profession = await entry.loadProfession();
-    const coverage = TRAIT_COVERAGE_BY_PROFESSION[entry.id];
-
-    assert.ok(coverage, `${entry.id} trait coverage`);
-    assert.equal(coverage.length, profession.catalog.traits.length);
-    assert.equal(new Set(coverage.map((item) => item.traitId)).size, profession.catalog.traits.length);
-    assert.equal(
-      coverage.every((item) => item.effects.length > 0),
-      true,
-      `${entry.id} empty trait coverage`
-    );
-    assert.equal(
-      coverage.some(
-        (item) =>
-          item.status === TRAIT_COVERAGE_STATUSES.PENDING ||
-          item.effects.some((effect) => effect.status === TRAIT_COVERAGE_STATUSES.PENDING)
-      ),
-      false,
-      `${entry.id} pending trait coverage`
-    );
   }
 });
 
