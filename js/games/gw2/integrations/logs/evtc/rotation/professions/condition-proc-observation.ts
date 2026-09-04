@@ -14,6 +14,16 @@ export const EVTC_CRIPPLED_SKILL_ID = 721;
 export const EVTC_CRITICAL_RESULT = 1;
 export const EVTC_DURATION_TOLERANCE_MS = 50;
 
+export interface CriticalBleedingProcObservation {
+  readonly targetAddress: bigint;
+  readonly criticalHits: number;
+  readonly matchedApplications: number;
+  readonly observedProcRate: number;
+  readonly expectedProcChance: number;
+  readonly expectedApplications: number;
+  readonly matchedDurationsMs: readonly number[];
+}
+
 /** Shares target selection, duration scaling, and condition matching across inferred EVTC trait-proc diagnostics. */
 export function hasSelectedTrait(config: Gw2Config, traitId: string | number): boolean {
   return Boolean(config.selectedTraitIds?.some((id) => String(id) === String(traitId)));
@@ -127,6 +137,53 @@ export function matchingConditionApplications(
       isConditionApplication(event) &&
       durationsMs.some((duration) => Math.abs(event.value - duration) <= EVTC_DURATION_TOLERANCE_MS)
   );
+}
+
+/** Analyzes player critical-hit traits that emit one Bleeding application using profile-owned chance and duration. */
+export function analyzeCriticalBleedingProcObservation(
+  log: ParsedEvtc,
+  playerAddress: bigint,
+  catalog: Readonly<CanonicalCatalog>,
+  config: Gw2Config,
+  traitId: string | number,
+  traitName: string
+): CriticalBleedingProcObservation | null {
+  if (!hasSelectedTrait(config, traitId)) return null;
+  const profile = traitBalanceProfile(catalog, traitId, traitName);
+  if (!profile) return null;
+
+  const expectedProcChance = Number(profile.criticalChance || profile.procChance || 0);
+  const baseDurationSeconds = Number(
+    profile.effects?.find((effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding')
+      ?.duration || 0
+  );
+  const matchedDurationsMs = expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config);
+  if (!(expectedProcChance > 0) || !matchedDurationsMs.length) return null;
+
+  const targetAddress = primaryStrikeTarget(log, playerAddress);
+  if (targetAddress == null) return null;
+  const criticalHits = log.events.filter(
+    (event) =>
+      event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT
+  ).length;
+  if (!criticalHits) return null;
+
+  const matchedApplications = matchingConditionApplications(
+    log,
+    playerAddress,
+    targetAddress,
+    EVTC_BLEEDING_SKILL_ID,
+    matchedDurationsMs
+  ).length;
+  return {
+    targetAddress,
+    criticalHits,
+    matchedApplications,
+    observedProcRate: matchedApplications / criticalHits,
+    expectedProcChance,
+    expectedApplications: criticalHits * expectedProcChance,
+    matchedDurationsMs
+  };
 }
 
 /** Pairs two condition streams one-to-one so a lone duration collision cannot be counted as a compound proc. */

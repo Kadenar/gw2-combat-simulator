@@ -212,18 +212,23 @@ test('counts raw EVTC names for explosions whose catalog effects receive their f
   assert.equal(result?.matchedApplications, 1);
 });
 
-test('matches 33%-extended 3-second Serrated Steel applications against critical hits', () => {
+test('matches profile-owned Serrated Steel duration against critical hits', () => {
   const criticalHits = Array.from({ length: 5 }, (_, index) => event({ time: 1_000 + index }));
   const result = analyzeEngineerSerratedSteelObservation(
     fixture([
       ...criticalHits,
       event({ time: 1_010, result: 0 }),
-      condition(1_100, 736, 3_990),
-      condition(1_200, 736, 3_990),
-      condition(1_300, 736, 7_980)
+      condition(1_100, 736, 5_320),
+      condition(1_200, 736, 5_320),
+      condition(1_300, 736, 10_640)
     ]),
     PLAYER,
-    catalog([serratedSteelProfile]),
+    catalog([
+      {
+        ...serratedSteelProfile,
+        effects: [{ type: 'condition', condition: 'Bleeding', duration: 4 }]
+      }
+    ]),
     {
       selectedTraitIds: [ENGINEER_TRAIT.SERRATED_STEEL],
       stats: { expertise: 0, conditionDurationBonuses: { Bleeding: 33 } },
@@ -238,7 +243,7 @@ test('matches 33%-extended 3-second Serrated Steel applications against critical
     observedProcRate: 0.4,
     expectedProcChance: 0.33,
     expectedApplications: 1.6500000000000001,
-    matchedDurationsMs: [3_990]
+    matchedDurationsMs: [5_320]
   });
 });
 

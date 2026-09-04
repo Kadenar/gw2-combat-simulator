@@ -6,8 +6,9 @@ import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotatio
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRIPPLED_SKILL_ID,
-  EVTC_CRITICAL_RESULT,
+  analyzeCriticalBleedingProcObservation,
   countPairedApplications,
+  type CriticalBleedingProcObservation,
   expectedConditionDurationsMs,
   hasSelectedTrait,
   isOutgoingStrike,
@@ -18,7 +19,6 @@ import {
 
 const SHRAPNEL_BLEEDING_BASE_SECONDS = 6;
 const SHRAPNEL_CRIPPLED_BASE_SECONDS = 1;
-const SERRATED_STEEL_BLEEDING_BASE_SECONDS = 3;
 const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
   'drop mine',
   'electric artillery',
@@ -39,15 +39,7 @@ export interface EngineerShrapnelObservation {
   readonly matchedCrippledDurationsMs: readonly number[];
 }
 
-export interface EngineerSerratedSteelObservation {
-  readonly targetAddress: bigint;
-  readonly criticalHits: number;
-  readonly matchedApplications: number;
-  readonly observedProcRate: number;
-  readonly expectedProcChance: number;
-  readonly expectedApplications: number;
-  readonly matchedDurationsMs: readonly number[];
-}
+export type EngineerSerratedSteelObservation = CriticalBleedingProcObservation;
 
 function isExplosionSkill(skill: Skill): boolean {
   if (normalized(skill.name) === 'aim-assisted rocket') return false;
@@ -140,43 +132,19 @@ export function analyzeEngineerShrapnelObservation(
   };
 }
 
-/** Matches critical packets to Serrated Steel's 3-second Bleeding after active-build duration bonuses. */
+/** Matches critical packets to Serrated Steel's profile-duration Bleeding after active-build bonuses. */
 export function analyzeEngineerSerratedSteelObservation(
   log: ParsedEvtc,
   playerAddress: bigint,
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
 ): EngineerSerratedSteelObservation | null {
-  if (!hasSelectedTrait(config, TRAIT.SERRATED_STEEL)) return null;
-  const profile = traitBalanceProfile(catalog, TRAIT.SERRATED_STEEL, 'Serrated Steel');
-  if (!profile) return null;
-  const expectedProcChance = expectedChance(profile);
-  if (expectedProcChance == null) return null;
-
-  const targetAddress = primaryStrikeTarget(log, playerAddress);
-  if (targetAddress == null) return null;
-  const criticalHits = log.events.filter(
-    (event) =>
-      event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT
-  ).length;
-  if (!criticalHits) return null;
-
-  const matchedDurationsMs = expectedConditionDurationsMs(SERRATED_STEEL_BLEEDING_BASE_SECONDS, 'Bleeding', config);
-  const matchedApplications = matchingConditionApplications(
+  return analyzeCriticalBleedingProcObservation(
     log,
     playerAddress,
-    targetAddress,
-    EVTC_BLEEDING_SKILL_ID,
-    matchedDurationsMs
-  ).length;
-
-  return {
-    targetAddress,
-    criticalHits,
-    matchedApplications,
-    observedProcRate: matchedApplications / criticalHits,
-    expectedProcChance,
-    expectedApplications: criticalHits * expectedProcChance,
-    matchedDurationsMs
-  };
+    catalog,
+    config,
+    TRAIT.SERRATED_STEEL,
+    'Serrated Steel'
+  );
 }
