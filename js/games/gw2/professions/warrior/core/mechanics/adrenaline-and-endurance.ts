@@ -56,13 +56,20 @@ export function gainCoreWarriorAdrenaline(context: WarriorSchedulerContext, amou
   syncWarriorAdrenaline(context);
 }
 
+/** Spends up to the requested adrenaline and synchronizes the public resource projection. */
+export function spendWarriorAdrenalineAmount(context: WarriorCastContext, amount: number): number {
+  const state = professionCoreState(context);
+  const available = Number(state.adrenaline || 0);
+  const spent = Math.min(available, Math.max(0, Number(amount || 0)));
+  state.adrenaline = available - spent;
+  syncWarriorAdrenaline(context);
+  return spent;
+}
+
 /** Spends all available adrenaline for a normal Core burst. */
 export function spendCoreWarriorAdrenaline(context: WarriorCastContext, skill: WarriorSkill): number {
   const state = professionCoreState(context);
   if (!skill.burst) return 0;
 
-  const available = Number(state.adrenaline || 0);
-  state.adrenaline = 0;
-  syncWarriorAdrenaline(context);
-  return available;
+  return spendWarriorAdrenalineAmount(context, Number(state.adrenaline || 0));
 }
