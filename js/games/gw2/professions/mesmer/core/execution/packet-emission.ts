@@ -1,24 +1,20 @@
 /**
- * Owns Mesmer skill packet emission and hit-trigger bookkeeping.
+ * Emits phantasm-cast packets and tracks their eligible sword hits.
  * Effect ordering lives in `effect-controller.ts`; persistent illusion behavior lives under `mechanics/illusions/`.
  */
 import { emitFencersFinesseStacks, recordFencersFinesseProc } from '#gw2/professions/mesmer/core/traits/index.js';
-import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerConfig
+  MesmerAddTraitProc
 } from '#gw2/professions/mesmer/types.js';
-import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import type {
   MesmerPhantasmEffectController,
   MesmerPhantasmExecution
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 import type {
   MesmerConditionEffect,
   MesmerDamageGroup,
@@ -36,7 +32,6 @@ export interface MesmerSkillDamageController {
     at: number,
     castStart: number,
     playerEffectEnd: number,
-    pulseTimes: readonly number[],
     conditions: readonly MesmerConditionEffect[],
     phantasms: readonly MesmerPhantasmExecution[]
   ): MesmerSkillDamageResult;
@@ -44,8 +39,6 @@ export interface MesmerSkillDamageController {
 }
 
 interface SkillDamageControllerOptions {
-  readonly state: SchedulerState<MesmerRuntimeState>;
-  readonly config: MesmerConfig;
   readonly traits: ReadonlySet<number>;
   readonly epsilon: number;
   readonly phantasms: MesmerPhantasmEffectController;
@@ -56,8 +49,6 @@ interface SkillDamageControllerOptions {
 }
 
 export function createSkillDamageController({
-  state,
-  config,
   traits,
   epsilon,
   phantasms,
@@ -70,7 +61,6 @@ export function createSkillDamageController({
   const schedulePlayerStrike = (
     skill: MesmerSkill,
     group: MesmerStrikeEffect,
-    selectedGroup: MesmerDamageGroup,
     at: number,
     castStart: number
   ): readonly number[] => {
@@ -80,13 +70,13 @@ export function createSkillDamageController({
     // same Quickness-authored timing that the shared scheduler would use.
     const timedGroup: MesmerDamageGroup =
       castScale === 1
-        ? selectedGroup
+        ? group
         : {
-            ...selectedGroup,
-            ...(selectedGroup.atMs == null ? {} : { atMs: Number(selectedGroup.atMs) * castScale }),
-            ...(Array.isArray(selectedGroup.ticks)
+            ...group,
+            ...(group.atMs == null ? {} : { atMs: Number(group.atMs) * castScale }),
+            ...(Array.isArray(group.ticks)
               ? {
-                  ticks: selectedGroup.ticks.map((tick) => ({
+                  ticks: group.ticks.map((tick) => ({
                     ...tick,
                     atMs: Number(tick.atMs) * castScale
                   }))
@@ -115,7 +105,7 @@ export function createSkillDamageController({
     }
 
     if (group.castProgress != null) {
-      const hitAt = group.castProgress != null ? castStart + (at - castStart) * Number(group.castProgress) : at;
+      const hitAt = castStart + (at - castStart) * Number(group.castProgress);
       return emittedAt(hitAt, {
         ...damageGroup,
         atMs: undefined,
@@ -133,29 +123,12 @@ export function createSkillDamageController({
     skill: MesmerSkill,
     at: number,
     castStart: number,
-    pulseTimes: readonly number[],
     conditions: readonly MesmerConditionEffect[]
   ): void => {
     for (const effect of conditions) {
       const condition = { ...effect, name: effect.condition };
-      if (pulseTimes.length > 0 && Number(condition.stacks || 1) === pulseTimes.length) {
-        const origin = Math.min(...pulseTimes);
-        addCondition(skill.name, origin, {
-          ...condition,
-          stacks: undefined,
-          ticks: pulseTimes.map((pulseAt) => ({
-            atMs: (pulseAt - origin) * 1000,
-            condition: condition.name,
-            duration: condition.duration,
-            stacks: 1
-          })),
-          timingAnchor: 'castStart',
-          timingScale: 'fixed'
-        });
-      } else {
-        const timingAnchorAt = effect.timingAnchor === 'castStart' ? castStart : at;
-        addCondition(skill.name, timingAnchorAt, condition, 'Player');
-      }
+      const timingAnchorAt = effect.timingAnchor === 'castStart' ? castStart : at;
+      addCondition(skill.name, timingAnchorAt, condition, 'Player');
     }
   };
 
@@ -164,11 +137,9 @@ export function createSkillDamageController({
     at: number,
     castStart: number,
     playerEffectEnd: number,
-    pulseTimes: readonly number[],
     conditions: readonly MesmerConditionEffect[],
     phantasmExecutions: readonly MesmerPhantasmExecution[]
   ): MesmerSkillDamageResult => {
-    const playerHitTimes: number[] = [];
     let firstFencerTriggerAt = Infinity;
     const addFencerStacks = (hitTimes: readonly number[], hits: number | undefined): void => {
       firstFencerTriggerAt = Math.min(
@@ -181,18 +152,13 @@ export function createSkillDamageController({
       (effect): effect is MesmerStrikeEffect => effect.type === 'strike'
     );
     for (const group of strikeEffects) {
-      if (group.requiredTrait && !traits.has(group.requiredTrait)) continue;
-      const selectedGroup: MesmerDamageGroup =
-        skill.boonlessCoefficient && config.target?.boonless
-          ? { ...group, coefficient: skill.boonlessCoefficient }
-          : group;
       if (group.summonKind === 'phantasm') {
         if (phantasmExecutions.length === 0) {
           throw new TypeError(`Phantasm strike ${skill.id} requires phantasm resource metadata.`);
         }
 
         for (const phantasm of phantasmExecutions) {
-          const result = phantasms.scheduleStrike(phantasm, group, selectedGroup, castStart);
+          const result = phantasms.scheduleStrike(phantasm, group, castStart);
           const packetCount = result.damageGroup.ticks?.length ?? result.damageGroup.hits;
           addFencerStacks(result.initialHitTimes, packetCount);
           addFencerStacks(result.repeatHitTimes, packetCount);
@@ -210,24 +176,18 @@ export function createSkillDamageController({
           ? castStart + (at - castStart) * Number(group.castProgress)
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
       if (hitAt > playerEffectEnd + epsilon) continue;
-      const hitTimes = schedulePlayerStrike(skill, group, selectedGroup, at, castStart);
+      const hitTimes = schedulePlayerStrike(skill, group, at, castStart);
       if (group.actorType === 'player') {
-        playerHitTimes.push(...hitTimes);
-        addFencerStacks(hitTimes, selectedGroup.ticks?.length ?? selectedGroup.hits);
+        addFencerStacks(hitTimes, group.ticks?.length ?? group.hits);
       }
     }
 
-    scheduleMesmerTrackedHits(state, epsilon, addDamage, skill, playerHitTimes);
-    if (phantasmExecutions.length > 0) {
-      // Summon subtype, rather than actor ownership, keeps phantasm conditions out of the player path.
-      const playerConditions = conditions.filter((effect) => effect.summonKind !== 'phantasm');
-      const phantasmConditions = conditions.filter((effect) => effect.summonKind === 'phantasm');
-      schedulePlayerConditions(skill, at, castStart, pulseTimes, playerConditions);
-      for (const phantasm of phantasmExecutions) {
-        phantasms.scheduleConditions(phantasm, phantasmConditions);
-      }
-    } else {
-      schedulePlayerConditions(skill, at, castStart, pulseTimes, conditions);
+    // Keep player conditions on the cast and summon conditions on each phantasm's own lifecycle.
+    const playerConditions = conditions.filter((effect) => effect.summonKind !== 'phantasm');
+    const phantasmConditions = conditions.filter((effect) => effect.summonKind === 'phantasm');
+    schedulePlayerConditions(skill, at, castStart, playerConditions);
+    for (const phantasm of phantasmExecutions) {
+      phantasms.scheduleConditions(phantasm, phantasmConditions);
     }
 
     return { firstFencerTriggerAt };

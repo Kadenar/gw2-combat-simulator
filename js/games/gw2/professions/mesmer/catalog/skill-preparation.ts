@@ -62,24 +62,21 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
   return null;
 }
 
-/** Keeps trait-owned packets out of the base profile while assigning only genuinely dynamic handlers. */
+/** Attaches flip relationships while leaving fixed profiles on the shared scheduler. */
 export function prepareMesmerSkillForCatalog<TSkill extends MesmerSkillCatalogFragment>(skill: TSkill): TSkill {
   const handlerId = mesmerHandlerIdFor(skill);
   const flipParentId = MESMER_FLIP_PARENT_BY_CHILD_ID[Number(skill.id)];
   const flipChildId = MESMER_FLIP_CHILD_BY_PARENT_ID[Number(skill.id)];
-  const traitEffects = (skill.effects || []).filter((effect) => effect.requiredTrait);
   const mechanic =
-    flipParentId || flipChildId || traitEffects.length
+    flipParentId || flipChildId
       ? {
           ...(skill.mesmerMechanic && typeof skill.mesmerMechanic === 'object' ? skill.mesmerMechanic : {}),
           ...(flipParentId ? { flipParentId } : {}),
-          ...(flipChildId ? { flipChildId } : {}),
-          ...(traitEffects.length ? { traitEffects } : {})
+          ...(flipChildId ? { flipChildId } : {})
         }
       : skill.mesmerMechanic;
   const prepared: TSkill = {
     ...skill,
-    ...(traitEffects.length ? { effects: (skill.effects || []).filter((effect) => !effect.requiredTrait) } : {}),
     ...(mechanic ? { mesmerMechanic: mechanic } : {})
   };
   return handlerId ? { ...prepared, handlerId } : prepared;

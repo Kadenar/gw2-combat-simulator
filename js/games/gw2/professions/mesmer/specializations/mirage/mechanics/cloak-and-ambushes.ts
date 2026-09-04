@@ -152,8 +152,9 @@ export function createMirageActionController({
       const ambush = ambushAttacks[weapon];
       if (!ambush) continue;
       const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
+      // Keep catalog identity on summon packets so ownership, rather than a synthetic skill ID, separates actors.
       const pseudo = {
-        id: ambush.name,
+        id: ambush.id,
         name: ambush.name,
         weapon,
         blade: false
@@ -184,7 +185,10 @@ export function createMirageActionController({
         }
       );
       for (const condition of ambush.clone.conditions || []) {
-        addCondition(`${ambush.name} — Clone`, impactAt, condition, 'Clone', '', { cloneId: clone.id });
+        addCondition(`${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
+          cloneId: clone.id,
+          skillId: ambush.id
+        });
       }
 
       for (const boon of ambush.cloneBoons || []) {
@@ -281,8 +285,9 @@ export function createMirageActionController({
     const weapon = skill.weapon || activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
     if (!ambush || skill.id !== ambush.id) return;
+    // Player ambushes retain their catalog ID so hit-driven traits can resolve the weapon skill.
     const pseudo = {
-      id: ambush.name,
+      id: ambush.id,
       name: ambush.name,
       weapon,
       blade: false

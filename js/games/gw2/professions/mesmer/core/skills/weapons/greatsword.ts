@@ -31,18 +31,18 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // Split the minimum-range coefficient evenly across the three channel hits.
         ticks: [
-          { atMs: 360, coefficient: 0.2666666666666667 },
-          { atMs: 520, coefficient: 0.2666666666666667 },
-          { atMs: 680, coefficient: 0.2666666666666667 }
+          { atMs: 360, coefficient: 0.8 / 3 },
+          { atMs: 520, coefficient: 0.8 / 3 },
+          { atMs: 680, coefficient: 0.8 / 3 }
         ],
         name: 'Minimum-range damage',
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    pulseCount: 3
+    ]
   },
   [ID.ILLUSIONARY_WAVE]: {
     type: 'Weapon',
@@ -137,10 +137,10 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'fixed'
       },
       {
+        // Four enemy packets form the base skill; Bountiful Blades owns the two additional packets.
         type: 'strike',
         ticks: [{ atMs: 1084, coefficient: 0.00016 }],
         name: 'Fourth target hit after three ally bounces',
-        requiredTrait: 686,
         actorType: 'player',
         weapon: 'greatsword',
         timingAnchor: 'castStart',

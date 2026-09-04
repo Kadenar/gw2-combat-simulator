@@ -38,7 +38,8 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   phantasmalHaste: TRAIT.PHANTASMAL_HASTE,
   sharperImages: TRAIT.SHARPER_IMAGES,
   shatterStorm: TRAIT.SHATTER_STORM,
-  bountifulBlades: TRAIT.BOUNTIFUL_BLADES
+  bountifulBlades: TRAIT.BOUNTIFUL_BLADES,
+  thePledge: TRAIT.THE_PLEDGE
 });
 
 export function mesmerShatterProfile(
@@ -249,7 +250,22 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   trait(MESMER_CORE_BALANCE_PROFILE_IDS.bountifulBlades, 'Bountiful Blades', {
     summons: 2,
-    damageMultiplier: 0.66
+    damageMultiplier: 0.66,
+    effects: [
+      {
+        type: 'strike',
+        // ponytail: extra packet timing extrapolates the last 166ms gap; replace with measured fifth/sixth impacts when available.
+        ticks: [
+          { atMs: 1250, coefficient: 0.0000064 },
+          { atMs: 1416, coefficient: 0.000000256 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  }),
+  trait(MESMER_CORE_BALANCE_PROFILE_IDS.thePledge, 'The Pledge', {
+    effects: [{ type: 'condition', condition: 'Burning', duration: 3, stacks: 2 }]
   })
 ]);
 

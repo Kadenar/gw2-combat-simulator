@@ -24,7 +24,6 @@ export interface MesmerExceptionalProfileOptions {
   readonly clarityConsumed?: boolean;
   readonly phantasmSummonAt?: number;
   readonly playerEffectEnd?: number;
-  readonly skipDirectResource?: boolean;
 }
 
 export interface MesmerSkillEffectController {

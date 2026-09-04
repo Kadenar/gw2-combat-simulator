@@ -14,7 +14,8 @@ import {
   emitFencersFinesseStacks,
   recordFencersFinesseProc,
   triggerChaoticInterruption,
-  triggerDazzling
+  triggerDazzling,
+  triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/index.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import type { MesmerExpectedProcCandidate } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
@@ -81,6 +82,7 @@ export function advanceMesmerScheduler(context: MesmerSchedulerContext, target: 
 export function observeMesmerEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
+  triggerThePledge(context, event);
   if (event.type === 'control') {
     const skillId = Number(event.skillId);
     const skillName = String(event.skillName || event.name || 'Control effect');

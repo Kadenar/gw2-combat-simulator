@@ -63,7 +63,6 @@ export interface MesmerPhantasmEffectController {
   scheduleStrike(
     execution: MesmerPhantasmExecution,
     group: MesmerStrikeEffect,
-    selectedGroup: MesmerDamageGroup,
     castStart: number
   ): MesmerPhantasmStrikeResult;
   scheduleConditions(execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void;
@@ -271,11 +270,10 @@ export function createPhantasmEffectController({
   const scheduleStrike = (
     execution: MesmerPhantasmExecution,
     group: MesmerStrikeEffect,
-    selectedGroup: MesmerDamageGroup,
     castStart: number
   ): MesmerPhantasmStrikeResult => {
     const sourcedGroup: MesmerDamageGroup = {
-      ...selectedGroup,
+      ...group,
       source: 'Phantasm',
       actorType: 'summon',
       summonKind: 'phantasm'

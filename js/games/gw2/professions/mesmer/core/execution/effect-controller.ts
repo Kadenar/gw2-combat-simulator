@@ -13,7 +13,6 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerConfig,
   MesmerRuntime,
   MesmerInstrument
 } from '#gw2/professions/mesmer/types.js';
@@ -35,7 +34,6 @@ import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer
 
 interface SkillEffectControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
-  readonly config: MesmerConfig;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
@@ -61,7 +59,6 @@ interface SkillEffectControllerOptions {
  */
 export function createSkillEffectController({
   state,
-  config,
   traits,
   resourceDefinition,
   phantasmAttackTimings,
@@ -99,8 +96,6 @@ export function createSkillEffectController({
     phantasms
   });
   const damage = createSkillDamageController({
-    state,
-    config,
     traits,
     epsilon,
     phantasms,
@@ -127,37 +122,16 @@ export function createSkillEffectController({
     skill: MesmerSkill,
     at: number,
     castStart = at,
-    {
-      clarityConsumed = false,
-      phantasmSummonAt = at,
-      playerEffectEnd = Infinity,
-      skipDirectResource = false
-    }: MesmerExceptionalProfileOptions = {}
+    { clarityConsumed = false, phantasmSummonAt = at, playerEffectEnd = Infinity }: MesmerExceptionalProfileOptions = {}
   ): void => {
-    const pulseCount = Math.max(1, Math.trunc(Number(skill.pulseCount || 1)));
-    const pulseTimes =
-      pulseCount > 1
-        ? Array.from({ length: pulseCount }, (_, index) => castStart + ((at - castStart) * (index + 1)) / pulseCount)
-        : [];
+    // Only phantasm casts reach this pipeline; ordinary pulses and hit tracking belong to the shared scheduler.
     const phantasmExecutions = phantasms.prepare(skill, castStart, phantasmSummonAt, clarityConsumed);
     phantasms.scheduleLifecycle(phantasmExecutions);
     const conditions = (skill.effects || []).filter(
-      (effect): effect is MesmerConditionEffect =>
-        effect.type === 'condition' && (effect.requiredTrait == null || traits.has(Number(effect.requiredTrait)))
+      (effect): effect is MesmerConditionEffect => effect.type === 'condition'
     );
-    const damageResult = damage.schedule(
-      skill,
-      at,
-      castStart,
-      playerEffectEnd,
-      pulseTimes,
-      conditions,
-      phantasmExecutions
-    );
-    // Cast-start packets are scheduled by the cast lifecycle and must not be emitted again on completion.
-    if (!skipDirectResource) {
-      illusionResources.schedule(skill, at, castStart, phantasmExecutions);
-    }
+    const damageResult = damage.schedule(skill, at, castStart, playerEffectEnd, conditions, phantasmExecutions);
+    illusionResources.schedule(skill, at, castStart, phantasmExecutions);
 
     damage.finish(skill, damageResult);
   };

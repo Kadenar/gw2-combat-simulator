@@ -1,5 +1,5 @@
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -42,14 +42,6 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'condition',
         condition: 'Burning',
-        duration: 3,
-        stacks: 2,
-        actorType: 'player',
-        requiredTrait: TRAIT.THE_PLEDGE
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
         duration: 9,
         stacks: 1,
         actorType: 'summon',
@@ -88,13 +80,6 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
         ticks: [{ atMs: 3000, condition: 'Burning', stacks: 1, duration: 9 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 3000, condition: 'Burning', stacks: 2, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        requiredTrait: TRAIT.THE_PLEDGE
       }
     ]
   }

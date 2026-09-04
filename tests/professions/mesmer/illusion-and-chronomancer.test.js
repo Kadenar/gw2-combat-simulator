@@ -1315,11 +1315,11 @@ test('Mirror Blade resolves target-facing bounce damage as separate hits', () =>
     (event) => event.type === 'damage' && event.skillName === 'Mirror Blade'
   );
 
-  assert.equal(hits.length, 4);
-  assert.equal(baseHits.length, 3);
+  assert.equal(hits.length, 6);
+  assert.equal(baseHits.length, 4);
   assert.deepEqual(
     hits.map((event) => event.coefficient),
-    [2.5, 0.1, 0.004, 0.00016]
+    [2.5, 0.1, 0.004, 0.00016, 0.0000064, 0.000000256]
   );
   assert.ok(hits.every((event, index) => index === 0 || event.at > hits[index - 1].at));
 });
@@ -1537,7 +1537,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
     [
       ['Illusionary Wave', 0, [401]],
       ['Mind Stab', 1, [200]],
-      ['Mirror Blade', 2, [602, 767, 918, 1084]],
+      ['Mirror Blade', 2, [602, 767, 918, 1084, 1250, 1416]],
       ['Spatial Surge', 3, [360, 520, 680]]
     ]
   );

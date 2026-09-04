@@ -15,7 +15,7 @@ import {
 import { triggerMaimTheDisillusioned, type MesmerMaimContext } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 
-export { triggerDazzling } from '#gw2/professions/mesmer/core/traits/domination.js';
+export { scheduleBountifulBlades, triggerDazzling } from '#gw2/professions/mesmer/core/traits/domination.js';
 export {
   emitFencersFinesseStacks,
   recordFencersFinesseProc,
@@ -27,7 +27,8 @@ export { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/chao
 export {
   applyCryOfPain,
   phantasmalHasteSpeed,
-  triggerCompoundingPower
+  triggerCompoundingPower,
+  triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/illusions.js';
 
 type MesmerPostShatterTraitContext = MesmerIllusionaryMembraneContext & MesmerMaimContext;

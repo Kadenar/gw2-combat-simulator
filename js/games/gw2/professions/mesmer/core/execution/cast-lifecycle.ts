@@ -1,12 +1,12 @@
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { effectFirstAt, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -64,8 +64,7 @@ export function scheduleMesmerPhantasmEffects(context: MesmerCastContext, skill:
         clarityConsumed: Boolean(details.clarityConsumed),
         ...(completedInterruptedPhantasm
           ? { phantasmSummonAt: context.effectiveEnd, playerEffectEnd: context.effectiveEnd }
-          : {}),
-        skipDirectResource: details.resourceScheduledDuringCast
+          : {})
       }),
     completedInterruptedPhantasm ? Infinity : context.effectiveEnd
   );
@@ -254,38 +253,6 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
   }
 }
 
-/** Materializes selected trait packets at cast registration so their timing remains scheduler-owned and chronological. */
-function scheduleSelectedTraitEffects(context: MesmerCastContext, skill: MesmerSkill): void {
-  const runtime = mesmerRuntimeFor(context);
-  for (const effect of skill.mesmerMechanic?.traitEffects || []) {
-    if (!effect.requiredTrait || !runtime.traits.has(Number(effect.requiredTrait))) continue;
-    const timing = context.schedulerPolicy.effectTiming?.(context, skill, effect) ?? effect;
-    const firstAt = effectFirstAt(context.start, context.fullEnd, timing);
-    const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
-    if (interrupted && effect.persistsAfterInterrupt !== true && firstAt > context.effectiveEnd + EPSILON) continue;
-    const applications = materializeSkillEffectApplications({
-      skill,
-      effect: timing,
-      start: context.start,
-      fullEnd: context.fullEnd,
-      baseEvent: {
-        activationId: context.reservationId,
-        source: effect.source || context.profession.id,
-        sourceId: effect.sourceId ?? skill.id,
-        actorType: effect.actorType || 'player',
-        skillId: skill.id,
-        skillName: skill.name
-      },
-      skillWeaponFallback: ['Heal', 'Utility', 'Elite'].includes(String(skill.type || '')) ? 'Unequipped' : ''
-    });
-    for (const application of applications) {
-      if (!interrupted || effect.persistsAfterInterrupt === true || application.at <= context.effectiveEnd + EPSILON) {
-        context.emit(application.event);
-      }
-    }
-  }
-}
-
 /**
  * Reserves or consumes shatter resources at the correct cast progress and
  * stores cast-local details for completion or interruption handling.
@@ -303,7 +270,7 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
     });
   }
 
-  scheduleSelectedTraitEffects(context, skill);
+  withMesmerCastEmission(context, skill, () => scheduleBountifulBlades(context, skill));
   const shatter = runtime.shatters[skill.id];
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);

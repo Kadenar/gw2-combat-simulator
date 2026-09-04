@@ -1,16 +1,47 @@
 /** Owns imperative Core Mesmer Illusions trait effects. */
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerRuntime
+  MesmerRuntime,
+  MesmerSchedulerContext
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
 type CryOfPainContext = Pick<MesmerRuntime, 'traits' | 'balanceProfile'>;
+
+/** Adds The Pledge only to the skill's player Burning, inheriting its timing and excluding summon or trait procs. */
+export function triggerThePledge(context: MesmerSchedulerContext, event: SimulationEvent): void {
+  if (
+    !context.mesmerRuntime?.traits.has(TRAIT.THE_PLEDGE) ||
+    event.type !== 'condition' ||
+    event.condition !== 'Burning' ||
+    !isGw2PlayerActorEvent(event) ||
+    event.sourceId !== event.skillId ||
+    (event.skillId !== ID.PHANTASMAL_MAGE && event.skillId !== ID.THE_PRESTIGE)
+  )
+    return;
+  const effect = balanceProfileEffectFromContext(context, TRAIT.THE_PLEDGE, 'condition');
+  emitSkillCondition(context, {
+    cause: event,
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.THE_PLEDGE,
+    actorType: 'player',
+    skillId: event.skillId,
+    skillName: event.skillName,
+    condition: 'Burning',
+    duration: Number(effect?.duration ?? 3),
+    stacks: Number(effect?.stacks ?? 2)
+  });
+}
 
 interface MesmerCompoundingPowerContext {
   readonly traits: ReadonlySet<number>;

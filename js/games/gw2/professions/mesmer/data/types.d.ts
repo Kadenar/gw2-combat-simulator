@@ -25,12 +25,10 @@ export interface MesmerSkillResource {
 export interface MesmerMechanic extends SchedulerRecord {
   readonly flipParentId?: number;
   readonly flipChildId?: number;
-  readonly traitEffects?: readonly MesmerSkillEffect[];
 }
 
 export interface MesmerStrikeEffect extends StrikeEffect {
   readonly castProgress?: number;
-  readonly requiredTrait?: number;
   readonly summonKind?: MesmerSummonKind;
 }
 
@@ -88,7 +86,6 @@ export interface MesmerSkill extends Skill {
   readonly duration?: number;
   readonly phantasm?: boolean;
   readonly blade?: boolean;
-  readonly pulseCount?: number;
   readonly boonlessCoefficient?: number;
   readonly applyConditionsOnInterrupt?: boolean;
   readonly armedAtStart?: boolean;
