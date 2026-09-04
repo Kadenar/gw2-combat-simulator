@@ -51,6 +51,81 @@ test('simulation config controls and result-dependent palette state work in the 
   await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
 });
 
+test('timing skill selection submits the picker and details expand below DPS', async ({ page }) => {
+  await openSimulator(page);
+  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+  await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
+
+  const picker = page.locator('.timing-check-picker');
+  await picker.locator(':scope > summary').click();
+  const swapWeapons = picker.getByRole('button', { name: 'Swap Weapons' });
+  const bladecall = picker.getByRole('button', { name: 'Bladecall' });
+  const actionGroup = swapWeapons.locator('..');
+  const weaponGroup = bladecall.locator('..');
+  await expect(swapWeapons.locator('img')).toHaveAttribute('src', /Weapon_Swap_Button\.png/);
+  await expect(actionGroup.locator('.timing-check-picker-group-label')).toHaveText('Actions');
+  await expect(weaponGroup.locator('.timing-check-picker-group-label')).toHaveText('Weapon bar · Slot 2');
+  const search = picker.getByRole('searchbox', { name: 'Search skills' });
+  await search.pressSequentially('Bladecall');
+  await expect(swapWeapons).toBeHidden();
+  await expect(actionGroup).toBeHidden();
+  await expect(bladecall).toBeVisible();
+  await bladecall.click();
+
+  await expect(picker).not.toHaveAttribute('open', '');
+  await expect(page.locator('.timing-check-chip')).toContainText('Bladecall');
+  expect(await page.evaluate(() => Object.hasOwn(window.professionApp.build, 'timingCheckSkillIds'))).toBe(false);
+  const details = page.locator('.rotation-timing-details-wrap');
+  await expect(details).not.toHaveAttribute('open', '');
+  await expect(page.locator('#rotation-dps-summary + #rotation-timing-details')).toBeAttached();
+  await details.locator(':scope > summary').click();
+  await expect(details).toHaveAttribute('open', '');
+  const skillDetails = details.locator('.timing-skill-details');
+  await expect(skillDetails).toHaveCount(1);
+  await skillDetails.locator(':scope > summary').click();
+  const widths = await skillDetails.evaluate((element) => ({
+    body: element.querySelector('.timing-skill-detail-body').getBoundingClientRect().width,
+    table: element.querySelector('table').getBoundingClientRect().width
+  }));
+  expect(widths.table).toBeLessThan(widths.body);
+});
+
+test('profession state duration checks use their own authoritative transitions', async ({ page }) => {
+  for (const fixture of [
+    { page: '/engineer.html', specialization: 'Holosmith', label: 'Time in Photon Forge' },
+    { page: '/guardian.html', specialization: 'Luminary', label: 'Time in Radiant Forge' },
+    { page: '/necromancer.html', specialization: 'Reaper', label: 'Time in Shroud' },
+    { page: '/warrior.html', specialization: 'Bladesworn', label: 'Time in Gunsaber' }
+  ]) {
+    await page.goto(fixture.page, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => window.professionApp);
+    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    await page
+      .locator('.presets-group')
+      .filter({ has: page.locator('.presets-group-label', { hasText: fixture.specialization }) })
+      .locator('.template-load-btn')
+      .first()
+      .click();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          (specialization) =>
+            window.professionApp.currentTemplate?.signature?.includes(specialization) === true &&
+            window.professionApp.simulationStatus === 'idle',
+          fixture.specialization
+        )
+      )
+      .toBe(true);
+
+    const picker = page.locator('.timing-check-picker');
+    await picker.locator(':scope > summary').click();
+    await picker.getByRole('button', { name: fixture.label }).click();
+    const details = page.locator('.rotation-timing-details-wrap');
+    await details.locator(':scope > summary').click();
+    await expect(details.locator('.timing-skill-details > summary')).toContainText(/[1-9]\d* stays?/);
+  }
+});
+
 test('hidden template states stay out of layout', async ({ page }) => {
   await openSimulator(page);
 
@@ -136,12 +211,23 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
   const timeline = page.locator('#rotation-timeline');
   const group = page.locator('#rotation-timeline > .rot-row');
   await expect(group).toHaveCount(1);
-  const label = group.locator(':scope > .rot-row-label > .rot-row-label-text');
+  const labelContent = group.locator(':scope > .rot-row-label > .rot-row-label-content');
+  const label = labelContent.locator('.rot-row-label-text');
   await expect(label).toHaveText('W1');
+  await expect(labelContent.locator('.rot-row-duration')).toHaveText(/\d+\.\d{3}s/);
+  const labelLayout = await labelContent.evaluate((element) => {
+    const weapon = element.querySelector('.rot-row-label-text');
+    const duration = element.querySelector('.rot-row-duration');
+    return {
+      writingMode: getComputedStyle(weapon).writingMode,
+      durationBelowWeapon: duration.getBoundingClientRect().top >= weapon.getBoundingClientRect().bottom
+    };
+  });
+  expect(labelLayout).toEqual({ writingMode: 'horizontal-tb', durationBelowWeapon: true });
   await expect(group.locator('.rot-row-line')).toHaveCount(3);
   const centerOffset = await group.evaluate((element) => {
     const groupRect = element.getBoundingClientRect();
-    const labelRect = element.querySelector('.rot-row-label-text').getBoundingClientRect();
+    const labelRect = element.querySelector('.rot-row-label-content').getBoundingClientRect();
     return Math.abs(labelRect.top + labelRect.height / 2 - (groupRect.top + groupRect.height / 2));
   });
   expect(centerOffset).toBeLessThan(1);
@@ -157,7 +243,7 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
   expect(heights.label).toBeGreaterThan(heights.line * 2);
 
   const labelIsVisible = () =>
-    label.evaluate((element) => {
+    labelContent.evaluate((element) => {
       const labelRect = element.getBoundingClientRect();
       const timelineRect = element.closest('.rotation-timeline').getBoundingClientRect();
       return labelRect.top >= timelineRect.top && labelRect.bottom <= timelineRect.bottom;
@@ -167,6 +253,44 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
     element.scrollTop = element.scrollHeight;
   });
   expect(await labelIsVisible()).toBe(true);
+});
+
+test('loaded manifest rows show each weapon stay instead of repeated set totals', async ({ page }) => {
+  await page.goto('/guardian.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => window.guardianApp);
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.locator('.template-load-btn').first().click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.guardianApp.currentTemplate !== null && window.guardianApp.simulationStatus === 'idle')
+    )
+    .toBe(true);
+
+  const durations = await page.evaluate(() => {
+    const app = window.guardianApp;
+    const timelineEnd = app.results.duration * 1000;
+    const timelineStart = Math.min(0, ...app.results.steps.filter((step) => !step.invalid).map((step) => step.start));
+    const swapId = app.activeCatalog.skillsByName.get('Swap Weapons').id;
+    const swapEnds = app.results.steps
+      .filter((step) => !step.invalid && step.skillId === swapId)
+      .map((step) => step.end)
+      .sort((left, right) => left - right);
+    let set = app.build.startingWeaponSet;
+    let start = timelineStart;
+    const expected = [...swapEnds, timelineEnd].map((end) => {
+      const stay = { weapon: `W${set}`, duration: `${((end - start) / 1000).toFixed(3)}s` };
+      set = set === 1 ? 2 : 1;
+      start = end;
+      return stay;
+    });
+    const actual = [...document.querySelectorAll('#rotation-timeline > .rot-row')].map((row) => ({
+      weapon: row.querySelector('.rot-row-label-text').textContent,
+      duration: row.querySelector('.rot-row-duration').textContent
+    }));
+    return { actual, expected };
+  });
+
+  expect(durations.actual).toEqual(durations.expected);
 });
 
 test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ page }) => {

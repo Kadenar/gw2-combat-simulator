@@ -1134,6 +1134,177 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   align-items: center;
 }
 
+/* Persistent timing checks stay a compact part of the rotation toolbar instead of becoming a second workflow. */
+.rotation-timing-checks {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  flex: 0 0 auto;
+  min-height: 28px;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.timing-checks-label {
+  flex: 0 0 auto;
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timing-check-chips {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.timing-check-chip {
+  display: inline-flex;
+  padding: 2px 3px 2px 7px;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: var(--bg-panel-alt);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.timing-check-chip button {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  line-height: 14px;
+}
+
+.timing-check-chip button:hover {
+  background: var(--condi);
+  color: #fff;
+}
+
+.timing-check-picker {
+  position: relative;
+}
+
+.timing-check-picker > summary {
+  padding: 2px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.timing-check-picker > summary::-webkit-details-marker {
+  display: none;
+}
+
+.timing-check-picker-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: min(300px, calc(100vw - 36px));
+  padding: 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  background: var(--bg-panel);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+}
+
+.timing-check-picker-menu input {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 10px;
+}
+
+.timing-check-picker-options {
+  display: grid;
+  max-height: 220px;
+  margin-top: 5px;
+  overflow-y: auto;
+}
+
+.timing-check-picker-group {
+  display: grid;
+  padding: 2px 0;
+}
+
+.timing-check-picker-group + .timing-check-picker-group {
+  margin-top: 3px;
+  padding-top: 5px;
+  border-top: 1px solid var(--border);
+}
+
+.timing-check-picker-group[hidden] {
+  display: none;
+}
+
+.timing-check-picker-group-label {
+  padding: 2px 5px;
+  color: var(--text-dim);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.timing-check-picker-options button {
+  display: flex;
+  width: 100%;
+  padding: 4px 5px;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 10px;
+  text-align: left;
+}
+
+/* The flex display above would otherwise override the native hidden state used by live search. */
+.timing-check-picker-options button[hidden] {
+  display: none;
+}
+
+.timing-check-picker-options button:hover {
+  background: var(--bg-panel-alt);
+  color: var(--text-bright);
+}
+
+.timing-check-picker-options img {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+}
+
+.timing-check-picker-empty,
+.timing-check-search-empty {
+  padding: 7px;
+  color: var(--text-dim);
+}
+
 /* The config sidebar narrows the rotation panel without changing the viewport,
    so responsive rotation layouts need to follow the panel's actual width. */
 @container rotation-builder (min-width: 701px) and (max-width: 1050px) {
@@ -1640,6 +1811,99 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   margin-bottom: 0;
 }
 
+.rotation-timing-details {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-timing-details:empty {
+  display: none;
+}
+
+/* Match Event Log behavior: an opened analysis panel rejoins page flow instead of being clipped by the builder. */
+body:not([data-rotation-focus]) .rotation-panel:has(.rotation-timing-details-wrap[open]) {
+  max-height: none;
+  overflow: visible;
+}
+
+.timing-details-list {
+  max-height: 230px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  scrollbar-gutter: stable;
+}
+
+.timing-skill-details {
+  border-bottom: 1px solid var(--border);
+}
+
+.timing-skill-details > summary {
+  display: flex;
+  padding: 6px 9px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timing-skill-details > summary:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.timing-skill-details > summary strong {
+  min-width: 150px;
+  color: var(--text-bright);
+  font-size: 11px;
+}
+
+.timing-skill-detail-body {
+  padding: 0 9px 8px;
+  overflow-x: auto;
+}
+
+.timing-skill-detail-body table {
+  width: min(100%, 620px);
+  border-collapse: collapse;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timing-skill-detail-body th,
+.timing-skill-detail-body td {
+  padding: 3px 6px;
+  border-bottom: 1px dotted var(--border);
+  text-align: right;
+}
+
+.timing-skill-detail-body th:first-child {
+  text-align: left;
+}
+
+.timing-skill-detail-body thead th {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.timing-details-empty {
+  color: var(--text-dim);
+  text-align: center !important;
+}
+
+.timing-show-all {
+  margin-top: 6px;
+  padding: 3px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 9px;
+}
+
 /* Offset both DPS summaries from surrounding content so each strip stays easy to scan. */
 :is(.rotation-dps-summary, .analysis-dps-summary) .res-summary {
   background: var(--bg-panel-alt);
@@ -1932,7 +2196,7 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
 /* One weapon-set label spans its preserved transform lines so state boundaries stay visible without repeated labels. */
 .rot-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   align-items: stretch;
   gap: 2px;
   padding: 0 0 0 8px;
@@ -1963,13 +2227,30 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   background: color-mix(in srgb, var(--row-color) 8%, transparent);
 }
 
-.rot-row-label-text {
+.rot-row-label-content {
   /* Center normal groups, but clamp labels inside the viewport when a group is taller than it. */
   position: sticky;
   top: 4px;
   bottom: 4px;
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rot-row-label-text {
+  color: var(--row-color, var(--text-dim));
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.rot-row-duration {
+  color: #c9a55a;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .rot-row-lines {

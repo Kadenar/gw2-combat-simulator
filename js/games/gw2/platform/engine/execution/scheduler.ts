@@ -829,6 +829,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     steps.push({
       ri: commandIndex,
       skill: skill.name,
+      skillId: skill.id,
       start: Math.round(start * 1000),
       end: Math.round(start * 1000),
       invalid: true,
@@ -844,6 +845,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       steps.push({
         ri: commandIndex,
         skill: String(command.skillId),
+        skillId: command.skillId,
         start: Math.round(state.time * 1000),
         end: Math.round(state.time * 1000),
         invalid: true,
@@ -1089,6 +1091,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     steps.push({
       ri: commandIndex,
       skill: skill.name,
+      skillId: skill.id,
       start: Math.round(start * 1000),
       end: Math.round(effectiveEnd * 1000),
       activationId: reservationId,

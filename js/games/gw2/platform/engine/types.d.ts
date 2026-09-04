@@ -740,6 +740,8 @@ export type CastLifecycleContext<TProfessionState extends object = SchedulerReco
 export interface SchedulerStep {
   readonly ri: number;
   readonly skill: string;
+  /** Stable cast identity used by result analysis without relying on display names or bar positions. */
+  readonly skillId?: SkillId;
   readonly start: number;
   readonly end: number;
   readonly activationId?: string;

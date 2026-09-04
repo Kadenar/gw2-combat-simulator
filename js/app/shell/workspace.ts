@@ -243,12 +243,11 @@ function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonEle
   return button;
 }
 
-/** Adds the live DPS strip to the builder flow immediately below its timeline. */
+/** Adds the live DPS strip between the timeline and its expandable analysis panels. */
 export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLElement): void {
   if (root.getElementById('rotation-dps-summary')) return;
   const timeline = rotationPanel.querySelector<HTMLElement>('#rotation-timeline');
   if (!timeline) return;
-
   const summary = root.createElement('div');
   summary.id = 'rotation-dps-summary';
   summary.className = 'rotation-dps-summary';
