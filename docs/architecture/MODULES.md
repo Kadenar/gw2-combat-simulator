@@ -163,7 +163,7 @@ Important modules include:
 | `palette/`        | Palette state, resources, rendering, and interaction         |
 | `timeline/`       | Timeline model, rendering, interaction, and display controls |
 | `state-snapshot/` | Insertion-aware state queries and active-state rendering     |
-| `result/`         | Results, loop analysis, event log, and warnings              |
+| `result/`         | Results, event log, and warnings                             |
 | `shared/`         | Cross-feature context and icon helpers                       |
 
 Profession-specific rotation presentation is supplied through profession UI hooks rather than hard-coded here.
