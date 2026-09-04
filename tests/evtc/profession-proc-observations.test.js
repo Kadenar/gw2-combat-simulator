@@ -212,6 +212,24 @@ test('counts raw EVTC names for explosions whose catalog effects receive their f
   assert.equal(result?.matchedApplications, 1);
 });
 
+test('Shrapnel observation includes generated rocket explosions but excludes orbital strikes', () => {
+  // Raw rocket damage names must agree with the resolver's explosion eligibility.
+  const result = analyzeEngineerShrapnelObservation(
+    fixture(
+      [event({ skillId: 29889 }), event({ time: 2000, skillId: 41612 })],
+      [
+        { id: 29889, name: 'Aim-Assisted Rocket' },
+        { id: 41612, name: 'Orbital Command Strike' }
+      ]
+    ),
+    PLAYER,
+    catalog([shrapnelProfile]),
+    { selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL] }
+  );
+  assert.equal(result?.explosionHits, 1);
+  assert.equal(result?.expectedApplications, 0.33);
+});
+
 test('matches profile-owned Serrated Steel duration against critical hits', () => {
   const criticalHits = Array.from({ length: 5 }, (_, index) => event({ time: 1_000 + index }));
   const result = analyzeEngineerSerratedSteelObservation(

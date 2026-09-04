@@ -192,8 +192,8 @@ export function applyShrapnel(
   event: EngineerResolverEvent,
   explosion: boolean
 ): void {
-  if (!explosion || Number(event.sourceId) === ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL || !hasTrait(context, TRAIT.SHRAPNEL))
-    return;
+  // Generated rocket explosions also roll Shrapnel; effect ownership must not discard their opportunity.
+  if (!explosion || !hasTrait(context, TRAIT.SHRAPNEL)) return;
   const state = procState(context);
   let triggered = false;
   if (context.random?.stochastic === true) {

@@ -541,6 +541,8 @@ export function reconstructDpsReportWithProfile(
         .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
         .map(applyRetainedCastLockout)
         .sort(compareResolvedActions)
+        // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.
+        .filter((action) => action.skill?.simulatorExcluded !== true)
         // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
         .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
         .filter((action) => autoattackCommitted(report, action))

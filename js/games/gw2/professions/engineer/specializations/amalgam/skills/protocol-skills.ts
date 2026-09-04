@@ -41,6 +41,8 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Offensive Protocol: Shred',
+        // Each disk is a missile hit and can trigger Aim-Assisted Rocket.
+        projectile: true,
         actorType: 'player'
       },
       {
@@ -235,6 +237,8 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Offensive Protocol: Shred',
+        // Each disk is a missile hit and can trigger Aim-Assisted Rocket.
+        projectile: true,
         actorType: 'player'
       },
       {
@@ -436,6 +440,8 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Offensive Protocol: Shred',
+        // Each disk is a missile hit and can trigger Aim-Assisted Rocket.
+        projectile: true,
         actorType: 'player'
       },
       {

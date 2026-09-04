@@ -20,6 +20,9 @@ import {
 const SHRAPNEL_BLEEDING_BASE_SECONDS = 6;
 const SHRAPNEL_CRIPPLED_BASE_SECONDS = 1;
 const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
+  // Generated rockets receive their explosion flag in the resolver and remain eligible for Shrapnel.
+  'aim-assisted rocket',
+  'aim-assisted rocket (trait skill)',
   'drop mine',
   'electric artillery',
   'explosive entrance',
@@ -42,7 +45,6 @@ export interface EngineerShrapnelObservation {
 export type EngineerSerratedSteelObservation = CriticalBleedingProcObservation;
 
 function isExplosionSkill(skill: Skill): boolean {
-  if (normalized(skill.name) === 'aim-assisted rocket') return false;
   return Boolean(
     EVENT_FLAGGED_EXPLOSION_NAMES.has(normalized(skill.name)) ||
     normalized(skill.damageKind) === 'explosion' ||
@@ -67,7 +69,7 @@ function explosionSkillIds(log: ParsedEvtc, catalog: Readonly<CanonicalCatalog>)
 
   for (const skill of log.skills) {
     const name = normalized(skill.name);
-    if (name !== 'aim-assisted rocket' && (names.has(name) || EVENT_FLAGGED_EXPLOSION_NAMES.has(name))) {
+    if (names.has(name) || EVENT_FLAGGED_EXPLOSION_NAMES.has(name)) {
       ids.add(skill.id);
     }
   }
