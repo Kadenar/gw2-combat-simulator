@@ -89,12 +89,7 @@ test('Shining Spin retains its strike only after the 440 ms commit cutoff', () =
   for (const interruptMs of [439, 440]) {
     const result = simulateGw2({
       profession: guardianProfession,
-      rotation: [
-        'Enter Radiant Forge',
-        'Dazzling Hammer',
-        { name: 'Shining Spin', interruptMs },
-        'Exit Radiant Forge'
-      ],
+      rotation: ['Enter Radiant Forge', 'Dazzling Hammer', { name: 'Shining Spin', interruptMs }, 'Exit Radiant Forge'],
       config: { ...config, specialization: 'Luminary', boons: { quickness: true } }
     });
     const spin = result.steps.find((step) => step.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN);

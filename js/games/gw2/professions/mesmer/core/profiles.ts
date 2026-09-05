@@ -254,7 +254,6 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     effects: [
       {
         type: 'strike',
-        // ponytail: extra packet timing extrapolates the last 166ms gap; replace with measured fifth/sixth impacts when available.
         ticks: [
           { atMs: 1250, coefficient: 0.0000064 },
           { atMs: 1416, coefficient: 0.000000256 }
