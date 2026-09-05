@@ -297,6 +297,13 @@
         "upToDate": true
       },
       {
+        "label": "Condition Fox - (Pistol/Focus)",
+        "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-focus.json",
+        "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-focus.json",
+        "benchmarkDps": 42612,
+        "upToDate": true
+      },
+      {
         "label": "Condition Fox SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-condi-air-se-evoker.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",

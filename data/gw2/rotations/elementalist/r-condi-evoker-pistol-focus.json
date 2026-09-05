@@ -1,0 +1,1366 @@
+{
+  "metadata": {
+    "log": "pistol focus evoker.zevtc",
+    "arcdpsBuild": "20260507",
+    "parser": "elementalist:evoker",
+    "benchmarkDurationSeconds": 92.71,
+    "benchmarkDamage": 3950544,
+    "benchmarkDps": 42611.84338259088,
+    "notes": "Four loaded pistol bullets and the summoned Fire Elemental preserve the recorded opener. Rejuvenate is retained as the uncast heal. Instant Magnetic Wave inputs are inferred from direct effects.",
+    "warnings": ["5 instant casts were inferred from direct skill effects."]
+  },
+  "rotation": [
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "__combat_start",
+      "offset": 560
+    },
+    {
+      "name": "Elemental Explosion",
+      "skillId": 71907
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Magnetic Wave",
+      "skillId": 5555,
+      "offset": 240
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 160
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 200
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 80
+    },
+    {
+      "name": "Frozen Fusillade",
+      "skillId": 71935
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 40
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Signet of Earth",
+      "skillId": 5571
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 200
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 80
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 440
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Conflagration",
+      "skillId": 76585
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 360
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 120
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 240
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 240
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 80
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 640
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 280
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 440
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 200
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 40
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 160
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 80
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 80
+    },
+    {
+      "name": "Signet of Earth",
+      "skillId": 5571
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 400
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 240
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Magnetic Wave",
+      "skillId": 5555,
+      "offset": 120
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 0
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 200
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 40
+    },
+    {
+      "name": "Frozen Fusillade",
+      "skillId": 71935
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 120
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 520
+    },
+    {
+      "name": "Conflagration",
+      "skillId": 76585
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 200
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 240
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 40
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 480
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 120
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 200
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 280
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 80
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Elemental Explosion",
+      "skillId": 71907
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 320
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 240
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 160
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 40
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Signet of Earth",
+      "skillId": 5571
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 200
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 120
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 320
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 40
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Elemental Explosion",
+      "skillId": 71907
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 320
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 160
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 200
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893,
+      "interruptMs": 80
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Magnetic Wave",
+      "skillId": 5555,
+      "offset": 240
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893,
+      "interruptMs": 360
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 80
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Conflagration",
+      "skillId": 76585
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 200
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 40
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028,
+      "interruptMs": 997
+    },
+    {
+      "name": "Frozen Fusillade",
+      "skillId": 71935
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 120
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 200
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 40
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Fire Shield",
+      "skillId": 5678,
+      "offset": 320
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 120
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 480
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 120
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 200
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Signet of Earth",
+      "skillId": 5571
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 440
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 280
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 80
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 120
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 80
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 400
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028,
+      "interruptMs": 997
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 840
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 120
+    },
+    {
+      "name": "Conflagration",
+      "skillId": 76585
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 120
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 360
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 40
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 360
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893,
+      "interruptMs": 80
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 120
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Magnetic Wave",
+      "skillId": 5555,
+      "offset": 120
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 80
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 160
+    },
+    {
+      "name": "Signet of Earth",
+      "skillId": 5571
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 240
+    },
+    {
+      "name": "Frozen Fusillade",
+      "skillId": 71935
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 120
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028,
+      "interruptMs": 999
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 560
+    },
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 120
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 200
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 200
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 280
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 40
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 200
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Elemental Explosion",
+      "skillId": 71907
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 280
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 160
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 320
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493
+    },
+    {
+      "name": "Conflagration",
+      "skillId": 76585
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028
+    },
+    {
+      "name": "Signet of Earth",
+      "skillId": 5571
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 80
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 480
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 360
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 200
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 120
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 440
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 200
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Elemental Explosion",
+      "skillId": 71907
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 520
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893,
+      "interruptMs": 120
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Magnetic Wave",
+      "skillId": 5555,
+      "offset": 120
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 120
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 280
+    },
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 120
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 440
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 120
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Frozen Fusillade",
+      "skillId": 71935
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 200
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 400
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 400
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 80
+    },
+    {
+      "name": "Dazing Discharge",
+      "skillId": 71966
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 200
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904
+    },
+    {
+      "name": "Electric Exposure",
+      "skillId": 71904,
+      "interruptMs": 40
+    },
+    {
+      "name": "Signet of Earth",
+      "skillId": 5571
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 120
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Signet of Fire",
+      "skillId": 5542
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893,
+      "interruptMs": 240
+    },
+    {
+      "name": "Boulder Blast",
+      "skillId": 71842
+    },
+    {
+      "name": "Shattering Stone",
+      "skillId": 72032
+    },
+    {
+      "name": "Piercing Pebble",
+      "skillId": 71893,
+      "interruptMs": 480
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 40
+    },
+    {
+      "name": "Flamewall",
+      "skillId": 5497
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 80
+    },
+    {
+      "name": "Searing Salvo",
+      "skillId": 71940
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 600
+    },
+    {
+      "name": "Soothing Splash",
+      "skillId": 72033,
+      "interruptMs": 160
+    },
+    {
+      "name": "Frigid Flurry",
+      "skillId": 72028
+    },
+    {
+      "name": "Ignite",
+      "skillId": 76643,
+      "offset": 320
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Conflagration",
+      "skillId": 76585
+    },
+    {
+      "name": "Transmute Fire",
+      "skillId": 51711
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929
+    },
+    {
+      "name": "Scorching Shot",
+      "skillId": 71929,
+      "interruptMs": 200
+    },
+    {
+      "name": "Raging Ricochet",
+      "skillId": 71828
+    }
+  ]
+}
