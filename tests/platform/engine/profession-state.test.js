@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {
+  restoreFlatProfessionState,
+  snapshotProfessionState,
+  readProfessionCoreState,
+  readProfessionSpecializationState,
+  projectPublicProfessionState
+} from '#gw2/platform/engine/profession/state.js';
+import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
+import { testProfession } from '../../fixtures/test-profession.js';
 
-import { restoreFlatProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { handleEngineerState } from '#gw2/professions/engineer/state.js';
-import { handleRevenantState } from '#gw2/professions/revenant/state.js';
-
+// Shared profession state preserves isolated runtime fields and detached public snapshots.
 test('profession snapshots flatten and deeply clone active runtime state', () => {
   const runtime = {
     core: { resource: 10, nested: { value: 1 } },
@@ -29,36 +35,42 @@ test('flat snapshot restoration routes declared specialization keys and clones v
   assert.equal(specialization.nested.value, 5);
 });
 
-test('family restoration preserves resolver-owned Engineer and Revenant clocks', () => {
-  const engineer = {
-    profession: {
-      core: { endurance: 10, traitProcReadyAt: { thermalVisionUntil: 7 } },
-      specialization: { kind: 'Holosmith', state: { heat: 1 } }
-    }
-  };
-  handleEngineerState(engineer, {
-    state: { endurance: 20, heat: 2, traitProcReadyAt: { thermalVisionUntil: 1 } }
-  });
-  assert.equal(engineer.profession.core.endurance, 20);
-  assert.equal(engineer.profession.specialization.state.heat, 2);
-  assert.deepEqual(engineer.profession.core.traitProcReadyAt, { thermalVisionUntil: 7 });
+test('generic scheduler state contains no profession-specific fields', () => {
+  const state = createSchedulerState({ profession: testProfession });
 
-  const revenant = {
-    profession: {
-      core: { energy: 10, traitProcReadyAt: { chargedMistsReadyAt: 8 } },
-      specialization: { kind: 'Renegade', state: { kallasFervor: 1, soulcleaveReadyAt: 9 } }
-    }
+  assert.deepEqual(
+    Object.keys(state).sort(),
+    ['activeWeaponSet', 'ammo', 'cooldowns', 'lockouts', 'pendingEvents', 'profession', 'skillUses', 'time'].sort()
+  );
+  assert.deepEqual(state.profession, { charge: 0, controlEvents: 0 });
+  assert.equal(Object.hasOwn(state, 'clones'), false);
+  assert.equal(Object.hasOwn(state, 'numericResource'), false);
+});
+
+test('compatible profession-state reads accept nested and flat state without crossing specialization kinds', () => {
+  const core = { resource: 10 };
+  const specialization = { charge: 2 };
+  const runtime = {
+    core,
+    specialization: { kind: 'Example', state: specialization }
   };
-  handleRevenantState(revenant, {
-    state: {
-      energy: 20,
-      kallasFervor: 2,
-      traitProcReadyAt: { chargedMistsReadyAt: 1 },
-      soulcleaveReadyAt: 3
-    }
+
+  assert.equal(readProfessionCoreState(runtime), core);
+  assert.equal(readProfessionCoreState(core), core);
+  assert.equal(readProfessionSpecializationState(runtime, 'Example'), specialization);
+  assert.equal(readProfessionSpecializationState(runtime, 'Other'), undefined);
+  assert.equal(readProfessionSpecializationState(specialization, 'Example'), specialization);
+  assert.deepEqual(readProfessionCoreState(null), {});
+});
+
+test('public profession-state projection selects, defaults, and detaches declared fields', () => {
+  const state = { active: { stacks: 2 }, explicit: undefined, private: true };
+  const projected = projectPublicProfessionState(state, ['active', 'explicit', 'inactive'], {
+    explicit: 'fallback',
+    inactive: []
   });
-  assert.equal(revenant.profession.core.energy, 20);
-  assert.equal(revenant.profession.specialization.state.kallasFervor, 2);
-  assert.deepEqual(revenant.profession.core.traitProcReadyAt, { chargedMistsReadyAt: 8 });
-  assert.equal(revenant.profession.specialization.state.soulcleaveReadyAt, 9);
+
+  assert.deepEqual(projected, { active: { stacks: 2 }, explicit: undefined, inactive: [] });
+  state.active.stacks = 3;
+  assert.equal(projected.active.stacks, 2);
 });

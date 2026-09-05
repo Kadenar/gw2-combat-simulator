@@ -6,7 +6,7 @@ import {
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { weaponSkillChargeGain } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   firstStrikePacketOffsetMs,
   quicknessRuntimeDurationMs,

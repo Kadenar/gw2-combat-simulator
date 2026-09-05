@@ -17,6 +17,10 @@ import {
   sortResultRows
 } from '#gw2/app/results/rotation-results.js';
 import { inertContainer } from '../helpers/dom.js';
+import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
+import { simulateMesmer } from '../helpers/mesmer-simulation.js';
+import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 
 // GW2 results preserve chart projections, result controls, and escaped event-log rendering.
 test('shared chart lookup and series cover damage timing and configurable effects', () => {
@@ -914,4 +918,38 @@ test('event-log mounting filters rows, escapes descriptions, and configures file
   assert.doesNotMatch(html, /Drop me/);
   assert.match(html, /data-filename="custom&quot;name\.csv"/);
   assert.match(html, /log-filter-kept/);
+});
+
+test('event log distinguishes phantasm summon, attack, and clone conversion', () => {
+  const result = simulateMesmer(
+    ['Phantasmal Duelist', { name: '__wait', waitMs: 7000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol',
+      initialResource: 0
+    })
+  );
+  const log = simulationEventLogRows(result, null, mesmerProfession);
+
+  assert.ok(
+    log.some(
+      (event) => Math.abs(event.at - 0.56) < 0.00001 && event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1'
+    )
+  );
+  assert.ok(
+    log.some(
+      (event) =>
+        Math.abs(event.at - 2.79) < 0.00001 && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'
+    )
+  );
+  assert.ok(
+    log.some(
+      (event) =>
+        Math.abs(event.at - 3.3601) < 0.00001 &&
+        event.description.includes('CLONE SPAWNED x1') &&
+        event.description.includes('Phantasmal Duelist phantasm conversion')
+    )
+  );
+  assert.match(eventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
 });

@@ -6,6 +6,9 @@ import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { createEventQueue } from '#kernel/events/queue.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Condition resolution preserves fractional ticks, observation boundaries, and environment attribution.
 function tormentDamageAtMight(might) {
@@ -609,4 +612,140 @@ test('an explicit empty target condition map does not restore default conditions
   const vulnerable = run({ Vulnerability: 25 });
 
   assert.ok(Math.abs(vulnerable / unconditioned - 1.25) < 1e-12);
+});
+
+test('profession condition-duration hooks remain under the GW2 cap', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930013,
+        name: 'Fixture Burn',
+        castTimeMs: 0,
+        effects: [
+          {
+            type: 'condition',
+            condition: 'Burning',
+            stacks: 1,
+            duration: 1
+          }
+        ]
+      }
+    ]
+  });
+  const profession = defineProfession({
+    id: 'duration-cap-fixture',
+    name: 'Duration Cap Fixture',
+    catalog,
+    attributeRules: {
+      modifyConditionDuration: (_context, duration) => duration * 2
+    }
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: ['Fixture Burn', { type: 'wait', durationMs: 2000 }],
+    config: { stats: { expertise: 1500 } }
+  });
+  const burning = result.resolvedEvents.find((event) => event.type === 'condition');
+
+  assert.equal(burning.effectiveDuration, 2);
+});
+
+test('stationary torment uses the current PvE formula', () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    ['Ether Bolt', { name: '__wait', waitMs: 1000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol',
+      initialResource: 0,
+      stats: {
+        ...defaults.stats,
+        conditionDamage: 1000,
+        expertise: 0
+      },
+      boons: {
+        ...defaults.boons,
+        might: 0
+      },
+      target: {
+        ...defaults.target,
+        conditions: { ...defaults.target.conditions, Vulnerability: 0 },
+        vulnerability: 0,
+        moving: false,
+        activatingSkills: false,
+        confusionActivationsPerSecond: 0
+      }
+    })
+  );
+  const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
+
+  assert.ok(Math.abs(torment.damage - 121.8) < 1e-9);
+});
+
+test('static and condition-specific duration bonuses reach the resolver', () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    ['Ether Bolt', { name: '__wait', waitMs: 2000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol',
+      initialResource: 0,
+      stats: {
+        ...defaults.stats,
+        expertise: 0,
+        conditionDurationBonus: 25,
+        conditionDurationBonuses: { Torment: 25 }
+      }
+    })
+  );
+  const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
+
+  assert.equal(torment.effectiveDuration, 6);
+});
+
+test('target skill activations add the current PvE confusion activation damage', () => {
+  const defaults = defaultSimulationConfig();
+  const config = {
+    specialization: 'Core',
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Pistol',
+    initialResource: 0,
+    stats: {
+      ...defaults.stats,
+      conditionDamage: 1000,
+      expertise: 0
+    },
+    boons: {
+      ...defaults.boons,
+      might: 0
+    }
+  };
+  const resultAt = (confusionActivationsPerSecond) =>
+    simulateMesmer(
+      ['Confusing Images', { name: '__wait', waitMs: 1000 }],
+      defaultSimulationConfig({
+        ...config,
+        target: {
+          ...defaults.target,
+          conditions: { ...defaults.target.conditions, Vulnerability: 0 },
+          vulnerability: 0,
+          activatingSkills: confusionActivationsPerSecond > 0,
+          confusionActivationsPerSecond
+        }
+      })
+    );
+  const base = resultAt(0);
+  const active = resultAt(1);
+  const confusionDamage = (result) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.condition === 'Confusion')
+      .reduce((sum, event) => sum + event.damage, 0);
+  const stackSeconds = base.resolvedEvents
+    .filter((event) => event.type === 'condition' && event.condition === 'Confusion')
+    .reduce((sum, event) => sum + event.damagingStackSeconds, 0);
+  const activationDamage = confusionDamage(active) - confusionDamage(base);
+
+  assert.ok(Math.abs(activationDamage - stackSeconds * (16.24 + 0.0325 * 1000)) < 1e-9);
 });

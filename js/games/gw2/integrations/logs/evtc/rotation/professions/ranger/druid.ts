@@ -8,7 +8,8 @@ import {
   directAction,
   firstPlayerEventTime,
   rangerSkill,
-  rawSkillName
+  rawSkillName,
+  truncatedCastActions
 } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 
 const CELESTIAL_AVATAR_BUFF = 31508;
@@ -43,47 +44,6 @@ export const DRUID_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
     suppressWeaponSwap: true
   }
 ];
-
-function truncatedNaturalConvergence(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const firstEventTime = firstPlayerEventTime(context);
-  if (firstEventTime == null) return [];
-  return context.log.events.flatMap((event, eventIndex) => {
-    if (
-      event.source !== context.playerAddress ||
-      event.skillId !== NATURAL_CONVERGENCE.skillId ||
-      event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP ||
-      (event.activation !== EVTC_ACTIVATION.CANCEL_FIRE && event.activation !== EVTC_ACTIVATION.RESET) ||
-      event.value <= 0
-    ) {
-      return [];
-    }
-
-    const start = event.time - event.value;
-    const recorded = actions.some(
-      (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRANSITION_WINDOW_MS
-    );
-    if (recorded || start >= firstEventTime) return [];
-    return [
-      {
-        ...directAction(
-          eventIndex,
-          start,
-          event.skillId,
-          rawSkillName(context, event.skillId),
-          NATURAL_CONVERGENCE,
-          'initial-state'
-        ),
-        end: event.time,
-        expectedDuration: Math.max(event.value, event.buffDamage),
-        status: 'completed' as const,
-        precast: true
-      }
-    ];
-  });
-}
 
 function avatarExitActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const seen = new Set<number>();
@@ -253,7 +213,7 @@ export function reconstructDruidActions(
 ): EvtcRecordedRotationAction[] {
   let actions = [
     ...recordedActions,
-    ...truncatedNaturalConvergence(context, recordedActions),
+    ...truncatedCastActions(context, recordedActions, NATURAL_CONVERGENCE, TRANSITION_WINDOW_MS),
     ...avatarExitActions(context)
   ];
   actions = [...actions, ...initialVipersNest(context, actions)];

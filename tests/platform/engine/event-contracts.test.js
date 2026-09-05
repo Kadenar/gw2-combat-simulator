@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import { assertSimulationEvent, COMMON_EVENT_TYPES, createEvent } from '#gw2/platform/engine/events/events.js';
 import { assertScheduledEventStream, buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { emitStateSnapshot, sameSnapshotValue } from '#gw2/platform/engine/events/state-snapshots.js';
-import { skillDamageIdentityKey } from '#gw2/app/results/result-tables.js';
 
+// Event envelopes and scheduled streams validate boundaries and preserve immutable snapshots.
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.equal(
     assertSimulationEvent({
@@ -101,18 +100,6 @@ test('live snapshot event types are canonical and event-form boon is rejected', 
     () => assertSimulationEvent({ type: 'boon', at: 0, source: 'fixture', sourceId: 1 }),
     /Unsupported simulation event type/
   );
-});
-
-test('summon subtype remains part of damage identity', () => {
-  const cloneKey = skillDamageIdentityKey({ skillId: 1, actorType: 'summon', summonKind: 'clone', name: 'Attack' });
-  const phantasmKey = skillDamageIdentityKey({
-    skillId: 1,
-    actorType: 'summon',
-    summonKind: 'phantasm',
-    name: 'Attack'
-  });
-
-  assert.notEqual(cloneKey, phantasmKey);
 });
 
 test('typed event and stream constructors return immutable envelopes', () => {

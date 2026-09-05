@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
+import { testProfession } from '../../fixtures/test-profession.js';
 
 test('ammo recharge reductions carry overflow until maximum charges', () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
@@ -658,4 +658,80 @@ test('task queues expose the next timestamp for one mechanic type', () => {
   assert.equal(queue.nextAt(), 1);
   assert.equal(queue.nextAt('mirror'), 4);
   assert.equal(queue.nextAt('missing'), Infinity);
+});
+
+test('queued instant casts use the combat marker when their requested overlap has passed', () => {
+  const result = createScheduler({ profession: testProfession }).run([
+    { type: 'cast', skillId: 900001 },
+    { type: 'combat-start', concurrentOffsetMs: 500 },
+    { type: 'cast', skillId: 900002, concurrentOffsetMs: 0 }
+  ]);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => [step.skill, step.start]),
+    [
+      ['Fixture Slash', 0],
+      ['Combat Start', 500],
+      ['Fixture Charge', 500]
+    ]
+  );
+});
+
+test('concurrent and interrupted casts are first-class scheduler commands', () => {
+  const scheduler = createScheduler({ profession: testProfession });
+  const result = scheduler.run([
+    { type: 'cast', skillId: 900001, interruptAfterMs: 400 },
+    { type: 'cast', skillId: 900002, concurrentOffsetMs: 100 }
+  ]);
+  const slash = result.events.find((event) => event.sourceId === 900001);
+  const charge = result.events.find((event) => event.type === 'action' && event.sourceId === 900002);
+
+  assert.equal(slash.endsAt, 0.4);
+  assert.equal(slash.interrupted, true);
+  assert.equal(charge.at, 0.1);
+  assert.equal(
+    result.events.some((event) => event.type === 'damage' && event.sourceId === 900001),
+    false
+  );
+});
+
+test('independent casts use a separate serial cast lane', () => {
+  const profession = defineProfession({
+    id: 'independent-casts',
+    name: 'Independent Casts',
+    catalog: createCanonicalCatalog({
+      generated: [
+        {
+          id: 910001,
+          name: 'Player Cast One',
+          castTimeMs: 1000,
+          effects: []
+        },
+        {
+          id: 910002,
+          name: 'Companion Cast',
+          castTimeMs: 2000,
+          independentCast: true,
+          effects: []
+        },
+        {
+          id: 910003,
+          name: 'Player Cast Two',
+          castTimeMs: 500,
+          effects: []
+        }
+      ]
+    })
+  });
+  const result = createScheduler({ profession }).run(['Player Cast One', 'Companion Cast', 'Player Cast Two']);
+  const [first, companion, second] = result.steps;
+
+  assert.equal(first.start, 0);
+  assert.equal(first.end, 1000);
+  assert.equal(companion.start, 0);
+  assert.equal(companion.end, 2000);
+  assert.equal(second.start, 1000);
+  assert.equal(second.end, 1500);
+  assert.equal(result.state.time, 2);
 });

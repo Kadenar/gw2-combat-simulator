@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { catalogDuration as recordedDuration } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,

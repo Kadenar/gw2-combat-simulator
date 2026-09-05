@@ -1,7 +1,7 @@
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import type { EvtcRotationAction, EvtcRotationPlayer, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import type { RotationReconstructionBase } from '#gw2/integrations/logs/lib/rotation/model.js';
-import type { EvtcRotationCatalog } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { reconstructWithProfile, type EvtcRotationOptions } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
 import {
   EVTC_ROTATION_PROFILES,
@@ -17,7 +17,7 @@ export interface EvtcProfessionRotationParser {
   readonly profile: EvtcRotationProfessionProfile;
   reconstruct(
     log: ParsedEvtc,
-    catalog?: EvtcRotationCatalog | null,
+    catalog?: RotationCatalog | null,
     options?: EvtcRotationOptions
   ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction>;
 }
@@ -30,7 +30,7 @@ function parserForProfile(profile: EvtcRotationProfessionProfile): EvtcProfessio
     profile,
     reconstruct(
       log: ParsedEvtc,
-      catalog: EvtcRotationCatalog | null = null,
+      catalog: RotationCatalog | null = null,
       options: EvtcRotationOptions = {}
     ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
       return reconstructWithProfile(log, profile, catalog, options);
@@ -54,7 +54,7 @@ export function getEvtcProfessionRotationParser(
 
 export function reconstructEvtcRotation(
   log: ParsedEvtc,
-  catalog: EvtcRotationCatalog | null = null,
+  catalog: RotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
   // Dispatch and direct profile reconstruction use the same player-selection contract.

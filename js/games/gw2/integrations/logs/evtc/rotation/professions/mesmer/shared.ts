@@ -1,6 +1,6 @@
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { normalizedName as normalized } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   canonicalAction,
   catalogDuration as castDuration,

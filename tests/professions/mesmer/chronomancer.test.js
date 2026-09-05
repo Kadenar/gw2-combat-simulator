@@ -227,3 +227,58 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
   assert.equal(result.steps[3].start, 14580);
   assert.equal(result.steps[5].start, result.steps[4].end);
 });
+
+test('Split Second shatter traits affect only the first strike from each source', () => {
+  const rotation = ['Split Second', { name: '__wait', waitMs: 2000 }];
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    initialResource: 3,
+    relic: '',
+    modifiers: { strike: 1, condition: 1 }
+  });
+  const baseline = simulateMesmer(rotation, config);
+  const timeCatchesUp = simulateMesmer(rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.TIME_CATCHES_UP]
+  });
+  const mentalAnguish = simulateMesmer(rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.MENTAL_ANGUISH]
+  });
+  const maim = simulateMesmer(rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED]
+  });
+  const packets = (result) =>
+    Object.values(
+      result.resolvedEvents
+        .filter((event) => event.type === 'damage' && event.skillName === 'Split Second')
+        .reduce((groups, event) => {
+          groups[event.at] ||= { at: event.at, damage: 0, traitEligible: Boolean(event.shatterTraitEligible) };
+          groups[event.at].damage += event.damage;
+          return groups;
+        }, {})
+    ).sort((left, right) => left.at - right.at);
+  const baselinePackets = packets(baseline);
+  const timeCatchesUpPackets = packets(timeCatchesUp);
+  const mentalAnguishPackets = packets(mentalAnguish);
+  const torment = maim.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Split Second' && event.condition === 'Torment'
+  );
+
+  assert.deepEqual(
+    baselinePackets.map((packet) => ({ at: packet.at, traitEligible: packet.traitEligible })),
+    [
+      { at: 0, traitEligible: true },
+      { at: 1, traitEligible: false }
+    ]
+  );
+  assert.ok(Math.abs(timeCatchesUpPackets[0].damage / baselinePackets[0].damage - 1.1) < 1e-12);
+  assert.equal(timeCatchesUpPackets[1].damage, baselinePackets[1].damage);
+  assert.ok(Math.abs(mentalAnguishPackets[0].damage / baselinePackets[0].damage - 1.25) < 1e-12);
+  assert.equal(mentalAnguishPackets[1].damage, baselinePackets[1].damage);
+  assert.equal(torment.length, 1);
+  assert.equal(torment[0].at, baselinePackets[0].at);
+  assert.equal(torment[0].stacks, 4);
+  assert.equal(torment[0].shatterTraitEligible, true);
+});

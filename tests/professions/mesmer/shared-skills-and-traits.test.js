@@ -879,3 +879,46 @@ test('Egotism does not increase condition damage', () => {
 
   assert.equal(bleeding(run([TRAIT.EGOTISM])), bleeding(run([])));
 });
+
+test('shift-queued Mirror Images after an instant action still grants clones', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    initialResource: 0,
+    primaryWeapon: 'Dagger',
+    secondaryWeapon: 'Sword'
+  });
+  const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }], config);
+
+  assert.equal(result.endState.time, 100);
+  assert.equal(result.endState.profession.resource, 2);
+});
+
+test('shift-queued Mirror Images after a resource-generating cast grants both clones', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    initialResource: 0,
+    primaryWeapon: 'Dagger',
+    secondaryWeapon: 'Sword'
+  });
+  const result = simulateMesmer(['Bladecall', { name: 'Mirror Images', offset: 100 }], config);
+  const mirrorImagesResource = result.events.find(
+    (event) => event.type === 'resource' && event.reason === 'Mirror Images'
+  );
+
+  assert.equal(mirrorImagesResource?.amount, 2);
+  assert.equal(result.endState.profession.resource, 3);
+});
+
+test('clones from shift-queued Mirror Images are available to the next shatter', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    initialResource: 0,
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Sword'
+  });
+  const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }, 'Mind Wrack'], config);
+
+  assert.equal(result.steps.length, 3);
+  assert.equal(result.steps[2].start, 100);
+  assert.equal(result.endState.profession.resource, 0);
+});

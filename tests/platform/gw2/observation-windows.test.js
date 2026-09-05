@@ -4,6 +4,8 @@ import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { testProfession } from '../../fixtures/test-profession.js';
 
 // Combat starts and target death bound the events and elapsed time used for DPS.
 test('DPS excludes elapsed time before the first hit', () => {
@@ -277,4 +279,50 @@ test('zero-length combat windows report zero DPS instead of epsilon DPS', () => 
   assert.equal(result.dpsStartTime, result.duration);
   assert.equal(result.dpsWindow, 0);
   assert.equal(result.dps, 0);
+});
+
+test('generic simulation starts combat at a delayed marker within a cast', () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: ['Fixture Slash', { name: '__combat_start', offset: 100 }, { type: 'wait', durationMs: 1000 }],
+    config: {
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000
+    }
+  });
+  const marker = result.events.find((event) => event.type === 'combat_start');
+
+  assert.equal(marker.at, 0.1);
+  assert.equal(result.firstHitTime, 1);
+  assert.equal(result.dpsStartTime, 1);
+  assert.equal(result.dpsWindow, 1);
+  assert.equal(result.dps, result.totalDamage);
+});
+
+test('generic simulation uses the first hit after a standalone combat marker', () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: ['__combat_start', 'Fixture Slash', { type: 'wait', durationMs: 1000 }],
+    config: {
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000
+    }
+  });
+
+  assert.equal(result.firstHitTime, 1);
+  assert.equal(result.dpsStartTime, result.firstHitTime);
+  assert.equal(result.dpsWindow, 1);
+  assert.equal(result.dps, result.totalDamage);
 });

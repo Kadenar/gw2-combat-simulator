@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
+import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
+import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 
 test('shared weapon swap commits canonical state and event before profession extensions', () => {
   const events = [];
@@ -56,4 +57,32 @@ test('shared weapon swap commits canonical state and event before profession ext
     }
   ]);
   assert.deepEqual(hookObservations, [{ weaponSet: 2, autoattackChains: {}, eventCount: 1, skillId: -3 }]);
+});
+
+test('weapon swap only starts its cooldown in combat', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    initialResource: 0,
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Sword',
+    weaponSet2Primary: 'Spear',
+    weaponSet2Secondary: ''
+  });
+  const precombat = simulateMesmer(['Swap Weapons', 'Swap Weapons'], config);
+
+  assert.deepEqual(
+    precombat.steps.map((step) => step.start),
+    [0, 0]
+  );
+  assert.equal(precombat.endState.activeWeaponSet, 1);
+  assert.equal(precombat.endState.cooldowns['Swap Weapons'], undefined);
+
+  const inCombat = simulateMesmer(['__combat_start', 'Swap Weapons', 'Swap Weapons'], config);
+
+  assert.deepEqual(
+    inCombat.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
+    [0, 10000]
+  );
+  assert.equal(inCombat.endState.activeWeaponSet, 1);
+  assert.equal(inCombat.endState.cooldowns['Swap Weapons'].readyAt, 20000);
 });

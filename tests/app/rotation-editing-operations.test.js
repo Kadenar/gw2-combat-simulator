@@ -39,3 +39,20 @@ test('rotation editing operations update, insert, and reject invalid moves', () 
   ]);
   assert.equal(insertRotationEntries(rotation, [], 0), false);
 });
+
+test('rotation drag reordering respects before and after insertion positions', () => {
+  const command = (skillId) => ({ type: 'cast', skillId });
+  const rotation = [command('Bladecall'), command('Mirror Blade'), command('Mind Spike')];
+
+  assert.equal(moveRotationEntry(rotation, 0, 2), true);
+  assert.deepEqual(rotation, [command('Mirror Blade'), command('Bladecall'), command('Mind Spike')]);
+
+  assert.equal(moveRotationEntry(rotation, 2, 0), true);
+  assert.deepEqual(rotation, [command('Mind Spike'), command('Mirror Blade'), command('Bladecall')]);
+
+  assert.equal(moveRotationEntry(rotation, 0, rotation.length), true);
+  assert.deepEqual(rotation, [command('Mirror Blade'), command('Bladecall'), command('Mind Spike')]);
+
+  assert.equal(moveRotationEntry(rotation, 1, 2), false);
+  assert.deepEqual(rotation, [command('Mirror Blade'), command('Bladecall'), command('Mind Spike')]);
+});

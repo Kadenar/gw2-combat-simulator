@@ -1,6 +1,6 @@
 import type { EvtcRotationEvidence, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
-import type { EvtcRotationCatalog } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type { EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 
 export interface EvtcRecordedRotationAction {
@@ -39,7 +39,7 @@ export interface EvtcProfessionReconstructionContext {
   readonly log: ParsedEvtc;
   readonly playerAddress: bigint;
   readonly profile: EvtcRotationProfessionProfile;
-  readonly catalog: EvtcRotationCatalog | null;
+  readonly catalog: RotationCatalog | null;
   readonly recordedActions: readonly EvtcRecordedRotationAction[];
   readonly selectedSkillNames?: readonly string[];
   readonly selectedSkillIds?: readonly number[];

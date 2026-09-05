@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import {
   formatResultTimelineTime,
   formatTimelineTime,
   resultCombatReferenceMs
 } from '#gw2/app/rotation/timeline/timing/model.js';
+import { skillDamageIdentityKey } from '#gw2/app/results/result-tables.js';
 
 const PLAYER_AUDIENCE = Object.freeze({
   includesSelf: true,
@@ -288,4 +288,16 @@ test('chart series excludes buffs that do not affect the simulated player', () =
   });
 
   assert.equal(series.effects['Pet Only Quickness'], undefined);
+});
+
+test('summon subtype remains part of damage identity', () => {
+  const cloneKey = skillDamageIdentityKey({ skillId: 1, actorType: 'summon', summonKind: 'clone', name: 'Attack' });
+  const phantasmKey = skillDamageIdentityKey({
+    skillId: 1,
+    actorType: 'summon',
+    summonKind: 'phantasm',
+    name: 'Attack'
+  });
+
+  assert.notEqual(cloneKey, phantasmKey);
 });

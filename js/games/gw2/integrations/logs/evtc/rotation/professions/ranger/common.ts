@@ -6,9 +6,9 @@ import type {
 import { ownedPetAddresses } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/pets.js';
 import {
   directAction,
-  firstPlayerEventTime,
   playerInstance,
   rawSkillName,
+  truncatedCastActions,
   type RangerActionIdentity
 } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 
@@ -38,47 +38,6 @@ const PATH_RETURN_GAP_THRESHOLD_MS = 900;
 const PATH_HIT_WINDOW_MS = 3000;
 const TRUNCATED_CAST_WINDOW_MS = 150;
 const SIC_EM_RECAST_SIGNAL_MS = 60000;
-
-function truncatedOverbearingSmashActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const firstEventTime = firstPlayerEventTime(context);
-  if (firstEventTime == null) return [];
-  return context.log.events.flatMap((event, eventIndex) => {
-    if (
-      event.source !== context.playerAddress ||
-      event.skillId !== OVERBEARING_SMASH.skillId ||
-      event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP ||
-      (event.activation !== EVTC_ACTIVATION.CANCEL_FIRE && event.activation !== EVTC_ACTIVATION.RESET) ||
-      event.value <= 0
-    ) {
-      return [];
-    }
-
-    const start = event.time - event.value;
-    const alreadyRecorded = actions.some(
-      (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRUNCATED_CAST_WINDOW_MS
-    );
-    if (alreadyRecorded || start >= firstEventTime) return [];
-    return [
-      {
-        ...directAction(
-          eventIndex,
-          start,
-          event.skillId,
-          rawSkillName(context, event.skillId),
-          OVERBEARING_SMASH,
-          'initial-state'
-        ),
-        end: event.time,
-        expectedDuration: Math.max(event.value, event.buffDamage),
-        status: 'completed' as const,
-        precast: true
-      }
-    ];
-  });
-}
 
 function coalesceOverbearingSmash(actions: readonly EvtcRecordedRotationAction[]): EvtcRecordedRotationAction[] {
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
@@ -282,6 +241,6 @@ export function normalizeRangerCommonActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const truncated = truncatedOverbearingSmashActions(context, actions);
+  const truncated = truncatedCastActions(context, actions, OVERBEARING_SMASH, TRUNCATED_CAST_WINDOW_MS);
   return coalesceOverbearingSmash([...actions, ...truncated]);
 }

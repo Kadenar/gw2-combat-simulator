@@ -10,7 +10,7 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createRangerBuildDefaults,
@@ -69,23 +69,8 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}) {
-  return simulateGw2({
-    profession: rangerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      professionAssumptions: {
-        ...baseConfig.professionAssumptions,
-        ...(config.professionAssumptions || {})
-      },
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    }
-  });
-}
+// Keep scenario defaults local while sharing simulation setup and nested config merging.
+const simulate = createProfessionSimulator(rangerProfession, baseConfig);
 
 const applyRangerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(rangerCatalog, patch), patch);
 

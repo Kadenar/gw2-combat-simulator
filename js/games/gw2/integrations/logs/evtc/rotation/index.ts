@@ -1,4 +1,3 @@
-export * from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 export * from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 export * from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
 export * from '#gw2/integrations/logs/evtc/rotation/registry.js';

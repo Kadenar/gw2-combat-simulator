@@ -7,8 +7,8 @@ import { EVTC_ROTATION_PROFILES } from '#gw2/integrations/logs/evtc/rotation/pro
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
+import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent } from '../helpers/evtc-fixture.js';
 
-const PLAYER = 0x1000n;
 const fixtureSkill = {
   id: 1_000,
   name: 'Mind Stab',
@@ -19,36 +19,6 @@ const fixtureSkill = {
   effects: []
 };
 const catalog = { skills: [fixtureSkill] };
-
-function evtcEvent(overrides = {}) {
-  return {
-    time: 1_000,
-    source: PLAYER,
-    target: 0n,
-    value: 0,
-    buffDamage: 0,
-    overstackValue: 0,
-    skillId: 0,
-    sourceInstance: 1,
-    targetInstance: 0,
-    sourceMasterInstance: 0,
-    targetMasterInstance: 0,
-    iff: 0,
-    buff: 0,
-    result: 0,
-    activation: 0,
-    buffRemove: 0,
-    ninety: 0,
-    fifty: 0,
-    moving: 0,
-    stateChange: 0,
-    flanking: 0,
-    shields: 0,
-    offcycle: 0,
-    pad: 0,
-    ...overrides
-  };
-}
 
 test('both adapters expose every profession from the shared profile inventory', () => {
   const identities = (profiles) => profiles.map((profile) => `${profile.professionId}:${profile.specializationId}`);

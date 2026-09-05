@@ -22,6 +22,7 @@ import { createHolosmithState } from '#gw2/professions/engineer/specializations/
 import { createMechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
+import { handleEngineerState } from '#gw2/professions/engineer/state.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -1042,4 +1043,20 @@ test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {
     result.procSteps.some((step) => step.skill === 'Relic of Fireworks'),
     false
   );
+});
+
+// Restoring scheduler resources must not rewind trait clocks already advanced by the resolver.
+test('Engineer restoration preserves resolver-owned trait clocks', () => {
+  const engineer = {
+    profession: {
+      core: { endurance: 10, traitProcReadyAt: { thermalVisionUntil: 7 } },
+      specialization: { kind: 'Holosmith', state: { heat: 1 } }
+    }
+  };
+  handleEngineerState(engineer, {
+    state: { endurance: 20, heat: 2, traitProcReadyAt: { thermalVisionUntil: 1 } }
+  });
+  assert.equal(engineer.profession.core.endurance, 20);
+  assert.equal(engineer.profession.specialization.state.heat, 2);
+  assert.deepEqual(engineer.profession.core.traitProcReadyAt, { thermalVisionUntil: 7 });
 });

@@ -1,4 +1,4 @@
-import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { isUncommittedCast } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import {
   committedActionsFromStrikePackets,

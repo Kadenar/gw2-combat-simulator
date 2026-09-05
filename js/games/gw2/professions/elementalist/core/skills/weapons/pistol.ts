@@ -721,8 +721,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Earth',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 520,
-    // The attack and bullet effects commit at 480 ms; earlier interruptions cancel them.
-    interruptCommitMs: 480,
+    interruptCommitMs: 400,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [

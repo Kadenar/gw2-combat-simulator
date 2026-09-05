@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
+import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.
@@ -651,4 +651,53 @@ test('Geomancy crosses Bloodsong after four canonical trait bleeds', () => {
   assert.ok(bloodsong);
   assert.ok(Math.abs(bloodsong.at - geomancy.at - 0.0001) < 1e-12);
   assert.equal(harmony.invalid, undefined);
+});
+
+test('configured Virtuoso bladesongs spend blades at cast end', () => {
+  for (const skillName of ['Bladesong Harmony', 'Bladesong Sorrow', 'Bladesong Dissonance', 'Bladeturn Requiem']) {
+    const result = simulateMesmer([skillName], defaultSimulationConfig({ initialResource: 5 }));
+    const action = result.events.find((event) => event.type === 'action' && event.name === skillName);
+    const spend = result.events.find((event) => event.type === 'resource' && event.sourceSkill === skillName);
+
+    assert.equal(result.endState.profession.resource, 0);
+    assert.equal(spend.amount, -5);
+    assert.equal(spend.rotationIndex, 0);
+    assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001, `${skillName} spent blades before cast end`);
+  }
+});
+
+test('Bladeturn Requiem and Thousand Cuts retain their zero-second cast times', () => {
+  for (const skillName of ['Bladeturn Requiem', 'Thousand Cuts']) {
+    const result = simulateMesmer([skillName], defaultSimulationConfig({ initialResource: 5 }));
+    const step = result.steps[0];
+    const action = result.events.find((event) => event.type === 'action' && event.name === skillName);
+
+    assert.equal(step.start, step.end);
+    assert.equal(step.fullCastMs, 0);
+    assert.equal(action.at, action.endsAt);
+    assert.equal(action.at, action.fullEndsAt);
+    assert.match(
+      formatTimelineCastDetails(step, (time) => `${(time / 1000).toFixed(2)}s`),
+      /Cast time: 0\.000s$/
+    );
+  }
+});
+
+test('interrupting a bladesong restores its reserved blades', () => {
+  const result = simulateMesmer(
+    [{ name: 'Bladesong Harmony', interruptMs: 100 }],
+    defaultSimulationConfig({ initialResource: 5 })
+  );
+
+  assert.equal(result.endState.profession.resource, 5);
+  assert.equal(
+    result.events.some(
+      (event) => event.type === 'resource' && event.sourceSkill === 'Bladesong Harmony' && event.amount < 0
+    ),
+    false
+  );
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Bladesong Harmony'),
+    false
+  );
 });

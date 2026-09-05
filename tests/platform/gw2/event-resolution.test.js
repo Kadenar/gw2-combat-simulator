@@ -9,6 +9,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { testProfession } from '../../fixtures/test-profession.js';
 
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
 test('shared buff handling prioritizes allied players over summon recipients', () => {
@@ -223,4 +224,127 @@ test('resolver profession state changes are chronological and preserve counters'
   const configuredHits = configured.resolvedEvents.filter((event) => event.type === 'damage');
 
   assert.equal(Math.round(configuredHits[2].damage / configuredHits[0].damage), 1);
+});
+
+test('off-target casts retain their activation while hostile packets miss the target', () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [{ type: 'cast', skillId: 900001, offTarget: true }],
+    config: {
+      attributes: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+      target: { armor: 2597 },
+      weaponStrength: 1000
+    }
+  });
+  const activationEvents = result.events.filter((event) => event.sourceId === 900001);
+
+  assert.equal(result.steps[0].end, 1000);
+  assert.equal(
+    activationEvents.every((event) => event.offTarget === true),
+    true
+  );
+  assert.equal(
+    activationEvents.some((event) => event.type === 'damage'),
+    true
+  );
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage'),
+    false
+  );
+  assert.equal(result.endState.profession.controlEvents, 0);
+});
+
+test('test profession runs end to end without importing Mesmer', () => {
+  const base = simulateGw2({
+    profession: testProfession,
+    rotation: [
+      { type: 'cast', skillId: 900001 },
+      { type: 'cast', skillId: 900002 }
+    ],
+    config: {
+      selectedTraitIds: ['fixture.power'],
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000
+    }
+  });
+  const withoutTrait = simulateGw2({
+    profession: testProfession,
+    rotation: [{ type: 'cast', skillId: 900001 }],
+    config: {
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000
+    }
+  });
+
+  assert.ok(base.totalDamage > withoutTrait.totalDamage);
+  assert.equal(base.profession.charge, 1);
+  assert.equal(base.profession.controlEvents, 1);
+  assert.equal(base.schedulerState.profession.charge, 0);
+  assert.equal(
+    base.events.every((event) => event.type && Number.isFinite(event.at) && event.source && event.sourceId != null),
+    true
+  );
+});
+
+test('resolver modifiers receive stable trait, event, and runtime context', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930002,
+        name: 'Context Strike',
+        type: 'Utility',
+        castTimeMs: 0,
+        effects: [{ type: 'strike', coefficient: 1 }]
+      }
+    ]
+  });
+  let observed = null;
+  const profession = defineProfession({
+    id: 'context-fixture',
+    name: 'Context Fixture',
+    catalog,
+    attributeRules: {
+      modifyStrikeDamage(context, multiplier) {
+        observed = {
+          actorType: context.actorType,
+          hasRuntimeProfession: Boolean(context.runtime?.profession),
+          skillId: context.skillId,
+          trait: context.traits.has('context-fixture.damage')
+        };
+
+        return observed.trait && observed.skillId === 930002 ? multiplier * 2 : multiplier;
+      }
+    }
+  });
+  const base = simulateGw2({
+    profession,
+    rotation: ['Context Strike']
+  });
+  const modified = simulateGw2({
+    profession,
+    rotation: ['Context Strike'],
+    config: {
+      selectedTraitIds: ['context-fixture.damage']
+    }
+  });
+
+  assert.equal(modified.strikeDamage / base.strikeDamage, 2);
+  assert.deepEqual(observed, {
+    actorType: 'player',
+    hasRuntimeProfession: true,
+    skillId: 930002,
+    trait: true
+  });
 });

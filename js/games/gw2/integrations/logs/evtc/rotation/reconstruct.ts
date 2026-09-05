@@ -23,8 +23,8 @@ import {
   isDirectPlayerSkill,
   recordedActionSkill,
   skillIdentity,
-  type EvtcRotationCatalog
-} from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+  type RotationCatalog
+} from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   missingInterruptCommitWarnings,
   quicknessRuntimeDurationMs,
@@ -82,7 +82,7 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
 /** Expands casts whose uncancellable aftercast keeps the simulator lane occupied through full completion. */
 function applyRetainedCastLockouts(
   actions: readonly RecordedAction[],
-  catalog: EvtcRotationCatalog | null,
+  catalog: RotationCatalog | null,
   profile: EvtcRotationProfessionProfile
 ): RecordedAction[] {
   return actions.map((action) => {
@@ -106,7 +106,7 @@ function applyRetainedCastLockouts(
 /** Retains observed interruptions and marks atomic attempts below every declared cutoff as cancelled. */
 function applyObservedInterruptTiming(
   actions: readonly RecordedAction[],
-  catalog: EvtcRotationCatalog | null,
+  catalog: RotationCatalog | null,
   profile: EvtcRotationProfessionProfile
 ): RecordedAction[] {
   return actions.map((action) => {
@@ -137,7 +137,7 @@ function applyObservedInterruptTiming(
 
 function applyEngineReplayTiming(
   actions: readonly RecordedAction[],
-  catalog: EvtcRotationCatalog | null,
+  catalog: RotationCatalog | null,
   profile: EvtcRotationProfessionProfile
 ): RecordedAction[] {
   return applyRetainedCastLockouts(applyObservedInterruptTiming(actions, catalog, profile), catalog, profile);
@@ -218,7 +218,7 @@ function initialSummonActions(
   log: ParsedEvtc,
   address: bigint,
   profile: EvtcRotationProfessionProfile,
-  catalog: EvtcRotationCatalog | null,
+  catalog: RotationCatalog | null,
   existingActions: readonly RecordedAction[],
   anchor: number
 ): RecordedAction[] {
@@ -319,7 +319,7 @@ function isEffectSignal(event: ParsedEvtcEvent): boolean {
 function inferInstantActions(
   log: ParsedEvtc,
   address: bigint,
-  catalog: EvtcRotationCatalog | null,
+  catalog: RotationCatalog | null,
   profile: EvtcRotationProfessionProfile,
   animated: readonly ResolvedAction[]
 ): ResolvedAction[] {
@@ -380,7 +380,7 @@ function isDodgeName(name: string): boolean {
 
 function resolveAction(
   action: RecordedAction,
-  catalog: EvtcRotationCatalog | null,
+  catalog: RotationCatalog | null,
   profile: EvtcRotationProfessionProfile
 ): ResolvedAction {
   if (action.rawName === 'Swap Weapons') {
@@ -547,7 +547,7 @@ function rightAlignInferredAmmoFlips(actions: readonly ResolvedAction[]): Resolv
 export function reconstructWithProfile(
   log: ParsedEvtc,
   profile: EvtcRotationProfessionProfile,
-  catalog: EvtcRotationCatalog | null = null,
+  catalog: RotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
   const { agent, player } = selectPlayerAgent(log, options.playerAddress);

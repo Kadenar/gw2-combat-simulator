@@ -1,5 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   instantAction,
   rawSkillName as sharedRawSkillName

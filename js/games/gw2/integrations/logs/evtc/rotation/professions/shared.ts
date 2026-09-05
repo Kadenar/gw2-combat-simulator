@@ -1,5 +1,5 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { findRotationSkill, normalizedName } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill, normalizedName } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction

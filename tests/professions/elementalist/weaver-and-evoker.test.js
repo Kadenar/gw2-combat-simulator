@@ -1043,10 +1043,15 @@ test('Rock Barrier starts its root recharge when Hurl is used', () => {
   assert.ok(barriers[1].at > hurl.endsAt + 5);
 });
 
-test('Elemental Explosion, Shattering Stone, and Signet of Earth commit at 480 ms', () => {
-  for (const skillId of [ID.ELEMENTAL_EXPLOSION, ID.SHATTERING_STONE, ID.SIGNET_OF_EARTH]) {
+test('Shattering Stone commits at 400 ms; Elemental Explosion and Signet of Earth commit at 480 ms', () => {
+  // Check both sides of each commit threshold so early interrupts cancel damage and bullet consumption.
+  for (const [skillId, commitMs] of [
+    [ID.ELEMENTAL_EXPLOSION, 480],
+    [ID.SHATTERING_STONE, 400],
+    [ID.SIGNET_OF_EARTH, 480]
+  ]) {
     const skill = elementalistCatalog.skillsById.get(skillId);
-    for (const interruptAfterMs of [440, 480]) {
+    for (const interruptAfterMs of [commitMs - 40, commitMs]) {
       const result = runNative({
         lines: [['Fire'], ['Air'], ['Arcane']],
         rotation: [{ type: 'cast', skillId, interruptAfterMs }, 1_000],
@@ -1063,11 +1068,11 @@ test('Elemental Explosion, Shattering Stone, and Signet of Earth commit at 480 m
 
       assert.deepEqual(result.warnings, []);
       assert.equal(step.end - step.start, interruptAfterMs);
-      assert.equal(step.cancelledBeforeCommit === true, interruptAfterMs < 480);
-      assert.equal(packets.length > 0, interruptAfterMs >= 480, skill.name);
+      assert.equal(step.cancelledBeforeCommit === true, interruptAfterMs < commitMs);
+      assert.equal(packets.length > 0, interruptAfterMs >= commitMs, skill.name);
       assert.equal(
         result.endState.profession.pistolBullets.Earth,
-        skillId === ID.SIGNET_OF_EARTH || interruptAfterMs < 480
+        skillId === ID.SIGNET_OF_EARTH || interruptAfterMs < commitMs
       );
     }
   }

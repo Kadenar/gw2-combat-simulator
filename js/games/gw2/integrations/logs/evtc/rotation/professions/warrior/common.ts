@@ -4,7 +4,7 @@ import {
   createStrikePacketMatcher,
   firstStrikePacketOffsetMs
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction

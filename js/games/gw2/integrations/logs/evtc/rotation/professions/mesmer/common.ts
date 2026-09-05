@@ -1,6 +1,6 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { findRotationSkill, recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { findRotationSkill, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction

@@ -6,7 +6,7 @@ import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -48,23 +48,8 @@ const baseConfig = Object.freeze({
   }
 });
 
-function simulate(specialization, rotation, config = {}) {
-  return simulateGw2({
-    profession: rangerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization,
-      professionAssumptions: {
-        ...baseConfig.professionAssumptions,
-        ...(config.professionAssumptions || {})
-      },
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    }
-  });
-}
+// Keep scenario defaults local while sharing simulation setup and nested config merging.
+const simulate = createProfessionSimulator(rangerProfession, baseConfig);
 
 describe('Ranger skill-bar selections', () => {
   test('Soulbeast pet selections update merged Beast skills', () => {

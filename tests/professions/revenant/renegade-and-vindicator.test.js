@@ -4,9 +4,9 @@ import {
   currentAutoattackSkill,
   paletteActionSkills,
   paletteSkillIsInstant,
-  weaponSkills
+  weaponSkills,
+  paletteSkillView
 } from '#gw2/app/rotation/palette/model.js';
-import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -22,6 +22,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
+import { handleRevenantState } from '#gw2/professions/revenant/state.js';
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
@@ -1725,4 +1726,26 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
   assert.equal(deathstrike.id, SKILL.DEATHSTRIKE);
   assert.match(paletteSkillView(app, deathstrike).title, /Cast: 1\.08s/);
   assert.doesNotMatch(paletteSkillView(app, deathstrike).title, /Instant cast/);
+});
+
+// Restoring scheduler resources must preserve resolver-owned clocks in both active state slices.
+test('Revenant restoration preserves resolver-owned trait and Soulcleave clocks', () => {
+  const revenant = {
+    profession: {
+      core: { energy: 10, traitProcReadyAt: { chargedMistsReadyAt: 8 } },
+      specialization: { kind: 'Renegade', state: { kallasFervor: 1, soulcleaveReadyAt: 9 } }
+    }
+  };
+  handleRevenantState(revenant, {
+    state: {
+      energy: 20,
+      kallasFervor: 2,
+      traitProcReadyAt: { chargedMistsReadyAt: 1 },
+      soulcleaveReadyAt: 3
+    }
+  });
+  assert.equal(revenant.profession.core.energy, 20);
+  assert.equal(revenant.profession.specialization.state.kallasFervor, 2);
+  assert.deepEqual(revenant.profession.core.traitProcReadyAt, { chargedMistsReadyAt: 8 });
+  assert.equal(revenant.profession.specialization.state.soulcleaveReadyAt, 9);
 });
