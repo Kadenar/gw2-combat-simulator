@@ -484,6 +484,57 @@ test('reconstructs Evoker scepter/focus setup from report weapons, buffs, and hi
   );
 });
 
+// Minion packet evidence can recover a clipped command on any Elementalist build.
+test('recovers an opening Flame Barrage for pistol builds only when minion hits prove one is missing', () => {
+  const catalog = {
+    skills: [
+      skill(ID.GLYPH_OF_STORMS_FIRE, 'Glyph of Storms (Fire)', {
+        type: 'Utility',
+        quicknessCastTimeMs: 1120
+      }),
+      skill(ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, 'Flame Barrage', {
+        type: 'Elite',
+        castTimeMs: 0,
+        independentCast: true
+      })
+    ]
+  };
+  for (const profession of ['Elementalist', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
+    for (const connectedHits of [4, 5]) {
+      const report = reportFixture(
+        profession,
+        [
+          { id: ID.GLYPH_OF_STORMS_FIRE, skills: [{ castTime: -840, duration: 1120 }] },
+          { id: 25499, skills: [{ castTime: 5000, duration: 0 }] }
+        ],
+        {
+          [`s${ID.GLYPH_OF_STORMS_FIRE}`]: { name: 'Firestorm' },
+          s25499: { name: 'Flame Barrage' }
+        },
+        {
+          targets: [{}],
+          player: {
+            weaponSets: [{ weapons: ['Pistol', 'Dagger'], timeframe: [0, 10000] }],
+            minions: [
+              {
+                id: 6524,
+                name: 'Fire Elemental',
+                targetDamageDist: [[[{ id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, connectedHits }]]]
+              }
+            ]
+          }
+        }
+      );
+      const result = reconstructDpsReportRotation(report, catalog);
+      assert.equal(
+        result.actions.some((action) => action.name === 'Flame Barrage' && action.inferred),
+        connectedHits > 4,
+        profession
+      );
+    }
+  }
+});
+
 test('recovers an opening spear etching from its full flip', () => {
   const report = reportFixture(
     'Evoker',

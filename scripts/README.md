@@ -7,9 +7,11 @@ Project scripts are grouped by responsibility:
 - `data/`: Guild Wars 2 API snapshots and generated-data maintenance.
 - `lib/`: support shared by command-line scripts.
 - `patch-preview/`: local patch-preview authoring and promotion reporting.
-- `testing/`: the loader that maps source-facing imports to compiled `dist/js` modules.
 
 Use the npm commands in the root `package.json` for routine workflows.
+
+Tests and headless scripts use package aliases to load compiled `dist/js` modules directly in Node. Build the modules
+before running them; no custom loader is required.
 
 ## Formatting touched files
 

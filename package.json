@@ -38,7 +38,7 @@
     "build:site": "vite build",
     "pretest": "npm run build",
     "test": "npm run test:node",
-    "test:node": "node --import ./scripts/testing/register-dist-loader.mjs --test",
+    "test:node": "node --test",
     "test:browser": "playwright test",
     "typecheck": "tsc -p tsconfig.typecheck.json",
     "check": "npm run format:check && npm run lint && npm run build && npm run test:node && npm run typecheck && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs && npm run test:browser",
@@ -46,16 +46,16 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "benchmarks:compare": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/analysis/compare-supported-build-dps.mjs",
+    "benchmarks:compare": "npm run build:modules && node scripts/analysis/compare-supported-build-dps.mjs",
     "preauthor:patch-preview": "npm run build:dev",
-    "author:patch-preview": "node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview/patch-preview-authoring-server.mjs",
-    "patch-preview:report": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview/patch-preview-report.mjs",
+    "author:patch-preview": "node scripts/patch-preview/patch-preview-authoring-server.mjs",
+    "patch-preview:report": "npm run build:modules && node scripts/patch-preview/patch-preview-report.mjs",
     "update:profession-data": "node scripts/data/update-profession-data.mjs",
     "update:build-template-data": "node scripts/data/update-build-template-data.mjs",
     "update:elementalist-data": "node scripts/data/update-elementalist-api-data.mjs",
     "update:warrior-data": "node scripts/data/update-warrior-data.mjs",
     "update:ranger-data": "node scripts/data/update-ranger-data.mjs",
-    "generate:revenant-ids": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/data/generate-revenant-ids.mjs"
+    "generate:revenant-ids": "npm run build:modules && node scripts/data/generate-revenant-ids.mjs"
   },
   "engines": {
     "node": ">=20.19"

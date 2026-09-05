@@ -23,7 +23,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Fire',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 520,
-    interruptCommitMs: 400,
+    // The projectile launches before impact, so cancelling its aftercast preserves the hit and Burning.
+    interruptCommitMs: 320,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -680,7 +681,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Earth',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 520,
-    interruptCommitMs: 400,
+    // Release commits the projectile one action tick before its hit and Bleeding land.
+    interruptCommitMs: 320,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [

@@ -34,7 +34,7 @@ function archetypesUsing(skillId) {
   ];
 }
 
-// Loads family files directly so adding a pet cannot bypass the aggregate ownership contract.
+// Discovers family sources and loads their compiled fragments through package aliases so every pet is checked.
 async function familyFragments(relativeDirectory) {
   const directory = new URL(relativeDirectory, professionRoot);
   return Promise.all(
@@ -46,7 +46,7 @@ async function familyFragments(relativeDirectory) {
         assert.match(source, /^\/\*\*/);
         assert.match(source, /RANGER_SKILL_IDS\s+as\s+ID/);
         assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
-        const module = await import(new URL(filename.replace(/\.ts$/, '.js'), directory));
+        const module = await import(`#gw2/professions/ranger/${relativeDirectory}${filename.replace(/\.ts$/, '.js')}`);
         const exports = Object.entries(module).filter(([name]) => name.endsWith('_SKILL_MECHANICS'));
 
         assert.equal(exports.length, 1, filename);

@@ -15,7 +15,6 @@
  */
 import { readFile } from 'node:fs/promises';
 
-import '../testing/register-dist-loader.mjs';
 import { loadProfession } from '#gw2/app/profession/registry.js';
 import { decompressEvtcInput } from '#gw2/integrations/logs/evtc/decompression.js';
 import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';

@@ -117,8 +117,6 @@ export default [
       'js/kernel/**/*.{js,jsx,mjs,cjs,ts,tsx}',
       'js/ui/**/*.{js,jsx,mjs,cjs,ts,tsx}'
     ],
-    // The neutral worker harness reaches the game registry, which has no shared package alias.
-    ignores: ['js/app/simulation/game-worker-harness.ts'],
     rules: {
       'no-restricted-imports': restrictedImports()
     }

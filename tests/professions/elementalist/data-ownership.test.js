@@ -55,7 +55,7 @@ function weaponSlug(value) {
     .toLowerCase();
 }
 
-// Loads every owner-local weapon fragment so the aggregate contract proves a disjoint, no-loss composition.
+// Discovers weapon sources and loads their compiled fragments through package aliases to verify a no-loss composition.
 async function weaponFragments(directory) {
   const sourceDirectory = new URL(
     `../../../js/games/gw2/professions/elementalist/${directory}/skills/weapons/`,
@@ -69,7 +69,9 @@ async function weaponFragments(directory) {
         const source = readFileSync(new URL(filename, sourceDirectory), 'utf8');
         assert.match(source, /ELEMENTALIST_SKILL_IDS\s+as\s+ID/);
         assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
-        const module = await import(new URL(filename.replace(/\.ts$/, '.js'), sourceDirectory));
+        const module = await import(
+          `#gw2/professions/elementalist/${directory}/skills/weapons/${filename.replace(/\.ts$/, '.js')}`
+        );
         const exports = Object.entries(module).filter(([name]) => name.endsWith('_SKILL_MECHANICS'));
         assert.equal(exports.length, 1, `${directory}/${filename}`);
         return [filename.replace(/\.ts$/, ''), exports[0][1]];

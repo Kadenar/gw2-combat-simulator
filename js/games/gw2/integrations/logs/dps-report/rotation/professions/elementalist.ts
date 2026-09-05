@@ -500,7 +500,6 @@ function recoverOpeningFlameBarrage(
   nextEventIndex: () => number
 ): DpsReportRecordedAction[] {
   const primaryWeapon = equippedWeapons(context).primaryWeapon;
-  if (context.profile.specializationId !== 'evoker' || !['scepter', 'spear'].includes(primaryWeapon)) return [];
   const recorded = actions.filter((action) => normalized(actionName(action)) === 'flame barrage');
   if (fireElementalHits(context, ID.FLAME_BARRAGE_ELEMENTAL_COMMAND) <= recorded.length * 4) return [];
   const firstAction = [...actions].sort(
@@ -508,15 +507,15 @@ function recoverOpeningFlameBarrage(
   )[0];
   if (!firstAction) return [];
   const at =
-    primaryWeapon === 'scepter'
-      ? context.phase.start - FLAME_BARRAGE_FIRST_PACKET_MS
-      : Math.min(
+    primaryWeapon === 'spear'
+      ? Math.min(
           context.phase.start - GW2_ACTION_TICK_MS,
           firstAction.start + Math.max(0, Number(openingEtching[0]?.expectedDurationMs || 0))
-        );
+        )
+      : context.phase.start - FLAME_BARRAGE_FIRST_PACKET_MS;
 
   // Four packets are the maximum per Flame Barrage command. Surplus minion hits
-  // therefore prove EI clipped one pre-combat command from the player's rotation.
+  // therefore prove EI clipped one pre-combat command, regardless of specialization or weapon.
   return [
     createInferredAction(
       { id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, name: 'Flame Barrage' },

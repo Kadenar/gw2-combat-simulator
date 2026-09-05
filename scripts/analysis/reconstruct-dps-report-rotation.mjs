@@ -17,7 +17,6 @@
  */
 import { readFile } from 'node:fs/promises';
 
-import '../testing/register-dist-loader.mjs';
 import { loadProfession } from '#gw2/app/profession/registry.js';
 import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import {

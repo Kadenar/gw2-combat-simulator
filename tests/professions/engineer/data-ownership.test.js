@@ -35,7 +35,7 @@ function ownedKit(skill) {
   return [skill.kitName, skill.kit, skill.toolbeltParentName].find((name) => KIT_SLUGS.has(name));
 }
 
-// Loads every Core kit fragment so the aggregate contract proves disjoint ownership without a hand-maintained file list.
+// Discovers Core kit sources and loads their compiled fragments through package aliases to verify disjoint ownership.
 async function kitFragments() {
   const directory = new URL('../../../js/games/gw2/professions/engineer/core/skills/kits/', import.meta.url);
   return Promise.all(
@@ -46,7 +46,7 @@ async function kitFragments() {
         const source = readFileSync(new URL(filename, directory), 'utf8');
         assert.match(source, /ENGINEER_SKILL_IDS\s+as\s+ID/);
         assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
-        const module = await import(new URL(filename.replace(/\.ts$/, '.js'), directory));
+        const module = await import(`#gw2/professions/engineer/core/skills/kits/${filename.replace(/\.ts$/, '.js')}`);
         const mechanicsExports = Object.entries(module).filter(([name]) => name.endsWith('_SKILL_MECHANICS'));
         assert.equal(mechanicsExports.length, 1, filename);
         return {

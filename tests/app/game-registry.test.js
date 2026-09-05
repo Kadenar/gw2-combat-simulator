@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { bootstrapGameApp } from '#app/bootstrap.js';
 import { defineGameRegistry, loadGameContent } from '#app/game/registry.js';
-import { loadGameWorkerDriver } from '../../js/games/worker-driver.js';
+import { loadGameWorkerDriver } from '#app/game/worker-driver.js';
 import { createFakeGamePlugin } from '../fixtures/fake-game-plugin.js';
 
 // Builds a game with no GW2 dependencies so registry and bootstrap behavior stay content-vocabulary neutral.
@@ -53,6 +53,7 @@ test('the GW2 game plug-in exposes the existing lazy profession registry', async
   assert.equal(typeof adapter.presentation.createViewModel, 'function');
   assert.equal(typeof adapter.capabilities.keybindImport.parse, 'function');
   assert.equal(await loadGameWorkerDriver({ gameId: 'unknown', contentId: 'warrior' }), null);
+  assert.equal(await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'unknown' }), null);
   assert.equal(await loadGameContent('gw2', 'unknown'), null);
 });
 
