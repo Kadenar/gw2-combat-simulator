@@ -84,6 +84,34 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   assert.ok(result.totalDamage > 0);
 });
 
+test('Shining Spin retains its strike only after the 440 ms commit cutoff', () => {
+  // A committed aftercast cancel preserves damage and releases the lane for Forge exit.
+  for (const interruptMs of [439, 440]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        'Enter Radiant Forge',
+        'Dazzling Hammer',
+        { name: 'Shining Spin', interruptMs },
+        'Exit Radiant Forge'
+      ],
+      config: { ...config, specialization: 'Luminary', boons: { quickness: true } }
+    });
+    const spin = result.steps.find((step) => step.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN);
+    const exit = result.steps.find((step) => step.skillId === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE);
+    const hits = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN
+    );
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(spin.end - spin.start, interruptMs);
+    assert.equal(exit.start, spin.end);
+    assert.equal(Boolean(spin.cancelledBeforeCommit), interruptMs < 440);
+    assert.equal(hits.length, interruptMs < 440 ? 0 : 1);
+    if (hits.length) assert.equal(Math.round(hits[0].at * 1000) - spin.start, 400);
+  }
+});
+
 test('Luminary Forge availability follows skill IDs after display labels change', () => {
   const state = createLuminaryState();
   state.radiantForge = true;

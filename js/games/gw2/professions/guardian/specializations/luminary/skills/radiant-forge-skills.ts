@@ -88,6 +88,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SHINING_SPIN]: {
     quicknessCastTimeMs: 480,
+    // The 400 ms strike remains committed when the remaining aftercast is cancelled at 440 ms.
+    interruptCommitMs: 440,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
