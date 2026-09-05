@@ -7,6 +7,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 
 export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'ranger.core.resources',
+  attackOfOpportunity: 'ranger.core.attack-of-opportunity',
   poisonousStrikes: 'ranger.core.poisonous-strikes',
   sharpeningStone: 'ranger.core.sharpening-stone',
   sunSpirit: 'ranger.core.sun-spirit',
@@ -56,6 +57,9 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     vigorRegenerationMultiplier: 1.5,
     effects: []
   },
+  variant(RANGER_CORE_BALANCE_PROFILE_IDS.attackOfOpportunity, ID.MAUL, 'Attack of Opportunity', {
+    durationMultiplier: 10
+  }),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {
     playerStacks: 2,
     durationMultiplier: 7,

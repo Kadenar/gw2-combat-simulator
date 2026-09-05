@@ -10,7 +10,12 @@ import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type {
+  RangerCastContext,
+  RangerSchedulerContext,
+  RangerSkill,
+  RangerResolverEvent
+} from '#gw2/professions/ranger/types.js';
 import { applyRangerDodgeTraits, applyRangerPetSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -61,6 +66,15 @@ export const rangerCoreSkillHandlers = Object.freeze({
     beforeEffects: swapRangerPets
   }),
   'ranger.weapon-swap': gw2WeaponSwapSkillHandler,
+  'ranger.hilt-bash': {
+    mode: 'augment' as const,
+    afterEffect(context: RangerCastContext, _skill: RangerSkill, event: RangerResolverEvent) {
+      // Defiant foes receive a stun; both variants remain control packets for trait reactions.
+      if (event.type === 'control' && context.config.target?.defiant) {
+        context.replaceEvent(event, { controlKind: 'Stun' });
+      }
+    }
+  },
   'ranger.winters-bite': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {

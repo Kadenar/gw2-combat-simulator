@@ -73,6 +73,7 @@ function queueTraitCondition(
     source: 'Trait',
     sourceId,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillId: sourceId,
     skillName: name,
     name: `${name} - ${condition}`,

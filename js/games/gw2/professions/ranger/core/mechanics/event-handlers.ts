@@ -13,6 +13,13 @@ export function handleRangerWinterBiteReady(context: RangerResolverContext, _eve
   professionCoreState(context).winterBiteReady = true;
 }
 
+/** Mirror scheduler pet ownership so companion buffs target the current pet incarnation. */
+export function handleRangerPetActive(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const state = professionCoreState(context);
+  state.petActive = event.active === true;
+  state.petAutoGeneration = Number(event.generation);
+}
+
 export function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: RangerResolverEvent): void {
   if (hasTrait(context, TRAIT.POISON_MASTER)) {
     professionCoreState(context).poisonMasterPetAttackReady = true;
@@ -58,7 +65,7 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Ra
     }
   }
 
-  state.petAutoGeneration += 1;
+  state.petAutoGeneration = Number(event.generation ?? state.petAutoGeneration + 1);
   const pet = rangerPetByName(String(event.activePet || ''));
   state.activePet = pet.name;
   state.activePetSlot = Number(event.activePetSlot) === 2 ? 2 : 1;

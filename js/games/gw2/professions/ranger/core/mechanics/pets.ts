@@ -375,6 +375,8 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
     state.petCommandReadyAt = Number(event.at);
     state.petCommandDelays = {};
     startPetAuto(context, Number(event.at), true);
+    // Pets without an autonomous profile do not advance generation; publish the actual identity.
+    context.replaceEvent(event, { generation: state.petAutoGeneration });
     return;
   }
 
@@ -451,6 +453,16 @@ export function setRangerPetActive(context: RangerSchedulerContext, active: bool
   state.petAutoBusyUntil = at;
   state.petCommandReadyAt = at;
   state.petCommandDelays = {};
+  // Keep resolver ownership and companion identity aligned through merge/unmerge transitions.
+  context.emit({
+    type: 'ranger.pet-active',
+    at,
+    source: 'ranger',
+    sourceId: 'ranger.pet-active',
+    actorType: 'player',
+    active,
+    generation: state.petAutoGeneration
+  });
   if (active) startPetAuto(context, at);
 }
 

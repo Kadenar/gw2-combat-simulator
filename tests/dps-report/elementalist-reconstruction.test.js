@@ -226,6 +226,55 @@ test('recovers an unexplained equipped aura skill from its buff activation', () 
   );
 });
 
+test('does not recover Catalyst Frigid Flurry combo auras as extra Frost Aura inputs', () => {
+  const catalog = {
+    skills: [
+      skill(ID.FROST_AURA, 'Frost Aura', { type: 'Weapon', castTimeMs: 0 }),
+      skill(ID.TRANSMUTE_FROST, 'Transmute Frost', { type: 'Weapon', quicknessCastTimeMs: 360 }),
+      skill(ID.FRIGID_FLURRY, 'Frigid Flurry', { type: 'Weapon', quicknessCastTimeMs: 1_000 })
+    ]
+  };
+
+  // A manual aura is consumed by Transmute Frost; Catalyst then gains another from a Frigid Flurry combo.
+  for (const profession of ['Catalyst', 'Elementalist']) {
+    const report = reportFixture(
+      profession,
+      [
+        { id: ID.TRANSMUTE_FROST, skills: [{ castTime: 1_500, duration: 360 }] },
+        { id: ID.FRIGID_FLURRY, skills: [{ castTime: 2_000, duration: 1_000 }] }
+      ],
+      {
+        [`s${ID.TRANSMUTE_FROST}`]: { name: 'Transmute Frost' },
+        [`s${ID.FRIGID_FLURRY}`]: { name: 'Frigid Flurry' }
+      },
+      {
+        player: {
+          weaponSets: [{ weapons: ['Pistol', 'Dagger'], timeframe: [0, 10_000] }],
+          buffUptimes: [
+            {
+              id: 5579,
+              states: [
+                [0, 0],
+                [1_000, 1],
+                [1_820, 0],
+                [2_280, 1],
+                [6_280, 0]
+              ]
+            }
+          ]
+        }
+      }
+    );
+
+    const result = reconstructDpsReportRotation(report, catalog);
+    const auras = result.actions.filter((action) => action.name === 'Frost Aura');
+
+    assert.equal(auras.length, profession === 'Catalyst' ? 1 : 2, profession);
+    assert.equal(auras[0].inferred, true);
+    assert.equal(auras[0].timestampMs, 1_000);
+  }
+});
+
 test('recovers Blinding Flash only in Air unless nearby casts explain both condition applications', () => {
   const report = reportFixture(
     'Elementalist',

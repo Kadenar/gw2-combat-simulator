@@ -8,6 +8,7 @@ import { eventSkill as gw2EventSkill, hasSelectedSkill } from '#gw2/platform/com
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
 import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import {
   rangerActiveBoonCount,
   rangerBoonActive,
@@ -424,6 +425,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
 
 // Keep player/shared and pet-audience collections distinct while preserving one public rule list.
 export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  rangerAttackOfOpportunityModifier,
   ...rangerPlayerAndSharedModifierRules,
   ...rangerPetModifierRules
 ]);

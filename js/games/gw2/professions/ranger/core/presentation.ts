@@ -25,6 +25,7 @@ import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/cor
 let rangerCatalog: Readonly<CanonicalCatalog>;
 
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
+  'ranger.pet-active',
   'ranger.beast-skill-used',
   'ranger.blood-thirst',
   'ranger.pet-swapped',

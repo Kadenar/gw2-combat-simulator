@@ -2,6 +2,8 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/core/mechanics/hammer-variants.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';
 
 const WEAPON_FLIP_DURATION_BY_PARENT = Object.freeze({
   [ID.COUNTERATTACK]: 5
@@ -15,6 +17,22 @@ export const RANGER_SPEAR_STEALTH_FLIP_BY_PARENT: Readonly<Record<number, number
 });
 
 const RANGER_SPEAR_STEALTH_ATTACK_IDS = new Set(Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT));
+
+/** Commit greatsword recharge and endurance changes only when the cast actually completes. */
+export function completeRangerWeaponSkill(context: RangerCastContext, skill: RangerSkill): void {
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (skill.id === ID.HILT_BASH) {
+    context.state.cooldowns.delete(ID.MAUL);
+    context.state.cooldowns.delete(ID.MAUL_ID_46629);
+  } else if (skill.id === ID.ENDURING_SWING) {
+    advanceRangerResources(context, context.effectiveEnd);
+    const state = professionCoreState(context);
+    Object.assign(
+      state,
+      grantEndurance(state, Number(skill.resourceGain ?? 15), context.effectiveEnd, state.maximumEndurance)
+    );
+  }
+}
 
 export function updateRangerWeaponState(context: RangerCastContext, skill: RangerSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;

@@ -208,6 +208,42 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
   );
 });
 
+test('shortens a slower precast lead-in without shifting later casts relative to report combat start', () => {
+  const report = parseDpsReport({
+    players: [
+      {
+        name: 'Fixture Elementalist',
+        profession: 'Elementalist',
+        rotation: [
+          { id: 1_000, skills: [{ castTime: -1_200, duration: 1_600 }] },
+          { id: 1_001, skills: [{ castTime: 400, duration: 400 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 1_000, name: 'Full Fight' }],
+    skillMap: { s1000: { name: 'Opening Cast' }, s1001: { name: 'Following Cast' } }
+  });
+  const result = reconstructDpsReportRotation(report, {
+    skills: [
+      skill(1_000, 'Opening Cast', {
+        type: 'Utility',
+        quicknessCastTimeMs: 1_000,
+        effects: [{ type: 'strike', ticks: [{ atMs: 800, coefficient: 1 }], timingAnchor: 'castStart' }]
+      }),
+      skill(1_001, 'Following Cast', { type: 'Weapon', quicknessCastTimeMs: 400 })
+    ]
+  });
+
+  // The faster replay opener must land at the report boundary while the next input remains 400 ms into combat.
+  assert.equal(result.timelineOriginMs + result.combatStartTimestampMs, 0);
+  assert.deepEqual(result.rotation, [
+    { name: 'Opening Cast', skillId: 1_000 },
+    { name: '__combat_start', offset: 800 },
+    { name: '__wait', waitMs: 200 },
+    { name: 'Following Cast', skillId: 1_001 }
+  ]);
+});
+
 test('preserves shortened per-packet cast durations from dps.report', () => {
   const report = parseDpsReport({
     players: [

@@ -34,7 +34,10 @@ import {
   rangerPetTaskHandlers
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';
-import { updateRangerWeaponState } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import {
+  completeRangerWeaponSkill,
+  updateRangerWeaponState
+} from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 
 /** Registers ordered Core Ranger hooks while behavior remains owned by pets, resources, weapons, and traits. */
 const rangerCoreExecutionHooks = Object.freeze({
@@ -75,6 +78,7 @@ const rangerCoreExecutionHooks = Object.freeze({
     handler: updateRangerWeaponState
   },
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
+    completeRangerWeaponSkill(context, skill);
     completeRangerTraits(context, skill);
   },
   onWeaponSwap: applyRangerWeaponSwapTraits

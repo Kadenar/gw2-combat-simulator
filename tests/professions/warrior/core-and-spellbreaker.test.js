@@ -1,4 +1,5 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -933,7 +934,7 @@ test('Warrior execution follows stable skill and packet IDs after display labels
   warriorCoreSkillHandlers['warrior.resource'].afterEffect(
     context,
     killShot,
-    { type: 'damage', coefficient: 1, at: 0, name: 'Renamed burst packet' },
+    { type: 'damage', coefficient: 2.25, at: 0, name: 'Renamed burst packet' },
     { spent: 30, berserkersPowerGranted: false }
   );
   assert.equal(replacements.at(-1).coefficient, 3.25);
@@ -1209,6 +1210,49 @@ test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gai
 
   assert.ok(Math.abs(defiant.strikeDamage / normal.strikeDamage - 1.2) < 1e-9);
   assert.ok(Math.abs(belowHalf.strikeDamage / normal.strikeDamage - 1.2) < 1e-9);
+});
+
+test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coefficients', () => {
+  const patched = withPatchPreview(warriorProfession, {
+    id: 'warrior-coefficient-test',
+    label: 'Warrior coefficient test',
+    professions: {
+      warrior: {
+        skills: {
+          [ID.KILL_SHOT]: { effects: [{ type: 'strike', coefficient: { multiply: 2 } }] },
+          [ID.FIERCE_BLOW]: { effects: [{ type: 'strike', tickIndex: 'all', coefficient: { multiply: 2 } }] }
+        }
+      }
+    }
+  });
+  const run = createProfessionSimulator(patched, { ...baseConfig, patchId: 'warrior-coefficient-test' });
+  const coefficient = (result, id) =>
+    result.events.find((event) => event.type === 'damage' && event.skillId === id).coefficient;
+  for (const [specialization, resource, expected] of [
+    ['Core', 10, 4.5],
+    ['Core', 20, 5.5],
+    ['Core', 30, 6.5],
+    ['Spellbreaker', 20, 4.5]
+  ]) {
+    assert.equal(
+      coefficient(
+        run(specialization, [ID.KILL_SHOT], { primaryWeapon: 'Rifle', initialResource: resource }),
+        ID.KILL_SHOT
+      ),
+      expected
+    );
+  }
+
+  for (const [target, expected] of [
+    [{ defiant: false, controlled: false }, 3.6],
+    [{ defiant: true }, 5.4],
+    [{ defiant: false, controlled: true }, 5.4]
+  ]) {
+    assert.equal(
+      coefficient(run('Core', [ID.FIERCE_BLOW], { primaryWeapon: 'Hammer', target }), ID.FIERCE_BLOW),
+      expected
+    );
+  }
 });
 
 test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {

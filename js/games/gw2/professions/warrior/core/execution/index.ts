@@ -66,8 +66,9 @@ function adjustResourceSkillEffect(
 
   const tier = burstTier(context, spent);
   if (skill.id === ID.KILL_SHOT) {
+    // Tier scaling must preserve the coefficient emitted from the active skill patch.
     context.replaceEvent(event, {
-      coefficient: [2.25, 2.75, 3.25][tier - 1],
+      coefficient: Number(event.coefficient) * ([2.25, 2.75, 3.25][tier - 1] / 2.25),
       name: `Kill Shot — Level ${tier} Damage`
     });
     return;
@@ -173,8 +174,9 @@ function adjustFierceBlowDamage(
     return;
   }
 
+  // Apply the controlled-target bonus to the patched strike, rather than replacing it.
   context.replaceEvent(event, {
-    coefficient: 2.7,
+    coefficient: Number(event.coefficient) * 1.5,
     name: 'Fierce Blow — Damage to Controlled or Defiant Foes'
   });
 }
