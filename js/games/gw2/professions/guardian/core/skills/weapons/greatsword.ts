@@ -6,11 +6,14 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LEAP_OF_FAITH]: {
     quicknessCastTimeMs: 720,
+    // Cancelling at or after 680 ms preserves the landing strike and blind at cast end.
+    interruptCommitMs: 680,
     effects: [
       {
         type: 'strike',
         coefficient: 2,
         hits: 1,
+        persistsAfterInterrupt: true,
         // Leap of Faith only creates combo effects when this packet resolves through an active field.
         comboFinishers: [
           {
@@ -22,7 +25,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'blind',
-        duration: 3
+        duration: 3,
+        persistsAfterInterrupt: true
       }
     ]
   },
