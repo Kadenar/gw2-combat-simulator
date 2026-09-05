@@ -3,18 +3,15 @@
  *
  * Holds the presentation rules that are true for every Elementalist build regardless of
  * elite specialization: which weapon skills belong to the equipped set, which palette
- * skills the current attunement allows, the start-attunement build controls, and the
- * attunement row shown in rotation state snapshots. Specialization modules contribute
- * their own UI slices on top of this; Weaver opts out of the attunement gates here
+ * skills the current attunement allows, and the start-attunement build controls.
+ * Attunement is shown in the palette, so the active-state summary omits it.
+ * Specialization modules contribute their own UI slices on top of this;
+ * Weaver opts out of the attunement gates here
  * because its dual-attunement model is owned by the Weaver presentation.
  */
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ProfessionStartControl,
-  ProfessionUiContract,
-  RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionStartControl, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -119,20 +116,6 @@ function paletteSkillAvailability(context: SchedulerRecord, skill: Skill) {
   return { available, message: available ? '' : `Requires ${String(skill.attunement)} attunement.` };
 }
 
-// Surfaces the current attunement as a rotation-timeline state row; Weaver publishes
-// its own dual-attunement row instead.
-function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
-  if (specialization(context) === 'Weaver') return [];
-  const current = state(context);
-  return [
-    {
-      id: 'elementalist-attunement',
-      label: 'Attunement',
-      value: String(current.primaryAttunement || 'Fire')
-    }
-  ];
-}
-
 /**
  * The Elementalist family's slice of the profession UI contract, applied under every
  * specialization. Weaver additionally exposes a secondary-attunement start control.
@@ -146,8 +129,7 @@ export const elementalistFamilyUi: Partial<ProfessionUiContract> & SchedulerReco
           attunementControl(context, 'secondaryAttunement', 'Secondary attunement')
         ]
       : [attunementControl(context, 'startAttunement', 'Start attunement')],
-  paletteSkillAvailability,
-  rotationStateSnapshot
+  paletteSkillAvailability
 });
 
 /** Shares the assembled catalog with family controls without rebuilding profession data. */

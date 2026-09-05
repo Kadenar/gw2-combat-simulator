@@ -348,6 +348,10 @@ function recoverAuraActions(
     const sources = new Set(config.baseSources);
     if (hasPistol) {
       for (const source of config.pistolSources || []) sources.add(source);
+      // Elemental Epitome can grant Frost Aura from Frigid Flurry's projectile combos, without a dagger input.
+      if (context.profile.specializationId === 'catalyst' && config.skillId === ID.FROST_AURA) {
+        sources.add('Frigid Flurry');
+      }
     }
 
     for (const at of activationTimes(states, true)) {

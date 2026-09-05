@@ -406,24 +406,14 @@ function timelineWeaponLineTransition(context: SchedulerRecord): string | undefi
   return target;
 }
 
-// Compact per-step readout of the two stockpile resources shown beside the rotation.
+// Summarize hammer orbs; pistol bullets already have dedicated palette controls.
 function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
-  const bullets = Object.entries(state.pistolBullets || {})
-    .filter(([, active]) => active)
-    .map(([element]) => element)
-    .join('/');
   const orbs = Object.entries(state.hammerOrbs || {})
     .filter(([, expiresAt]) => Number(expiresAt || 0) > 0)
     .map(([element]) => element)
     .join('/');
   return [
-    {
-      id: 'elementalist-pistol-bullets',
-      label: 'Bullets',
-      value: bullets || 'None',
-      active: Boolean(bullets)
-    },
     {
       id: 'elementalist-hammer-orbs',
       label: 'Orbs',

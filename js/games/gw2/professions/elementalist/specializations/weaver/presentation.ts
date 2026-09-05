@@ -152,15 +152,11 @@ function eventLogRow(_context: SchedulerRecord, event: SimulationEvent): Profess
   };
 }
 
-// Describe the Weaver state at one inspected point of the rotation editor.
+// Describe Weaver's active windows; its attunement pair is already shown in the palette.
 function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
-  const primary = String(state.primaryAttunement || 'Fire');
-  const secondary = String(state.secondaryAttunement || primary);
   const at = Math.max(0, Number(context.atSeconds || 0));
-  const items: RotationStateSnapshotItem[] = [
-    { id: 'elementalist-attunement', label: 'Attunement', value: `${primary}/${secondary}` }
-  ];
+  const items: RotationStateSnapshotItem[] = [];
 
   // Surface only the Weaver windows currently affecting the inspected rotation point,
   // so stance follow-ups and the temporary single-attunement override are easy to time.
