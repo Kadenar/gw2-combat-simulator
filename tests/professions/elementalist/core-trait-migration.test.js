@@ -253,7 +253,8 @@ const traitCases = [
   {
     name: "Pyromancer's Puissance and Flame Expulsion",
     traits: [TRAIT.PYROMANCERS_PUISSANCE],
-    rotation: ['Flame Uprising', 'Air Attunement'],
+    // Keep the observation window open for the delayed explosion.
+    rotation: ['Flame Uprising', 'Air Attunement', 1000],
     verify: (result) => {
       assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'might'));
       assert.ok(hasEvent(result, (event) => event.type === 'damage' && event.source === 'Flame Expulsion'));

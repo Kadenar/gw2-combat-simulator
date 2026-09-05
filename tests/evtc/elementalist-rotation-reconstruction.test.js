@@ -78,6 +78,7 @@ function catalogSkill(id, name, type = 'Profession', extras = {}) {
 // A fired aftercast cancellation keeps its observed duration and payload; cleanup after death stays outside the rotation.
 test('imports committed shortened Elementalist casts and excludes post-encounter swaps', () => {
   for (const [skillId, durationMs] of [
+    [ID.DRAGONS_TOOTH, 640],
     [ID.SEARING_SALVO, 640],
     [ID.FIRE_GRAB, 520],
     [ID.BOULDER_BLAST, 360],
@@ -108,7 +109,166 @@ test('imports committed shortened Elementalist casts and excludes post-encounter
   }
 });
 
-test('recovers the clipped power Tempest opener and legacy Flame Barrage commands', () => {
+// Direct damage plus a completion packet proves a clipped Ring cast without inventing any opener state.
+test('recovers an evidenced clipped Ring of Fire and instant Blinding Flash casts', () => {
+  const fixture = fixtureLog({
+    agents: [
+      { ...fixtureLog().agents[0], profession: 6, elite: 80 },
+      { address: TARGET, profession: 16199, elite: 0xffffffff, character: 'Target', account: '' }
+    ],
+    skills: [
+      { id: ID.RING_OF_FIRE, name: 'Ring of Fire' },
+      { id: ID.DUST_DEVIL, name: 'Dust Devil' },
+      { id: 720, name: 'Blinded' },
+      { id: 742, name: 'Weakness' }
+    ],
+    events: [
+      event({ time: 1_000, target: TARGET, skillId: ID.RING_OF_FIRE, value: 100 }),
+      event({
+        time: 1_200,
+        skillId: ID.RING_OF_FIRE,
+        value: 480,
+        buffDamage: 700,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      }),
+      event({ time: 1_200, skillId: ID.DUST_DEVIL, value: 400, activation: EVTC_ACTIVATION.START }),
+      event({ time: 1_600, skillId: ID.DUST_DEVIL, value: 400, activation: EVTC_ACTIVATION.CANCEL_FIRE }),
+      event({ time: 1_760, target: TARGET, skillId: 720, value: 6_000, buff: 1 }),
+      event({ time: 2_000, target: PLAYER, skillId: 5575, value: 1, buff: 1 }),
+      event({ time: 2_200, target: TARGET, skillId: 720, value: 6_000, buff: 1 }),
+      event({ time: 2_200, target: TARGET, skillId: 742, value: 4_000, buff: 1 }),
+      event({ time: 2_800, target: TARGET, skillId: 720, value: 2_000, buff: 1 })
+    ]
+  });
+  const result = reconstructEvtcRotation(fixture, elementalistCatalog, { includeCombatStart: false });
+
+  assert.equal(result.actions.find((action) => action.skillId === ID.RING_OF_FIRE)?.status, 'completed');
+  assert.deepEqual(
+    result.actions.filter((action) => action.skillId === ID.BLINDING_FLASH).map((action) => action.timestampMs),
+    [1_480, 2_080]
+  );
+  assert.deepEqual(result.warnings, ['2 instant casts were inferred from direct skill effects.']);
+});
+
+// Initial buff snapshots are state observations, while direct damage confirms the clipped weapon input.
+test('keeps an evidenced clipped Ring without turning initial Fire state into an action', () => {
+  const fixture = fixtureLog({
+    agents: [
+      { ...fixtureLog().agents[0], profession: 6, elite: 80 },
+      { address: TARGET, profession: 16199, elite: 0xffffffff, character: 'Target', account: '' }
+    ],
+    skills: [
+      { id: 5585, name: 'Fire Attunement' },
+      { id: ID.RING_OF_FIRE, name: 'Ring of Fire' },
+      { id: ID.DUST_DEVIL, name: 'Dust Devil' }
+    ],
+    events: [
+      event({
+        time: 1_000,
+        target: PLAYER,
+        skillId: 5585,
+        buff: 1,
+        stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+      }),
+      event({ time: 1_000, target: TARGET, skillId: ID.RING_OF_FIRE, value: 100 }),
+      event({
+        time: 1_200,
+        skillId: ID.RING_OF_FIRE,
+        value: 480,
+        buffDamage: 700,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      }),
+      event({ time: 1_200, skillId: ID.DUST_DEVIL, value: 400, activation: EVTC_ACTIVATION.START }),
+      event({ time: 1_600, skillId: ID.DUST_DEVIL, value: 400, activation: EVTC_ACTIVATION.CANCEL_FIRE })
+    ]
+  });
+
+  const result = reconstructEvtcRotation(fixture, elementalistCatalog, {
+    includeCombatStart: false,
+    professionConfig: { startAttunement: 'Earth' }
+  });
+
+  assert.equal(
+    result.actions.some((action) => action.name === 'Fire Attunement'),
+    false
+  );
+  assert.equal(result.actions.filter((action) => action.name === 'Ring of Fire').length, 1);
+});
+
+// Pistol auras can unlock Transmute Fire; only an otherwise unexplained self-aura proves a missing Focus input.
+test('Fire Shield recovery distinguishes pistol auras and keeps untransmuted Focus inputs', () => {
+  for (const sourceId of [ID.SEARING_SALVO, ID.ELEMENTAL_EXPLOSION, null]) {
+    const source = elementalistCatalog.skillsById.get(sourceId);
+    const fixture = fixtureLog({
+      agents: [{ ...fixtureLog().agents[0], profession: 6, elite: 80 }],
+      skills: [
+        { id: 5677, name: 'Fire Aura' },
+        ...(source
+          ? [
+              { id: source.id, name: source.name },
+              { id: ID.TRANSMUTE_FIRE, name: 'Transmute Fire' }
+            ]
+          : [])
+      ],
+      events: [
+        event({ time: 1000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+        ...(source ? animation(source.id, 1000, source.quicknessCastTimeMs) : []),
+        event({
+          time: 1500,
+          target: PLAYER,
+          skillId: 5677,
+          buff: 1,
+          value: 4000,
+          stateChange: EVTC_STATE_CHANGE.BUFF_APPLY
+        }),
+        ...(source ? animation(ID.TRANSMUTE_FIRE, 2000, 360) : [])
+      ].sort((left, right) => left.time - right.time)
+    });
+    const result = reconstructEvtcRotation(fixture, elementalistCatalog, {
+      professionConfig: { secondaryWeapon: 'Focus' }
+    });
+    assert.equal(
+      result.actions.some((action) => action.skillId === ID.FIRE_SHIELD),
+      sourceId == null
+    );
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
+// The Dagger skill has no activation packet, while shorter trait and combo Frost Auras are not player inputs.
+test('recovers only ten-second self-applied Frost Aura gains with an off-hand Dagger', () => {
+  const fixture = fixtureLog({
+    agents: [{ ...fixtureLog().agents[0], profession: 6, elite: 80 }],
+    skills: [
+      { id: 5579, name: 'Frost Aura' },
+      { id: ID.WATER_TRIDENT, name: 'Water Trident' }
+    ],
+    events: [
+      event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(ID.WATER_TRIDENT, 1_000, 600),
+      event({ time: 1_200, target: PLAYER, skillId: 5579, value: 10_000, buff: 1 }),
+      event({ time: 2_000, target: PLAYER, skillId: 5579, value: 5_000, buff: 1 })
+    ].sort((left, right) => left.time - right.time)
+  });
+
+  const withDagger = reconstructEvtcRotation(fixture, elementalistCatalog, {
+    professionConfig: { secondaryWeapon: 'Dagger' }
+  });
+  const withoutDagger = reconstructEvtcRotation(fixture, elementalistCatalog);
+
+  assert.deepEqual(
+    withDagger.actions
+      .filter((action) => action.skillId === ID.FROST_AURA)
+      .map(({ timestampMs, evidence }) => ({ timestampMs, evidence })),
+    [{ timestampMs: 200, evidence: 'buff-transition' }]
+  );
+  assert.equal(
+    withoutDagger.actions.some((action) => action.skillId === ID.FROST_AURA),
+    false
+  );
+});
+
+test('keeps only evidenced Tempest and elemental-command inputs', () => {
   const events = [
     event({
       time: 10_000,
@@ -253,27 +413,20 @@ test('recovers the clipped power Tempest opener and legacy Flame Barrage command
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
-  assert.deepEqual(result.rotation.slice(0, 4), [
-    { name: 'Rock Barrier', skillId: ID.ROCK_BARRIER },
-    { name: 'Air Attunement', skillId: ID.AIR_ATTUNEMENT },
-    { name: '__wait', waitMs: 5_000 },
-    { name: 'Overload Air', skillId: ID.OVERLOAD_AIR }
-  ]);
+  assert.equal(
+    result.actions.some((action) => action.name === 'Rock Barrier'),
+    false
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Air Attunement'),
+    false
+  );
+  assert.equal(result.actions.find((action) => action.name === 'Overload Air')?.status, 'completed');
   assert.deepEqual(
-    result.actions
-      .filter((action) => action.name === 'Flame Barrage')
-      .map(({ timestampMs, evidence }) => ({ timestampMs, evidence })),
-    [
-      { timestampMs: 8_860, evidence: 'initial-state' },
-      { timestampMs: 18_860, evidence: 'legacy-activation' }
-    ]
+    result.actions.filter((action) => action.name === 'Flame Barrage').map(({ evidence }) => evidence),
+    ['legacy-activation']
   );
   assert.equal(result.actions.filter((action) => action.name === 'Hurl').length, 1);
-  assert.deepEqual(
-    result.rotation.find((command) => command.name === '__combat_start'),
-    { name: '__combat_start', offset: 3_120 }
-  );
-  assert.equal(result.combatStartTimestampMs, 8_883);
 });
 
 test('cancels shortened Arc Lightning fixtures without a declared commit or per-packet mode', () => {
@@ -613,7 +766,7 @@ test('reconstructs Catalyst attunements, Glyph of Storms aliases, and Earth Stom
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
-    ['Stomp', 'Air Attunement', 'Glyph of Storms (Air)', 'Earth Attunement', 'Glyph of Storms (Fire)', 'Stomp']
+    ['Air Attunement', 'Glyph of Storms (Air)', 'Earth Attunement', 'Glyph of Storms (Fire)', 'Stomp']
   );
   assert.equal(
     result.actions.some((action) => action.name === 'Fire Attunement'),
@@ -623,40 +776,10 @@ test('reconstructs Catalyst attunements, Glyph of Storms aliases, and Earth Stom
     result.actions.filter((action) => action.name.startsWith('Glyph of Storms')).map((action) => action.rawSkillId),
     [5737, 5736]
   );
-  assert.deepEqual(
-    result.actions.filter((action) => action.name === 'Stomp'),
-    [
-      {
-        timestampMs: 0,
-        endTimestampMs: 0,
-        durationMs: 0,
-        expectedDurationMs: 0,
-        rawSkillId: 2666,
-        skillId: 2666,
-        name: 'Stomp',
-        kind: 'elite',
-        evidence: 'animation',
-        status: 'instant',
-        supportedByCatalog: true
-      },
-      {
-        timestampMs: 6120,
-        endTimestampMs: 6120,
-        durationMs: 0,
-        expectedDurationMs: 0,
-        rawSkillId: 2666,
-        skillId: 2666,
-        name: 'Stomp',
-        kind: 'elite',
-        evidence: 'animation',
-        status: 'instant',
-        supportedByCatalog: true
-      }
-    ]
-  );
+  assert.equal(result.actions.filter((action) => action.name === 'Stomp').length, 1);
 });
 
-test('recovers an opening spear etching after the configured starting attunement', () => {
+test('does not infer an opening spear etching from initial state', () => {
   const events = [
     event({
       time: 1_000,
@@ -771,32 +894,9 @@ test('recovers an opening spear etching after the configured starting attunement
   const actionNames = (result) => result.actions.map((action) => action.name);
 
   assert.deepEqual(fromFire.warnings, []);
-  assert.deepEqual(actionNames(fromFire), [
-    'Air Attunement',
-    'Etching: Derecho',
-    'Glyph of Storms (Air)',
-    'Twister',
-    'Fulgor',
-    'Derecho',
-    'Etching: Derecho'
-  ]);
-  assert.deepEqual(actionNames(fromAir), [
-    'Etching: Derecho',
-    'Glyph of Storms (Air)',
-    'Twister',
-    'Fulgor',
-    'Derecho',
-    'Etching: Derecho'
-  ]);
-  assert.equal(fromFire.actions.filter((action) => action.name === 'Etching: Derecho').length, 2);
-  assert.deepEqual(
-    fromFire.actions.slice(0, 3).map(({ name, timestampMs }) => ({ name, timestampMs })),
-    [
-      { name: 'Air Attunement', timestampMs: 0 },
-      { name: 'Etching: Derecho', timestampMs: 0 },
-      { name: 'Glyph of Storms (Air)', timestampMs: 280 }
-    ]
-  );
+  const recorded = ['Glyph of Storms (Air)', 'Twister', 'Fulgor', 'Derecho', 'Etching: Derecho'];
+  assert.deepEqual(actionNames(fromFire), recorded);
+  assert.deepEqual(actionNames(fromAir), recorded);
 });
 
 test('uses the Evoker parser to normalize familiar skills', () => {
@@ -933,16 +1033,6 @@ test('uses the Evoker parser to normalize familiar skills', () => {
     })),
     [
       {
-        rawSkillId: 2662,
-        skillId: 2662,
-        name: 'Flame Barrage'
-      },
-      {
-        rawSkillId: 76925,
-        skillId: ID.CALCIFY,
-        name: 'Calcify'
-      },
-      {
         rawSkillId: 77247,
         skillId: ID.TOADS_FORTITUDE,
         name: "Toad's Fortitude"
@@ -961,7 +1051,7 @@ test('uses the Evoker parser to normalize familiar skills', () => {
   );
 });
 
-test('reconstructs a clipped Evoker scepter/focus opener and instant familiar inputs', () => {
+test('keeps only recorded Evoker scepter/focus and familiar inputs', () => {
   const events = [
     event({
       time: 3_000,
@@ -1109,12 +1199,9 @@ test('reconstructs a clipped Evoker scepter/focus opener and instant familiar in
       .filter((action) => ["Dragon's Tooth", 'Flame Barrage', 'Ignite', 'Fire Shield'].includes(action.name))
       .map(({ name, timestampMs, evidence }) => ({ name, timestampMs, evidence })),
     [
-      { name: "Dragon's Tooth", timestampMs: 0, evidence: 'effect' },
-      { name: 'Flame Barrage', timestampMs: 180, evidence: 'legacy-activation' },
-      { name: 'Ignite', timestampMs: 380, evidence: 'legacy-activation' },
-      { name: 'Ignite', timestampMs: 1_680, evidence: 'legacy-activation' },
-      { name: 'Fire Shield', timestampMs: 2_180, evidence: 'buff-transition' },
-      { name: "Dragon's Tooth", timestampMs: 3_680, evidence: 'animation' }
+      { name: 'Ignite', timestampMs: 1_000, evidence: 'legacy-activation' },
+      { name: 'Fire Shield', timestampMs: 1_500, evidence: 'buff-transition' },
+      { name: "Dragon's Tooth", timestampMs: 3_000, evidence: 'animation' }
     ]
   );
   assert.ok(
@@ -1123,7 +1210,7 @@ test('reconstructs a clipped Evoker scepter/focus opener and instant familiar in
   );
 });
 
-test('reconstructs Air Evoker instant inputs from their owned animation and self-buffs', () => {
+test('uses direct Zap damage instead of duplicate owned familiar animations', () => {
   const events = [
     event({ time: 2_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
     event({
@@ -1136,6 +1223,17 @@ test('reconstructs Air Evoker instant inputs from their owned animation and self
       sourceMasterInstance: 7,
       stateChange: EVTC_STATE_CHANGE.ANIMATION_START
     }),
+    event({
+      time: 2_150,
+      source: AIR_FAMILIAR,
+      target: TARGET,
+      value: 800,
+      skillId: 76803,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.START
+    }),
+    event({ time: 2_620, target: TARGET, value: 100, skillId: 76803 }),
     event({
       time: 2_200,
       target: PLAYER,
@@ -1197,7 +1295,9 @@ test('reconstructs Air Evoker instant inputs from their owned animation and self
     events
   };
   const skills = [
-    catalogSkill(ID.ZAP, 'Zap'),
+    catalogSkill(ID.ZAP, 'Zap', 'Profession', {
+      effects: [{ type: 'strike', ticks: [{ atMs: 520, coefficient: 0.6 }] }]
+    }),
     catalogSkill(ID.ARCANE_ECHO, 'Arcane Echo', 'Utility'),
     catalogSkill(ID.ENERGIZE, 'Energize', 'Weapon', {
       slot: 'Weapon_3',
@@ -1211,7 +1311,7 @@ test('reconstructs Air Evoker instant inputs from their owned animation and self
   assert.deepEqual(
     result.actions.map(({ name, timestampMs, evidence }) => ({ name, timestampMs, evidence })),
     [
-      { name: 'Zap', timestampMs: 100, evidence: 'animation' },
+      { name: 'Zap', timestampMs: 100, evidence: 'effect' },
       { name: 'Arcane Echo', timestampMs: 200, evidence: 'buff-transition' },
       { name: 'Energize', timestampMs: 300, evidence: 'buff-transition' }
     ]
@@ -1366,6 +1466,79 @@ test('keeps committed Calcify inputs when Seismic Impact cancels the familiar an
     false
   );
   assert.equal(result.actions.find((action) => action.name === 'Calcify')?.timestampMs, 100);
+});
+
+// Elemental Procession's owned Seismic Impact packets are summon effects, not player Calcify inputs.
+test('does not recover Calcify from owned Seismic Impact packets', () => {
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5585,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    ...animation(ID.ELEMENTAL_PROCESSION, 1_900, 600),
+    event({ time: 2_200, target: TARGET, value: 100, skillId: 76681 }),
+    event({
+      time: 2_250,
+      source: EARTH_ELEMENTAL,
+      value: 750,
+      skillId: 76681,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.CANCEL_CANCEL
+    }),
+    event({
+      time: 3_000,
+      source: EARTH_ELEMENTAL,
+      value: 1_000,
+      skillId: 76681,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.START
+    }),
+    event({ time: 4_840, target: TARGET, value: 100, skillId: 76681 }),
+    event({
+      time: 4_880,
+      source: EARTH_ELEMENTAL,
+      value: 1_880,
+      skillId: 76681,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.CANCEL_CANCEL
+    })
+  ];
+  const fixture = fixtureLog({
+    agents: [
+      { ...fixtureLog().agents[0], profession: 6, elite: 80 },
+      { address: TARGET, profession: 16199, elite: 0, character: 'Target', account: '' },
+      {
+        address: EARTH_ELEMENTAL,
+        profession: 27031,
+        elite: 0,
+        character: 'ch27031-10',
+        account: ''
+      }
+    ],
+    skills: [
+      { id: 5585, name: 'Fire Attunement' },
+      { id: 76681, name: 'Seismic Impact' }
+    ],
+    events
+  });
+  const skills = [
+    catalogSkill(ID.CALCIFY, 'Calcify'),
+    catalogSkill(ID.SEISMIC_IMPACT, 'Seismic Impact'),
+    catalogSkill(ID.ELEMENTAL_PROCESSION, 'Elemental Procession', 'Elite', { quicknessCastTimeMs: 600 })
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.equal(
+    result.actions.some((action) => action.skillId === ID.CALCIFY),
+    false
+  );
 });
 
 test('delays queued Calcify only when an active slot 2-5 weapon cast supplies its missing charges', () => {

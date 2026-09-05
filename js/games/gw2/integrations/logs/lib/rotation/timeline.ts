@@ -160,7 +160,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   for (const entry of entries) {
     const at = entry.type === 'action' ? entry.action.start : entry.at;
     const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
-    const overlapping = at < blockingEnd - timingToleranceMs;
+    // Combat can start on the final packet of a cast; action jitter must not postpone its observation window.
+    const overlapping = at < blockingEnd - (entry.type === 'combat-start' ? 0 : timingToleranceMs);
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
         // Keep a packet-proven observation boundary exact so action-frame rounding cannot move it past an opener.

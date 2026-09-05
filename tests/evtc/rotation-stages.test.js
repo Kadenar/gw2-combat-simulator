@@ -57,3 +57,28 @@ test('modern and legacy animation pairing preserve event order at a cast boundar
     assert.equal(actions[1].status, 'unknown');
   }
 });
+
+// A legacy opening cast remains observable when its start is clipped but both its effect and completion are logged.
+test('legacy animation pairing recovers an evidenced clipped opening cast', () => {
+  const fixture = log({
+    events: [
+      event({ time: 1_000, target: 0x2000n, skillId: 1000, value: 100 }),
+      event({ time: 1_200, skillId: 1000, activation: EVTC_ACTIVATION.CANCEL_FIRE, value: 480 }),
+      event({ time: 1_200, skillId: 1001, activation: EVTC_ACTIVATION.START, value: 400 })
+    ]
+  });
+
+  const actions = legacyActivationActions(
+    fixture,
+    PLAYER,
+    new Map([
+      [1000, 'Clipped cast'],
+      [1001, 'Following cast']
+    ])
+  );
+
+  assert.equal(actions[0].rawName, 'Clipped cast');
+  assert.equal(actions[0].start, 720);
+  assert.equal(actions[0].end, 1200);
+  assert.equal(actions[0].precast, true);
+});

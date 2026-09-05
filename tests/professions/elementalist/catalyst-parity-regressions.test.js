@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createModifierHooks } from '#gw2/platform/combat/modifiers/rules.js';
+import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import {
   applyCatalystEmpowerment,
@@ -10,6 +11,149 @@ import {
 import { catalystAttributeRules } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
 import { createCatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/traits/modifiers.js';
+import { createNativeApp, runNative, resolvedAndScheduledEvents } from '../../helpers/elementalist-simulation.js';
+
+// Elemental Empowerment scales Condition Damage supplied before combat by traits and utility conversions.
+test('Catalyst includes build-time derived Condition Damage in its empowerment pool', () => {
+  const { app } = createNativeApp({
+    lines: [
+      ['Fire', '1-1-2'],
+      ['Earth', '2-1-2'],
+      ['Catalyst', '2-1-2']
+    ],
+    utility: 'Toxic Tuning Crystal',
+    selectedSkills: { Utility1: 'Signet of Fire' }
+  });
+  const conditionDamage = app.attributeData.attributes['Condition Damage'];
+  const config = elementalistAppAdapter.simulationConfig(app);
+
+  assert.ok(conditionDamage.utility > 0);
+  assert.ok(conditionDamage.traits > 0);
+  assert.equal(config.catalystEmpowermentPool.conditionDamage, conditionDamage.final);
+});
+
+// The field and enhanced burst share the projectile's release clock, even after an interrupted aftercast.
+test('Frozen Fusillade detonates at field expiry after its projectile commits', () => {
+  for (const interruptAfterMs of [280, 320, 520]) {
+    const result = runNative({
+      lines: [['Fire'], ['Earth'], ['Catalyst', '2-1-2']],
+      weapons: ['Pistol', 'Dagger'],
+      startAttunement: 'Water',
+      pistolBullets: { Fire: false, Water: true, Air: false, Earth: false },
+      rotation: [
+        { type: 'cast', skillId: elementalistCatalog.skillsByName.get('Frozen Fusillade').id, interruptAfterMs },
+        5000
+      ]
+    });
+    const field = result.events.find((event) => event.type === 'combo_field' && event.fieldType === 'Ice');
+    const bleeding = result.resolvedEvents.find(
+      (event) => event.skillName === 'Frozen Fusillade' && event.condition === 'Bleeding'
+    );
+    assert.deepEqual(result.warnings, []);
+    if (interruptAfterMs < 320) {
+      assert.equal(field, undefined);
+      assert.equal(bleeding, undefined);
+    } else {
+      assert.equal(field.at, 0.32);
+      assert.equal(field.expiresAt, 4.32);
+      assert.equal(bleeding.at, field.expiresAt);
+      assert.equal(bleeding.stacks, 5);
+      assert.equal(bleeding.duration, 8);
+    }
+  }
+});
+
+// An existing field's next three impacts consume the charges armed by the later pistol cast.
+test('Shattering Stone follow-ups use hit order across already-scheduled attacks', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Earth'], ['Catalyst', '2-1-2']],
+    weapons: ['Pistol', 'Dagger'],
+    startAttunement: 'Earth',
+    pistolBullets: { Fire: false, Water: false, Air: false, Earth: true },
+    rotation: ['Deploy Jade Sphere (Earth)', 'Shattering Stone', 4000]
+  });
+  const followups = result.resolvedEvents.filter(
+    (event) => event.skillName === 'Shattering Stone' && event.condition === 'Bleeding' && event.duration === 5
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(followups.length, 3);
+  for (const [index, event] of followups.entries()) {
+    assert.ok(Math.abs(event.at - (index + 1)) < 0.001);
+    assert.equal(event.stacks, 1);
+  }
+});
+
+// Spending an earth bullet adds a ten-second trigger window, leaving the base Bleeding unchanged.
+test('Shattering Stone keeps its base Bleeding and expires unused follow-up charges', () => {
+  for (const earthBullet of [false, true]) {
+    const result = runNative({
+      lines: [['Fire'], ['Earth'], ['Catalyst', '2-1-2']],
+      weapons: ['Pistol', 'Dagger'],
+      startAttunement: 'Earth',
+      pistolBullets: { Fire: false, Water: false, Air: false, Earth: earthBullet },
+      rotation: ['Shattering Stone', 11000, 'Piercing Pebble']
+    });
+    const applications = result.resolvedEvents.filter(
+      (event) => event.skillName === 'Shattering Stone' && event.condition === 'Bleeding'
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      applications.map(({ stacks, duration }) => ({ stacks, duration })),
+      [{ stacks: 3, duration: 10 }]
+    );
+    const buffs = result.events.filter((event) => event.kind === 'shattering stone');
+    assert.deepEqual(
+      buffs.map(({ stacks, duration }) => ({ stacks, duration })),
+      earthBullet ? [{ stacks: 3, duration: 10 }] : []
+    );
+  }
+});
+
+// A scheduled aura and a resolved combo each pay their aura traits once across both phases.
+test('Catalyst grants one aura and one set of trait stacks per aura source', () => {
+  for (const [startAttunement, rotation] of [
+    ['Water', ['Vapor Blade', 'Frost Aura', 1000]],
+    ['Fire', ['Deploy Jade Sphere (Fire)', 'Arcane Wave', 1000]]
+  ]) {
+    const result = runNative({
+      lines: [
+        ['Air', '1-1-1'],
+        ['Earth', '1-1-1'],
+        ['Catalyst', '1-1-2']
+      ],
+      weapons: ['Dagger', 'Dagger'],
+      startAttunement,
+      rotation
+    });
+    const events = resolvedAndScheduledEvents(result);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.profession.activeAuras.length, 1);
+    assert.equal(result.profession.elementalEmpowermentExpiries.length, 4);
+    assert.equal(
+      events
+        .filter((event) => event.type === 'buff' && event.kind === 'empowering auras')
+        .reduce((total, event) => total + event.stacks, 0),
+      1
+    );
+  }
+});
+
+// The channel can trigger its Water aura whether it loads or consumes an ice bullet.
+test('Frigid Flurry can finish combos with either initial ice-bullet state', () => {
+  for (const waterBullet of [false, true]) {
+    const result = runNative({
+      lines: [['Fire'], ['Earth'], ['Catalyst', '1-1-2']],
+      weapons: ['Pistol', 'Dagger'],
+      startAttunement: 'Water',
+      pistolBullets: { Fire: false, Water: waterBullet, Air: false, Earth: false },
+      rotation: ['Deploy Jade Sphere (Water)', 'Frigid Flurry', 1000]
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.profession.activeAuras.length, 1);
+    assert.equal(result.profession.activeAuras[0].type, 'Frost Aura');
+    assert.equal(result.profession.elementalEmpowermentExpiries.length, 4);
+  }
+});
 
 // These unit checks exercise Catalyst state and catalog behavior directly so
 // their expectations do not depend on a saved full rotation.

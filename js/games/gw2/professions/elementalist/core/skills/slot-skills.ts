@@ -375,8 +375,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     },
     11
   ),
-  // Air is authored as several parallel tick layers so that same-timestamp Vulnerability lands
-  // after the hit that caused it; each layer contributes its own strike + condition pair.
+  // Air commits when its first 880ms packets launch; its field keeps ticking after the caster
+  // cancels the remaining animation. Parallel layers keep Vulnerability behind its source hit.
   [ID.GLYPH_OF_STORMS_AIR]: withSmallHitboxCap(
     {
       name: 'Glyph of Storms (Air)',
@@ -385,6 +385,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       attunement: 'Air',
       categories: ['Glyph'],
       quicknessCastTimeMs: 1120,
+      interruptCommitMs: 880,
       cooldown: 60,
       skillFamily: 'Glyph',
       effects: [
@@ -429,7 +430,11 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         [{ atMs: 880, coefficient: 0.7425 }]
       ].flatMap((ticks) => [
-        strikeTimeline(ticks, { timingAnchor: 'castStart', timingScale: 'cast' }),
+        strikeTimeline(ticks, {
+          timingAnchor: 'castStart',
+          timingScale: 'cast',
+          persistsAfterInterrupt: true
+        }),
         conditionTimeline(
           ticks.map(({ atMs }) => ({
             atMs,
@@ -437,7 +442,11 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
             stacks: 2,
             duration: 8
           })),
-          { timingAnchor: 'castStart', timingScale: 'cast' }
+          {
+            timingAnchor: 'castStart',
+            timingScale: 'cast',
+            persistsAfterInterrupt: true
+          }
         )
       ])
     },

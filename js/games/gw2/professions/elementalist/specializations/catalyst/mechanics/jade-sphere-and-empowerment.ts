@@ -382,6 +382,7 @@ function applyEmpoweringAuras(context: ElementalistSchedulerContext, event: Simu
       sourceId,
       actorType: 'player',
       kind: 'empowering auras',
+      schedulerPrediction: event.schedulerPrediction,
       stacks: 1,
       duration,
       skillName: source
@@ -444,6 +445,7 @@ function applyElementalEpitomeAura(context: ElementalistSchedulerContext, event:
       sourceId,
       actorType: 'player',
       kind: 'elemental empowerment',
+      schedulerPrediction: event.schedulerPrediction,
       stacks: Number(empowerment?.stacks ?? 1),
       duration: Number(empowerment?.duration ?? 15),
       skillName: source
@@ -497,6 +499,16 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
   // Combo finishers drive Elemental Epitome's aura and Elemental Synergy's payout,
   // each on its own per-attunement internal cooldown.
   if (event.type === 'combo') {
+    // Predicted combo payouts inform scheduling, then the resolver produces the
+    // actual aura and boons. Keep every synchronous payout in the prediction.
+    if (event.schedulerPrediction === 'combo-result') {
+      const emit = context.emit;
+      context = {
+        ...context,
+        emit: (output) => emit({ ...output, schedulerPrediction: event.schedulerPrediction })
+      };
+    }
+
     const state = catalystState.from(context);
     const core = professionCoreState(context);
     const attunement = String(event.attunement || core.primaryAttunement) as ElementalistAttunement;

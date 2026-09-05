@@ -61,7 +61,7 @@ test('modern and legacy EVTC casts obey cancellation contracts across every prof
         { metadata: { interruptCommitMs: 240 } },
         { metadata: { interruptCommitMs: 200 }, damagePackets: 2 },
         { metadata: { effectCommitMs: 200 }, damagePackets: 2 },
-        { duration: 199, metadata: { interruptMode: 'per-packet' }, damagePackets: 1 }
+        { duration: 438, metadata: { interruptMode: 'per-packet' }, damagePackets: 2 }
       ]) {
         const catalog = createCanonicalCatalog({
           generated: [
@@ -115,9 +115,13 @@ test('modern and legacy EVTC casts obey cancellation contracts across every prof
         const attempt = replay.steps.find((step) => step.skillId === 1_000);
         const following = replay.steps.find((step) => step.skillId === 1_001);
         const label = `${professionCode}, modern=${modern}, duration=${duration}, ${JSON.stringify(metadata)}`;
+        const replayDuration = metadata.interruptMode === 'per-packet' ? 440 : duration;
 
-        assert.equal(attempt.end - attempt.start, duration, label);
-        assert.equal(following.start, duration, label);
+        if (metadata.interruptMode === 'per-packet') {
+          assert.equal(imported.rotation.find((command) => command.skillId === 1_000)?.interruptMs, 440, label);
+        }
+        assert.equal(attempt.end - attempt.start, replayDuration, label);
+        assert.equal(following.start, replayDuration, label);
         assert.equal(
           replay.events.filter((packet) => packet.type === 'damage' && packet.skillId === 1_000).length,
           damagePackets,

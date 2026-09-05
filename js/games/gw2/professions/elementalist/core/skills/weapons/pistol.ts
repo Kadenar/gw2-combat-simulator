@@ -436,8 +436,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
-  // Lays an ice field on impact. Spending a Water bullet also schedules a delayed detonation strike and
-  // Bleeding from the pistol cast handler, which is why none of that appears in the declared effects.
+  // The released shot starts a four-second ice field. Its enhanced detonation
+  // follows that field's expiry, independently of the remaining aftercast.
   [ID.FROZEN_FUSILLADE]: {
     name: 'Frozen Fusillade',
     type: 'Weapon',
@@ -446,17 +446,23 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Water',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 520,
+    interruptCommitMs: 320,
     cooldown: 15,
-    comboFields: [
-      {
-        ownerId: 'elementalist',
-        fieldType: 'Ice',
-        duration: 4,
-        startAnchor: 'castEnd'
-      }
-    ],
     skillFamily: 'Weapon skill',
     effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 320,
+            coefficient: 0
+          }
+        ],
+        comboFields: [{ ownerId: 'elementalist', fieldType: 'Ice', duration: 4 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      },
       {
         type: 'strike',
         ticks: [
@@ -466,7 +472,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -480,6 +487,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]
@@ -492,6 +500,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Air',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 520,
+    // The launched projectile still applies its strike and Vulnerability after an aftercast cancellation.
+    interruptCommitMs: 320,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -504,7 +514,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -518,6 +529,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]

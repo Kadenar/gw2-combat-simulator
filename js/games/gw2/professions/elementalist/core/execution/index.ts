@@ -111,7 +111,6 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
  * and one-shot spear empowerments modify the exact activation they belong to.
  */
 export function elementalistAfterCast(context: ElementalistLifecycleContext, skill: Skill): void {
-  const state = professionCoreState(context);
   extendPersistingFlamesPackets(context, skill);
   const activationEvents = context.events
     .filter(
@@ -120,8 +119,9 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
     )
     .sort((left, right) => left.at - right.at);
 
-  if (Number(skill.id) === ID.FRIGID_FLURRY && state.pistolBullets.Water === true) {
-    // An active ice bullet gives every Frigid Flurry strike its fixed 20% projectile-finisher chance.
+  if (Number(skill.id) === ID.FRIGID_FLURRY) {
+    // Every Frigid Flurry shot has a 20% projectile-finisher chance; the ice
+    // bullet changes its healing, so it must not gate Catalyst's combo traits.
     for (const [index, event] of activationEvents.entries()) {
       const replacement = context.replaceEvent(event, {
         comboFinishers: [

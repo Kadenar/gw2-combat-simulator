@@ -72,10 +72,8 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
   const sourceObservedMs = Math.max(0, action.replayInterruptMs ?? action.end - action.start);
   if (sourceObservedMs === 0 && (action.status === 'instant' || action.status === 'unknown')) return null;
   const runtimeMs = quicknessRuntimeDurationMs(skill);
-  // Per-packet skills retain exact EVTC timing because rounding across a packet boundary changes which hits commit;
-  // atomic cancellations still snap to the game's action tick.
-  const observedMs =
-    skill?.interruptMode === 'per-packet' ? sourceObservedMs : quantizeGw2ActionTimingMs(sourceObservedMs);
+  // Replay every observed cancellation on the game's action tick so imports share the same timing contract.
+  const observedMs = quantizeGw2ActionTimingMs(sourceObservedMs);
   return observedMs < runtimeMs ? observedMs : null;
 }
 

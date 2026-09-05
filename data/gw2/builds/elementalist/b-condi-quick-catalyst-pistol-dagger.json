@@ -84,10 +84,10 @@
     "targetMoving": false,
     "targetBoonless": true,
     "targetConditions": {
-      "Bleeding": 5,
+      "Bleeding": 1,
       "Burning": true,
-      "Torment": 5,
-      "Confusion": 5,
+      "Torment": 1,
+      "Confusion": 1,
       "Poisoned": true,
       "Chilled": true,
       "Cripple": true,

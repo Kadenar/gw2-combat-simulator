@@ -126,6 +126,23 @@ test('the shared timeline preserves controls, unsupported durations, idle gaps, 
   ]);
 });
 
+// A combat boundary inside the last action frame must remain inside the cast, including its opening hit.
+test('the shared timeline retains combat start inside the cast-end jitter window', () => {
+  const rotation = buildReplayTimeline(
+    [{ start: 0, end: 400, eventIndex: 0, skill: fixtureSkill, name: fixtureSkill.name, skillId: fixtureSkill.id }],
+    0,
+    380,
+    { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+  );
+  assert.deepEqual(
+    rotation.find((command) => command.name === '__combat_start'),
+    {
+      name: '__combat_start',
+      offset: 380
+    }
+  );
+});
+
 test('the shared timeline preserves explicit aftercast mismatches without adding autoattack waits', () => {
   const waitFor = (durationMs, skill = fixtureSkill) =>
     buildReplayTimeline(

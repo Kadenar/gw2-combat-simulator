@@ -96,8 +96,7 @@ function pairAnimationEvents(
     if (!start) {
       const rawName = skillName(names, end.event.skillId);
       const inferredStart = end.event.time - end.event.value;
-      const truncatedAtLogStart =
-        inferTruncatedPrecast && Number.isFinite(firstPlayerEventTime) && inferredStart < firstPlayerEventTime;
+      const truncatedAtLogStart = Number.isFinite(firstPlayerEventTime) && inferredStart < firstPlayerEventTime;
       // Modern arcdps can omit an animation start that happened just before combat while still recording its stop.
       const crossesCombatStart =
         combatStartTime != null && inferredStart <= combatStartTime && end.event.time >= combatStartTime;
@@ -108,10 +107,15 @@ function pairAnimationEvents(
           event.time >= inferredStart &&
           event.time <= end.event.time + EFFECT_PACKET_TOLERANCE_MS &&
           event.stateChange === 0 &&
+          event.activation === EVTC_ACTIVATION.NONE &&
           event.buffRemove === 0 &&
           (event.value > 0 || event.buffDamage > 0)
       );
-      const precast = truncatedAtLogStart || (crossesCombatStart && hasCommitEvidence);
+      // A missing opening start is still a recorded cast when its completion and direct effect both survive;
+      // transformation state remains the fallback for non-damaging modern precasts.
+      const precast =
+        (truncatedAtLogStart && (inferTruncatedPrecast || hasCommitEvidence)) ||
+        (crossesCombatStart && hasCommitEvidence);
       if (end.event.value <= 0 || (!rawName.toLowerCase().includes('dodge') && !precast)) {
         continue;
       }

@@ -29,7 +29,11 @@ function catalystEmpowermentPool(attributeData: ProfessionAttributeData): Cataly
   return Object.fromEntries(
     Object.entries(CATALYST_EMPOWERMENT_ATTRIBUTES).map(([key, name]) => {
       const attribute = attributeData.attributes[name] || {};
-      return [key, CATALYST_EMPOWERMENT_SOURCES.reduce((total, source) => total + Number(attribute[source] || 0), 0)];
+      const direct = CATALYST_EMPOWERMENT_SOURCES.reduce((total, source) => total + Number(attribute[source] || 0), 0);
+      // EVTC condition ticks show that build-time trait and utility Condition Damage
+      // participates in Elemental Empowerment, while skill passives remain excluded.
+      const derived = key === 'conditionDamage' ? Number(attribute.utility || 0) + Number(attribute.traits || 0) : 0;
+      return [key, direct + derived];
     })
   ) as unknown as CatalystEmpowermentPool;
 }

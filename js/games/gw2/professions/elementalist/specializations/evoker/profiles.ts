@@ -76,6 +76,7 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     profileKind: 'skill-variant',
     initialDelay: 0.56,
     threshold: 10,
+    // API tier values multiply Fox's Fury's 1.5 baseline: https://api.guildwars2.com/v2/skills/77282?lang=en
     effects: [
       { type: 'strike', name: 'Tier 1', coefficient: 1.5, hits: 1 },
       {
@@ -99,7 +100,8 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         name: 'Tier 3',
         condition: 'Burning',
         stacks: 3,
-        duration: 7
+        // PvE's high-Might burn lasts five seconds before condition-duration bonuses.
+        duration: 5
       }
     ]
   },

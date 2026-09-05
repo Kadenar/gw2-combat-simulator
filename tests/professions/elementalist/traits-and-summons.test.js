@@ -18,7 +18,8 @@ const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttr
 test('pistol autoattacks preserve their projectile and condition after the 320 ms release', () => {
   for (const [name, attunement, condition] of [
     ['Piercing Pebble', 'Earth', 'Bleeding'],
-    ['Scorching Shot', 'Fire', 'Burning']
+    ['Scorching Shot', 'Fire', 'Burning'],
+    ['Electric Exposure', 'Air', 'Vulnerability']
   ]) {
     const skillId = elementalistCatalog.skillsByName.get(name).id;
     for (const interruptMs of [280, 320]) {
@@ -40,7 +41,7 @@ test('pistol autoattacks preserve their projectile and condition after the 320 m
         assert.equal(hit?.at, 0.36, name);
         assert.equal(application?.at, hit.at, name);
         assert.equal(application.stacks, 1, name);
-        assert.ok(application.damage > 0, name);
+        assert.equal(application.damage > 0, condition !== 'Vulnerability', name);
       }
     }
   }
@@ -104,23 +105,56 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
   assert.equal(result.endState.profession.empowered, 1);
 });
 
-test("Fox's Fury schedules its bonus hit from cast start", () => {
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Evoker']],
-    rotation: ["Fox's Fury"],
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: "Fox's Fury",
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
-  });
-  const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
-  const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
+test("Fox's Fury scales its impact with cast speed and applies the PvE high-Might burn", () => {
+  // Quickness changes when the payload lands, while its base condition duration stays fixed.
+  for (const quickness of [true, false]) {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Evoker']],
+      rotation: ["Fox's Fury"],
+      assumptions: { quickness, might: 25 },
+      selectedSkills: {
+        Heal: 'Glyph of Elemental Harmony',
+        Utility1: "Fox's Fury",
+        Utility2: 'Signet of Fire',
+        Utility3: 'Arcane Wave',
+        Elite: 'Glyph of Elementals'
+      }
+    });
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
+    const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
 
-  assert.ok(hit.at > action.at);
-  assert.ok(hit.at < action.endsAt);
+    const burning = result.events.find((event) => event.type === 'condition' && event.skillName === "Fox's Fury");
+    assert.ok(Math.abs(hit.at - action.at - (quickness ? 0.56 : 0.84)) < 1e-9);
+    assert.ok(hit.at < action.endsAt);
+    assert.equal(hit.coefficient, 3);
+    assert.equal(burning.at, hit.at);
+    assert.equal(burning.stacks, 3);
+    assert.equal(burning.duration, 5);
+  }
+});
+
+test("Fox's Fury applies its baseline coefficient and Might multipliers", () => {
+  for (const [might, coefficient] of [
+    [0, 1.5],
+    [10, 2.25],
+    [20, 3]
+  ]) {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Evoker']],
+      rotation: ["Fox's Fury"],
+      assumptions: { might },
+      selectedSkills: {
+        Heal: 'Glyph of Elemental Harmony',
+        Utility1: "Fox's Fury",
+        Utility2: 'Signet of Fire',
+        Utility3: 'Arcane Wave',
+        Elite: 'Glyph of Elementals'
+      }
+    });
+    const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
+
+    assert.equal(hit.coefficient, coefficient);
+  }
 });
 
 test('core damage traits expose their exact resolver modifiers', () => {

@@ -44,9 +44,9 @@ import {
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
-// reads effects directly from the catalog so balance patches to those skills propagate without code changes
+// Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
 function releaseElementalProcession(context: ElementalistCastContext, sourceSkill: Skill): void {
-  for (const skillId of [ID.CONFLAGRATION, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT]) {
+  for (const skillId of [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT]) {
     const familiar = context.catalog.skillsById.get(skillId);
     if (!familiar) continue;
     for (const rawEffect of familiar.effects || []) {
@@ -69,7 +69,7 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
             skillName: familiar.name,
             skillId: familiar.id,
             coefficient: Number(tick.coefficient ?? effect.coefficient ?? 0),
-            skillWeapon: 'Unequipped',
+            skillWeapon: 'Profession mechanic',
             canCrit: effect.canCrit !== false,
             comboFinishers,
             triggeredBy: sourceSkill.name
@@ -247,10 +247,11 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     const effectName = `Tier ${tier + 1}`;
     const strike = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'strike', 0, effectName);
     const burning = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'condition', 0, effectName);
+    // The profile delay uses the quickness reference timeline, just like declarative skill packets.
     const at =
       context.start +
-      balanceProfileValueFromContext(context, PROFILE.foxsFury, 'initialDelay', 0.56) /
-        (context.hasBuff('quickness', context.start) ? 1.5 : 1);
+      balanceProfileValueFromContext(context, PROFILE.foxsFury, 'initialDelay', 0.56) *
+        castRelativeEffectTimingScale(skill, (context.fullEnd - context.start) * 1000);
     emitSkillDamage(context, {
       at,
       source: skill.name,
@@ -270,7 +271,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
       skillId: skill.id,
       condition: String(burning?.condition || 'Burning'),
       stacks: Number(burning?.stacks ?? [1, 2, 3][tier]),
-      duration: Number(burning?.duration ?? [3, 5, 7][tier])
+      duration: Number(burning?.duration ?? [3, 5, 5][tier])
     });
   }
 }

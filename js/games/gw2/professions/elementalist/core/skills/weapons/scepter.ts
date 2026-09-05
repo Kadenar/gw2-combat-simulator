@@ -8,7 +8,11 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+
+// One Hurl input releases five rocks at fixed 200ms intervals.
+const HURL_PACKET_TIMES = [300, 500, 700, 900, 1100] as const;
 
 /**
  * Skill-id keyed fragments the catalog layers over the raw scepter skill records so the
@@ -81,8 +85,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
-  // Delayed drop: the single blast finisher and its Burning land 2.6s after cast start,
-  // long after the 680ms cast has ended.
+  // The delayed drop commits after 640ms; its blast and Burning then survive the
+  // interrupted cast and land 2.6s after cast start.
   [ID.DRAGONS_TOOTH]: {
     name: "Dragon's Tooth",
     type: 'Weapon',
@@ -91,6 +95,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     attunement: 'Fire',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 680,
+    interruptCommitMs: 640,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -111,7 +116,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -125,12 +131,13 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]
   },
-  // Three closely spaced packets; only the middle one is the blast finisher and carries the
-  // Burning stacks, and the trailing packet grants Vigor.
+  // Three closely spaced packets commit by 440ms; only the middle one is the blast
+  // finisher and carries Burning, while the trailing packet grants Vigor.
   [ID.PHOENIX]: {
     name: 'Phoenix',
     type: 'Weapon',
@@ -139,6 +146,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     attunement: 'Fire',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 480,
+    interruptCommitMs: 440,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -209,7 +217,6 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
-  // Three separate shard hits that all land on the same 480ms timestamp.
   [ID.ICE_SHARDS]: {
     name: 'Ice Shards',
     type: 'Weapon',
@@ -218,6 +225,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     attunement: 'Water',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 560,
+    interruptCommitMs: 520,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -295,7 +303,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
-  // Ammo skill: two charges on a shared 10s recharge behind a 1s per-cast cooldown.
+  // Both ammo charges commit at 640ms and share a 10s recharge behind a 1s per-cast cooldown.
   [ID.WATER_TRIDENT]: {
     name: 'Water Trident',
     type: 'Weapon',
@@ -304,6 +312,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     attunement: 'Water',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 680,
+    interruptCommitMs: 640,
     cooldown: 1,
     ammo: 2,
     ammoRecharge: 10,
@@ -601,171 +610,29 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 300,
-            coefficient: 0.44,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 300,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 500,
-            coefficient: 0.44,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 500,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 700,
-            coefficient: 0.44,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 700,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 900,
-            coefficient: 0.44,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 900,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1100,
-            coefficient: 0.44,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1100,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      strikeTimeline(
+        HURL_PACKET_TIMES.map((atMs) => ({
+          atMs,
+          coefficient: 0.44,
+          comboFinishers: [
+            {
+              ownerId: 'elementalist',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      ),
+      conditionTimeline(
+        HURL_PACKET_TIMES.map((atMs) => ({
+          atMs,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 8
+        })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      )
     ]
   },
   // The travelling projectile outlives the cast, so its pulses use fixed (cast-speed

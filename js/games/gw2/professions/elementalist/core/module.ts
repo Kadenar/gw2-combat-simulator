@@ -1,5 +1,10 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onAuraApplied, onConditionApplied, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import {
+  onAuraApplied,
+  onBuffApplied,
+  onConditionApplied,
+  onResolvedDamage
+} from '#gw2/platform/profession-definition/mechanics.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/catalog/module-data.js';
 import {
   elementalistAfterCast,
@@ -21,6 +26,7 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalis
 import {
   applyElementalistResolverAttunement,
   applyElementalistResolverAura,
+  applyElementalistResolverBuff,
   applyElementalistResolverSignetFire,
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage,
@@ -138,6 +144,10 @@ export const elementalistCoreModule = defineNativeModule({
         onConditionApplied({
           id: 'elementalist.core.condition',
           handler: applyElementalistResolvedCondition
+        }),
+        onBuffApplied({
+          id: 'elementalist.core.buff',
+          handler: applyElementalistResolverBuff
         }),
         onAuraApplied({
           id: 'elementalist.core-aura',

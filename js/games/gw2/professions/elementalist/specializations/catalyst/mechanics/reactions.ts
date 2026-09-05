@@ -41,13 +41,16 @@ import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elemen
  * only once combat has started.
  */
 export function applyCatalystResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+  // Scheduled auras already carry their trait grants; only newly resolved auras
+  // need new grants here. Both paths still refresh Empowering Auras' duration.
+  const needsGrants = event.elementalistResolverGeneratedAura === true || event.type === 'aura';
   if (hasTrait(context, 'Empowering Auras')) {
     const maximumStacks = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'maximumStacks', 5);
     const duration = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
     const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
     const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
-    if (activeStacks < maximumStacks) {
+    if (needsGrants && activeStacks < maximumStacks) {
       queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, elementalistSourceSkill(event));
     }
 
@@ -55,6 +58,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   }
 
   if (
+    !needsGrants ||
     !hasTrait(context, 'Elemental Epitome') ||
     (context.combatStartTime != null && event.at < context.combatStartTime)
   ) {

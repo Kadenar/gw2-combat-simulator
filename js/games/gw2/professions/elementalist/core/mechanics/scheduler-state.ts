@@ -7,7 +7,6 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
   extendPersistingFlamesField,
@@ -15,7 +14,6 @@ import {
   processFreshAirCandidates
 } from '#gw2/professions/elementalist/core/traits/index.js';
 import { observeElementalistElementalEvent } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import { emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { updateEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 
 // Observe scheduled combat packets to update aura, attunement, and trait state
@@ -23,34 +21,6 @@ import { updateEndurance } from '#gw2/professions/elementalist/core/mechanics/en
 export function observeElementalistEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   observeElementalistElementalEvent(context, event);
   extendPersistingFlamesField(context, event);
-  const state = professionCoreState(context);
-  // Shattering Stone arms a limited number of bleeding follow-ups that the next
-  // qualifying player damage packets consume.
-  if (
-    event.type === 'damage' &&
-    event.actorType !== 'summon' &&
-    Number(event.coefficient || 0) > 0 &&
-    state.shatteringStoneHitsRemaining > 0 &&
-    event.at <= state.shatteringStoneUntil + context.epsilon
-  ) {
-    state.shatteringStoneHitsRemaining -= 1;
-    if (state.shatteringStoneHitsRemaining === 0) {
-      state.shatteringStoneUntil = 0;
-    }
-
-    emitProfiledCondition(
-      context,
-      event.at + context.epsilon,
-      PROFILE.shatteringStone,
-      'Triggered Bleeding',
-      'Bleeding',
-      1,
-      5,
-      'Shattering Stone',
-      event.skillId ?? event.sourceId
-    );
-  }
-
   observeElementalistTraitEvent(context, event);
 }
 
@@ -72,11 +42,6 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
 
   for (const [weapon, expiresAt] of Object.entries(state.conjurePickups)) {
     if (expiresAt < at) delete state.conjurePickups[weapon];
-  }
-
-  if (state.shatteringStoneUntil < at) {
-    state.shatteringStoneUntil = 0;
-    state.shatteringStoneHitsRemaining = 0;
   }
 
   if (state.dazingDischargeUntil < at) state.dazingDischargeUntil = 0;

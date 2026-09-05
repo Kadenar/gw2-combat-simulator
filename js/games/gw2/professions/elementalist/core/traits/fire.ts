@@ -85,10 +85,11 @@ export function triggerSunspot(
   });
 }
 
-// Snapshot capped might on Fire exit so the strike and Burning share deterministic scaling.
+// Snapshot capped might on Fire exit, then land the strike and Burning together after the proc delay.
 export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) return;
 
+  const impactAt = at + balanceProfileValueFromContext(context, PROFILE.pyromancersPuissance, 'initialDelay', 0.68);
   const cappedMight = Math.min(
     balanceProfileValueFromContext(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10),
     context.buffStacks('might', at)
@@ -122,7 +123,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     0.5
   );
   emitSkillDamage(context, {
-    at,
+    at: impactAt,
     source: 'Flame Expulsion',
     sourceId,
     actorType: 'effect',
@@ -133,7 +134,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     skillWeapon: 'Unequipped'
   });
   emitSkillCondition(context, elementalistEventSkill(context, 'Flame Expulsion', sourceId), {
-    at,
+    at: impactAt,
     source: 'Flame Expulsion',
     sourceId,
     actorType: 'player',
@@ -148,7 +149,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     skillName: 'Flame Expulsion'
   });
   emitElementalistProc(context, {
-    at,
+    at: impactAt,
     name: 'Flame Expulsion',
     procType: 'trait',
     sourceId,

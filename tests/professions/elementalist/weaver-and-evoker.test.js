@@ -588,13 +588,22 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
   );
 
   const core = createElementalistCoreState({ pistolBullets: { Earth: true, Air: true } });
-  const pistolContext = { state: { profession: { core } }, effectiveEnd: 1, config: { selectedTraitIds: [] } };
+  const pistolEvents = [];
+  const pistolContext = {
+    state: { profession: { core } },
+    effectiveEnd: 1,
+    config: { selectedTraitIds: [] },
+    emit: (event) => pistolEvents.push(event)
+  };
   const shatteringStone = {
     ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),
     name: 'Renamed core pistol skill'
   };
   applyPistolState(pistolContext, shatteringStone);
-  assert.equal(core.shatteringStoneHitsRemaining, 3);
+  assert.equal(core.pistolBullets.Earth, false);
+  assert.equal(pistolEvents[0].kind, 'shattering stone');
+  assert.equal(pistolEvents[0].stacks, 3);
+  assert.equal(pistolEvents[0].duration, 10);
 
   const purblindingPlasma = {
     ...elementalistCatalog.skillsById.get(ID.PURBLINDING_PLASMA),
@@ -635,7 +644,9 @@ test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent 5-se
         'Fire Attunement',
         'Water Attunement',
         'Fire Attunement',
-        'Air Attunement'
+        'Air Attunement',
+        // Observe the last delayed explosion without changing any proc's ICD.
+        1000
       ],
       startAttunement: 'Fire',
       weapons: ['Pistol', 'Dagger'],
@@ -669,17 +680,22 @@ test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent 5-se
   assert.equal(procs(nonFire, 'Flame Expulsion').length, attempts(nonFire, 'exit').length);
 });
 
-test('Flame Expulsion uses its own icon in the damage breakdown', () => {
+// Fire exit starts a delayed proc; its strike and Burning must land together.
+test('Flame Expulsion delays both packets and uses its own icon in the damage breakdown', () => {
   const result = runNative({
     lines: [['Fire', '1-1-2'], ['Air'], ['Arcane']],
-    rotation: ['Flame Uprising', 'Air Attunement'],
+    rotation: ['Flame Uprising', 'Air Attunement', 1000],
     startAttunement: 'Fire',
     weapons: ['Sword', 'Dagger']
   });
   const expectedIcon = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
   const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Expulsion');
   const row = skillBreakdownRows(result).find((entry) => entry.name === 'Flame Expulsion');
+  const exit = result.events.find((event) => event.type === 'elementalist.attunement' && event.from === 'Fire');
+  const burning = result.events.find((event) => event.type === 'condition' && event.skillName === 'Flame Expulsion');
 
+  assert.ok(Math.abs(packet.at - exit.at - 0.68) < 1e-9);
+  assert.equal(burning.at, packet.at);
   assert.equal(packet?.icon, expectedIcon);
   assert.equal(row?.icon, expectedIcon);
 });
@@ -928,6 +944,36 @@ test('Evoker reapplies Rejuvenate after its concurrent basic familiar', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.charges, 6);
   assert.equal(result.endState.profession.empowered, 1);
+});
+
+test('Elemental Procession uses familiar weapon strength and lets Buoyant Deluge trigger Lightning Rod', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air', '1-1-3'], ['Evoker']],
+    rotation: ['Elemental Procession', 4000],
+    evokerElement: 'Earth',
+    selectedSkills: {
+      Heal: 'Rejuvenate',
+      Utility1: "Fox's Fury",
+      Utility2: 'Signet of Fire',
+      Utility3: 'Arcane Wave',
+      Elite: 'Elemental Procession'
+    }
+  });
+  const processionStrikes = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.triggeredBy === 'Elemental Procession'
+  );
+  const otterControl = result.events.find((event) => event.type === 'control' && event.skillName === 'Buoyant Deluge');
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(processionStrikes.length > 0);
+  assert.ok(processionStrikes.every((event) => event.weaponStrengthProfileId === 'nonweapon.profession-mechanic'));
+  assert.ok(otterControl);
+  assert.equal(
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillName === 'Lightning Rod' && event.at === otterControl.at
+    ).length,
+    1
+  );
 });
 
 test('Evasive Arcana does not grant Evoker familiar charges', () => {

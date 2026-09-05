@@ -7,8 +7,9 @@ import {
   skillForAction
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { reconstructEvokerActions } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/evoker.js';
-import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
+import { instantAction, playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -35,18 +36,23 @@ type ElementalistActionTransform = (
 const specializationAnalyzers: ReadonlyMap<string, ElementalistActionTransform> = new Map([
   ['evoker', reconstructEvokerActions]
 ]);
-const TEMPEST_OVERLOAD_DWELL_MS = 5000;
 const HURL_PACKET_GROUP_MS = 1000;
 const FIRE_AURA_BUFF_ID = 5677;
+const FROST_AURA_BUFF_ID = 5579;
+const FROST_AURA_DURATION_MS = 10_000;
+const BLINDED_BUFF_ID = 720;
 const AURA_SIGNAL_WINDOW_MS = 150;
-const FIRE_AURA_SOURCES = new Set(['Feel the Burn!', 'Signet of Fire', 'Conflagration', 'Overload Fire']);
-const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth']);
-const SPEAR_ETCHING_INITIAL_BUFFS = Object.freeze([
-  { buffSkillId: 73133, skillId: ID.ETCHING_VOLCANO, name: 'Etching: Volcano' },
-  { buffSkillId: 73144, skillId: ID.ETCHING_JO_KULHLAUP, name: 'Etching: Jökulhlaup' },
-  { buffSkillId: 72895, skillId: ID.ETCHING_DERECHO, name: 'Etching: Derecho' },
-  { buffSkillId: 72899, skillId: ID.ETCHING_HABOOB, name: 'Etching: Haboob' }
+// Pistol-generated auras can enable Transmute Fire without a separate Fire Shield input.
+const FIRE_AURA_SOURCES = new Set([
+  'Feel the Burn!',
+  'Signet of Fire',
+  'Conflagration',
+  'Overload Fire',
+  'Elemental Explosion',
+  'Searing Salvo',
+  'Frostfire Flurry'
 ]);
+const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth']);
 
 function isAction(action: EvtcRecordedRotationAction, skillId: number): boolean {
   return action.rawSkillId === skillId || action.canonicalSkillId === skillId;
@@ -63,17 +69,6 @@ function configuredStartingAttunement(context: EvtcProfessionReconstructionConte
   return ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement.toLowerCase() === configured) || 'Fire';
 }
 
-function firstPlayerEventTime(context: EvtcProfessionReconstructionContext): number | null {
-  const first = Math.min(
-    ...context.log.events
-      .filter(
-        (event) => event.time > 0 && (event.source === context.playerAddress || event.target === context.playerAddress)
-      )
-      .map((event) => event.time)
-  );
-  return Number.isFinite(first) ? first : null;
-}
-
 function isAnimationStart(event: ParsedEvtcEvent): boolean {
   return (
     event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START ||
@@ -82,215 +77,48 @@ function isAnimationStart(event: ParsedEvtcEvent): boolean {
   );
 }
 
-function isCompletedAnimationStop(event: ParsedEvtcEvent): boolean {
-  return (
-    event.value > 0 &&
-    (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP || event.stateChange === EVTC_STATE_CHANGE.NONE) &&
-    (event.activation === EVTC_ACTIVATION.CANCEL_FIRE || event.activation === EVTC_ACTIVATION.RESET)
-  );
-}
-
 function ownedElementalCommandActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
+  context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
   if (ownerInstance == null) return [];
-  const firstPlayerEvent = firstPlayerEventTime(context);
-  const recoveredOpeningStart =
-    context.profile.specializationId === 'evoker'
-      ? Math.min(...actions.filter((action) => action.precast === true).map((action) => action.start))
-      : Number.POSITIVE_INFINITY;
   return ELEMENTAL_COMMANDS.flatMap(({ speciesId, character, action }) => {
     const actors = new Set(
       context.log.agents
         .filter((agent) => agent.profession === speciesId || agent.character === character)
         .map((agent) => agent.address)
     );
-    const starts = context.log.events.filter(
-      (event) =>
-        actors.has(event.source) &&
-        event.sourceMasterInstance === ownerInstance &&
-        event.skillId === action.skillId &&
-        isAnimationStart(event)
-    );
 
     return context.log.events.flatMap((event, eventIndex) => {
       if (
         !actors.has(event.source) ||
         event.sourceMasterInstance !== ownerInstance ||
-        event.skillId !== action.skillId
+        event.skillId !== action.skillId ||
+        !isAnimationStart(event)
       ) {
         return [];
       }
 
-      const directStart = isAnimationStart(event);
-      const unmatchedStop =
-        isCompletedAnimationStop(event) &&
-        !starts.some(
-          (start) =>
-            start.source === event.source &&
-            start.time < event.time &&
-            Math.abs(event.time - start.time - event.value) <= 150
-        );
-      if (!directStart && !unmatchedStop) return [];
-      const inferredStart = directStart ? event.time : event.time - event.value;
-      // Once another Evoker packet establishes a real precast lane, preserve the
-      // command stop's start time; otherwise anchor clipped legacy input to its first packet.
-      const preservePrecast =
-        unmatchedStop &&
-        firstPlayerEvent != null &&
-        Number.isFinite(recoveredOpeningStart) &&
-        inferredStart < firstPlayerEvent;
-      const observedStart =
-        unmatchedStop &&
-        !preservePrecast &&
-        event.stateChange === EVTC_STATE_CHANGE.NONE &&
-        firstPlayerEvent != null &&
-        inferredStart < firstPlayerEvent
-          ? context.log.events
-              .map((candidate, candidateIndex) => ({ event: candidate, eventIndex: candidateIndex }))
-              .find(
-                ({ event: candidate }) =>
-                  candidate.source === event.source &&
-                  candidate.sourceMasterInstance === ownerInstance &&
-                  candidate.skillId === action.skillId &&
-                  candidate.time >= firstPlayerEvent &&
-                  candidate.time < event.time &&
-                  candidate.activation === EVTC_ACTIVATION.NONE
-              )
-          : null;
-      const start = observedStart?.event.time ?? inferredStart;
-      const modernEvidence =
-        event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START ||
-        event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP;
+      // Owned animation starts are direct log evidence of player-issued elemental commands.
       return [
         {
-          start,
-          end: start,
+          start: event.time,
+          end: event.time,
           expectedDuration: 0,
           rawSkillId: event.skillId,
           rawName: action.name,
           canonicalSkillId: action.skillId,
           canonicalName: action.name,
-          evidence: observedStart
-            ? ('initial-state' as const)
-            : modernEvidence
+          evidence:
+            event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
               ? ('animation' as const)
               : ('legacy-activation' as const),
           status: 'instant' as const,
-          eventIndex: observedStart?.eventIndex ?? eventIndex,
-          ...(unmatchedStop && firstPlayerEvent != null && inferredStart < firstPlayerEvent ? { precast: true } : {})
+          eventIndex
         }
       ];
     });
   });
-}
-
-function openingTempestScepterPrecast(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  if (context.profile.specializationId !== 'tempest') return [...actions];
-  const hasHurlEvidence = context.log.events.some(
-    (event) => event.time > 0 && event.source === context.playerAddress && event.skillId === ID.HURL
-  );
-  if (!hasHurlEvidence || actions.some((action) => isAction(action, ID.ROCK_BARRIER))) return [...actions];
-
-  const firstPlayerEvent = firstPlayerEventTime(context);
-  if (firstPlayerEvent == null) return [...actions];
-  const clippedOverload = context.log.events
-    .map((event, eventIndex) => ({ event, eventIndex }))
-    .find(
-      ({ event }) =>
-        event.source === context.playerAddress &&
-        event.skillId === ID.OVERLOAD_AIR &&
-        isCompletedAnimationStop(event) &&
-        event.time - event.value < firstPlayerEvent
-    );
-  if (!clippedOverload) return [...actions];
-
-  const overloadStart = clippedOverload.event.time - clippedOverload.event.value;
-  const airAttunementAt = overloadStart - TEMPEST_OVERLOAD_DWELL_MS;
-  const overloadCombatStart = context.log.events.find(
-    (event) =>
-      event.source === context.playerAddress &&
-      event.skillId === ID.OVERLOAD_AIR &&
-      event.activation === EVTC_ACTIVATION.NONE &&
-      event.stateChange === EVTC_STATE_CHANGE.NONE &&
-      event.buff === 0 &&
-      event.value > 0 &&
-      event.target !== 0n &&
-      event.time >= overloadStart &&
-      event.time <= clippedOverload.event.time + 80
-  )?.time;
-  const rockBarrier = findRotationSkill(ID.ROCK_BARRIER, 'Rock Barrier', context.catalog, context.profile);
-  const rockBarrierDuration = Math.max(0, Number(rockBarrier?.quicknessCastTimeMs || rockBarrier?.castTimeMs || 0));
-  let hasOpeningAirAttunement = false;
-  let hasOpeningOverload = false;
-  const adjusted = actions.map((action) => {
-    if (!hasOpeningAirAttunement && action.initialState === true && isAction(action, ID.AIR_ATTUNEMENT)) {
-      hasOpeningAirAttunement = true;
-      return { ...action, start: airAttunementAt, end: airAttunementAt, precast: true };
-    }
-
-    if (isAction(action, ID.OVERLOAD_AIR) && Math.abs(action.end - clippedOverload.event.time) <= 150) {
-      hasOpeningOverload = true;
-      return overloadCombatStart == null ? action : { ...action, inferredCombatStart: overloadCombatStart };
-    }
-
-    return action;
-  });
-
-  // Hurl proves Rock Barrier's flip state existed before logging began. Recreate the
-  // Earth opener and Tempest's five-second Air dwell so the imported rotation is executable.
-  adjusted.push({
-    start: airAttunementAt - rockBarrierDuration,
-    end: airAttunementAt,
-    expectedDuration: rockBarrierDuration,
-    rawSkillId: ID.ROCK_BARRIER,
-    rawName: 'Rock Barrier',
-    canonicalSkillId: ID.ROCK_BARRIER,
-    canonicalName: 'Rock Barrier',
-    evidence: 'initial-state',
-    status: 'completed',
-    eventIndex: -2001,
-    precast: true
-  });
-  if (!hasOpeningAirAttunement) {
-    adjusted.push({
-      start: airAttunementAt,
-      end: airAttunementAt,
-      expectedDuration: 0,
-      rawSkillId: ID.AIR_ATTUNEMENT,
-      rawName: 'Air Attunement',
-      canonicalSkillId: ID.AIR_ATTUNEMENT,
-      canonicalName: 'Air Attunement',
-      evidence: 'initial-state',
-      status: 'instant',
-      eventIndex: -2000,
-      precast: true
-    });
-  }
-
-  if (!hasOpeningOverload) {
-    adjusted.push({
-      start: overloadStart,
-      end: clippedOverload.event.time,
-      expectedDuration: Math.max(clippedOverload.event.value, clippedOverload.event.buffDamage),
-      rawSkillId: ID.OVERLOAD_AIR,
-      rawName: 'Overload Air',
-      canonicalSkillId: ID.OVERLOAD_AIR,
-      canonicalName: 'Overload Air',
-      evidence: 'legacy-activation',
-      status: 'completed',
-      eventIndex: clippedOverload.eventIndex,
-      precast: true,
-      ...(overloadCombatStart == null ? {} : { inferredCombatStart: overloadCombatStart })
-    });
-  }
-
-  return adjusted;
 }
 
 function collapsedHurlActions(
@@ -440,10 +268,6 @@ function recoverMissingFireShieldActions(
       return [];
     }
 
-    const auraEnd = event.time + Math.max(event.value, event.buffDamage);
-    const transmuted = actions.some(
-      (action) => isAction(action, ID.TRANSMUTE_FIRE) && action.start >= event.time && action.start <= auraEnd
-    );
     const alreadyRecorded = actions.some(
       (action) => isAction(action, ID.FIRE_SHIELD) && Math.abs(action.start - event.time) <= AURA_SIGNAL_WINDOW_MS
     );
@@ -458,10 +282,10 @@ function recoverMissingFireShieldActions(
         event.time <= action.end + AURA_SIGNAL_WINDOW_MS
       );
     });
-    if (!transmuted || alreadyRecorded || explainedBySource) return [];
+    if (alreadyRecorded || explainedBySource) return [];
 
-    // Transmute Fire proves the Focus chain was activated; the preceding unexplained
-    // self-aura is the instant Fire Shield input omitted from ArcDPS animations.
+    // Once Focus is established, recover unexplained self-auras even when the
+    // player never transmutes them; Fire Shield still grants familiar charges.
     return [
       {
         start: event.time,
@@ -481,62 +305,114 @@ function recoverMissingFireShieldActions(
   return [...actions, ...recovered];
 }
 
-function openingSpearEtchingPrecasts(
+function recoverMissingFrostAuraActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const recovered = SPEAR_ETCHING_INITIAL_BUFFS.flatMap<EvtcRecordedRotationAction>(
-    ({ buffSkillId, skillId, name }) => {
-      const skill = findRotationSkill(skillId, name, context.catalog, context.profile);
-      if (!skill) return [];
-      const initial = context.log.events
-        .map((event, eventIndex) => ({ event, eventIndex }))
-        .find(
-          ({ event }) =>
-            event.target === context.playerAddress &&
-            event.skillId === buffSkillId &&
-            event.buff !== 0 &&
-            event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
-        );
-      if (!initial) return [];
-      if (actions.some((action) => isAction(action, skillId) && action.start <= initial.event.time)) return [];
+  const skill = findRotationSkill(ID.FROST_AURA, 'Frost Aura', context.catalog, context.profile);
+  if (!skill) return [...actions];
+  const hasDagger =
+    String(context.professionConfig?.secondaryWeapon || '')
+      .trim()
+      .toLowerCase() === 'dagger' || actions.some((action) => isAction(action, ID.TRANSMUTE_FROST));
+  if (!hasDagger) return [...actions];
 
-      const totalDuration = Math.max(initial.event.value, initial.event.buffDamage);
-      const remainingDuration = Math.min(totalDuration, Math.max(0, initial.event.value));
-      const fieldStartedAt = initial.event.time - Math.max(0, totalDuration - remainingDuration);
-      const castDuration = quicknessRuntimeDurationMs(skill);
-      // An active seven-second etching buff identifies a cast that began before logging;
-      // age the buff back to field creation, then prepend the cast so its later full flip is available.
-      return [
-        {
-          start: fieldStartedAt - castDuration,
-          end: fieldStartedAt,
-          expectedDuration: castDuration,
-          rawSkillId: skillId,
-          rawName: name,
-          canonicalSkillId: skillId,
-          canonicalName: name,
-          evidence: 'initial-state' as const,
-          status: 'completed' as const,
-          eventIndex: context.log.events.length + initial.eventIndex,
-          precast: true
-        }
-      ];
+  const recovered = context.log.events.flatMap<EvtcRecordedRotationAction>((event, eventIndex) => {
+    if (
+      event.source !== context.playerAddress ||
+      event.target !== context.playerAddress ||
+      event.skillId !== FROST_AURA_BUFF_ID ||
+      event.buff === 0 ||
+      event.buffRemove !== 0 ||
+      Math.max(event.value, event.buffDamage) !== FROST_AURA_DURATION_MS ||
+      (event.stateChange !== EVTC_STATE_CHANGE.NONE && event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY) ||
+      actions.some(
+        (action) => isAction(action, ID.FROST_AURA) && Math.abs(action.start - event.time) <= AURA_SIGNAL_WINDOW_MS
+      )
+    ) {
+      return [];
     }
-  );
-  if (!recovered.length) return [...actions];
 
-  const combined = [...actions, ...recovered];
-  const firstPrecastStart = Math.min(
-    ...combined.filter((action) => action.precast === true).map((action) => action.start)
-  );
-  // Initial attunement snapshots occur at log creation, after clipped precasts. Move
-  // the transition to the earliest recovered cast so replay enables that weapon skill first.
-  return combined.map((action) =>
-    action.initialState === true && action.start > firstPrecastStart
-      ? { ...action, start: firstPrecastStart, end: firstPrecastStart }
-      : action
-  );
+    // Dagger Frost Aura has no activation packet; its distinct ten-second self-aura is the recorded cast signal.
+    return [
+      instantAction(
+        eventIndex,
+        event.time,
+        event.skillId,
+        'Frost Aura',
+        {
+          name: 'Frost Aura',
+          skillId: Number(skill.id)
+        },
+        'buff-transition'
+      )
+    ];
+  });
+
+  return [...actions, ...recovered];
+}
+
+function recoverBlindingFlashActions(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const identity = { skillId: ID.BLINDING_FLASH, name: 'Blinding Flash' };
+  if (!findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile)) return [...actions];
+
+  const explainedBlindTimes = actions.flatMap((action) => {
+    if (isAction(action, ID.BLINDING_FLASH)) return [action.start];
+    if (actionName(action) === 'Dodge') return [action.end];
+    const skill = skillForAction(context, action);
+    if (!skill) return [];
+    const runtimeDuration = quicknessRuntimeDurationMs(skill);
+    return (skill.effects || []).flatMap((effect) => {
+      if (effect.type !== 'blind') return [];
+      const scale = (value: number): number =>
+        effect.timingScale === 'cast' ? projectCastRelativeEffectTimingMs(skill, runtimeDuration, value) : value;
+      const first =
+        effect.atMs == null
+          ? action.start + runtimeDuration
+          : action.start + (effect.timingAnchor === 'castEnd' ? runtimeDuration : 0) + scale(Number(effect.atMs));
+      return Array.from(
+        { length: Math.max(1, Math.trunc(Number(effect.applications || 1))) },
+        (_, index) => first + index * scale(Math.max(0, Number(effect.intervalMs || 0)))
+      );
+    });
+  });
+  const attunements = actions
+    .filter((action) => ELEMENTALIST_ATTUNEMENTS.some((element) => actionName(action) === `${element} Attunement`))
+    .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+  const seenTimes = new Set<number>();
+  const recovered = context.log.events.flatMap<EvtcRecordedRotationAction>((event, eventIndex) => {
+    if (
+      event.source !== context.playerAddress ||
+      event.target === 0n ||
+      event.target === context.playerAddress ||
+      event.skillId !== BLINDED_BUFF_ID ||
+      event.buff === 0 ||
+      event.buffRemove !== 0 ||
+      event.value <= 0 ||
+      (event.stateChange !== EVTC_STATE_CHANGE.NONE && event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY) ||
+      seenTimes.has(event.time) ||
+      explainedBlindTimes.some((time) => Math.abs(time - event.time) <= 80)
+    ) {
+      return [];
+    }
+
+    const currentAttunement = [...attunements].reverse().find((action) => action.start <= event.time);
+    if (
+      (currentAttunement ? actionName(currentAttunement).split(' ')[0] : configuredStartingAttunement(context)) !==
+      'Air'
+    ) {
+      return [];
+    }
+
+    // ArcDPS omits the instant skill ID and records only its outgoing Blind packet.
+    seenTimes.add(event.time);
+    return [instantAction(eventIndex, event.time, event.skillId, 'Blinded', identity)];
+  });
+
+  return [...actions, ...recovered];
 }
 
 function orderSimultaneousAttunementTransitions(
@@ -562,21 +438,22 @@ function orderSimultaneousAttunementTransitions(
 export function reconstructElementalistProfessionActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
-  const startingAttunement = configuredStartingAttunement(context);
+  // Initial attunement snapshots describe state at log creation, not player inputs;
+  // the active build owns starting state and may be adjusted by the user after import.
   let actions = context.recordedActions.filter(
     (action) =>
       !(
         action.initialState === true &&
-        String(action.canonicalName || action.rawName) === `${startingAttunement} Attunement`
+        ELEMENTALIST_ATTUNEMENTS.some((element) => actionName(action) === `${element} Attunement`)
       )
   );
   actions = recoverMissingFireShieldActions(context, actions);
+  actions = recoverMissingFrostAuraActions(context, actions);
+  actions = recoverBlindingFlashActions(context, actions);
   actions = specializationAnalyzers.get(context.profile.specializationId)?.(context, actions) || actions;
-  actions = openingTempestScepterPrecast(context, actions);
-  actions = openingSpearEtchingPrecasts(context, actions);
   actions = inferArcLightningChannelDurations(context, actions);
   actions = filterUncommittedFlamestrikes(context, actions);
-  actions = [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context, actions)];
+  actions = [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context)];
   // Out-of-combat weapon swaps after the target dies are cleanup, not part of the replayed rotation.
   const encounterEnd = encounterEndTime(context.log);
   if (encounterEnd != null) actions = actions.filter((action) => action.start < encounterEnd);

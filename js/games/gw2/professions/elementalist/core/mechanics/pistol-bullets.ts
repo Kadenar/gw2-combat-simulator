@@ -10,7 +10,8 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/professions/elementalist/types.js';
@@ -58,11 +59,20 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         sourceId: skill.id
       });
     } else if (skill.id === ID.FROZEN_FUSILLADE) {
-      // The enhanced hit lands well after the cast, so it is scheduled as a
-      // delayed strike plus its Bleeding rather than emitted at cast end.
+      // The field's four-second lifetime starts at projectile release, so
+      // aftercast length and cancellation cannot move its enhanced detonation.
       const delay = balanceProfileValueFromContext(context, PROFILE.frozenFusillade, 'initialDelay', 4);
+      const detonationAt =
+        context.start +
+        projectCastRelativeEffectTimingMs(
+          skill,
+          (context.fullEnd - context.start) * 1000,
+          Number(skill.interruptCommitMs)
+        ) /
+          1000 +
+        delay;
       emitSkillDamage(context, {
-        at: at + delay,
+        at: detonationAt,
         source: skill.name,
         sourceId: skill.id,
         actorType: 'player',
@@ -77,7 +87,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       });
       emitProfiledCondition(
         context,
-        at + delay,
+        detonationAt,
         PROFILE.frozenFusillade,
         'Water Bullet',
         'Bleeding',
@@ -92,16 +102,15 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       state.dazingDischargeUntil =
         at + balanceProfileValueFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier', 5);
     } else if (skill.id === ID.SHATTERING_STONE) {
-      // Arms a limited number of player strikes inside a window; each armed hit
-      // is converted to Bleeding by the event observer in `scheduler-state.ts`.
-      state.shatteringStoneHitsRemaining = balanceProfileValueFromContext(
-        context,
-        PROFILE.shatteringStone,
-        'maximumStacks',
-        3
-      );
-      state.shatteringStoneUntil =
-        at + balanceProfileValueFromContext(context, PROFILE.shatteringStone, 'durationMultiplier', 10);
+      // Arm the buff on the event timeline so the resolver consumes its charges
+      // in impact order, including attacks scheduled before this cast.
+      emitSkillBuff(context, skill, {
+        at,
+        source: skill.name,
+        kind: 'shattering stone',
+        stacks: balanceProfileValueFromContext(context, PROFILE.shatteringStone, 'maximumStacks', 3),
+        duration: balanceProfileValueFromContext(context, PROFILE.shatteringStone, 'durationMultiplier', 10)
+      });
     } else if (skill.id === ID.BOULDER_BLAST) {
       // The projectile finisher is a separate non-weapon activation from the
       // pistol strike, so downstream combo damage must not reuse its roll.

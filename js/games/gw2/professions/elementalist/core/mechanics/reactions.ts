@@ -1,12 +1,18 @@
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistResolverContext, ElementalistResolverEvent } from '#gw2/professions/elementalist/types.js';
 import { PERSISTING_FLAMES_FIELD_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { isElementalistAttunement, type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
@@ -22,6 +28,7 @@ import {
   grantPersistingFlames
 } from '#gw2/professions/elementalist/core/traits/index.js';
 import {
+  applyElementalistDerivedCondition,
   elementalistResolverCoreState,
   elementalistSourceSkill
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
@@ -201,7 +208,15 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   })
 ]);
 
-/** Classifies field ticks before dispatching Persisting Flames damage behavior. */
+/** Arms Shattering Stone only when its self buff reaches the resolver timeline. */
+export function applyElementalistResolverBuff(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+  if (event.kind !== 'shattering stone' || !event.resolvedAudience?.includesSelf) return;
+  const core = elementalistResolverCoreState(context);
+  core.shatteringStoneHitsRemaining = Number(event.stacks || 0);
+  core.shatteringStoneUntil = event.at + Number(event.duration || 0);
+}
+
+/** Applies strike reactions in impact order, regardless of when their packets were scheduled. */
 export function applyElementalistResolvedDamage(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -212,6 +227,30 @@ export function applyElementalistResolvedDamage(
     PERSISTING_FLAMES_FIELD_SKILLS.has(Number(event.skillId ?? event.sourceId))
   ) {
     grantPersistingFlames(context, event);
+  }
+
+  const core = elementalistResolverCoreState(context);
+  if (
+    (event.actorType === 'player' || event.actorType === 'effect') &&
+    Number(event.coefficient) > 0 &&
+    core.shatteringStoneHitsRemaining > 0 &&
+    event.at < core.shatteringStoneUntil
+  ) {
+    core.shatteringStoneHitsRemaining -= 1;
+    const bleeding = balanceProfileEffectFromContext(
+      context,
+      PROFILE.shatteringStone,
+      'condition',
+      0,
+      'Triggered Bleeding'
+    );
+    applyElementalistDerivedCondition(context, event, {
+      source: 'Shattering Stone',
+      sourceId: ID.SHATTERING_STONE,
+      condition: String(bleeding?.condition || 'Bleeding'),
+      stacks: Number(bleeding?.stacks ?? 1),
+      duration: Number(bleeding?.duration ?? 5)
+    });
   }
 }
 

@@ -6,12 +6,8 @@ import {
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { weaponSkillChargeGain } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
+import { firstStrikePacketOffsetMs, skillForAction } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
-import {
-  firstStrikePacketOffsetMs,
-  quicknessRuntimeDurationMs,
-  skillForAction
-} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -31,7 +27,6 @@ const CALCIFY = Object.freeze({ name: 'Calcify', skillId: ID.CALCIFY });
 const IGNITE = Object.freeze({ name: 'Ignite', skillId: ID.IGNITE });
 const ZAP = Object.freeze({ name: 'Zap', skillId: ID.ZAP });
 const EVOKER_ELEMENTS = new Set<ElementalistAttunement>(['Fire', 'Water', 'Air', 'Earth']);
-const OPENING_SIGNAL_WINDOW_MS = 150;
 
 interface EvokerChargeGrant {
   readonly at: number;
@@ -41,11 +36,24 @@ interface EvokerChargeGrant {
   readonly fillsCharges: boolean;
 }
 
-function calcifyEffectCommitted(context: EvtcProfessionReconstructionContext, start: number, end: number): boolean {
+function isAnimationStart(event: ParsedEvtcEvent): boolean {
+  return (
+    event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START ||
+    (event.stateChange === EVTC_STATE_CHANGE.NONE &&
+      (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS))
+  );
+}
+
+function calcifyEffectCommitted(
+  context: EvtcProfessionReconstructionContext,
+  rawSkillId: number,
+  start: number,
+  end: number
+): boolean {
   return context.log.events.some(
     (event) =>
       event.source === context.playerAddress &&
-      event.skillId === CALCIFY_RAW_SKILL_ID &&
+      event.skillId === rawSkillId &&
       event.time >= start &&
       event.time <= end &&
       event.stateChange === EVTC_STATE_CHANGE.NONE &&
@@ -66,18 +74,14 @@ function matchingCalcifyStop(
       ({ event, eventIndex }) =>
         !matchedStopIndexes.has(eventIndex) &&
         event.source === start.source &&
+        event.skillId === start.skillId &&
         event.time > start.time &&
         Math.abs(event.time - start.time - event.value) <= 150
     ) ?? null
   );
 }
 
-function calcifyAction(
-  event: ParsedEvtcEvent,
-  eventIndex: number,
-  start: number,
-  precast = false
-): EvtcRecordedRotationAction {
+function calcifyAction(event: ParsedEvtcEvent, eventIndex: number, start: number): EvtcRecordedRotationAction {
   return {
     start,
     end: start,
@@ -88,8 +92,7 @@ function calcifyAction(
     canonicalName: CALCIFY.name,
     evidence: 'animation',
     status: 'instant',
-    eventIndex,
-    ...(precast ? { precast: true } : {})
+    eventIndex
   };
 }
 
@@ -99,9 +102,15 @@ function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecor
   const ownedEvents = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
     .filter(({ event }) => event.sourceMasterInstance === ownerInstance && event.skillId === CALCIFY_RAW_SKILL_ID);
-  const starts = ownedEvents.filter(({ event }) => event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START);
+  const starts = ownedEvents.filter(({ event }) => isAnimationStart(event));
   const stops = ownedEvents.filter(
-    ({ event }) => event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP && event.value > 0
+    ({ event }) =>
+      event.value > 0 &&
+      (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP ||
+        (event.stateChange === EVTC_STATE_CHANGE.NONE &&
+          (event.activation === EVTC_ACTIVATION.CANCEL_FIRE ||
+            event.activation === EVTC_ACTIVATION.CANCEL_CANCEL ||
+            event.activation === EVTC_ACTIVATION.RESET)))
   );
   const matchedStopIndexes = new Set<number>();
   const actions = starts.flatMap(({ event, eventIndex }) => {
@@ -111,7 +120,7 @@ function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecor
     // committed; keep that input, but do not replay an uncommitted cancellation.
     if (
       stop?.event.activation === EVTC_ACTIVATION.CANCEL_CANCEL &&
-      !calcifyEffectCommitted(context, event.time, stop.event.time)
+      !calcifyEffectCommitted(context, event.skillId, event.time, stop.event.time)
     ) {
       return [];
     }
@@ -119,63 +128,70 @@ function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecor
     return [calcifyAction(event, eventIndex, event.time)];
   });
 
-  for (const { event, eventIndex } of stops) {
-    if (matchedStopIndexes.has(eventIndex)) continue;
-    const start = event.time - event.value;
-    if (event.activation === EVTC_ACTIVATION.CANCEL_CANCEL && !calcifyEffectCommitted(context, start, event.time)) {
-      continue;
-    }
-
-    actions.push(calcifyAction(event, eventIndex, start, true));
-  }
-
   return actions;
 }
 
 function zapActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const skill = findRotationSkill(ZAP.skillId, ZAP.name, context.catalog, context.profile);
+  const strikeOffset = firstStrikePacketOffsetMs(skill) ?? 0;
+  const directEffects = context.log.events
+    .map((event, eventIndex) => ({ event, eventIndex }))
+    .filter(
+      ({ event }) =>
+        event.source === context.playerAddress &&
+        event.target !== 0n &&
+        event.skillId === ZAP_RAW_SKILL_ID &&
+        event.stateChange === EVTC_STATE_CHANGE.NONE &&
+        event.activation === EVTC_ACTIVATION.NONE &&
+        event.buff === 0 &&
+        event.value > 0
+    );
   const ownerInstance = playerInstance(context);
   if (ownerInstance == null) return [];
 
-  // ArcDPS records the player's instant Zap input as the owned Air familiar's
-  // animation start; each start is one replayable input even if its visual is cancelled.
-  return context.log.events.flatMap((event, eventIndex) =>
-    event.sourceMasterInstance === ownerInstance &&
-    event.skillId === ZAP_RAW_SKILL_ID &&
-    event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
-      ? [
-          {
-            start: event.time,
-            end: event.time,
-            expectedDuration: 0,
-            rawSkillId: event.skillId,
-            rawName: ZAP.name,
-            canonicalSkillId: ZAP.skillId,
-            canonicalName: ZAP.name,
-            evidence: 'animation' as const,
-            status: 'instant' as const,
-            eventIndex
-          }
-        ]
-      : []
-  );
+  // Direct player damage is one-to-one with Zap inputs; familiar animations overlap
+  // and are only a fallback when the log contains no direct Zap effects at all.
+  const signals = directEffects.length
+    ? directEffects.map(({ event, eventIndex }) => ({
+        event,
+        eventIndex,
+        start: event.time - strikeOffset,
+        evidence: 'effect' as const
+      }))
+    : context.log.events.flatMap((event, eventIndex) =>
+        event.sourceMasterInstance === ownerInstance && event.skillId === ZAP_RAW_SKILL_ID && isAnimationStart(event)
+          ? [
+              {
+                event,
+                eventIndex,
+                start: event.time,
+                evidence:
+                  event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
+                    ? ('animation' as const)
+                    : ('legacy-activation' as const)
+              }
+            ]
+          : []
+      );
+  return signals.map(({ event, eventIndex, start, evidence }) => ({
+    start,
+    end: start,
+    expectedDuration: 0,
+    rawSkillId: event.skillId,
+    rawName: ZAP.name,
+    canonicalSkillId: ZAP.skillId,
+    canonicalName: ZAP.name,
+    evidence,
+    status: 'instant',
+    eventIndex
+  }));
 }
 
 function isOwnedAnimationStart(event: ParsedEvtcEvent, ownerInstance: number, skillId: number): boolean {
-  return (
-    event.sourceMasterInstance === ownerInstance &&
-    event.skillId === skillId &&
-    (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START ||
-      (event.stateChange === EVTC_STATE_CHANGE.NONE &&
-        (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)))
-  );
+  return event.sourceMasterInstance === ownerInstance && event.skillId === skillId && isAnimationStart(event);
 }
 
-function igniteAction(
-  event: ParsedEvtcEvent,
-  eventIndex: number,
-  start: number,
-  precast = false
-): EvtcRecordedRotationAction {
+function igniteAction(event: ParsedEvtcEvent, eventIndex: number, start: number): EvtcRecordedRotationAction {
   return {
     start,
     end: start,
@@ -189,8 +205,7 @@ function igniteAction(
         ? 'animation'
         : 'legacy-activation',
     status: 'instant',
-    eventIndex,
-    ...(precast ? { precast: true } : {})
+    eventIndex
   };
 }
 
@@ -201,75 +216,7 @@ function igniteActions(context: EvtcProfessionReconstructionContext): EvtcRecord
     .map((event, eventIndex) => ({ event, eventIndex }))
     .filter(({ event }) => event.sourceMasterInstance === ownerInstance && event.skillId === IGNITE_RAW_SKILL_ID);
   const starts = ownedEvents.filter(({ event }) => isOwnedAnimationStart(event, ownerInstance, IGNITE_RAW_SKILL_ID));
-  const actions = starts.map(({ event, eventIndex }) => igniteAction(event, eventIndex, event.time));
-
-  // Legacy logs can begin after the familiar animation starts. Its unmatched stop
-  // still carries the elapsed duration needed to restore the clipped player input.
-  for (const { event, eventIndex } of ownedEvents) {
-    const completedStop =
-      event.value > 0 &&
-      (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP || event.stateChange === EVTC_STATE_CHANGE.NONE) &&
-      (event.activation === EVTC_ACTIVATION.CANCEL_FIRE || event.activation === EVTC_ACTIVATION.RESET);
-    if (!completedStop) continue;
-    const start = event.time - event.value;
-    const matched = starts.some(
-      ({ event: candidate }) => candidate.source === event.source && Math.abs(candidate.time - start) <= 150
-    );
-    if (!matched) actions.push(igniteAction(event, eventIndex, start, true));
-  }
-
-  return actions;
-}
-
-function openingDragonsToothActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const skill = findRotationSkill(ID.DRAGONS_TOOTH, "Dragon's Tooth", context.catalog, context.profile);
-  const duration = quicknessRuntimeDurationMs(skill);
-  const strikeOffset = firstStrikePacketOffsetMs(skill, duration, { explicitOnly: true });
-  const firstAction = [...actions].sort(
-    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
-  )[0];
-  const firstRecordedTooth = actions
-    .filter((action) => action.rawSkillId === ID.DRAGONS_TOOTH || action.canonicalSkillId === ID.DRAGONS_TOOTH)
-    .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)[0];
-  if (!skill || !(duration > 0) || strikeOffset == null || !firstAction || !firstRecordedTooth) return [];
-
-  const packet = context.log.events
-    .map((event, eventIndex) => ({ event, eventIndex }))
-    .find(
-      ({ event }) =>
-        event.source === context.playerAddress &&
-        event.skillId === ID.DRAGONS_TOOTH &&
-        event.time < firstRecordedTooth.start &&
-        event.target !== 0n &&
-        event.value > 0 &&
-        event.buff === 0 &&
-        event.activation === EVTC_ACTIVATION.NONE &&
-        event.stateChange === EVTC_STATE_CHANGE.NONE
-    );
-  if (!packet) return [];
-  const start = packet.event.time - strikeOffset;
-  if (Math.abs(start + duration - firstAction.start) > OPENING_SIGNAL_WINDOW_MS) return [];
-
-  // A Dragon's Tooth hit without a matching activation proves the cast began before
-  // logging; its explicit packet offset places it directly before the first kept cast.
-  return [
-    {
-      start,
-      end: start + duration,
-      expectedDuration: duration,
-      rawSkillId: ID.DRAGONS_TOOTH,
-      rawName: "Dragon's Tooth",
-      canonicalSkillId: ID.DRAGONS_TOOTH,
-      canonicalName: "Dragon's Tooth",
-      evidence: 'effect',
-      status: 'completed',
-      eventIndex: packet.eventIndex,
-      precast: true
-    }
-  ];
+  return starts.map(({ event, eventIndex }) => igniteAction(event, eventIndex, event.time));
 }
 
 function boundedInteger(value: unknown, fallback: number, maximum: number): number {
@@ -306,7 +253,7 @@ function chargeGrantForAction(
   };
 }
 
-function alignCalcifyWithResourceReadiness(
+function alignBasicFamiliarWithResourceReadiness(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
@@ -337,8 +284,6 @@ function alignCalcifyWithResourceReadiness(
         return action;
       }
 
-      if (skillId !== ID.CALCIFY) return action;
-
       let prospectiveCharges = charges;
       let prospectiveGrantIndex = grantIndex;
       let readyAt: number | null = null;
@@ -354,9 +299,8 @@ function alignCalcifyWithResourceReadiness(
 
       if (readyAt == null) return action;
 
-      // A queued Calcify can begin animating before its parent cast supplies the
-      // missing charges. Delay only that case so already-ready casts keep the
-      // parent's post-reset charge gain.
+      // A queued basic familiar can animate before its parent weapon cast supplies
+      // the missing charges; replay it at that grant so the subsequent reset is ordered correctly.
       charges = 0;
       empowered = Math.min(3, empowered + 1);
       grantIndex = prospectiveGrantIndex;
@@ -387,8 +331,7 @@ export function reconstructEvokerActions(
     };
   });
   const recovered = [...normalized, ...zapActions(context), ...igniteActions(context), ...calcifyActions(context)];
-  recovered.push(...openingDragonsToothActions(context, normalized));
-  return alignCalcifyWithResourceReadiness(context, recovered).sort(
+  return alignBasicFamiliarWithResourceReadiness(context, recovered).sort(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );
 }

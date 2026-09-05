@@ -301,6 +301,8 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     summons: 2
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.pyromancersPuissance, "Pyromancer's Puissance", {
+    // Measured Fire-exit-to-impact delay, separate from the instant attunement swap.
+    initialDelay: 0.68,
     maximumStacks: 10,
     damageIncreasePerStack: 0.1,
     durationPerTier: 0.5,

@@ -860,6 +860,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Earth',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 680,
+    interruptCommitMs: 640,
     cooldown: 16,
     skillFamily: 'Weapon skill',
     effects: [

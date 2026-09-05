@@ -42,6 +42,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     attunement: 'Fire',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 440,
+    // The attack commits at the observed 400ms animation threshold.
+    interruptCommitMs: 400,
     cooldown: 0,
     nextChainId: ID.FIRE_SWIPE,
     skillFamily: 'Weapon skill',
@@ -67,6 +69,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     attunement: 'Fire',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 440,
+    interruptMode: 'per-packet',
     cooldown: 0,
     nextChainId: ID.SEARING_SLASH,
     skillFamily: 'Weapon skill',
@@ -92,6 +95,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     attunement: 'Fire',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 680,
+    interruptMode: 'per-packet',
     cooldown: 0,
     nextChainId: ID.FIRE_STRIKE,
     skillFamily: 'Weapon skill',
@@ -394,6 +398,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     attunement: 'Air',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 440,
+    // The attack commits at the observed 400ms animation threshold.
+    interruptCommitMs: 400,
     cooldown: 0,
     nextChainId: ID.POLARIC_SLASH,
     skillFamily: 'Weapon skill',
@@ -446,8 +452,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
-  // Chain finisher: the main strike at 560ms followed by three smaller bolts 200ms apart, which
-  // land after the 760ms cast has ended.
+  // Chain finisher: the main strike commits the attack at 560ms, then the three launched bolts
+  // keep landing after an animation cancel or the ordinary 760ms cast end.
   [ID.CALL_LIGHTNING]: {
     name: 'Call Lightning',
     type: 'Weapon',
@@ -456,6 +462,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     attunement: 'Air',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 760,
+    interruptCommitMs: 560,
     cooldown: 0,
     nextChainId: ID.CHARGED_STRIKE,
     skillFamily: 'Weapon skill',
@@ -469,7 +476,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'strike',
@@ -480,7 +488,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'strike',
@@ -491,7 +500,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'strike',
@@ -502,7 +512,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },
@@ -786,7 +797,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
-  // Eight paired packets, each applying its own Bleeding stack on the same timestamps.
+  // Eight paired packets, each applying its own six-second Bleeding stack on the same timestamps.
   [ID.RUST_FRENZY]: {
     name: 'Rust Frenzy',
     type: 'Weapon',
@@ -807,7 +818,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
           atMs,
           condition: 'Bleeding',
           stacks: 1,
-          duration: 4
+          duration: 6
         })),
         { timingAnchor: 'castStart', timingScale: 'cast' }
       )
