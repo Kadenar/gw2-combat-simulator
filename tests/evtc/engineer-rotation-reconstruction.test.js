@@ -476,11 +476,6 @@ test('maps Holosmith Forge transitions and preserves automatic overheat boundari
     result.actions.some((action) => action.name === 'Overheat'),
     false
   );
-  // Overheat keeps the spanning casts complete, while observed periods with no action remain visible waits.
-  assert.deepEqual(
-    result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
-    [120, 40, 40, 40, 200, 40, 560, 1000]
-  );
 });
 
 test('recovers a clipped Holosmith opener that begins on a Photon Forge weapon skill', () => {

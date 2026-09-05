@@ -215,6 +215,28 @@ test('the shared timeline subtracts accumulated simulator cast overruns from a l
   ]);
 });
 
+test('runtime alignment preserves inferred or mechanic-owned occupied intervals without adding waits', () => {
+  // A source interval supplied by setup inference or a charge mechanic is already accounted for outside cast runtime.
+  const rotation = buildReplayTimeline(
+    [
+      { start: 0, end: 1_200, eventIndex: 0, skill: fixtureSkill, name: 'Mind Stab', skillId: 1_000 },
+      { start: 1_200, end: 1_600, eventIndex: 1, skill: fixtureSkill, name: 'Mind Stab', skillId: 1_000 }
+    ],
+    0,
+    null,
+    {
+      alignWaitsToSimulatorTiming: true,
+      hasObservedCastTime: ({ eventIndex }) => eventIndex !== 0,
+      commandFor: ({ name, skillId }) => ({ name, skillId })
+    }
+  );
+
+  assert.deepEqual(rotation, [
+    { name: 'Mind Stab', skillId: 1_000 },
+    { name: 'Mind Stab', skillId: 1_000 }
+  ]);
+});
+
 test('the shared timeline subtracts concurrent progress from an observed instant-skill channel', () => {
   const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0, quicknessCastTimeMs: 0 };
   const channel = { ...instant, id: 2_001, name: 'Channel' };

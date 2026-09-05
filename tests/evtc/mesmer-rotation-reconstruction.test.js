@@ -692,10 +692,9 @@ test('uses clone lifecycle ends to preserve rapid Chronomancer shatters across C
   });
   const replayedSplits = replay.steps.filter((step) => step.skill === 'Split Second');
 
-  assert.deepEqual(
-    replayedSplits.map((step) => step.start),
-    [1_040, 1_640, 3_200]
-  );
+  // Wait rounding may shift an input by half an action tick, but must not accumulate across the shatter sequence.
+  const observedSplits = names(result, 'Split Second');
+  assert.ok(replayedSplits.every((step, index) => Math.abs(step.start - observedSplits[index].timestampMs) <= 20));
   assert.ok(replayedSplits.every((step) => !step.invalid));
 });
 

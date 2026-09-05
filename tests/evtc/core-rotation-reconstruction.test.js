@@ -324,6 +324,45 @@ test('does not add EVTC idle time after a weapon-swap-cancelled retained cast', 
   ]);
 });
 
+test('EVTC waits subtract replay time already spent finishing a cast before a weapon swap', () => {
+  // The serial swap consumes the source gap while the preceding cast finishes, so replay must not wait twice.
+  const attack = {
+    id: 4_100,
+    name: 'Fixture Attack',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    castTimeMs: 400,
+    unaffectedByQuickness: true,
+    effects: []
+  };
+  const rotationCatalog = createCanonicalCatalog({ generated: [attack, catalog.skills.at(-1)] });
+  const fixture = log({
+    skills: [{ id: attack.id, name: attack.name }],
+    events: [
+      event({ time: 1_000, stateChange: 67, skillId: attack.id, value: 400 }),
+      event({ time: 1_320, stateChange: 11, target: 5n }),
+      event({ time: 1_400, stateChange: 68, skillId: attack.id, value: 400, activation: 3 }),
+      event({ time: 1_400, stateChange: 67, skillId: attack.id, value: 400 }),
+      event({ time: 1_800, stateChange: 68, skillId: attack.id, value: 400, activation: 3 })
+    ]
+  });
+  const imported = reconstructEvtcRotation(fixture, rotationCatalog, {
+    includeCombatStart: false,
+    inferInstantCasts: false
+  });
+  const profession = defineProfession({ id: 'evtc-swap-timing', name: 'EVTC Swap Timing', catalog: rotationCatalog });
+  const replay = createScheduler({ profession }).run(imported.rotation);
+
+  assert.equal(
+    imported.rotation.some((command) => command.name === '__wait'),
+    false
+  );
+  assert.deepEqual(
+    replay.steps.map((step) => step.start),
+    [0, 400, 400]
+  );
+});
+
 test('preserves cancelled autoattacks and their recorded timeline without artificial waits', () => {
   const autoattack = {
     id: 4_000,

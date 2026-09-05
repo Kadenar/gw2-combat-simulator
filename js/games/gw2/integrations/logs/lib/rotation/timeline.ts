@@ -30,7 +30,7 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   readonly replayEnd?: (action: Action) => number;
   /** Makes waits compensate when emitted commands use a different cast duration than the source log. */
   readonly alignWaitsToSimulatorTiming?: boolean;
-  /** Limits observed-aftercast correction to actions whose duration came from the source log. */
+  /** Limits runtime correction to observed casts, preserving inferred setup and waits owned by profession mechanics. */
   readonly hasObservedCastTime?: (action: Action) => boolean;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
   readonly commandFor: (action: Action) => ReconstructedRotationCommand;
@@ -107,7 +107,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
   let pendingAftercast: { until: number; progressedTo: number } | null = null;
-  // The dps.report adapter opts into this scheduler projection because EI cast durations differ from catalog runtime.
+  // Log adapters use this scheduler projection when source cast boundaries differ from serial replay timing.
   let projectedTime = origin;
   let projectedReservedEnd = origin;
   let projectedBlockingEnd = origin;
@@ -229,7 +229,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     rotation.push(command);
     if (alignWaitsToSimulatorTiming) {
-      const runtimeMs = action.skill ? quicknessReferenceCastTimeMs(action.skill) : actionReplayEnd - at;
+      // Inferred setup and mechanic-owned charge intervals already define their replay occupancy.
+      const runtimeMs =
+        action.skill && policy.hasObservedCastTime?.(action) !== false
+          ? quicknessReferenceCastTimeMs(action.skill)
+          : actionReplayEnd - at;
       const interruptMs = command.interruptMs ?? action.skill?.defaultInterruptMs;
       const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
       const retainedRuntimeMs =

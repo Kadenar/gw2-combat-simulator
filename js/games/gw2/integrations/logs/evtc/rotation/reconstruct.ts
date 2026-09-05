@@ -463,6 +463,8 @@ function buildRotation(
   return buildReplayTimeline(actions, origin, combatStart, {
     timingToleranceMs: TIMING_TOLERANCE_MS,
     quantizeMs: quantizeGw2ActionTimingMs,
+    // Serial replay can finish overlapping casts late; later waits must subtract time already spent in those casts.
+    alignWaitsToSimulatorTiming: true,
     replayEnd: replayActionEnd,
     hasObservedCastTime: (action) =>
       action.suppressFollowingWait !== true &&
