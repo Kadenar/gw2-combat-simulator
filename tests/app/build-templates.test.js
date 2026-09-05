@@ -83,7 +83,7 @@ test('template metadata classifies damage type and boon roles', () => {
     build: 'data/gw2/builds/engineer/b-condi-alac-amalgam.json',
     section: 'Amalgam'
   };
-  const other = {
+  const inferno = {
     label: 'Inferno',
     build: 'data/gw2/builds/elementalist/b-inferno-tempest.json',
     section: 'Tempest'
@@ -98,7 +98,8 @@ test('template metadata classifies damage type and boon roles', () => {
   assert.equal(templateCategory(condi), 'condi');
   assert.equal(templateCategory(powerBoon), 'power');
   assert.equal(templateCategory(condiBoon), 'condi');
-  assert.equal(templateCategory(other), 'other');
+  assert.equal(templateCategory(inferno), 'power');
+  assert.equal(templateCategory({ label: 'Custom', build: 'custom.json' }), 'other');
   assert.equal(templateBoon(power), 'none');
   assert.equal(templateBoon(powerBoon), 'quickness');
   assert.equal(templateBoon(condiBoon), 'alacrity');

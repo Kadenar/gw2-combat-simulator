@@ -80,7 +80,8 @@ export function templateTileContent(preset: BuildTemplatePreset): {
 
 export function templateCategory(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): TemplateCategory {
   const description = `${preset.label} ${preset.build}`.toLowerCase();
-  if (/\bpower\b|\/b-power-/.test(description)) return 'power';
+  // Inferno presets use power gear but omit the damage type from their display name.
+  if (/\b(?:power|inferno)\b|\/b-power-/.test(description)) return 'power';
   if (/\b(?:condi|condition)\b|\/b-condi(?:tion)?-/.test(description)) {
     return 'condi';
   }
@@ -121,9 +122,9 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';
   return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}">
-      <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false">
-        <span class="template-preset-name">${esc(content.name)}</span>
-        <span class="template-preset-weapons">${esc(content.weapons)}</span>
+      <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false" title="${label}">
+        <span class="template-preset-name">${esc(content.weapons || content.name)}</span>
+        ${boon === 'none' ? '' : `<span class="template-preset-boon">${boon[0].toUpperCase()}${boon.slice(1)}</span>`}
         ${content.dps ? `<span class="template-preset-dps">${esc(content.dps)}</span>` : ''}
       </button>
       <details class="template-actions">
@@ -174,7 +175,7 @@ function applyTemplateFilter(
     if (visible) visibleTemplates += 1;
   });
 
-  container.querySelectorAll<HTMLElement>('.presets-group').forEach((group) => {
+  container.querySelectorAll<HTMLElement>('.template-subgroup, .presets-group').forEach((group) => {
     group.hidden = !group.querySelector('.template-preset:not([hidden])');
   });
 
@@ -186,8 +187,29 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string 
   app.templatePresets = [];
   return normalizeTemplateSections(manifest)
     .map((section) => {
-      const templates = (section.presets || [])
-        .map((preset) => templateButtonHtml(app, preset, section.section || null))
+      // Boon builds belong to one support group; native details keep each category independently collapsible.
+      const groups: Record<string, string[]> = { Power: [], Condition: [], Boon: [], Other: [] };
+      for (const preset of section.presets || []) {
+        const category = templateCategory(preset);
+        const group =
+          templateBoon(preset) !== 'none'
+            ? 'Boon'
+            : category === 'power'
+              ? 'Power'
+              : category === 'condi'
+                ? 'Condition'
+                : 'Other';
+        groups[group].push(templateButtonHtml(app, preset, section.section || null));
+      }
+
+      const templates = Object.entries(groups)
+        .filter(([, rows]) => rows.length > 0)
+        .map(
+          ([name, rows]) => `<details class="template-subgroup" open>
+            <summary>${name}</summary>
+            <div class="template-subgroup-rows">${rows.join('')}</div>
+          </details>`
+        )
         .join('');
       if (!templates) return '';
       const label = section.section ? `<span class="presets-group-label">${esc(section.section)}</span>` : '';

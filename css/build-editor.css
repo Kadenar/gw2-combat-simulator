@@ -250,6 +250,7 @@
 }
 
 .build-templates .presets-group[hidden],
+.template-subgroup[hidden],
 .template-preset[hidden],
 .template-filter-empty[hidden] {
   display: none;
@@ -272,6 +273,39 @@
   gap: 0;
 }
 
+/* Keep category headers distinct and weapon rows compact within each specialization. */
+.template-subgroup {
+  min-width: 0;
+  margin-bottom: 6px;
+}
+
+.template-subgroup > summary {
+  padding: 5px 8px;
+  background: var(--bg-panel-alt);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.template-subgroup > summary:hover {
+  color: var(--text-bright);
+}
+
+.template-subgroup > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.template-subgroup-rows {
+  margin: 4px 0 0 8px;
+  border-left: 1px solid var(--border-light);
+}
+
+.template-subgroup:not([open]) > .template-subgroup-rows {
+  display: none;
+}
+
 /* Merge borderless preset rows into one surface while retaining hover and keyboard-focus feedback. */
 .template-preset {
   display: flex;
@@ -288,7 +322,7 @@
 .btn.template-load-btn {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto;
   flex: 1;
   align-items: center;
   gap: 1px 10px;
@@ -313,9 +347,10 @@
   grid-column: 1;
   font-size: 0.78rem;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
-.template-preset-weapons {
+.template-preset-boon {
   grid-column: 1;
   overflow: hidden;
   color: var(--text-dim);
@@ -327,7 +362,7 @@
 
 .template-preset-dps {
   grid-column: 2;
-  grid-row: 1 / -1;
+  grid-row: 1 / span 2;
   color: var(--text-dim);
   font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
@@ -339,7 +374,7 @@
   color: #a0e8be;
 }
 
-.template-load-btn--current :is(.template-preset-weapons, .template-preset-dps) {
+.template-load-btn--current :is(.template-preset-boon, .template-preset-dps) {
   color: #78b892;
 }
 
