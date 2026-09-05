@@ -142,16 +142,7 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
     if (traitIcon) return String(traitIcon);
   }
 
-  for (const id of [row.skillId, row.sourceId]) {
-    if (id == null) continue;
-    const skill = app.skillById?.get(id) || app.skills.find((candidate) => String(candidate.id) === String(id));
-    if (skill?.icon) return String(skill.icon);
-  }
-
   const breakdownName = baseBreakdownName(row.name);
-  const actionIcon = ACTION_ICONS[row.name] || ACTION_ICONS[breakdownName];
-  if (actionIcon) return actionIcon;
-  const cloneAttackName = breakdownName.startsWith('Clone: ') ? breakdownName.slice('Clone: '.length) : '';
   const procNames = new Set(
     [
       row.name,
@@ -164,6 +155,19 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
   );
   const matchingProc = (app.results?.procSteps || []).find((proc) => procNames.has(proc.skill));
   const procIcon = matchingProc && resolveProcIcon(app, matchingProc);
+  // Trait damage inherits its triggering skill ID, so use the matching proc's
+  // trait icon before that ID can incorrectly select the trigger's icon.
+  if (matchingProc?.type === 'trait_proc' && procIcon) return procIcon;
+
+  for (const id of [row.skillId, row.sourceId]) {
+    if (id == null) continue;
+    const skill = app.skillById?.get(id) || app.skills.find((candidate) => String(candidate.id) === String(id));
+    if (skill?.icon) return String(skill.icon);
+  }
+
+  const actionIcon = ACTION_ICONS[row.name] || ACTION_ICONS[breakdownName];
+  if (actionIcon) return actionIcon;
+  const cloneAttackName = breakdownName.startsWith('Clone: ') ? breakdownName.slice('Clone: '.length) : '';
   if (procIcon) return procIcon;
 
   const modifierIcon = resolveModifierIcon(row);

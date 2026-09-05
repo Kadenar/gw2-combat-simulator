@@ -1316,6 +1316,7 @@ test('Mesmer weapon flips replace and restore their parent palette tile', () => 
 
 test('damage result rows reuse the icons shown for generated procs', () => {
   const earthIcon = 'earth.png';
+  const lightningRodIcon = 'lightning-rod.png';
   const nourishmentIcon = 'nourishment.png';
   const phantasmalBladesIcon = 'phantasmal-blades.png';
   const meltdownIcon = 'meltdown.png';
@@ -1326,6 +1327,10 @@ test('damage result rows reuse the icons shown for generated procs', () => {
         {
           name: 'Phantasmal Blades',
           icon: phantasmalBladesIcon
+        },
+        {
+          name: 'Lightning Rod',
+          icon: lightningRodIcon
         }
       ]
     },
@@ -1353,9 +1358,15 @@ test('damage result rows reuse the icons shown for generated procs', () => {
           skill: 'Meltdown',
           sourceSkill: 'Devouring Cut',
           icon: meltdownIcon
+        },
+        {
+          type: 'trait_proc',
+          skill: 'Lightning Rod',
+          sourceSkill: 'Gust'
         }
       ]
     },
+    skillById: new Map([[123, { icon: 'gust.png' }]]),
     skillByName: new Map(),
     skills: []
   };
@@ -1364,6 +1375,7 @@ test('damage result rows reuse the icons shown for generated procs', () => {
   assert.equal(resultSkillIcon(app, { name: 'Nourishment' }), nourishmentIcon);
   assert.equal(resultSkillIcon(app, { name: 'Phantasmal Blade' }), phantasmalBladesIcon);
   assert.equal(resultSkillIcon(app, { name: 'Cascading Corruption' }), meltdownIcon);
+  assert.equal(resultSkillIcon(app, { name: 'Lightning Rod', skillId: 123, sourceId: 123 }), lightningRodIcon);
   assert.equal(resultSkillIcon(app, { name: 'Soul Shards', icon: explicitIcon }), explicitIcon);
   assert.equal(
     resultSkillIcon(app, { name: 'Relic of the Shackles' }),
