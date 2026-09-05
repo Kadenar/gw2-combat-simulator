@@ -4,6 +4,8 @@ import test from 'node:test';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { log as fixtureLog } from '../helpers/evtc-fixture.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
@@ -72,6 +74,39 @@ function catalogSkill(id, name, type = 'Profession', extras = {}) {
     ...extras
   };
 }
+
+// A fired aftercast cancellation keeps its observed duration and payload; cleanup after death stays outside the rotation.
+test('imports committed shortened Elementalist casts and excludes post-encounter swaps', () => {
+  for (const [skillId, durationMs] of [
+    [ID.SEARING_SALVO, 640],
+    [ID.FIRE_GRAB, 520],
+    [ID.BOULDER_BLAST, 360],
+    [ID.RAGING_RICOCHET, 440]
+  ]) {
+    const skill = elementalistCatalog.skillsById.get(skillId);
+    const fixture = fixtureLog({
+      agents: [
+        { ...fixtureLog().agents[0], profession: 6, elite: 67 },
+        { address: TARGET, profession: 16199, elite: 0xffffffff, character: 'Target', account: '' }
+      ],
+      skills: [{ id: skillId, name: skill.name }],
+      events: [
+        ...animation(skillId, 1000, durationMs),
+        event({ time: 3000, source: TARGET, stateChange: EVTC_STATE_CHANGE.CHANGE_DEAD }),
+        event({ time: 4000, target: 3n, stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP })
+      ]
+    });
+    const result = reconstructEvtcRotation(fixture, elementalistCatalog, { includeCombatStart: false });
+    const cast = result.rotation.find((command) => command.skillId === skillId);
+    assert.equal(cast.interruptMs, durationMs, skill.name);
+    assert.equal(result.actions.find((action) => action.skillId === skillId).status, 'completed', skill.name);
+    assert.equal(
+      result.actions.some((action) => action.kind === 'weapon-swap'),
+      false
+    );
+    assert.deepEqual(result.warnings, []);
+  }
+});
 
 test('recovers the clipped power Tempest opener and legacy Flame Barrage commands', () => {
   const events = [

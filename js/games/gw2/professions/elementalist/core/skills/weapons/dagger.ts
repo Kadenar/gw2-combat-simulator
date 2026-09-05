@@ -203,6 +203,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Fire',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 560,
+    interruptCommitMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -215,7 +216,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },

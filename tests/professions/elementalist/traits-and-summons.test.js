@@ -46,6 +46,46 @@ test('pistol autoattacks preserve their projectile and condition after the 320 m
   }
 });
 
+// Released projectiles and landed melee hits survive an aftercast cancellation, including delayed salvo shots.
+test('committed pistol attacks and Fire Grab retain their complete payload', () => {
+  for (const [name, attunement, commitMs, hitTimes, condition] of [
+    ['Raging Ricochet', 'Fire', 320, [0.36], 'Burning'],
+    ['Searing Salvo', 'Fire', 320, [0.44, 1.44, 1.44, 1.44, 1.44], 'Burning'],
+    ['Boulder Blast', 'Earth', 360, [0.4], 'Bleeding'],
+    ['Fire Grab', 'Fire', 480, [0.48], null]
+  ]) {
+    const skillId = elementalistCatalog.skillsByName.get(name).id;
+    for (const interruptAfterMs of [commitMs - 40, commitMs]) {
+      const result = runNative({
+        lines: [['Fire'], ['Earth'], ['Catalyst']],
+        weapons: ['Pistol', 'Dagger'],
+        startAttunement: attunement,
+        rotation: [{ type: 'cast', skillId, interruptAfterMs }, 2500]
+      });
+      const packets = result.resolvedEvents.filter((event) => event.skillId === skillId);
+      const committed = interruptAfterMs === commitMs;
+      assert.deepEqual(
+        packets.filter((event) => event.type === 'damage').map((event) => event.at),
+        committed ? hitTimes : [],
+        name
+      );
+      if (condition) {
+        const applications = packets.filter((event) => event.type === 'condition' && event.condition === condition);
+        assert.deepEqual(
+          applications.map((event) => event.at),
+          committed ? hitTimes : [],
+          name
+        );
+        assert.ok(
+          applications.every((event) => event.damage > 0),
+          name
+        );
+        assert.equal(result.endState.profession.pistolBullets[attunement], committed, name);
+      }
+    }
+  }
+});
+
 test('Evoker familiar flip interruption cancels both familiar attacks', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
