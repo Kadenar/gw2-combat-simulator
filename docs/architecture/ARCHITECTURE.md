@@ -103,9 +103,11 @@ with four explicit sections:
 - `presentation` owns UI contributions. It may be a catalog-aware factory when labels or palettes require the complete
   application catalog.
 
-The nested phase sections are the only supported registration surface. `defineNativeModule()` rejects retired flat
-fields and reports their phase-explicit replacement paths. This keeps a skill, trait, or mechanic in one owner-local
-definition while making its engine phase explicit at the composition boundary.
+The nested phase sections are the supported registration surface. TypeScript checks their placement in authored module
+literals. At runtime, `defineNativeModule()` validates the module ID, required data and state objects, state factory
+callbacks, optional execution and resolution objects, scheduler mechanic phases and handlers, and resolver reaction
+phases. It does not reject unknown or retired flat fields or report replacement paths; those fields do not register
+mechanics. Keep registrations in their owning phase section.
 
 `defineNativeModule()` retains each module's literal ID and inferred state type. `defineNativeProfession()` requires
 Core first, infers the active-state union and specialization IDs, and compiles to the existing engine
@@ -239,9 +241,9 @@ Modules may contribute inert `attributeRules.modifierRules` declarations. Exactl
 preserves the single GW2 additive-damage bucket while excluding inactive specialization modifier declarations.
 
 `defineProfession()` validates every supported callback type and normalizes palette availability into one
-`{ available, message }` result. Compatibility boolean/message callbacks are derived from that result. Event presenters
-return `{ type, description, className, order, flags }`; `null` deliberately suppresses an internal event and
-`undefined` requests the diagnostic fallback.
+`{ available, message, retryAt? }` result. Callers read that structured result directly; no compatibility
+boolean/message callbacks are derived. Event presenters return `{ type, description, className, order, flags }`; `null`
+deliberately suppresses an internal event and `undefined` requests the diagnostic fallback.
 
 Native-profession scalar combat bonuses are declared as per-effect rules in owner-local trait, skill, or mechanic
 modules. The shared `js/games/gw2/platform/combat/modifiers/rules.ts` adapter compiles those rules into the existing
