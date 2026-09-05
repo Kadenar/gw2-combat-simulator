@@ -330,7 +330,7 @@
       {
         "label": "Inferno SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-evoker-se.json",
-        "rotation": "data/gw2/rotations/elementalist/r-inferno-evoker-se.json",
+        "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
         "benchmarkDps": 41197,
         "upToDate": false
       }

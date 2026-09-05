@@ -5,7 +5,7 @@
       {
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
-        "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
         "benchmarkDps": 43826,
         "referenceDps": 44179
       },

@@ -14,6 +14,38 @@ import { weaverModifierRules } from '#gw2/professions/elementalist/specializatio
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
 const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttributeRules);
 
+// Pistol autoattacks release before impact; interrupting the aftercast must retain both packets.
+test('pistol autoattacks preserve their projectile and condition after the 320 ms release', () => {
+  for (const [name, attunement, condition] of [
+    ['Piercing Pebble', 'Earth', 'Bleeding'],
+    ['Scorching Shot', 'Fire', 'Burning']
+  ]) {
+    const skillId = elementalistCatalog.skillsByName.get(name).id;
+    for (const interruptMs of [280, 320]) {
+      const result = runNative({
+        lines: [['Fire'], ['Earth'], ['Catalyst']],
+        weapons: ['Pistol', 'Dagger'],
+        startAttunement: attunement,
+        rotation: [{ type: 'cast', skillId, interruptMs }, 1500]
+      });
+      const packets = result.resolvedEvents.filter(
+        (event) => event.skillId === skillId && ['damage', 'condition'].includes(event.type)
+      );
+
+      if (interruptMs < 320) {
+        assert.deepEqual(packets, [], name);
+      } else {
+        const hit = packets.find((event) => event.type === 'damage');
+        const application = packets.find((event) => event.condition === condition);
+        assert.equal(hit?.at, 0.36, name);
+        assert.equal(application?.at, hit.at, name);
+        assert.equal(application.stacks, 1, name);
+        assert.ok(application.damage > 0, name);
+      }
+    }
+  }
+});
+
 test('Evoker familiar flip interruption cancels both familiar attacks', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
