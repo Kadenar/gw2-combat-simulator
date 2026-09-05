@@ -99,9 +99,8 @@ function runtimeCastDurationMs(skill: Skill): number {
 
 /**
  * Converts Warrior-specific ArcDPS animation artifacts into replayable player
- * inputs. Composite follow-up rows are folded into their parent cast, and a
- * cast is completed when an interrupted animation reached its commitment point
- * or produced observed strike evidence.
+ * inputs. Composite follow-up rows are folded into their parent cast, while
+ * observed interruptions retain the shared scheduler's cancellation rules.
  */
 export function normalizeWarriorCommonActions(
   context: EvtcProfessionReconstructionContext,
@@ -159,19 +158,6 @@ export function normalizeWarriorCommonActions(
     // cast time without advancing the chain; only non-interrupted packet artifacts are folded away.
     if (autoattack && action.status !== 'interrupted' && !committedStrike && commitMs != null && duration < commitMs) {
       absorbAnimation(action);
-      continue;
-    }
-
-    // ArcDPS may label a cast interrupted even after its first packet proves
-    // commitment. Replay the full catalog lockout so the completed skill is
-    // not shortened to the animation-stop timestamp.
-    if (action.status === 'interrupted' && commitMs != null && (duration >= commitMs || committedStrike)) {
-      const replayDuration = Math.max(duration, skill ? runtimeCastDurationMs(skill) : 0);
-      normalized.push({
-        ...action,
-        end: action.start + replayDuration,
-        status: 'completed' as const
-      });
       continue;
     }
 

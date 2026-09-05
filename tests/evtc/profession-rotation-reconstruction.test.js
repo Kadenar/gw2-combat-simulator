@@ -205,7 +205,7 @@ test('reconstructs Spellbreaker precasts and collapses internal Warrior animatio
       .map((action) => [action.rawSkillId, action.name]),
     [[80_247, 'Rend']]
   );
-  assert.equal(result.actions.find((action) => action.name === 'Crushing Blow')?.status, 'completed');
+  assert.equal(result.actions.find((action) => action.name === 'Crushing Blow')?.status, 'interrupted');
 });
 
 test('reconstructs Paragon precasts from initial Warrior buffs', () => {
@@ -667,7 +667,7 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
 
   const result = reconstructEvtcRotation(fixture, rotationCatalog);
 
-  assert.deepEqual(result.warnings, []);
+  assert.match(result.warnings.join('\n'), /interrupted Preparation Thrust.*no interruptCommitMs cutoff/);
   assert.equal(
     result.actions.some((action) => action.name === 'Swap Legends'),
     true

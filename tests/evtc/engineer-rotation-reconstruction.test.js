@@ -223,7 +223,7 @@ test('reconstructs Mechanist commands, Overclock, and opening weapon precasts', 
   );
 });
 
-test('validates Engineer cast completion from observed strike packets', () => {
+test('retains Engineer interruptions without using strike packets to invent commit contracts', () => {
   const skills = [
     skill(6005, 'Jump Shot', {
       slot: 'Weapon_5',
@@ -348,14 +348,15 @@ test('validates Engineer cast completion from observed strike packets', () => {
   const rifleActions = result.actions.filter((action) => action.name === 'Rifle Burst');
   const rifleCommands = result.rotation.filter((command) => command.name === 'Rifle Burst');
 
-  assert.deepEqual(result.warnings, []);
-  assert.equal(result.actions.find((action) => action.name === 'Jump Shot')?.status, 'completed');
+  assert.match(result.warnings.join('\n'), /interrupted Jump Shot/);
+  assert.match(result.warnings.join('\n'), /interrupted Overcharged Shot/);
+  assert.equal(result.actions.find((action) => action.name === 'Jump Shot')?.status, 'interrupted');
   assert.equal(result.actions.find((action) => action.name === 'Shrapnel Grenade')?.status, 'reduced');
   assert.deepEqual(
     rifleActions.map((action) => action.status),
     ['completed', 'completed']
   );
-  assert.equal(result.actions.find((action) => action.name === 'Overcharged Shot')?.status, 'completed');
+  assert.equal(result.actions.find((action) => action.name === 'Overcharged Shot')?.status, 'interrupted');
   assert.deepEqual(rifleCommands, [
     { name: 'Rifle Burst', skillId: 6003, interruptMs: 560 },
     { name: 'Rifle Burst', skillId: 6003, interruptMs: 560 }
@@ -720,13 +721,13 @@ test('preserves packet-level stops while replaying retained Engineer cast lockou
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
-  // Effect-only cutoffs do not authorize shortened casts; both skills use their normal Quickness cast timing.
+  // Effect-level cutoffs are honored by the scheduler while retained aftercast still occupies the serial lane.
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.rotation.filter((command) => command.name === 'Fragmentation Shot' || command.name === 'Flame Blast'),
     [
-      { name: 'Fragmentation Shot', skillId: 5827 },
-      { name: 'Flame Blast', skillId: 5931 }
+      { name: 'Fragmentation Shot', skillId: 5827, interruptMs: 400 },
+      { name: 'Flame Blast', skillId: 5931, interruptMs: 520 }
     ]
   );
 });
@@ -767,7 +768,7 @@ test('replays safe observed grenade timing while retaining its serial cast locko
   );
 });
 
-test('preserves a modeled Engineer aftercast when every timed EVTC packet landed', () => {
+test('does not extend a shortened Engineer cast without commit metadata even when all packets landed', () => {
   const napalm = skill(5929, 'Napalm', {
     quicknessCastTimeMs: 1760,
     effects: [
@@ -800,12 +801,12 @@ test('preserves a modeled Engineer aftercast when every timed EVTC packet landed
   const result = reconstructEvtcRotation(fixture, { skills: [napalm, fragmentationShot] });
   const action = result.actions.find((candidate) => candidate.name === 'Napalm');
 
-  // The public action retains the observed 1,560 ms animation while replay uses the catalog's 1,760 ms lane.
+  // Observed packets do not authorize extending this input or prescribing a commit cutoff.
   assert.equal(action?.durationMs, 1_560);
-  assert.equal(action?.status, 'completed');
+  assert.equal(action?.status, 'interrupted');
   assert.deepEqual(
     result.rotation.find((command) => command.name === 'Napalm'),
-    { name: 'Napalm', skillId: 5929 }
+    { name: 'Napalm', skillId: 5929, interruptMs: 1_560 }
   );
 });
 

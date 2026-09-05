@@ -241,7 +241,7 @@ test('recovers the clipped power Tempest opener and legacy Flame Barrage command
   assert.equal(result.combatStartTimestampMs, 8_883);
 });
 
-test('uses default Quickness channels when Arc Lightning has no skill-level commit cutoff', () => {
+test('cancels shortened Arc Lightning fixtures without a declared commit or per-packet mode', () => {
   const arcStart = 2_000;
   const observedPacketOffsets = [440, 680, 960, 1_200, 1_440, 1_720, 1_960, 2_200];
   const events = [
@@ -355,18 +355,20 @@ test('uses default Quickness channels when Arc Lightning has no skill-level comm
   assert.deepEqual(
     arcActions.map(({ durationMs, status }) => ({ durationMs, status })),
     [
-      { durationMs: 2_237, status: 'reduced' },
-      { durationMs: 161, status: 'reduced' }
+      { durationMs: 2_237, status: 'interrupted' },
+      { durationMs: 161, status: 'interrupted' }
     ]
   );
   assert.deepEqual(arcCommands, [
     {
       name: 'Arc Lightning',
-      skillId: ID.ARC_LIGHTNING
+      skillId: ID.ARC_LIGHTNING,
+      interruptMs: 2_240
     },
     {
       name: 'Arc Lightning',
-      skillId: ID.ARC_LIGHTNING
+      skillId: ID.ARC_LIGHTNING,
+      interruptMs: 160
     }
   ]);
 });

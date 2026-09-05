@@ -1,4 +1,5 @@
 import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { isUncommittedCast } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import {
   committedActionsFromStrikePackets,
   quicknessRuntimeDurationMs
@@ -95,6 +96,8 @@ export function normalizeNecromancerAutoattackChains(
         canonicalSkillId: identity.skillId,
         canonicalName: identity.name
       };
+      // Keep a cancelled attempt at the pending chain step even when EVTC recorded one of its packets.
+      if (isUncommittedCast(recordedActionSkill(normalized, context), action.end - action.start)) return [normalized];
       if (action.status === 'completed' && actionIndex < chain.length - 1) {
         activeChainIndex = position.chainIndex;
         expectedActionIndex = actionIndex + 1;

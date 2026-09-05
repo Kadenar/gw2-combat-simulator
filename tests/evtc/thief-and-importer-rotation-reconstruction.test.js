@@ -906,8 +906,8 @@ test('the browser rotation importer previews compressed .zevtc files before appl
     }
   );
 
-  assert.deepEqual(interruptedImport.rotation, [{ type: 'cast', skillId: 1_000 }]);
-  assert.doesNotMatch(interruptedImport.warnings.join('\n'), /no interruptCommitMs cutoff/);
+  assert.deepEqual(interruptedImport.rotation, [{ type: 'cast', skillId: 1_000, interruptAfterMs: 0 }]);
+  assert.match(interruptedImport.warnings.join('\n'), /no interruptCommitMs cutoff/);
 
   const perPacketImport = await readEvtcRotationFile(
     {

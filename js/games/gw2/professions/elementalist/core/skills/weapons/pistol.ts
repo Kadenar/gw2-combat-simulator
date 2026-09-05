@@ -721,6 +721,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     attunement: 'Earth',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 520,
+    // The attack and bullet effects commit at 480 ms; earlier interruptions cancel them.
+    interruptCommitMs: 480,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -818,6 +820,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Pistol',
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 520,
+    // The explosion commits before its projectile packets, which persist after a 480 ms interruption.
+    interruptCommitMs: 480,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     // Elemental Explosion consumes every stored bullet and grants the current attunement's aura.
@@ -837,7 +841,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -851,6 +856,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -862,7 +868,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -876,6 +883,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -887,7 +895,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -901,6 +910,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -912,7 +922,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -926,6 +937,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]

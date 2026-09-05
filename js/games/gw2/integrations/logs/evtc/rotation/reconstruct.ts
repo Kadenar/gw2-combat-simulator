@@ -37,7 +37,8 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import type { ReconstructedCommand, RotationReconstructionBase } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { observedCommittedInterruptMs, quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
+import { isUncommittedCast } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 
 const TIMING_TOLERANCE_MS = 50;
 
@@ -58,27 +59,24 @@ interface ResolvedAction extends RecordedAction {
   readonly skillId: string | number;
 }
 
-/** Applies the shared observed-cast safety contract to an EVTC action. */
+/** Preserves shortened inputs so the scheduler applies explicit commit or per-packet cancellation rules. */
 function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof findRotationSkill>): number | null {
   if (action.forceCompleteReplay === true || (action.replayCastEnd != null && action.replayInterruptMs == null)) {
     return null;
   }
 
+  // Inferred setup spans are not observed cast durations; only recorded animations or explicit cutoffs can cancel them.
+  if (action.replayInterruptMs == null && action.evidence !== 'animation' && action.evidence !== 'legacy-activation')
+    return null;
+
   const sourceObservedMs = Math.max(0, action.replayInterruptMs ?? action.end - action.start);
-  const partialCast = action.status === 'interrupted' || action.status === 'reduced';
-  const interruptedAutoattack =
-    action.status === 'interrupted' &&
-    String(skill?.type || '').toLowerCase() === 'weapon' &&
-    String(skill?.slot || '').toLowerCase() === 'weapon_1';
-  const perPacketPartialCast = partialCast && skill?.interruptMode === 'per-packet';
+  if (sourceObservedMs === 0 && (action.status === 'instant' || action.status === 'unknown')) return null;
   const runtimeMs = quicknessRuntimeDurationMs(skill);
   // Per-packet skills retain exact EVTC timing because rounding across a packet boundary changes which hits commit;
-  // atomic autoattack cancellations still snap to the game's action tick.
-  if (perPacketPartialCast && sourceObservedMs < runtimeMs) return sourceObservedMs;
-  if (interruptedAutoattack && sourceObservedMs < runtimeMs) return quantizeGw2ActionTimingMs(sourceObservedMs);
-
-  // The EVTC duration is authoritative once it falls within the skill's declared commit/full-cast bounds.
-  return observedCommittedInterruptMs(skill, action.replayInterruptMs ?? action.end - action.start);
+  // atomic cancellations still snap to the game's action tick.
+  const observedMs =
+    skill?.interruptMode === 'per-packet' ? sourceObservedMs : quantizeGw2ActionTimingMs(sourceObservedMs);
+  return observedMs < runtimeMs ? observedMs : null;
 }
 
 /** Expands casts whose uncancellable aftercast keeps the simulator lane occupied through full completion. */
@@ -90,7 +88,7 @@ function applyRetainedCastLockouts(
   return actions.map((action) => {
     const skill = recordedActionSkill(action, { catalog, profile });
     if (skill?.retainsCastLockoutAfterInterrupt !== true) return action;
-    // A safe observed interrupt remains explicit; the engine retains the serial
+    // An observed interrupt remains explicit; the engine retains the serial
     // cast lane itself while allowing instant actions and weapon swaps through.
     if (observedInterruptMs(action, skill) != null) return action;
     const runtimeDuration = quicknessRuntimeDurationMs(skill);
@@ -105,7 +103,7 @@ function applyRetainedCastLockouts(
   });
 }
 
-/** Keeps only safe observed EVTC interrupts and otherwise restores normal simulator cast timing. */
+/** Retains observed interruptions and marks atomic attempts below every declared cutoff as cancelled. */
 function applyObservedInterruptTiming(
   actions: readonly RecordedAction[],
   catalog: EvtcRotationCatalog | null,
@@ -114,7 +112,11 @@ function applyObservedInterruptTiming(
   return actions.map((action) => {
     const skill = recordedActionSkill(action, { catalog, profile });
     const interruptMs = observedInterruptMs(action, skill);
-    if (interruptMs != null) return { ...action, replayInterruptMs: interruptMs };
+    if (interruptMs != null) {
+      const cancelled = isUncommittedCast(skill, interruptMs);
+      return { ...action, status: cancelled ? 'interrupted' : action.status, replayInterruptMs: interruptMs };
+    }
+
     const runtimeDuration = quicknessRuntimeDurationMs(skill);
     const observedDuration = Math.max(0, action.end - action.start);
     const needsDefaultRuntime =
@@ -423,8 +425,7 @@ function actionCommand(action: ResolvedAction): ReconstructedCommand {
   };
   if (action.offTarget === true) command.offTarget = true;
   const interruptMs = observedInterruptMs(action, action.skill);
-  // EVTC duration is replayed only after the shared commit check; otherwise
-  // omitting interruptMs makes the simulator use its normal Quickness cast.
+  // Keep cancelled inputs explicit instead of replaying them as full damaging casts.
   if (interruptMs != null) command.interruptMs = interruptMs;
 
   if (action.initialStateDurationMs != null) {
@@ -448,7 +449,7 @@ function replayActionEnd(action: ResolvedAction): number {
       : action.status === 'completed' && runtimeDuration > 0
         ? Math.max(action.end, action.start + runtimeDuration)
         : action.end);
-  // The command retains the safe observed interrupt, while timeline spacing remains anchored to the full aftercast.
+  // The command retains the observed interrupt, while timeline spacing remains anchored to the full aftercast.
   return action.skill?.retainsCastLockoutAfterInterrupt === true && runtimeDuration > 0
     ? Math.max(observedReplayEnd, action.start + runtimeDuration)
     : observedReplayEnd;
@@ -480,16 +481,10 @@ function buildRotation(
   });
 }
 
-function warningList(actions: readonly EvtcRotationAction[], resolved: readonly ResolvedAction[]): string[] {
+function warningList(actions: readonly EvtcRotationAction[]): string[] {
   const inferred = actions.filter((action) => action.evidence === 'effect');
   const unsupported = actions.filter((action) => !action.supportedByCatalog);
   const unfinished = actions.filter((action) => action.status === 'unknown');
-  const interrupted = resolved.filter(
-    (action) =>
-      action.status === 'interrupted' &&
-      action.skill?.interruptCommitMs == null &&
-      observedInterruptMs(action, action.skill) == null
-  );
   const warnings: string[] = [];
   if (inferred.length) {
     warnings.push(
@@ -506,12 +501,6 @@ function warningList(actions: readonly EvtcRotationAction[], resolved: readonly 
   if (unfinished.length) {
     warnings.push(
       `${unfinished.length} animation${unfinished.length === 1 ? ' has' : 's have'} no matching stop event.`
-    );
-  }
-
-  if (interrupted.length) {
-    warnings.push(
-      `${interrupted.length} interrupted cast${interrupted.length === 1 ? '' : 's'} lack interruptCommitMs metadata; reconstruction uses the simulator's default Quickness cast ${interrupted.length === 1 ? 'time' : 'times'}.`
     );
   }
 
@@ -612,18 +601,18 @@ export function reconstructWithProfile(
         (action.end <= action.start || recordedActionSkill(action, { catalog, profile }) == null)
       )
   );
-  const replayNormalizedActions = applyEngineReplayTiming(genericActions, catalog, profile);
   const professionContext = {
     log,
     playerAddress: agent.address,
     profile,
     catalog,
-    recordedActions: replayNormalizedActions,
+    // Resolve split animations before interpreting a segment's duration as a cancellation of the whole skill.
+    recordedActions: genericActions,
     selectedSkillNames: options.selectedSkillNames,
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig,
     timelineOriginMs: Math.min(
-      ...replayNormalizedActions.map((action) => action.start),
+      ...genericActions.map((action) => action.start),
       combatStart == null ? Number.POSITIVE_INFINITY : combatStart
     )
   };
@@ -694,6 +683,6 @@ export function reconstructWithProfile(
     combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),
-    warnings: [...warningList(actions, resolved), ...interruptCommitWarnings]
+    warnings: [...warningList(actions), ...interruptCommitWarnings]
   };
 }

@@ -337,12 +337,10 @@ test('coalesces Willbender animations and ignores passive flame packets', () => 
     result.actions.some((action) => action.name === 'Willbender Flames'),
     false
   );
-  assert.deepEqual(
-    result.rotation.find(
-      (command, index) => command.name === 'Sword of Justice' && result.rotation[index - 1]?.name === 'Rushing Justice'
-    ),
-    { name: 'Sword of Justice', skillId: 9_168 }
-  );
+  assert.deepEqual(result.rotation.filter((command) => command.name === 'Sword of Justice').at(-1), {
+    name: 'Sword of Justice',
+    skillId: 9_168
+  });
 });
 
 test('deduplicates paired Guardian spear autoattack animations', () => {
@@ -378,7 +376,7 @@ test('deduplicates paired Guardian spear autoattack animations', () => {
   );
 });
 
-test('recovers legacy Willbender precasts and committed zero-duration casts', () => {
+test('recovers legacy Willbender precasts while preserving zero-duration cancellations', () => {
   const skills = [
     skill(62_603, 'Flowing Resolve', {
       castTimeMs: 520,
@@ -479,7 +477,7 @@ test('recovers legacy Willbender precasts and committed zero-duration casts', ()
   const result = reconstructEvtcRotation(fixture, { skills });
   const names = result.actions.map((action) => action.name);
 
-  assert.deepEqual(result.warnings, []);
+  assert.match(result.warnings.join('\n'), /interrupted Symbol of Ignition.*no interruptCommitMs cutoff/);
   assert.equal(result.combatStartTimestampMs, 1_160);
   assert.equal(names.filter((name) => name === 'Flowing Resolve').length, 1);
   assert.equal(names.filter((name) => name === 'Jurisdiction').length, 1);

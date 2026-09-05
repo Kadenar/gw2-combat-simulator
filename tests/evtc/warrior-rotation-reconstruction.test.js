@@ -70,7 +70,7 @@ function animation(skillId, start, end, options = {}) {
 }
 
 test('places EVTC combat start at the opening Head Butt strike so replay retains its damage', () => {
-  const headButtAnimation = animation(30_343, 1_000, 1_765, { modern: true });
+  const headButtAnimation = animation(30_343, 1_000, 1_800, { modern: true });
   const fixture = warriorLog(
     18,
     [{ id: 30_343, name: 'Head Butt' }],
@@ -392,17 +392,15 @@ test('reconstructs Berserker mode, Outrage, composite Rush, and committed autos'
   assert.equal(names.filter((name) => name === 'Rush').length, 1);
   assert.equal(result.actions.find((action) => action.name === 'Rush').durationMs, 1_000);
   assert.equal(result.actions.find((action) => action.name === 'Greatsword Swing').status, 'completed');
-  for (const [name, durationMs] of [
-    ['Bladetrail', 560],
-    ['Arc Divider', 680]
-  ]) {
+  for (const name of ['Bladetrail', 'Arc Divider']) {
     const action = result.actions.find((candidate) => candidate.name === name);
 
-    assert.equal(action.status, 'completed', name);
-    assert.equal(action.durationMs, durationMs, name);
+    assert.equal(action.status, 'interrupted', name);
+    assert.equal(action.durationMs, 0, name);
     const commandIndex = result.rotation.findIndex((command) => command.name === name);
 
     assert.equal(result.rotation[commandIndex]?.name, name);
+    assert.equal(result.rotation[commandIndex]?.interruptMs, 0, name);
   }
 });
 

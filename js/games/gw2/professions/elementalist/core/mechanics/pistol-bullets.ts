@@ -36,6 +36,8 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
  */
 export function applyPistolState(context: ElementalistLifecycleContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Pistol') return;
+  // A cancelled input cannot load or spend a bullet or apply its enhanced payload.
+  if (context.action?.cancelled === true) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const element = PISTOL_SKILL_ELEMENTS[Number(skill.id)];

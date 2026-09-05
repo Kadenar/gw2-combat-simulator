@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
-import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { isUncommittedCast } from '#gw2/integrations/logs/lib/rotation/timing.js';
 
 export interface ChainAction {
   readonly start: number;
@@ -49,18 +49,8 @@ export function normalizeAutoattackChains<Action extends ChainAction>(
         canonicalSkillId: canonicalId,
         canonicalName: canonical?.name || action.canonicalName || action.rawName
       });
-      const elapsedMs = quantizeGw2ActionTimingMs(action.end - action.start);
-      const cutoffs = [
-        canonical?.interruptCommitMs,
-        ...(canonical?.effects || []).map((effect) => effect.interruptCommitMs)
-      ];
       // EI can label a pre-commit cancellation as a reduced cast; keep its input without advancing the chain.
-      if (
-        canonical?.interruptMode !== 'per-packet' &&
-        elapsedMs < quicknessReferenceCastTimeMs(canonical) &&
-        !cutoffs.some((cutoff) => cutoff != null && Number.isFinite(cutoff) && elapsedMs >= cutoff)
-      )
-        continue;
+      if (isUncommittedCast(canonical, action.end - action.start)) continue;
       activeChainRoot = chainRoot;
       const next = canonical?.nextChainId == null ? null : Number(canonical.nextChainId);
       expectedSkillId = next != null && Number.isFinite(next) ? next : chainRoot;

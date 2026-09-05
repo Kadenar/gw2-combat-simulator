@@ -1,4 +1,5 @@
 import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { isUncommittedCast } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import {
   committedActionsFromStrikePackets,
   isRecordedAutoattack
@@ -81,6 +82,9 @@ function normalizeAutoattackChains(
       const actionIndex = activeChainIndex === position.chainIndex ? expectedActionIndex : 0;
       const chain = AUTOATTACK_CHAINS[position.chainIndex];
       const identity = chain[actionIndex];
+      const normalized = { ...action, canonicalSkillId: identity.skillId, canonicalName: identity.name };
+      // A landed packet does not authorize advancing a chain when the declared cast contract still cancels the input.
+      if (isUncommittedCast(recordedActionSkill(normalized, context), action.end - action.start)) return normalized;
       if (action.status === 'completed' && actionIndex < chain.length - 1) {
         activeChainIndex = position.chainIndex;
         expectedActionIndex = actionIndex + 1;
@@ -89,11 +93,7 @@ function normalizeAutoattackChains(
         expectedActionIndex = 0;
       }
 
-      return {
-        ...action,
-        canonicalSkillId: identity.skillId,
-        canonicalName: identity.name
-      };
+      return normalized;
     });
 }
 

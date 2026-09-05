@@ -1,16 +1,10 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import {
-  canonicalAction,
-  recordedDuration,
-  SIGNAL_WINDOW_MS
-} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
+import { canonicalAction, SIGNAL_WINDOW_MS } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 
 const ZEALOTS_FLAME = Object.freeze({
   name: "Zealot's Flame",
@@ -36,33 +30,6 @@ function removeDuplicateZeroDurationInterrupts(
         )
       )
   );
-}
-
-function recoverCompletedZeroDurationCasts(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const candidates = actions.filter((action) => action.status === 'interrupted' && action.end === action.start);
-  const committed = committedActionsFromStrikePackets(context, candidates, {
-    maxFallbackImpactMs: 6_000
-  });
-  return actions.map((action) => {
-    if (action.status !== 'interrupted' || action.end !== action.start) {
-      return action;
-    }
-
-    if (!committed.has(action)) return action;
-    const duration = recordedDuration(context, {
-      name: action.rawName,
-      skillId: action.rawSkillId
-    });
-    return {
-      ...action,
-      end: action.start + duration,
-      expectedDuration: duration,
-      status: 'completed'
-    };
-  });
 }
 
 function inferZealotsFlame(
@@ -100,24 +67,9 @@ function removePostEncounterActions(
   return encounterEnd == null ? [...actions] : actions.filter((action) => action.start < encounterEnd);
 }
 
-function alignReplayCastLanes(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  return actions.map((action) => {
-    if (action.status !== 'completed') return action;
-    const skill = recordedActionSkill(action, context);
-    const runtimeDuration = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
-    const replayCastEnd = Math.max(action.end, action.start + runtimeDuration);
-    return replayCastEnd > action.end ? { ...action, replayCastEnd } : action;
-  });
-}
-
-export function prepareGuardianActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  return recoverCompletedZeroDurationCasts(context, removeDuplicateZeroDurationInterrupts(actions));
+/** Removes duplicate animation signals without replacing cancelled attempts with complete casts. */
+export function prepareGuardianActions(actions: readonly EvtcRecordedRotationAction[]): EvtcRecordedRotationAction[] {
+  return removeDuplicateZeroDurationInterrupts(actions);
 }
 
 export function addGuardianCommonActions(
@@ -131,5 +83,5 @@ export function finalizeGuardianActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  return alignReplayCastLanes(context, removePostEncounterActions(context, actions));
+  return removePostEncounterActions(context, actions);
 }

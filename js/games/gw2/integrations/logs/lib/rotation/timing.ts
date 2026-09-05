@@ -1,5 +1,18 @@
 import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
-import { castRelativeEffectTimingScale, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import {
+  castRelativeEffectTimingScale,
+  quicknessReferenceCastTimeMs,
+  quantizeGw2ActionTimingMs
+} from '#gw2/platform/skills/timing.js';
+
+/** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
+export function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
+  if (skill?.interruptMode === 'per-packet') return false;
+  const elapsedMs = quantizeGw2ActionTimingMs(durationMs);
+  if (elapsedMs >= quicknessReferenceCastTimeMs(skill)) return false;
+  const cutoffs = [skill?.interruptCommitMs, ...(skill?.effects || []).map((effect) => effect.interruptCommitMs)];
+  return !cutoffs.some((cutoff) => cutoff != null && Number.isFinite(cutoff) && elapsedMs >= cutoff);
+}
 
 export function quicknessRuntimeDurationMs(skill: Skill | null): number {
   return quicknessReferenceCastTimeMs(skill);

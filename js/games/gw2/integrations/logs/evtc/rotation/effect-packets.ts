@@ -6,7 +6,6 @@ import {
 } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
-import { observedCommittedInterruptMs } from '#gw2/platform/skills/timing.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -205,7 +204,7 @@ export function missingInterruptCommitWarnings(
 
   return [...missingBySkill.entries()].map(
     ([name, count]) =>
-      `EVTC observed ${count} interrupted ${name} cast${count === 1 ? '' : 's'} dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; reconstruction uses the simulator's default Quickness cast time.`
+      `EVTC observed ${count} interrupted ${name} cast${count === 1 ? '' : 's'} dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; reconstruction preserves the cancellation and omits that damage.`
   );
 }
 
@@ -316,19 +315,7 @@ export function reconcileCastEffectPackets(
     let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
     const replayCastEnd = action.replayCastEnd;
     const suppressFollowingWait = action.suppressFollowingWait;
-    const observedCommittedInterrupt = observedCommittedInterruptMs(skill, actualDuration) != null;
-    if (packets.allObserved) {
-      if (
-        runtimeDuration > 0 &&
-        packets.allObservedTimingExplicit &&
-        packets.lastObservedCancelableExpectedOffsetMs != null &&
-        !observedCommittedInterrupt
-      ) {
-        // Every cancelable timed packet proves completion unless the observed duration is a valid committed interrupt.
-        replayDuration = runtimeDuration;
-      }
-    }
-
+    // Landed packets alone cannot extend an atomic cast to completion or supply missing commit metadata.
     if (wasInterrupted && skill?.interruptMode === 'per-packet' && packets.lastObservedExpectedOffsetMs != null) {
       // A packet after an unreliable animation-stop marker proves the channel reached that packet boundary, while a
       // cancellation with no packets retains its exact observed duration.

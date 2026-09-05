@@ -55,7 +55,7 @@ export function reconstructGuardianProfessionActions(
 ): readonly EvtcRecordedRotationAction[] {
   const analyzer = specializationAnalyzers.get(context.profile.specializationId);
   let actions = normalizeGuardianCompositeAnimations(context.recordedActions);
-  actions = prepareGuardianActions(context, actions);
+  actions = prepareGuardianActions(actions);
   actions = (analyzer?.normalizeWeaponTransitions || normalizeDefaultGuardianWeaponTransitions)(context, actions);
   actions = addGuardianCommonActions(context, actions);
   actions = analyzer?.reconstruct?.(context, actions) || actions;

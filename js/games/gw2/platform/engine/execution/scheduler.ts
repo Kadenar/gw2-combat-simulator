@@ -589,7 +589,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
     // Skill metadata owns trigger timing; the task executes profession state
     // changes only when that timestamp is actually reached.
-    for (const trigger of skill.mechanicTriggers || []) {
+    // Completion triggers describe committed effects; cancelled attempts still run lifecycle cleanup above.
+    for (const trigger of reservation.action?.cancelled === true ? [] : skill.mechanicTriggers || []) {
       const authoredCastMs = Math.max(0, Number(skill.castTimeMs || 0));
       const actualCastMs = Math.max(0, fullEnd - castContext.start) * 1000;
       const authoredOffsetMs = Number(trigger.atMs || 0);

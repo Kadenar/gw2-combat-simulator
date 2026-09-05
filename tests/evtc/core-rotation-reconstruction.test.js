@@ -10,6 +10,9 @@ import {
   reconstructEvtcRotation
 } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { EVTC_FIXTURE_PLAYER as PLAYER, event, expandedEvtcFixture, log } from '../helpers/evtc-fixture.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 
 const catalog = {
   skills: [
@@ -47,6 +50,123 @@ const catalog = {
     }
   ]
 };
+
+test('modern and legacy EVTC casts obey cancellation contracts across every profession', () => {
+  // Keep the same two-input scenario across professions so packet evidence cannot bypass the shared timing contract.
+  for (const professionCode of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+    for (const modern of [true, false]) {
+      for (const { duration = 200, metadata = {}, damagePackets = 0 } of [
+        {},
+        { duration: 0 },
+        { metadata: { interruptCommitMs: 240 } },
+        { metadata: { interruptCommitMs: 200 }, damagePackets: 2 },
+        { metadata: { effectCommitMs: 200 }, damagePackets: 2 },
+        { duration: 199, metadata: { interruptMode: 'per-packet' }, damagePackets: 1 }
+      ]) {
+        const catalog = createCanonicalCatalog({
+          generated: [
+            {
+              id: 1_000,
+              name: 'Fixture Attack',
+              type: 'Weapon',
+              slot: 'Weapon_2',
+              castTimeMs: 520,
+              unaffectedByQuickness: true,
+              interruptMode: metadata.interruptMode,
+              interruptCommitMs: metadata.interruptCommitMs,
+              effects: [
+                {
+                  type: 'strike',
+                  ticks: [
+                    { atMs: 160, coefficient: 1 },
+                    { atMs: 400, coefficient: 1 }
+                  ],
+                  timingAnchor: 'castStart',
+                  interruptCommitMs: metadata.effectCommitMs,
+                  persistsAfterInterrupt: metadata.interruptCommitMs != null || metadata.effectCommitMs != null
+                }
+              ]
+            },
+            { id: 1_001, name: 'Follow-up', castTimeMs: 520, unaffectedByQuickness: true }
+          ]
+        });
+        const animation = (skillId, start, elapsed) => [
+          event({ time: start, skillId, stateChange: modern ? 67 : 0, activation: modern ? 0 : 1, value: 520 }),
+          event({ time: start + elapsed, skillId, stateChange: modern ? 68 : 0, activation: 3, value: elapsed })
+        ];
+        const fixture = log({
+          agents: [{ ...log().agents[0], profession: professionCode, elite: 0 }],
+          skills: catalog.skills.map(({ id, name }) => ({ id, name })),
+          events: [
+            ...animation(1_000, 1_000, duration),
+            event({ time: 1_160, skillId: 1_000, target: 0x2000n, value: 100 }),
+            ...(metadata.interruptMode === 'per-packet'
+              ? []
+              : [event({ time: 1_400, skillId: 1_000, target: 0x2000n, value: 100 })]),
+            ...animation(1_001, 1_000 + duration, 520)
+          ].sort((left, right) => left.time - right.time)
+        });
+        const imported = reconstructEvtcRotation(fixture, catalog, {
+          includeCombatStart: false,
+          inferInstantCasts: false
+        });
+        const profession = defineProfession({ id: 'evtc-contract', name: 'EVTC Contract', catalog });
+        const replay = createScheduler({ profession }).run(imported.rotation);
+        const attempt = replay.steps.find((step) => step.skillId === 1_000);
+        const following = replay.steps.find((step) => step.skillId === 1_001);
+        const label = `${professionCode}, modern=${modern}, duration=${duration}, ${JSON.stringify(metadata)}`;
+
+        assert.equal(attempt.end - attempt.start, duration, label);
+        assert.equal(following.start, duration, label);
+        assert.equal(
+          replay.events.filter((packet) => packet.type === 'damage' && packet.skillId === 1_000).length,
+          damagePackets,
+          label
+        );
+      }
+    }
+  }
+});
+
+test('cancelled EVTC autos preserve the pending Guardian and Necromancer chain step', () => {
+  for (const [professionCode, ids, names] of [
+    [1, [9137, 9138, 9139], ['Strike', 'Vengeful Strike', 'Wrathful Strike']],
+    [8, [29705, 30799, 29867], ['Dusk Strike', 'Fading Twilight', 'Chilling Scythe']]
+  ]) {
+    const skills = ids.map((id, index) => ({
+      id,
+      name: names[index],
+      type: 'Weapon',
+      slot: 'Weapon_1',
+      quicknessCastTimeMs: 400,
+      effects: [{ type: 'strike', atMs: 160, timingAnchor: 'castStart' }]
+    }));
+    const fixture = log({
+      agents: [{ ...log().agents[0], profession: professionCode, elite: 0 }],
+      skills,
+      events: [
+        [ids[0], 1_000, 400],
+        [ids[1], 1_400, 200],
+        [ids[1], 1_600, 400]
+      ].flatMap(([id, start, duration]) => [
+        event({ time: start, skillId: id, stateChange: 67, value: 400 }),
+        event({ time: start + 160, skillId: id, target: 0x2000n, value: 100 }),
+        event({ time: start + duration, skillId: id, stateChange: 68, value: duration, activation: 3 })
+      ])
+    });
+    const imported = reconstructEvtcRotation(
+      fixture,
+      { skills },
+      { includeCombatStart: false, inferInstantCasts: false }
+    );
+
+    assert.deepEqual(imported.rotation, [
+      { name: names[0], skillId: ids[0] },
+      { name: names[1], skillId: ids[1], interruptMs: 200 },
+      { name: names[1], skillId: ids[1] }
+    ]);
+  }
+});
 
 test('canonicalizes Master Tuning Crystal EVTC labels to Tuning Icicle', () => {
   const parsed = parseEvtc(expandedEvtcFixture({ skillName: 'Master Tuning Crystal' }));
@@ -149,7 +269,7 @@ test('reconstructs casts, inferred instants, serial weapon swaps, dodges, and 40
   const weaponSwap = result.actions.find((action) => action.name === 'Swap Weapons');
   const dodge = result.actions.find((action) => action.name === 'Dodge');
 
-  assert.equal(mindStab?.status, 'completed');
+  assert.equal(mindStab?.status, 'interrupted');
   assert.equal(timeSink?.timestampMs, 300);
   assert.equal(timeSink?.evidence, 'effect');
   assert.equal(weaponSwap?.weaponSet, 5);
@@ -239,11 +359,11 @@ test('preserves cancelled autoattacks and their recorded timeline without artifi
   );
   assert.deepEqual(
     autoattackCommands.map(({ interruptMs }) => interruptMs),
-    [undefined, 160, undefined]
+    [400, 160, 400]
   );
   assert.deepEqual(
     result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
-    [200, 80]
+    [200, 160, 80]
   );
 });
 
@@ -264,11 +384,11 @@ test('represents observed post-combat idle time with explicit waits', () => {
 
   assert.deepEqual(
     result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
-    [200, 200, 600]
+    [200, 360, 760]
   );
 });
 
-test('uses observed strike packets to reconcile interrupted casts generically', () => {
+test('does not promote a cancelled atomic cast to completion merely because its packet landed', () => {
   const fixture = log({
     events: [
       event({ time: 1_000, stateChange: 67, skillId: 1_000, value: 800 }),
@@ -303,12 +423,13 @@ test('uses observed strike packets to reconcile interrupted casts generically', 
     inferInstantCasts: false
   });
 
-  assert.deepEqual(result.warnings, []);
-  assert.equal(result.actions[0].status, 'completed');
+  assert.match(result.warnings.join('\n'), /no interruptCommitMs cutoff; reconstruction preserves the cancellation/);
+  assert.equal(result.actions[0].status, 'interrupted');
   assert.deepEqual(result.rotation, [
     {
       name: 'Mind Stab',
-      skillId: 1_000
+      skillId: 1_000,
+      interruptMs: 0
     }
   ]);
 });
@@ -349,8 +470,8 @@ test('does not infer cast commitment when no effect packet was observed', () => 
   });
 
   assert.equal(result.actions[0].status, 'interrupted');
-  assert.ok(result.warnings.some((warning) => warning.includes('interrupted')));
-  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000 }]);
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 0 }]);
 });
 
 test('uses rounded EVTC timing when it reaches the engine interrupt cutoff', () => {
@@ -817,7 +938,7 @@ test('reconstructs Plague Signet once per passive-buff removal', () => {
   );
 });
 
-test('places Plague Signet after an overlapping Blood Is Power cast completes', () => {
+test('places Plague Signet after the observed Blood Is Power interruption', () => {
   const fixture = log({
     agents: [
       {
@@ -887,18 +1008,18 @@ test('places Plague Signet after an overlapping Blood Is Power cast completes', 
       durationMs: action.durationMs
     })),
     [
-      { name: 'Blood Is Power', timestampMs: 0, durationMs: 880 },
-      { name: 'Plague Signet', timestampMs: 880, durationMs: 0 }
+      { name: 'Blood Is Power', timestampMs: 0, durationMs: 600 },
+      { name: 'Plague Signet', timestampMs: 600, durationMs: 0 }
     ]
   );
   assert.deepEqual(result.rotation, [
-    { name: 'Blood Is Power', skillId: 10_544 },
-    { name: 'Plague Signet', skillId: 10_562 }
+    { name: 'Blood Is Power', skillId: 10_544, interruptMs: 600 },
+    { name: 'Plague Signet', skillId: 10_562, offset: 600 }
   ]);
   assert.deepEqual(result.warnings, []);
 });
 
-test('uses the default Quickness cast when EVTC timing is below the commit cutoff', () => {
+test('preserves cancellation when EVTC timing is below the commit cutoff', () => {
   const fixture = log({
     agents: [
       {
@@ -952,11 +1073,11 @@ test('uses the default Quickness cast when EVTC timing is below the commit cutof
   );
 
   assert.equal(result.actions[0].durationMs, 360);
-  assert.deepEqual(result.rotation, [{ name: 'Devouring Cut', skillId: 62_672 }]);
+  assert.deepEqual(result.rotation, [{ name: 'Devouring Cut', skillId: 62_672, interruptMs: 360 }]);
   assert.deepEqual(result.warnings, []);
 });
 
-test('accepts EVTC timing at the commit frame and rejects timing below it', () => {
+test('preserves EVTC interruptions both at and below the commit frame', () => {
   const fixture = log({
     agents: [
       {
@@ -1023,7 +1144,7 @@ test('accepts EVTC timing at the commit frame and rejects timing below it', () =
     result.rotation.filter((command) => command.name !== '__wait'),
     [
       { name: 'Dark Barrage', skillId: 62_621, interruptMs: 800 },
-      { name: 'Enfeebling Blood', skillId: 10_706 }
+      { name: 'Enfeebling Blood', skillId: 10_706, interruptMs: 600 }
     ]
   );
   assert.deepEqual(result.warnings, []);
