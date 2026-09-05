@@ -300,8 +300,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
       referenceRotation: [],
       referenceResult: null,
       referenceStatus: 'empty',
-      referenceError: '',
-      previewTimeMs: null
+      referenceError: ''
     };
     if (typeof document !== 'undefined') {
       enterRotationFocus(document);
@@ -316,7 +315,6 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.rotationComparison.referenceResult = null;
     this.rotationComparison.referenceStatus = 'queued';
     this.rotationComparison.referenceError = '';
-    this.rotationComparison.previewTimeMs = null;
     this.baselineSimulationRunner.schedule(this.buildRevision);
     if (typeof document !== 'undefined') renderRotationComparison(this);
   }
@@ -328,7 +326,6 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.rotationComparison.referenceResult = null;
     this.rotationComparison.referenceStatus = 'empty';
     this.rotationComparison.referenceError = '';
-    this.rotationComparison.previewTimeMs = null;
     if (typeof document !== 'undefined') renderRotationComparison(this);
   }
 

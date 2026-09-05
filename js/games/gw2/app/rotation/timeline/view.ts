@@ -1,4 +1,5 @@
 /** Reconciles rendered timeline rows and binds editing, insertion, and preview interactions. */
+import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
@@ -156,12 +157,14 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
           renderPalette(app);
           renderTimeline(app);
           renderRotationStateSnapshot(app);
+          renderRotationComparison(app);
         },
         onClear() {
           app.rotationInsertionIndex = null;
           renderPalette(app);
           renderTimeline(app);
           renderRotationStateSnapshot(app);
+          renderRotationComparison(app);
         }
       });
       bindTimelineInteractions(element, timelineInteractionOptions(app));
@@ -197,12 +200,14 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
         renderPalette(app);
         renderTimeline(app);
         renderRotationStateSnapshot(app);
+        renderRotationComparison(app);
       },
       onClear() {
         app.rotationInsertionIndex = null;
         renderPalette(app);
         renderTimeline(app);
         renderRotationStateSnapshot(app);
+        renderRotationComparison(app);
       }
     });
   }

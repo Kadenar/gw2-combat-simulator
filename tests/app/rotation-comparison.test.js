@@ -3,7 +3,11 @@ import test from 'node:test';
 
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/build/io/rotation-import-dialog.js';
-import { rotationComparisonMetrics, rotationComparisonMetricsFromSeries } from '#gw2/app/rotation/comparison.js';
+import {
+  rotationComparisonMetrics,
+  rotationComparisonMetricsFromSeries,
+  rotationComparisonTimeMs
+} from '#gw2/app/rotation/comparison.js';
 import { authoredStepIndexesAtPreviewTime, rotationPreviewSchedulerTimeMs } from '#gw2/app/rotation/timeline/view.js';
 
 function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents = []) {
@@ -101,8 +105,7 @@ test('comparison rejects empty or stale Current and opens with an empty referenc
     referenceRotation: [],
     referenceResult: null,
     referenceStatus: 'empty',
-    referenceError: '',
-    previewTimeMs: null
+    referenceError: ''
   });
 });
 
@@ -147,8 +150,7 @@ test('swap exchanges independent rotations and results and resets Current histor
     referenceRotation,
     referenceResult,
     referenceStatus: 'fresh',
-    referenceError: '',
-    previewTimeMs: null
+    referenceError: ''
   };
   app._rotationHistory = { undo: [[{ type: 'cast', skillId: 3 }]], redo: [], current: currentRotation };
 
@@ -166,6 +168,39 @@ test('swap exchanges independent rotations and results and resets Current histor
   assert.deepEqual(app._rotationHistory.redo, []);
   assert.deepEqual(app.changedCalls, [[false]]);
   assert.equal(app.resultRevision, app.buildRevision, 'the cached reference result stays paintable while queued');
+});
+
+// Cursor checkpoints use scheduler milliseconds, while comparison metrics use elapsed combat time.
+test('comparison follows the insertion checkpoint and restores final metrics at the end', () => {
+  const app = {
+    build: {
+      rotation: [
+        { type: 'wait', durationMs: 2750 },
+        { type: 'wait', durationMs: 1000 }
+      ]
+    },
+    results: { dpsStartTime: 2 },
+    rotationInsertionIndex: 1,
+    adapter: {
+      rotationEndStateAt(_app, index) {
+        return { time: index === 0 ? 0 : 2750 };
+      }
+    }
+  };
+
+  assert.equal(rotationComparisonTimeMs(app), 750);
+  app.rotationInsertionIndex = 0;
+  assert.equal(rotationComparisonTimeMs(app), 0, 'precombat cursor positions start at zero DPS elapsed time');
+  for (const index of [null, 2, 3]) {
+    app.rotationInsertionIndex = index;
+    assert.equal(rotationComparisonTimeMs(app), null);
+  }
+
+  app.rotationInsertionIndex = 1;
+  app.results = { firstHitTime: 1 };
+  assert.equal(rotationComparisonTimeMs(app), 1750);
+  app.results = null;
+  assert.equal(rotationComparisonTimeMs(app), null);
 });
 
 test('final and timed metrics compare the correct endpoints at one elapsed time', () => {

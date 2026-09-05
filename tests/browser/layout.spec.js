@@ -507,18 +507,37 @@ test('rotation comparison keeps editable and read-only timelines stacked without
       summary.querySelector('[data-comparison-reference-dps]').textContent,
       summary.querySelector('[data-comparison-current-dps]').textContent
     ]);
-  const timedValues = await page.locator('[data-comparison-time]').evaluate((range) => {
-    range.value = String(Math.min(Number(range.max), 250));
-    range.dispatchEvent(new Event('input', { bubbles: true }));
-    const summary = range.closest('#rotation-comparison-summary');
-    return [
-      summary.querySelector('[data-comparison-reference-dps]').textContent,
-      summary.querySelector('[data-comparison-current-dps]').textContent
-    ];
+  // Mouse and keyboard cursor changes update both comparisons without editing or resimulating the rotation.
+  const comparisonLabel = page.locator('[data-comparison-metric-label]');
+  const currentTimeline = page.locator('#rotation-timeline');
+  const buildRevision = await page.evaluate(() => window.professionApp.buildRevision);
+  await expect(page.locator('#rotation-comparison-summary input[type="range"]')).toHaveCount(0);
+  await currentTimeline.locator('[data-insertion-index="0"]').click();
+  await expect(comparisonLabel).toHaveText('Average DPS through 0.00s');
+  await expect(page.locator('[data-comparison-reference-dps]')).toHaveText('0');
+  await expect(page.locator('[data-comparison-current-dps]')).toHaveText('0');
+
+  await page.keyboard.press('ArrowRight');
+  await expect(currentTimeline.locator('.rot-insertion-gap.active')).toHaveAttribute('data-insertion-index', '1');
+  const checkpointLabel = await page.evaluate(async () => {
+    const { paletteEndState } = await import('/js/games/gw2/app/rotation/shared/context.ts');
+    const app = window.professionApp;
+    const elapsedMs = paletteEndState(app).time - app.results.dpsStartTime * 1000;
+    return `Average DPS through ${(elapsedMs / 1000).toFixed(2)}s`;
   });
-  expect(timedValues[0]).not.toBe(finalValues[0]);
-  expect(timedValues[1]).not.toBe(finalValues[1]);
-  await expect(page.locator('[data-comparison-metric-label]')).toContainText('Average DPS through');
+  await expect(comparisonLabel).toHaveText(checkpointLabel);
+  await expect(currentTimeline.locator('.rot-preview-active').first()).toBeVisible();
+  await expect(referenceTimeline.locator('.rot-preview-active').first()).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(comparisonLabel).toHaveText('Final DPS');
+  await expect(page.locator('[data-comparison-reference-dps]')).toHaveText(finalValues[0]);
+  await expect(page.locator('[data-comparison-current-dps]')).toHaveText(finalValues[1]);
+  await expect(page.locator('.rot-preview-active')).toHaveCount(0);
+  await currentTimeline.locator('[data-insertion-index="0"]').click();
+  await currentTimeline.locator('.rot-insertion-gap').last().click();
+  await expect(comparisonLabel).toHaveText('Final DPS');
+  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(buildRevision);
 
   const beforeSwap = await page.evaluate(() => ({
     current: structuredClone(window.professionApp.build.rotation),

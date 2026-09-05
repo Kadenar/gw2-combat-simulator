@@ -59,7 +59,6 @@ export interface RotationComparisonState {
   referenceResult: Gw2SimulationResult | null;
   referenceStatus: 'empty' | 'fresh' | 'queued' | 'error';
   referenceError: string;
-  previewTimeMs: number | null; // null means Final.
 }
 
 export interface ProfessionAppState {

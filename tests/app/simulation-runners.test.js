@@ -365,8 +365,7 @@ test('baseline requests refresh a queued reference once, using independent comma
       referenceRotation,
       referenceResult: {},
       referenceStatus: 'fresh',
-      referenceError: '',
-      previewTimeMs: null
+      referenceError: ''
     }
   };
   adapter.recalculate(app);
@@ -404,8 +403,7 @@ test('comparison reference commits only while comparison is still active', (t) =
       referenceRotation: [{ type: 'wait', durationMs: 1 }],
       referenceResult: { id: 'old-reference' },
       referenceStatus: 'queued',
-      referenceError: '',
-      previewTimeMs: null
+      referenceError: ''
     },
     deferredRotationRenderRevision: 3,
     simulationStatus: 'running',

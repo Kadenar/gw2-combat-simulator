@@ -1,7 +1,9 @@
 import { enterRotationFocus } from '#app/shell/workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/build/io/rotation-import-dialog.js';
 import { buildChartSeries, chartValueAt } from '#gw2/app/results/model.js';
+import { paletteEndState } from '#gw2/app/rotation/shared/context.js';
 import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
@@ -32,6 +34,16 @@ function preparedSeries(result: Gw2SimulationResult): ReturnType<typeof buildCha
 
 function percentDifference(current: number, reference: number): number | null {
   return reference === 0 ? null : ((current - reference) / Math.abs(reference)) * 100;
+}
+
+/** Uses the insertion checkpoint's elapsed combat time; an end cursor keeps the final comparison. */
+export function rotationComparisonTimeMs(app: ProfessionAppState): number | null {
+  const index = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
+  if (index == null || index === app.build.rotation.length || !app.results) return null;
+  const state = paletteEndState(app);
+  if (!state) return null;
+  const startMs = Number(app.results.dpsStartTime ?? app.results.firstHitTime ?? 0) * 1000;
+  return Math.max(0, Number(state.time || 0) - startMs);
 }
 
 /** Projects final or shared-time cumulative metrics from already prepared 250 ms chart series. */
@@ -179,12 +191,7 @@ function createComparisonView(
   </div>
   <div class="rotation-comparison-time">
     <span data-comparison-metric-label>Final DPS</span>
-    <div class="rotation-comparison-time-controls"><span>Compare at:</span>
-      <button type="button" class="btn" data-comparison-final>Final</button>
-      <input type="range" min="0" step="250" aria-label="Comparison time" data-comparison-time>
-      <output data-comparison-time-value>Final</output>
-    </div>
-  </div>
+    <span>Move the insertion cursor to compare</span>
   </div>`;
 
   const currentLabel = document.createElement('h4');
@@ -280,92 +287,53 @@ export function renderRotationComparison(app: ProfessionAppState): void {
 
   if (clearButton) clearButton.onclick = () => app.clearRotationReference();
 
+  const metrics =
+    currentResult && referenceResult
+      ? rotationComparisonMetrics(referenceResult, currentResult, rotationComparisonTimeMs(app))
+      : null;
   renderTimeline(app, {
     root: referenceTimeline,
     procRoot: null,
     build: { ...app.build, rotation: comparison.referenceRotation },
     result: referenceResult as ProfessionAppResult | null,
     readOnly: true,
-    previewTimeMs: comparison.previewTimeMs
+    previewTimeMs: metrics?.timeMs
   });
   referenceSection.dataset.referenceStatus = comparison.referenceStatus;
   referenceSection.title = comparison.referenceError;
-  if (!currentResult || !referenceResult) {
+  if (!metrics) {
     applyTimelinePreviewHighlight(currentTimeline, currentResult, null);
     return;
   }
 
-  const referenceSeries = preparedSeries(referenceResult);
-  const currentSeries = preparedSeries(currentResult);
-  const project = (): void => {
-    const metrics = rotationComparisonMetricsFromSeries(
-      referenceResult,
-      currentResult,
-      referenceSeries,
-      currentSeries,
-      comparison.previewTimeMs
-    );
-    if (comparison.previewTimeMs != null) comparison.previewTimeMs = metrics.timeMs;
-    const fresh = currentIsFresh(app) && comparison.referenceStatus === 'fresh';
-    const setText = (selector: string, value: string): void => {
-      const element = summary?.querySelector<HTMLElement>(selector);
-      if (element) element.textContent = value;
-    };
-
-    setText('[data-comparison-reference-dps]', formatNumber(metrics.referenceDps));
-    setText('[data-comparison-current-dps]', formatNumber(metrics.currentDps));
-    setText('[data-comparison-reference-damage]', formatNumber(metrics.referenceDamage));
-    setText('[data-comparison-current-damage]', formatNumber(metrics.currentDamage));
-    setText('[data-comparison-dps-change]', fresh ? formatDifference(metrics.dpsDifference) : '—');
-    setText('[data-comparison-dps-percent]', fresh ? formatPercent(metrics.dpsPercentDifference) : '—');
-    setText('[data-comparison-damage-change]', fresh ? formatDifference(metrics.damageDifference) : '—');
-    setText('[data-comparison-damage-percent]', fresh ? formatPercent(metrics.damagePercentDifference) : '—');
-    setText(
-      '[data-comparison-metric-label]',
-      metrics.timeMs == null ? 'Final DPS' : `Average DPS through ${(metrics.timeMs / 1000).toFixed(2)}s`
-    );
-    setText(
-      '[data-comparison-time-value]',
-      metrics.timeMs == null ? 'Final' : `${(metrics.timeMs / 1000).toFixed(2)}s`
-    );
-    if (status) {
-      status.textContent =
-        comparison.referenceStatus === 'error'
-          ? 'Reference error'
-          : app.simulationStatus === 'error'
-            ? 'Current error'
-            : fresh
-              ? 'Fresh'
-              : 'Updating';
-    }
-
-    const range = summary?.querySelector<HTMLInputElement>('[data-comparison-time]');
-    const finalButton = summary?.querySelector<HTMLButtonElement>('[data-comparison-final]');
-    if (range) {
-      range.max = String(metrics.maximumTimeMs);
-      range.value = String(metrics.timeMs ?? metrics.maximumTimeMs);
-    }
-
-    finalButton?.setAttribute('aria-pressed', String(metrics.timeMs == null));
-    applyTimelinePreviewHighlight(currentTimeline, currentResult, metrics.timeMs);
-    applyTimelinePreviewHighlight(referenceTimeline, referenceResult, metrics.timeMs);
+  const fresh = currentIsFresh(app) && comparison.referenceStatus === 'fresh';
+  const setText = (selector: string, value: string): void => {
+    const element = summary?.querySelector<HTMLElement>(selector);
+    if (element) element.textContent = value;
   };
 
-  const range = summary.querySelector<HTMLInputElement>('[data-comparison-time]');
-  const finalButton = summary.querySelector<HTMLButtonElement>('[data-comparison-final]');
-  if (range) {
-    range.oninput = () => {
-      comparison.previewTimeMs = Number(range.value);
-      project();
-    };
+  setText('[data-comparison-reference-dps]', formatNumber(metrics.referenceDps));
+  setText('[data-comparison-current-dps]', formatNumber(metrics.currentDps));
+  setText('[data-comparison-reference-damage]', formatNumber(metrics.referenceDamage));
+  setText('[data-comparison-current-damage]', formatNumber(metrics.currentDamage));
+  setText('[data-comparison-dps-change]', fresh ? formatDifference(metrics.dpsDifference) : '—');
+  setText('[data-comparison-dps-percent]', fresh ? formatPercent(metrics.dpsPercentDifference) : '—');
+  setText('[data-comparison-damage-change]', fresh ? formatDifference(metrics.damageDifference) : '—');
+  setText('[data-comparison-damage-percent]', fresh ? formatPercent(metrics.damagePercentDifference) : '—');
+  setText(
+    '[data-comparison-metric-label]',
+    metrics.timeMs == null ? 'Final DPS' : `Average DPS through ${(metrics.timeMs / 1000).toFixed(2)}s`
+  );
+  if (status) {
+    status.textContent =
+      comparison.referenceStatus === 'error'
+        ? 'Reference error'
+        : app.simulationStatus === 'error'
+          ? 'Current error'
+          : fresh
+            ? 'Fresh'
+            : 'Updating';
   }
 
-  if (finalButton) {
-    finalButton.onclick = () => {
-      comparison.previewTimeMs = null;
-      project();
-    };
-  }
-
-  project();
+  applyTimelinePreviewHighlight(currentTimeline, currentResult, metrics.timeMs);
 }
