@@ -29,10 +29,10 @@ npm run build
 Create `run-engineer.mjs` in the repository root:
 
 ```js
-import { prepareSimulationConfig } from './js/games/gw2/platform/engine/config.js';
-import { simulateGw2 } from './js/games/gw2/platform/index.js';
-import { skillBreakdownRows } from './js/games/gw2/app/results/result-tables.js';
-import { engineerProfession } from './js/games/gw2/professions/engineer/definition.js';
+import { prepareSimulationConfig } from '#gw2/platform/engine/config.js';
+import { simulateGw2 } from '#gw2/platform/index.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
@@ -96,30 +96,24 @@ if (result.warnings.length > 0) {
 Run it with:
 
 ```powershell
-node --import ./scripts/testing/register-dist-loader.mjs ./run-engineer.mjs
+node ./run-engineer.mjs
 ```
 
 Run `npm run build` again after changing simulator source.
 
-## Why the loader is required
+## How module imports resolve
 
-Tests import source-looking `.js` paths and register a loader that redirects compiled TypeScript modules into `dist/js`.
+Scripts and tests use the package aliases declared in `package.json`. Node resolves these aliases to compiled modules
+under `dist/js`; TypeScript and Vite resolve them to source modules. No custom loader or registration flag is required.
 
-For that reason, a headless script should use source-looking imports:
+Use the same aliases in headless scripts kept inside the repository:
 
 ```js
-import { simulateGw2 } from './js/games/gw2/platform/index.js';
-import { engineerProfession } from './js/games/gw2/professions/engineer/definition.js';
+import { simulateGw2 } from '#gw2/platform/index.js';
+import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 ```
 
-Run it after building:
-
-```powershell
-node --import ./scripts/testing/register-dist-loader.mjs ./run-engineer.mjs
-```
-
-Using the loader keeps headless scripts aligned with the source-facing imports used by tests while executing compiled
-modules from `dist/js`.
+Build before running so Node executes the current compiled modules.
 
 ## The reusable wrapper pattern
 
@@ -263,8 +257,8 @@ Start with the base config near the top of the relevant profession test, then re
 Use the registry when the profession is selected by a command-line argument or configuration file:
 
 ```js
-import { loadProfession } from './js/games/gw2/app/profession/registry.js';
-import { simulateGw2 } from './js/games/gw2/platform/index.js';
+import { loadProfession } from '#gw2/app/profession/registry.js';
+import { simulateGw2 } from '#gw2/platform/index.js';
 
 const profession = await loadProfession('engineer');
 if (!profession) throw new Error('Unknown profession');
@@ -311,8 +305,8 @@ longer than `duration`.
 For UI-equivalent formatted data, the existing transforms are also callable headlessly:
 
 ```js
-import { simulationEventLogRows } from './js/games/gw2/app/results/simulation-event-log.js';
-import { resultSummaryMetrics } from './js/games/gw2/app/results/model.js';
+import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { resultSummaryMetrics } from '#gw2/app/results/model.js';
 
 console.table(resultSummaryMetrics(result));
 console.table(simulationEventLogRows(result, null, engineerProfession));
