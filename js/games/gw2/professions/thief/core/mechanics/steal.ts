@@ -36,7 +36,7 @@ export function storeStolenSkillChoices(
     choices.length === 0
       ? 0
       : hasTrait(context.config, TRAIT.IMPROVISATION)
-        ? Number(balanceProfileFromContext(context, PROFILE.improvisation)?.maximumStacks || 2)
+        ? Number(balanceProfileFromContext(context, PROFILE.improvisation)?.maximumStacks ?? 2)
         : 1;
   if (emitState) {
     emitThiefStateSnapshot(context, context.effectiveEnd, 'stolen-skill');

@@ -29,7 +29,7 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   const state = conduitState.from(context);
   const coreState = professionCoreState(context);
   const affinityProfile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
-  const maximum = Math.max(1, Number(affinityProfile?.maximumStacks || 1));
+  const maximum = Math.max(1, Number(affinityProfile?.maximumStacks ?? 1));
   state.affinityMaximum = maximum;
   const previous = Number(state.affinity || 0);
   state.affinity = Math.min(maximum, previous + Math.max(0, Number(amount || 0)));
@@ -103,7 +103,7 @@ export function emitNuminousGift(
       name: `${skill.name} — ${effect.boon}`,
       kind: effect.boon,
       duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks || 1),
+      stacks: Number(effect.stacks ?? 1),
       audience
     });
   }

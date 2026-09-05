@@ -32,7 +32,7 @@ function breakThiefStealth(context: ThiefSchedulerContext, skill: ThiefSkill, at
   if (hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.shadowsRejuvenation)?.resourceGain || 1),
+      Number(balanceProfileFromContext(context, PROFILE.shadowsRejuvenation)?.resourceGain ?? 1),
       at,
       'leave-stealth'
     );
@@ -41,10 +41,10 @@ function breakThiefStealth(context: ThiefSchedulerContext, skill: ThiefSkill, at
   if (hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     const profile = balanceProfileFromContext(context, PROFILE.leechingVenoms);
     state.spiderVenomCharges = Math.min(
-      Number(profile?.maximumStacks || 6),
-      Number(state.spiderVenomCharges || 0) + Number(profile?.resourceGain || 3)
+      Number(profile?.maximumStacks ?? 6),
+      Number(state.spiderVenomCharges || 0) + Number(profile?.resourceGain ?? 3)
     );
-    state.spiderVenomExpiresAt = at + Number(profile?.durationMultiplier || 24);
+    state.spiderVenomExpiresAt = at + Number(profile?.durationMultiplier ?? 24);
     state.spiderVenomGeneration += 1;
   }
 
@@ -126,8 +126,8 @@ export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSk
       skillId: context.skill?.id ?? null,
       skillName: context.skill?.name ?? null,
       condition: String(vulnerability?.condition || 'Vulnerability'),
-      duration: Number(vulnerability?.duration || 5),
-      stacks: Number(vulnerability?.stacks || 10),
+      duration: Number(vulnerability?.duration ?? 5),
+      stacks: Number(vulnerability?.stacks ?? 10),
       sourceId: TRAIT.SUNDERING_SHADE,
       name: 'Sundering Shade — Vulnerability'
     });

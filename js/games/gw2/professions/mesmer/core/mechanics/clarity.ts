@@ -31,7 +31,7 @@ export function applyMesmerClarity(
 ): void {
   if (skill.id !== ID.MIND_THE_GAP) return;
   professionCoreState(state).clarityUntil =
-    at + Number(balanceProfile('mesmer.core.clarity')?.durationMultiplier || CLARITY_DURATION);
+    at + Number(balanceProfile('mesmer.core.clarity')?.durationMultiplier ?? CLARITY_DURATION);
   addEvent({
     type: 'proc',
     procType: 'skill',

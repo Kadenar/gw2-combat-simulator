@@ -32,7 +32,7 @@ function firebrandEventLogRow(
   }
 
   if (event.type === 'guardian.tome-page-used') {
-    const cost = Math.max(1, Number(event.pageCost || 1));
+    const cost = Math.max(1, Number(event.pageCost ?? 1));
     return {
       ...base,
       description:
@@ -159,7 +159,7 @@ export const firebrandUi = Object.freeze({
       };
     }
 
-    const pageCost = Number(skill.pageCost || 1);
+    const pageCost = Number(skill.pageCost ?? 1);
     if (skill.tome && Number(state.tomePages || 0) < pageCost) {
       return {
         available: false,

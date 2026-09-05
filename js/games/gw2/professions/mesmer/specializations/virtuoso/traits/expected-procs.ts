@@ -49,12 +49,13 @@ export function handleVirtuosoExpectedProcTask(
     const state = virtuosoState.from(context);
     state.bloodsongProgress += Number(task.payload.stacks || 0);
     const profile = balanceProfileFromContext(context, TRAIT.BLOODSONG);
-    const threshold = Number(profile?.threshold || 5);
-    while (state.bloodsongProgress >= threshold - PROC_PROGRESS_TOLERANCE) {
+    const threshold = Number(profile?.threshold ?? 5);
+    // A disabled threshold must not enqueue an unbounded number of blade gains.
+    while (threshold > 0 && state.bloodsongProgress >= threshold - PROC_PROGRESS_TOLERANCE) {
       state.bloodsongProgress -= threshold;
       runtime.resources.queueResources(
         task.payload.at + context.epsilon,
-        Number(profile?.resourceGain || 1),
+        Number(profile?.resourceGain ?? 1),
         runtime.activePrimaryWeapon(),
         'Bloodsong',
         { traitId: TRAIT.BLOODSONG, traitName: 'Bloodsong' }
@@ -83,8 +84,8 @@ export function handleVirtuosoExpectedProcTask(
     skillName: event.skillName,
     parentSkillName: event.parentSkillName,
     condition: 'Bleeding',
-    duration: Number(effect?.duration || 4),
-    stacks: application.quantity * Number(effect?.stacks || 1),
+    duration: Number(effect?.duration ?? 4),
+    stacks: application.quantity * Number(effect?.stacks ?? 1),
     source: event.source,
     sourceId: TRAIT.JAGGED_MIND,
     actorType: event.actorType

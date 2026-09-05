@@ -41,12 +41,10 @@ const handlers = Object.freeze({
   'necromancer.minion': replaceSkill({
     beforeEffects: necromancerMinionSkillHandlers['necromancer.minion']
   }),
-  'necromancer.minion-command': augmentSkill({
-    resolveMode: () => 'replace',
+  'necromancer.minion-command': replaceSkill({
     beforeEffects: necromancerMinionSkillHandlers['necromancer.minion-command']
   }),
-  'necromancer.summon-madness': augmentSkill({
-    resolveMode: () => 'replace',
+  'necromancer.summon-madness': replaceSkill({
     beforeEffects: necromancerMinionSkillHandlers['necromancer.summon-madness']
   }),
   'necromancer.deadly-slice': augmentSkill({

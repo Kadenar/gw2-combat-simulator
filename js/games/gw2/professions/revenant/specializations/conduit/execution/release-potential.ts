@@ -34,7 +34,7 @@ function effectiveAffinity(context: RevenantSchedulerContext): number {
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   const affinityProfile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
   return Math.min(
-    Math.max(1, Number(affinityProfile?.maximumStacks || 1)),
+    Math.max(1, Number(affinityProfile?.maximumStacks ?? 1)),
     Number(conduitState.from(context).affinity || 0) + bonus
   );
 }
@@ -75,7 +75,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           name: `${skill.name} — ${effect.boon}`,
           kind: effect.boon,
           duration: Number(effect.duration || 0),
-          stacks: Number(effect.stacks || 1)
+          stacks: Number(effect.stacks ?? 1)
         });
       }
 
@@ -94,7 +94,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
         emitSkillCondition(context, skill, {
           at: impactAt,
           condition: String(bleedingTick?.condition || 'Bleeding'),
-          stacks: Number(bleedingTick?.stacks || 1),
+          stacks: Number(bleedingTick?.stacks ?? 1),
           duration: Number(bleedingTick?.duration || 0)
         });
       }
@@ -107,7 +107,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
             name: `${skill.name} — ${effect.boon}`,
             kind: effect.boon,
             duration: Number(effect.duration || 0),
-            stacks: Number(effect.stacks || 1)
+            stacks: Number(effect.stacks ?? 1)
           });
         }
       }
@@ -130,7 +130,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       emitSkillCondition(context, skill, {
         at: impactAt,
         condition: String(tormentTick?.condition || 'Torment'),
-        stacks: Number(tormentTick?.stacks || 1),
+        stacks: Number(tormentTick?.stacks ?? 1),
         duration: Number(tormentTick?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
       });
       // Self-torment duration decreases with higher affinity (more skill = less self-harm); clamped to 0 at max.
@@ -142,7 +142,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       for (let index = 0; index < count; index += 1) {
         professionCoreState(context).selfConditions.push({
           condition: String(selfTormentTick?.condition || 'Torment'),
-          stacks: Number(selfTormentTick?.stacks || 1),
+          stacks: Number(selfTormentTick?.stacks ?? 1),
           at: impactAt,
           expiresAt: impactAt + selfDuration,
           sourceId: skill.id,
@@ -179,7 +179,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           emitSkillCondition(context, skill, {
             at: effectAt(context, effect, tick.atMs),
             condition: tick.condition,
-            stacks: Number(tick.stacks || 1),
+            stacks: Number(tick.stacks ?? 1),
             duration: Number(tick.duration || 0) * (1 + affinity * Number(effect.durationPerAffinity || 0))
           });
         }

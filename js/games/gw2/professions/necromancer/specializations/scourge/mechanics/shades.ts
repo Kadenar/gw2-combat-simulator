@@ -37,8 +37,8 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
     emitSkillBuff(context, skill, {
       at,
       kind: String(might?.boon || 'might'),
-      duration: Number(might?.duration || 6),
-      stacks: Number(might?.stacks || 2),
+      duration: Number(might?.duration ?? 6),
+      stacks: Number(might?.stacks ?? 2),
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
@@ -48,8 +48,8 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
     emitSkillBuff(context, skill, {
       at,
       kind: String(alacrity?.boon || 'alacrity'),
-      duration: Number(alacrity?.duration || 1.5),
-      stacks: Number(alacrity?.stacks || 1),
+      duration: Number(alacrity?.duration ?? 1.5),
+      stacks: Number(alacrity?.stacks ?? 1),
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
@@ -74,8 +74,8 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     const profile = hasTrait(context, TRAIT.SAND_SAVANT)
       ? balanceProfileFromContext(context, PROFILE.sandSavant)
       : shadeProfile;
-    const maximum = Number(profile?.maximumStacks || 3);
-    const duration = Number(balanceProfileEffect(profile, 'buff')?.duration || 15);
+    const maximum = Number(profile?.maximumStacks ?? 3);
+    const duration = Number(balanceProfileEffect(profile, 'buff')?.duration ?? 15);
     // Sort ascending then take the last `maximum` entries so that when the cap
     // is exceeded the oldest (soonest-expiring) shade is evicted, not the newest
     state.shades = [...state.shades, at + duration].sort((left, right) => left - right).slice(-maximum);
@@ -122,7 +122,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     at: impactAt,
     name: 'Sand Shade - Strike',
     sourceId: ID.MANIFEST_SAND_SHADE,
-    coefficient: Number(shadeStrike?.coefficient || 0.666),
+    coefficient: Number(shadeStrike?.coefficient ?? 0.666),
     skillWeapon: 'Unequipped',
     skillName: shadeStrikeName,
     parentSkillName: skill.name,
@@ -133,7 +133,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     at: impactAt,
     sourceId: ID.MANIFEST_SAND_SHADE,
     condition: String(shadeCondition?.condition || ''),
-    stacks: Number(shadeCondition?.stacks || 1),
+    stacks: Number(shadeCondition?.stacks ?? 1),
     duration: Number(shadeCondition?.duration || 0)
   });
 
@@ -145,7 +145,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       sourceId: TRAIT.SADISTIC_SEARING,
       actorType: 'effect',
       condition: String(condition?.condition || ''),
-      stacks: Number(condition?.stacks || 1),
+      stacks: Number(condition?.stacks ?? 1),
       duration: Number(condition?.duration || 0)
     });
   } else if (skill.id === ID.SAND_CASCADE) {
@@ -155,7 +155,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       at,
       controlKind: 'fear',
       duration: Number(
-        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.garishPillar), 'control')?.duration || 1
+        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.garishPillar), 'control')?.duration ?? 1
       )
     });
   } else if (skill.id === ID.DESERT_SHROUD) {
@@ -175,7 +175,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       emitSkillCondition(context, skill, {
         at: pulseAt,
         condition: String(torment?.condition || ''),
-        stacks: Number(torment?.stacks || 1),
+        stacks: Number(torment?.stacks ?? 1),
         duration: Number(torment?.duration || 0)
       });
     }
@@ -185,9 +185,9 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     const torment = balanceProfileEffect(sandstorm, 'condition');
     const pulseProtection = balanceProfileEffect(sandstorm, 'boon');
     const detonationProtection = balanceProfileEffect(sandstorm, 'boon', 1);
-    const delay = Number(strike?.atMs || 3500) / 1000;
-    const pulseCount = Number(pulseProtection?.applications || 3);
-    const pulseInterval = Number(pulseProtection?.intervalMs || 1000) / 1000;
+    const delay = Number(strike?.atMs ?? 3500) / 1000;
+    const pulseCount = Number(pulseProtection?.applications ?? 3);
+    const pulseInterval = Number(pulseProtection?.intervalMs ?? 1000) / 1000;
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {
       emitSkillBuff(context, skill, { at, kind: 'necromancer-soul-barbs', duration: 15, stacks: 1 });
     }
@@ -199,8 +199,8 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       emitSkillBuff(context, skill, {
         at: pulseAt,
         kind: 'protection',
-        duration: Number(pulseProtection?.duration || 1.5),
-        stacks: Number(pulseProtection?.stacks || 1),
+        duration: Number(pulseProtection?.duration ?? 1.5),
+        stacks: Number(pulseProtection?.stacks ?? 1),
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
@@ -209,15 +209,15 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     emitSkillBuff(context, skill, {
       at: at + delay,
       kind: 'protection',
-      duration: Number(detonationProtection?.duration || 3),
-      stacks: Number(detonationProtection?.stacks || 1),
+      duration: Number(detonationProtection?.duration ?? 3),
+      stacks: Number(detonationProtection?.stacks ?? 1),
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
-    emitSkillDamage(context, skill, { at: at + delay, coefficient: Number(strike?.coefficient || 3) });
+    emitSkillDamage(context, skill, { at: at + delay, coefficient: Number(strike?.coefficient ?? 3) });
     emitSkillCondition(context, skill, {
       at: at + delay,
       condition: String(torment?.condition || ''),
-      stacks: Number(torment?.stacks || 1),
+      stacks: Number(torment?.stacks ?? 1),
       duration: Number(torment?.duration || 0)
     });
   }

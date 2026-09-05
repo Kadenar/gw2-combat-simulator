@@ -106,8 +106,8 @@ export function triggerIllusionaryMembrane(
     type: 'buff',
     at: at + epsilon,
     kind: 'illusionary-membrane',
-    stacks: Number(effect?.stacks || 1),
-    duration: Number(effect?.duration || 15)
+    stacks: Number(effect?.stacks ?? 1),
+    duration: Number(effect?.duration ?? 15)
   });
   context.addTraitProc('Illusionary Membrane', at + epsilon, skillName);
 }

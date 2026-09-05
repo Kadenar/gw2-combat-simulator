@@ -18,8 +18,8 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
     applyTraitVulnerability(context, event, {
       name: 'Doom Approaches',
       traitId: TRAIT.DOOM_APPROACHES,
-      stacks: Number(vulnerability?.stacks || 2),
-      duration: Number(vulnerability?.duration || 6)
+      stacks: Number(vulnerability?.stacks ?? 2),
+      duration: Number(vulnerability?.duration ?? 6)
     });
   }
 
@@ -30,8 +30,8 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
       name: 'Septic Corruption',
       traitId: TRAIT.SEPTIC_CORRUPTION,
       condition: String(condition?.condition || 'Poisoned'),
-      stacks: Number(condition?.stacks || 1),
-      duration: Number(condition?.duration || 3)
+      stacks: Number(condition?.stacks ?? 1),
+      duration: Number(condition?.duration ?? 3)
     });
   }
 }

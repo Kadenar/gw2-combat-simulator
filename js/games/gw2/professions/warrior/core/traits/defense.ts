@@ -46,7 +46,7 @@ export function applyMercilessHammer(context: WarriorSchedulerContext, event: Wa
   if (event.type !== 'control' || event.actorType !== 'player' || !hasTrait(context, TRAIT.MERCILESS_HAMMER)) return;
   gainWarriorAdrenaline(
     context,
-    Number(balanceProfileFromContext(context, PROFILE.mercilessHammer)?.resourceGain || 7)
+    Number(balanceProfileFromContext(context, PROFILE.mercilessHammer)?.resourceGain ?? 7)
   );
 }
 
@@ -57,7 +57,7 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
   if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.stalwartStrength || 0))) return;
   const profile = balanceProfileFromContext(context, PROFILE.stalwartStrength);
   const stability = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.stalwartStrength = event.at + Number(profile?.internalCooldown || 0.25);
+  state.traitProcReadyAt.stalwartStrength = event.at + Number(profile?.internalCooldown ?? 0.25);
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||
@@ -72,8 +72,8 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
     name: 'Stalwart Strength',
     kind: 'stability',
     boon: 'stability',
-    duration: Number(stability?.duration || 5),
-    stacks: Number(stability?.stacks || 1),
+    duration: Number(stability?.duration ?? 5),
+    stacks: Number(stability?.stacks ?? 1),
     audience: { recipients: 'self' as const }
   });
 }

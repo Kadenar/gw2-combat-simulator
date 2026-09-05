@@ -86,7 +86,7 @@ export function handleThievesGuildAttack(
 ): void {
   if (task.at > Number(task.payload.expiresAt || 0)) return;
   const { attack, profile, summon } = task.payload;
-  const hits = Math.max(1, Number(attack.hits || 1));
+  const hits = Math.max(1, Number(attack.hits ?? 1));
   const summonName = `Thieves Guild \u2014 ${summon.name}`;
   const attackName = `${summonName} \u2014 ${attack.name}`;
   const damageBreakdownName = `${summon.displayName || summon.name} \u2014 ${attack.name}`;
@@ -129,7 +129,7 @@ export function handleThievesGuildAttack(
       damageBreakdownName,
       name: `${attackName} \u2014 ${condition.condition}`,
       condition: condition.condition,
-      stacks: Number(condition.stacks || 1),
+      stacks: Number(condition.stacks ?? 1),
       duration: Number(condition.duration || 0),
       summonInheritsAttributes: true,
       summonIgnoresBoons: true,

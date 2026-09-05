@@ -35,7 +35,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
     // stacks and trait bonuses like Lingering Curse are already folded in there
     result.expertise +=
       Number(context.config?.stats?.conditionDamage || 0) *
-      Number(balanceProfileFromContext(context, PROFILE.fellBeacon)?.attributeConversion || 0.07);
+      Number(balanceProfileFromContext(context, PROFILE.fellBeacon)?.attributeConversion ?? 0.07);
   }
 
   if (
@@ -45,7 +45,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
       (expiresAt: number) => expiresAt > context.time
     )
   ) {
-    const bonus = Number(balanceProfileFromContext(context, PROFILE.sandSage)?.attributeBonus || 225);
+    const bonus = Number(balanceProfileFromContext(context, PROFILE.sandSage)?.attributeBonus ?? 225);
     // Dynamic attribute queries may begin from sparse scheduler stats, so normalize
     // absent duration attributes before applying Sand Sage's active-shade bonus.
     result.concentration = Number(result.concentration || 0) + bonus;
@@ -59,7 +59,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
 function modifyScourgeRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   // Sand Savant adds a 25% recharge penalty alongside the ammo cap reduction to 1
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
-    ? duration * Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.rechargePenalty || 1.25)
+    ? duration * Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.rechargePenalty ?? 1.25)
     : duration;
 }
 
@@ -67,7 +67,7 @@ function modifyScourgeRechargeDuration(context: NecromancerRechargeModifierConte
 function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maximum: number): number {
   // Sand Savant merges all 3 shades into a single more-powerful shade; only 1 charge allowed
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
-    ? Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.maximumStacks || 1)
+    ? Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.maximumStacks ?? 1)
     : maximum;
 }
 
@@ -106,8 +106,8 @@ function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: Ne
   }
 
   const profile = balanceProfileFromContext(context, PROFILE.nourishingAshes);
-  state.nourishingAshesReadyAt = event.at + Number(profile?.cooldown || 3);
-  gainNecromancerLifeForce(context, Number(profile?.lifeForceGain || 5), event.at, 'nourishing-ashes');
+  state.nourishingAshesReadyAt = event.at + Number(profile?.cooldown ?? 3);
+  gainNecromancerLifeForce(context, Number(profile?.lifeForceGain ?? 5), event.at, 'nourishing-ashes');
 }
 
 export const scourgeSchedulerHooks = Object.freeze({

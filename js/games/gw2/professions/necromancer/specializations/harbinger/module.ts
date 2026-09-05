@@ -21,16 +21,14 @@ const harbingerSkillHandlers = new Map([
   [
     'necromancer.elixir',
     skillHandler({
-      mode: SKILL_HANDLER_MODES.AUGMENT,
-      resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+      mode: SKILL_HANDLER_MODES.REPLACE,
       beforeEffects: necromancerBlightSkillHandlers['necromancer.elixir']
     })
   ],
   [
     'necromancer.blight-skill',
     skillHandler({
-      mode: SKILL_HANDLER_MODES.AUGMENT,
-      resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+      mode: SKILL_HANDLER_MODES.REPLACE,
       beforeEffects: necromancerBlightSkillHandlers['necromancer.blight-skill']
     })
   ],

@@ -44,8 +44,8 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
     skillName: 'Spear of Justice',
     name: 'Spear of Justice — Active Burning',
     condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks || 1),
-    duration: Number(burning?.duration || 2),
+    stacks: Number(burning?.stacks ?? 1),
+    duration: Number(burning?.duration ?? 2),
     applicationIndex: event.applicationIndex,
     totalApplications: event.totalApplications
   });
@@ -78,8 +78,8 @@ export function reactToDragonhunterJusticeHit(
       skillName: 'Spear of Justice',
       name: 'Spear of Justice — Passive Crippled',
       condition: String(crippled?.condition || 'Crippled'),
-      stacks: Number(crippled?.stacks || 1),
-      duration: Number(crippled?.duration || 1.5)
+      stacks: Number(crippled?.stacks ?? 1),
+      duration: Number(crippled?.duration ?? 1.5)
     });
   }
 
@@ -105,8 +105,8 @@ export function reactToDragonhunterJusticeHit(
     skillId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
     skillName: 'Big Game Hunter',
     condition: 'Vulnerability',
-    stacks: Number(vulnerability?.stacks || 1),
-    duration: Number(vulnerability?.duration || 10),
+    stacks: Number(vulnerability?.stacks ?? 1),
+    duration: Number(vulnerability?.duration ?? 10),
     triggeredBy: event.skillName
   });
 }
@@ -127,8 +127,8 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
       skillName: 'Dulled Senses',
       name: 'Dulled Senses — Crippled',
       condition: String(crippled?.condition || 'Crippled'),
-      stacks: Number(crippled?.stacks || 1),
-      duration: Number(crippled?.duration || 4)
+      stacks: Number(crippled?.stacks ?? 1),
+      duration: Number(crippled?.duration ?? 4)
     });
   }
 
@@ -142,7 +142,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
   // 1-second internal cooldown on Heavy Light stability; not exposed by the trait's game tooltip.
   const heavyLight = balanceProfileFromContext(context, PROFILE.heavyLight);
   const stability = balanceProfileEffect(heavyLight, 'boon');
-  state.heavyLightReadyAt = event.at + Number(heavyLight?.internalCooldown || 1);
+  state.heavyLightReadyAt = event.at + Number(heavyLight?.internalCooldown ?? 1);
   enqueueOrdered(context.queue, {
     type: 'buff',
     at: event.at,
@@ -153,8 +153,8 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
     skillId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
     skillName: 'Heavy Light',
     kind: 'stability',
-    stacks: Number(stability?.stacks || 1),
-    duration: gw2ResolverBoonDuration(context, event, 'stability', Number(stability?.duration || 6))
+    stacks: Number(stability?.stacks ?? 1),
+    duration: gw2ResolverBoonDuration(context, event, 'stability', Number(stability?.duration ?? 6))
   });
   context.recordProc(
     'trait',

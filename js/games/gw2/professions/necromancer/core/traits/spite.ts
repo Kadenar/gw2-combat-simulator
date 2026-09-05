@@ -38,8 +38,8 @@ export function applyReapersMight(
     name: "Reaper's Might",
     skillName: "Reaper's Might",
     kind: String(effect?.boon || 'might'),
-    stacks: Number(effect?.stacks || 1),
-    duration: gw2ResolverBoonDuration(context, event, String(effect?.boon || 'might'), Number(effect?.duration || 15)),
+    stacks: Number(effect?.stacks ?? 1),
+    duration: gw2ResolverBoonDuration(context, event, String(effect?.boon || 'might'), Number(effect?.duration ?? 15)),
     source: 'Trait',
     sourceId: TRAIT.REAPERS_MIGHT,
     actorType: 'effect',
@@ -57,15 +57,15 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
     return;
   const profile = balanceProfileFromContext(context, PROFILE.siphonedPower);
   const effect = balanceProfileEffect(profile, 'boon');
-  professionCoreState(context).traitProcReadyAt.siphonedPower = event.at + Number(profile?.cooldown || 1);
+  professionCoreState(context).traitProcReadyAt.siphonedPower = event.at + Number(profile?.cooldown ?? 1);
   enqueueOrdered(context.queue, {
     type: 'buff',
     at: event.at,
     name: 'Siphoned Power',
     skillName: 'Siphoned Power',
     kind: String(effect?.boon || 'might'),
-    stacks: Number(effect?.stacks || 3),
-    duration: gw2ResolverBoonDuration(context, event, String(effect?.boon || 'might'), Number(effect?.duration || 8)),
+    stacks: Number(effect?.stacks ?? 3),
+    duration: gw2ResolverBoonDuration(context, event, String(effect?.boon || 'might'), Number(effect?.duration ?? 8)),
     source: 'Trait',
     sourceId: TRAIT.SIPHONED_POWER,
     actorType: 'effect',
@@ -85,7 +85,7 @@ export function applySpitefulFortitude(
 
   professionCoreState(context).spitefulFortitudeLifeForce =
     Number(professionCoreState(context).spitefulFortitudeLifeForce || 0) +
-    Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain || 1) * lifeForceMultiplier;
+    Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain ?? 1) * lifeForceMultiplier;
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -96,7 +96,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
   )
     return;
   const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
-  professionCoreState(context).traitProcReadyAt.chillOfDeath = event.at + Number(profile?.cooldown || 16);
+  professionCoreState(context).traitProcReadyAt.chillOfDeath = event.at + Number(profile?.cooldown ?? 16);
   const boons = context.config.target?.boonless
     ? 0
     : Math.min(
@@ -110,7 +110,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
         )
       );
   const coefficient = Number(
-    profile?.effects?.filter((effect) => effect.type === 'strike')[boons]?.coefficient || [0.6, 0.9, 1.5, 2.1][boons]
+    profile?.effects?.filter((effect) => effect.type === 'strike')[boons]?.coefficient ?? [0.6, 0.9, 1.5, 2.1][boons]
   );
   queueTraitCoefficientDamage(context, event, {
     name: 'Lesser Spinal Shivers',
@@ -125,7 +125,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
     sourceId: TRAIT.CHILL_OF_DEATH,
     actorType: 'effect',
     skillName: 'Lesser Spinal Shivers',
-    duration: Number(balanceProfileEffect(profile, 'condition')?.duration || 5)
+    duration: Number(balanceProfileEffect(profile, 'condition')?.duration ?? 5)
   });
 }
 

@@ -13,6 +13,9 @@ import {
   reconstructDpsReportRotation
 } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
@@ -279,6 +282,69 @@ test('preserves shortened per-packet cast durations from dps.report', () => {
   assert.equal(casts[1].interruptMs, 1_400);
 });
 
+test('shortened report inputs preserve elapsed time and obey scheduler cancellation contracts', () => {
+  // Positive timeGained and early packet timings cannot substitute for an explicit commit contract.
+  for (const { metadata = {}, duration = 280, timeGained = 240, hits = 0 } of [
+    {},
+    { timeGained: -240 },
+    { duration: 10 },
+    { metadata: { interruptCommitMs: 320 } },
+    { metadata: { interruptCommitMs: 280 }, hits: 2 },
+    { metadata: { interruptMode: 'per-packet' }, hits: 1 },
+    { metadata: { effectCommitMs: 280 }, hits: 2 }
+  ]) {
+    const catalog = createCanonicalCatalog({
+      generated: [
+        skill(1_000, 'Autoattack', {
+          type: 'Weapon',
+          slot: 'Weapon_1',
+          castTimeMs: 520,
+          unaffectedByQuickness: true,
+          interruptCommitMs: metadata.interruptCommitMs,
+          interruptMode: metadata.interruptMode,
+          effects: [
+            {
+              type: 'strike',
+              ticks: [
+                { atMs: 200, coefficient: 1 },
+                { atMs: 480, coefficient: 1 }
+              ],
+              timingAnchor: 'castStart',
+              persistsAfterInterrupt: metadata.interruptCommitMs != null || metadata.effectCommitMs != null,
+              interruptCommitMs: metadata.effectCommitMs
+            }
+          ]
+        }),
+        skill(1_001, 'Follow-up', { castTimeMs: 520, unaffectedByQuickness: true })
+      ]
+    });
+    const report = parseDpsReport({
+      players: [
+        {
+          name: 'Fixture Warrior',
+          profession: 'Warrior',
+          rotation: [
+            { id: 1_000, skills: [{ castTime: 0, duration, timeGained }] },
+            { id: 1_001, skills: [{ castTime: duration, duration: 520, timeGained: 0 }] }
+          ]
+        }
+      ],
+      phases: [{ start: 0, end: 1_000, name: 'Full Fight', phaseType: 'Encounter' }],
+      skillMap: { s1000: { name: 'Autoattack', autoAttack: true }, s1001: { name: 'Follow-up' } }
+    });
+    const imported = reconstructDpsReportRotation(report, catalog);
+    const profession = defineProfession({ id: 'import-contract', name: 'Import Contract', catalog });
+    const replay = createScheduler({ profession }).run(imported.rotation);
+    const expectedDuration = duration === 10 ? 0 : duration;
+    const autoattack = replay.steps.find((step) => step.skillId === 1_000);
+    const followUp = replay.steps.find((step) => step.skillId === 1_001);
+
+    assert.equal(autoattack.end - autoattack.start, expectedDuration);
+    assert.equal(followUp.start, expectedDuration);
+    assert.equal(replay.events.filter((event) => event.type === 'damage' && event.skillId === 1_000).length, hits);
+  }
+});
+
 test('reconstructs generic report casts and applies Amalgam report corrections', () => {
   const report = parseDpsReport(reportFixture());
   const players = detectDpsReportRotationPlayers(report);
@@ -318,7 +384,7 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
   assert.doesNotMatch(result.warnings.join('\n'), /duplicate instant|automatic trait|potentially incomplete/);
 });
 
-test('drops canceled Engineer autoattack rows while retaining committed shortened casts', () => {
+test('preserves cancelled and shortened autoattack inputs at their observed durations', () => {
   const fixture = reportFixture();
   fixture.players[0].rotation.push(
     {
@@ -362,17 +428,16 @@ test('drops canceled Engineer autoattack rows while retaining committed shortene
   });
 
   assert.deepEqual(
-    result.actions
-      .filter((action) => action.name === 'Fragmentation Shot' || action.name === 'Flame Jet')
-      .map((action) => [action.name, action.durationMs]),
+    result.rotation
+      .filter((command) => ['Fragmentation Shot', 'Flame Jet', 'Bomb'].includes(command.name))
+      .map((command) => [command.name, command.interruptMs]),
     [
-      ['Fragmentation Shot', 351],
-      ['Flame Jet', 397]
+      ['Fragmentation Shot', 240],
+      ['Fragmentation Shot', 360],
+      ['Flame Jet', 80],
+      ['Flame Jet', 400],
+      ['Bomb', 80]
     ]
-  );
-  assert.equal(
-    result.actions.some((action) => action.name === 'Bomb'),
-    false
   );
 });
 

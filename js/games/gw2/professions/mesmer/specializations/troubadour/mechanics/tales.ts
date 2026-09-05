@@ -50,7 +50,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
       type: 'buff',
       at,
       kind: String(boon.boon || ''),
-      stacks: Number(boon.stacks || 1),
+      stacks: Number(boon.stacks ?? 1),
       duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon || ''), Number(boon.duration || 0)),
       skillName: skill.name,
       sourceSkill: skill.name,
@@ -62,7 +62,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
   if (requiredInstrument && Number(troubadourState.from(context).instruments[requiredInstrument] || 0) > castStart) {
     runtime.resources.queueResources(
       at + context.epsilon,
-      Number(profile?.resourceGain || 1),
+      Number(profile?.resourceGain ?? 1),
       runtime.activePrimaryWeapon(),
       skill.name
     );
@@ -78,12 +78,12 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
       type: 'buff',
       at,
       kind: String(protection?.boon || 'protection'),
-      stacks: Number(protection?.stacks || 1),
+      stacks: Number(protection?.stacks ?? 1),
       duration: gw2SchedulerBoonDuration(
         context,
         skill,
         String(protection?.boon || 'protection'),
-        Number(protection?.duration || 3)
+        Number(protection?.duration ?? 3)
       ),
       skillName: skill.name,
       sourceSkill: skill.name,

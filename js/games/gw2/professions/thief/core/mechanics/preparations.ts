@@ -49,7 +49,7 @@ export function prepareTrap(context: ThiefCastContext, skill: ThiefSkill): void 
   const state = professionCoreState(context) as ThiefCoreState;
   const at = context.effectiveEnd;
   state[trap.preparedField] = true;
-  state[trap.armedAtField] = at + Number(skill.durationMultiplier || 3);
+  state[trap.armedAtField] = at + Number(skill.durationMultiplier ?? 3);
   emitThiefStateSnapshot(context, at, `prepare-${trap.reason}`);
 }
 

@@ -129,7 +129,7 @@ export function grantKallasFervor(
   const profile = kallasFervorProfile(context);
   const effect = effectByType(profile, 'buff');
   if (!profile || !effect) return false;
-  const maximumStacks = Math.max(1, Number(profile.maximumStacks || 1));
+  const maximumStacks = Math.max(1, Number(profile.maximumStacks ?? 1));
   state.kallasFervorMaximumStacks = maximumStacks;
   pruneKallasFervor(state, at);
   if (activeKallasFervorStacks(state, at, maximumStacks) >= maximumStacks) {
@@ -150,7 +150,7 @@ export function grantKallasFervor(
     name: `${sourceName} — Kalla's Fervor`,
     kind: String(effect.kind || 'kallas-fervor'),
     duration,
-    stacks: Number(effect.stacks || 1)
+    stacks: Number(effect.stacks ?? 1)
   });
   emitRevenantStateSnapshot(context, at, 'kallas-fervor');
   return true;
@@ -163,7 +163,7 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
   const profile = kallasFervorProfile(context);
   const effect = effectByType(profile, 'buff');
   if (!profile || !effect) return 0;
-  state.kallasFervorMaximumStacks = Math.max(1, Number(profile.maximumStacks || 1));
+  state.kallasFervorMaximumStacks = Math.max(1, Number(profile.maximumStacks ?? 1));
   pruneKallasFervor(state, at);
   const duration = Math.max(0, Number(effect.duration || 0));
   for (const application of state.kallasFervor) {
@@ -176,7 +176,7 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
     emitRevenantStateSnapshot(context, at, 'kallas-fervor-refreshed');
   }
 
-  return activeKallasFervorStacks(state, at, Math.max(1, Number(profile.maximumStacks || 1)));
+  return activeKallasFervorStacks(state, at, Math.max(1, Number(profile.maximumStacks ?? 1)));
 }
 
 /** Refreshes current Fervor and materializes Heroic Command's selected profile. */
@@ -190,7 +190,7 @@ export function castHeroicCommand(context: RevenantCastContext, skill: RevenantS
   const effect = effectByType(profile, 'boon');
   if (!profile || !effect) return;
   emitProfileEffects(context, skill, profile, [
-    { ...effect, stacks: Math.max(1, Number(effect.stacks || 1)) * stacks }
+    { ...effect, stacks: Math.max(1, Number(effect.stacks ?? 1)) * stacks }
   ]);
 }
 

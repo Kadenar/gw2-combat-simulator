@@ -85,7 +85,7 @@ export function applyFuriousFocus(
     ({
       id: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
       name: 'Lesser Symbol of Blades',
-      cooldown: Number(balanceProfileFromContext(context, PROFILE.furiousFocus)?.cooldown || 10)
+      cooldown: Number(balanceProfileFromContext(context, PROFILE.furiousFocus)?.cooldown ?? 10)
     } as GuardianSkill);
   professionCoreState(context).furiousFocusReadyAt = at + context.rechargeDurationFor(lesserSymbol, at);
   emitLesserSymbolOfBlades(context, skill, at);
@@ -102,8 +102,8 @@ export function applySymbolicExposure(context: GuardianSchedulerContext, event: 
     skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
     skillName: 'Symbolic Exposure',
     condition: 'Vulnerability',
-    stacks: Number(exposure?.stacks || 2),
-    duration: Number(exposure?.duration || 5),
+    stacks: Number(exposure?.stacks ?? 2),
+    duration: Number(exposure?.duration ?? 5),
     triggeredBy: event.skillName
   });
 }
@@ -143,8 +143,8 @@ function queueLesserSymbolOfResolution(
       sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
       skillName: 'Lesser Symbol of Resolution',
       kind: 'resolution',
-      duration: Number(resolution?.duration || 2),
-      stacks: Number(resolution?.stacks || 1),
+      duration: Number(resolution?.duration ?? 2),
+      stacks: Number(resolution?.stacks ?? 1),
       priority: 5
     });
   }
@@ -162,10 +162,10 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
     }
 
     state.symbolicAvengerStacks = Math.min(
-      Number(profile?.maximumStacks || 5),
+      Number(profile?.maximumStacks ?? 5),
       Number(state.symbolicAvengerStacks || 0) + 1
     );
-    state.symbolicAvengerUntil = event.at + Number(profile?.pulseInterval || 15);
+    state.symbolicAvengerUntil = event.at + Number(profile?.pulseInterval ?? 15);
     recordGuardianTraitProc(
       context,
       GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,
@@ -209,7 +209,7 @@ export function reactToZealotsResolution(context: GuardianResolverContext, event
     !(targetHealth > 0) ||
     !(
       damageDone >
-      targetHealth * Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.threshold || 0.25)
+      targetHealth * Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.threshold ?? 0.25)
     ) ||
     !isInternalCooldownReady(event.at, Number(state.zealotsResolutionReadyAt || 0)) ||
     !hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION) ||
@@ -219,7 +219,7 @@ export function reactToZealotsResolution(context: GuardianResolverContext, event
   }
 
   state.zealotsResolutionReadyAt =
-    event.at + Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.cooldown || 30);
+    event.at + Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.cooldown ?? 30);
   queueLesserSymbolOfResolution(context, event.at, event.skillName);
   recordGuardianTraitProc(
     context,

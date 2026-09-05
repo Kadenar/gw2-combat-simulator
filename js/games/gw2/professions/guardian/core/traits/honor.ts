@@ -15,7 +15,7 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
   }
 
   const profile = balanceProfileFromContext(context, PROFILE.writOfPersistence);
-  const extension = Number(balanceProfileEffect(profile, 'buff')?.duration || 2);
+  const extension = Number(balanceProfileEffect(profile, 'buff')?.duration ?? 2);
   const strikeEffects = (skill.effects || []).filter((effect) => effect.type === 'strike');
   const field = skill.comboFields?.[0];
   if (!field) return;
@@ -98,15 +98,15 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
     );
   }
 
-  for (let index = 0; index < Number(might?.applications || 2); index += 1) {
+  for (let index = 0; index < Number(might?.applications ?? 2); index += 1) {
     emitSkillBuff(context, skill, {
-      at: context.start + (Number(might?.atMs || 5240) + index * Number(might?.intervalMs || 1000)) / 1000,
+      at: context.start + (Number(might?.atMs ?? 5240) + index * Number(might?.intervalMs ?? 1000)) / 1000,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',
       kind: 'might',
-      duration: Number(might?.duration || 5),
-      stacks: Number(might?.stacks || 4),
+      duration: Number(might?.duration ?? 5),
+      stacks: Number(might?.stacks ?? 4),
       audience: { recipients: 'party' as const },
       triggeredBy: 'Writ of Persistence'
     });

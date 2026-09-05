@@ -23,13 +23,13 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
   const effect = balanceProfileEffect(profile, 'condition');
   // Advance the ICD before applying the condition so re-entrant Torment events
   // within the same tick cannot double-proc
-  scourgeState.from(context).demonicLoreReadyAt = event.at + Number(profile?.cooldown || 3);
+  scourgeState.from(context).demonicLoreReadyAt = event.at + Number(profile?.cooldown ?? 3);
   applyTraitCondition(context, event, {
     name: 'Demonic Lore',
     traitId: TRAIT.DEMONIC_LORE,
     condition: String(effect?.condition || 'Burning'),
-    stacks: Number(effect?.stacks || 1),
-    duration: Number(effect?.duration || 1)
+    stacks: Number(effect?.stacks ?? 1),
+    duration: Number(effect?.duration ?? 1)
   });
 }
 

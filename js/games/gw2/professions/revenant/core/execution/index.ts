@@ -1,6 +1,5 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantCastContext, RevenantSimulationEvent, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -20,12 +19,10 @@ const handlers = Object.freeze({
   'revenant.dodge': replaceSkill<RevenantCastContext>({
     beforeEffects: rawCoreHandlers['revenant.dodge'] as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.enchanted-daggers': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.enchanted-daggers': replaceSkill<RevenantCastContext>({
     afterEffects: activateEnchantedDaggers as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.upkeep': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.upkeep': replaceSkill<RevenantCastContext>({
     afterEffects: revenantUpkeepSkillHandlers['revenant.upkeep'] as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.upkeep-release': replaceSkill<RevenantCastContext>({
@@ -39,8 +36,7 @@ const handlers = Object.freeze({
         event as RevenantSimulationEvent
       )
   }),
-  'revenant.abyssal-raze': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.abyssal-raze': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantSpearSkillHandlers['revenant.abyssal-raze'] as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.ancient-echo': augmentSkill<RevenantCastContext>({

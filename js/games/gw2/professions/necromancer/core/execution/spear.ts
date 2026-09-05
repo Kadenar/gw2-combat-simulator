@@ -107,7 +107,7 @@ function soulShardDamage(
     flatStrikeMultiplier:
       hasTrait(context, TRAIT.SOUL_BARBS) && context.hasBuff('necromancer-soul-barbs', at) ? 1.1 : 1,
     flatStrikeHealthThreshold: Number(profile?.threshold || 0),
-    flatStrikeThresholdMultiplier: Number(profile?.damageMultiplier || 1),
+    flatStrikeThresholdMultiplier: Number(profile?.damageMultiplier ?? 1),
     noCrit: strike?.noCrit === true,
     damageKind: String(strike?.damageKind || '')
   });

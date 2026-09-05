@@ -94,14 +94,14 @@ export function applyWillbenderVirtueActivationTraits(
   const tyrants = balanceProfileFromContext(context, PROFILE.tyrantsMomentum);
   const duration =
     virtue === 'justice' && tyrantsMomentum
-      ? Number(balanceProfileEffect(tyrants, 'buff', 1)?.duration || 10)
-      : Number(window?.duration || (virtue === 'justice' ? 8 : 6));
+      ? Number(balanceProfileEffect(tyrants, 'buff', 1)?.duration ?? 10)
+      : Number(window?.duration ?? (virtue === 'justice' ? 8 : 6));
   const lethalTempo = balanceProfileFromContext(context, PROFILE.lethalTempo);
   const tempoDuration = Number(
-    balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration || (tyrantsMomentum ? 4 : 6)
+    balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration ?? (tyrantsMomentum ? 4 : 6)
   );
   state[`${virtue}Until`] = at + duration;
-  gainLethalTempo(state, at, tyrantsMomentum, Number(lethalTempo?.maximumStacks || 5), tempoDuration);
+  gainLethalTempo(state, at, tyrantsMomentum, Number(lethalTempo?.maximumStacks ?? 5), tempoDuration);
   emitSkillBuff(context, {
     at,
     source: 'guardian',
@@ -125,8 +125,8 @@ export function applyWillbenderVirtueActivationTraits(
       skillName: 'Restorative Virtues',
       name: 'Restorative Virtues — Vigor',
       kind: 'vigor',
-      stacks: Number(vigor?.stacks || 1),
-      duration: gw2SchedulerBoonDuration(context, context.skill, 'vigor', Number(vigor?.duration || 3))
+      stacks: Number(vigor?.stacks ?? 1),
+      duration: gw2SchedulerBoonDuration(context, context.skill, 'vigor', Number(vigor?.duration ?? 3))
     });
   }
 
@@ -141,8 +141,8 @@ export function applyWillbenderVirtueActivationTraits(
       skillName: 'Phoenix Protocol',
       name: 'Phoenix Protocol — Activation Alacrity',
       kind: 'alacrity',
-      stacks: Number(alacrity?.stacks || 1),
-      duration: gw2SchedulerBoonDuration(context, context.skill, 'alacrity', Number(alacrity?.duration || 5)),
+      stacks: Number(alacrity?.stacks ?? 1),
+      duration: gw2SchedulerBoonDuration(context, context.skill, 'alacrity', Number(alacrity?.duration ?? 5)),
       audience: { recipients: 'self' as const }
     });
   }
@@ -190,7 +190,7 @@ function queueInFlightWeaponCooldownReduction(
     // recharge so that multiple virtue triggers during the same cast don't over-reduce.
     const available = Math.max(0, Number(event.rechargeReadyAt) - at - pending);
     const reduction = Math.min(
-      Number(balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25),
+      Number(balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.25),
       available
     );
     if (reduction <= context.epsilon) continue;
@@ -205,7 +205,7 @@ function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: numb
   const weaponNames = activeWeaponNames(context);
   const activeIds = new Set<SkillId>([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   const rechargeReduction = Number(
-    balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25
+    balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.25
   );
   let reducedBy = 0;
   for (const skillId of activeIds) {
@@ -242,8 +242,8 @@ function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSk
     state,
     at,
     tyrantsMomentum,
-    Number(lethalTempo?.maximumStacks || 5),
-    Number(balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration || (tyrantsMomentum ? 4 : 6))
+    Number(lethalTempo?.maximumStacks ?? 5),
+    Number(balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration ?? (tyrantsMomentum ? 4 : 6))
   );
   emitSkillBuff(context, {
     at,
@@ -329,8 +329,8 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
       skillName: 'Searing Pact',
       name: 'Searing Pact — Burning',
       condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks || 1),
-      duration: Number(burning?.duration || 1),
+      stacks: Number(burning?.stacks ?? 1),
+      duration: Number(burning?.duration ?? 1),
       triggeredBy: 'Willbender Flames'
     });
   }
@@ -391,8 +391,8 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
           skillName: 'Crashing Courage',
           name: `Crashing Courage — Triggered ${kind === 'aegis' ? 'Aegis' : 'Stability'}`,
           kind,
-          stacks: Number(boon.stacks || 1),
-          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, kind, Number(boon.duration || 4)),
+          stacks: Number(boon.stacks ?? 1),
+          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, kind, Number(boon.duration ?? 4)),
           triggeredBy: sourceSkill
         });
       }
@@ -409,8 +409,8 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
         skillName: 'Phoenix Protocol',
         name: 'Phoenix Protocol — Alacrity',
         kind: 'alacrity',
-        stacks: Number(alacrity?.stacks || 1),
-        duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'alacrity', Number(alacrity?.duration || 1)),
+        stacks: Number(alacrity?.stacks ?? 1),
+        duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'alacrity', Number(alacrity?.duration ?? 1)),
         triggeredBy: sourceSkill
       });
     }
@@ -423,8 +423,8 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
     // only for justice; resolve and courage always require 5 hits.
     const triggerHits =
       virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-        ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold || 3)
-        : Number(balanceProfileFromContext(context, PROFILE.virtueWindows)?.threshold || 5);
+        ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold ?? 3)
+        : Number(balanceProfileFromContext(context, PROFILE.virtueWindows)?.threshold ?? 5);
     if (state.virtueHitCounts[virtue] < triggerHits) continue;
     state.virtueHitCounts[virtue] = 0;
     triggerVirtue(virtue, virtue === 'justice' ? 2 : undefined, virtue === 'justice' ? true : undefined);

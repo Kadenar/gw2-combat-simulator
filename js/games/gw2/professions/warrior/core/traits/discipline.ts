@@ -41,8 +41,8 @@ export function applyBurstMastery(
     name: 'Burst Mastery — Swiftness',
     kind: 'swiftness',
     boon: 'swiftness',
-    stacks: Number(swiftness?.stacks || 1),
-    duration: gw2SchedulerBoonDuration(context, skill, 'swiftness', Number(swiftness?.duration || 3))
+    stacks: Number(swiftness?.stacks ?? 1),
+    duration: gw2SchedulerBoonDuration(context, skill, 'swiftness', Number(swiftness?.duration ?? 3))
   });
 }
 

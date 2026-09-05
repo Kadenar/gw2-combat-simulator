@@ -17,16 +17,16 @@ export function performThiefDodge(context: ThiefCastContext): void {
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   Object.assign(
     state,
-    spendEndurance(state, Number(resources?.resourceCost || 50), context.start, state.maximumEndurance)
+    spendEndurance(state, Number(resources?.resourceCost ?? 50), context.start, state.maximumEndurance)
   );
   emitThiefStateSnapshot(context, context.start, 'dodge');
   if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
     const profile = balanceProfileFromContext(context, PROFILE.uncatchable);
     const bleeding = balanceProfileEffect(profile, 'condition', 0);
     const crippled = balanceProfileEffect(profile, 'condition', 1);
-    const applications = Math.max(0, Number(bleeding?.applications || 3));
+    const applications = Math.max(0, Number(bleeding?.applications ?? 3));
     for (let pulse = 0; pulse < applications; pulse += 1) {
-      const at = context.start + Number(profile?.initialDelay || 0.8) + pulse * Number(profile?.pulseInterval || 1);
+      const at = context.start + Number(profile?.initialDelay ?? 0.8) + pulse * Number(profile?.pulseInterval ?? 1);
       emitSkillCondition(context, {
         at,
         source: 'Trait',
@@ -34,8 +34,8 @@ export function performThiefDodge(context: ThiefCastContext): void {
         skillId: context.skill?.id ?? null,
         skillName: context.skill?.name ?? null,
         condition: String(bleeding?.condition || 'Bleeding'),
-        duration: Number(bleeding?.duration || 5),
-        stacks: Number(bleeding?.stacks || 1),
+        duration: Number(bleeding?.duration ?? 5),
+        stacks: Number(bleeding?.stacks ?? 1),
         sourceId: TRAIT.UNCATCHABLE,
         name: 'Uncatchable — Lesser Caltrops'
       });
@@ -46,8 +46,8 @@ export function performThiefDodge(context: ThiefCastContext): void {
         skillId: context.skill?.id ?? null,
         skillName: context.skill?.name ?? null,
         condition: String(crippled?.condition || 'Crippled'),
-        duration: Number(crippled?.duration || 1),
-        stacks: Number(crippled?.stacks || 1),
+        duration: Number(crippled?.duration ?? 1),
+        stacks: Number(crippled?.stacks ?? 1),
         sourceId: TRAIT.UNCATCHABLE,
         name: 'Uncatchable — Lesser Caltrops'
       });
@@ -64,6 +64,6 @@ export function completeThiefDodge(context: ThiefCastContext): void {
   const profile = balanceProfileFromContext(context, PROFILE.upperHand);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.UPPER_HAND] || 0);
   if (!isInternalCooldownReady(at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.UPPER_HAND] = at + Number(profile?.internalCooldown || 2);
-  gainThiefInitiative(context, Number(profile?.resourceGain || 1), at, 'upper-hand');
+  state.traitProcReadyAt[TRAIT.UPPER_HAND] = at + Number(profile?.internalCooldown ?? 2);
+  gainThiefInitiative(context, Number(profile?.resourceGain ?? 1), at, 'upper-hand');
 }

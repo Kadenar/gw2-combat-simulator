@@ -46,7 +46,7 @@ export function applyDhuumfire(
     name: 'Dhuumfire',
     traitId: TRAIT.DHUUMFIRE,
     condition: String(effect?.condition || 'Burning'),
-    stacks: Number(effect?.stacks || 1),
+    stacks: Number(effect?.stacks ?? 1),
     duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect?.duration ?? 3)
   });
 }
@@ -62,8 +62,8 @@ export function applyUnyieldingBlast(
   applyTraitVulnerability(context, event, {
     name: 'Unyielding Blast',
     traitId: TRAIT.UNYIELDING_BLAST,
-    stacks: Number(effect?.stacks || 2),
-    duration: Number(effect?.duration || 10)
+    stacks: Number(effect?.stacks ?? 2),
+    duration: Number(effect?.duration ?? 10)
   });
 }
 

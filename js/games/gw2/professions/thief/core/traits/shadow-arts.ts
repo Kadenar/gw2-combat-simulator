@@ -20,7 +20,7 @@ export function applyHiddenThief(context: ThiefCastContext, at: number): void {
   const weakness = balanceProfileEffect(profile, 'condition', 1);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] ?? 0);
   if (!isInternalCooldownReady(at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + Number(profile?.internalCooldown || 2);
+  state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + Number(profile?.internalCooldown ?? 2);
   emitSkillCondition(context, {
     at,
     source: 'Trait',
@@ -28,8 +28,8 @@ export function applyHiddenThief(context: ThiefCastContext, at: number): void {
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: 'Blindness',
-    duration: Number(blindness?.duration || 3),
-    stacks: Number(blindness?.stacks || 1),
+    duration: Number(blindness?.duration ?? 3),
+    stacks: Number(blindness?.stacks ?? 1),
     sourceId: TRAIT.HIDDEN_THIEF,
     name: 'Hidden Thief - Blindness'
   });
@@ -40,8 +40,8 @@ export function applyHiddenThief(context: ThiefCastContext, at: number): void {
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: 'Weakness',
-    duration: Number(weakness?.duration || 3),
-    stacks: Number(weakness?.stacks || 1),
+    duration: Number(weakness?.duration ?? 3),
+    stacks: Number(weakness?.stacks ?? 1),
     sourceId: TRAIT.HIDDEN_THIEF,
     name: 'Hidden Thief - Weakness'
   });
@@ -75,7 +75,7 @@ function enqueueSiphon(
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (!hasTrait(context.config, TRAIT.LEECHING_VENOMS)) return;
   const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.leechingVenoms), 'strike');
-  enqueueSiphon(context, event, TRAIT.LEECHING_VENOMS, 'Leeching Venoms', Number(strike?.coefficient || 0.033));
+  enqueueSiphon(context, event, TRAIT.LEECHING_VENOMS, 'Leeching Venoms', Number(strike?.coefficient ?? 0.033));
 }
 
 export function applyAlliedLeechingVenoms(context: ThiefResolverContext, application: ThiefResolverEvent): void {
@@ -102,13 +102,13 @@ export function applyShadowSiphoning(context: ThiefResolverContext, event: Thief
   const profile = balanceProfileFromContext(context, PROFILE.shadowSiphoning);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0);
   if (!isInternalCooldownReady(event.at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = event.at + Number(profile?.internalCooldown || 1);
+  state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = event.at + Number(profile?.internalCooldown ?? 1);
   enqueueSiphon(
     context,
     event,
     TRAIT.SHADOW_SIPHONING,
     'Shadow Siphoning',
-    Number(balanceProfileEffect(profile, 'strike')?.coefficient || 0.1)
+    Number(balanceProfileEffect(profile, 'strike')?.coefficient ?? 0.1)
   );
 }
 
@@ -120,6 +120,6 @@ export function applyCloakedInShadow(context: ThiefResolverContext, application:
     application,
     TRAIT.CLOAKED_IN_SHADOW,
     'Cloaked in Shadow',
-    Number(strike?.coefficient || 0.04)
+    Number(strike?.coefficient ?? 0.04)
   );
 }

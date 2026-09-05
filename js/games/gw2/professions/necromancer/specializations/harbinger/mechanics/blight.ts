@@ -60,15 +60,15 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
   const end = Math.max(start, Number(target || 0));
   // Life force drains at 5% of maximum per second inside Harbinger Shroud.
   const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const drainRate = (Number(coreState.maximumLifeForce || 100) * Number(resources?.lifeForceDrain || 5)) / 100;
+  const drainRate = (Number(coreState.maximumLifeForce || 100) * Number(resources?.lifeForceDrain ?? 5)) / 100;
   // exitAt is the moment life force would hit 0 — Blight stops accruing if shroud exits before `end`.
   const exitAt =
     drainRate > 0 && drainRate * (end - start) >= coreState.lifeForce ? start + coreState.lifeForce / drainRate : end;
   // Doom Approaches doubles the passive Blight gain rate (2 → 4 stacks/s).
   const stacksPerSecond = Number(
     hasTrait(context, TRAIT.DOOM_APPROACHES)
-      ? balanceProfileFromContext(context, PROFILE.doomApproaches)?.blightGain || 4
-      : resources?.blightGain || 2
+      ? (balanceProfileFromContext(context, PROFILE.doomApproaches)?.blightGain ?? 4)
+      : (resources?.blightGain ?? 2)
   );
   // nextBlightAt is a whole-second cursor; each tick adds stacksPerSecond stacks and advances the cursor by 1 s.
   while (Number(state.nextBlightAt ?? Number.POSITIVE_INFINITY) <= exitAt + context.epsilon) {
@@ -94,13 +94,13 @@ function applyCascadingCorruption(
     return;
   const state = harbingerState.from(context);
   const profile = balanceProfileFromContext(context, PROFILE.cascadingCorruption);
-  const threshold = Number(profile?.minimumStacks || 20);
+  const threshold = Number(profile?.minimumStacks ?? 20);
   state.cascadingCorruptionStacks += consumed;
   // Every 20 accumulated stacks triggers exactly one Meltdown; remainder carries over to the next threshold.
   if (state.cascadingCorruptionStacks < threshold) return;
   state.cascadingCorruptionStacks -= threshold;
   // Meltdown lasts 10 s and grants the Cascading Corruption damage bonus during that window.
-  state.meltdownUntil = at + Number(balanceProfileEffect(profile, 'buff')?.duration || 10);
+  state.meltdownUntil = at + Number(balanceProfileEffect(profile, 'buff')?.duration ?? 10);
   context.emit({
     type: 'proc',
     procType: 'trait',
@@ -118,7 +118,7 @@ function applyCascadingCorruption(
     source: 'Trait',
     sourceId: TRAIT.CASCADING_CORRUPTION,
     actorType: 'effect',
-    coefficient: Number(balanceProfileEffect(profile, 'strike')?.coefficient || 4.5),
+    coefficient: Number(balanceProfileEffect(profile, 'strike')?.coefficient ?? 4.5),
     parentSkillName: skill.name
   });
   const torment = balanceProfileEffect(profile, 'condition');
@@ -128,8 +128,8 @@ function applyCascadingCorruption(
     sourceId: TRAIT.CASCADING_CORRUPTION,
     actorType: 'effect',
     condition: String(torment?.condition || 'Torment'),
-    stacks: Number(torment?.stacks || 6),
-    duration: Number(torment?.duration || 6),
+    stacks: Number(torment?.stacks ?? 6),
+    duration: Number(torment?.duration ?? 6),
     parentSkillName: skill.name
   });
 }
@@ -149,7 +149,7 @@ function emitElixirEffects(
       emitSkillDamage(context, skill, {
         at: impactAt,
         coefficient: Number(effect.coefficient || 0),
-        hits: Number(effect.hits || 1),
+        hits: Number(effect.hits ?? 1),
         metadata: {
           blightEmpowered: source !== skill,
           necromancerBlight: blight
@@ -159,7 +159,7 @@ function emitElixirEffects(
       emitSkillCondition(context, skill, {
         at: impactAt,
         condition: String(effect.condition || ''),
-        stacks: Number(effect.stacks || 1),
+        stacks: Number(effect.stacks ?? 1),
         duration: Number(effect.duration || 0)
       });
     } else if (effect.type === 'boon') {
@@ -167,7 +167,7 @@ function emitElixirEffects(
         at: context.effectiveEnd,
         kind: String(effect.boon || ''),
         duration: Number(effect.duration || 0),
-        stacks: Number(effect.stacks || 1),
+        stacks: Number(effect.stacks ?? 1),
         ...(boonOptions || {})
       });
     } else if (effect.type === 'blind') {
@@ -207,7 +207,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     context,
     HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)]
   );
-  const threshold = Number(empoweredProfile?.blightCost || skill.blightCost || 5);
+  const threshold = Number(empoweredProfile?.blightCost ?? skill.blightCost ?? 5);
   const empowered = state.blight >= threshold;
   const consumed = empowered ? consumeBlight(state, threshold, at) : 0;
   applyCascadingCorruption(context, skill, consumed, at);
@@ -222,8 +222,8 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       kind: String(protection?.boon || 'protection'),
-      duration: Number(protection?.duration || 3),
-      stacks: Number(protection?.stacks || 1),
+      duration: Number(protection?.duration ?? 3),
+      stacks: Number(protection?.stacks ?? 1),
       ...(boonOptions || {})
     });
   }
@@ -237,7 +237,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     state.blight
   );
   // Elixir of Ambition grants more Blight than other elixirs, consistent with its higher empowerment threshold.
-  addBlight(state, Number((empoweredProfile || skill).blightGain || (ambition ? 15 : 10)), at);
+  addBlight(state, Number((empoweredProfile || skill).blightGain ?? (ambition ? 15 : 10)), at);
   emitNecromancerStateSnapshot(context, at, 'blight-gained', {
     dedupeAcrossSourceIds: true
   });
@@ -260,7 +260,7 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
     context,
     HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)]
   );
-  const cost = Number(empoweredProfile?.blightCost || skill.blightCost || 5);
+  const cost = Number(empoweredProfile?.blightCost ?? skill.blightCost ?? 5);
   const empowered = state.blight >= cost;
   const consumed = empowered ? consumeBlight(state, cost, at) : 0;
   // The strike snapshots Blight after the five-stack activation cost. Blight
@@ -287,7 +287,7 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
       emitSkillCondition(context, skill, {
         at: impactAt,
         condition: String(condition.condition || 'Torment'),
-        stacks: Number(condition.stacks || 1),
+        stacks: Number(condition.stacks ?? 1),
         duration: Number(condition.duration || 0)
       });
     }

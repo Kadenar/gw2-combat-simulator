@@ -7,8 +7,8 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/wa
 function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, at: number): number {
   const vigor = Boolean(context.config.boons?.vigor || context.hasBuff?.('vigor', at));
   const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const base = Number(resources?.enduranceRegenerationPerSecond || 5);
-  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier || 1.5);
+  const base = Number(resources?.enduranceRegenerationPerSecond ?? 5);
+  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier ?? 1.5);
   return base * (vigor ? vigorMultiplier : 1);
 }
 

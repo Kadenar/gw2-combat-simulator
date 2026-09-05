@@ -72,7 +72,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
         name: `${skill.name} — ${kind}`,
         kind,
         duration: Number(vigor.duration || 0),
-        stacks: Number(vigor.stacks || 1)
+        stacks: Number(vigor.stacks ?? 1)
       });
     }
   }
@@ -118,7 +118,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     name: dodge,
     coefficient:
       strikeEffectCoefficient(effect) *
-      (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier || 1)) : 1),
+      (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier ?? 1)) : 1),
     hits: strikeEffectTicks(effect).length,
     hitIndex: 1,
     totalHits: 1,
@@ -142,7 +142,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
       name: 'Forerunner of Death',
       kind: String(forerunnerEffect?.kind || 'forerunner-of-death'),
       duration,
-      stacks: Number(forerunnerEffect?.stacks || 1)
+      stacks: Number(forerunnerEffect?.stacks ?? 1)
     });
   }
 

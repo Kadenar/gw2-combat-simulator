@@ -179,7 +179,8 @@ export function registerNecromancerCreatureStrikeMultiplier(
 export function necromancerCreatureStrikeMultiplier(context: NecromancerCastContext): number {
   let multiplier = 1;
   for (const contribution of creatureStrikeMultipliers.get(context.state)?.values() || []) {
-    multiplier *= Number(contribution(context) || 1);
+    // A specialization can explicitly disable creature strikes with a zero multiplier.
+    multiplier *= Number(contribution(context) ?? 1);
   }
 
   return multiplier;

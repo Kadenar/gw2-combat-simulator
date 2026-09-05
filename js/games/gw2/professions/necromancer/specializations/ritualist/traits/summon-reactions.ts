@@ -30,7 +30,7 @@ function applyRitualistCreatureSummonTraits(
   if (hasTrait(context, TRAIT.BOON_OF_CREATION)) {
     gainNecromancerLifeForce(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.boonOfCreation)?.lifeForceGain || 10) * count,
+      Number(balanceProfileFromContext(context, PROFILE.boonOfCreation)?.lifeForceGain ?? 10) * count,
       at
     );
   }
@@ -47,7 +47,7 @@ function applyRitualistCreatureSummonTraits(
     skillName: 'Explosive Growth',
     parentSkillName: skill.name,
     triggeredBy: skill.name,
-    coefficient: Number(explosive?.coefficient || 1.2) * count,
+    coefficient: Number(explosive?.coefficient ?? 1.2) * count,
     skillWeapon: 'Unequipped'
   });
 }
@@ -78,7 +78,7 @@ export function initializeRitualistSummonTraits(context: NecromancerSchedulerCon
       return;
     }
 
-    const drainPercent = Number(balanceProfileFromContext(runtime, PROFILE.resources)?.lifeForceDrain || 3);
+    const drainPercent = Number(balanceProfileFromContext(runtime, PROFILE.resources)?.lifeForceDrain ?? 3);
     core.lifeForce = Math.max(0, core.lifeForce - core.maximumLifeForce * (drainPercent / 100) * (end - start));
     if (core.lifeForce <= runtime.epsilon) {
       core.lifeForce = 0;
@@ -107,8 +107,8 @@ export function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Ne
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,
     kind: String(quickness?.boon || 'quickness'),
-    duration: Number(quickness?.duration || 3.75),
-    stacks: Number(quickness?.stacks || 1),
+    duration: Number(quickness?.duration ?? 3.75),
+    stacks: Number(quickness?.stacks ?? 1),
     ...boonOptions
   });
   const boonIndex = key === 'anguish' ? 1 : key === 'wanderlust' ? 2 : 3;
@@ -125,8 +125,8 @@ export function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Ne
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,
     kind: String(boon?.boon || defaults.kind),
-    duration: Number(boon?.duration || defaults.duration),
-    stacks: Number(boon?.stacks || defaults.stacks),
+    duration: Number(boon?.duration ?? defaults.duration),
+    stacks: Number(boon?.stacks ?? defaults.stacks),
     ...boonOptions
   });
 }

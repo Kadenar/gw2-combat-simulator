@@ -59,7 +59,7 @@ export function revenantEnduranceRegenerationRate(
   return Math.min(
     10,
     Number(profile.enduranceRegenerationPerSecond || 0) *
-      (vigorActive ? Number(profile.vigorRegenerationMultiplier || 1) : 1)
+      (vigorActive ? Number(profile.vigorRegenerationMultiplier ?? 1) : 1)
   );
 }
 

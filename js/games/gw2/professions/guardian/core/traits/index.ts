@@ -51,7 +51,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {
     const field = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.symbolOfIgnition), 'buff');
-    const duration = Number(field?.duration || 4);
+    const duration = Number(field?.duration ?? 4);
     context.replaceEvent(context.action, {
       comboFields: [
         {
@@ -76,7 +76,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES) {
     const durationMultiplier = Number(
-      balanceProfileFromContext(context, PROFILE.masterOfConsecrations)?.durationMultiplier || 1.4
+      balanceProfileFromContext(context, PROFILE.masterOfConsecrations)?.durationMultiplier ?? 1.4
     );
     context.replaceEvent(context.action, {
       comboFields: [
@@ -108,7 +108,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 export function handleSymbolOfIgnitionField(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = guardianResolverState(context);
   state.symbolIgnitionStartsAt = event.at;
-  state.symbolIgnitionUntil = event.at + Number(event.duration || 4);
+  state.symbolIgnitionUntil = event.at + Number(event.duration ?? 4);
 }
 
 // While the symbol window is active, attach its burning to other player hits;
@@ -136,7 +136,7 @@ function reactToSymbolOfIgnition(context: GuardianResolverContext, event: Guardi
 
   if (!isInternalCooldownReady(event.at, Number(state.symbolIgnitionReadyAt || 0))) return;
 
-  state.symbolIgnitionReadyAt = event.at + Number(profile?.internalCooldown || 0.25);
+  state.symbolIgnitionReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
   enqueueOrdered(context.queue, {
     type: 'condition',
     at: event.at,
@@ -148,8 +148,8 @@ function reactToSymbolOfIgnition(context: GuardianResolverContext, event: Guardi
     skillName: 'Symbol of Ignition',
     name: 'Symbol of Ignition — Ignition',
     condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks || 1),
-    duration: Number(burning?.duration || 1),
+    stacks: Number(burning?.stacks ?? 1),
+    duration: Number(burning?.duration ?? 1),
     triggeredBy: event.skillName,
     projectile: event.projectile === true
   });

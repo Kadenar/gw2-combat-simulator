@@ -58,5 +58,5 @@ export function warriorGainsAdrenalineOnHit(context: WarriorSchedulerContext): b
 /** Applies deferred strike-resource gains through the active family policy. */
 export function handleWarriorAdrenalineTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
   const payload = task.payload as { readonly amount?: number } | null;
-  gainWarriorAdrenaline(context, Number(payload?.amount || 1));
+  gainWarriorAdrenaline(context, Number(payload?.amount ?? 1));
 }

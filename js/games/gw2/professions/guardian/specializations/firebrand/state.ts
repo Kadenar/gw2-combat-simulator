@@ -96,21 +96,21 @@ export function initializeFirebrandBalanceState(context: GuardianSchedulerContex
   const state = firebrandState.from(context);
   const archivistOfWhispers = hasTrait(context, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const defaultMaximum = Number(resources?.maximumStacks || 5);
+  const defaultMaximum = Number(resources?.maximumStacks ?? 5);
   const traitMaximum = archivistOfWhispers
-    ? Number(balanceProfileFromContext(context, PROFILE.archivistOfWhispers)?.maximumStacks || 8)
+    ? Number(balanceProfileFromContext(context, PROFILE.archivistOfWhispers)?.maximumStacks ?? 8)
     : defaultMaximum;
   state.maximumTomePages = Math.max(traitMaximum, Number(context.config.maximumTomePages || traitMaximum));
   state.tomePageInterval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
-    ? Number(balanceProfileFromContext(context, PROFILE.loremaster)?.pulseInterval || 5)
-    : Number(resources?.pulseInterval || 8);
+    ? Number(balanceProfileFromContext(context, PROFILE.loremaster)?.pulseInterval ?? 5)
+    : Number(resources?.pulseInterval ?? 8);
   const configuredInitialPages = Number(context.config.initialTomePages ?? traitMaximum);
   const initialPages =
     archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
   state.tomePages = Math.max(0, Math.min(state.maximumTomePages, initialPages));
   state.nextTomePageAt = state.tomePages < state.maximumTomePages ? state.tomePageInterval : Number.POSITIVE_INFINITY;
   state.ashesBurnDuration = Number(
-    balanceProfileEffect(balanceProfileFromContext(context, PROFILE.ashes), 'condition')?.duration || 2
+    balanceProfileEffect(balanceProfileFromContext(context, PROFILE.ashes), 'condition')?.duration ?? 2
   );
 }
 

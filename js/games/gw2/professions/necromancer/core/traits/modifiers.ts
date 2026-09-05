@@ -122,7 +122,7 @@ export function modifyNecromancerCoreAttributes(
   const gearPower = Number(context.config?.stats?.power || 0);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, 'Signet of Spite')) {
-    const signetPower = Number(balanceProfileFromContext(context, PROFILE.signetOfSpite)?.attributeBonus || 180);
+    const signetPower = Number(balanceProfileFromContext(context, PROFILE.signetOfSpite)?.attributeBonus ?? 180);
     const passiveActive = playerModifierContext(context) && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {
       if (!passiveActive) result.power -= signetPower;
@@ -138,51 +138,51 @@ export function modifyNecromancerCoreAttributes(
     ? Object.values(necromancerRuntimeCoreState(context).activeMinions || {}).reduce(
         (total: number, count: number) =>
           total +
-          Number(count || 0) * Number(balanceProfileFromContext(context, PROFILE.fleshOfTheMaster)?.resourceGain || 2),
+          Number(count || 0) * Number(balanceProfileFromContext(context, PROFILE.fleshOfTheMaster)?.resourceGain ?? 2),
         0
       )
     : 0;
   const carapace = Math.min(
-    Number(balanceProfileFromContext(context, PROFILE.fleshOfTheMaster)?.maximumStacks || 30),
+    Number(balanceProfileFromContext(context, PROFILE.fleshOfTheMaster)?.maximumStacks ?? 30),
     timedCarapace + minionCarapace
   );
   if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
-    const perStack = Number(balanceProfileFromContext(context, PROFILE.deadlyStrength)?.attributePerStack || 10);
+    const perStack = Number(balanceProfileFromContext(context, PROFILE.deadlyStrength)?.attributePerStack ?? 10);
     result.power += carapace * perStack;
     result.conditionDamage += carapace * perStack;
   }
 
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
-    const perStack = Number(balanceProfileFromContext(context, PROFILE.awakenThePain)?.attributePerStack || 10);
+    const perStack = Number(balanceProfileFromContext(context, PROFILE.awakenThePain)?.attributePerStack ?? 10);
     result.power += Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) * perStack;
   }
 
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {
       result.vitality +=
-        gearPower * Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.attributeConversion || 0.1);
+        gearPower * Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.attributeConversion ?? 0.1);
     }
 
     if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
-      result.precision += Number(balanceProfileFromContext(context, PROFILE.furiousDemise)?.attributeBonus || 180);
+      result.precision += Number(balanceProfileFromContext(context, PROFILE.furiousDemise)?.attributeBonus ?? 180);
     }
 
     if (hasTrait(context, TRAIT.TARGET_THE_WEAK)) {
       // Flat Precision from Furious Demise is present before the conversion.
       result.conditionDamage += Math.floor(
         result.precision *
-          Number(balanceProfileFromContext(context, PROFILE.targetTheWeak)?.attributeConversion || 0.13)
+          Number(balanceProfileFromContext(context, PROFILE.targetTheWeak)?.attributeConversion ?? 0.13)
       );
     }
 
     if (hasTrait(context, TRAIT.LINGERING_CURSE)) {
       result.conditionDamage += Number(
-        balanceProfileFromContext(context, PROFILE.lingeringCurse)?.attributeBonus || 200
+        balanceProfileFromContext(context, PROFILE.lingeringCurse)?.attributeBonus ?? 200
       );
     }
 
     if (hasTrait(context, TRAIT.VITAL_PERSISTENCE)) {
-      result.vitality += Number(balanceProfileFromContext(context, PROFILE.vitalPersistence)?.attributeBonus || 180);
+      result.vitality += Number(balanceProfileFromContext(context, PROFILE.vitalPersistence)?.attributeBonus ?? 180);
     }
   }
 
@@ -316,7 +316,7 @@ function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, dur
   return necromancerEventSkill(context)?.weapon === 'Scepter' &&
     context.event?.skillId !== ID.DEVOURING_DARKNESS &&
     hasTrait(context, TRAIT.LINGERING_CURSE)
-    ? duration * Number(balanceProfileFromContext(context, PROFILE.lingeringCurse)?.durationMultiplier || 1.5)
+    ? duration * Number(balanceProfileFromContext(context, PROFILE.lingeringCurse)?.durationMultiplier ?? 1.5)
     : duration;
 }
 

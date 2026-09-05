@@ -108,7 +108,7 @@ export function replayInitialLuminaryState(context: GuardianCastContext, skill: 
 /** Counts damage packets inside Effulgent Stance's half-open activation window. */
 export function reactToEffulgentStrike(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
-  const maximumStacks = Number(balanceProfileFromContext(context, PROFILE.effulgentStance)?.maximumStacks || 10);
+  const maximumStacks = Number(balanceProfileFromContext(context, PROFILE.effulgentStance)?.maximumStacks ?? 10);
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && event.actorType === 'effect');
   if (
@@ -133,7 +133,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
   const profile = balanceProfileFromContext(context, PROFILE.effulgentStance);
   const strike = balanceProfileEffect(profile, 'strike');
   const control = balanceProfileEffect(profile, 'control');
-  const maximumStacks = Number(profile?.maximumStacks || 10);
+  const maximumStacks = Number(profile?.maximumStacks ?? 10);
   const stacks = Math.max(0, Math.min(maximumStacks, Number(state.effulgentStacks || 0)));
   state.effulgentActiveUntil = 0;
   state.effulgentStacks = 0;
@@ -147,7 +147,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
       skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
       skillName: 'Effulgent Stance',
       name: 'Effulgent Stance',
-      coefficient: Number(strike?.coefficient || 0.5) + stacks * Number(profile?.damageIncreasePerStack || 0.35),
+      coefficient: Number(strike?.coefficient ?? 0.5) + stacks * Number(profile?.damageIncreasePerStack ?? 0.35),
       weaponStrengthProfileId: 'nonweapon.unequipped',
       stackCount: stacks
     })
@@ -163,7 +163,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
       skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
       skillName: 'Effulgent Stance',
       controlKind: 'daze',
-      duration: Number(control?.duration || 2)
+      duration: Number(control?.duration ?? 2)
     });
   }
 }

@@ -87,7 +87,7 @@ export function minionDefinitionForSkill(
       ? {
           condition: [
             String(alternateCondition.condition || ''),
-            Number(alternateCondition.stacks || 1),
+            Number(alternateCondition.stacks ?? 1),
             Number(alternateCondition.duration || 0)
           ]
         }
@@ -95,7 +95,7 @@ export function minionDefinitionForSkill(
   });
   return {
     key: String(profile.minionKey || ''),
-    count: Number(profile.minionCount || 1),
+    count: Number(profile.minionCount ?? 1),
     interval: Number(profile.pulseInterval || 0),
     initialDelay: profile.initialDelay == null ? undefined : Number(profile.initialDelay),
     coefficient: Number(ordinary[0]?.coefficient || 0),
@@ -123,7 +123,7 @@ export function minionDefinitionFor(context: NecromancerCastContext, key: string
 }
 
 export function summonWeaponStrength(context: NecromancerCastContext): number {
-  return Number(balanceProfileFromContext(context, PROFILE.summonAttributes)?.weaponStrength || 1048);
+  return Number(balanceProfileFromContext(context, PROFILE.summonAttributes)?.weaponStrength ?? 1048);
 }
 
 /** Compiles a command skill's declarative packets into its compact scheduler input. */
@@ -144,7 +144,7 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
   const conditions = effects
     .filter((effect) => effect.type === 'condition')
     .map(
-      (effect) => [String(effect.condition || ''), Number(effect.stacks || 1), Number(effect.duration || 0)] as const
+      (effect) => [String(effect.condition || ''), Number(effect.stacks ?? 1), Number(effect.duration || 0)] as const
     );
   const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
   return {
@@ -154,7 +154,7 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     control: String(
       controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || ''
     ),
-    controlDuration: Number(controlEffect?.duration || attacks[0]?.controlDuration || 0),
+    controlDuration: Number(controlEffect?.duration ?? attacks[0]?.controlDuration ?? 0),
     controlWindow: Number(skill.controlWindow || 0),
     blindDuration: Number(controlEffect?.duration || 0),
     impactDelay: Number(skill.impactDelay || 0),

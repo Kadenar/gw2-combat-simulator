@@ -62,7 +62,7 @@ export function applyStealCompletionTraits(context: ThiefCastContext, at: number
   if (hasTrait(context.config, TRAIT.ENDURANCE_THIEF)) {
     gainThiefEndurance(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.enduranceThief)?.resourceGain || 50),
+      Number(balanceProfileFromContext(context, PROFILE.enduranceThief)?.resourceGain ?? 50),
       at,
       'endurance-thief'
     );

@@ -142,7 +142,7 @@ export function handleRevenantUpkeepPulse(
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     if (!strike) throw new Error('Vengeful Hammers is missing its strike effect.');
 
-    const hammers = Math.max(1, Math.trunc(Number(strike.hits || 1)));
+    const hammers = Math.max(1, Math.trunc(Number(strike.hits ?? 1)));
     if (!(Number(strike.atMs) >= 0)) {
       throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
     }

@@ -56,8 +56,8 @@ export function reactToWarriorBuff(context: WarriorResolverContext, event: Warri
 function berserkersPowerStacks(context: WarriorCastContext, skill: WarriorSkill, spent: number): number {
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BERSERKERS_POWER)) return 0;
   const tiers = balanceProfileFromContext(context, PROFILE.burstTiers);
-  const tierTwo = Number(tiers?.threshold || 20);
-  const tierThree = Number(tiers?.maximumStacks || 30);
+  const tierTwo = Number(tiers?.threshold ?? 20);
+  const tierThree = Number(tiers?.maximumStacks ?? 30);
   return spent >= tierThree ? 4 : spent >= tierTwo ? 3 : 2;
 }
 
@@ -88,7 +88,7 @@ export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSk
     skillId: skill.id,
     skillName: skill.name,
     name: 'Reckless Dodge',
-    coefficient: Number(strike?.coefficient || 1.5)
+    coefficient: Number(strike?.coefficient ?? 1.5)
   });
   emitSkillBuff(context, {
     at: context.effectiveEnd,
@@ -100,8 +100,8 @@ export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSk
     name: 'Reckless Dodge — Might',
     kind: 'might',
     boon: 'might',
-    stacks: Number(might?.stacks || 2),
-    duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration || 5))
+    stacks: Number(might?.stacks ?? 2),
+    duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration ?? 5))
   });
 }
 
@@ -116,7 +116,7 @@ export function grantBerserkersPower(
   const granted = Math.max(0, requestedStacks);
   if (!granted) return;
   const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.berserkersPower), 'buff');
-  const duration = Number(effect?.duration || 15);
+  const duration = Number(effect?.duration ?? 15);
   // Keep overflow applications queued so older visible stacks can expire independently.
   state.burstPowerExpiries.push(...Array(granted).fill(at + duration));
   emitSkillBuff(context, {
@@ -158,8 +158,8 @@ export function applyPeakPerformanceCastStart(context: WarriorCastContext, skill
     skillName: skill.name,
     name: 'Peak Performance',
     kind: 'peak-performance',
-    stacks: Number(effect?.stacks || 1),
-    duration: Number(effect?.duration || 6)
+    stacks: Number(effect?.stacks ?? 1),
+    duration: Number(effect?.duration ?? 6)
   });
 }
 
@@ -171,7 +171,7 @@ export function applyBraveStrideCastComplete(context: WarriorCastContext, skill:
 
   const profile = balanceProfileFromContext(context, PROFILE.braveStride);
   const stability = balanceProfileEffect(profile, 'boon');
-  gainWarriorAdrenaline(context, Number(profile?.resourceGain || 5));
+  gainWarriorAdrenaline(context, Number(profile?.resourceGain ?? 5));
   emitSkillBuff(context, {
     at: context.effectiveEnd,
     source: 'Trait',
@@ -182,8 +182,8 @@ export function applyBraveStrideCastComplete(context: WarriorCastContext, skill:
     name: 'Brave Stride',
     kind: 'stability',
     boon: 'stability',
-    stacks: Number(stability?.stacks || 1),
-    duration: gw2SchedulerBoonDuration(context, skill, 'stability', Number(stability?.duration || 5))
+    stacks: Number(stability?.stacks ?? 1),
+    duration: gw2SchedulerBoonDuration(context, skill, 'stability', Number(stability?.duration ?? 5))
   });
 }
 
@@ -202,7 +202,7 @@ export function applyBodyBlow(context: WarriorSchedulerContext, event: WarriorSi
   for (const [condition, duration, stacks] of (profile?.effects || [])
     .filter((effect) => effect.type === 'condition')
     .map(
-      (effect) => [String(effect.condition || ''), Number(effect.duration || 0), Number(effect.stacks || 1)] as const
+      (effect) => [String(effect.condition || ''), Number(effect.duration || 0), Number(effect.stacks ?? 1)] as const
     )) {
     emitSkillCondition(context, {
       cause: event,
@@ -230,7 +230,7 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
   if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.aggressiveOnslaught || 0))) return;
   const profile = balanceProfileFromContext(context, PROFILE.aggressiveOnslaught);
   const quickness = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.aggressiveOnslaught = event.at + Number(profile?.internalCooldown || 0.25);
+  state.traitProcReadyAt.aggressiveOnslaught = event.at + Number(profile?.internalCooldown ?? 0.25);
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||
@@ -245,8 +245,8 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
     name: 'Aggressive Onslaught',
     kind: 'quickness',
     boon: 'quickness',
-    duration: Number(quickness?.duration || 3),
-    stacks: Number(quickness?.stacks || 1),
+    duration: Number(quickness?.duration ?? 3),
+    stacks: Number(quickness?.stacks ?? 1),
     audience: { recipients: 'self' as const }
   });
 }
@@ -256,7 +256,7 @@ export function applyBuildingMomentum(context: WarriorSchedulerContext, event: W
   if (!hasTrait(context, TRAIT.BUILDING_MOMENTUM)) return;
   gainWarriorEndurance(
     context,
-    Number(balanceProfileFromContext(context, PROFILE.buildingMomentum)?.resourceGain || 15),
+    Number(balanceProfileFromContext(context, PROFILE.buildingMomentum)?.resourceGain ?? 15),
     event.at
   );
 }

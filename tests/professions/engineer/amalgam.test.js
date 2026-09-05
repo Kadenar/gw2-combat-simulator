@@ -6,6 +6,9 @@ import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { amalgamAttributeRules } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
+import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
 const baseConfig = Object.freeze({
@@ -28,6 +31,88 @@ const baseConfig = Object.freeze({
 const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
+
+test('Amalgam resolver procs honor authored poison, strike and ICD edits, including zero', () => {
+  // Minimal resolver inputs isolate the authoring contract without a full morph rotation.
+  for (const [coefficient, cooldown, duration, stacks] of [
+    [0.9, 1.2, 7, 3],
+    [0, 0, 0, 0]
+  ]) {
+    const catalog = applyBalanceProfilePatch(engineerCatalog, {
+      balanceProfiles: {
+        [PROFILE.carbolicComposition]: { effects: [{ type: 'condition', duration, stacks }] },
+        [PROFILE.rapaciousStrain]: {
+          fields: { internalCooldown: cooldown },
+          effects: [{ type: 'strike', coefficient }]
+        }
+      }
+    });
+    const conditions = [];
+    const context = {
+      helpers: catalog,
+      traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
+      profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
+      queue: [],
+      applyCondition: (event) => conditions.push(event)
+    };
+    const event = {
+      type: 'damage',
+      at: 0,
+      coefficient: 1,
+      actorType: 'player',
+      skillId: 77103,
+      skillName: 'Offensive Protocol: Shred'
+    };
+    amalgamResolverEventReactions.damage(context, event);
+    assert.equal(conditions[0].duration, duration);
+    assert.equal(conditions[0].stacks, stacks);
+    assert.equal(context.queue[0].coefficient, coefficient);
+    assert.equal(context.profession.core.traitProcReadyAt.rapacious, cooldown);
+    amalgamResolverEventReactions.damage(context, { ...event, at: 0.5 });
+    assert.equal(context.queue.length, cooldown === 0 ? 2 : 1);
+    amalgamResolverEventReactions.damage(context, { ...event, at: 1.201 });
+    assert.equal(context.queue.length, cooldown === 0 ? 3 : 2);
+  }
+});
+
+test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic Composition', () => {
+  const catalog = applyBalanceProfilePatch(engineerCatalog, {
+    balanceProfiles: {
+      [PROFILE.rapaciousStrain]: { fields: { internalCooldown: 0 } }
+    }
+  });
+  const conditions = [];
+  const context = {
+    helpers: catalog,
+    traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
+    queue: [],
+    profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
+    applyCondition: (event) => conditions.push(event)
+  };
+  amalgamResolverEventReactions.damage(context, {
+    type: 'damage',
+    at: 1,
+    coefficient: 1,
+    actorType: 'player',
+    skillId: 77103,
+    skillName: 'Offensive Protocol: Shred'
+  });
+  const proc = context.queue.shift();
+  // Separate player packets at the same timestamp remain eligible when the ICD is disabled.
+  amalgamResolverEventReactions.damage(context, {
+    type: 'damage',
+    at: 1,
+    coefficient: 1,
+    actorType: 'player',
+    skillId: 77103,
+    skillName: 'Offensive Protocol: Shred'
+  });
+  assert.equal(context.queue.length, 1);
+  context.queue.shift();
+  amalgamResolverEventReactions.damage(context, proc);
+  assert.equal(context.queue.length, 0);
+  assert.ok(conditions.some((condition) => condition.triggeredBy === 'Rapacious Strain'));
+});
 
 test('Amalgam traits activate on morph and Evolve chronology', () => {
   const result = simulate('Amalgam', [77103, 77104, 76705, 'Evolve', 'Grenade Kit', 'Shrapnel Grenade'], {

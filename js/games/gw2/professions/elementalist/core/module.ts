@@ -3,10 +3,10 @@ import { onAuraApplied, onConditionApplied, onResolvedDamage } from '#gw2/platfo
 import { createElementalistModuleData } from '#gw2/professions/elementalist/catalog/module-data.js';
 import {
   elementalistAfterCast,
+  elementalistCoreSkillHandlers,
   elementalistCoreSkillMechanicHandlers,
   elementalistOnCastComplete,
-  elementalistOnCastStart,
-  scheduleElementalistSkill
+  elementalistOnCastStart
 } from '#gw2/professions/elementalist/core/execution/index.js';
 import { elementalistCoreCastRules } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistCoreAttributeRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
@@ -76,11 +76,6 @@ const elementalistCoreSchedulerHooks = Object.freeze({
     order: 10,
     handler: elementalistOnCastStart
   },
-  scheduleSkill: {
-    id: 'elementalist.special-skill-profile',
-    order: 10,
-    handler: scheduleElementalistSkill
-  },
   afterCast: {
     id: 'elementalist.core-after-cast',
     order: 10,
@@ -128,6 +123,7 @@ export const elementalistCoreModule = defineNativeModule({
   mechanics: {
     modifiers: elementalistCoreAttributeRules,
     execution: {
+      skillHandlers: elementalistCoreSkillHandlers,
       castRules: elementalistCoreCastRules,
       skillMechanicHandlers: elementalistCoreSkillMechanicHandlers,
       hooks: elementalistCoreSchedulerHooks

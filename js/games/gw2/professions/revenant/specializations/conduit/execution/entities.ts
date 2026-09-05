@@ -67,7 +67,7 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
         name: `${skill.name} — ${shared.boon}`,
         kind: shared.boon,
         duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks || 1)
+        stacks: Number(shared.stacks ?? 1)
       });
     }
   }
@@ -120,7 +120,7 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
     emitSkillCondition(context, skill, {
       at: projectileAt,
       condition: String(tormentTick.condition || 'Torment'),
-      stacks: Number(tormentTick.stacks || 1),
+      stacks: Number(tormentTick.stacks ?? 1),
       duration: Number(tormentTick.duration || 0),
       name: `Hex-Eater Vortex — Projectile ${index + 1}`
     });
@@ -134,7 +134,7 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
         name: `${skill.name} — ${shared.boon}`,
         kind: shared.boon,
         duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks || 1)
+        stacks: Number(shared.stacks ?? 1)
       });
     }
   }
@@ -160,7 +160,7 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
         emitSkillCondition(context, skill, {
           at: context.effectiveEnd,
           condition: tick.condition,
-          stacks: Number(tick.stacks || 1),
+          stacks: Number(tick.stacks ?? 1),
           duration: Number(tick.duration || 0)
         });
       }
@@ -170,7 +170,7 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
         name: `${skill.name} — ${effect.boon}`,
         kind: effect.boon,
         duration: Number(effect.duration || 0),
-        stacks: Number(effect.stacks || 1)
+        stacks: Number(effect.stacks ?? 1)
       });
     }
   }
@@ -183,7 +183,7 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
         name: `${skill.name} — ${shared.boon}`,
         kind: shared.boon,
         duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks || 1)
+        stacks: Number(shared.stacks ?? 1)
       });
     }
   }
@@ -198,7 +198,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
   const bleedingTicks = bleeding?.type === 'condition' ? conditionEffectTicks(bleeding) : [];
   const might = (skill.effects || []).find((effect) => effect.type === 'boon' && effect.boon === 'might');
   const at = effectAt(context, bleeding || might || mainStrikes[0]);
-  const packets = Math.max(0, Number(bleedingTicks.length || might?.applications || mainStrikes.length));
+  const packets = Math.max(0, Number(bleedingTicks.length || (might?.applications ?? mainStrikes.length)));
   // Only the player hit carries affinityOnHit so the single affinity gain fires once per cast, not twice.
   emitSkillDamage(context, skill, {
     at,
@@ -225,7 +225,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
     emitSkillCondition(context, skill, {
       at,
       condition: String(bleedingTick?.condition || 'Bleeding'),
-      stacks: Number(bleedingTick?.stacks || 1),
+      stacks: Number(bleedingTick?.stacks ?? 1),
       duration: Number(bleedingTick?.duration || 0),
       name: `Twin Moon Sweep — Bleeding ${index + 1}`
     });
@@ -234,7 +234,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
       name: `Twin Moon Sweep — Might ${index + 1}`,
       kind: String(might?.boon || 'might'),
       duration: Number(might?.duration || 0),
-      stacks: Number(might?.stacks || 1)
+      stacks: Number(might?.stacks ?? 1)
     });
   }
 
@@ -246,7 +246,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
     emitSkillCondition(context, skill, {
       at,
       condition: String(immobilizedTick?.condition || 'Immobilized'),
-      stacks: Number(immobilizedTick?.stacks || 1),
+      stacks: Number(immobilizedTick?.stacks ?? 1),
       duration: Number(immobilizedTick?.duration || 0)
     });
   }
@@ -276,7 +276,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
       emitSkillCondition(context, skill, {
         at: effectAt(context, confusion, tick.atMs),
         condition: String(tick.condition || 'Confusion'),
-        stacks: Number(tick.stacks || 1),
+        stacks: Number(tick.stacks ?? 1),
         duration: Number(tick.duration || 0),
         name: `Twin Moon Sweep — Confusion ${index + 1}`
       });
@@ -292,7 +292,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
         name: `Shared Wisdom — Might ${index + 1}`,
         kind: String(shared?.boon || 'might'),
         duration: Number(shared?.duration || 0),
-        stacks: Number(shared?.stacks || 1)
+        stacks: Number(shared?.stacks ?? 1)
       });
     }
   }

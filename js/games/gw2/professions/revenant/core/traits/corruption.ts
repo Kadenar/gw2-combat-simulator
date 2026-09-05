@@ -42,7 +42,7 @@ export function applyAbyssalChill(context: RevenantSchedulerContext, event: Reve
     skillName: 'Abyssal Chill',
     name: `Abyssal Chill — ${conditionName}`,
     condition: conditionName,
-    stacks: Math.max(0, Number(condition.stacks || 0)) * Math.max(1, Number(event.stacks || 1)),
+    stacks: Math.max(0, Number(condition.stacks || 0)) * Math.max(1, Number(event.stacks ?? 1)),
     duration: Number(condition.duration || 0)
   });
 }

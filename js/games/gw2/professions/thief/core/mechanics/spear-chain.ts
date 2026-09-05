@@ -57,7 +57,7 @@ export function observeSpearChainEffect(
   if (prepared.fallingSpiderEmpowered && event.type === 'damage') {
     const profile = balanceProfileFromContext(context, PROFILE.fallingSpiderEmpowered);
     context.replaceEvent(event, {
-      coefficient: Number(event.coefficient || 0) * Number(profile?.damageMultiplier || 1.15)
+      coefficient: Number(event.coefficient || 0) * Number(profile?.damageMultiplier ?? 1.15)
     });
     return;
   }
@@ -69,8 +69,8 @@ export function observeSpearChainEffect(
   ) {
     context.replaceEvent(event, {
       stacks:
-        Number(event.stacks || 1) +
-        Number(balanceProfileFromContext(context, PROFILE.fallingSpiderEmpowered)?.resourceGain || 1)
+        Number(event.stacks ?? 1) +
+        Number(balanceProfileFromContext(context, PROFILE.fallingSpiderEmpowered)?.resourceGain ?? 1)
     });
     return;
   }
@@ -90,7 +90,7 @@ export function completeSpearStealthAttack(context: ThiefCastContext, skill: Thi
   const at = context.effectiveEnd;
   gainThiefInitiative(
     context,
-    Number(balanceProfileFromContext(context, PROFILE.ashenAssaultRefund)?.resourceGain || 4),
+    Number(balanceProfileFromContext(context, PROFILE.ashenAssaultRefund)?.resourceGain ?? 4),
     at,
     'ashen-assault-refund'
   );
@@ -117,7 +117,7 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     state.spearPreviousSkillId = skill.id;
     if (followsFinisher) {
       state.distractingThrowBuffUntil =
-        at + Number(balanceProfileFromContext(context, PROFILE.distractingThrow)?.durationMultiplier || 10);
+        at + Number(balanceProfileFromContext(context, PROFILE.distractingThrow)?.durationMultiplier ?? 10);
     }
 
     emitThiefStateSnapshot(context, at, 'distracting-throw-lead');

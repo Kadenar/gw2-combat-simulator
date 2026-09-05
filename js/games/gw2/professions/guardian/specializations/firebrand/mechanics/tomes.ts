@@ -86,7 +86,7 @@ export function tomePageAvailability(context: GuardianPrecastContext, skill: Gua
   const state = firebrandState.from(context);
   if (!skill.tome || selectedGuardianSpecialization(context) !== 'Firebrand' || state.activeTome !== skill.tome)
     return CAST_READY;
-  const pageCost = Math.max(1, Number(skill.pageCost || 1));
+  const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
   if (state.tomePages >= pageCost) return CAST_READY;
   // Pages only ever regenerate upward, so waiting for the scheduled page is a
   // terminating condition. A non-finite next page (tome already at maximum)
@@ -131,7 +131,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
   // chain that the cast was aborted (consistent with augmentSkill semantics).
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   const state = firebrandState.from(context);
-  const pageCost = Math.max(1, Number(skill.pageCost || 1));
+  const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
   // The regen timer only ticks while below maximum; spending a page from a full
   // pool restarts the interval from this cast rather than from last regen tick.
   if (state.tomePages >= state.maximumTomePages) {
@@ -146,9 +146,9 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
 
   state.swiftScholarCount += 1;
   const swiftScholar = balanceProfileFromContext(context, PROFILE.swiftScholar);
-  if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks || 3)) {
+  if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks ?? 3)) {
     state.swiftScholarCount = 0;
-    const pageGain = Number(swiftScholar?.resourceGain || 1);
+    const pageGain = Number(swiftScholar?.resourceGain ?? 1);
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
@@ -183,7 +183,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
         skillName: skill.name,
         name: 'Legendary Lore',
         kind: String(boon.boon || ''),
-        stacks: Number(boon.stacks || 1),
+        stacks: Number(boon.stacks ?? 1),
         duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon || ''), Number(boon.duration || 0))
       });
     }
@@ -195,9 +195,9 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
     const burn = balanceProfileEffect(ashes, 'condition');
     const ashesBuff = balanceProfileEffect(ashes, 'buff');
     const might = balanceProfileEffect(ashes, 'boon');
-    const ashesDuration = Number(ashesBuff?.duration || 10);
-    state.ashesCharges = Number(ashes?.maximumStacks || ashesBuff?.stacks || 2);
-    state.ashesBurnDuration = Number(burn?.duration || 2);
+    const ashesDuration = Number(ashesBuff?.duration ?? 10);
+    state.ashesCharges = Number(ashes?.maximumStacks ?? ashesBuff?.stacks ?? 2);
+    state.ashesBurnDuration = Number(burn?.duration ?? 2);
     // A newly granted charge is unarmed so its first hit can trigger immediately.
     state.ashesNextTriggerAt = 0;
     state.ashesExpiresAt = at + ashesDuration;
@@ -223,15 +223,15 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       skillName: skill.name,
       name: 'Might',
       kind: 'might',
-      stacks: Number(might?.stacks || 8),
-      duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration || 10)),
+      stacks: Number(might?.stacks ?? 8),
+      duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration ?? 10)),
       audience: { recipients: 'party' as const }
     });
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: at,
       duration: ashesDuration,
       maximumPerAlly: state.ashesCharges,
-      internalCooldown: Number(ashes?.internalCooldown || 1)
+      internalCooldown: Number(ashes?.internalCooldown ?? 1)
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];
@@ -244,8 +244,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
         skillName: skill.name,
         name: `Ashes of the Just — Ally ${proc.allyIndex} Burning`,
         condition: String(burn?.condition || 'Burning'),
-        stacks: Number(burn?.stacks || 1),
-        duration: Number(burn?.duration || 2),
+        stacks: Number(burn?.stacks ?? 1),
+        duration: Number(burn?.duration ?? 2),
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
         triggeredByAlly: proc.allyIndex
       });
@@ -378,7 +378,9 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
   const courage = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.TOME_OF_COURAGE);
   const passiveCourage = balanceProfileFromContext(context, PROFILE.passiveCourage);
   const aegis = balanceProfileEffect(passiveCourage, 'boon');
-  while (courage && state.nextCourageAegisAt <= target + context.epsilon) {
+  const interval = Number(passiveCourage?.pulseInterval ?? 40);
+  // Zero disables periodic Aegis without trapping resource advancement in a same-time loop.
+  while (interval > 0 && courage && state.nextCourageAegisAt <= target + context.epsilon) {
     const at = state.nextCourageAegisAt;
     // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
     // the tome was recently activated), unless Stoic Demeanor overrides that
@@ -396,12 +398,12 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
         skillName: courage.name,
         name: 'Tome of Courage — Passive Aegis',
         kind: 'aegis',
-        stacks: Number(aegis?.stacks || 1),
-        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration || 40))
+        stacks: Number(aegis?.stacks ?? 1),
+        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration ?? 40))
       });
     }
 
-    state.nextCourageAegisAt += Number(passiveCourage?.pulseInterval || 40);
+    state.nextCourageAegisAt += interval;
   }
 }
 
@@ -438,10 +440,10 @@ export function reactToAshesHit(
     skillName: 'Epilogue: Ashes of the Just',
     name: 'Ashes of the Just — Burning',
     condition: String(burn?.condition || 'Burning'),
-    stacks: Number(burn?.stacks || 1),
+    stacks: Number(burn?.stacks ?? 1),
     duration: state.ashesBurnDuration
   });
   state.ashesCharges -= 1;
-  state.ashesNextTriggerAt = event.at + Number(ashes?.internalCooldown || 1);
+  state.ashesNextTriggerAt = event.at + Number(ashes?.internalCooldown ?? 1);
   context.recordProc('profession', 'Ashes of the Just', event.at, event.skillName);
 }

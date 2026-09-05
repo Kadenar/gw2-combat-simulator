@@ -64,8 +64,8 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
     name: `${event.skillName} — Ineptitude`,
     skillName: event.skillName,
     condition: String(effect?.condition || 'Confusion'),
-    duration: Number(effect?.duration || 5),
-    stacks: Number(effect?.stacks || 2) * count,
+    duration: Number(effect?.duration ?? 5),
+    stacks: Number(effect?.stacks ?? 2) * count,
     source: 'Player'
   });
 }
@@ -182,7 +182,7 @@ export function triggerMasterFencer(
   if (!application || !isInternalCooldownReady(event.at, readyAt)) return;
 
   const profile = context.balanceProfile(TRAIT.MASTER_FENCER);
-  core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + Number(profile?.internalCooldown || 8);
+  core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + Number(profile?.internalCooldown ?? 8);
   context.addTraitProc('Master Fencer', event.at, event.skillName, '8s self fury, 4s allied fury');
   const furyEffects = (profile?.effects || []).filter((effect) => effect.type === 'boon');
   for (const [index, application] of [
@@ -201,7 +201,7 @@ export function triggerMasterFencer(
       name: `Master Fencer — ${application.audience.recipients} fury`,
       kind: 'fury',
       duration: context.boonDuration(String(effect?.boon || 'fury'), Number(effect?.duration ?? application.duration)),
-      stacks: Number(effect?.stacks || 1),
+      stacks: Number(effect?.stacks ?? 1),
       audience: effect?.audience ?? application.audience
     });
   }
@@ -239,8 +239,8 @@ export function triggerSharperImages(
     name: `${event.name} — Sharper Images`,
     skillName: event.skillName,
     condition: 'Bleeding',
-    duration: Number(effect?.duration || 5),
-    stacks: procCount * Number(effect?.stacks || 1),
+    duration: Number(effect?.duration ?? 5),
+    stacks: procCount * Number(effect?.stacks ?? 1),
     source: 'Player',
     sourceId: TRAIT.SHARPER_IMAGES,
     actorType: 'player'

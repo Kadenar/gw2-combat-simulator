@@ -115,7 +115,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      Number(balanceProfileFromContext(context, PROFILE.unrelentingStrikes)?.internalCooldown || 8),
+      Number(balanceProfileFromContext(context, PROFILE.unrelentingStrikes)?.internalCooldown ?? 8),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.UNRELENTING_STRIKES] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -133,8 +133,8 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
         traitId: TRAIT.UNRELENTING_STRIKES,
         traitName: 'Unrelenting Strikes',
         boon: String(fury?.boon || 'Fury'),
-        duration: Number(fury?.duration || 4),
-        stacks: Number(fury?.stacks || 1),
+        duration: Number(fury?.duration ?? 4),
+        stacks: Number(fury?.stacks ?? 1),
         audience: { recipients: 'party' as const }
       });
     }
@@ -157,7 +157,7 @@ export const noQuarterCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.internalCooldown || 2),
+      Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.internalCooldown ?? 2),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -168,7 +168,7 @@ export const noQuarterCriticalReaction = Object.freeze({
   handler: (context, event, _details, application) => {
     for (let proc = 0; proc < application.quantity; proc += 1) {
       const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.noQuarter), 'boon');
-      extendActiveFury(context, event, Number(fury?.duration || 2));
+      extendActiveFury(context, event, Number(fury?.duration ?? 2));
     }
   }
 } satisfies ThiefCriticalHitDefinition);
@@ -185,12 +185,12 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
   const might = balanceProfileEffect(profile, 'boon');
   const readyAt = Number(state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] || 0);
   if (!isInternalCooldownReady(event.at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] = event.at + Number(profile?.internalCooldown || 2);
+  state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] = event.at + Number(profile?.internalCooldown ?? 2);
   queueThiefBoon(context, event, {
     traitId: TRAIT.ASSASSINS_FURY,
     traitName: "Assassin's Fury",
     boon: String(might?.boon || 'Might'),
-    duration: Number(might?.duration || 8),
-    stacks: Number(might?.stacks || 3)
+    duration: Number(might?.duration ?? 8),
+    stacks: Number(might?.stacks ?? 3)
   });
 }

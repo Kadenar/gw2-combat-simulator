@@ -22,7 +22,7 @@ export function applySoaringDevastation(context: GuardianCastContext, skill: Gua
       skillId: skill.id,
       skillName: skill.name,
       name: 'Wings of Resolve — Soaring Devastation',
-      coefficient: Number(strike?.coefficient || 1.5),
+      coefficient: Number(strike?.coefficient ?? 1.5),
       skillWeapon
     })
   );
@@ -35,8 +35,8 @@ export function applySoaringDevastation(context: GuardianCastContext, skill: Gua
     skillName: skill.name,
     name: 'Soaring Devastation — Immobilized',
     condition: String(immobilized?.condition || 'Immobilized'),
-    stacks: Number(immobilized?.stacks || 1),
-    duration: Number(immobilized?.duration || 3)
+    stacks: Number(immobilized?.stacks ?? 1),
+    duration: Number(immobilized?.duration ?? 3)
   });
 }
 
@@ -44,6 +44,6 @@ export function bigGameHunterTetherDuration(context: GuardianCastContext): numbe
   // Big Game Hunter doubles tether duration (6 → 12s) and is also what
   // unlocks the Vulnerability condition and passive Crippled in the resolver.
   return hasTrait(context, TRAIT.BIG_GAME_HUNTER)
-    ? Number(balanceProfileFromContext(context, PROFILE.bigGameHunter)?.pulseInterval || 12)
+    ? Number(balanceProfileFromContext(context, PROFILE.bigGameHunter)?.pulseInterval ?? 12)
     : 6;
 }

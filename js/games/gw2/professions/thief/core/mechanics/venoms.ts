@@ -83,7 +83,7 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
   const at = context.effectiveEnd;
   const profile = balanceProfileFromContext(context, venom.profileId);
   const maximumStacks = Number(profile?.maximumStacks || 0);
-  const duration = Number(profile?.durationMultiplier || 24);
+  const duration = Number(profile?.durationMultiplier ?? 24);
   state[venom.chargesField] = maximumStacks;
   state[venom.expiresAtField] = at + duration;
   state[venom.generationField] += 1;
@@ -105,7 +105,7 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
         skillName: venom.skillName,
         name: `${venom.skillName} — Ally ${proc.allyIndex} ${effect.condition}`,
         condition: String(effect.condition),
-        stacks: Number(effect.stacks || 1),
+        stacks: Number(effect.stacks ?? 1),
         duration: Number(effect.duration || 0),
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
         triggeredByAlly: proc.allyIndex,
@@ -139,7 +139,7 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
         skillName: venom.skillName,
         name: `${venom.skillName} — ${effect.condition}`,
         condition: String(effect.condition),
-        stacks: Number(effect.stacks || 1),
+        stacks: Number(effect.stacks ?? 1),
         duration: Number(effect.duration || 0),
         activationId: event.activationId || `${event.skillId}:${event.at}`,
         triggeredBy: event.skillName,

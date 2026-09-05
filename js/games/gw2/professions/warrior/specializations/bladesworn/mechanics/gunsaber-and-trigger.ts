@@ -110,7 +110,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   const charges = Math.max(1, Math.min(maximumCharges, state.dragonCharges));
   const requestedCharges = requestedDragonCharges(context, maximumCharges);
   const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
-  const maximum = Number(skill.dragonSlashMaximumCoefficient || minimum);
+  const maximum = Number(skill.dragonSlashMaximumCoefficient ?? minimum);
   const coefficient = dragonSlashCoefficient(minimum, maximum, charges, maximumCharges);
   // Dragon Slash Force deals damage at the midpoint of its cast; all other
   // Dragon Slash variants hit at cast end.

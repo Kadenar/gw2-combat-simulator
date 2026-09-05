@@ -61,16 +61,16 @@ function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   // These stat bonuses come from the GW2 build panel (professionStaticRules); skip them if the build already includes them to avoid double-counting
   if (!professionStaticRulesApplied(context.config)) {
     if (hasTrait(context, TRAIT.SILENT_SCOPE)) {
-      result.precision += Number(balanceProfileFromContext(context, PROFILE.silentScope)?.attributeBonus || 120);
+      result.precision += Number(balanceProfileFromContext(context, PROFILE.silentScope)?.attributeBonus ?? 120);
     }
 
     if (hasTrait(context, TRAIT.PREMEDITATION)) {
-      result.concentration += Number(balanceProfileFromContext(context, PROFILE.premeditation)?.attributeBonus || 180);
+      result.concentration += Number(balanceProfileFromContext(context, PROFILE.premeditation)?.attributeBonus ?? 180);
     }
   }
 
   if (hasTrait(context, TRAIT.BE_QUICK_OR_BE_KILLED) && boonActive(context, 'quickness')) {
-    const bonus = Number(balanceProfileFromContext(context, PROFILE.beQuickOrBeKilled)?.attributeBonus || 200);
+    const bonus = Number(balanceProfileFromContext(context, PROFILE.beQuickOrBeKilled)?.attributeBonus ?? 200);
     result.power += bonus;
     result.precision += bonus;
   }

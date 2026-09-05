@@ -23,8 +23,7 @@ import { RITUALIST_BALANCE_PROFILES } from '#gw2/professions/necromancer/special
 /** Runs Ritualist behavior before replacing the corresponding declarative effects. */
 function declarativeReplacingHandler(beforeEffects: SkillHandlerPhase<NecromancerCastContext>) {
   return skillHandler<NecromancerCastContext>({
-    mode: SKILL_HANDLER_MODES.AUGMENT,
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+    mode: SKILL_HANDLER_MODES.REPLACE,
     beforeEffects
   });
 }

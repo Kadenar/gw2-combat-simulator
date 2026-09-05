@@ -19,12 +19,12 @@ function recordLethalTempo(context: GuardianResolverContext, at: number, sourceS
     state,
     at,
     tyrantsMomentum,
-    Number(lethalTempo?.maximumStacks || 5),
+    Number(lethalTempo?.maximumStacks ?? 5),
     Number(
       balanceProfileEffect(
         balanceProfileFromContext(context, tyrantsMomentum ? PROFILE.tyrantsMomentum : PROFILE.lethalTempo),
         'buff'
-      )?.duration || (tyrantsMomentum ? 4 : 6)
+      )?.duration ?? (tyrantsMomentum ? 4 : 6)
     )
   );
   context.recordProc(
@@ -84,7 +84,7 @@ function handleWillbenderVirtueTrigger(context: GuardianResolverContext, event: 
 
     condition: 'Burning',
     stacks: 1,
-    duration: Number(event.burningDuration || 2),
+    duration: Number(event.burningDuration ?? 2),
     triggeredBy: event.sourceSkill
   });
 }

@@ -224,7 +224,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     parameters: modifierParameters({ fallbackFactor: 1 }),
-    factor: (context, _target, parameters) => Number(context.event?.multiplier || parameters.fallbackFactor),
+    factor: (context, _target, parameters) => Number(context.event?.multiplier ?? parameters.fallbackFactor),
     order: 1000
   },
   {

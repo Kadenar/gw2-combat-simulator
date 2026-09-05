@@ -33,8 +33,8 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
     skillName: 'Mistburn Mortar',
     name: 'Mistburn Mortar — Charged Strike',
     condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks || 1),
-    duration: Number(burning?.duration || 1),
+    stacks: Number(burning?.stacks ?? 1),
+    duration: Number(burning?.duration ?? 1),
     triggeredBy: event.skillName
   });
 }
@@ -60,8 +60,8 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
     skillName: 'Zephyrite Sun Crystal',
     name: 'Zephyrite Sun Crystal - Meticulous Burning',
     condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks || 1),
-    duration: Number(burning?.duration || 5)
+    stacks: Number(burning?.stacks ?? 1),
+    duration: Number(burning?.duration ?? 5)
   });
 }
 

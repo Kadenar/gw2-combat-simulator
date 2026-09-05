@@ -62,7 +62,7 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
           context,
           context.skill,
           boon,
-          Number(effect?.duration || authoredBoon.duration)
+          Number(effect?.duration ?? authoredBoon.duration)
         ),
         stacks: 1,
         audience: { recipients: 'party' as const }
@@ -76,7 +76,7 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
     const profile = balanceProfileFromContext(context, PROFILE.dawnsReposeBarrier);
     const barrier = balanceProfileEffect(profile, 'buff');
     const alliedRecipients = Math.min(
-      Number(profile?.maximumTargets || 4),
+      Number(profile?.maximumTargets ?? 4),
       gw2AlliedPlayerAssumptions(context.config).count
     );
     if (!alliedRecipients) return;
@@ -90,8 +90,8 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       skillName: skill.name,
       name: "Dawn's Repose - Barrier",
       kind: 'barrier',
-      duration: Number(barrier?.duration || 5),
-      stacks: Number(barrier?.stacks || 1),
+      duration: Number(barrier?.duration ?? 5),
+      stacks: Number(barrier?.stacks ?? 1),
       audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: alliedRecipients }
     });
     context.tasks.schedule({
@@ -130,7 +130,7 @@ export function handleLarcenousTorment(
   const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
   state.shadowForce = Math.min(
     state.maximumShadowForce,
-    state.shadowForce + stacks * Number(profile?.resourceGain || 0.5)
+    state.shadowForce + stacks * Number(profile?.resourceGain ?? 0.5)
   );
   emitThiefStateSnapshot(context, task.at, 'larcenous-torment');
 }
@@ -163,7 +163,7 @@ export function handleDarkSentry(
   const venom = balanceProfileEffect(profile, 'buff');
   const torment = balanceProfileEffect(profile, 'condition');
   for (const allyIndex of eligibleAllies) {
-    state.darkSentryReadyAtByAlly[String(allyIndex)] = task.at + Number(profile?.internalCooldown || 1);
+    state.darkSentryReadyAtByAlly[String(allyIndex)] = task.at + Number(profile?.internalCooldown ?? 1);
   }
 
   state.darkSentryReadyAt = Math.max(0, ...Object.values(state.darkSentryReadyAtByAlly));
@@ -177,8 +177,8 @@ export function handleDarkSentry(
     name: 'Rot Wallow Venom',
     icon: ROT_WALLOW_VENOM_ICON,
     kind: 'rot-wallow-venom',
-    duration: Number(venom?.duration || 10),
-    stacks: Number(venom?.stacks || 1),
+    duration: Number(venom?.duration ?? 10),
+    stacks: Number(venom?.stacks ?? 1),
     audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: recipientCount }
   });
   // Rot Wallow Venom procs on the next allied strike, not immediately on application.
@@ -195,8 +195,8 @@ export function handleDarkSentry(
         name: `Rot Wallow Venom - Ally ${allyIndex} Torment`,
         icon: ROT_WALLOW_VENOM_ICON,
         condition: String(torment?.condition || 'Torment'),
-        stacks: Number(torment?.stacks || 1),
-        duration: Number(torment?.duration || 2),
+        stacks: Number(torment?.stacks ?? 1),
+        duration: Number(torment?.duration ?? 2),
         triggeredByAlly: allyIndex
       });
     }
@@ -228,7 +228,7 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
       skillId: TRAIT.LARCENOUS_TORMENT,
       skillName: 'Larcenous Torment',
       name: 'Larcenous Torment - Life Siphon',
-      coefficient: Number(strike?.coefficient || 0.005),
+      coefficient: Number(strike?.coefficient ?? 0.005),
       hits: 1,
       canCrit: false,
       noCrit: true,
@@ -241,6 +241,6 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   const state = specterState.from(context);
   state.shadowForce = Math.min(
     state.maximumShadowForce,
-    state.shadowForce + stacks * Number(profile?.resourceGain || 0.5)
+    state.shadowForce + stacks * Number(profile?.resourceGain ?? 0.5)
   );
 }

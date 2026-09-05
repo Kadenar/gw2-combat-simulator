@@ -1,6 +1,11 @@
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileEffectFromContext,
+  balanceProfileValueFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   applyEngineerDerivedCondition,
@@ -33,30 +38,33 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
   if (hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) && isAmalgamSkillHit(context, event)) {
+    const poison = balanceProfileEffectFromContext(context, PROFILE.carbolicComposition, 'condition');
     applyEngineerDerivedCondition(context, event, {
       name: 'Carbolic Composition',
-      condition: 'Poisoned',
-      stacks: 1,
-      duration: 3,
+      condition: String(poison?.condition ?? 'Poisoned'),
+      stacks: Number(poison?.stacks ?? 1),
+      duration: Number(poison?.duration ?? 3),
       sourceId: TRAIT.CARBOLIC_COMPOSITION,
       actorType: 'effect',
       ownerActorType: 'player'
     });
   }
 
-  // Rapacious Strain requires both Evolved AND Rapacious (Thorns silver-lining)
-  // to be active simultaneously, with a 0.5s ICD between procs.
+  // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
+  const cooldown = balanceProfileValueFromContext(context, PROFILE.rapaciousStrain, 'internalCooldown', 0.5);
   if (
     event.actorType !== 'summon' &&
+    event.sourceId !== 'engineer.rapacious-strain' &&
     Number(amalgamState.from(context).evolvedUntil || 0) > event.at &&
     Number(amalgamState.from(context).rapaciousUntil || 0) > event.at &&
-    isInternalCooldownReady(event.at, Number(state.rapacious || 0))
+    (cooldown === 0 || isInternalCooldownReady(event.at, Number(state.rapacious || 0)))
   ) {
-    state.rapacious = event.at + 0.5;
+    state.rapacious = event.at + cooldown;
+    const strike = balanceProfileEffectFromContext(context, PROFILE.rapaciousStrain, 'strike');
     // Keep Rapacious effect-owned for proc gating while inheriting the player's outgoing modifiers.
     queueDamage(context, event, {
       name: 'Rapacious Strain',
-      coefficient: 0.3,
+      coefficient: Number(strike?.coefficient ?? 0.3),
       sourceId: 'engineer.rapacious-strain',
       actorType: 'effect',
       ownerActorType: 'player'

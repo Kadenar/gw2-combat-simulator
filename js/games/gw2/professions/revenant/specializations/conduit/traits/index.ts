@@ -39,11 +39,11 @@ export function modifyConduitCastDuration(context: RevenantPrecastContext, durat
   // The main cast appends an extra 0.4 s wind-up on top of the base skill duration.
   if (Number(conduitState.from(context).beguilingHazeCharges || 0) > 0) {
     const followUpDuration = Number(followUpProfile.castTimeMs || 0) / 1000;
-    return followUpDuration * (quickness ? Number(followUpProfile.quicknessCastMultiplier || 1) : 1);
+    return followUpDuration * (quickness ? Number(followUpProfile.quicknessCastMultiplier ?? 1) : 1);
   }
 
   const mainExtension = Number(mainExtensionProfile.castTimeMs || 0) / 1000;
-  return duration + mainExtension * (quickness ? Number(mainExtensionProfile.quicknessCastMultiplier || 1) : 1);
+  return duration + mainExtension * (quickness ? Number(mainExtensionProfile.quicknessCastMultiplier ?? 1) : 1);
 }
 
 export function modifyConduitRechargeDuration(context: RevenantRechargeContext, duration: number): number {
@@ -100,7 +100,7 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
         name: `${skill.name} — ${shared.boon}`,
         kind: shared.boon,
         duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks || 1)
+        stacks: Number(shared.stacks ?? 1)
       });
     }
   }
@@ -162,7 +162,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
     skillName: 'Mistfire',
     name: 'Mistfire — Burning',
     condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks || 1),
+    stacks: Number(burning?.stacks ?? 1),
     duration: Number(burning?.duration || 0)
   });
 }

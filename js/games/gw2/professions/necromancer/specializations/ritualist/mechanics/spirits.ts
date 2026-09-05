@@ -158,7 +158,7 @@ function spiritEventFields(
       ? {}
       : {
           weaponStrength: Number(
-            balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048
+            balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength ?? 1048
           )
         }),
     ...fields,
@@ -178,13 +178,13 @@ function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState,
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
     // Establish the shared cadence with the measured fresh- or re-summon attack delay.
     const delay = state.resummonedSpiritAutoCycle
-      ? Number(resources?.resummonedSpiritAttackDelayMs || 4140) / 1000
-      : Number(resources?.initialDelay || 7.36);
+      ? Number(resources?.resummonedSpiritAttackDelayMs ?? 4140) / 1000
+      : Number(resources?.initialDelay ?? 7.36);
     state.spiritAutoAnchorAt = at + delay;
     state.resummonedSpiritAutoCycle = false;
   }
 
-  const interval = Number(resources?.pulseInterval || 4);
+  const interval = Number(resources?.pulseInterval ?? 4);
   return state.spiritAutoAnchorAt > at
     ? state.spiritAutoAnchorAt
     : state.spiritAutoAnchorAt + Math.ceil((at - state.spiritAutoAnchorAt + Number.EPSILON) / interval) * interval;
@@ -198,6 +198,8 @@ function queueSpiritAutoattacks(
   at: number
 ): void {
   if (!(spirit.attackCoefficient > 0)) return;
+  // An authored zero interval disables autonomous attacks rather than creating a zero-step clock.
+  if (!(Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 4) > 0)) return;
   const state = ritualistState.from(context);
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
   if (generation > 1) {
@@ -242,7 +244,7 @@ function handleSpiritAutoattack(
     coefficient: spirit.attackCoefficient,
     weaponStrength:
       spirit.attackWeaponStrength ??
-      Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength || 1048),
+      Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength ?? 1048),
     requiresSpirit: spirit.key,
     requiresSpiritGeneration: payload.generation,
     summonKind: 'spirit',
@@ -255,8 +257,11 @@ function handleSpiritAutoattack(
     }
   });
 
-  const nextAt = task.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval || 4);
-  if (context.observationEndTime == null || nextAt <= context.observationEndTime + context.epsilon) {
+  const nextAt = task.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 4);
+  if (
+    nextAt > task.at &&
+    (context.observationEndTime == null || nextAt <= context.observationEndTime + context.epsilon)
+  ) {
     context.tasks.schedule({
       type: SPIRIT_ATTACK_TASK,
       at: nextAt,
@@ -279,7 +284,7 @@ function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkil
   // Painful Bond is a profession status rather than a standard boon, so its
   // authored duration remains fixed even when the build has Concentration.
   const duration = Number(
-    balanceProfileEffect(balanceProfileFromContext(context, PROFILE.painfulBond), 'buff')?.duration || 10
+    balanceProfileEffect(balanceProfileFromContext(context, PROFILE.painfulBond), 'buff')?.duration ?? 10
   );
   emitSkillBuff(context, {
     at,
@@ -468,7 +473,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         skillWeapon: 'Unequipped',
         ...spiritEventFields(context, spirit.key, 'summon-spirits', {
           anguishConditionalDamage: spirit.key === 'anguish',
-          weaponStrength: Number(balanceProfileFromContext(context, PROFILE.resources)?.weaponStrength || 1056),
+          weaponStrength: Number(balanceProfileFromContext(context, PROFILE.resources)?.weaponStrength ?? 1056),
           hitIndex: index + 1,
           totalHits: spirit.activeTicks.length
         })
@@ -512,11 +517,11 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
     const impactAt = context.start + (context.fullEnd - context.start) * (14 / 15);
     emitSkillDamage(context, skill, {
       at: impactAt,
-      coefficient: Number(essence?.coefficient || 0.75),
+      coefficient: Number(essence?.coefficient ?? 0.75),
       skillWeapon: activePrimaryWeapon(context),
       metadata: {
         activeSpirits: spirits,
-        essenceBlastDamagePerSpirit: Number(essence?.damageIncreasePerStack || 0.15)
+        essenceBlastDamagePerSpirit: Number(essence?.damageIncreasePerStack ?? 0.15)
       }
     });
     return true;
@@ -545,7 +550,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       source: 'Spirit',
       actorType: 'player',
       skillWeapon: 'Profession mechanic',
-      coefficient: Number(strike?.coefficient || 1.3),
+      coefficient: Number(strike?.coefficient ?? 1.3),
       summonKind: 'spirit',
       summonOwner: 'spirit:anguish',
       metadata: { spirit: 'anguish', spiritAttackType: 'innervate' }
@@ -556,7 +561,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
         at,
         kind: String(boon.boon || ''),
         duration: Number(boon.duration || 0),
-        stacks: Number(boon.stacks || 1),
+        stacks: Number(boon.stacks ?? 1),
         ...boonOptions
       });
     }

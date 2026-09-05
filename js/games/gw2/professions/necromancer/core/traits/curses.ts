@@ -25,7 +25,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   materialization: 'threshold',
   actorTypes: ['player', 'summon', 'unknown'],
   chanceOnCriticalHit: (context) =>
-    Number(balanceProfileFromContext(context, PROFILE.barbedPrecision)?.criticalChance || 0.33),
+    Number(balanceProfileFromContext(context, PROFILE.barbedPrecision)?.criticalChance ?? 0.33),
   randomStream: 'necromancer.barbed-precision',
   when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.BARBED_PRECISION),
   expectedProgress: {
@@ -43,8 +43,8 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
         name: 'Barbed Precision',
         traitId: TRAIT.BARBED_PRECISION,
         condition: String(effect?.condition || 'Bleeding'),
-        stacks: Number(effect?.stacks || 1),
-        duration: Number(effect?.duration || 3)
+        stacks: Number(effect?.stacks ?? 1),
+        duration: Number(effect?.duration ?? 3)
       });
     }
   }
@@ -76,13 +76,13 @@ export function applyChillingDarkness(context: NecromancerResolverContext, event
     return;
   const profile = balanceProfileFromContext(context, PROFILE.chillingDarkness);
   const effect = balanceProfileEffect(profile, 'condition');
-  professionCoreState(context).traitProcReadyAt.chillingDarkness = event.at + Number(profile?.cooldown || 3);
+  professionCoreState(context).traitProcReadyAt.chillingDarkness = event.at + Number(profile?.cooldown ?? 3);
   applyTraitCondition(context, event, {
     name: 'Chilling Darkness',
     traitId: TRAIT.CHILLING_DARKNESS,
     condition: String(effect?.condition || 'Chilled'),
-    stacks: Number(effect?.stacks || 1),
-    duration: Number(effect?.duration || 2)
+    stacks: Number(effect?.stacks ?? 1),
+    duration: Number(effect?.duration ?? 2)
   });
 }
 
@@ -92,7 +92,7 @@ export function applyTerror(context: NecromancerResolverContext, event: Necroman
     name: 'Terror',
     traitId: TRAIT.TERROR,
     condition: 'Fear',
-    duration: Number(event.duration || 1)
+    duration: Number(event.duration ?? 1)
   });
 }
 
@@ -103,7 +103,7 @@ export function applyInsidiousDisruption(context: NecromancerResolverContext, ev
     name: 'Insidious Disruption',
     traitId: TRAIT.INSIDIOUS_DISRUPTION,
     condition: String(effect?.condition || 'Torment'),
-    stacks: Number(effect?.stacks || 1),
-    duration: Number(effect?.duration || 5)
+    stacks: Number(effect?.stacks ?? 1),
+    duration: Number(effect?.duration ?? 5)
   });
 }

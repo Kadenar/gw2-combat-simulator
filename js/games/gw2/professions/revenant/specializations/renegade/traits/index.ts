@@ -78,7 +78,7 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
       String(effect.boon || effect.kind || 'fury'),
       Number(effect.duration || 0)
     ),
-    stacks: Number(effect.stacks || 1),
+    stacks: Number(effect.stacks ?? 1),
     audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 }
@@ -141,7 +141,7 @@ export function initializeRenegadeTraits(context: RevenantSchedulerContext): voi
       ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
       : RENEGADE_PROFILE_IDS.kallasFervor
   );
-  renegadeState.from(context).kallasFervorMaximumStacks = Math.max(1, Number(fervorProfile?.maximumStacks || 1));
+  renegadeState.from(context).kallasFervorMaximumStacks = Math.max(1, Number(fervorProfile?.maximumStacks ?? 1));
   if (hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY)) {
     // Tells the materializer to sample and record didCrit on every damage event so that the deferred critical-traits task can read a concrete boolean in stochastic mode
     context.schedulerPolicy.requireCriticalFacts?.();
@@ -186,7 +186,7 @@ function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSi
     skillName: "Razorclaw's Rage",
     name: "Razorclaw's Rage — Bleeding",
     condition: String(effect.condition || 'Bleeding'),
-    stacks: Number(effect.stacks || 1),
+    stacks: Number(effect.stacks ?? 1),
     duration: Number(effect.duration || 0)
   });
 }

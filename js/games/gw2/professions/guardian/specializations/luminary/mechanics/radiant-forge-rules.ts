@@ -49,7 +49,7 @@ function modifyGlaringBurstCastDuration(context: GuardianPrecastContext, duratio
   if (context.skill.id !== GUARDIAN_SKILL_IDS.GLARING_BURST || luminaryState.from(context).radiantWeapon !== 'blade')
     return duration;
   const quicknessMs = luminaryState.from(context).glaringBurstSwordSlow ? 680 : 440;
-  return duration * (quicknessMs / Number(context.skill.quicknessCastTimeMs || 600));
+  return duration * (quicknessMs / Number(context.skill.quicknessCastTimeMs ?? 600));
 }
 
 /** Applies a stance modifier to its own impact or proc only when an older application was already active. */

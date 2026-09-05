@@ -96,7 +96,7 @@ export function dragonChargeReleaseProjection(context: {
     deadline
   });
   const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
-  const maximum = Number(skill.dragonSlashMaximumCoefficient || minimum);
+  const maximum = Number(skill.dragonSlashMaximumCoefficient ?? minimum);
   const chargeLevels: number[] = [];
   for (let charges = chargesPerInterval; charges < maximumCharges; charges += chargesPerInterval) {
     chargeLevels.push(charges);

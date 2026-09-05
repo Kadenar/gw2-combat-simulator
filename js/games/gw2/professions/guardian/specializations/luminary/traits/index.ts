@@ -66,7 +66,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
       sourceId: skill.id,
       actorType: 'player',
       kind: 'guardian-radiant-armaments',
-      duration: Number(armaments?.duration || 10),
+      duration: Number(armaments?.duration ?? 10),
       stacks: 1,
       metadata: { radiantWeapon: weapon }
     });
@@ -81,8 +81,8 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
     const profile = balanceProfileFromContext(context, PROFILE.empoweredArmaments);
-    const duration = Number(profile?.resourceGain || 6);
-    const maximumDuration = Number(profile?.maximumStacks || 20);
+    const duration = Number(profile?.resourceGain ?? 6);
+    const maximumDuration = Number(profile?.maximumStacks ?? 20);
     const wasActive = Number(state.empoweredArmamentsUntil || 0) > at + context.epsilon;
     // Duration stacks additively up to a 20 s cap; the cap prevents the buff
     // from extending forever if many weapons are equipped in quick succession.
@@ -109,7 +109,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
     const reduction = Number(
-      balanceProfileFromContext(context, PROFILE.illuminatingInspiration)?.rechargeReduction || 4
+      balanceProfileFromContext(context, PROFILE.illuminatingInspiration)?.rechargeReduction ?? 4
     );
     reduceVirtueCooldowns(context, at, reduction);
     emitGuardianProc(context, {

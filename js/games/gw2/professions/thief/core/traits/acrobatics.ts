@@ -10,7 +10,7 @@ import type { ThiefCastContext } from '#gw2/professions/thief/types.js';
 export function applyFluidStrikes(context: ThiefCastContext, at: number): boolean {
   if (!hasTrait(context.config, TRAIT.FLUID_STRIKES)) return false;
   professionCoreState(context).fluidStrikesUntil =
-    at + Number(balanceProfileFromContext(context, PROFILE.fluidStrikes)?.durationMultiplier || 5);
+    at + Number(balanceProfileFromContext(context, PROFILE.fluidStrikes)?.durationMultiplier ?? 5);
   return true;
 }
 
@@ -18,7 +18,7 @@ export function applyHardToCatch(context: ThiefCastContext, at: number): boolean
   if (!hasTrait(context.config, TRAIT.HARD_TO_CATCH)) return false;
   gainThiefEndurance(
     context,
-    Number(balanceProfileFromContext(context, PROFILE.hardToCatch)?.resourceGain || 8),
+    Number(balanceProfileFromContext(context, PROFILE.hardToCatch)?.resourceGain ?? 8),
     at,
     'hard-to-catch'
   );

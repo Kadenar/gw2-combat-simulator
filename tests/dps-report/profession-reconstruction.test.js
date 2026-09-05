@@ -129,7 +129,7 @@ test('recovers omitted Virtuoso opener casts from single-target packet totals', 
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Unstable Bladestorm.*Thousand Cuts.*Bladeturn Requiem/);
 });
 
-test('recovers a Troubadour opener and replays a committed short Harp cast', () => {
+test('recovers a Troubadour opener without promoting short Harp casts to their commit point', () => {
   const report = parseDpsReport({
     targets: [{}],
     players: [
@@ -174,12 +174,12 @@ test('recovers a Troubadour opener and replays a committed short Harp cast', () 
     result.actions.filter((action) => action.inferred).map((action) => action.name),
     ['Mimic', 'Unstable Bladestorm']
   );
-  // Reduced aftercast may snap to the declared commit, but an explicitly interrupted cast must not.
+  // Both report statuses preserve the observed duration below Harp's declared commit.
   assert.deepEqual(
     result.rotation
       .filter((command) => command.name === 'Harmonious Harp')
       .map((command) => command.interruptMs ?? null),
-    [480, null]
+    [440, 440]
   );
   const swordsmanIndex = result.rotation.findIndex((command) => command.name === 'Phantasmal Swordsman');
   assert.equal(result.rotation[swordsmanIndex + 1]?.name, 'Harmonious Harp');
@@ -232,7 +232,7 @@ test('recovers an opening Harbinger Shroud and removes canceled autoattacks', ()
   assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
 });
 
-test('expands shortened Blood Is Power report casts through their uncancellable aftercast', () => {
+test('preserves shortened Blood Is Power inputs while the scheduler owns their retained aftercast', () => {
   const report = reportFixture(
     'Harbinger',
     [{ id: 10_544, skills: [{ castTime: 0, duration: 600, timeGained: -280 }] }],
@@ -252,10 +252,11 @@ test('expands shortened Blood Is Power report casts through their uncancellable 
   const action = result.actions.find((candidate) => candidate.name === 'Blood Is Power');
   const command = result.rotation.find((candidate) => candidate.name === 'Blood Is Power');
 
-  assert.equal(action?.durationMs, 880);
-  assert.equal(action?.status, 'completed');
+  assert.equal(action?.durationMs, 600);
+  assert.equal(action?.status, 'interrupted');
   assert.equal(command?.skillId, 10_544);
-  assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
+  assert.equal(command?.interruptMs, 600);
+  assert.match(result.warnings.join('\n'), /Interrupted cast/);
 });
 
 test('recovers Dragonhunter opening precasts from packet evidence and removes failed autos', () => {
@@ -460,7 +461,7 @@ test('orders simultaneous dps.report instant casts before cast-time skills', () 
   const report = reportFixture(
     'Berserker',
     [
-      { id: 30_343, skills: [{ castTime: -765, duration: 766, timeGained: 7 }] },
+      { id: 30_343, skills: [{ castTime: -765, duration: 800, timeGained: 0 }] },
       { id: 14_504, skills: [{ castTime: 77, duration: 680, timeGained: 0 }] },
       { id: 30_258, skills: [{ castTime: 77, duration: 0, timeGained: 0 }] }
     ],
@@ -542,7 +543,7 @@ test('does not add waits for retained cast lockout already modeled by the skill'
   assert.deepEqual(result.rotation[1], { name: 'Fan of Fire', skillId: 14_519, interruptMs: 320 });
 });
 
-test('uses rounded EI cast durations and nearby commit points only when metadata makes them safe', () => {
+test('rounds EI cast durations without extending cancellations to nearby commit points', () => {
   const report = reportFixture(
     'Berserker',
     [
@@ -574,9 +575,9 @@ test('uses rounded EI cast durations and nearby commit points only when metadata
   const gash = result.rotation.find((command) => command.name === 'Gash');
 
   assert.equal(fanCommands[0].interruptMs, 320);
-  assert.equal(fanCommands[1].interruptMs, 240);
+  assert.equal(fanCommands[1].interruptMs, 200);
   assert.equal(fanCommands[2].interruptMs, 240);
-  assert.equal('interruptMs' in gash, false);
+  assert.equal(gash.interruptMs, 400);
 });
 
 test('coalesces Willbender composite casts and recovers an opening Jurisdiction', () => {
@@ -613,6 +614,39 @@ test('coalesces Willbender composite casts and recovers an opening Jurisdiction'
   );
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Jurisdiction/);
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
+});
+
+test('Luminary does not advance an autoattack chain after a reduced cast below commit', () => {
+  const report = reportFixture(
+    'Luminary',
+    [
+      { id: 90_001, skills: [{ castTime: 0, duration: 200, timeGained: 200 }] },
+      { id: 90_002, skills: [{ castTime: 200, duration: 400, timeGained: 0 }] }
+    ],
+    { s90001: { name: 'Chain Root' }, s90002: { name: 'Chain Follow-up' } }
+  );
+  const catalog = {
+    skills: [
+      skill(90_001, 'Chain Root', {
+        slot: 'Weapon_1',
+        quicknessCastTimeMs: 400,
+        chainRoot: 90_001,
+        nextChainId: 90_002
+      }),
+      skill(90_002, 'Chain Follow-up', {
+        slot: 'Weapon_1',
+        quicknessCastTimeMs: 400,
+        chainRoot: 90_001
+      })
+    ]
+  };
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(result.rotation, [
+    { name: '__combat_start' },
+    { name: 'Chain Root', skillId: 90_001, interruptMs: 200 },
+    { name: 'Chain Root', skillId: 90_001 }
+  ]);
 });
 
 test('recovers alacrity Luminary opening state and retains only physical weapon swaps', () => {
@@ -699,7 +733,7 @@ test('recovers alacrity Luminary opening state and retains only physical weapon 
     result.actions.some((action) => action.rawSkillId === 76730),
     false
   );
-  assert.equal('interruptMs' in result.rotation.find((command) => command.name === 'Luminous Staff'), false);
+  assert.equal(result.rotation.find((command) => command.name === 'Luminous Staff').interruptMs, 520);
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Radiant Courage.*Enter Radiant Forge/);
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });

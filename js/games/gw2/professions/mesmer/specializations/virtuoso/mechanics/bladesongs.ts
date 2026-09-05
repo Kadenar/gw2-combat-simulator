@@ -46,7 +46,7 @@ export function resolveBladesong(
     });
     const confusion = applyCryOfPain(runtime, baseConfusion);
     const duration = Number(confusion.duration || 0);
-    const stacks = Number(confusion.stacks || 1);
+    const stacks = Number(confusion.stacks ?? 1);
     const ticks = packetTicks();
 
     addBladeDamage(ticks);

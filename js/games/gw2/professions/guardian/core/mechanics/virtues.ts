@@ -136,9 +136,9 @@ function applyJusticeBurn(
     skillName,
     name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
     condition: String(burn?.condition || 'Burning'),
-    stacks: Number(burn?.stacks || 1),
+    stacks: Number(burn?.stacks ?? 1),
     duration: Number(
-      !active && passiveBurnDuration != null ? passiveBurnDuration : burn?.duration || (active ? 2 : 1.2)
+      !active && passiveBurnDuration != null ? passiveBurnDuration : (burn?.duration ?? (active ? 2 : 1.2))
     )
   });
   professionCoreState(context).justiceBurns += 1;
@@ -196,8 +196,8 @@ export function reactToJusticeHitWithOptions(
   state.justiceHitCount += 1;
   const triggerHits = Number(
     hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-      ? balanceProfileFromContext(context, PROFILE.permeatingWrath)?.threshold || 3
-      : balanceProfileFromContext(context, PROFILE.justice)?.threshold || 5
+      ? (balanceProfileFromContext(context, PROFILE.permeatingWrath)?.threshold ?? 3)
+      : (balanceProfileFromContext(context, PROFILE.justice)?.threshold ?? 5)
   );
   if (state.justiceHitCount < triggerHits) return;
   state.justiceHitCount = 0;

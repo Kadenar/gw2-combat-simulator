@@ -144,7 +144,7 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
       emitSkillDamage(context, {
         ...common,
         source: 'thief',
-        coefficient: Number(authoredStrike?.coefficient || effect.coefficient || 0),
+        coefficient: Number(authoredStrike?.coefficient ?? effect.coefficient ?? 0),
         hits: 1,
         skillWeapon: 'Unequipped'
       });
@@ -155,8 +155,8 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
 
       name: `${dodgeSkillName} — ${effect.condition}`,
       condition: effect.condition,
-      stacks: Number(authoredEffect?.stacks || effect.stacks || 1),
-      duration: Number(authoredEffect?.duration || effect.duration || 0)
+      stacks: Number(authoredEffect?.stacks ?? effect.stacks ?? 1),
+      duration: Number(authoredEffect?.duration ?? effect.duration ?? 0)
     });
   } else {
     // Dodge boons use the canonical scheduled buff event consumed by the resolver.
@@ -165,8 +165,8 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
       name: `${dodgeSkillName} — ${effect.boon}`,
       boon: effect.boon,
       kind: effect.boon.toLowerCase(),
-      stacks: Number(authoredEffect?.stacks || effect.stacks || 1),
-      duration: Number(authoredEffect?.duration || effect.duration || 0)
+      stacks: Number(authoredEffect?.stacks ?? effect.stacks ?? 1),
+      duration: Number(authoredEffect?.duration ?? effect.duration ?? 0)
     });
   }
 }
@@ -178,13 +178,13 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
     // +6 s pads the 5 s in-game bonus window to absorb quickness-compressed cast times
     state.boundingDamageUntil =
       context.effectiveEnd +
-      Number(balanceProfileFromContext(context, PROFILE.boundingDodger)?.durationMultiplier || 6);
+      Number(balanceProfileFromContext(context, PROFILE.boundingDodger)?.durationMultiplier ?? 6);
   }
 
   if (state.selectedDodge === 'Lotus Training') {
     // Same padding as Bounding Dodger — resolver checks > context.time so equality is not enough
     state.lotusConditionDamageUntil =
-      context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.lotusTraining)?.durationMultiplier || 6);
+      context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.lotusTraining)?.durationMultiplier ?? 6);
   }
 
   if (hasTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
@@ -204,7 +204,7 @@ function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSki
     // Staff Master refunds 2 endurance per initiative spent, not per cast
     gainThiefEndurance(
       context,
-      cost * Number(balanceProfileFromContext(context, PROFILE.staffMaster)?.resourceGain || 2),
+      cost * Number(balanceProfileFromContext(context, PROFILE.staffMaster)?.resourceGain ?? 2),
       context.start,
       'staff-master'
     );
@@ -213,7 +213,7 @@ function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSki
   if (BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) && hasTrait(context.config, TRAIT.BRAWLERS_TENACITY)) {
     gainThiefEndurance(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.brawlersTenacity)?.resourceGain || 15),
+      Number(balanceProfileFromContext(context, PROFILE.brawlersTenacity)?.resourceGain ?? 15),
       context.start,
       'brawlers-tenacity'
     );
@@ -240,8 +240,8 @@ function applyWeakeningStrike(context: ThiefCastContext, skill: ThiefSkill): voi
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: String(weakness?.condition || 'Weakness'),
-    duration: Number(weakness?.duration || 3),
-    stacks: Number(weakness?.stacks || 1),
+    duration: Number(weakness?.duration ?? 3),
+    stacks: Number(weakness?.stacks ?? 1),
     sourceId: TRAIT.WEAKENING_STRIKES,
     name: 'Weakening Strikes — Weakness'
   });

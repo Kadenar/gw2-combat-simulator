@@ -20,8 +20,8 @@ export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: String(bleeding?.condition || 'Bleeding'),
-    duration: Number(bleeding?.duration || 10),
-    stacks: Number(bleeding?.stacks || 3),
+    duration: Number(bleeding?.duration ?? 10),
+    stacks: Number(bleeding?.stacks ?? 3),
     sourceId: TRAIT.DEADLY_AMBUSH,
     name: 'Deadly Ambush — Bleeding'
   });
@@ -43,8 +43,8 @@ export function applyThrillOfTheCrime(context: ThiefCastContext, at: number): vo
       name: `Steal — ${boon}`,
       kind: boon,
       boon,
-      duration: gw2SchedulerBoonDuration(context, context.skill, boon, Number(effect.duration || 10)),
-      stacks: Number(effect.stacks || 1)
+      duration: gw2SchedulerBoonDuration(context, context.skill, boon, Number(effect.duration ?? 10)),
+      stacks: Number(effect.stacks ?? 1)
     });
   }
 }
@@ -65,8 +65,8 @@ export function applyBountifulTheft(context: ThiefCastContext, at: number): void
     name: `Steal — ${vigorName}`,
     kind: vigorName,
     boon: vigorName,
-    duration: gw2SchedulerBoonDuration(context, context.skill, vigorName, Number(vigor?.duration || 10)),
-    stacks: Number(vigor?.stacks || 1)
+    duration: gw2SchedulerBoonDuration(context, context.skill, vigorName, Number(vigor?.duration ?? 10)),
+    stacks: Number(vigor?.stacks ?? 1)
   });
   if (context.config.target?.boonless === false) return;
   const mightName = String(might?.boon || 'Might');
@@ -80,8 +80,8 @@ export function applyBountifulTheft(context: ThiefCastContext, at: number): void
     name: `Steal — ${mightName}`,
     kind: mightName,
     boon: mightName,
-    duration: gw2SchedulerBoonDuration(context, context.skill, mightName, Number(might?.duration || 10)),
-    stacks: Number(might?.stacks || 5)
+    duration: gw2SchedulerBoonDuration(context, context.skill, mightName, Number(might?.duration ?? 10)),
+    stacks: Number(might?.stacks ?? 5)
   });
 }
 
@@ -97,7 +97,7 @@ export function applySleightOfHand(context: ThiefCastContext, at: number): void 
     skillName: context.skill?.name,
     name: 'Sleight of Hand - Daze',
     effect: 'Daze',
-    duration: Number(control?.duration || 1)
+    duration: Number(control?.duration ?? 1)
   });
 }
 
@@ -105,7 +105,7 @@ export function applyKleptomaniac(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.KLEPTOMANIAC)) return;
   gainThiefInitiative(
     context,
-    Number(balanceProfileFromContext(context, PROFILE.kleptomaniac)?.resourceGain || 2),
+    Number(balanceProfileFromContext(context, PROFILE.kleptomaniac)?.resourceGain ?? 2),
     at,
     'kleptomaniac'
   );
@@ -117,8 +117,8 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
   const state = professionCoreState(context);
   const profile = balanceProfileFromContext(context, PROFILE.leadAttacks);
   const expirations = state.leadAttackExpirations || [];
-  for (let stack = 0; stack < initiativeCost && expirations.length < Number(profile?.maximumStacks || 15); stack += 1) {
-    expirations.push(at + Number(profile?.durationMultiplier || 10));
+  for (let stack = 0; stack < initiativeCost && expirations.length < Number(profile?.maximumStacks ?? 15); stack += 1) {
+    expirations.push(at + Number(profile?.durationMultiplier ?? 10));
   }
 
   state.leadAttackExpirations = expirations;

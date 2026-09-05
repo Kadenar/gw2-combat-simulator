@@ -16,10 +16,10 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
   );
   const combatHighRemaining = Math.max(0, Number(state.combatHighExpiresAt || 0) - target);
   const combatHigh = balanceProfileFromContext(context, PROFILE.combatHigh);
-  state.combatHighStacks = Math.min(
-    Number(combatHigh?.maximumStacks || 10),
-    Math.ceil(combatHighRemaining / Number(combatHigh?.pulseInterval || 2))
-  );
+  // A disabled interval has no active decay stacks, including at zero remaining duration.
+  const interval = Number(combatHigh?.pulseInterval ?? 2);
+  state.combatHighStacks =
+    interval > 0 ? Math.min(Number(combatHigh?.maximumStacks ?? 10), Math.ceil(combatHighRemaining / interval)) : 0;
   if (Number(state.stealthAttackExpiresAt || 0) <= target) {
     state.stealthAttackCharges = 0;
   }
@@ -61,7 +61,7 @@ export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefS
     inCombat &&
     hasTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&
     state.initiativeSpentSincePilfer >=
-      Number(balanceProfileFromContext(context, PROFILE.prodigiousPincher)?.threshold || 15)
+      Number(balanceProfileFromContext(context, PROFILE.prodigiousPincher)?.threshold ?? 15)
   ) {
     pilferArtifacts(context, context.start, 'prodigious-pincher', 'initiative');
   }

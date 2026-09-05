@@ -57,7 +57,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
     name: 'Elevated Compassion â€” quickness',
     kind: String(effect.boon || 'quickness'),
     duration,
-    stacks: Math.max(1, Number(effect.stacks || 1)),
+    stacks: Math.max(1, Number(effect.stacks ?? 1)),
     audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 

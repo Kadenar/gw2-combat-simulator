@@ -134,7 +134,7 @@ function handleSharedEmpowerment(context: RevenantSchedulerContext, task: Revena
     name: 'Shared Empowerment — might',
     kind: String(effect.boon || 'might'),
     duration,
-    stacks: Math.max(1, Number(effect.stacks || 1)),
+    stacks: Math.max(1, Number(effect.stacks ?? 1)),
     audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 }

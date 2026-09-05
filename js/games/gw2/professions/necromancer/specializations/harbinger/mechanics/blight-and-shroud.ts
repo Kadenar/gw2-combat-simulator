@@ -33,7 +33,7 @@ function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void 
   const core = professionCoreState(context);
   if (!professionStaticRulesApplied(context.config)) {
     // Alchemic Vigor's vitality changes the physical life-force pool even though the normalized meter remains stable.
-    const vitality = Number(balanceProfileFromContext(context, PROFILE.alchemicVigor)?.attributeBonus || 240);
+    const vitality = Number(balanceProfileFromContext(context, PROFILE.alchemicVigor)?.attributeBonus ?? 240);
     core.maximumHealth += vitality * 10;
     core.lifeForcePoolCapacity = core.maximumHealth * 0.69 * (core.maximumLifeForce / 100);
   }
@@ -57,7 +57,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     if (hasTrait(context, TRAIT.CORRUPTED_TALENT)) {
       gainNecromancerLifeForce(
         context,
-        Number(balanceProfileFromContext(context, PROFILE.corruptedTalent)?.lifeForceGain || 15),
+        Number(balanceProfileFromContext(context, PROFILE.corruptedTalent)?.lifeForceGain ?? 15),
         at
       );
     }
@@ -70,15 +70,15 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       emitSkillBuff(context, skill, {
         at,
         kind: String(quickness?.boon || 'quickness'),
-        duration: Number(quickness?.duration || 4),
-        stacks: Number(quickness?.stacks || 1),
+        duration: Number(quickness?.duration ?? 4),
+        stacks: Number(quickness?.stacks ?? 1),
         ...recipients
       });
       emitSkillBuff(context, skill, {
         at,
         kind: String(fury?.boon || 'fury'),
-        duration: Number(fury?.duration || 4),
-        stacks: Number(fury?.stacks || 1),
+        duration: Number(fury?.duration ?? 4),
+        stacks: Number(fury?.stacks ?? 1),
         ...recipients
       });
     }
@@ -90,14 +90,14 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       emitSkillBuff(context, skill, {
         at,
         kind: String(stability?.boon || 'stability'),
-        duration: Number(stability?.duration || 5),
-        stacks: Number(stability?.stacks || 3)
+        duration: Number(stability?.duration ?? 5),
+        stacks: Number(stability?.stacks ?? 3)
       });
       emitSkillBuff(context, skill, {
         at,
         kind: String(buff?.kind || 'implacable-foe'),
-        duration: Number(buff?.duration || 2),
-        stacks: Number(buff?.stacks || 1)
+        duration: Number(buff?.duration ?? 2),
+        stacks: Number(buff?.stacks ?? 1)
       });
     }
   }
@@ -114,15 +114,15 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     emitSkillBuff(context, skill, {
       at,
       kind: String(quickness?.boon || 'quickness'),
-      duration: Number(quickness?.duration || 4),
-      stacks: Number(quickness?.stacks || 1),
+      duration: Number(quickness?.duration ?? 4),
+      stacks: Number(quickness?.stacks ?? 1),
       ...deathlyHaste
     });
     emitSkillBuff(context, skill, {
       at,
       kind: String(fury?.boon || 'fury'),
-      duration: Number(fury?.duration || 4),
-      stacks: Number(fury?.stacks || 1),
+      duration: Number(fury?.duration ?? 4),
+      stacks: Number(fury?.stacks ?? 1),
       ...deathlyHaste
     });
   }
@@ -154,25 +154,25 @@ function modifyHarbingerAttributes(context: Gw2ModifierContext, attributes: Sche
     // Alchemic Vigor is the minor adept trait; the specialization check lets it apply even when only the
     // spec is selected without the trait being explicitly listed (e.g. from the specialization line bonus).
     if (context.config?.specialization === 'Harbinger' || hasTrait(context, TRAIT.ALCHEMIC_VIGOR)) {
-      result.vitality += Number(balanceProfileFromContext(context, PROFILE.alchemicVigor)?.attributeBonus || 240);
+      result.vitality += Number(balanceProfileFromContext(context, PROFILE.alchemicVigor)?.attributeBonus ?? 240);
     }
 
     if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
       result.ferocity +=
         result.vitality *
-        Number(balanceProfileFromContext(context, PROFILE.implacableFoe)?.attributeConversion || 0.13);
+        Number(balanceProfileFromContext(context, PROFILE.implacableFoe)?.attributeConversion ?? 0.13);
     }
 
     if (hasTrait(context, TRAIT.TWISTED_MEDICINE)) {
       result.concentration +=
         result.vitality *
-        Number(balanceProfileFromContext(context, PROFILE.twistedMedicine)?.attributeConversion || 0.13);
+        Number(balanceProfileFromContext(context, PROFILE.twistedMedicine)?.attributeConversion ?? 0.13);
     }
 
     if (hasTrait(context, TRAIT.DARK_GUNSLINGER)) {
       // Alchemic Vigor and other flat Vitality bonuses precede conversion.
       result.expertise += Math.round(
-        result.vitality * Number(balanceProfileFromContext(context, PROFILE.darkGunslinger)?.attributeConversion || 0.1)
+        result.vitality * Number(balanceProfileFromContext(context, PROFILE.darkGunslinger)?.attributeConversion ?? 0.1)
       );
     }
   }
@@ -214,7 +214,7 @@ function wickedCorruptionCriticalFactor(
 /** Applies Dark Gunslinger's pistol recharge reduction. */
 function modifyHarbingerRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   return context.skill?.weapon === 'Pistol' && hasTrait(context, TRAIT.DARK_GUNSLINGER)
-    ? duration * Number(balanceProfileFromContext(context, PROFILE.darkGunslinger)?.rechargeMultiplier || 0.8)
+    ? duration * Number(balanceProfileFromContext(context, PROFILE.darkGunslinger)?.rechargeMultiplier ?? 0.8)
     : duration;
 }
 

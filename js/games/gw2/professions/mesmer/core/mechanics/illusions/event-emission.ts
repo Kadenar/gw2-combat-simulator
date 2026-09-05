@@ -101,11 +101,11 @@ export function createMesmerEventEmitters({
     const fields = supplementalFields(extra, ['actorType', 'skillId', 'skillName', 'source', 'sourceId', 'summonKind']);
     const ticks = condition.ticks?.length
       ? condition.ticks
-      : Array.from({ length: Math.max(1, Math.trunc(Number(condition.applications || 1))) }, (_, index) => ({
+      : Array.from({ length: Math.max(1, Math.trunc(Number(condition.applications ?? 1))) }, (_, index) => ({
           atMs: Number(condition.atMs || 0) + index * Number(condition.intervalMs || 0),
           condition: condition.name,
           duration: condition.duration,
-          stacks: Number(condition.stacks || 1)
+          stacks: Number(condition.stacks ?? 1)
         }));
 
     return ticks.flatMap((tick, index) => {
@@ -117,7 +117,7 @@ export function createMesmerEventEmitters({
         at: at + Number(tick.atMs || 0) / 1000,
         condition: name,
         duration: Number(tick.duration),
-        stacks: Number(tick.stacks || 1),
+        stacks: Number(tick.stacks ?? 1),
         name: label || `${skillName} — ${name}`,
         source: String(extra.source || source),
         sourceId: extra.sourceId ?? skill.id,
@@ -157,9 +157,9 @@ export function createMesmerEventEmitters({
     ]);
     const ticks = group.ticks?.length
       ? group.ticks
-      : Array.from({ length: Math.max(1, Math.trunc(Number(group.hits || 1))) }, (_, index) => ({
+      : Array.from({ length: Math.max(1, Math.trunc(Number(group.hits ?? 1))) }, (_, index) => ({
           atMs: Number(group.atMs || 0) + index * Number(group.intervalMs || 0),
-          coefficient: Number(group.coefficient || 0) / Math.max(1, Math.trunc(Number(group.hits || 1)))
+          coefficient: Number(group.coefficient || 0) / Math.max(1, Math.trunc(Number(group.hits ?? 1)))
         }));
     const slotSkill = ['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''));
 

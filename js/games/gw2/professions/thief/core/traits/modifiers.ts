@@ -236,23 +236,23 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, "Assassin's Signet")) {
     const profile = balanceProfileFromContext(context, PROFILE.assassinsSignet);
-    const passive = Number(profile?.attributeBonus || 180);
+    const passive = Number(profile?.attributeBonus ?? 180);
     const passiveDisabled = Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
     if (staticRulesApplied && passiveDisabled) result.power -= passive;
     if (!staticRulesApplied && !passiveDisabled) result.power += passive;
     if (Number(state.assassinsSignetActiveUntil || 0) > context.time) {
-      result.power += Number(profile?.attributePerStack || 540);
+      result.power += Number(profile?.attributePerStack ?? 540);
     }
   }
 
   if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
     const profile = balanceProfileFromContext(context, PROFILE.revealedTraining);
     if (!staticRulesApplied) {
-      result.power += Number(profile?.attributeBonus || 80);
+      result.power += Number(profile?.attributeBonus ?? 80);
     }
 
     if (Number(state.revealedUntil || 0) > context.time && !thiefEventSkill(context)?.stealthAttack) {
-      result.power += Number(profile?.attributePerStack || 120);
+      result.power += Number(profile?.attributePerStack ?? 120);
     }
   }
 
@@ -261,7 +261,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
     context.query?.furyActiveAt(context.time, context.runtime, context.event) &&
     !(staticRulesApplied && Boolean((context.config?.boons as Record<string, unknown>)?.fury))
   ) {
-    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.attributeBonus || 250);
+    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.attributeBonus ?? 250);
   }
 
   return result;

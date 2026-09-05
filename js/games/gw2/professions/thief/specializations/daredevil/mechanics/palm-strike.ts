@@ -11,7 +11,7 @@ export function updatePalmStrikeWindow(context: ThiefCastContext, skill: ThiefSk
   if (skill.id === ID.FIST_FLURRY) {
     // +5 s gives comfortable headroom past the 3 s in-game window to absorb cast-time variance
     state.palmStrikeUntil =
-      context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.palmStrike)?.durationMultiplier || 5);
+      context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.palmStrike)?.durationMultiplier ?? 5);
     emitThiefStateSnapshot(context, context.effectiveEnd, 'palm-strike-ready');
   } else if (skill.id === ID.PALM_STRIKE) {
     // Consuming Palm Strike closes the window immediately so it cannot be cast twice

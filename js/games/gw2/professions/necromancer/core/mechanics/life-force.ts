@@ -197,8 +197,9 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   // Resolve passive signet pulses over the elapsed interval without duplicating the starting boundary.
   if (activeSignetOfUndeath(context)) {
     const passive = balanceProfileFromContext(context, PROFILE.signetOfUndeathPassive);
-    const interval = Number(passive?.pulseInterval || 3);
-    while (state.signetNextLifeForceAt <= end + context.epsilon) {
+    const interval = Number(passive?.pulseInterval ?? 3);
+    // A zero interval disables recurring pulses instead of advancing a clock by zero.
+    while (interval > 0 && state.signetNextLifeForceAt <= end + context.epsilon) {
       if (state.signetNextLifeForceAt > start + context.epsilon) {
         gainNecromancerLifeForce(context, Number(passive?.lifeForceGain || 0), state.signetNextLifeForceAt);
       }
@@ -210,10 +211,10 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   if (activeSignetOfVampirism(context)) {
     const passive = balanceProfileFromContext(context, PROFILE.signetOfVampirismPassive);
     const strike = balanceProfileEffect(passive, 'strike');
-    const interval = Number(passive?.pulseInterval || 3);
+    const interval = Number(passive?.pulseInterval ?? 3);
     const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_VAMPIRISM) || 0);
     const passiveWhileRecharging = hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING) && Boolean(state.activeShroud);
-    while (state.vampirismNextAt <= end + context.epsilon) {
+    while (interval > 0 && state.vampirismNextAt <= end + context.epsilon) {
       if (
         state.vampirismNextAt > start + context.epsilon &&
         (cooldownReadyAt <= state.vampirismNextAt + context.epsilon || passiveWhileRecharging)

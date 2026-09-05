@@ -62,7 +62,7 @@ export function resolveCloneShatter(
       at,
       {
         ...confusion,
-        stacks: sources * Number(confusion.stacks || 1)
+        stacks: sources * Number(confusion.stacks ?? 1)
       },
       'Player',
       '',

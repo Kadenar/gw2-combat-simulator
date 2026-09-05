@@ -54,7 +54,7 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
       ownerActorType: 'player',
       name: 'Mistfire — Burning',
       condition: String(burningTick?.condition || 'Burning'),
-      stacks: Number(burningTick?.stacks || 1),
+      stacks: Number(burningTick?.stacks ?? 1),
       duration: Number(burningTick?.duration || 0)
     });
   }

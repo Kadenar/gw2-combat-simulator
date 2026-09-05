@@ -84,7 +84,7 @@ export function createMirageActionController({
     for (let index = 0; index < Math.max(0, count); index += 1) {
       mirageState.from(state).mirrors.push({
         availableAt: at,
-        expiresAt: at + Number(profileEffect(PROFILE.mechanics, 'buff')?.duration || 8),
+        expiresAt: at + Number(profileEffect(PROFILE.mechanics, 'buff')?.duration ?? 8),
         source
       });
     }
@@ -105,7 +105,7 @@ export function createMirageActionController({
       source: actorType === 'summon' ? 'Clone' : 'Player',
       actorType,
       kind: String(boon.name || '').toLowerCase(),
-      stacks: Number(boon.stacks || 1),
+      stacks: Number(boon.stacks ?? 1),
       duration: boonDuration(sourceSkill, String(boon.name || ''), Number(boon.duration || 0)),
       skillName: sourceSkill,
       sourceSkill,
@@ -424,7 +424,7 @@ export function createMirageActionController({
       blade: false
     };
     addDamage(pseudo, at, {
-      coefficient: Number(profileEffect(PROFILE.mechanics, 'strike')?.coefficient || 0.6),
+      coefficient: Number(profileEffect(PROFILE.mechanics, 'strike')?.coefficient ?? 0.6),
       hits: 1,
       source: 'Player'
     });

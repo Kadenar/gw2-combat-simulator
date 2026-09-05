@@ -84,7 +84,7 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
     if (flip?.flipParentId === skill.id) {
       state.availableFlips[flip.id] =
-        context.effectiveEnd + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration || 5));
+        context.effectiveEnd + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration ?? 5));
     }
   }
 

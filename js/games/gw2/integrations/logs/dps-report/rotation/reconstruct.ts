@@ -17,7 +17,6 @@ import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/t
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   GW2_ACTION_TICK_MS,
-  observedCommittedInterruptMs,
   quantizeGw2ActionTimingMs,
   quicknessReferenceCastTimeMs
 } from '#gw2/platform/skills/timing.js';
@@ -40,15 +39,7 @@ import type {
   DpsReportRotationOptions
 } from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
-const TIMING_TOLERANCE_MS = 50;
 const DUPLICATE_SIGNAL_WINDOW_MS = 75;
-// An autoattack lands its strike near the end of its cast. Elite Insights reports
-// each cast's observed duration alongside the nominal length it would have run
-// (duration + timeGained); a completed autoattack covers ~0.82 of that nominal
-// length before its strike commits. A cast that stopped well short of the strike
-// was cancelled and must not enter the rotation — an emitted phantom autoattack
-// would wrongly advance the weapon-1 chain and desync every following chain skill.
-const AUTOATTACK_COMMIT_FRACTION = 0.7;
 
 function automaticProc(metadata: DpsReportSkillMetadata | null): boolean {
   return Boolean(metadata?.isTraitProc || metadata?.isUnconditionalProc || metadata?.isGearProc);
@@ -204,35 +195,12 @@ function resolveAction(
   };
 }
 
-/** Returns a safe, action-tick-aligned observed duration only when the skill declares its commit contract. */
+/** Preserves shortened inputs; the scheduler cancels damage unless explicit commit or per-packet rules permit it. */
 function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   const sourceDurationMs = action.end - action.start;
   const quantizedDurationMs = quantizeGw2ActionTimingMs(sourceDurationMs);
   const runtimeDurationMs = quicknessReferenceCastTimeMs(action.skill);
-  // Per-packet channels can safely replay any shortened observed duration because the scheduler retains only landed packets.
-  if (
-    action.skill?.interruptMode === 'per-packet' &&
-    quantizedDurationMs > 0 &&
-    quantizedDurationMs < runtimeDurationMs
-  ) {
-    return quantizedDurationMs;
-  }
-
-  const observedMs = observedCommittedInterruptMs(action.skill, sourceDurationMs);
-  if (observedMs != null || action.status === 'interrupted') return observedMs;
-
-  const commitMs = Number(action.skill?.interruptCommitMs);
-  // EI reduced-aftercast rows can end just before the packet-backed commit, so clamp only nearby completed casts.
-  if (
-    quantizedDurationMs > 0 &&
-    Number.isFinite(commitMs) &&
-    quantizedDurationMs < commitMs &&
-    commitMs - quantizedDurationMs <= 2 * GW2_ACTION_TICK_MS
-  ) {
-    return observedCommittedInterruptMs(action.skill, commitMs);
-  }
-
-  return null;
+  return sourceDurationMs > 0 && quantizedDurationMs < runtimeDurationMs ? quantizedDurationMs : null;
 }
 
 function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCommand {
@@ -244,8 +212,7 @@ function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCo
     doubleEdgeOutcome?: 'success' | 'backfire';
   } = { name: action.name, skillId: action.skillId };
   const interruptMs = action.replayInterruptMs ?? observedInterruptMs(action);
-  // EI's observed cast duration is authoritative only when catalog metadata
-  // proves that replaying it will not cancel the skill before it commits.
+  // Keep cancelled inputs explicit so their elapsed time survives without replaying a full damaging cast.
   if (interruptMs != null) command.interruptMs = interruptMs;
   if (action.doubleEdgeOutcome != null) command.doubleEdgeOutcome = action.doubleEdgeOutcome;
 
@@ -255,7 +222,7 @@ function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCo
 /** Replaces shortened report timing when a skill's aftercast cannot release the simulator cast lane early. */
 function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportResolvedAction {
   if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action;
-  // Safe observed durations are replayed as interruptions; the scheduler then
+  // Observed durations are replayed as interruptions; the scheduler then
   // retains the ordinary cast lane while still allowing instant actions.
   if (observedInterruptMs(action) != null) return action;
   const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
@@ -282,7 +249,7 @@ function replayActionEnd(action: DpsReportResolvedAction, completeReportedAfterc
     return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
   }
 
-  // Timeline waits begin after the same safe interruption encoded in the replay command, including tick snapping.
+  // Timeline waits begin after the same interruption encoded in the replay command, including tick snapping.
   const interruptMs = observedInterruptMs(action);
   if (interruptMs != null) return action.start + interruptMs;
   if (!completeReportedAftercast) return action.end;
@@ -294,7 +261,7 @@ function instantReplayAction(action: DpsReportResolvedAction): boolean {
   return action.status === 'instant' || action.end <= action.start || Number(action.skill?.castTimeMs) === 0;
 }
 
-/** Uses weapon swaps, plus Forge entry for weapon skills, as safe cancellation boundaries. */
+/** Uses weapon swaps, plus Forge entry for weapon skills, as cancellation boundaries even before commit. */
 function applyCastInterrupts(actions: readonly DpsReportResolvedAction[]): DpsReportResolvedAction[] {
   const replay = [...actions];
   for (let boundaryIndex = 0; boundaryIndex < replay.length; boundaryIndex += 1) {
@@ -308,7 +275,7 @@ function applyCastInterrupts(actions: readonly DpsReportResolvedAction[]): DpsRe
       if (instantReplayAction(cast)) continue;
       if (cast.end <= boundary.start) break;
       if (forgeEntry && normalized(cast.skill?.type) !== 'weapon') break;
-      const interruptMs = observedCommittedInterruptMs(cast.skill, boundary.start - cast.start);
+      const interruptMs = observedInterruptMs({ ...cast, end: boundary.start });
       if (interruptMs != null) replay[castIndex] = { ...cast, replayInterruptMs: interruptMs };
       break;
     }
@@ -326,58 +293,29 @@ function compareResolvedActions(left: DpsReportResolvedAction, right: DpsReportR
   return left.start - right.start || compareSimultaneousActions(left, right);
 }
 
-/** Keeps only autoattacks with report evidence that their first packet committed. */
-function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedAction): boolean {
-  if (skillMetadata(report, action.rawSkillId)?.autoAttack !== true) return true;
-  // EI's reduced-aftercast rows are completed inputs; only cancelled rows need packet-commit validation.
-  if (action.status !== 'interrupted') return true;
-  const actualDurationMs = action.end - action.start;
-  const expectedDurationMs = Number(action.expectedDurationMs || 0);
-  if (expectedDurationMs <= 0) return true;
-  // Prefer an explicit simulator cast time when EI's nominal duration includes
-  // a long aftercast; the modeled cast lane is the tighter commitment bound.
-  const runtimeDurationMs = Math.max(0, Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0));
-  const explicitCommitOffsets = [
-    action.skill?.interruptCommitMs,
-    ...(action.skill?.effects || []).map((effect) => effect.interruptCommitMs)
-  ]
-    .map(Number)
-    // Zero-value legacy metadata is not evidence that an autoattack packet committed immediately.
-    .filter((value) => Number.isFinite(value) && value > 0);
-  const explicitCommitOffsetMs = explicitCommitOffsets.length ? Math.min(...explicitCommitOffsets) : null;
-  if (explicitCommitOffsetMs != null) {
-    return actualDurationMs + TIMING_TOLERANCE_MS >= explicitCommitOffsetMs;
-  }
-  // Explicit packet timing is the precise commitment contract for attacks such as Guardian pistol's early projectile.
-
-  const firstStrikeOffsetMs = firstStrikePacketOffsetMs(action.skill, runtimeDurationMs, { explicitOnly: true });
-  if (firstStrikeOffsetMs != null) return actualDurationMs + TIMING_TOLERANCE_MS >= firstStrikeOffsetMs;
-  const commitmentDurationMs =
-    action.status === 'interrupted' && runtimeDurationMs > 0
-      ? runtimeDurationMs
-      : runtimeDurationMs > 0
-        ? Math.min(expectedDurationMs, runtimeDurationMs)
-        : expectedDurationMs;
-  return actualDurationMs >= commitmentDurationMs * AUTOATTACK_COMMIT_FRACTION;
-}
-
-/** Keeps a pre-phase cast's explicit opening strike from landing before reconstructed combat begins. */
-function alignOpeningStrikeCombatStart(
+/** Fits a slower precast to its replay strike timing while preserving the report's combat clock. */
+function alignOpeningStrike(
   actions: readonly DpsReportResolvedAction[],
   sourceCombatStart: number
 ): DpsReportResolvedAction[] {
   return actions.map((action) => {
-    if (action.inference != null || action.start > sourceCombatStart || action.end < sourceCombatStart) return action;
+    if (
+      action.inference != null ||
+      action.combatStartOverride != null ||
+      action.start > sourceCombatStart ||
+      action.end < sourceCombatStart
+    ) {
+      return action;
+    }
+
     const strikeOffset = firstStrikePacketOffsetMs(action.skill, quicknessReferenceCastTimeMs(action.skill), {
       explicitOnly: true
     });
     if (strikeOffset == null || action.start + strikeOffset >= sourceCombatStart) return action;
 
-    const strikeAt = action.start + strikeOffset;
-    const existingOverride = Number(action.combatStartOverride);
     return {
       ...action,
-      combatStartOverride: Number.isFinite(existingOverride) ? Math.min(existingOverride, strikeAt) : strikeAt
+      start: sourceCombatStart - strikeOffset
     };
   });
 }
@@ -535,7 +473,7 @@ export function reconstructDpsReportWithProfile(
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig
   });
-  const resolved = alignOpeningStrikeCombatStart(
+  const resolved = alignOpeningStrike(
     applyCastInterrupts(
       professionActions
         .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
@@ -545,10 +483,9 @@ export function reconstructDpsReportWithProfile(
         .filter((action) => action.skill?.simulatorExcluded !== true)
         // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
         .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
-        .filter((action) => autoattackCommitted(report, action))
     ),
     phase.start
-  );
+  ).sort(compareResolvedActions);
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');
   }

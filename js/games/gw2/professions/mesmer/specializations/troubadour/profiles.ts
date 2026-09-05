@@ -97,7 +97,7 @@ export function mesmerProfiledInstrument(
     .map((effect) => ({
       name: String(effect.condition || ''),
       duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks || 1),
+      stacks: Number(effect.stacks ?? 1),
       ...(effect.applications == null ? {} : { applications: Number(effect.applications) })
     }));
   return {

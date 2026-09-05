@@ -90,12 +90,12 @@ export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): Bal
     effects: [
       ambushStrikeEffect(attack.player, 'Player'),
       ...(attack.player.conditions || []).flatMap((status) =>
-        Array.from({ length: Number(status.applications || 1) }, () => attackStatusEffect(status, 'Player'))
+        Array.from({ length: Number(status.applications ?? 1) }, () => attackStatusEffect(status, 'Player'))
       ),
       ...(attack.playerBoons || []).map((status) => boonStatusEffect(status, 'Player')),
       ambushStrikeEffect(attack.clone, 'Clone'),
       ...(attack.clone.conditions || []).flatMap((status) =>
-        Array.from({ length: Number(status.applications || 1) }, () => attackStatusEffect(status, 'Clone'))
+        Array.from({ length: Number(status.applications ?? 1) }, () => attackStatusEffect(status, 'Clone'))
       ),
       ...(attack.cloneBoons || []).map((status) => boonStatusEffect(status, 'Clone')),
       ...(attack.vulnerability
@@ -125,7 +125,7 @@ function profileStatuses(
     .map((effect) => ({
       name: String(type === 'condition' ? effect.condition || '' : effect.boon || ''),
       duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks || 1),
+      stacks: Number(effect.stacks ?? 1),
       ...(effect.applications == null ? {} : { applications: Number(effect.applications) })
     }));
 }
@@ -175,7 +175,7 @@ export function mesmerProfiledAmbush(
     vulnerability: vulnerability
       ? {
           duration: Number(vulnerability.duration || 0),
-          stacks: Number(vulnerability.stacks || 1)
+          stacks: Number(vulnerability.stacks ?? 1)
         }
       : attack.vulnerability
   };

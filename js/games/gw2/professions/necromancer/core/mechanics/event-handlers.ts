@@ -95,7 +95,7 @@ export function handleNecromancerChillEvent(
     name: `${event.skillName || event.name || 'Necromancer'} — Chilled`,
     skillName: event.skillName,
     condition: 'Chilled',
-    stacks: Number(event.stacks || 1),
+    stacks: Number(event.stacks ?? 1),
     duration: Number(event.duration || 0),
     source: event.source,
     sourceId: event.sourceId,

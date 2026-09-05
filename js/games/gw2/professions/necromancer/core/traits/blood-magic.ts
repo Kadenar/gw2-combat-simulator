@@ -76,8 +76,8 @@ export function applyVampiric(context: NecromancerResolverContext, event: Necrom
   queueBloodMagicLifeSteal(context, event, {
     name: minionHit ? 'Vampiric — Minion Life Steal' : 'Vampiric',
     traitId: TRAIT.VAMPIRIC,
-    flatStrikeBase: Number(effect?.flatStrikeBase || (minionHit ? 50 : 38)),
-    flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || (minionHit ? 0.0213 : 0.003)),
+    flatStrikeBase: Number(effect?.flatStrikeBase ?? (minionHit ? 50 : 38)),
+    flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff ?? (minionHit ? 0.0213 : 0.003)),
     icon: VAMPIRIC_ICON
   });
 }
@@ -196,7 +196,7 @@ function addTasteForBloodApplication(
   applications.push({
     at: event.at,
     expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
-    stacks: Math.max(1, Number(event.stacks || 1))
+    stacks: Math.max(1, Number(event.stacks ?? 1))
   });
   buffs[recipient] = applications;
 }
@@ -279,7 +279,7 @@ export function applyOverflowingThirst(context: NecromancerCastContext, skill: N
   if (!stacks) return;
 
   const buff = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.overflowingThirst), 'buff');
-  const duration = Number(buff?.duration || 10);
+  const duration = Number(buff?.duration ?? 10);
   // Resolve the exact self, allied-player, and active-minion recipients for this grant.
   const selected = gw2BuffApplicationRecipients(context.config, {
     audience: {

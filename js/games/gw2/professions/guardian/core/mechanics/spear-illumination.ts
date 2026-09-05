@@ -206,13 +206,13 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   state.spearIlluminatedArmed = illuminatedArmed;
   const illuminated = luminanceActive || illuminatedArmed;
   const multiplier = Number(
-    balanceProfileFromContext(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])?.damageMultiplier || 1
+    balanceProfileFromContext(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])?.damageMultiplier ?? 1
   );
 
   if (illuminated && multiplier > 1) {
     const at = emitIlluminatedBonus(context, skill, multiplier);
     if (at != null) {
-      emitProc(context, at, 'Illuminated', skill.name, ILLUMINATED_ICON, `${skill.name} illuminated (×${multiplier})`);
+      emitProc(context, at, 'Illuminated', skill.name, ILLUMINATED_ICON, `${skill.name} illuminated (x${multiplier})`);
     }
   }
 
@@ -225,7 +225,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
 
   if (skill.id === ID.SYMBOL_OF_LUMINANCE) {
     const duration = Number(
-      balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration || 5
+      balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration ?? 5
     );
     state.spearLuminanceUntil = context.effectiveEnd + duration;
     emitProc(
@@ -245,7 +245,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
     state.spearIlluminatedArmed = true;
     state.spearIlluminatedUntil =
       firstStrikeAt +
-      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration || 5);
+      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration ?? 5);
   }
 }
 

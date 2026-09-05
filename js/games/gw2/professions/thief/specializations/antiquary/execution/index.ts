@@ -31,8 +31,7 @@ export const antiquarySkillHandlers = Object.freeze({
   }),
   'thief.artifact': augmentAfter(consumeArtifact),
   'thief.forged-surfer': skillHandler({
-    mode: SKILL_HANDLER_MODES.AUGMENT,
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE, // emits a task-driven sequence; the default cast resolve path must be suppressed
+    mode: SKILL_HANDLER_MODES.REPLACE,
     afterEffects: completeForgedSurfer
   }),
   'thief.reshuffle': augmentAfter(reshuffleArtifacts),
@@ -48,8 +47,7 @@ export const antiquarySkillHandlers = Object.freeze({
     beforeEffects: resolveDoubleEdge
   }),
   'thief.skritt-scuffle': skillHandler({
-    mode: SKILL_HANDLER_MODES.AUGMENT,
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE, // the scuffle deals no immediate damage; replace prevents the engine from emitting a generic strike
+    mode: SKILL_HANDLER_MODES.REPLACE,
     afterEffects: completeSkrittScuffle
   })
 });

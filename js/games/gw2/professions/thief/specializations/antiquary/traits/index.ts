@@ -9,7 +9,7 @@ export function applySkrittSwipeTraits(context: ThiefCastContext, at: number): v
   if (hasTrait(context.config, TRAIT.KLEPTOMANIAC)) {
     gainThiefInitiative(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.kleptomaniac)?.resourceGain || 2),
+      Number(balanceProfileFromContext(context, PROFILE.kleptomaniac)?.resourceGain ?? 2),
       at,
       'kleptomaniac'
     );

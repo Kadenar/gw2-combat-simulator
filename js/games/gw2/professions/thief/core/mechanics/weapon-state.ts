@@ -132,7 +132,7 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   if (completed && skill.type === 'Weapon' && skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
     if (flip?.flipParentId === skill.id) {
-      state.availableFlips[flip.id] = at + Number(skill.flipDuration || (skill.dualWieldOpener ? 4 : 5));
+      state.availableFlips[flip.id] = at + Number(skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5));
       emitThiefStateSnapshot(context, at, 'weapon-flip');
     }
   }

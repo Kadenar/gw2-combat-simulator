@@ -63,11 +63,12 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
   const state = dragonhunterState.from(context);
   // Indomitable Courage reduces passive Aegis interval: 40s → 30s.
   const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
-    ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)?.pulseInterval || 30)
-    : Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval || 40);
+    ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)?.pulseInterval ?? 30)
+    : Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval ?? 40);
   const aegis = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.passiveCourage), 'boon');
   const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
-  while (courage && state.nextShieldOfCourageAegisAt <= target + context.epsilon) {
+  // Recurring passives require a positive authored interval.
+  while (interval > 0 && courage && state.nextShieldOfCourageAegisAt <= target + context.epsilon) {
     const at = state.nextShieldOfCourageAegisAt;
     // Passive Aegis is suppressed while the virtue's cooldown hasn't expired;
     // activating Shield of Courage resets virtueReadyAt.courage, so pulses during
@@ -82,8 +83,8 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
         skillName: courage.name,
         name: 'Shield of Courage — Passive Aegis',
         kind: 'aegis',
-        stacks: Number(aegis?.stacks || 1),
-        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration || 20))
+        stacks: Number(aegis?.stacks ?? 1),
+        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration ?? 20))
       });
     }
 
@@ -96,7 +97,7 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
     const core = professionCoreState(context);
     // Endurance is applied directly to scheduler state (not via an emit) so
     // the dodge-availability check sees it immediately on the same advance tick.
-    const endurance = Number(balanceProfileFromContext(context, PROFILE.huntersDetermination)?.resourceGain || 100);
+    const endurance = Number(balanceProfileFromContext(context, PROFILE.huntersDetermination)?.resourceGain ?? 100);
     Object.assign(core, grantEndurance(core, endurance, context.effectiveEnd, core.maximumEndurance));
     emitGuardianProc(context, {
       name: "Hunter's Determination",
@@ -117,7 +118,7 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
       sourceId: skill.id,
       actorType: 'player',
       kind: 'aegis',
-      duration: Number(aegis?.duration || 3),
+      duration: Number(aegis?.duration ?? 3),
       stacks: 1
     });
   }

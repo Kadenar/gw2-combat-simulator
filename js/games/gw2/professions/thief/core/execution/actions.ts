@@ -24,8 +24,8 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
     isInternalCooldownReady(at, Number(state.quickPocketsReadyAt || 0))
   ) {
     const profile = balanceProfileFromContext(context, PROFILE.quickPockets);
-    state.quickPocketsReadyAt = at + Number(profile?.internalCooldown || 8);
-    gainThiefInitiative(context, Number(profile?.resourceGain || 3), at, 'quick-pockets');
+    state.quickPocketsReadyAt = at + Number(profile?.internalCooldown ?? 8);
+    gainThiefInitiative(context, Number(profile?.resourceGain ?? 3), at, 'quick-pockets');
   }
 }
 
@@ -46,7 +46,7 @@ export function activateAssassinsSignet(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.assassinsSignetActiveUntil =
-    at + Number(balanceProfileFromContext(context, PROFILE.assassinsSignet)?.durationMultiplier || 5);
+    at + Number(balanceProfileFromContext(context, PROFILE.assassinsSignet)?.durationMultiplier ?? 5);
   state.assassinsSignetPassiveDisabledUntil = Number(
     context.rechargeReadyAt || context.state.cooldowns.get(ID.ASSASSINS_SIGNET) || at
   );

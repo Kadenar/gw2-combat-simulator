@@ -348,7 +348,7 @@ function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2S
       Math.max(0, 25 - baseMight),
       (context.runtime?.boons?.get('might') || [])
         .filter((application) => application.at <= context.time && application.expiresAt > context.time)
-        .reduce((sum, application) => sum + Number(application.stacks || 1), 0)
+        .reduce((sum, application) => sum + Number(application.stacks ?? 1), 0)
     );
     const might = Math.min(25, baseMight + dynamicMight);
     modified.power = Number(modified.power || 0) + might * 10;

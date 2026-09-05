@@ -23,7 +23,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
   if (!definition) return false;
   const playerStacks = Number(definition.stacks || 0);
   const defaultAllyStacks = Number(definition.allyStacks || 0);
-  const maximumAllies = Math.max(Number(definition.audience?.maximumRecipients || 1) - 1, 0);
+  const maximumAllies = Math.max(Number(definition.audience?.maximumRecipients ?? 1) - 1, 0);
   // Wielder's Boon grants allies the same stack count as the player instead of the reduced ally default.
   const fullAlliedBenefit = hasTrait(context, TRAIT.WIELDERS_BOON);
   const allyStacks = fullAlliedBenefit ? playerStacks : defaultAllyStacks;

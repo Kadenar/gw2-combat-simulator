@@ -1,6 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
+import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantCastContext } from '#gw2/professions/revenant/types.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
@@ -17,24 +16,19 @@ import { CONDUIT_BALANCE_PROFILES } from '#gw2/professions/revenant/specializati
 
 /** Selects Conduit packets from live legend and affinity state at cast time. */
 const conduitHandlers = Object.freeze({
-  'revenant.beguiling-haze': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.beguiling-haze': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantConduitSkillHandlers['revenant.beguiling-haze'] as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.gladiators-defense': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.gladiators-defense': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantConduitSkillHandlers['revenant.gladiators-defense'] as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.hex-eater-vortex': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.hex-eater-vortex': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantConduitSkillHandlers['revenant.hex-eater-vortex'] as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.twin-moon-sweep': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.twin-moon-sweep': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantConduitSkillHandlers['revenant.twin-moon-sweep'] as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.release-potential': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.release-potential': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantConduitSkillHandlers['revenant.release-potential'] as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.cosmic-wisdom': augmentSkill<RevenantCastContext>({

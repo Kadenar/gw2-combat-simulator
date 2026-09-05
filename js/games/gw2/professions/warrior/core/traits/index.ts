@@ -268,7 +268,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   applyOpportunist(context, event);
 
   if (event.type === 'control' && event.actorType === 'player') {
-    state.targetControlledUntil = Math.max(state.targetControlledUntil, event.at + Number(event.duration || 1));
+    state.targetControlledUntil = Math.max(state.targetControlledUntil, event.at + Number(event.duration ?? 1));
   }
 
   applyMercilessHammer(context, event);

@@ -43,7 +43,7 @@ export function applyBerserkEntryTraits(context: WarriorCastContext, skill: Warr
       kind: boon,
       boon,
       duration: gw2SchedulerBoonDuration(context, skill, boon, Number(effect.duration || 0)),
-      stacks: Number(effect.stacks || 1)
+      stacks: Number(effect.stacks ?? 1)
     });
   }
 

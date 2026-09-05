@@ -37,7 +37,7 @@ function instrumentAttack(
   const runtime = mesmerRuntimeFor(context);
   if (data.coefficient || data.ticks?.length) {
     const shredding = profileEffect(runtime, TRAIT.SHREDDING, 'strike');
-    const shreddingCoefficient = Number(shredding?.coefficient || 1);
+    const shreddingCoefficient = Number(shredding?.coefficient ?? 1);
     const shreddingActive = data.instrument === 'Lute' && runtime.traits.has(TRAIT.SHREDDING);
     if (shreddingActive && shredding?.atMs == null) {
       throw new TypeError('Shredding requires an explicit Lute packet timestamp.');
@@ -147,12 +147,12 @@ function instrumentAttack(
       type: 'buff',
       at: damageAt,
       kind: String(quickness?.boon || 'quickness'),
-      stacks: Number(quickness?.stacks || 1),
+      stacks: Number(quickness?.stacks ?? 1),
       duration: gw2SchedulerBoonDuration(
         context,
         skill,
         String(quickness?.boon || 'quickness'),
-        Number(quickness?.duration || 6)
+        Number(quickness?.duration ?? 6)
       ),
       skillName: skill.name,
       sourceSkill: skill.name,
@@ -162,8 +162,8 @@ function instrumentAttack(
       type: 'buff',
       at: damageAt,
       kind: String(might?.boon || 'might'),
-      stacks: Number(might?.stacks || 5),
-      duration: gw2SchedulerBoonDuration(context, skill, String(might?.boon || 'might'), Number(might?.duration || 8)),
+      stacks: Number(might?.stacks ?? 5),
+      duration: gw2SchedulerBoonDuration(context, skill, String(might?.boon || 'might'), Number(might?.duration ?? 8)),
       skillName: skill.name,
       sourceSkill: skill.name,
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
@@ -251,12 +251,12 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
         type: 'buff',
         at: damageAt,
         kind: String(effect?.boon || kind),
-        stacks: Number(effect?.stacks || stacks),
+        stacks: Number(effect?.stacks ?? stacks),
         duration: gw2SchedulerBoonDuration(
           context,
           skill,
           String(effect?.boon || kind),
-          Number(effect?.duration || duration)
+          Number(effect?.duration ?? duration)
         ),
         skillName: skill.name,
         sourceSkill: skill.name,
@@ -335,8 +335,8 @@ export function scheduleTroubadourPerformance(context: MesmerCastContext, skill:
           type: 'buff',
           at: context.start,
           kind: 'distortion',
-          stacks: Number(distortion?.stacks || 1),
-          duration: Number(distortion?.duration || 2),
+          stacks: Number(distortion?.stacks ?? 1),
+          duration: Number(distortion?.duration ?? 2),
           sourceSkill: skill.name
         });
       }

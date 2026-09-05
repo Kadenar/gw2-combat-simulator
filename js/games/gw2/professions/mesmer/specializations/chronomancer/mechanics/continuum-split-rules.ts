@@ -131,7 +131,7 @@ function observeChronomancerEvent(context: MesmerSchedulerContext, event: Simula
     at: event.at,
     kind: 'danger-time',
     stacks: 1,
-    duration: Number(runtime.balanceProfile(TRAIT.DANGER_TIME)?.durationMultiplier || 10),
+    duration: Number(runtime.balanceProfile(TRAIT.DANGER_TIME)?.durationMultiplier ?? 10),
     sourceSkill: skillName
   });
   runtime.addTraitProc('Danger Time', event.at, skillName);

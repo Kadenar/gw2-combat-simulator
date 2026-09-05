@@ -113,9 +113,9 @@ export function createPhantasmEffectController({
     const policy = phantasmPolicy();
     const spawnModifier = policy.spawnModifiers[skill.id];
     const count =
-      Number(skill.resource.count || 1) *
+      Number(skill.resource.count ?? 1) *
       (skill.id === ID.PHANTASMAL_LANCER && clarityConsumed ? 2 : 1) *
-      Number(spawnModifier?.countMultiplier || 1);
+      Number(spawnModifier?.countMultiplier ?? 1);
 
     const timing = phantasmAttackTimings[skill.id];
     if (!timing) {
@@ -143,7 +143,7 @@ export function createPhantasmEffectController({
       return {
         skill,
         entityIndex,
-        damageMultiplier: Number(spawnModifier?.damageMultiplier || 1),
+        damageMultiplier: Number(spawnModifier?.damageMultiplier ?? 1),
         summonAt,
         damageAt,
         spawnAt,
@@ -480,7 +480,7 @@ export function createPhantasmEffectController({
         : null;
       if (conditionTicks && conditionTicks.length > 0) {
         // Split stacks evenly across application packets.
-        const packetStacks = Number(condition.stacks || 1) / conditionTicks.length;
+        const packetStacks = Number(condition.stacks ?? 1) / conditionTicks.length;
         const applicationTimes = conditionTicks.map((tick) => execution.endpoint(tick.atMs));
         const conditionOrigin = Math.min(...applicationTimes);
         addCondition(
@@ -530,7 +530,7 @@ export function createPhantasmEffectController({
       // Use repeat-specific ticks if available; otherwise fall back to shifted initial ticks.
       const conditionTicks = repeatConditionTicks ?? initialConditionTicks;
       if (conditionTicks && conditionTicks.length > 0) {
-        const packetStacks = Number(condition.stacks || 1) / conditionTicks.length;
+        const packetStacks = Number(condition.stacks ?? 1) / conditionTicks.length;
         const applicationTimes = conditionTicks.map((tick) =>
           repeatConditionTicks ? execution.endpoint(tick.atMs) : execution.endpoint(tick.atMs) + repeatOffset
         );

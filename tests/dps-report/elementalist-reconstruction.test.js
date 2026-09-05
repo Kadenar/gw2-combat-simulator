@@ -142,7 +142,7 @@ test('reconstructs Aerial Agility across other skills and resets it after a five
   );
 });
 
-test('uses default cast times for short report casts without skill commit metadata', () => {
+test('preserves cancelled report cast durations without inventing skill commit metadata', () => {
   const report = reportFixture(
     'Elementalist',
     [
@@ -167,8 +167,8 @@ test('uses default cast times for short report casts without skill commit metada
     result.actions.map((action) => action.status),
     ['interrupted', 'interrupted']
   );
-  assert.equal('interruptMs' in result.rotation.find((command) => command.name === 'Flamestrike'), false);
-  assert.equal('interruptMs' in result.rotation.find((command) => command.name === 'Arc Lightning'), false);
+  assert.equal(result.rotation.find((command) => command.name === 'Flamestrike').interruptMs, 320);
+  assert.equal(result.rotation.find((command) => command.name === 'Arc Lightning').interruptMs, 2_000);
 });
 
 test('recovers an unexplained equipped aura skill from its buff activation', () => {

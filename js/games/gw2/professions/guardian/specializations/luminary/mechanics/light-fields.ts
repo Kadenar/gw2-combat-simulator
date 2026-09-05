@@ -69,7 +69,7 @@ function detonateLightAura(context: GuardianResolverContext, event: GuardianReso
       skillId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
       skillName: 'Sovereign of Light',
       name: 'Sovereign of Light',
-      coefficient: Number(strike?.coefficient || 1.5),
+      coefficient: Number(strike?.coefficient ?? 1.5),
       skillWeapon: 'Unequipped',
       triggeredBy: event.sourceSkill || event.skillName,
       offTarget: event.offTarget === true
@@ -102,8 +102,8 @@ export function handleLightAuraGrant(context: GuardianResolverContext, event: Gu
   state.lightAuraUntil =
     event.at +
     Number(
-      event.duration ||
-        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration ||
+      event.duration ??
+        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration ??
         4
     );
 }
@@ -163,7 +163,7 @@ export function processLuminaryLightFields(context: GuardianCastContext, skill: 
       skillId: GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
       skillName: 'Justice is Blind',
       triggeredBy: skill.name,
-      duration: Number(blind?.duration || 3)
+      duration: Number(blind?.duration ?? 3)
     });
   }
 }
@@ -177,7 +177,7 @@ export function observeLuminaryLightFields(context: GuardianSchedulerContext, ev
       event.at,
       { id: event.skillId ?? event.sourceId, name: event.skillName || event.name || 'Light Aura' },
       -15,
-      { duration: Number(event.duration || 5) }
+      { duration: Number(event.duration ?? 5) }
     );
   }
 

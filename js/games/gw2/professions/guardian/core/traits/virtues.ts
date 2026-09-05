@@ -28,12 +28,12 @@ export function applyInspiredVirtue(
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
-    stacks: Number(inspired?.stacks || 1),
+    stacks: Number(inspired?.stacks ?? 1),
     sourceId: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
     actorType: 'player',
     name: 'Inspired Virtue',
     kind: boon,
-    duration: Number(inspired?.duration || 5)
+    duration: Number(inspired?.duration ?? 5)
   });
 }
 
@@ -47,7 +47,7 @@ export function applyVirtueOfResolution(context: GuardianCastContext, skill: Gua
     actorType: 'player',
     name: 'Virtue of Resolution',
     kind: 'resolution',
-    duration: Number(resolution?.duration || 3),
+    duration: Number(resolution?.duration ?? 3),
     stacks: 1
   });
 }
@@ -62,7 +62,7 @@ export function applyInspiringVirtue(context: GuardianCastContext, skill: Guardi
     actorType: 'player',
     name: 'Inspiring Virtue',
     kind: 'guardian-inspiring-virtue',
-    duration: Number(inspiring?.duration || 6),
+    duration: Number(inspiring?.duration ?? 6),
     stacks: 1
   });
 }
@@ -78,12 +78,12 @@ export function applyIndomitableCourage(
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
-    stacks: Number(stability?.stacks || 3),
+    stacks: Number(stability?.stacks ?? 3),
     sourceId: GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
     actorType: 'player',
     name: 'Indomitable Courage',
     kind: 'stability',
-    duration: Number(stability?.duration || 4)
+    duration: Number(stability?.duration ?? 4)
   });
 }
 
@@ -104,7 +104,7 @@ export function replaceVirtueOfResolutionDuration(
   context.replaceEvent(event, {
     duration:
       Number(event.duration) *
-      Number(balanceProfileFromContext(context, PROFILE.virtueOfResolution)?.durationMultiplier || 1.25)
+      Number(balanceProfileFromContext(context, PROFILE.virtueOfResolution)?.durationMultiplier ?? 1.25)
   });
   return true;
 }
@@ -146,8 +146,8 @@ export function applyMasterOfConsecrations(context: GuardianCastContext, skill: 
       skillName: skill.name,
       name: `${skill.name} — Burning`,
       condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks || 1),
-      duration: Number(burning?.duration || 2)
+      stacks: Number(burning?.stacks ?? 1),
+      duration: Number(burning?.duration ?? 2)
     });
   }
 }

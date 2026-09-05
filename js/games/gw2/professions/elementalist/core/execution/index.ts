@@ -7,6 +7,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { produceGw2OwnedComboEvents } from '#gw2/platform/scheduler/combo-materializer.js';
@@ -49,10 +50,10 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { applyPistolState } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
 
-/** scheduleSkill hook: offers the cast to the Grand Finale profile, which reports true when it authored the packets itself. */
-export function scheduleElementalistSkill(context: ElementalistLifecycleContext, skill: Skill): boolean {
-  return scheduleGrandFinaleProfile(context, skill);
-}
+/** Grand Finale owns its per-orb packets through the same replacement registry as other skills. */
+export const elementalistCoreSkillHandlers = Object.freeze({
+  'elementalist.grand-finale': replaceSkill<ElementalistLifecycleContext>({ beforeEffects: scheduleGrandFinaleProfile })
+});
 
 // Skill data encodes a granted aura as "Element|seconds"; malformed or
 // zero-length values grant nothing.

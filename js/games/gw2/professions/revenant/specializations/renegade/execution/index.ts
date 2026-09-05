@@ -1,6 +1,6 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
-import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
+import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import type { Skill, SkillHandlerMode } from '#gw2/platform/engine/skills/types.js';
 import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -16,14 +16,12 @@ function bandTogetherHandlerMode(context: RevenantCastContext, skill: Skill): Sk
 
 const handlers = Object.freeze({
   // These effects are templates: the handler selects a trait-adjusted profile and materializes it after resolving live state.
-  'revenant.heroic-command': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.heroic-command': replaceSkill<RevenantCastContext>({
     afterEffects: revenantAssassinRenegadeSkillHandlers[
       'revenant.heroic-command'
     ] as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.orders-from-above': augmentSkill<RevenantCastContext>({
-    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+  'revenant.orders-from-above': replaceSkill<RevenantCastContext>({
     afterEffects: revenantAssassinRenegadeSkillHandlers[
       'revenant.orders-from-above'
     ] as SkillHandlerPhase<RevenantCastContext>

@@ -8,6 +8,8 @@ export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
   morphs: 'engineer.amalgam.morphs',
   strains: 'engineer.amalgam.strains',
   evolve: 'engineer.amalgam.evolve',
+  carbolicComposition: TRAIT.CARBOLIC_COMPOSITION,
+  rapaciousStrain: 'engineer.amalgam.rapacious-strain',
   newGenes: TRAIT.NEW_GENES,
   willingHost: TRAIT.WILLING_HOST,
   hardenedChrome: TRAIT.HARDENED_CHROME,
@@ -21,6 +23,17 @@ export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
 // Mechanic profiles collect protocol durations, strain scaling, and Evolve
 // tuning that would otherwise be spread across scheduler and modifier code.
 export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Resolver procs use these authored packets and cooldowns, including explicit zero edits.
+  trait(AMALGAM_BALANCE_PROFILE_IDS.carbolicComposition, 'Carbolic Composition', {
+    effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
+  }),
+  {
+    id: AMALGAM_BALANCE_PROFILE_IDS.rapaciousStrain,
+    name: 'Rapacious Strain',
+    profileKind: 'mechanic',
+    internalCooldown: 0.5,
+    effects: [{ type: 'strike', coefficient: 0.3, hits: 1 }]
+  },
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.morphs,
     name: 'Amalgam Morphs',

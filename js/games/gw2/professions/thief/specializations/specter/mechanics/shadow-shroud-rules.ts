@@ -65,17 +65,17 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
     const profile = balanceProfileFromContext(context, PROFILE.secondOpinion);
     result.healingPower =
-      Number(result.healingPower || 0) + gearConditionDamage * Number(profile?.attributeConversion || 0.07);
+      Number(result.healingPower || 0) + gearConditionDamage * Number(profile?.attributeConversion ?? 0.07);
     result.conditionDamage =
       Number(result.conditionDamage || 0) +
-      Number(profile?.attributeBonus || 90) +
-      (wieldingScepter(context) ? Number(profile?.attributePerStack || 90) : 0);
+      Number(profile?.attributeBonus ?? 90) +
+      (wieldingScepter(context) ? Number(profile?.attributePerStack ?? 90) : 0);
   }
 
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
     result.expertise =
       Number(result.expertise || 0) +
-      gearVitality * Number(balanceProfileFromContext(context, PROFILE.strengthOfShadows)?.attributeConversion || 0.13);
+      gearVitality * Number(balanceProfileFromContext(context, PROFILE.strengthOfShadows)?.attributeConversion ?? 0.13);
   }
 
   return result;

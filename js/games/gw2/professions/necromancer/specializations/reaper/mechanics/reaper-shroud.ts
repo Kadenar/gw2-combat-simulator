@@ -31,7 +31,7 @@ import { reaperState } from '#gw2/professions/necromancer/specializations/reaper
 
 /** Reduces every active Reaper Shroud cooldown when Reaper's Onslaught sees Life Reap land. */
 function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number): void {
-  const reduction = Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.rechargeReduction || 1);
+  const reduction = Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.rechargeReduction ?? 1);
   for (const candidate of context.catalog.skills || []) {
     if (candidate.shroud !== 'reaper') continue;
     const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
@@ -66,8 +66,8 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       actorType: 'effect',
       coefficient: 0,
       skillWeapon: 'Unequipped',
-      flatStrikeBase: Number(effect?.flatStrikeBase || 276),
-      flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || 0.02),
+      flatStrikeBase: Number(effect?.flatStrikeBase ?? 276),
+      flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff ?? 0.02),
       noCrit: true,
       damageKind: 'life-steal'
     });
@@ -84,8 +84,8 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     context.config?.target?.conditions?.Chilled
   ) {
     const profile = balanceProfileFromContext(context, PROFILE.chillingVictory);
-    gainNecromancerLifeForce(context, Number(profile?.lifeForceGain || 1), context.effectiveEnd, 'chilling-victory');
-    state.chillingVictoryReadyAt = context.effectiveEnd + Number(profile?.cooldown || 1);
+    gainNecromancerLifeForce(context, Number(profile?.lifeForceGain ?? 1), context.effectiveEnd, 'chilling-victory');
+    state.chillingVictoryReadyAt = context.effectiveEnd + Number(profile?.cooldown ?? 1);
   }
 }
 
@@ -95,7 +95,7 @@ function onEventScheduled(context: NecromancerSchedulerContext, event: Necromanc
   if (event.type === 'buff' && event.actorType === 'player' && hasTrait(context, TRAIT.BLIGHTERS_BOON)) {
     gainNecromancerLifeForce(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.blightersBoon)?.lifeForceGain || 1),
+      Number(balanceProfileFromContext(context, PROFILE.blightersBoon)?.lifeForceGain ?? 1),
       event.at,
       'blighters-boon'
     );
@@ -111,7 +111,7 @@ export const reaperSchedulerHooks = Object.freeze({
 function modifyReaperAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
   if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
-    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.attributeBonus || 300);
+    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.attributeBonus ?? 300);
   }
 
   return result;
@@ -123,7 +123,7 @@ function modifyReaperCastDuration(context: NecromancerCastModifierContext, durat
   return hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
     professionCoreState(context).activeShroud === 'reaper' &&
     !context.hasBuff?.('quickness', context.start)
-    ? duration / Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.quicknessCastMultiplier || 1.5)
+    ? duration / Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.quicknessCastMultiplier ?? 1.5)
     : duration;
 }
 

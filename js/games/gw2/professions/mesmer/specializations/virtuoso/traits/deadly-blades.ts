@@ -71,8 +71,8 @@ export function handleDeadlyBladesCriticalTask(
     name: 'Deadly Blades — Vulnerability',
     skillName: event.skillName,
     condition: 'Vulnerability',
-    stacks: application.quantity * Number(deadlyBlades?.stacks || 1),
-    duration: Number(deadlyBlades?.duration || 5),
+    stacks: application.quantity * Number(deadlyBlades?.stacks ?? 1),
+    duration: Number(deadlyBlades?.duration ?? 5),
     source: 'Trait',
     sourceId: TRAIT.DEADLY_BLADES,
     sourceSkill: event.skillName

@@ -160,7 +160,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
   state.radiantForge = entering;
   state.radiantForgeEndsAt = entering
     ? context.effectiveEnd +
-      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration || 20)
+      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20)
     : 0;
   state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
   // Reset active weapon so traits don't carry stale weapon state across entries.
@@ -206,7 +206,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
     const profile = balanceProfileFromContext(context, PROFILE.radiantJusticeImpact);
     const strike = balanceProfileEffect(profile, 'strike');
     const vulnerability = balanceProfileEffect(profile, 'condition');
-    const delay = Number(strike?.atMs || 750) / 1000;
+    const delay = Number(strike?.atMs ?? 750) / 1000;
     const impactAt = radiantWeaponImpactAt(context, skill) + delay;
     luminaryState.from(context).radiantJusticeArmed = false;
     context.emit(
@@ -216,7 +216,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
         skillId: skill.id,
         skillName: skill.name,
         name: 'Dazzling Hammer — Radiant Justice Impact',
-        coefficient: Number(strike?.coefficient || 1.5)
+        coefficient: Number(strike?.coefficient ?? 1.5)
       })
     );
     emitSkillCondition(context, {
@@ -227,8 +227,8 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
       skillId: skill.id,
       skillName: skill.name,
       condition: 'Vulnerability',
-      stacks: Number(vulnerability?.stacks || 8),
-      duration: Number(vulnerability?.duration || 8)
+      stacks: Number(vulnerability?.stacks ?? 8),
+      duration: Number(vulnerability?.duration ?? 8)
     });
   }
 
@@ -325,7 +325,7 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   ).length;
   const forge = balanceProfileFromContext(context, PROFILE.forge);
   const baseRecharge = Math.max(0, Number(enter.cooldown ?? enter.recharge ?? 10));
-  const adjustedBase = Math.max(0, baseRecharge - (used <= 1 ? Number(forge?.rechargeReduction || 5) : 0));
+  const adjustedBase = Math.max(0, baseRecharge - (used <= 1 ? Number(forge?.rechargeReduction ?? 5) : 0));
   // Preserve the ratio of effective-to-base recharge so alacrity/recharge
   // traits still apply proportionally to the adjusted cooldown.
   const fullEffective = context.rechargeDurationFor(enter, at);

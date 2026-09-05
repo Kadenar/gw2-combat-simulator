@@ -19,8 +19,8 @@ function queueRighteousMight(context: GuardianResolverContext, at: number, detai
     sourceId: GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS,
     skillName: 'Righteous Instincts',
     kind: 'might',
-    duration: Number(might?.duration || 6),
-    stacks: Number(might?.stacks || 1)
+    duration: Number(might?.duration ?? 6),
+    stacks: Number(might?.stacks ?? 1)
   });
   recordGuardianTraitProc(
     context,
@@ -48,8 +48,10 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
   state.resolutionUntil = wasActive ? state.resolutionUntil + duration : event.at + duration;
   if (!wasActive) {
     queueRighteousMight(context, event.at, 'Resolution applied');
-    state.righteousNextMightAt =
-      event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval || 1);
+    // Zero disables subsequent interval procs while retaining the initial application.
+    const interval = Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
+    if (!(interval > 0)) return;
+    state.righteousNextMightAt = event.at + interval;
     enqueueOrdered(context.queue, {
       type: 'guardian.righteous-instincts-tick',
       at: state.righteousNextMightAt,
@@ -75,8 +77,11 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
 
   queueRighteousMight(context, event.at, 'Resolution interval');
   state.righteousNextMightAt =
-    event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval || 1);
-  if (state.righteousNextMightAt <= Number(state.resolutionUntil || 0) + guardianResolverEpsilon(context)) {
+    event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
+  if (
+    state.righteousNextMightAt > event.at &&
+    state.righteousNextMightAt <= Number(state.resolutionUntil || 0) + guardianResolverEpsilon(context)
+  ) {
     enqueueOrdered(context.queue, {
       ...event,
       at: state.righteousNextMightAt

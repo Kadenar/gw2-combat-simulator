@@ -81,7 +81,7 @@ export function triggerCompoundingPower(
   detail: string
 ): void {
   if (!context.traits.has(TRAIT.COMPOUNDING_POWER) || count <= 0) return;
-  const duration = Number(context.balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier || 8);
+  const duration = Number(context.balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier ?? 8);
   for (let index = 0; index < count; index += 1) {
     context.addEvent({
       type: 'buff',
@@ -124,6 +124,6 @@ export function triggerMaimTheDisillusioned(context: MesmerMaimContext, resoluti
 /** Returns the profile-owned Phantasmal Haste speed before phantasm packet times are derived. */
 export function phantasmalHasteSpeed(context: CryOfPainContext): number {
   return context.traits.has(TRAIT.PHANTASMAL_HASTE)
-    ? Number(context.balanceProfile(TRAIT.PHANTASMAL_HASTE)?.quicknessCastMultiplier || 1.5)
+    ? Number(context.balanceProfile(TRAIT.PHANTASMAL_HASTE)?.quicknessCastMultiplier ?? 1.5)
     : 1;
 }

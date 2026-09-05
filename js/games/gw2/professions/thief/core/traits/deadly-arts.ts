@@ -26,10 +26,10 @@ export function applySerpentsTouch(context: ThiefCastContext, at: number): void 
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: String(poison?.condition || 'Poisoned'),
-    duration: Number(poison?.duration || 10),
+    duration: Number(poison?.duration ?? 10),
     stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-      ? Number(profile?.playerStacks || 3)
-      : Number(poison?.stacks || 2),
+      ? Number(profile?.playerStacks ?? 3)
+      : Number(poison?.stacks ?? 2),
     sourceId: TRAIT.SERPENTS_TOUCH,
     name: "Serpent's Touch — Poison"
   });
@@ -46,8 +46,8 @@ export function applyMug(context: ThiefCastContext, at: number): void {
     skillId: context.skill?.id,
     skillName: context.skill?.name,
     name: 'Mug',
-    coefficient: Number(strike?.coefficient || 1.5),
-    hits: Number(strike?.hits || 1),
+    coefficient: Number(strike?.coefficient ?? 1.5),
+    hits: Number(strike?.hits ?? 1),
     canCrit: false
   });
 }
@@ -62,8 +62,8 @@ export function applyEvenTheOdds(context: ThiefCastContext, at: number): void {
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: String(vulnerability?.condition || 'Vulnerability'),
-    duration: Number(vulnerability?.duration || 10),
-    stacks: Number(vulnerability?.stacks || 10),
+    duration: Number(vulnerability?.duration ?? 10),
+    stacks: Number(vulnerability?.stacks ?? 10),
     sourceId: TRAIT.EVEN_THE_ODDS,
     name: 'Even the Odds — Vulnerability'
   });
@@ -83,10 +83,10 @@ export function applyDeadlyAmbition(context: ThiefCastContext, skill: ThiefSkill
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: String(poison?.condition || 'Poisoned'),
-    duration: Number(poison?.duration || 3),
+    duration: Number(poison?.duration ?? 3),
     stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-      ? Number(profile?.playerStacks || 2)
-      : Number(poison?.stacks || 1),
+      ? Number(profile?.playerStacks ?? 2)
+      : Number(poison?.stacks ?? 1),
     sourceId: TRAIT.DEADLY_AMBITION,
     name: 'Deadly Ambition — Poison'
   });
@@ -103,7 +103,7 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
     !(Number(event.coefficient) > 0) ||
     !hasTrait(context.config, TRAIT.PANIC_STRIKE) ||
     targetConditionCount(context, event.at) <
-      Number(balanceProfileFromContext(context, PROFILE.panicStrike)?.threshold || 3)
+      Number(balanceProfileFromContext(context, PROFILE.panicStrike)?.threshold ?? 3)
   )
     return;
   const state = professionCoreState(context);
@@ -111,7 +111,7 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
   const immobilized = balanceProfileEffect(profile, 'condition', 0);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
   if (!isInternalCooldownReady(event.at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + Number(profile?.internalCooldown || 20);
+  state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + Number(profile?.internalCooldown ?? 20);
   context.applyCondition({
     type: 'condition',
     at: event.at,
@@ -122,8 +122,8 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
     skillName: 'Panic Strike',
     name: 'Panic Strike - Immobilized',
     condition: String(immobilized?.condition || 'Immobilized'),
-    stacks: Number(immobilized?.stacks || 1),
-    duration: Number(immobilized?.duration || 2.5),
+    stacks: Number(immobilized?.stacks ?? 1),
+    duration: Number(immobilized?.duration ?? 2.5),
     activationId: `panic-strike:${event.at}`,
     triggeredBy: event.skillName
   });
@@ -149,9 +149,9 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
     name: 'Panic Strike - Poison',
     condition: String(poison?.condition || 'Poisoned'),
     stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-      ? Number(profile?.playerStacks || 2)
-      : Number(poison?.stacks || 1),
-    duration: Number(poison?.duration || 4),
+      ? Number(profile?.playerStacks ?? 2)
+      : Number(poison?.stacks ?? 1),
+    duration: Number(poison?.duration ?? 4),
     activationId: application.activationId || `panic-strike:${application.at}`,
     triggeredBy: application.skillName
   });

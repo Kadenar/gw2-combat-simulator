@@ -19,7 +19,7 @@ import type {
 export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kneeling'>, context?: unknown): number {
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   return (
-    Number(resources?.resourceGain || 1) +
+    Number(resources?.resourceGain ?? 1) +
     (state.kneeling ? Number(resources?.kneelingInitiativeRegenerationBonus ?? 1 / 3) : 0)
   );
 }
@@ -30,9 +30,9 @@ export function thiefEnduranceRegenerationRate(
 ): number {
   const vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at));
   const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const base = Number(resources?.enduranceRegenerationPerSecond || 5);
-  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier || 1.5);
-  return Math.min(Number(resources?.threshold || 10), base * (vigorActive ? vigorMultiplier : 1));
+  const base = Number(resources?.enduranceRegenerationPerSecond ?? 5);
+  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier ?? 1.5);
+  return Math.min(Number(resources?.threshold ?? 10), base * (vigorActive ? vigorMultiplier : 1));
 }
 
 export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {
@@ -47,8 +47,8 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   const state = professionCoreState(context);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.maximumInitiative = hasTrait(context.config, TRAIT.PREPAREDNESS)
-    ? Number(resources?.minimumStacks || 15)
-    : Number(resources?.maximumStacks || 12);
+    ? Number(resources?.minimumStacks ?? 15)
+    : Number(resources?.maximumStacks ?? 12);
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   state.leadAttacksUntil = state.leadAttackExpirations.length ? Math.max(...state.leadAttackExpirations) : 0;
@@ -113,7 +113,7 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
   ) {
     gainThiefInitiative(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.signetsOfPower)?.resourceGain || 3),
+      Number(balanceProfileFromContext(context, PROFILE.signetsOfPower)?.resourceGain ?? 3),
       context.start,
       'signets-of-power'
     );
@@ -134,7 +134,7 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
   if (context.effectiveEnd + context.epsilon < finalBulletAt) return;
   gainThiefInitiative(
     context,
-    Number(balanceProfileFromContext(context, PROFILE.unloadRefund)?.resourceGain || 2),
+    Number(balanceProfileFromContext(context, PROFILE.unloadRefund)?.resourceGain ?? 2),
     context.effectiveEnd,
     'unload-refund'
   );

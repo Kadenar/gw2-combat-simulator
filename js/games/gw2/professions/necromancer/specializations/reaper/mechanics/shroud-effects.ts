@@ -27,7 +27,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
   id: 'necromancer.chilling-nova',
   materialization: 'threshold',
   chanceOnCriticalHit: (context) =>
-    Number(balanceProfileFromContext(context, PROFILE.chillingNova)?.criticalChance || 1),
+    Number(balanceProfileFromContext(context, PROFILE.chillingNova)?.criticalChance ?? 1),
   when: (context, event) =>
     Number(event.coefficient) > 0 && hasTrait(context, TRAIT.CHILLING_NOVA) && targetIsChilled(context, event.at),
   expectedProgress: {
@@ -37,7 +37,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
     }
   },
   internalCooldown: {
-    duration: (context) => Number(balanceProfileFromContext(context, PROFILE.chillingNova)?.cooldown || 3),
+    duration: (context) => Number(balanceProfileFromContext(context, PROFILE.chillingNova)?.cooldown ?? 3),
     readyAt: (context) => Number(reaperState.from(context).chillingNovaReadyAt || 0),
     setReadyAt: (context, readyAt) => {
       reaperState.from(context).chillingNovaReadyAt = readyAt;
@@ -53,7 +53,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
       queueTraitCoefficientDamage(context, event, {
         name: 'Chilling Nova',
         traitId: TRAIT.CHILLING_NOVA,
-        coefficient: Number(strike?.coefficient || 1.125)
+        coefficient: Number(strike?.coefficient ?? 1.125)
       });
       enqueueOrdered(context.queue, {
         type: 'necromancer.chill',
@@ -62,7 +62,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
         sourceId: TRAIT.CHILLING_NOVA,
         actorType: 'effect',
         skillName: 'Chilling Nova',
-        duration: Number(chill?.duration || 2)
+        duration: Number(chill?.duration ?? 2)
       });
     }
   }
@@ -86,8 +86,8 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
       name: 'Deathly Chill',
       traitId: TRAIT.DEATHLY_CHILL,
       condition: String(effect?.condition || 'Bleeding'),
-      stacks: Number(effect?.stacks || 4),
-      duration: Number(effect?.duration || 4)
+      stacks: Number(effect?.stacks ?? 4),
+      duration: Number(effect?.duration ?? 4)
     });
   }
 }
@@ -107,7 +107,7 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
     sourceId: TRAIT.SHIVERS_OF_DREAD,
     actorType: 'effect',
     skillName: 'Shivers of Dread',
-    duration: Number(chill?.duration || 2)
+    duration: Number(chill?.duration ?? 2)
   });
 }
 

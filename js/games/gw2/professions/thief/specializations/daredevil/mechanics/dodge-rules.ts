@@ -20,7 +20,7 @@ function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
   const state = professionCoreState(context);
   // Daredevil owns both its third dodge and the dynamic health conversion from Marauder's Resilience.
   state.maximumEndurance = Number(
-    balanceProfileFromContext(context, 'thief.daredevil.resources')?.maximumStacks || 150
+    balanceProfileFromContext(context, 'thief.daredevil.resources')?.maximumStacks ?? 150
   );
   state.endurance = state.maximumEndurance;
   if (!professionStaticRulesApplied(context.config) && hasTrait(context.config, TRAIT.MARAUDERS_RESILIENCE)) {

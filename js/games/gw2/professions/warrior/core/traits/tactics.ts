@@ -39,8 +39,8 @@ export function applyLegSpecialist(context: WarriorSchedulerContext, event: Warr
     skillName: event.skillName,
     name: 'Leg Specialist — Immobilized',
     condition: 'Immobilized',
-    stacks: Number(effect?.stacks || 1),
-    duration: Number(effect?.duration || 1)
+    stacks: Number(effect?.stacks ?? 1),
+    duration: Number(effect?.duration ?? 1)
   });
 }
 
@@ -85,7 +85,7 @@ export function applyMarchingOrders(context: WarriorSchedulerContext, event: War
 
   const marchingOrders = balanceProfileFromContext(context, PROFILE.marchingOrders);
   const might = balanceProfileEffect(marchingOrders, 'boon');
-  state.soldierFocusReadyAt = event.at + Number(marchingOrders?.internalCooldown || 10);
+  state.soldierFocusReadyAt = event.at + Number(marchingOrders?.internalCooldown ?? 10);
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||
@@ -100,8 +100,8 @@ export function applyMarchingOrders(context: WarriorSchedulerContext, event: War
     name: "Soldier's Focus — Might",
     kind: 'might',
     boon: 'might',
-    duration: Number(might?.duration || 15),
-    stacks: Number(might?.stacks || 3),
+    duration: Number(might?.duration ?? 15),
+    stacks: Number(might?.stacks ?? 3),
     audience: { recipients: 'party' as const }
   });
   return true;
@@ -124,8 +124,8 @@ export function applySoldiersComfort(context: WarriorSchedulerContext, event: Wa
     name: "Soldier's Comfort",
     kind: 'protection',
     boon: 'protection',
-    duration: Number(protection?.duration || 4),
-    stacks: Number(protection?.stacks || 1),
+    duration: Number(protection?.duration ?? 4),
+    stacks: Number(protection?.stacks ?? 1),
     audience: { recipients: 'party' as const }
   });
 }
@@ -147,8 +147,8 @@ export function applyMartialCadence(context: WarriorSchedulerContext, event: War
     name: 'Martial Cadence',
     kind: 'stability',
     boon: 'stability',
-    duration: Number(stability?.duration || 3),
-    stacks: Number(stability?.stacks || 1),
+    duration: Number(stability?.duration ?? 3),
+    stacks: Number(stability?.stacks ?? 1),
     audience: { recipients: 'party' as const }
   });
 }
@@ -160,8 +160,9 @@ export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: n
   const empowerAllies = balanceProfileFromContext(context, PROFILE.empowerAllies);
   const might = balanceProfileEffect(empowerAllies, 'boon');
   const sourceSkill = { id: TRAIT.EMPOWER_ALLIES, name: 'Empower Allies' } as WarriorSkill;
-  const interval = Number(empowerAllies?.pulseInterval || 10);
-  while (state.empowerAlliesNextAt <= target + context.epsilon) {
+  const interval = Number(empowerAllies?.pulseInterval ?? 10);
+  // Zero disables recurring pulses instead of repeatedly emitting at the same timestamp.
+  while (interval > 0 && state.empowerAlliesNextAt <= target + context.epsilon) {
     const at = state.empowerAlliesNextAt;
     emitSkillBuff(context, {
       at,
@@ -171,8 +172,8 @@ export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: n
       name: 'Empower Allies',
       kind: 'might',
       boon: 'might',
-      stacks: Number(might?.stacks || 5),
-      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', Number(might?.duration || 10)),
+      stacks: Number(might?.stacks ?? 5),
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', Number(might?.duration ?? 10)),
       audience: { recipients: 'party' as const }
     });
     state.empowerAlliesNextAt += interval;
