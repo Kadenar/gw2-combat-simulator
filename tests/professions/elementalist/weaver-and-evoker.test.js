@@ -1043,13 +1043,17 @@ test('Rock Barrier starts its root recharge when Hurl is used', () => {
   assert.ok(barriers[1].at > hurl.endsAt + 5);
 });
 
-test('Elemental Explosion and Shattering Stone commit at 480 ms and preserve their committed damage', () => {
-  for (const skillId of [ID.ELEMENTAL_EXPLOSION, ID.SHATTERING_STONE]) {
+test('Elemental Explosion, Shattering Stone, and Signet of Earth commit at 480 ms', () => {
+  for (const skillId of [ID.ELEMENTAL_EXPLOSION, ID.SHATTERING_STONE, ID.SIGNET_OF_EARTH]) {
     const skill = elementalistCatalog.skillsById.get(skillId);
     for (const interruptAfterMs of [440, 480]) {
       const result = runNative({
         lines: [['Fire'], ['Air'], ['Arcane']],
         rotation: [{ type: 'cast', skillId, interruptAfterMs }, 1_000],
+        selectedSkills: {
+          ...elementalistProfession.createBuildDefaults().selectedSkills,
+          Utility1: 'Signet of Earth'
+        },
         startAttunement: 'Earth',
         weapons: ['Pistol', 'Warhorn'],
         pistolBullets: { Fire: true, Water: true, Air: true, Earth: true }
@@ -1061,7 +1065,10 @@ test('Elemental Explosion and Shattering Stone commit at 480 ms and preserve the
       assert.equal(step.end - step.start, interruptAfterMs);
       assert.equal(step.cancelledBeforeCommit === true, interruptAfterMs < 480);
       assert.equal(packets.length > 0, interruptAfterMs >= 480, skill.name);
-      assert.equal(result.endState.profession.pistolBullets.Earth, interruptAfterMs < 480);
+      assert.equal(
+        result.endState.profession.pistolBullets.Earth,
+        skillId === ID.SIGNET_OF_EARTH || interruptAfterMs < 480
+      );
     }
   }
 });

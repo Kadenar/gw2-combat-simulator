@@ -408,6 +408,15 @@ test('skill mechanic triggers execute through the scheduler at their resolved ti
     }
   );
   assert.equal(invocation.activationId, action.activationId);
+
+  // Cancellation still completes the lifecycle, but must not invoke the skill's committed mechanics.
+  const cancelled = createScheduler({
+    profession,
+    observationPolicy: { kind: 'tail', durationMs: 1500 }
+  }).run([{ name: 'Delayed Mechanic', interruptMs: 250 }]);
+
+  assert.equal(cancelled.steps[0].cancelledBeforeCommit, true);
+  assert.deepEqual(cancelled.state.profession.invocations, []);
 });
 
 test('interrupted casts retain their original lane lockout only for cast-time skills', () => {
