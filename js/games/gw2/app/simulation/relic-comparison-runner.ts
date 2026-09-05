@@ -28,6 +28,13 @@ export class RelicComparisonRunner {
         : (alternatives[0] ?? '');
   }
 
+  /** Cancels the outgoing tab's scheduled comparison without replacing its cached result. */
+  cancel(): void {
+    this.requestId += 1;
+    if (this.timer !== null) clearTimeout(this.timer);
+    this.timer = null;
+  }
+
   /** Publishes picker availability without paying for another simulation. */
   schedule(): void {
     const app = this.app;

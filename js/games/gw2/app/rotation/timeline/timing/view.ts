@@ -8,7 +8,13 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const TIMING_DETAIL_INITIAL_USES = 12;
 
-const timingCheckSelections = new WeakMap<ProfessionAppState, SkillId[]>();
+const timingCheckSelections = new WeakMap<object, SkillId[]>();
+
+/** Timing checks belong to the selected build session and survive switching away and back. */
+function timingCheckOwner(app: ProfessionAppState): object {
+  return app.workspace?.tabs.find((tab) => tab.id === app.workspace?.activeTabId) || app;
+}
+
 const STATE_TIMING_CHECK_IDS = Object.freeze({
   photonForge: 'state:engineer.photon-forge',
   radiantForge: 'state:guardian.radiant-forge',
@@ -89,7 +95,7 @@ function stateTimingCheck(skillId: SkillId): StateTimingCheckDefinition | undefi
 }
 
 function timingCheckIds(app: ProfessionAppState): SkillId[] {
-  return timingCheckSelections.get(app) || [];
+  return timingCheckSelections.get(timingCheckOwner(app)) || [];
 }
 
 function timingSkillLabel(app: ProfessionAppState, skillId: SkillId): string {
@@ -199,7 +205,7 @@ function timingCheckPickerOptions(app: ProfessionAppState): TimingCheckPickerOpt
 
 /** Keeps timing choices in this inspection session without changing or persisting the build. */
 function setTimingCheckIds(app: ProfessionAppState, checkIds: readonly SkillId[]): void {
-  timingCheckSelections.set(app, [...new Set(checkIds)]);
+  timingCheckSelections.set(timingCheckOwner(app), [...new Set(checkIds)]);
   app.adapter.renderRotationBuilder(app);
 }
 

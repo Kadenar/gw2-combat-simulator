@@ -1,10 +1,11 @@
+import { bindPageControls, createDefaultBuild, normalizeSelectedSkills } from '#gw2/app/build/index.js';
 import {
-  bindPageControls,
-  createDefaultBuild,
-  loadBuild,
-  normalizeSelectedSkills,
-  saveBuild
-} from '#gw2/app/build/index.js';
+  captureActiveBuildTab,
+  loadBuildWorkspace,
+  saveBuildWorkspace,
+  type BuildWorkspace
+} from '#gw2/app/build/state/workspace.js';
+import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { cloneRotation, recordRotationHistory, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contribution-runner.js';
@@ -39,6 +40,7 @@ const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
 });
 
 export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2ApplicationBuild, ProfessionAppResult> {
+  readonly workspace: BuildWorkspace;
   readonly gameId: string;
   readonly contentId: string;
   readonly adapter: Gw2AppAdapter;
@@ -87,10 +89,12 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.gameId = adapter.gameId;
     this.contentId = adapter.contentId;
     this.profession = adapter.profession;
-    this.activeCatalog = this.profession.catalog;
-    this.patchId = 'current';
+    this.workspace = loadBuildWorkspace(adapter);
+    const activeTab = this.workspace.tabs.find((tab) => tab.id === this.workspace.activeTabId)!;
+    this.patchId = activeTab.patchId;
+    this.activeCatalog = this.profession.catalogFor?.(this.patchId) || this.profession.catalog;
     this.patchComparison = null;
-    this.build = loadBuild(adapter);
+    this.build = activeTab.build;
     this.skills = [...this.activeCatalog.skills];
     this.skillByName = this.activeCatalog.skillsByName;
     this.skillById = this.activeCatalog.skillsById;
@@ -162,6 +166,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.updateSimulationStateSynchronously();
     this.renderBuildSections(true);
     await templatesReady;
+    mountBuildTabs(this);
     // Commit the asynchronously inserted templates under the loading overlay.
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
@@ -201,10 +206,11 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     recordRotationHistory(this);
     normalizeSelectedSkills(this);
     this.adapter.recalculate(this);
-    saveBuild(this.build, this.adapter);
     this.buildRevision += 1;
     this.simulationStatus = 'queued';
     this.simulationError = '';
+    saveBuildWorkspace(this);
+    renderBuildTabs(this);
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
     return this.buildRevision;
   }
@@ -278,6 +284,69 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
         this.adapter.renderRotationBuilder(this);
       });
     });
+  }
+
+  /** Switches the existing editor atomically; global revisions never rewind into an old worker job. */
+  activateBuildTab(id: string): void {
+    if (id === this.workspace.activeTabId) return;
+    const tab = this.workspace.tabs.find((entry) => entry.id === id);
+    if (!tab) return;
+    captureActiveBuildTab(this);
+    this.baselineSimulationRunner.cancel();
+    this.randomDistributionRunner.cancel?.();
+    this.modifierContributionRunner.cancel?.();
+    this.relicComparisonRunner.cancel?.();
+    this.initialRenderGeneration += 1;
+    this.deferredRotationRenderRevision = null;
+    this.buildRevision += 1;
+    this.workspace.activeTabId = id;
+    this.build = tab.build;
+    this.patchId = tab.patchId;
+    this.activeCatalog = this.profession.catalogFor?.(this.patchId) || this.profession.catalog;
+    this.skills = [...this.activeCatalog.skills];
+    this.skillByName = this.activeCatalog.skillsByName;
+    this.skillById = this.activeCatalog.skillsById;
+    Object.assign(this, tab.session);
+    recordRotationHistory(this);
+    this.dragState = null;
+    this.simulationError = '';
+    this.resultRevision = tab.resultsFresh ? this.buildRevision : -1;
+    this.simulationStatus = tab.resultsFresh ? 'idle' : 'queued';
+    if (!tab.resultsFresh) this.results = null;
+    normalizeSelectedSkills(this);
+    this.adapter.recalculate(this);
+    if (this.relicComparisonRunner instanceof RelicComparisonRunner) {
+      this.relicComparisonRunner.comparisonRelic = this.results?.relicComparisonTarget || '';
+      this.relicComparisonRunner.initialStacks = this.results?.relicComparisonInitialStacks || 0;
+    }
+
+    if (!tab.resultsFresh || this.rotationComparison?.referenceStatus === 'queued') {
+      this.baselineSimulationRunner.schedule(this.buildRevision);
+    } else {
+      if (this.results?.randomDistributionStale) this.randomDistributionRunner.schedule(true);
+      if (this.results?.modifierContributionsStale) this.modifierContributionRunner.schedule();
+      if (this.results?.relicComparisonStale) this.relicComparisonRunner.run?.();
+    }
+
+    saveBuildWorkspace(this);
+    if (typeof document !== 'undefined') {
+      document.body.dataset.simulationStatus = this.simulationStatus;
+      // Discard transient dialogs and previews tied to the outgoing editor, including unfinished imports.
+      document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach((dialog) => dialog.close());
+      for (const option of document.querySelectorAll<HTMLButtonElement>('.patch-preview-option')) {
+        const active = option.dataset.patchId === this.patchId;
+        option.classList.toggle('active', active);
+        option.setAttribute('aria-pressed', String(active));
+      }
+
+      const weaponSet = document.getElementById('attribute-weapon-set') as HTMLSelectElement | null;
+      if (weaponSet) weaponSet.value = String(this.attributeWeaponSet);
+      if (this.rotationComparison) enterRotationFocus(document);
+      this.renderBuildSections(true);
+      this.adapter.buildEditor.updateSelection?.(this);
+      this.adapter.renderRotationBuilder(this);
+      renderBuildTabs(this);
+    }
   }
 
   addRotation(name: string, options: RotationActionOptions = {}): void {

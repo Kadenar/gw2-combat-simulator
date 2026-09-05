@@ -50,6 +50,17 @@ export class BaselineSimulationRunner {
     }, BASELINE_DEBOUNCE_MS);
   }
 
+  /** A tab switch invalidates even fallback callbacks and frees the worker for the incoming build. */
+  cancel(): void {
+    this.requestId += 1;
+    if (this.timer !== null) clearTimeout(this.timer);
+    this.timer = null;
+    this.pending = null;
+    this.inFlight = null;
+    this.worker?.terminate();
+    this.worker = null;
+  }
+
   private startPending(): void {
     if (this.inFlight || !this.pending) return;
     const job = this.pending;
@@ -60,6 +71,7 @@ export class BaselineSimulationRunner {
     if (typeof Worker !== 'function') {
       // Tests and older browsers retain correctness; the timeout still separates mutation from calculation.
       setTimeout(() => {
+        if (job.requestId !== this.requestId) return;
         try {
           this.finish(job, {
             requestId: job.requestId,

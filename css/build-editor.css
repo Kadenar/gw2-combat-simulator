@@ -1,5 +1,97 @@
 /* Owns build templates, equipment, attributes, traits, and skill-selection layouts. */
 
+/* Build tabs share one editor and contain their own overflow at every viewport width. */
+.build-workspace-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.build-tab-list {
+  display: flex;
+  flex: 1 1 240px;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 2px;
+}
+
+.build-tab {
+  display: flex;
+  flex: 0 0 auto;
+  max-width: 240px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-panel);
+}
+
+.build-tab.is-active {
+  border-color: var(--accent);
+  box-shadow: inset 0 -2px var(--accent);
+}
+
+.build-tab button {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 0;
+  color: var(--text-dim);
+  background: transparent;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.build-tab.is-active button,
+.build-tab button:hover {
+  color: var(--text-bright);
+}
+
+.build-tab button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.build-tab .build-tab-close,
+.build-tab .build-tab-rename {
+  flex-shrink: 0;
+  padding-inline: 8px;
+}
+
+/* Reveal the inline rename action on hover, focus, and devices without hover. */
+.build-tab .build-tab-rename {
+  opacity: 0;
+}
+
+.build-tab:hover .build-tab-rename,
+.build-tab:focus-within .build-tab-rename {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .build-tab .build-tab-rename {
+    opacity: 1;
+  }
+}
+
+.build-tab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.build-tab-notice {
+  flex-basis: 100%;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
 /* ─── Build templates ─── */
 .build-templates {
   max-width: 860px;

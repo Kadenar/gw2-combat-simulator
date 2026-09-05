@@ -5,6 +5,7 @@ import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js
 import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '#ui/shared/dom.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
 
 export function bindPageControls(app: ProfessionAppState): void {
   const attributeWeaponSet = requiredValueControl('attribute-weapon-set');
@@ -56,8 +57,12 @@ export function bindPageControls(app: ProfessionAppState): void {
   importFileInput.addEventListener('change', async () => {
     const file = importFileInput.files?.[0];
     if (!file) return;
+    const validateDestination = captureBuildDestination(app);
     try {
-      app.build = replaceBuildConfiguration(await readJsonFile(file), app.build, app.adapter);
+      const saved = await readJsonFile(file);
+      // An asynchronous file read cannot replace a different tab selected while it was loading.
+      validateDestination();
+      app.build = replaceBuildConfiguration(saved, app.build, app.adapter);
       app.changed();
     } catch (error) {
       alert(errorMessage(error));

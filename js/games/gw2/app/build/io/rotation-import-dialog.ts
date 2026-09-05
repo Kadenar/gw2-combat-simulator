@@ -4,6 +4,7 @@ import { readDpsReportRotationData, readDpsReportRotationUrl } from '#gw2/app/bu
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { errorMessage } from '#ui/shared/dom.js';
+import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
 
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
@@ -354,6 +355,8 @@ export function bindRotationImportDialog(
 
   let importing = false;
   let activePreview: RotationImportPreview | null = null;
+  let importGeneration = 0;
+  let validatePreviewDestination = (): void => {};
 
   const resetMessages = (): void => {
     activePreview = null;
@@ -416,69 +419,62 @@ export function bindRotationImportDialog(
     renderObservations(elements.observations, imported.observations);
   };
 
-  const selectFile = async (file: File): Promise<void> => {
+  /** Closing or switching tabs invalidates previews as well as the eventual apply action. */
+  const loadPreview = async (
+    load: () => Promise<RotationImportPreview>,
+    loadingMessage: string,
+    failureMessage: string
+  ): Promise<void> => {
     if (importing) return;
+    const generation = ++importGeneration;
+    const validateDestination = captureBuildDestination(app);
     activePreview = null;
     setImporting(true);
     elements.status.classList.remove('is-success');
-    elements.status.textContent = `Reading ${file.name}…`;
+    elements.status.textContent = loadingMessage;
     elements.error.hidden = true;
     elements.warnings.hidden = true;
     elements.observations.hidden = true;
     try {
-      showReadyPreview(await previewRotationFile(file, app));
+      const preview = await load();
+      if (generation !== importGeneration) return;
+      validateDestination();
+      validatePreviewDestination = validateDestination;
+      showReadyPreview(preview);
     } catch (error) {
-      elements.status.textContent = `Could not import ${file.name}.`;
+      if (generation !== importGeneration) return;
+      elements.status.textContent = failureMessage;
       elements.error.hidden = false;
       elements.error.textContent = errorMessage(error);
     } finally {
       fileInput.value = '';
-      setImporting(false);
+      if (generation === importGeneration) setImporting(false);
     }
   };
+
+  const selectFile = (file: File): Promise<void> =>
+    loadPreview(() => previewRotationFile(file, app), `Reading ${file.name}…`, `Could not import ${file.name}.`);
 
   const selectReport = async (): Promise<void> => {
     if (importing) return;
     const input = elements.reportInput.value.trim();
     if (!input) return;
-    activePreview = null;
-    setImporting(true);
-    elements.status.classList.remove('is-success');
-    elements.status.textContent = 'Fetching dps.report…';
-    elements.error.hidden = true;
-    elements.warnings.hidden = true;
-    elements.observations.hidden = true;
-    try {
-      showReadyPreview(await previewDpsReportUrl(input, app));
-    } catch (error) {
-      elements.status.textContent = 'Could not import the dps.report link.';
-      elements.error.hidden = false;
-      elements.error.textContent = errorMessage(error);
-    } finally {
-      setImporting(false);
-    }
+    await loadPreview(
+      () => previewDpsReportUrl(input, app),
+      'Fetching dps.report…',
+      'Could not import the dps.report link.'
+    );
   };
 
   const selectPreset = async (): Promise<void> => {
     if (importing || !elements.presetSelect?.value) return;
     const preset = manifestRotations[Number(elements.presetSelect.value)];
     if (!preset) return;
-    activePreview = null;
-    setImporting(true);
-    elements.status.classList.remove('is-success');
-    elements.status.textContent = 'Loading existing rotation…';
-    elements.error.hidden = true;
-    elements.warnings.hidden = true;
-    elements.observations.hidden = true;
-    try {
-      showReadyPreview(await previewManifestRotation(preset, app));
-    } catch (error) {
-      elements.status.textContent = 'Could not load the existing rotation.';
-      elements.error.hidden = false;
-      elements.error.textContent = errorMessage(error);
-    } finally {
-      setImporting(false);
-    }
+    await loadPreview(
+      () => previewManifestRotation(preset, app),
+      'Loading existing rotation…',
+      'Could not load the existing rotation.'
+    );
   };
 
   button.addEventListener('click', () => {
@@ -499,12 +495,26 @@ export function bindRotationImportDialog(
   elements.presetButton?.addEventListener('click', () => void selectPreset());
   elements.applyButton.addEventListener('click', () => {
     if (!activePreview) return;
+    try {
+      validatePreviewDestination();
+    } catch (error) {
+      resetMessages();
+      elements.error.hidden = false;
+      elements.error.textContent = errorMessage(error);
+      return;
+    }
+
     if (destination === 'reference') app.loadRotationReference(activePreview.rotation);
     else applyRotationImportPreview(app, activePreview);
     activePreview = null;
     elements.dialog.close();
   });
   elements.closeButton.addEventListener('click', () => elements.dialog.close());
+  elements.dialog.addEventListener('close', () => {
+    importGeneration += 1;
+    activePreview = null;
+    setImporting(false);
+  });
   fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0];
     if (file) void selectFile(file);

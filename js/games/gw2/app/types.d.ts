@@ -62,6 +62,8 @@ export interface RotationComparisonState {
 }
 
 export interface ProfessionAppState {
+  workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
+  activateBuildTab?(id: string): void;
   readonly gameId: string;
   readonly contentId: string;
   adapter: Gw2AppAdapter;
@@ -109,6 +111,7 @@ export interface ProfessionAppState {
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
   templateUndoBuild: Gw2ApplicationBuild | null;
+  templateUndoMessage?: string;
   modifierContributionRunner: ProfessionFeatureRunner;
   randomDistributionRunner: ProfessionFeatureRunner;
   relicComparisonRunner: ProfessionFeatureRunner;
@@ -213,6 +216,7 @@ export interface ProfessionRuntimeApi {
 
 export interface ProfessionFeatureRunner {
   readonly isRunning?: boolean;
+  cancel?(): void;
   schedule(run?: boolean): void;
   run?(value?: string, extra?: number): void;
 }

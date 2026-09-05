@@ -26,6 +26,14 @@ export class ModifierContributionRunner {
     this.requestId = 0;
   }
 
+  /** Stops work owned by the outgoing tab before another result becomes active. */
+  cancel(): void {
+    this.requestId += 1;
+    if (this.timer !== null) clearTimeout(this.timer);
+    this.timer = null;
+    this.batch.terminateAll();
+  }
+
   schedule(): void {
     const app = this.app;
     const requestId = ++this.requestId;

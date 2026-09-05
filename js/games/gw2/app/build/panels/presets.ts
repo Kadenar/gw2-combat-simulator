@@ -6,7 +6,10 @@ import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/t
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
-type TemplateLoadAction = 'build' | 'rotation' | 'template';
+import { addBuildTab, captureBuildDestination, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
+import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
+
+type TemplateLoadAction = 'build' | 'rotation' | 'template' | 'new-tab';
 type TemplateCategory = 'power' | 'condi' | 'other';
 type TemplateFilter = 'all' | Exclude<TemplateCategory, 'other'>;
 type TemplateBoon = 'alacrity' | 'quickness' | 'none';
@@ -126,6 +129,7 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
       <details class="template-actions">
         <summary aria-label="More options for ${label}" title="More loading options">•••</summary>
         <div class="template-actions-menu" role="menu">
+          <button type="button" role="menuitem" data-template-action="new-tab" data-template-index="${index}">Open in new tab</button>
           <button type="button" role="menuitem" data-template-action="build" data-template-index="${index}">Load build only</button>
           ${rotationAction}
           ${templateSnowCrowsLink(preset)}
@@ -219,6 +223,7 @@ function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction):
 
 function showTemplateUndo(app: ProfessionAppState, message: string, previousBuild: Gw2ApplicationBuild): void {
   app.templateUndoBuild = previousBuild;
+  app.templateUndoMessage = message;
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
   if (!toast) return;
   toast.hidden = false;
@@ -381,7 +386,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         return;
       }
 
-      if (action !== 'build' && action !== 'rotation' && action !== 'template') {
+      if (action !== 'build' && action !== 'rotation' && action !== 'template' && action !== 'new-tab') {
         return;
       }
 
@@ -410,6 +415,8 @@ export async function loadTemplateAction(
 ): Promise<void> {
   const originalContent = button.innerHTML;
   const previousBuild = structuredClone(app.build);
+  const validateDestination = captureBuildDestination(app);
+  const patchId = app.patchId;
   button.disabled = true;
   button.textContent = 'Loading…';
   try {
@@ -424,12 +431,14 @@ export async function loadTemplateAction(
         throw new Error('Rotation array missing.');
       }
 
+      validateDestination();
       app.build = replaceBuildRotation(rotationItems, app.build, app.adapter);
       app.currentTemplate = null;
       app.changed(false, false, { deferRotationRender: true });
     } else if (action === 'build') {
       const buildData = await fetchJsonAsset(preset.build);
       validateBuildProfession(app, buildData);
+      validateDestination();
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
       app.currentTemplate = null;
       app.changed(true, true, { deferRotationRender: true });
@@ -440,9 +449,18 @@ export async function loadTemplateAction(
         throw new Error('Rotation array missing.');
       }
 
-      app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
-      app.build = replaceBuildRotation(Array.isArray(rotationItems) ? rotationItems : [], app.build, app.adapter);
-      app.changed(true, true, { deferRotationRender: true });
+      // Validate the complete bundle before creating a tab or replacing the destination build.
+      const build = replaceBuildConfiguration(buildData, previousBuild, app.adapter);
+      const replacement = replaceBuildRotation(Array.isArray(rotationItems) ? rotationItems : [], build, app.adapter);
+      if (action === 'new-tab') {
+        const name = [preset.section, preset.label, templateTileContent(preset).weapons].filter(Boolean).join(' · ');
+        addBuildTab(app, replacement, name, patchId);
+      } else {
+        validateDestination();
+        app.build = replacement;
+        app.changed(true, true, { deferRotationRender: true });
+      }
+
       app.currentTemplate = {
         build: preset.build,
         signature: buildSignature(app.build)
@@ -450,7 +468,9 @@ export async function loadTemplateAction(
       updateTemplateSelection(app);
     }
 
-    showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
+    if (action !== 'new-tab') showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
+    saveBuildWorkspace(app);
+    renderBuildTabs(app);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     alert(`Failed to load ${actionLabel(action)}: ${message}`);
@@ -463,6 +483,14 @@ export async function loadTemplateAction(
 export function updateTemplateSelection(app: ProfessionAppState): void {
   const container = app.templateContainer;
   if (!container) return;
+  // The toast follows the active tab's template undo state, just like its selection highlight.
+  const toast = container.querySelector<HTMLElement>('.template-toast');
+  if (toast) {
+    toast.hidden = !app.templateUndoBuild;
+    const message = toast.querySelector('.template-toast-message');
+    if (message) message.textContent = app.templateUndoMessage || 'Loaded template.';
+  }
+
   const current = app.currentTemplate;
   const modified = Boolean(current && current.signature !== buildSignature(app.build));
   container.querySelectorAll('.template-load-btn').forEach((button) => {
