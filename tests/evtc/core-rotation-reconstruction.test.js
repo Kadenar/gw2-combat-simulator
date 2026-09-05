@@ -120,6 +120,7 @@ test('modern and legacy EVTC casts obey cancellation contracts across every prof
         if (metadata.interruptMode === 'per-packet') {
           assert.equal(imported.rotation.find((command) => command.skillId === 1_000)?.interruptMs, 440, label);
         }
+
         assert.equal(attempt.end - attempt.start, replayDuration, label);
         assert.equal(following.start, replayDuration, label);
         assert.equal(

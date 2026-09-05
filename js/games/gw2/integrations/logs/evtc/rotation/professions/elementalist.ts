@@ -344,7 +344,8 @@ function recoverMissingFrostAuraActions(
           name: 'Frost Aura',
           skillId: Number(skill.id)
         },
-        'buff-transition'
+        'buff-transition',
+        { independentTimeline: true }
       )
     ];
   });

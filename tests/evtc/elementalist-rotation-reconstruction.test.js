@@ -268,6 +268,47 @@ test('recovers only ten-second self-applied Frost Aura gains with an off-hand Da
   );
 });
 
+// Recovered Frost Aura is independent, so a following familiar keeps its timing against the active weapon cast.
+test('keeps Calcify after Frost Aura without making the aura its concurrent timing anchor', () => {
+  const events = [
+    event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    ...animation(ID.WATER_TRIDENT, 1_000, 600),
+    event({ time: 1_200, target: PLAYER, skillId: 5579, value: 10_000, buff: 1 }),
+    event({
+      time: 1_400,
+      source: TOAD_FAMILIAR,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.START
+    })
+  ].sort((left, right) => left.time - right.time);
+  const fixture = fixtureLog({
+    agents: [
+      { ...fixtureLog().agents[0], profession: 6, elite: 80 },
+      { address: TOAD_FAMILIAR, profession: 27042, elite: 0, character: 'ch27042-10', account: '' }
+    ],
+    skills: [
+      { id: ID.WATER_TRIDENT, name: 'Water Trident' },
+      { id: 5579, name: 'Frost Aura' },
+      { id: 76925, name: 'Calcify' }
+    ],
+    events
+  });
+
+  const result = reconstructEvtcRotation(fixture, elementalistCatalog, {
+    professionConfig: { secondaryWeapon: 'Dagger', evokerElement: 'Earth', initialEvokerCharges: 6 }
+  });
+
+  assert.deepEqual(
+    result.rotation.filter((command) => ['Frost Aura', 'Calcify'].includes(command.name)),
+    [
+      { name: 'Frost Aura', skillId: ID.FROST_AURA, offset: 200 },
+      { name: 'Calcify', skillId: ID.CALCIFY, offset: 400 }
+    ]
+  );
+});
+
 test('keeps only evidenced Tempest and elemental-command inputs', () => {
   const events = [
     event({
