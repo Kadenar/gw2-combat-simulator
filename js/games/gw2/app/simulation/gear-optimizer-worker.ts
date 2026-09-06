@@ -1,0 +1,61 @@
+import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer-space.js';
+import {
+  optimizerEquipment,
+  optimizerScore,
+  verifyOptimizerScore,
+  type GearOptimizerRequest,
+  type OptimizerCandidate
+} from '#gw2/app/simulation/gear-optimizer.js';
+
+export type GearOptimizerWorkerRequest = { readonly requestId: number } & (
+  | { readonly kind: 'init'; readonly request: GearOptimizerRequest }
+  | { readonly kind: 'chunk'; readonly chunkId: number; readonly start: string; readonly end: string }
+  | { readonly kind: 'verify'; readonly candidates: readonly OptimizerCandidate[] }
+);
+
+let activeId = -1;
+let job: ReturnType<typeof createGroupedOptimizer> | null = null;
+
+/** Each worker validates and prepares once, then evaluates bounded ranges until its owner terminates it. */
+self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWorkerRequest>) => {
+  const post = (payload: object): void => self.postMessage({ requestId: data.requestId, ...payload });
+  try {
+    if (data.kind === 'init') {
+      activeId = data.requestId;
+      const adapter = await loadProfessionAppAdapter(data.request.contentId);
+      if (!adapter) throw new TypeError('Optimizer profession is unavailable.');
+      if (activeId !== data.requestId) return;
+      job = createGroupedOptimizer(data.request, adapter);
+      const baseline = optimizerScore(job.evaluator.evaluate(optimizerEquipment(data.request.build)));
+      post({
+        kind: 'ready',
+        count: job.space.count.toString(),
+        rawCount: job.space.ordinary.rawCount.toString(),
+        baseline
+      });
+      return;
+    }
+
+    if (data.requestId !== activeId || !job) throw new TypeError('Optimizer worker is not initialized.');
+    if (data.kind === 'chunk') {
+      if (!Number.isSafeInteger(data.chunkId) || !/^\d+$/.test(data.start) || !/^\d+$/.test(data.end))
+        throw new TypeError('Invalid optimizer chunk identity.');
+      const started = performance.now();
+      const result = job.evaluateRange(BigInt(data.start), BigInt(data.end));
+      post({ kind: 'chunk', chunkId: data.chunkId, ...result, elapsedMs: performance.now() - started });
+      return;
+    }
+
+    if (data.kind !== 'verify' || data.candidates.length > 20)
+      throw new TypeError('Invalid optimizer verification request.');
+    for (const candidate of data.candidates) {
+      const detailed = job.evaluator.evaluate(candidate.equipment);
+      verifyOptimizerScore(candidate.score, optimizerScore(detailed));
+    }
+
+    post({ kind: 'verified' });
+  } catch (error) {
+    post({ error: error instanceof Error ? error.message : String(error) });
+  }
+});

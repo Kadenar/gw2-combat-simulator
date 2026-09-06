@@ -76,8 +76,30 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
 }
 
 export interface Gw2DeclarativeSimulationOptions {
+  /** Optional profiler receives phase durations; normal simulations avoid clock reads. */
+  readonly onPhase?: (phase: 'scheduling' | 'resolution' | 'reporting' | 'refinement', durationMs: number) => void;
   readonly profession: Gw2ProfessionSource;
   readonly rotation: readonly unknown[];
   readonly config?: Gw2Config;
   readonly observationPolicy?: ObservationPolicy;
 }
+
+/** Numeric output deliberately omits histories and end-state projections. */
+export type Gw2SimulationScore = Pick<
+  Gw2ResolverResult,
+  | 'duration'
+  | 'combatStartTime'
+  | 'hasExplicitCombatStart'
+  | 'dpsStartTime'
+  | 'dpsWindow'
+  | 'firstHitTime'
+  | 'lastHitTime'
+  | 'deathTime'
+  | 'totalDamage'
+  | 'dps'
+  | 'strikeDamage'
+  | 'conditionDamage'
+  | 'environmentDamage'
+  | 'environmentDps'
+  | 'warnings'
+> & { readonly output: 'score' };

@@ -3,6 +3,7 @@ import { createEventQueue } from '#kernel/events/queue.js';
 import { assertScheduledEventStream as assertPlatformStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from '#gw2/platform/resolver/event-loop.js';
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
+import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 
 import type {
   Gw2ResolverEvent,
@@ -58,11 +59,9 @@ function buildResolverResult(
   ctx: Gw2ResolverRuntime,
   scheduled: ReturnType<typeof assertPlatformStream>,
   handoff: Readonly<Gw2ResolverHandoff>
-): Gw2ResolverResult {
+): Gw2ResolverResult | Gw2SimulationScore {
   const totalDamage = playerDamageTotal(ctx);
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
-  const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd + EPSILON) as Gw2ResolverEvent[];
-  const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
   const explicitCombatStart = Number(handoff.combatStartTime || 0);
   // DPS always begins with the first surviving positive damage event. An
   // explicit Combat Start only filters earlier combat events and provides the
@@ -77,7 +76,8 @@ function buildResolverResult(
   const environmentDamagePerSecond = (damage: number): number =>
     environmentWindow > 0 ? damage / environmentWindow : 0;
 
-  return {
+  const score: Gw2SimulationScore = {
+    output: 'score',
     duration: scheduled.rotationEndTime,
     combatStartTime: handoff.hasExplicitCombatStart ? explicitCombatStart : ctx.firstHitTime,
     hasExplicitCombatStart: Boolean(handoff.hasExplicitCombatStart),
@@ -92,6 +92,15 @@ function buildResolverResult(
     conditionDamage: ctx.totals.condition,
     environmentDamage: ctx.environmentDamage,
     environmentDps: environmentDamagePerSecond(ctx.environmentDamage),
+    warnings: [...new Set(ctx.warnings)]
+  };
+  // Stop before filtering, sorting, casts, and table projections when only numerical output was requested.
+  if (!ctx.reporting) return score;
+  const { output, ...numeric } = score;
+  const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd + EPSILON) as Gw2ResolverEvent[];
+  const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
+  return {
+    ...numeric,
     breakdown: [...ctx.breakdown.values()].sort((left, right) => right.damage - left.damage),
     conditionBreakdown: [...ctx.conditions.values()]
       .map((entry) => ({
@@ -133,7 +142,12 @@ function buildResolverResult(
  * Resolves a scheduled GW2 event stream using common handlers plus exclusive
  * profession-owned custom handlers.
  */
+export function resolveGw2Timeline(options: ResolveGw2TimelineOptions & { output: 'score' }): Gw2SimulationScore;
+export function resolveGw2Timeline(options: ResolveGw2TimelineOptions & { output?: 'detailed' }): Gw2ResolverResult;
+export function resolveGw2Timeline(options: ResolveGw2TimelineOptions): Gw2ResolverResult | Gw2SimulationScore;
 export function resolveGw2Timeline({
+  onPhase,
+  output = 'detailed',
   stream,
   config,
   traits,
@@ -148,16 +162,19 @@ export function resolveGw2Timeline({
   professionState = {},
   eventFilterState = {},
   shouldSkipEvent
-}: ResolveGw2TimelineOptions): Gw2ResolverResult {
+}: ResolveGw2TimelineOptions): Gw2ResolverResult | Gw2SimulationScore {
   if (typeof createRuntimeState !== 'function') {
     throw new TypeError('GW2 timeline resolver requires createRuntimeState.');
   }
+
+  const started = onPhase ? performance.now() : 0;
 
   const scheduled = assertPlatformStream(stream);
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
   const queue = createEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));
   const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
   const ctx = createRuntimeState({
+    reporting: output !== 'score',
     config,
     traits,
     horizon: resolutionEndTime,
@@ -198,5 +215,9 @@ export function resolveGw2Timeline({
   });
   runGw2ResolverEventLoop(ctx, registry, { shouldSkipEvent });
 
-  return buildResolverResult(ctx, scheduled, handoff);
+  const resolvedAt = onPhase ? performance.now() : 0;
+  onPhase?.('resolution', resolvedAt - started);
+  const result = buildResolverResult(ctx, scheduled, handoff);
+  onPhase?.('reporting', performance.now() - resolvedAt);
+  return result;
 }

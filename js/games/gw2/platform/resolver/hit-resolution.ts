@@ -209,7 +209,8 @@ export function createGw2HitResolution({
       criticalDamage: hitContext.critical.damage,
       critEligible: hitContext.critEligible
     } as Gw2ResolverEvent;
-    ctx.resolved.push(resolved);
+    // Reactions still receive the resolved hit, but score jobs do not retain a strike history.
+    if (ctx.reporting) ctx.resolved.push(resolved);
     return resolved;
   }
 

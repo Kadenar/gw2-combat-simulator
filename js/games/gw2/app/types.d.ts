@@ -62,6 +62,7 @@ export interface RotationComparisonState {
 }
 
 export interface ProfessionAppState {
+  gearOptimizerRunner?: import('#gw2/app/simulation/gear-optimizer-runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string): void;
   readonly gameId: string;

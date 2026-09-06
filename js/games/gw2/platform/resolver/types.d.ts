@@ -183,6 +183,7 @@ export interface Gw2ResolverHelpers extends Record<string, unknown> {
 export type Gw2EventQueue = Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends Record<string, unknown> {
+  readonly reporting: boolean;
   config: Gw2Config;
   traits: ReadonlySet<string | number>;
   horizon: number;
@@ -386,6 +387,8 @@ export interface Gw2ResolverResult extends Record<string, unknown> {
 }
 
 export interface ResolveGw2TimelineOptions {
+  readonly onPhase?: (phase: 'resolution' | 'reporting', durationMs: number) => void;
+  readonly output?: 'detailed' | 'score';
   readonly stream: ScheduledEventStream;
   readonly config: Gw2Config;
   readonly traits: ReadonlySet<string | number>;
@@ -405,6 +408,7 @@ export interface ResolveGw2TimelineOptions {
 }
 
 export interface CreateGw2ResolverRuntimeStateOptions {
+  readonly reporting?: boolean;
   readonly config: Gw2Config;
   readonly traits?: ReadonlySet<string | number>;
   readonly horizon: number;

@@ -138,9 +138,9 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
         legacySigils as readonly (readonly string[])[] | null | undefined,
         defaults.weaponSigils
       ),
-      rune: listedName(RUNE_NAMES, saved.rune) ? saved.rune : defaults.rune,
-      food: listedName(FOOD_NAMES, saved.food) ? saved.food : defaults.food,
-      utility: listedName(UTILITY_NAMES, saved.utility) ? saved.utility : defaults.utility,
+      rune: optionalEquipmentName(RUNE_NAMES, saved.rune) ? saved.rune : defaults.rune,
+      food: optionalEquipmentName(FOOD_NAMES, saved.food) ? saved.food : defaults.food,
+      utility: optionalEquipmentName(UTILITY_NAMES, saved.utility) ? saved.utility : defaults.utility,
       jadeBotCore: typeof saved.jadeBotCore === 'boolean' ? saved.jadeBotCore : Boolean(defaults.jadeBotCore),
       specializations,
       // Slot-loadout professions manage their own skill-slot logic; bypass
@@ -173,7 +173,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     } as unknown as TBuild;
     // relic validation happens after the spread because it is not part of the
     // normalizeGear flow and may have been overwritten by the saved spread above.
-    if (!RELIC_NAMES.includes(migrated.relic)) {
+    if (!optionalEquipmentName(RELIC_NAMES, migrated.relic)) {
       migrated.relic = defaults.relic;
     }
 
@@ -352,6 +352,11 @@ function clone<T>(value: T): T {
 
 function listedName(names: readonly string[], value: unknown): value is string {
   return typeof value === 'string' && names.includes(value);
+}
+
+/** Explicit no-item equipment survives Apply and persistence; missing or unknown selections still use defaults. */
+function optionalEquipmentName(names: readonly string[], value: unknown): value is string {
+  return value === '' || listedName(names, value);
 }
 
 function professionName(professionId: string): string {
@@ -849,19 +854,19 @@ function validateCommonBuild(
     errors.push('alternateWeaponPrefixes must contain two known gear prefixes.');
   }
 
-  if (!listedName(RELIC_NAMES, candidate.relic)) {
+  if (!optionalEquipmentName(RELIC_NAMES, candidate.relic)) {
     errors.push('relic must be a known relic.');
   }
 
-  if (!listedName(RUNE_NAMES, candidate.rune)) {
+  if (!optionalEquipmentName(RUNE_NAMES, candidate.rune)) {
     errors.push('rune must be a known rune.');
   }
 
-  if (!listedName(FOOD_NAMES, candidate.food)) {
+  if (!optionalEquipmentName(FOOD_NAMES, candidate.food)) {
     errors.push('food must be a known food.');
   }
 
-  if (!listedName(UTILITY_NAMES, candidate.utility)) {
+  if (!optionalEquipmentName(UTILITY_NAMES, candidate.utility)) {
     errors.push('utility must be a known utility consumable.');
   }
 

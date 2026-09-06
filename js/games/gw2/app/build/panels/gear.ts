@@ -143,6 +143,12 @@ function enhanceDetailedSelect(select: HTMLSelectElement, index: number): void {
 }
 
 function selectRow(label: string, id: string, selectedLabel: string, optionsHtml: string): string {
+  // Optional upgrades share the optimizer's explicit no-item selection and keep it visible after Apply.
+  if (['sel-rune', 'sel-relic', 'sel-food', 'sel-utility'].includes(id)) {
+    optionsHtml = option('', selectedLabel, 'None') + optionsHtml;
+    selectedLabel ||= 'None';
+  }
+
   return `<div class="gear-row"><span class="gear-label">${label}</span>
             ${compactSelect(selectedLabel, `<select class="gear-select" id="${id}">${optionsHtml}</select>`)}</div>`;
 }

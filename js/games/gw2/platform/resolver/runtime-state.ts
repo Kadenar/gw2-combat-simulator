@@ -16,6 +16,7 @@ import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
  * condition, damage, and reporting state.
  */
 export function createGw2ResolverRuntimeState({
+  reporting = true,
   config,
   traits = new Set(),
   horizon,
@@ -31,6 +32,7 @@ export function createGw2ResolverRuntimeState({
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const equipment = createEquipmentState(config);
   const runtime: Gw2ResolverRuntime = {
+    reporting,
     config,
     traits,
     horizon,
@@ -86,6 +88,8 @@ export function createGw2ResolverRuntimeState({
       cooldownReduction: number | null = null,
       expiresAt: number | null = null
     ): void {
+      // Proc rows are presentation only; combat effects have already been applied by the caller.
+      if (!reporting) return;
       const start = Math.round(at * 1000);
       const key = `${type}|${name}|${start}|${sourceSkill}`;
       if (this.procKeys.has(key)) return;
@@ -114,6 +118,8 @@ export function createGw2ResolverRuntimeState({
       source: Gw2ResolverEvent | null = null,
       critical: Gw2CriticalResult | null = null
     ): void {
+      // Damage totals and reaction state are maintained separately from these display rows.
+      if (!reporting) return;
       const sourceSkill = source?.skillName || source?.name || name;
       const parentSkill = source?.parentSkillName || '';
       const skillId = source?.skillId ?? null;

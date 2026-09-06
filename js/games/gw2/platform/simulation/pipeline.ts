@@ -21,6 +21,7 @@ import type {
   Gw2SimulationEndState,
   Gw2SimulationResult
 } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
@@ -87,12 +88,17 @@ function endState(
  * Runs the two-phase declarative pipeline: schedule canonical events first,
  * then resolve their timestamp-dependent numeric effects.
  */
+function simulateDeclarativeGw2Pass(options: Gw2DeclarativeSimulationOptions & { output: 'score' }): Gw2SimulationScore;
+function simulateDeclarativeGw2Pass(options: Gw2DeclarativeSimulationOptions): Gw2SimulationResult;
 function simulateDeclarativeGw2Pass({
+  onPhase,
+  output = 'detailed',
   profession,
   rotation,
   config = {},
   observationPolicy
-}: Gw2DeclarativeSimulationOptions): Gw2SimulationResult {
+}: Gw2DeclarativeSimulationOptions & { output?: 'detailed' | 'score' }): Gw2SimulationResult | Gw2SimulationScore {
+  const started = onPhase ? performance.now() : 0;
   const runtimeProfession = resolveProfessionRuntime(profession, config);
   // Resolve traits once and share the exact selection between both phases.
   const traits = selectedGw2TraitValues(config, runtimeProfession.catalog);
@@ -106,6 +112,7 @@ function simulateDeclarativeGw2Pass({
     }),
     observationPolicy
   }).run(rotation);
+  onPhase?.('scheduling', performance.now() - started);
   // Critical sigil predictions remain scheduler-visible for profession state
   // and rotation legality, but resolver-time reactions own their actual output.
   const resolverStream = {
@@ -146,6 +153,8 @@ function simulateDeclarativeGw2Pass({
     reactions: extensions.reactions
   });
   const resolved = resolveGw2Timeline({
+    onPhase,
+    output,
     stream: resolverStream,
     config,
     traits,
@@ -175,16 +184,78 @@ function simulateDeclarativeGw2Pass({
         ? runtimeProfession.createResolverState(config)
         : runtimeProfession.createProfessionState(config)
   });
-  return {
-    ...resolved,
-    profession: structuredClone(flattenProfessionState(resolved.profession)),
+  // Score output skips end-state and profession projections; scheduler and resolver state remain fresh per pass.
+  if (output === 'score')
+    return {
+      ...(resolved as Gw2SimulationScore),
+      warnings: [...new Set([...scheduled.warnings, ...resolved.warnings])]
+    };
+  const reportingStarted = onPhase ? performance.now() : 0;
+  const detailed = resolved as Gw2ResolverResult;
+  const result = {
+    ...detailed,
+    profession: structuredClone(flattenProfessionState(detailed.profession)),
     steps: scheduled.steps,
-    endState: endState(runtimeProfession, config, scheduled, resolved),
+    endState: endState(runtimeProfession, config, scheduled, detailed),
     schedulerState: scheduled.state,
     snapshot: scheduled.snapshot,
     // Preserve phase order so scheduling diagnostics appear before resolution
     // diagnostics in the UI.
     warnings: [...new Set([...scheduled.warnings, ...resolved.warnings])]
+  };
+  onPhase?.('reporting', performance.now() - reportingStarted);
+  return result;
+}
+
+/** Audited professions use compact reporting; feedback and new professions default to the ordinary pipeline. */
+export function simulateDeclarativeGw2Score(options: Gw2DeclarativeSimulationOptions): Gw2SimulationScore {
+  const audited = ['elementalist', 'engineer', 'guardian', 'mesmer', 'ranger', 'revenant', 'thief', 'warrior'];
+  if (audited.includes(options.profession.id) && !options.profession.simulation?.refineSchedulerConfig) {
+    return simulateDeclarativeGw2Pass({ ...options, output: 'score' });
+  }
+
+  // Do not forward the caller's score flag into the detailed feedback passes.
+  const result = simulateDeclarativeGw2({
+    onPhase: options.onPhase,
+    profession: options.profession,
+    rotation: options.rotation,
+    config: options.config,
+    observationPolicy: options.observationPolicy
+  });
+  const {
+    duration,
+    combatStartTime,
+    hasExplicitCombatStart,
+    dpsStartTime,
+    dpsWindow,
+    firstHitTime,
+    lastHitTime,
+    deathTime,
+    totalDamage,
+    dps,
+    strikeDamage,
+    conditionDamage,
+    environmentDamage,
+    environmentDps,
+    warnings
+  } = result;
+  return {
+    output: 'score',
+    duration,
+    combatStartTime,
+    hasExplicitCombatStart,
+    dpsStartTime,
+    dpsWindow,
+    firstHitTime,
+    lastHitTime,
+    deathTime,
+    totalDamage,
+    dps,
+    strikeDamage,
+    conditionDamage,
+    environmentDamage,
+    environmentDps,
+    warnings
   };
 }
 
@@ -199,7 +270,9 @@ export function simulateDeclarativeGw2(options: Gw2DeclarativeSimulationOptions)
   if (typeof refineConfig !== 'function') return result;
 
   for (let pass = 0; pass < MAX_SCHEDULER_REFINEMENT_PASSES; pass += 1) {
+    const started = options.onPhase ? performance.now() : 0;
     const refined = refineConfig(config, result);
+    options.onPhase?.('refinement', performance.now() - started);
     if (!refined) break;
     config = refined;
     result = simulateDeclarativeGw2Pass({ ...options, config });

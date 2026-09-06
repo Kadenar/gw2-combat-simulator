@@ -189,7 +189,8 @@ export function createGw2ConditionResolution({
       damageTicks: []
     } as Gw2ResolvedConditionApplication;
     ctx.conditionApplications.push(application);
-    ctx.resolved.push(application);
+    // Live applications remain available to pet swaps and condition state in both output modes.
+    if (ctx.reporting) ctx.resolved.push(application);
 
     const state = ensureConditionState(ctx, name);
     state.stacks.push({
@@ -231,11 +232,12 @@ export function createGw2ConditionResolution({
     application.damagingStackSeconds += stackSeconds;
     // damagingStackSeconds is the integral used by result tables to report
     // average stacks, including fractional ticks at natural expiration.
-    application.damageTicks.push({
-      at: event.at,
-      damage,
-      fraction
-    });
+    if (ctx.reporting)
+      application.damageTicks.push({
+        at: event.at,
+        damage,
+        fraction
+      });
     ctx.totals.condition += damage;
     ctx.addBreakdown(application.name, damage, 'conditionDamage', 0, application);
 
@@ -267,7 +269,7 @@ export function createGw2ConditionResolution({
     ctx.environmentDamage += damage;
     entry.damage += damage;
     entry.stackSeconds += stacks;
-    entry.damageTicks.push({ at: event.at, damage });
+    if (ctx.reporting) entry.damageTicks.push({ at: event.at, damage });
   }
 
   return Object.freeze({

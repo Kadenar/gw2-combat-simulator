@@ -159,6 +159,9 @@ function comparisonHeadingButtons(app: ProfessionAppState): void {
 function removeComparisonView(): void {
   comparisonScrollLifecycle?.abort();
   comparisonScrollLifecycle = null;
+  const skills = document.getElementById('rotation-comparison-skills');
+  const palette = skills?.querySelector('#rotation-palette');
+  if (palette) skills?.replaceWith(palette);
   document.body?.removeAttribute('data-rotation-comparison');
   document.getElementById('rotation-comparison-summary')?.remove();
   document.getElementById('rotation-comparison-current-label')?.remove();
@@ -174,6 +177,18 @@ function createComparisonView(
   referenceSection: HTMLElement;
   referenceTimeline: HTMLElement;
 } {
+  // Native disclosure makes the skills themselves collapsible and preserves their state across palette refreshes.
+  const palette = document.getElementById('rotation-palette');
+  if (palette) {
+    const skills = document.createElement('details');
+    skills.id = 'rotation-comparison-skills';
+    skills.open = true;
+    const label = document.createElement('summary');
+    label.textContent = 'Skills';
+    palette.before(skills);
+    skills.append(label, palette);
+  }
+
   const summary = document.createElement('section');
   summary.id = 'rotation-comparison-summary';
   summary.className = 'rotation-comparison-summary';
@@ -191,10 +206,6 @@ function createComparisonView(
       <span>Change</span><strong><span data-comparison-dps-change>—</span> <small data-comparison-dps-percent>—</small></strong>
       <small>Damage <span data-comparison-damage-change>—</span> <span data-comparison-damage-percent>—</span></small>
     </div>
-  </div>
-  <div class="rotation-comparison-time">
-    <span data-comparison-metric-label>Final DPS</span>
-    <span>Move the insertion cursor to compare</span>
   </div>`;
 
   const currentLabel = document.createElement('h4');
@@ -232,7 +243,11 @@ function createComparisonView(
   bindRotationImportDialog(app, loadButton, fileInput, 'reference');
   emptyLoadButton.onclick = () => loadButton.click();
 
-  currentTimeline.before(summary, currentLabel);
+  // Keep comparison metrics beside reference actions instead of consuming a separate timeline row.
+  referenceSection
+    .querySelector('.rotation-comparison-reference-header')
+    ?.insertBefore(summary, referenceSection.querySelector('[data-comparison-reference-actions]'));
+  currentTimeline.before(currentLabel);
   currentTimeline.after(referenceSection);
 
   // Match scroll progress across unequal rotations; ignore mirrored events to prevent rounding feedback.
@@ -291,18 +306,23 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   const status = referenceSection.querySelector<HTMLElement>('[data-comparison-status]');
   const swapButton = referenceSection.querySelector<HTMLButtonElement>('[data-comparison-swap]');
   const clearButton = referenceSection.querySelector<HTMLButtonElement>('[data-comparison-reference-clear]');
+  const fresh = currentIsFresh(app) && comparison.referenceStatus === 'fresh';
 
   summary.hidden = !referenceResult;
   if (referenceActions) referenceActions.hidden = !hasReference;
   if (referenceEmpty) referenceEmpty.hidden = hasReference;
   referenceTimeline.hidden = !hasReference;
+  // Keep routine comparison chrome quiet; only show pending work or errors.
   if (status) {
     status.textContent =
       comparison.referenceStatus === 'error'
         ? 'Reference error'
-        : comparison.referenceStatus === 'fresh'
-          ? 'Fresh'
-          : 'Updating';
+        : app.simulationStatus === 'error'
+          ? 'Current error'
+          : fresh
+            ? ''
+            : 'Updating';
+    status.hidden = !status.textContent;
   }
 
   if (swapButton) {
@@ -331,7 +351,6 @@ export function renderRotationComparison(app: ProfessionAppState): void {
     return;
   }
 
-  const fresh = currentIsFresh(app) && comparison.referenceStatus === 'fresh';
   const setText = (selector: string, value: string): void => {
     const element = summary?.querySelector<HTMLElement>(selector);
     if (element) element.textContent = value;
@@ -345,20 +364,6 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   setText('[data-comparison-dps-percent]', fresh ? formatPercent(metrics.dpsPercentDifference) : '—');
   setText('[data-comparison-damage-change]', fresh ? formatDifference(metrics.damageDifference) : '—');
   setText('[data-comparison-damage-percent]', fresh ? formatPercent(metrics.damagePercentDifference) : '—');
-  setText(
-    '[data-comparison-metric-label]',
-    metrics.timeMs == null ? 'Final DPS' : `Average DPS through ${(metrics.timeMs / 1000).toFixed(2)}s`
-  );
-  if (status) {
-    status.textContent =
-      comparison.referenceStatus === 'error'
-        ? 'Reference error'
-        : app.simulationStatus === 'error'
-          ? 'Current error'
-          : fresh
-            ? 'Fresh'
-            : 'Updating';
-  }
 
   applyTimelinePreviewHighlight(currentTimeline, currentResult, metrics.timeMs);
 }

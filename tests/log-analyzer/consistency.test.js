@@ -117,7 +117,7 @@ test('the shared timeline preserves controls, unsupported durations, idle gaps, 
 
   assert.deepEqual(buildReplayTimeline(actions, 0, 100, { commandFor: ({ name, skillId }) => ({ name, skillId }) }), [
     { name: 'Mind Stab', skillId: 1_000 },
-    { name: '__combat_start', offset: 100 },
+    { name: '__combat_start', offset: 120 },
     { name: 'Instant', skillId: 2_000, offset: 200 },
     { name: '__wait', waitMs: 400 },
     { name: '__wait', waitMs: 100 },
@@ -126,21 +126,38 @@ test('the shared timeline preserves controls, unsupported durations, idle gaps, 
   ]);
 });
 
-// A combat boundary inside the last action frame must remain inside the cast, including its opening hit.
-test('the shared timeline retains combat start inside the cast-end jitter window', () => {
-  const rotation = buildReplayTimeline(
-    [{ start: 0, end: 400, eventIndex: 0, skill: fixtureSkill, name: fixtureSkill.name, skillId: fixtureSkill.id }],
-    0,
-    380,
-    { commandFor: ({ name, skillId }) => ({ name, skillId }) }
-  );
-  assert.deepEqual(
-    rotation.find((command) => command.name === '__combat_start'),
-    {
-      name: '__combat_start',
-      offset: 380
-    }
-  );
+test('the shared timeline rounds combat offsets relative to the skill, including the cast-end jitter window', () => {
+  // A non-tick-aligned cast start proves we round elapsed time, not the absolute combat timestamp.
+  const start = 137;
+  for (const [elapsed, expected] of [
+    [355, 360],
+    [365, 360],
+    [360, 360],
+    [380, 400]
+  ]) {
+    const rotation = buildReplayTimeline(
+      [
+        {
+          start,
+          end: start + 400,
+          eventIndex: 0,
+          skill: fixtureSkill,
+          name: fixtureSkill.name,
+          skillId: fixtureSkill.id
+        }
+      ],
+      start,
+      start + elapsed,
+      { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+    );
+    assert.deepEqual(
+      rotation.find((command) => command.name === '__combat_start'),
+      {
+        name: '__combat_start',
+        offset: expected
+      }
+    );
+  }
 });
 
 test('the shared timeline preserves explicit aftercast mismatches without adding autoattack waits', () => {

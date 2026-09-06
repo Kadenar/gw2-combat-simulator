@@ -10,6 +10,8 @@ import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { cloneRotation, recordRotationHistory, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution-runner.js';
+import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer-runner.js';
+import { renderGearOptimizer } from '#gw2/app/simulation/gear-optimizer-panel.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
@@ -75,6 +77,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   templateUndoBuild: Gw2ApplicationBuild | null;
   readonly modifierContributionRunner: ProfessionFeatureRunner;
   readonly randomDistributionRunner: ProfessionFeatureRunner;
+  readonly gearOptimizerRunner: GearOptimizerRunner;
   readonly relicComparisonRunner: ProfessionFeatureRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
   private initialRenderGeneration: number;
@@ -128,6 +131,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
       : NOOP_FEATURE;
     this.relicComparisonRunner = adapter.capabilities.relicComparison ? new RelicComparisonRunner(this) : NOOP_FEATURE;
     this.baselineSimulationRunner = new BaselineSimulationRunner(this);
+    this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
     this.initialRenderGeneration = 0;
     this.deferredRotationRenderRevision = null;
   }
@@ -156,6 +160,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     await this.adapter.capabilities.patchPreview?.mount(this);
     bindPageControls(this);
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
+      // Analysis jobs belong to the captured tab and stop when navigation gives editing priority.
+      this.gearOptimizerRunner?.cancel();
       const results = document.getElementById('rotation-results');
       if (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true') {
         this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
@@ -165,6 +171,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     const templatesReady = Promise.resolve(this.adapter.buildEditor.initialize?.(this));
     this.updateSimulationStateSynchronously();
     this.renderBuildSections(true);
+    renderGearOptimizer(this);
     await templatesReady;
     mountBuildTabs(this);
     // Commit the asynchronously inserted templates under the loading overlay.
@@ -207,6 +214,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     normalizeSelectedSkills(this);
     this.adapter.recalculate(this);
     this.buildRevision += 1;
+    this.gearOptimizerRunner?.cancel();
     this.simulationStatus = 'queued';
     this.simulationError = '';
     saveBuildWorkspace(this);
@@ -293,6 +301,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     if (!tab) return;
     captureActiveBuildTab(this);
     this.baselineSimulationRunner.cancel();
+    this.gearOptimizerRunner?.cancel();
     this.randomDistributionRunner.cancel?.();
     this.modifierContributionRunner.cancel?.();
     this.relicComparisonRunner.cancel?.();
@@ -346,6 +355,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
       this.adapter.buildEditor.updateSelection?.(this);
       this.adapter.renderRotationBuilder(this);
       renderBuildTabs(this);
+      renderGearOptimizer(this);
     }
   }
 
@@ -456,10 +466,12 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   }
 
   runRandomDistribution(): void {
+    this.gearOptimizerRunner?.cancel();
     this.randomDistributionRunner.run?.();
   }
 
   runRelicComparison(comparisonRelic?: string, initialStacks?: number): void {
+    this.gearOptimizerRunner?.cancel();
     this.relicComparisonRunner.run?.(comparisonRelic, initialStacks);
   }
 
