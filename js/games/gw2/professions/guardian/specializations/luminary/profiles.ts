@@ -12,6 +12,7 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   sovereignOfLight: TRAIT.SOVEREIGN_OF_LIGHT,
   radiantArmaments: TRAIT.RADIANT_ARMAMENTS,
   empoweredArmaments: TRAIT.EMPOWERED_ARMAMENTS,
+  resplendentWeaponry: TRAIT.RESPLENDENT_WEAPONRY,
   illuminatingInspiration: TRAIT.ILLUMINATING_INSPIRATION,
   justiceIsBlind: TRAIT.JUSTICE_IS_BLIND
 });
@@ -99,6 +100,14 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
   trait(LUMINARY_BALANCE_PROFILE_IDS.empoweredArmaments, 'Empowered Armaments', {
     maximumStacks: 20,
     resourceGain: 6
+  }),
+  // Equipping a radiant weapon grants the trait's PvE boon package to nearby allies.
+  trait(LUMINARY_BALANCE_PROFILE_IDS.resplendentWeaponry, 'Resplendent Weaponry', {
+    effects: [
+      { type: 'boon', boon: 'alacrity', duration: 4 },
+      { type: 'boon', boon: 'might', duration: 8, stacks: 1 },
+      { type: 'boon', boon: 'fury', duration: 5 }
+    ]
   }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.illuminatingInspiration, 'Illuminating Inspiration', { rechargeReduction: 4 }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.justiceIsBlind, 'Justice is Blind', {

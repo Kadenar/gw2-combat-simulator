@@ -249,6 +249,17 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
     });
   }
 
+  // The empowered staff grants Regeneration once, separately from its repeating Resolution symbol.
+  if (skill.id === GUARDIAN_SKILL_IDS.LUMINOUS_STAFF && luminaryState.from(context).radiantResolveArmed) {
+    luminaryState.from(context).radiantResolveArmed = false;
+    emitSkillBuff(context, skill, {
+      at: radiantWeaponImpactAt(context, skill),
+      kind: 'regeneration',
+      duration: 4,
+      audience: { recipients: 'party' }
+    });
+  }
+
   if (skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK && luminaryState.from(context).radiantCourageShieldArmed) {
     luminaryState.from(context).radiantCourageShieldArmed = false;
   }
@@ -288,6 +299,16 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
       ? runtimeCastMs * ((swordSlow ? 440 : 360) / (swordSlow ? 680 : 440))
       : projectCastRelativeEffectTimingMs(skill, runtimeCastMs, 480);
   const impactAt = context.start + impactMs / 1000;
+  // Support variants grant their weapon-specific boon at the burst's impact.
+  if (radiantWeapon === 'staff' || radiantWeapon === 'bulwark') {
+    emitSkillBuff(context, skill, {
+      at: impactAt,
+      kind: radiantWeapon === 'staff' ? 'regeneration' : 'resolution',
+      duration: radiantWeapon === 'staff' ? 2 : 1.5,
+      audience: { recipients: 'party' }
+    });
+  }
+
   if (radiantWeapon === 'blade') state.glaringBurstSwordSlow = !swordSlow;
   if (coefficient > 0) {
     context.emit(

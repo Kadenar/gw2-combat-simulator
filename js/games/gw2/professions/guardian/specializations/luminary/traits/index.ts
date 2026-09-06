@@ -58,6 +58,23 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   const at = context.effectiveEnd + 0.001;
   const state = luminaryState.from(context);
   const weapon = skill.radiantWeapon!;
+  // Only initial weapon equips trigger these boons; flip attacks and interrupted equips do not.
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY)) {
+    const profile = balanceProfileFromContext(context, PROFILE.resplendentWeaponry);
+    for (const effect of profile?.effects || []) {
+      if (effect.type !== 'boon' || !effect.boon) continue;
+      emitSkillBuff(context, skill, {
+        at,
+        sourceId: GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY,
+        skillName: 'Resplendent Weaponry',
+        kind: effect.boon,
+        duration: effect.duration,
+        stacks: effect.stacks ?? 1,
+        audience: { recipients: 'party' }
+      });
+    }
+  }
+
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
     const armaments = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.radiantArmaments), 'buff');
     emitSkillBuff(context, skill, {
@@ -185,6 +202,9 @@ function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: Guardia
       source: 'Skill'
     });
   }
+
+  // Resolve empowers one subsequent staff equip, even when other weapons are used first.
+  if (virtue === 'resolve') state.radiantResolveArmed = true;
 }
 
 export function updateLuminaryTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {

@@ -1168,7 +1168,9 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 100
   });
-  const siphon = daggers.resolvedEvents.find((event) => event.skillName === 'Enchanted Daggers');
+  const siphon = daggers.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Enchanted Daggers'
+  );
 
   assert.equal(siphon.at, 1.5);
   assert.equal(siphon.flatStrikeBase, 1028);

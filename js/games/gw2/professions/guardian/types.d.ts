@@ -96,6 +96,7 @@ export interface GuardianLuminaryState {
   piercingStanceUntil: number;
   lightAuraUntil: number;
   radiantJusticeArmed: boolean;
+  radiantResolveArmed: boolean;
   radiantCourageSwordArmed: boolean;
   radiantCourageShieldArmed: boolean;
   effulgentActiveUntil: number;

@@ -17,6 +17,7 @@ export function createLuminaryState(): GuardianLuminaryState {
     // One-shot flags: set by a virtue cast, consumed by the next matching
     // radiant weapon so each proc fires at most once per virtue use.
     radiantJusticeArmed: false,
+    radiantResolveArmed: false,
     radiantCourageSwordArmed: false,
     radiantCourageShieldArmed: false,
     // Effulgent Stance tracking lives in scheduler state so the strike-count
@@ -37,6 +38,7 @@ export const LUMINARY_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianLuminarySta
   'piercingStanceUntil',
   'lightAuraUntil',
   'radiantJusticeArmed',
+  'radiantResolveArmed',
   'radiantCourageSwordArmed',
   'radiantCourageShieldArmed',
   'effulgentActiveUntil',
@@ -58,6 +60,7 @@ export const LUMINARY_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianLumina
   piercingStanceUntil: 0,
   lightAuraUntil: 0,
   radiantJusticeArmed: false,
+  radiantResolveArmed: false,
   radiantCourageSwordArmed: false,
   radiantCourageShieldArmed: false,
   effulgentActiveUntil: 0,

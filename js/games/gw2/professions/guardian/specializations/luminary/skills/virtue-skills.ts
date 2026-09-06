@@ -10,7 +10,11 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
-    effects: []
+    // Courage's activation grants these boons to the player and nearby allies.
+    effects: [
+      { type: 'boon', boon: 'aegis', duration: 20, audience: { recipients: 'party' } },
+      { type: 'boon', boon: 'resistance', duration: 4, audience: { recipients: 'party' } }
+    ]
   },
   [ID.RADIANT_RESOLVE]: {
     castTimeMs: 0,

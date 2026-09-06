@@ -42,6 +42,8 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
     ? gw2BoonApplicationRecipients(ctx.config, event)
     : gw2BuffApplicationRecipients(ctx.config, event);
   Object.assign(event, { resolvedAudience });
+  // Retain actual applications, including trait-generated boons, for effects charts.
+  if (ctx.reporting) ctx.resolved.push(event);
   const applications = ctx.boons.get(kind) || [];
   applications.push({
     at: event.at,

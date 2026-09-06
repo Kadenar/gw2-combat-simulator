@@ -56,7 +56,7 @@ export function runNative(options) {
   });
 }
 
-// Include scheduled and resolved events so assertions can find effects in either simulation phase.
+// Buffs are now authoritative in resolvedEvents; omit their scheduled copies to count applications once.
 export function resolvedAndScheduledEvents(result) {
-  return [...(result.events || []), ...(result.resolvedEvents || [])];
+  return [...(result.events || []).filter((event) => event.type !== 'buff'), ...(result.resolvedEvents || [])];
 }

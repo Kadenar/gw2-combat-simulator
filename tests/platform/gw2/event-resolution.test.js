@@ -26,6 +26,8 @@ test('shared buff handling prioritizes allied players over summon recipients', (
     reactions: { dispatch: () => {} }
   });
   const context = {
+    reporting: true,
+    resolved: [],
     config: {
       allies: { count: 4, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true
@@ -49,6 +51,8 @@ test('shared buff handling prioritizes allied players over summon recipients', (
   };
 
   handlers.buff(context, application);
+  // Reporting retains the same application with its final audience exactly once.
+  assert.deepEqual(context.resolved, [application]);
 
   assert.deepEqual(application.resolvedAudience, {
     includesSelf: true,

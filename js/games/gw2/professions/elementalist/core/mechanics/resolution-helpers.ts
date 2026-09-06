@@ -78,8 +78,7 @@ export function queueElementalistBuff(
     triggeredBy: elementalistSourceSkill(event),
     ...(Number(event.priority || 0) ? { priority: Number(event.priority) } : {})
   };
-  // Resolver-created buffs bypass the generic recorder, so retain them before queueing.
-  context.resolved.push(application);
+  // The shared buff handler records the application when it actually resolves.
   enqueueOrdered(context.queue, application);
 }
 

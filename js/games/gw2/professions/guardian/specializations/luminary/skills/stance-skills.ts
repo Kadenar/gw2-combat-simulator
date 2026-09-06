@@ -60,7 +60,11 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.VALOROUS_STANCE]: {
     castTimeMs: 250,
-    effects: []
+    // Activation grants the stance's defensive boons to nearby allies.
+    effects: [
+      { type: 'boon', boon: 'stability', stacks: 5, duration: 4, audience: { recipients: 'party' } },
+      { type: 'boon', boon: 'protection', duration: 4, audience: { recipients: 'party' } }
+    ]
   },
   [ID.STALWART_STANCE]: {
     castTimeMs: 250,

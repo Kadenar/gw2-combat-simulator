@@ -29,6 +29,168 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
+test('Luminary skill boons reach the effects chart with boon-duration scaling', () => {
+  // Single casts cover each missing boon source without relying on a saved benchmark rotation.
+  for (const [rotation, expected] of [
+    [
+      ['Enter Radiant Forge', 'Dazzling Hammer'],
+      [
+        ['Might', 8, 8],
+        ['Fury', 1, 6]
+      ]
+    ],
+    [['Enter Radiant Forge', 'Luminous Staff'], [['Protection', 1, 4]]],
+    [
+      ['Radiant Courage'],
+      [
+        ['Aegis', 1, 20],
+        ['Resistance', 1, 4]
+      ]
+    ],
+    [['Enter Radiant Forge', 'Radiant Bulwark'], [['Aegis', 1, 4]]],
+    [['Radiant Resolve', 'Enter Radiant Forge', 'Luminous Staff'], [['Regeneration', 1, 4]]],
+    [['Enter Radiant Forge', 'Luminous Staff', 'Glaring Burst'], [['Regeneration', 1, 2]]],
+    [['Enter Radiant Forge', 'Radiant Bulwark', 'Glaring Burst'], [['Resolution', 1, 1.5]]],
+    [
+      ['Valorous Stance'],
+      [
+        ['Stability', 5, 4],
+        ['Protection', 1, 4]
+      ]
+    ]
+  ]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [...rotation, { type: 'wait', durationMs: 1000 }],
+      config: { ...config, specialization: 'Luminary', stats: { ...config.stats, concentration: 750 } }
+    });
+    const series = buildChartSeries(result);
+    assert.deepEqual(result.warnings, []);
+    for (const [name, stacks, duration] of expected) {
+      const boon = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === name.toLowerCase());
+      assert.equal(boon.stacks, stacks, name);
+      assert.equal(boon.duration, duration * 1.5, name);
+      assert.equal(boon.resolvedAudience.includesSelf, true, name);
+      assert.equal(series.effectTypes[name], 'boon', name);
+      assert.ok(
+        series.effects[name].some((point) => point.v > 0),
+        name
+      );
+    }
+  }
+});
+
+test('Radiant Resolve empowers only the next completed staff equip', () => {
+  for (const empowered of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        ...(empowered ? ['Radiant Resolve'] : []),
+        'Enter Radiant Forge',
+        'Dazzling Hammer',
+        'Luminous Staff',
+        'Restorative Glow',
+        'Luminous Staff'
+      ],
+      config: { ...config, specialization: 'Luminary' }
+    });
+    const regeneration = result.resolvedEvents.filter(
+      (event) => event.type === 'buff' && event.kind === 'regeneration'
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(regeneration.length, empowered ? 1 : 0);
+    assert.equal(result.endState.profession.radiantResolveArmed, false);
+  }
+
+  const interrupted = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Radiant Resolve', 'Enter Radiant Forge', { name: 'Luminous Staff', interruptMs: 100 }],
+    config: { ...config, specialization: 'Luminary' }
+  });
+  assert.equal(interrupted.endState.profession.radiantResolveArmed, true);
+  assert.equal(
+    interrupted.resolvedEvents.some((event) => event.type === 'buff' && event.kind === 'regeneration'),
+    false
+  );
+});
+
+test('Righteous Instincts Might reaches the chart without duplicating scheduled Resolution', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 2000 }],
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS]
+    }
+  });
+  const series = buildChartSeries(result, 500);
+  assert.equal(series.effectTypes.Might, 'boon');
+  assert.equal(series.effects.Might[0].v, 1);
+  assert.equal(series.effects.Might[1].v, 1);
+  assert.equal(series.effects.Resolution[0].v, 1);
+});
+
+test('Resplendent Weaponry grants scaled party boons only on traited, completed weapon equips', () => {
+  for (const traited of [false, true]) {
+    for (const weapon of ['Dazzling Hammer', 'Luminous Staff', 'Gleaming Blade', 'Radiant Bulwark']) {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: ['Enter Radiant Forge', weapon, { type: 'wait', durationMs: 1000 }],
+        config: {
+          ...config,
+          specialization: 'Luminary',
+          stats: { ...config.stats, concentration: 750 },
+          allies: { count: 4 },
+          selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY] : []
+        }
+      });
+      const boons = result.resolvedEvents.filter(
+        (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY
+      );
+      assert.deepEqual(
+        boons.map((event) => [event.kind, event.stacks, event.duration]),
+        traited
+          ? [
+              ['alacrity', 1, 6],
+              ['might', 1, 12],
+              ['fury', 1, 7.5]
+            ]
+          : [],
+        weapon
+      );
+      assert.ok(
+        boons.every((event) => event.resolvedAudience.recipientCount === 5),
+        weapon
+      );
+      const series = buildChartSeries(result);
+      assert.equal(series.effectTypes.Alacrity, traited ? 'boon' : undefined, weapon);
+      if (traited)
+        assert.ok(
+          series.effects.Alacrity.some((point) => point.v > 0),
+          weapon
+        );
+    }
+  }
+
+  // Flip attacks reuse the equipped weapon; cancelled casts never finish equipping it.
+  for (const rotation of [
+    ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'],
+    ['Enter Radiant Forge', { name: 'Dazzling Hammer', interruptMs: 100 }]
+  ]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: { ...config, specialization: 'Luminary', selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY] }
+    });
+    assert.equal(
+      result.events.filter((event) => event.type === 'buff' && event.kind === 'alacrity').length,
+      rotation.length === 3 ? 1 : 0
+    );
+  }
+});
+
 test('Luminary chart labels radiant weapons and replaces the previous armament', () => {
   const radiantBuff = (at, radiantWeapon) => ({
     type: 'buff',

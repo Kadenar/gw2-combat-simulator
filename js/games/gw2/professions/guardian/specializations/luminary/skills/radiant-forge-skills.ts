@@ -76,6 +76,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     // Luminous Staff's symbol creates a four-second Light field on its first pulse.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 440, startAnchor: 'castStart' }],
     effects: [
+      // The initial staff impact grants Protection independently of the symbol's Resolution pulses.
+      {
+        type: 'boon',
+        boon: 'protection',
+        duration: 4,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        audience: { recipients: 'party' }
+      },
       {
         type: 'strike',
         // EVTC records four Quickness packets at 440 ms and fixed one-second intervals.
@@ -166,13 +176,44 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 2000,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
-    effects: []
+    // Shield activation protects nearby allies while the blocking channel runs.
+    effects: [
+      {
+        type: 'boon',
+        boon: 'aegis',
+        duration: 4,
+        atMs: 0,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        audience: { recipients: 'party' }
+      }
+    ]
   },
   [ID.DAZZLING_HAMMER]: {
     quicknessCastTimeMs: 480,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
+      // The hammer impact grants its PvE Might and Fury even without a target.
+      {
+        type: 'boon',
+        boon: 'might',
+        stacks: 8,
+        duration: 8,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        audience: { recipients: 'party' }
+      },
+      {
+        type: 'boon',
+        boon: 'fury',
+        duration: 6,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        audience: { recipients: 'party' }
+      },
       {
         type: 'strike',
         // Dazzling Hammer grants Light Aura only after this blast successfully finishes a combo.
