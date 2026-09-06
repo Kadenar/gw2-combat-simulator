@@ -246,7 +246,7 @@ export function buildChartSeries(
   if (skillKey) {
     // Each strike is one hit at its time; conditions expand to a hit per
     // damaging tick. Times are relative to the DPS window, matching `dps`.
-    for (const event of damageEvents) {
+    for (const [eventIndex, event] of damageEvents.entries()) {
       const key = skillKey(event);
       if (!key) continue;
       const hits = skillDamage[key] || (skillDamage[key] = []);
@@ -255,6 +255,8 @@ export function buildChartSeries(
       }
 
       const crit = event.didCrit ?? null;
+      // Preserve cast ownership for multi-hit inspection; unowned condition ticks share only their application.
+      const activationId = event.activationId || `event:${eventIndex}`;
       const damageTicks = eventDamageTicks(event);
       if (damageTicks.length) {
         // Condition ticks are neither critical nor non-critical strikes.
@@ -262,14 +264,14 @@ export function buildChartSeries(
           const value = Number(tick.damage || 0);
           const time = Number(tick.at || 0) * 1000 - dpsStartMs;
           if (value > 0 && time >= 0 && time <= durationMs) {
-            hits.push({ t: time, v: value, crit: null });
+            hits.push({ t: time, v: value, crit: null, activationId });
           }
         }
       } else {
         const value = Number(event.damage || 0);
         const time = Number(event.at || 0) * 1000 - dpsStartMs;
         if (value > 0 && time >= 0 && time <= durationMs) {
-          hits.push({ t: time, v: value, crit });
+          hits.push({ t: time, v: value, crit, activationId });
         }
       }
     }

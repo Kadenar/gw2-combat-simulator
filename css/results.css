@@ -1082,7 +1082,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   margin-right: 2px;
 }
 
-.chart-phase-toggles button {
+.chart-phase-toggles button,
+.hit-detail-close {
   padding: 3px 8px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -1092,7 +1093,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   cursor: pointer;
 }
 
-.chart-phase-toggles button:hover:not(:disabled) {
+.chart-phase-toggles button:hover:not(:disabled),
+.hit-detail-close:hover {
   border-color: var(--accent);
   color: var(--text);
 }
@@ -1155,6 +1157,68 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 .chart-hit-strip {
   margin-top: 4px;
+}
+
+/* Transparent native controls make canvas hit groups focusable without hiding their markers. */
+.hit-group {
+  position: absolute;
+  padding: 0;
+  min-width: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hit-group:hover,
+.hit-group:focus-visible,
+.hit-group[aria-expanded='true'] {
+  outline: 1px solid var(--accent, #b57ce0);
+  background: rgba(181, 124, 224, 0.12);
+}
+
+.hit-timeline-detail {
+  margin: 8px 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.hit-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Use the chart's compact text-button styling for the detail panel's dismiss action. */
+.hit-detail-close {
+  margin-left: auto;
+  font-size: 11px;
+}
+
+.hit-detail-table {
+  max-height: 240px;
+  overflow: auto;
+}
+
+.hit-detail-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hit-detail-table th,
+.hit-detail-table td {
+  padding: 4px 8px;
+  text-align: right;
+}
+
+.hit-detail-table caption {
+  text-align: left;
+  color: var(--text-dim);
 }
 
 .res-skill-timeline {
@@ -1244,7 +1308,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   color: var(--accent);
 }
 
-.simulation-config-close-button:focus-visible {
+.simulation-config-close-button:focus-visible,
+.hit-detail-close:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

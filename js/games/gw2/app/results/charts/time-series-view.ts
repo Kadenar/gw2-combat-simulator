@@ -7,13 +7,7 @@ import {
   type ChartPoint,
   type ChartSeries
 } from '#gw2/app/results/charts/time-series-model.js';
-import {
-  bindHitTimelineHover,
-  drawHitTimeline,
-  filterHitsToPhase,
-  type HitTimelineLayout,
-  type SkillHit
-} from '#ui/results/charts/hit-timeline.js';
+import { mountHitTimeline, filterHitsToPhase } from '#ui/results/charts/hit-timeline.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
 export interface ChartHealthBreakpoint {
@@ -279,11 +273,13 @@ function drawLineChart(
   {
     height = 260,
     emptyText = '',
-    markers = []
+    markers = [],
+    timeOffsetMs = 0
   }: {
     readonly height?: number;
     readonly emptyText?: string;
     readonly markers?: readonly ChartMarker[];
+    readonly timeOffsetMs?: number;
   } = {}
 ): ChartLayout | null {
   if (!canvas?.getContext) return null;
@@ -334,7 +330,7 @@ function drawLineChart(
     context.textAlign = 'center';
     context.textBaseline = 'top';
     context.fillText(
-      `${((durationMs * ratio) / 1000).toFixed(durationMs < 10_000 ? 1 : 0)}s`,
+      `${((timeOffsetMs + durationMs * ratio) / 1000).toFixed(durationMs < 10_000 ? 1 : 0)}s`,
       x,
       height - pad.bottom + 8
     );
@@ -471,12 +467,7 @@ function chartHtml(
           <canvas class="chart-canvas" data-role="dps-canvas"></canvas>
           <div class="chart-tooltip" data-role="dps-tooltip"></div>
         </div>
-        <div class="chart-hit-strip" data-role="dps-hit-strip" hidden>
-          <div class="chart-canvas-wrap">
-            <canvas class="chart-canvas" data-role="dps-hit-canvas"></canvas>
-            <div class="chart-tooltip" data-role="dps-hit-tooltip"></div>
-          </div>
-        </div>
+        <div class="chart-hit-strip" data-role="dps-hit-strip" hidden></div>
       </div>
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="effects-panel-title">Effects Over Time</div>
@@ -553,21 +544,16 @@ export function mountTimeSeriesCharts(
     effectsLayout: ChartLayout | null;
     effectsView: ChartEffectsView;
     effectLines: ChartLine[];
-    hitStripLayout: HitTimelineLayout | null;
-    hitStripDurationMs: number;
-    hitStripHits: SkillHit[];
-    hitStripLabel: string;
   } = {
     dpsLayout: null,
     dpsView: dpsViewForPhase(resolvedSeries, healthMarkers, phases[0]!),
     effectsLayout: null,
     effectsView: effectsViewForPhase(resolvedSeries, phases[0]!),
-    effectLines: [],
-    hitStripLayout: null,
-    hitStripDurationMs: resolvedSeries.durationMs,
-    hitStripHits: [],
-    hitStripLabel: ''
+    effectLines: []
   };
+  let hitStripKey = '';
+  let hitStripHandle: ReturnType<typeof mountHitTimeline> = null;
+  let phaseStartMs = 0;
 
   const redraw = (): void => {
     if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
@@ -577,6 +563,8 @@ export function mountTimeSeriesCharts(
       )
     );
     const activePhase = phases.find((phase) => phase.id === activePhaseId && phase.enabled) || phases[0]!;
+    // Keep axes and tooltips on the fight clock while calculating phase DPS from phase-local elapsed time.
+    phaseStartMs = activePhase.startMs;
     chartState.dpsView = dpsViewForPhase(resolvedSeries, healthMarkers, activePhase);
     chartState.effectsView = effectsViewForPhase(resolvedSeries, activePhase);
     const dpsTitle = container.querySelector<HTMLElement>('[data-role="dps-panel-title"]');
@@ -604,7 +592,8 @@ export function mountTimeSeriesCharts(
       {
         height: 280,
         emptyText: resolvedOptions.emptyEffectsText,
-        markers: chartState.dpsView.markers
+        markers: chartState.dpsView.markers,
+        timeOffsetMs: phaseStartMs
       }
     );
     chartState.effectLines = Object.entries(chartState.effectsView.effects)
@@ -618,33 +607,33 @@ export function mountTimeSeriesCharts(
       container.querySelector<HTMLCanvasElement>('[data-role="effects-canvas"]'),
       chartState.effectLines,
       chartState.effectsView.durationMs,
-      { height: 260, emptyText: resolvedOptions.emptyEffectsText }
+      { height: 260, emptyText: resolvedOptions.emptyEffectsText, timeOffsetMs: phaseStartMs }
     );
 
     // Marker strip beneath the DPS line showing the selected skill's hits,
     // aligned to the same time axis as the DPS view above it.
     const hitStrip = container.querySelector<HTMLElement>('[data-role="dps-hit-strip"]');
-    const hitCanvas = container.querySelector<HTMLCanvasElement>('[data-role="dps-hit-canvas"]');
-    const allHits = (selectedSkillKey && resolvedSeries.skillDamage?.[selectedSkillKey]) || [];
-    chartState.hitStripDurationMs = chartState.dpsView.durationMs;
-    chartState.hitStripHits = !selectedSkillKey
-      ? []
-      : activePhase.id === 'full'
-        ? [...allHits]
-        : filterHitsToPhase(allHits, activePhase.startMs, activePhase.endMs);
-    chartState.hitStripLabel = selectedSkillKey
-      ? `${resolvedSeries.skillNames?.[selectedSkillKey] || selectedSkillKey} hits`
-      : '';
     if (hitStrip) hitStrip.hidden = !selectedSkillKey;
-    if (hitCanvas && selectedSkillKey) {
-      chartState.hitStripLayout = drawHitTimeline(hitCanvas, chartState.hitStripHits, chartState.hitStripDurationMs, {
-        height: 48,
-        color: resolvedOptions.skillDamageColor,
-        label: chartState.hitStripLabel,
-        showAxis: false
-      });
-    } else {
-      chartState.hitStripLayout = null;
+    const nextHitStripKey = JSON.stringify([selectedSkillKey, activePhase.id]);
+    if (nextHitStripKey !== hitStripKey) {
+      hitStripKey = nextHitStripKey;
+      const allHits = (selectedSkillKey && resolvedSeries.skillDamage?.[selectedSkillKey]) || [];
+      // Reuse the table's cast inspector, preserving fight timestamps in phase views.
+      hitStripHandle = mountHitTimeline(
+        hitStrip,
+        activePhase.id === 'full' ? allHits : filterHitsToPhase(allHits, activePhase.startMs, activePhase.endMs),
+        {
+          durationMs: chartState.dpsView.durationMs,
+          timeOffsetMs: activePhase.startMs,
+          height: 76,
+          color: resolvedOptions.skillDamageColor,
+          label: selectedSkillKey ? `${resolvedSeries.skillNames?.[selectedSkillKey] || selectedSkillKey} hits` : '',
+          emptyText: 'No hits in this range',
+          showAxis: false
+        }
+      );
+    } else if (selectedSkillKey) {
+      hitStripHandle?.redraw();
     }
   };
 
@@ -681,7 +670,7 @@ export function mountTimeSeriesCharts(
 
       const durationMs = kind === 'dps' ? chartState.dpsView.durationMs : chartState.effectsView.durationMs;
       const time = Math.max(0, Math.min(durationMs, ((chartX - minX) / layout.plotWidth) * durationMs));
-      const timeLabel = `${(time / 1000).toFixed(2)}s`;
+      const timeLabel = `${((phaseStartMs + time) / 1000).toFixed(2)}s`;
       let body: string;
       if (kind === 'dps') {
         const dps = Math.round(chartValueAt(chartState.dpsView.dps, time));
@@ -747,16 +736,6 @@ export function mountTimeSeriesCharts(
 
   bindHover('dps-canvas', 'dps-tooltip', 'dps');
   bindHover('effects-canvas', 'effects-tooltip', 'effects');
-  bindHitTimelineHover(
-    container.querySelector<HTMLCanvasElement>('[data-role="dps-hit-canvas"]'),
-    container.querySelector<HTMLElement>('[data-role="dps-hit-tooltip"]'),
-    {
-      layout: () => chartState.hitStripLayout,
-      hits: () => chartState.hitStripHits,
-      durationMs: () => chartState.hitStripDurationMs,
-      label: () => chartState.hitStripLabel
-    }
-  );
   redraw();
 
   let redrawFrame: number | null = null;

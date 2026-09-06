@@ -128,3 +128,16 @@ test('palette activation dispatches ordinary and exceptional actions', () => {
     options: { skillId: ordinary.id, interruptAfterMs: 120 }
   });
 });
+
+test('Shift-click queues companion animations concurrently while respecting explicit prohibitions', () => {
+  const command = { id: 1, name: 'Mech Command', castTimeMs: 750, independentCast: true };
+  const { app, added } = activationApp([command]);
+  app.build.rotation = [{ type: 'cast', skillId: 2 }];
+
+  dispatchPaletteActivation(app, command.name, activationEvent(command.id, { shiftKey: true }), {});
+  assert.deepEqual(added.pop().options, { skillId: command.id, concurrentOffsetMs: 120 });
+
+  command.canCastConcurrently = false;
+  dispatchPaletteActivation(app, command.name, activationEvent(command.id, { shiftKey: true }), {});
+  assert.deepEqual(added.pop().options, { skillId: command.id });
+});
