@@ -60,7 +60,7 @@ test('large search remains responsive and navigation cancels its workers', async
   const panel = page.locator('#gear-optimizer');
   await panel.locator(':scope > summary').click();
   await panel.getByRole('spinbutton', { name: 'Workers', exact: true }).fill('4');
-  for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
+  await addChoice(panel, 'prefixes', "Assassin's");
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
   await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Evaluating', { timeout: 20000 });
   await expect(panel.getByRole('spinbutton', { name: 'Workers', exact: true })).toBeDisabled();
@@ -173,4 +173,21 @@ test('results expose every equipment choice without expanding rows', async ({ pa
   ).toBe(true);
   await results.getByRole('button', { name: 'Apply result 1', exact: true }).scrollIntoViewIfNeeded();
   await expect(results.getByRole('button', { name: 'Apply result 1', exact: true })).toBeInViewport();
+});
+
+// Oversized exact preparation must report failure without exhausting the page or enabling partial Apply.
+test('oversized stat preparation fails safely and leaves the page usable', async ({ page }) => {
+  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  const panel = page.locator('#gear-optimizer');
+  await panel.locator(':scope > summary').click();
+  for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('preparation memory limit', {
+    timeout: 20000
+  });
+  await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeEnabled();
+  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.isRunning)).toBe(false);
+  await expect(panel.locator('[data-apply]')).toHaveCount(0);
 });

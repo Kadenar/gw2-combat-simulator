@@ -7,7 +7,7 @@ import {
 } from '#gw2/app/simulation/gear-optimizer.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
-export const MAX_OPTIMIZER_WORKERS = 32;
+export const MAX_OPTIMIZER_WORKERS = 4;
 
 interface OptimizerMessage extends GameWorkerResponseEnvelope {
   readonly kind: 'ready' | 'chunk' | 'verified';
@@ -50,8 +50,8 @@ export class GearOptimizerRunner {
     readonly onUpdate: () => void = () => {},
     private readonly createWorker = () =>
       new Worker(new URL('./gear-optimizer-worker.js', import.meta.url), { type: 'module' }),
-    // Larger searches can use more cores while leaving a logical processor available for the page.
-    readonly workerCount = Math.min(8, Math.max(1, (globalThis.navigator?.hardwareConcurrency || 2) - 1))
+    // Each worker owns simulation state; keep concurrency conservative to avoid multiplying peak memory.
+    readonly workerCount = Math.min(2, Math.max(1, (globalThis.navigator?.hardwareConcurrency || 2) - 1))
   ) {}
 
   private emptyState(): OptimizerProgress {

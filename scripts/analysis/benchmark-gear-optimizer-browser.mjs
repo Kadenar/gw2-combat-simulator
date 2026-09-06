@@ -63,7 +63,7 @@ try {
             )
           });
           const output = [];
-          for (const workers of [2, 4, 8, 16]) {
+          for (const workers of [1, 2, 4]) {
             const runs = [];
             // Three cold pools per size report medians including initialization and finalist verification.
             for (let run = 0; run < 3; run++) {
@@ -124,7 +124,7 @@ try {
           const large = captureGearOptimizerRequest(app, { prefixes: ["Berserker's", "Assassin's", "Viper's"] });
           const cancelMs = await new Promise((resolve) => {
             const runner = new GearOptimizerRunner(app, () => {
-              if (runner.state.status === 'running') {
+              if (runner.state.status === 'preparing') {
                 const start = performance.now();
                 runner.cancel();
                 resolve(performance.now() - start);

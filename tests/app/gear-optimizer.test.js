@@ -50,6 +50,18 @@ test('equal integer vectors merge before evaluation without losing coverage or r
   assert.deepEqual(cached.winners, distinct.sort(compareOptimizerCandidates));
 });
 
+test('preparation fails at its memory budget instead of returning a truncated exact search', () => {
+  const initial = request();
+  const captured = request({
+    prefixes: ["Berserker's", "Assassin's"],
+    locks: optimizerSlots(initial.build, adapter).filter((slot) => slot !== 'Helm')
+  });
+  const ordinary = createOptimizerSpace(captured, adapter);
+  assert.equal(groupOptimizerSpace(ordinary, adapter, 2).count, 2n);
+  assert.throws(() => groupOptimizerSpace(ordinary, adapter, 1), /preparation memory limit/);
+  assert.throws(() => groupOptimizerSpace(ordinary, adapter, 0), /Invalid optimizer preparation limit/);
+});
+
 test('local top twenty merging deduplicates before truncation and uses unrounded score ties', () => {
   const base = runOrdinaryOptimizer(request(), adapter)[0];
   const candidates = Array.from({ length: 25 }, (_, index) => ({
@@ -178,7 +190,7 @@ test('selectable worker pools evaluate each unique candidate once and retain ide
       runner.run(captured, count);
     });
   const single = await run(1);
-  for (const count of [8, 16, 32]) {
+  for (const count of [2, 4]) {
     const multiple = await run(count);
     assert.deepEqual(single.winners, multiple.winners);
     assert.equal(multiple.represented, 32n);
@@ -197,7 +209,7 @@ test('invalid worker counts cannot replace an active optimizer job', () => {
     () => worker
   );
   runner.run(captured, 1);
-  for (const count of [0, -1, 1.5, NaN, 33]) assert.throws(() => runner.run(captured, count), /workers/);
+  for (const count of [0, -1, 1.5, NaN, 5]) assert.throws(() => runner.run(captured, count), /workers/);
   assert.equal(worker.terminated, false);
   assert.equal(runner.state.status, 'preparing');
   runner.cancel();

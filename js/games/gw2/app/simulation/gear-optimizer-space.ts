@@ -19,6 +19,7 @@ import {
 } from '#gw2/app/simulation/gear-optimizer.js';
 
 const stats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>>;
+export const MAX_OPTIMIZER_STAT_TOTALS = 100_000;
 export interface GroupedOptimizerSpace {
   readonly ordinary: OptimizerSpace;
   readonly statDimensions: readonly OptimizerDimension[];
@@ -91,7 +92,13 @@ export function estimateOptimizerCount(ordinary: OptimizerSpace, adapter: Gw2App
 }
 
 /** Merge equal integer totals after each slot, retaining coverage and the smallest representative assignment. */
-export function groupOptimizerSpace(ordinary: OptimizerSpace, adapter: Gw2AppAdapter): GroupedOptimizerSpace {
+export function groupOptimizerSpace(
+  ordinary: OptimizerSpace,
+  adapter: Gw2AppAdapter,
+  totalLimit = MAX_OPTIMIZER_STAT_TOTALS
+): GroupedOptimizerSpace {
+  if (!Number.isSafeInteger(totalLimit) || totalLimit < 1 || totalLimit > MAX_OPTIMIZER_STAT_TOTALS)
+    throw new RangeError('Invalid optimizer preparation limit.');
   // Follow the equipment object's serialization order so ties preserve the ordinary oracle's representative.
   const slotOrder = [
     ...Object.keys(ordinary.request.build.gear),
@@ -135,7 +142,14 @@ export function groupOptimizerSpace(ordinary: OptimizerSpace, adapter: Gw2AppAda
         if (previous) {
           previous.represented += total.represented;
           if (path < previous.path) previous.path = path;
-        } else next.set(key, { path, represented: total.represented });
+        } else {
+          // Abort before allocating an unbounded index; a memory-limited search must never claim complete coverage.
+          if (next.size >= totalLimit)
+            throw new RangeError(
+              'This search exceeds the preparation memory limit. Reduce prefix or infusion choices.'
+            );
+          next.set(key, { path, represented: total.represented });
+        }
       });
     }
 
