@@ -586,6 +586,63 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   await expect(page.locator('body')).not.toHaveAttribute('data-rotation-comparison', '');
 });
 
+test('rotation comparison links scrolling in both directions across unequal view lengths', async ({ page }) => {
+  await openSimulator(page);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.rotation = [{ type: 'wait', durationMs: 1000 }];
+    app.changed(false);
+  });
+  await expect(page.getByRole('button', { name: 'Compare', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Compare', exact: true }).click();
+  await page.evaluate(() => window.professionApp.loadRotationReference(window.professionApp.build.rotation));
+  await expect(page.locator('[data-comparison-status]')).toHaveText('Fresh');
+
+  const current = page.locator('#rotation-timeline');
+  const reference = page.locator('#rotation-reference-timeline');
+  // Fixed content isolates native scrolling, including unequal ranges and a reference that cannot scroll.
+  for (const [timeline, height] of [
+    [current, 1200],
+    [reference, 1900]
+  ]) {
+    await timeline.evaluate((element, height) => {
+      element.style.cssText = 'height: 150px; min-height: 150px; flex: none';
+      const content = document.createElement('div');
+      content.style.height = `${height}px`;
+      element.replaceChildren(content);
+    }, height);
+  }
+
+  const progress = (timeline) =>
+    timeline.evaluate((element) => element.scrollTop / (element.scrollHeight - element.clientHeight));
+  await current.hover();
+  await page.mouse.wheel(0, 315);
+  await expect.poll(() => progress(current)).toBeGreaterThan(0.2);
+  await expect.poll(async () => Math.abs((await progress(current)) - (await progress(reference)))).toBeLessThan(0.002);
+
+  await reference.hover();
+  await page.mouse.wheel(0, 350);
+  await expect.poll(() => progress(reference)).toBeGreaterThan(0.4);
+  await expect.poll(async () => Math.abs((await progress(current)) - (await progress(reference)))).toBeLessThan(0.002);
+
+  await current.evaluate((element) => (element.scrollTop = element.scrollHeight));
+  await expect.poll(() => progress(reference)).toBe(1);
+  await reference.evaluate((element) => (element.scrollTop = 0));
+  await expect.poll(() => progress(current)).toBe(0);
+
+  await reference.evaluate((element) => (element.firstElementChild.style.height = '20px'));
+  await current.evaluate((element) => (element.scrollTop = 315));
+  // Wait through queued scroll events so a non-scrolling peer cannot bounce Current back to the top.
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  expect(await current.evaluate((element) => element.scrollTop)).toBe(315);
+
+  const detachedReference = await reference.elementHandle();
+  await page.getByRole('button', { name: 'Exit comparison' }).click();
+  await current.evaluate((element) => element.dispatchEvent(new Event('scroll')));
+  expect(await detachedReference.evaluate((element) => element.scrollTop)).toBe(0);
+  await detachedReference.dispose();
+});
+
 test('damage and condition breakdowns split only when their container is wide', async ({ page }) => {
   await openSimulator(page, { width: 1400, height: 900 });
   const fixture = page.locator('[data-layout-fixture="result-breakdown"]');

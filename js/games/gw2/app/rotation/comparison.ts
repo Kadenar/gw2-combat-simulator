@@ -23,6 +23,7 @@ export interface RotationComparisonMetrics {
 }
 
 const seriesByResult = new WeakMap<Gw2SimulationResult, ReturnType<typeof buildChartSeries>>();
+let comparisonScrollLifecycle: AbortController | null = null;
 
 function preparedSeries(result: Gw2SimulationResult): ReturnType<typeof buildChartSeries> {
   const cached = seriesByResult.get(result);
@@ -156,6 +157,8 @@ function comparisonHeadingButtons(app: ProfessionAppState): void {
 }
 
 function removeComparisonView(): void {
+  comparisonScrollLifecycle?.abort();
+  comparisonScrollLifecycle = null;
   document.body?.removeAttribute('data-rotation-comparison');
   document.getElementById('rotation-comparison-summary')?.remove();
   document.getElementById('rotation-comparison-current-label')?.remove();
@@ -231,6 +234,28 @@ function createComparisonView(
 
   currentTimeline.before(summary, currentLabel);
   currentTimeline.after(referenceSection);
+
+  // Match scroll progress across unequal rotations; ignore mirrored events to prevent rounding feedback.
+  comparisonScrollLifecycle = new AbortController();
+  const mirroredPositions = new WeakMap<HTMLElement, number>();
+  for (const [source, target] of [
+    [currentTimeline, referenceTimeline],
+    [referenceTimeline, currentTimeline]
+  ]) {
+    source.addEventListener(
+      'scroll',
+      () => {
+        if (mirroredPositions.get(source) === source.scrollTop) return;
+        mirroredPositions.delete(source);
+        const scrollRange = source.scrollHeight - source.clientHeight;
+        if (source.hidden || target.hidden || scrollRange <= 0) return;
+        target.scrollTop = (source.scrollTop / scrollRange) * Math.max(0, target.scrollHeight - target.clientHeight);
+        mirroredPositions.set(target, target.scrollTop);
+      },
+      { passive: true, signal: comparisonScrollLifecycle.signal }
+    );
+  }
+
   return { summary, referenceSection, referenceTimeline };
 }
 
