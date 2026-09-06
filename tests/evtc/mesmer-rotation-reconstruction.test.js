@@ -385,7 +385,7 @@ test('preserves an interrupted Mesmer autoattack so replay can apply its chain s
   assert.equal(result.rotation.find((command) => command.name === 'Psystrike')?.interruptMs, 200);
 });
 
-test('matches partial Mesmer handler packets while preserving an unrelated exact autoattack cancellation', () => {
+test('matches partial Mesmer handler packets while snapping an unrelated autoattack cancellation to action ticks', () => {
   const spatialSurge = skill(10234, 'Spatial Surge', {
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -440,7 +440,8 @@ test('matches partial Mesmer handler packets while preserving an unrelated exact
     actions.map((action) => action.status),
     ['interrupted', 'reduced']
   );
-  assert.equal(commands[0].interruptMs, 201);
+  // Replay cutoffs use 40 ms action ticks, including per-packet autoattack cancellations.
+  assert.equal(commands[0].interruptMs, 200);
   assert.equal(commands[1].interruptMs, 520);
 });
 

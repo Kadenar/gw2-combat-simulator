@@ -836,7 +836,7 @@ test('does not duplicate a truncated Revenant weapon precast recovered by the ge
   assert.equal(result.actions.filter((action) => action.name === 'Searing Fissure').length, 1);
 });
 
-test('preserves cancelled Revenant autoattacks and per-packet cast timing', () => {
+test('preserves observed Revenant cast timing while snapping replay cancellations to action ticks', () => {
   const fixture = log({
     agents: [
       {
@@ -904,7 +904,8 @@ test('preserves cancelled Revenant autoattacks and per-packet cast timing', () =
     [
       { name: 'Shattershot', skillId: 40_497, interruptMs: 400 },
       { name: 'Shattershot', skillId: 40_497 },
-      { name: 'Bloodbane Path', skillId: 40_175, interruptMs: 319 }
+      // Keep the observed 319 ms duration above, but replay on the nearest 40 ms action tick.
+      { name: 'Bloodbane Path', skillId: 40_175, interruptMs: 320 }
     ]
   );
 });
