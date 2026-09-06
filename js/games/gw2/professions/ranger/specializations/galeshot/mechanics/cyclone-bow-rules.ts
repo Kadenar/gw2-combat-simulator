@@ -8,6 +8,7 @@ import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
@@ -208,10 +209,11 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.05,
+    // Either movement buff activates the player bonus, including generated buffs until they expire.
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.BIRD_OF_PREY) &&
-      Boolean(context.config?.boons?.swiftness)
+      (boonActive(context, 'swiftness') || boonActive(context, 'superspeed'))
   },
   {
     id: 'ranger.gale-force',

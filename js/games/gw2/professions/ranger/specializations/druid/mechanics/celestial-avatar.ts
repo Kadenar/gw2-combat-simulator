@@ -16,6 +16,7 @@ import { druidState } from '#gw2/professions/ranger/specializations/druid/state.
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 
 export const DRUID_ASTRAL_FORCE_DAMAGE_TASK = 'ranger.druid-astral-force-damage';
+export const DRUID_AVATAR_EXIT_TASK = 'ranger.druid-avatar-exit';
 
 function applyNaturalBalance(context: RangerCastContext | RangerSchedulerContext, duration: number, at: number): void {
   if (!hasTrait(context, TRAIT.NATURAL_BALANCE)) return;
@@ -64,6 +65,13 @@ export function enterAvatar(context: RangerCastContext, skill: RangerSkill): voi
   state.celestialAvatarEndsAt = context.start + avatarDuration;
   // Reset so advance() doesn't count force drained before CA activated
   state.astralForceUpdatedAt = context.start;
+  // Stop the scheduler at expiry or depletion so exit effects and later force recovery run on time.
+  const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
+  context.tasks.schedule({
+    type: DRUID_AVATAR_EXIT_TASK,
+    at: Math.min(state.celestialAvatarEndsAt, context.start + (state.astralForce / maximum) * avatarDuration),
+    ownerId: DRUID_AVATAR_EXIT_TASK
+  });
   // Release Celestial Avatar is a flip skill; storing endsAt lets the UI show it as expiring automatically
   professionCoreState(context).availableFlips[ID.RELEASE_CELESTIAL_AVATAR] = state.celestialAvatarEndsAt;
   // Natural Balance triggers on both entry and exit
@@ -79,6 +87,9 @@ export function leaveAvatar(
   transitionSkill?: RangerSkill
 ): void {
   const state = druidState.from(context);
+  if (!state.celestialAvatarActive) return;
+  // Manual exit cancels the old deadline, including when another Avatar is entered later.
+  context.tasks.cancelOwner(DRUID_AVATAR_EXIT_TASK);
   // Exhausted (timer or force depleted) zeroes force; manual exit retains half
   state.astralForce = exhausted
     ? 0
@@ -94,6 +105,10 @@ export function leaveAvatar(
   const skill =
     transitionSkill || (context.catalog.skillsById.get(ID.RELEASE_CELESTIAL_AVATAR) as RangerSkill | undefined);
   if (skill) emitAvatarWeaponSwap(context, skill, at);
+}
+
+export function handleDruidAvatarExitTask(context: RangerSchedulerContext): void {
+  leaveAvatar(context, true, context.state.time);
 }
 
 export function advanceDruidState(context: RangerSchedulerContext, target: number): void {
@@ -118,11 +133,6 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
       const skippedApplications =
         Math.floor((target - state.naturalMenderReadyAt + context.epsilon) / naturalMenderInterval) + 1;
       state.naturalMenderReadyAt += skippedApplications * naturalMenderInterval;
-    }
-
-    // Either condition terminates CA as exhausted (force zeroed); caller must not double-exit
-    if (target >= state.celestialAvatarEndsAt - context.epsilon || state.astralForce <= context.epsilon) {
-      leaveAvatar(context, true, target);
     }
 
     return;
