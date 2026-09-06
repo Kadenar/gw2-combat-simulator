@@ -94,133 +94,202 @@ function engineerLog(skills, events, { elite = 75, agents = [] } = {}) {
   };
 }
 
-test('reconstructs Mechanist commands, Overclock, and opening weapon precasts', () => {
-  const mech = 0x3000n;
-  const skills = [
-    skill(63345, 'Core Reactor Shot', {
-      type: 'Profession',
-      slot: 'Profession_1',
-      independentCast: true
-    }),
-    skill(63121, 'Jade Mortar', {
-      type: 'Profession',
-      slot: 'Profession_2',
-      independentCast: true
-    }),
-    skill(63188, 'Spark Revolver', {
-      type: 'Profession',
-      slot: 'Profession_3',
-      independentCast: true
-    }),
-    skill(63095, 'Overclock Signet', {
-      type: 'Elite',
-      slot: 'Elite'
-    }),
-    skill(6004, 'Net Shot', {
-      slot: 'Weapon_2',
-      quicknessCastTimeMs: 200
-    }),
-    skill(6153, 'Blunderbuss', {
-      slot: 'Weapon_3',
-      quicknessCastTimeMs: 400
-    })
-  ];
-  const fixture = engineerLog(
-    skills,
-    [
-      event({
-        time: 10_000,
-        sourceInstance: 7,
-        stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT
+for (const modern of [false, true]) {
+  test(`reconstructs ${modern ? 'modern' : 'legacy'} Mechanist commands, Overclock, and opening weapon precasts`, () => {
+    const mech = 0x3000n;
+    const skills = [
+      skill(63345, 'Core Reactor Shot', {
+        type: 'Profession',
+        slot: 'Profession_1',
+        independentCast: true
       }),
-      event({
-        time: 10_050,
-        value: 250,
-        skillId: 6004,
-        sourceInstance: 7,
-        activation: EVTC_ACTIVATION.RESET,
-        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+      skill(63121, 'Jade Mortar', {
+        type: 'Profession',
+        slot: 'Profession_2',
+        independentCast: true
       }),
-      event({
-        time: 10_050,
-        source: mech,
-        value: 250,
-        skillId: 63345,
-        sourceInstance: 8,
-        sourceMasterInstance: 7,
-        activation: EVTC_ACTIVATION.RESET
+      skill(63188, 'Spark Revolver', {
+        type: 'Profession',
+        slot: 'Profession_3',
+        independentCast: true
       }),
-      ...animation(6153, 10_100, 400, { sourceInstance: 7 }),
-      event({
-        time: 10_600,
-        source: mech,
-        skillId: 63121,
-        sourceInstance: 8,
-        sourceMasterInstance: 7,
-        activation: EVTC_ACTIVATION.START
+      skill(63095, 'Overclock Signet', {
+        type: 'Elite',
+        slot: 'Elite'
       }),
-      event({
-        time: 10_800,
-        source: mech,
-        skillId: 63188,
-        sourceInstance: 8,
-        sourceMasterInstance: 7,
-        activation: EVTC_ACTIVATION.START
+      skill(6004, 'Net Shot', {
+        slot: 'Weapon_2',
+        quicknessCastTimeMs: 200
       }),
-      event({
-        time: 11_000,
-        target: PLAYER,
-        skillId: 63059,
-        sourceInstance: 7,
-        buff: 1,
-        buffRemove: 3
-      }),
-      event({
-        time: 11_000,
-        target: PLAYER,
-        skillId: 63059,
-        sourceInstance: 7,
-        buff: 1,
-        buffRemove: 1
+      skill(6153, 'Blunderbuss', {
+        slot: 'Weapon_3',
+        quicknessCastTimeMs: 400
       })
-    ],
-    {
-      elite: 70,
-      agents: [
-        {
-          address: mech,
-          profession: 0,
-          elite: 0,
-          toughness: 0,
-          concentration: 0,
-          healing: 0,
-          condition: 0,
-          character: 'Jade Mech',
-          account: '',
-          subgroup: ''
-        }
+    ];
+    const fixture = engineerLog(
+      skills,
+      [
+        event({
+          time: 10_000,
+          sourceInstance: 7,
+          stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT
+        }),
+        event({
+          time: 10_050,
+          value: 250,
+          skillId: 6004,
+          sourceInstance: 7,
+          activation: EVTC_ACTIVATION.RESET,
+          stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+        }),
+        event({
+          time: 10_050,
+          source: mech,
+          value: 250,
+          skillId: 63345,
+          sourceInstance: 8,
+          sourceMasterInstance: 7,
+          activation: EVTC_ACTIVATION.RESET,
+          stateChange: modern ? EVTC_STATE_CHANGE.ANIMATION_STOP : EVTC_STATE_CHANGE.NONE
+        }),
+        ...animation(6153, 10_100, 400, { sourceInstance: 7 }),
+        event({
+          time: 10_600,
+          source: mech,
+          skillId: 63121,
+          sourceInstance: 8,
+          sourceMasterInstance: 7,
+          activation: modern ? EVTC_ACTIVATION.NONE : EVTC_ACTIVATION.START,
+          stateChange: modern ? EVTC_STATE_CHANGE.ANIMATION_START : EVTC_STATE_CHANGE.NONE
+        }),
+        event({
+          time: 10_800,
+          source: mech,
+          skillId: 63188,
+          sourceInstance: 8,
+          sourceMasterInstance: 7,
+          activation: modern ? EVTC_ACTIVATION.NONE : EVTC_ACTIVATION.START,
+          stateChange: modern ? EVTC_STATE_CHANGE.ANIMATION_START : EVTC_STATE_CHANGE.NONE
+        }),
+        event({
+          time: 11_000,
+          target: PLAYER,
+          skillId: 63059,
+          sourceInstance: 7,
+          buff: 1,
+          buffRemove: 3,
+          stateChange: modern ? EVTC_STATE_CHANGE.BUFF_REMOVE_SINGLE : EVTC_STATE_CHANGE.NONE
+        }),
+        event({
+          time: 11_000,
+          target: PLAYER,
+          skillId: 63059,
+          sourceInstance: 7,
+          buff: 1,
+          buffRemove: 1,
+          stateChange: modern ? EVTC_STATE_CHANGE.BUFF_REMOVE_ALL : EVTC_STATE_CHANGE.NONE
+        })
+      ],
+      {
+        elite: 70,
+        agents: [
+          {
+            address: mech,
+            profession: 0,
+            elite: 0,
+            toughness: 0,
+            concentration: 0,
+            healing: 0,
+            condition: 0,
+            character: 'Jade Mech',
+            account: '',
+            subgroup: ''
+          }
+        ]
+      }
+    );
+
+    const result = reconstructEvtcRotation(fixture, { skills });
+
+    assert.equal(result.parserId, 'engineer:mechanist');
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      result.actions.map((action) => action.name),
+      ['Core Reactor Shot', 'Net Shot', 'Blunderbuss', 'Jade Mortar', 'Spark Revolver', 'Overclock Signet']
+    );
+    assert.equal(result.actions.filter((action) => action.name === 'Overclock Signet').length, 1);
+    // Mech commands retain their observed offsets without becoming anchors for
+    // the player's serial action timeline.
+    assert.deepEqual(
+      result.rotation.filter((command) => ['Jade Mortar', 'Spark Revolver'].includes(command.name)),
+      [
+        { name: 'Jade Mortar', skillId: 63121, offset: 520 },
+        { name: 'Spark Revolver', skillId: 63188, offset: 720 }
       ]
-    }
+    );
+  });
+}
+
+test('imports owned condition mech commands without adding passive attacks or duplicate completions', () => {
+  const owned = { source: 0x3000n, sourceInstance: 8, sourceMasterInstance: 1 };
+  const fixture = engineerLog(
+    engineerCatalog.skills,
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(63334, 10_100, 750, owned),
+      ...animation(63334, 11_000, 750, { ...owned, source: 0x4000n, sourceMasterInstance: 2 }),
+      ...animation(63298, 12_000, 500, owned)
+    ],
+    { elite: 70 }
   );
 
-  const result = reconstructEvtcRotation(fixture, { skills });
+  const result = reconstructEvtcRotation(fixture, engineerCatalog);
 
-  assert.equal(result.parserId, 'engineer:mechanist');
-  assert.deepEqual(result.warnings, []);
+  // Only the selected engineer's issued command belongs in the rotation; autonomous strikes are simulated.
   assert.deepEqual(
     result.actions.map((action) => action.name),
-    ['Core Reactor Shot', 'Net Shot', 'Blunderbuss', 'Jade Mortar', 'Spark Revolver', 'Overclock Signet']
+    ['Rolling Smash']
   );
-  assert.equal(result.actions.filter((action) => action.name === 'Overclock Signet').length, 1);
-  // Mech commands retain their observed offsets without becoming anchors for
-  // the player's serial action timeline.
-  assert.deepEqual(
-    result.rotation.filter((command) => ['Jade Mortar', 'Spark Revolver'].includes(command.name)),
+  assert.deepEqual(result.warnings, []);
+});
+
+test('infers one Discharge Array command per pulse window from owned mech damage', () => {
+  const pulse = (time, overrides = {}) =>
+    event({
+      time,
+      source: 0x3000n,
+      sourceInstance: 8,
+      sourceMasterInstance: 1,
+      target: TARGET,
+      skillId: 63367,
+      value: 100,
+      ...overrides
+    });
+  const fixture = engineerLog(
+    engineerCatalog.skills,
     [
-      { name: 'Jade Mortar', skillId: 63121, offset: 520 },
-      { name: 'Spark Revolver', skillId: 63188, offset: 720 }
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      pulse(10_050, { sourceMasterInstance: 2 }),
+      pulse(10_060, { buff: 1 }),
+      pulse(10_070, { value: 0 }),
+      pulse(10_100),
+      pulse(10_100, { target: 0x4000n }),
+      ...[11_100, 12_100, 13_100, 14_100, 20_100].map((time) => pulse(time))
+    ],
+    { elite: 70 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, engineerCatalog);
+
+  // Repeated pulses and additional targets cannot create extra command inputs.
+  assert.deepEqual(
+    result.actions.map((action) => [action.name, action.timestampMs]),
+    [
+      ['Discharge Array', 100],
+      ['Discharge Array', 10_100]
     ]
   );
+  assert.deepEqual(result.warnings, ['2 instant casts were inferred from direct skill effects.']);
 });
 
 test('retains Engineer interruptions without using strike packets to invent commit contracts', () => {

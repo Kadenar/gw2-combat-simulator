@@ -1,4 +1,5 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { effectWindowMs, findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -21,8 +22,14 @@ import { playerInstance } from '#gw2/integrations/logs/evtc/rotation/professions
 
 const COMMANDS: ReadonlyMap<number, EngineerActionIdentity> = new Map([
   [63121, { name: 'Jade Mortar', skillId: 63121 }],
+  [63141, { name: 'Barrier Burst', skillId: 63141 }],
   [63188, { name: 'Spark Revolver', skillId: 63188 }],
-  [63345, { name: 'Core Reactor Shot', skillId: 63345 }]
+  [63236, { name: 'Sky Circus', skillId: 63236 }],
+  [63293, { name: 'Crisis Zone', skillId: 63293 }],
+  [63334, { name: 'Rolling Smash', skillId: 63334 }],
+  [63345, { name: 'Core Reactor Shot', skillId: 63345 }],
+  [63365, { name: 'Explosive Knuckle', skillId: 63365 }],
+  [63367, { name: 'Discharge Array', skillId: 63367 }]
 ]);
 const OVERCLOCK_BUFF_ID = 63059;
 const OVERCLOCK_SIGNET = Object.freeze({
@@ -39,6 +46,9 @@ function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcR
   if (instance == null) return [];
   const outstanding = new Map<string, number>();
   const actions: EvtcRecordedRotationAction[] = [];
+  const discharge = findRotationSkill(63367, 'Discharge Array', context.catalog, context.profile);
+  const dischargeWindow = discharge ? effectWindowMs(discharge) : 4100;
+  let previousDischarge = Number.NEGATIVE_INFINITY;
   const combatStart = context.log.events.find(
     (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
   )?.time;
@@ -50,17 +60,35 @@ function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcR
     }
 
     const key = `${event.source}:${event.skillId}`;
+    // Modern mech animations carry the cast boundary in stateChange; legacy logs use activation.
     if (
-      event.stateChange === EVTC_STATE_CHANGE.NONE &&
-      (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)
+      event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START ||
+      (event.stateChange === EVTC_STATE_CHANGE.NONE &&
+        (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS))
     ) {
       outstanding.set(key, (outstanding.get(key) || 0) + 1);
+      if (event.skillId === 63367) previousDischarge = event.time;
       actions.push(canonicalAction(eventIndex, event.time, identity, event.skillId, 'resource-inference'));
       return;
     }
 
+    // Discharge Array has no cast animation: its five pulses identify one command, even across multiple targets.
     if (
-      event.stateChange !== EVTC_STATE_CHANGE.NONE ||
+      event.skillId === 63367 &&
+      event.stateChange === EVTC_STATE_CHANGE.NONE &&
+      event.activation === EVTC_ACTIVATION.NONE &&
+      event.buff === 0 &&
+      event.buffRemove === 0 &&
+      event.value > 0 &&
+      event.time - previousDischarge >= dischargeWindow
+    ) {
+      previousDischarge = event.time;
+      actions.push(canonicalAction(eventIndex, event.time, identity, event.skillId, 'effect'));
+      return;
+    }
+
+    if (
+      (event.stateChange !== EVTC_STATE_CHANGE.NONE && event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP) ||
       (event.activation !== EVTC_ACTIVATION.CANCEL_FIRE && event.activation !== EVTC_ACTIVATION.RESET)
     ) {
       return;
@@ -89,7 +117,10 @@ function overclockActions(context: EvtcProfessionReconstructionContext): EvtcRec
       event.skillId !== OVERCLOCK_BUFF_ID ||
       event.buff === 0 ||
       event.buffRemove === 0 ||
-      event.stateChange !== EVTC_STATE_CHANGE.NONE ||
+      // Accept both buff-removal encodings; paired single/all removals still represent one signet use.
+      (event.stateChange !== EVTC_STATE_CHANGE.NONE &&
+        event.stateChange !== EVTC_STATE_CHANGE.BUFF_REMOVE_SINGLE &&
+        event.stateChange !== EVTC_STATE_CHANGE.BUFF_REMOVE_ALL) ||
       event.time - previous < 50
     ) {
       return [];
