@@ -10,3 +10,6 @@ reference-repos/Elementalist-Simulator/
 .DS_Store
 Thumbs.db
 AGENTS.md
+
+# Local rotation AI datasets, trained models, and experiment checkpoints.
+/.rotation-ai/

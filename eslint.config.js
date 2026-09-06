@@ -35,6 +35,7 @@ export default [
       'build/**',
       'reference-repos/**',
       '.scratch/**',
+      '.rotation-ai/**',
       '**/.analysis-inputs/**',
       '**/.claude/**',
       '**/.git/**',

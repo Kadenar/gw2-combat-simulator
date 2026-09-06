@@ -11,3 +11,5 @@ package-lock.json
 dist/
 build/
 coverage/
+
+/.rotation-ai/
