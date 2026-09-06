@@ -763,6 +763,38 @@ test('aligns dps.report combat start with an opening Symbol of Luminance packet'
   );
 });
 
+test('preserves the rounded opening cast duration across an offset combat marker', () => {
+  const report = reportFixture(
+    'Luminary',
+    [
+      { id: 73_132, skills: [{ castTime: -355, duration: 436, timeGained: 0 }] },
+      { id: 72_940, skills: [{ castTime: 81, duration: 440, timeGained: 0 }] }
+    ],
+    { s73132: { name: 'Symbol of Luminance' }, s72940: { name: 'Helio Rush' } },
+    1_000
+  );
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  const simulation = simulateGw2({
+    profession: guardianProfession,
+    rotation: result.rotation,
+    config: defaultSimulationConfig({ specialization: 'Luminary', primaryWeapon: 'Spear' })
+  });
+  const symbol = simulation.steps.find((step) => step.skillId === 73_132);
+  const nextCast = simulation.steps.find((step) => step.skillId === 72_940);
+  const combatStart = simulation.steps.find((step) => step.skill === 'Combat Start');
+
+  // Combat begins inside the precast; its offset must neither truncate the cast nor release the next input early.
+  assert.equal(result.actions.find((action) => action.skillId === 73_132).durationMs, 436);
+  assert.equal(symbol.end - symbol.start, 440);
+  assert.equal(symbol.interrupted, false);
+  assert.equal(combatStart.start - symbol.start, 360);
+  assert.equal(nextCast.start, symbol.end);
+  assert.ok(
+    simulation.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial')
+  );
+  assert.deepEqual(simulation.warnings, []);
+});
+
 test('keeps near-nominal Glaring Burst report casts at their 600 ms runtime', () => {
   const report = reportFixture(
     'Luminary',
@@ -1396,7 +1428,7 @@ test('recovers evidence-backed Conduit state and collapses composite animations 
     result.rotation.some((command) => command.name === 'Impossible Odds'),
     true
   );
-  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 37);
+  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 40);
   assert.equal(result.actions.filter((action) => action.name === 'Deathstrike').length, 1);
   assert.equal(result.actions.filter((action) => action.name === "Phantom's Onslaught").length, 1);
   assert.equal(

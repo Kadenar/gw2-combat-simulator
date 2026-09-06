@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ReconstructedCommand, ReconstructedRotationCommand } from '#gw2/integrations/logs/lib/rotation/model.js';
-import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 const OBSERVED_CAST_TOLERANCE_MS = 20;
 
@@ -164,8 +164,10 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const overlapping = at < blockingEnd - (entry.type === 'combat-start' ? 0 : timingToleranceMs);
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
-        // Keep a packet-proven observation boundary exact so action-frame rounding cannot move it past an opener.
-        const offset = preserveCombatStartOffset ? at - previousCastStart : quantizeMs(at - previousCastStart);
+        // Round combat offsets relative to the skill, retaining exact packet-proven boundaries so opening hits stay observable.
+        const offset = preserveCombatStartOffset
+          ? at - previousCastStart
+          : quantizeGw2ActionTimingMs(at - previousCastStart);
         rotation.push({ name: '__combat_start', offset });
         if (alignWaitsToSimulatorTiming && projectedPreviousCastStart != null) {
           projectedTime = Math.max(projectedTime, projectedPreviousCastStart + offset);

@@ -379,7 +379,7 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
     result.actions.some((action) => action.name === 'Automatic Proc'),
     false
   );
-  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 500);
+  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 520);
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Throw Mine.*Bomb Kit/);
   assert.doesNotMatch(result.warnings.join('\n'), /duplicate instant|automatic trait|potentially incomplete/);
 });
