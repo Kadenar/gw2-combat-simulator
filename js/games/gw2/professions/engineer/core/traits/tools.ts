@@ -132,7 +132,7 @@ export function applyKineticBattery(context: EngineerSchedulerContext, skill: En
   const state = professionCoreState(context);
   const maximumCharges = balanceProfileValueFromContext(context, PROFILE.kineticBattery, 'maximumStacks', 5);
   state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
-  // Proc quickness and reset charges every fifth toolbelt cast.
+  // Grant the speed and damage package and reset charges every fifth toolbelt cast.
   if (state.kineticCharges >= maximumCharges) {
     state.kineticCharges = 0;
     const buffDuration = balanceProfileValue(
@@ -159,6 +159,20 @@ export function applyKineticBattery(context: EngineerSchedulerContext, skill: En
       kind: 'quickness',
       duration: balanceProfileValue(
         balanceProfileEffectFromContext(context, PROFILE.kineticBattery, 'boon'),
+        'duration',
+        5
+      ),
+      stacks: 1
+    });
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.KINETIC_BATTERY,
+      actorType: 'player',
+      name: 'Kinetic Battery — superspeed',
+      kind: 'superspeed',
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.kineticBattery, 'buff', 1),
         'duration',
         5
       ),

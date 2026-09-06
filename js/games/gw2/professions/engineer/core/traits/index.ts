@@ -49,7 +49,8 @@ export function applyEngineerCastTraits(context: EngineerCastContext, skill: Eng
   const at = context.effectiveEnd;
   if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
   applyStreamlinedKits(context, skill, at);
-  applyEngineerToolbeltTraits(context, skill, at);
+  // Issuing a mech command uses the tool-belt slot immediately while its animation runs independently.
+  applyEngineerToolbeltTraits(context, skill, skill.independentCast ? context.start : at);
   applyHgh(context, skill, at);
 }
 

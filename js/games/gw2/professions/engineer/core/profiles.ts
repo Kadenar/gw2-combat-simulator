@@ -59,7 +59,9 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     maximumStacks: 5,
     effects: [
       { type: 'buff', kind: 'kinetic-battery', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 }
+      { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
+      // Superspeed accompanies the fifth charge without boon-duration scaling.
+      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }
     ]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.explosiveEntrance, 'Explosive Entrance', {

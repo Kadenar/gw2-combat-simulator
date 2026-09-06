@@ -221,7 +221,13 @@ export function dispatchPaletteActivation(
   }
 
   const instant = paletteSkillIsInstant(app, context, skill, name);
-  if (event.shiftKey && instant && skill?.canCastConcurrently !== false && app.build.rotation.length) {
+  // Companion animations can overlap the player just like instant player skills.
+  if (
+    event.shiftKey &&
+    (instant || skill?.independentCast === true) &&
+    skill?.canCastConcurrently !== false &&
+    app.build.rotation.length
+  ) {
     app.addRotation(name, {
       ...identity,
       concurrentOffsetMs: CONCURRENT_OFFSET_MS

@@ -734,4 +734,16 @@ test('independent casts use a separate serial cast lane', () => {
   assert.equal(second.start, 1000);
   assert.equal(second.end, 1500);
   assert.equal(result.state.time, 2);
+
+  // Explicit offsets overlap the player but cannot overlap a companion's serial animations.
+  const queued = createScheduler({ profession }).run([
+    'Player Cast One',
+    { type: 'cast', skillId: 910002, concurrentOffsetMs: 120 },
+    { type: 'cast', skillId: 910002, concurrentOffsetMs: 240 },
+    { type: 'cast', skillId: 910002, concurrentOffsetMs: 120 }
+  ]);
+  assert.deepEqual(queued.warnings, []);
+  assert.equal(queued.steps[1].start, 120);
+  assert.equal(queued.steps[2].start, queued.steps[1].end);
+  assert.equal(queued.steps[3].start, queued.steps[2].end);
 });

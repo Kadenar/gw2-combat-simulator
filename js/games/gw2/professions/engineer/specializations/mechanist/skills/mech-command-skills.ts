@@ -15,6 +15,8 @@ function mechCommand(fragment: SkillFragment): SkillFragment {
   const instant = Number(fragment.castTimeMs || 0) === 0 && fragment.quicknessCastTimeMs == null;
   return {
     ...fragment,
+    // Mech commands retain the Tools interactions of the replaced tool-belt slots.
+    countsAsToolbeltSkill: true,
     independentCast: true,
     ...(instant ? { independentCastCanOverlap: true } : {})
   };

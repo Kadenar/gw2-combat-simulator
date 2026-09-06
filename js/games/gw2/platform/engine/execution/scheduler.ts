@@ -897,9 +897,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // A marker or explicit wait can move the clock past an instant skill's
     // requested overlap. Queue that instant at the earliest reachable time so
     // command ordering is preserved and stunbreaks still execute.
-    if (concurrent && instant && start < state.time - epsilon) {
+    if (concurrent && (instant || independent) && start < state.time - epsilon) {
       start = state.time;
     }
+
+    // Explicit overlaps still queue behind the companion's own animation.
+    if (independent && !overlappingIndependent) start = Math.max(start, independentReadyAt);
 
     if (start < state.time - epsilon) {
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);

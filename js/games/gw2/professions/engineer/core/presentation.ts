@@ -6,7 +6,7 @@ import {
   type Gw2SelectedSkillLoadout
 } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
   PaletteSkillAvailability,
@@ -246,6 +246,18 @@ export function engineerEventLogRow(
   context: EngineerUiContext,
   event: EngineerResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
+  // Surface charge progress and the fifth-charge activation before suppressing internal snapshots.
+  if (event?.type === 'engineer.state' && event.reason === 'kinetic-battery') {
+    const charges = Number(event.state?.kineticCharges || 0);
+    return {
+      type: event.type,
+      description: charges ? `Kinetic Charge - ${charges}/5` : 'Kinetic Battery activated - charges reset to 0/5',
+      className: 'resource',
+      order: 30,
+      flags: []
+    };
+  }
+
   if (
     [
       'engineer.dodge',
@@ -342,6 +354,20 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
     };
     // endurance bar only shown when Tools traitline is active — that's when endurance management is relevant
     if (usesToolsTraitline(context)) views.push(endurance);
+    // Reuse the shared resource display so every Engineer specialization exposes battery progress.
+    if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
+      views.push({
+        id: 'kineticCharges',
+        singular: 'Kinetic Charge',
+        plural: 'Kinetic Charges',
+        maximum: 5,
+        value: Number(state.kineticCharges || 0),
+        canStart: false,
+        shortLabel: 'Kinetic',
+        statusLabel: 'Current'
+      });
+    }
+
     return views;
   },
   paletteSkillAvailability: engineerCorePaletteSkillAvailability,
