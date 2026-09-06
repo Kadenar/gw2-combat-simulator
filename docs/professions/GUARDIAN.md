@@ -32,8 +32,8 @@ under `core/` or `specializations/<name>/`.
   Illuminated behavior lives in `core/mechanics/spear-illumination.ts`.
 - Explicit strike-modifier grouping (Force/Impact, Empowered/Radiant Armaments, Furious Focus, Retribution, Symbolic
   Avenger, Piercing Stance share one additive bucket; Fiery Wrath, Symbolic Exposure, gates, vulnerability, and relics
-  stay separate multipliers). Permanent Protection/Resolution/ Regeneration/Swiftness are on by default; Aegis is an
-  off-by-default toggle.
+  stay separate multipliers). Permanent Protection/Resolution/Regeneration/Swiftness are on by default; permanent
+  Aegis is also on by default and can be toggled off.
 
 ## Modeling boundaries
 
