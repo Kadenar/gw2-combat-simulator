@@ -308,6 +308,8 @@
 
   .perma-section {
     inset: 6px 6px 6px auto;
+    /* Match the narrower phone margins on both sides of the drawer. */
+    width: min(360px, calc(100% - 12px));
   }
 
   body[data-rotation-focus] .rotation-dps-summary .res-summary {

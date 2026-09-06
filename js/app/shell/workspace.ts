@@ -278,6 +278,9 @@ export function mountRotationWorkspace(root: Document = document): void {
   configPanel.id ||= 'simulation-config-panel';
   configPanel.setAttribute('aria-labelledby', 'simulation-config-title');
 
+  // Keep the viewport drawer outside layout and stacking containers.
+  root.body.append(configPanel);
+
   const configCloseButton = mountConfigHeading(root, configHeading);
   configHeading.querySelector('.simulation-config-title')!.id = 'simulation-config-title';
   const { configButton, focusButton } = mountRotationHeading(root, rotationHeading, configPanel.id);

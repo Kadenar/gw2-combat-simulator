@@ -134,17 +134,22 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   }
 }
 
+// Independently loaded modules can hold different copies of the queue class.
+function isEventQueue<T extends QueuedEvent>(queue: readonly T[] | StableEventQueue<T>): queue is StableEventQueue<T> {
+  return !Array.isArray(queue);
+}
+
 export function createEventQueue<T extends QueuedEvent>(
   events: readonly T[] | StableEventQueue<T> = []
 ): StableEventQueue<T> {
-  return events instanceof StableEventQueue ? events : new StableEventQueue(events);
+  return isEventQueue(events) ? events : new StableEventQueue(events);
 }
 
 /**
  * Inserts an event while preserving queue order without a full re-sort.
  */
 export function enqueueOrdered<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>, event: T): T {
-  if (queue instanceof StableEventQueue) return queue.enqueue(event);
+  if (isEventQueue(queue)) return queue.enqueue(event);
   queue.push(event);
   let index = queue.length - 1;
   while (index > 0 && compareQueuedEvents(queue[index], queue[index - 1]) < 0) {
@@ -159,7 +164,7 @@ export function enqueueOrdered<T extends QueuedEvent>(queue: T[] | StableEventQu
  * Re-sorts an existing queue in-place after bulk insertion or mutation.
  */
 export function sortQueuedEvents<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>): T[] | StableEventQueue<T> {
-  if (queue instanceof StableEventQueue) return queue;
+  if (isEventQueue(queue)) return queue;
   return queue.sort(compareQueuedEvents);
 }
 
@@ -167,5 +172,5 @@ export function sortQueuedEvents<T extends QueuedEvent>(queue: T[] | StableEvent
  * Removes and returns the next event to process.
  */
 export function takeNextEvent<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>): T | undefined {
-  return queue instanceof StableEventQueue ? queue.dequeue() : queue.shift();
+  return isEventQueue(queue) ? queue.dequeue() : queue.shift();
 }

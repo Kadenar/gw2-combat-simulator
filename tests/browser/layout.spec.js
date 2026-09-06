@@ -81,6 +81,43 @@ test('simulation config controls and result-dependent palette state work in the 
   await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
 });
 
+// The settings drawer stays pinned outside editor containers and retains both viewport margins.
+test('simulation config stays inside the viewport after scrolling and hides in Analysis', async ({ page }) => {
+  await openSimulator(page);
+  const config = page.locator('body > #simulation-config-panel');
+
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.getByRole('button', { name: 'Open simulation config' }).click();
+    await expect(config).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const margin = width <= 700 ? 6 : 12;
+    await expect
+      .poll(async () => {
+        const box = await config.boundingBox();
+        return (
+          box && {
+            top: Math.round(box.y),
+            right: Math.round(width - box.x - box.width),
+            bottom: Math.round(900 - box.y - box.height),
+            width: Math.round(box.width)
+          }
+        );
+      })
+      .toEqual({ top: margin, right: margin, bottom: margin, width: Math.min(360, width - 2 * margin) });
+    await page.keyboard.press('Escape');
+    await expect(config).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Open simulation config' })).toBeFocused();
+  }
+
+  await page.getByRole('button', { name: 'Open simulation config' }).click();
+  // Isolate Analysis visibility from navigation's separate close-on-view-change behavior.
+  await page.evaluate(() => {
+    document.body.dataset.simulatorView = 'analysis';
+  });
+  await expect(config).toBeHidden();
+});
+
 // A palette drop and a timeline edit must share the authored wait duration through rerenders.
 test('a palette wait drop opens its editor and the timeline can edit the inserted wait', async ({ page }) => {
   await openSimulator(page);

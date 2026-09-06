@@ -1,6 +1,30 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createEventQueue, enqueueOrdered, takeNextEvent } from '#kernel/events/queue.js';
+import {
+  createEventQueue,
+  enqueueOrdered,
+  sortQueuedEvents,
+  StableEventQueue,
+  takeNextEvent
+} from '#kernel/events/queue.js';
+
+// A distinct module URL reproduces queues crossing independently loaded class copies.
+test('queue helpers accept a queue from an independently loaded module', async () => {
+  const { createEventQueue: createIndependentQueue } = await import(
+    `${import.meta.resolve('#kernel/events/queue.js')}?independent-copy`
+  );
+  const later = { at: 2 };
+  const earlier = { at: 1 };
+  const queue = createIndependentQueue([later]);
+
+  assert.equal(queue instanceof StableEventQueue, false);
+  assert.equal(enqueueOrdered(queue, earlier), earlier);
+  assert.equal(createEventQueue(queue), queue);
+  assert.equal(sortQueuedEvents(queue), queue);
+  assert.equal(takeNextEvent(queue), earlier);
+  assert.equal(takeNextEvent(queue), later);
+  assert.equal(takeNextEvent(queue), undefined);
+});
 
 // Event queues preserve priority and causal insertion order independently of game rules.
 test('same-time queued events retain stable insertion order', () => {

@@ -44,14 +44,9 @@ body[data-profession][data-simulator-view='workspace'] #rotation-results:not(:ha
   display: none;
 }
 
+/* Hide the settings drawer in Analysis even when mounted directly on the body. */
 body[data-profession][data-simulator-view='analysis']
-  :is(
-    .build-templates-region,
-    .build-section,
-    .skills-section,
-    .rotation-panel-shell,
-    .simulation-workspace > .perma-section
-  ) {
+  :is(.build-templates-region, .build-section, .skills-section, .rotation-panel-shell, .perma-section) {
   display: none;
 }
 
