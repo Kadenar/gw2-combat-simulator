@@ -5,7 +5,8 @@ Supply a build and example rotations; the tool generates variations, simulates t
 promising, and exports the best **actually simulated** rotation.
 
 Everything runs on your computer in Node.js. No hosted model, API key, Python installation, GPU, or additional runtime
-dependency is needed. Training data and models stay in your experiment directory.
+dependency is needed. Training data stays local; each profession has one shared model across its builds and
+specializations.
 
 **Version 1 maximizes player damage during a fixed duration against an immortal target.** It sets target health to zero
 in its exported build. It does not optimize a finite-health golem's kill time or its evolving execute phase. The result
@@ -95,8 +96,51 @@ accepted through the existing normalizer. This illustrates the format; choose sk
 ```
 
 One run means **one fixed build, precast setup, time window, and engine version**. Start another directory when changing
-gear, traits, utilities, initial resources, duration, or combat assumptions. Scores from different experiments cannot be
-mixed.
+gear, traits, utilities, initial resources, duration, or combat assumptions. Their results remain separate, while their
+context-labeled examples train the same profession model. You do not need a new model for each trait selection or
+traitline.
+
+### One model per profession, many fixed-build experiments
+
+By default, models live at `.rotation-ai/models/PROFESSION/model.json`, for example
+`.rotation-ai/models/elementalist/model.json`. Specialization, selected trait IDs and traitlines, equipment identities,
+resolved stats, equipped skills, initial resources, precasts, combat assumptions, and duration are prediction inputs.
+Changing a trait selection changes those inputs, not the model's identity.
+
+Initialize another run for the modified build, then search immediately with the existing profession weights. New runs
+register automatically with the profession bank. Successful collection and search commands contribute their valid
+examples; automatic retraining pools the registered data. No other build's rotations are used as candidate parents in
+your current search: only the learned predictor is shared.
+
+To add existing runs from the original draft or explicitly pool several datasets:
+
+```sh
+npm run rotation:ai -- train --run .rotation-ai/weaver-a --training-run .rotation-ai/weaver-b --training-run .rotation-ai/tempest --epochs 60
+npm run rotation:ai -- search --run .rotation-ai/tempest --evaluations 5000
+```
+
+All supplied runs must already exist and use the same profession, engine version, and objective. `--training-run` is
+repeatable. It contributes portable snapshots and selects the same model bank for those runs. Later `train --run DIR`
+uses all registered datasets for that profession, not just DIR. Duplicate scenario/rotation pairs are merged, while the
+same rotation evaluated under different builds or time windows retains its separate context and score.
+
+Use `--models C:/GW2-AI/models` to place the shared bank elsewhere. The chosen root is remembered in each run's
+`model-source.json`; subsequent commands can omit the option. One command at a time can write/use a given profession
+bank, with multiple simulation workers inside that command. Different professions use separate locks and models.
+
+Only professions you train get model weights; there is no requirement to train all nine before starting. A model trained
+on one build can be used with another build, but good generalization needs diverse demonstrations and must be measured.
+No model can infer all unseen trait effects reliably just from knowing their IDs.
+
+### Updating an existing run from the original draft
+
+Keep `scenario.json`, `dataset.jsonl`, and checkpoints. The simulator/scoring adapter is unchanged by the profession
+model update, so compatible scored data can be contributed directly with `train --run DIR --training-run OTHER_DIR`. Old
+per-run `model.json` files are left untouched and are no longer loaded. Their architecture lacks build inputs; retrain
+once into the shared bank. Do not copy old weights into the shared model path or relabel their schema.
+
+If the combat engine has also changed, initialize fresh runs and re-ingest rotations to regenerate compatible scores.
+Use a fresh `--models` root for that engine version; the bank rejects mixing versions.
 
 ### Precasts and duration
 
@@ -178,24 +222,37 @@ npm run rotation:ai -- search --run .rotation-ai/my-build --evaluations 10000 --
 swap actions, move or cross over short blocks, and adjust existing timing. Parents mostly come from the best 24
 candidates, with some from the wider valid archive for diversity.
 
-`train` fits a 256-input, 24-hidden-unit tanh neural network with one damage output. Features describe skill counts,
-nearby pairs/triples, sequence quarters, waits, and supplied timing variants. This is a **proposal-ranking surrogate**,
-not a substitute for combat simulation or a complete combat-state representation.
+`train` fits a 768-input, 32-hidden-unit tanh network predicting fixed-window DPS. The first 256 features describe the
+rotation; the remaining 512 encode build and scenario context. Skill pairs/triples, sequence position, waits, and
+existing timing variants describe the rotation. Trait IDs are categorical features, and numeric stats/resources use
+scaled values. Features never include a scenario ID, stored score, or engine fingerprint as predictive inputs. Predicted
+DPS is converted back to total damage for ranking within the current fixed-duration search.
 
-Training uses shuffled stochastic gradient descent, scaled targets, clipped training error, and early stopping. A stable
-hash split sends roughly 80% of unique rotations to training and 20% to validation. The best validation checkpoint is
-saved. Re-running training refits from the whole current dataset; it does not continue an old optimizer's gradients or
-reuse normalization from a different dataset size.
+Training uses shuffled stochastic gradient descent, scaled DPS targets, clipped error, and early stopping. Equal
+sampling and metric weighting per build prevent a heavily sampled build from overwhelming the others. Each epoch samples
+up to 256 examples per training build, with oversampling for smaller groups. Longer windows do not dominate merely
+because their damage totals are larger.
+
+With two or more distinct builds, validation holds out **whole builds**, grouping runs of the same build across time
+windows, precasts, and encounter assumptions together. A stable hash selects roughly 20% of build groups, with a
+fallback guaranteeing both a training and a validation group for small datasets. With only one build, validation splits
+unique rotations and reports `within-build`; this is not evidence of unseen-build generalization. Adding more builds can
+change the split and reduce apparent model quality, which should be measured honestly.
+
+Metrics include training/validation build IDs, per-validation-build error, build/scenario counts, and the split mode.
+The best validation checkpoint is saved; held-out examples are not used for gradient updates. Re-running training refits
+from the current shared corpus instead of continuing old gradients or normalization.
 
 Validation RMSE is compared with always predicting the training mean. Guidance activates only when the neural model
 reduces that error by at least 2%. Otherwise its weights are saved for inspection but search keeps using unguided
 proposals until a later model passes. Related rotation variants can make validation easier than discovering new peaks;
 low error alone does not prove improved search efficiency.
 
-`search` trains automatically when enough data exists and periodically refits. When guidance is active, it generates up
-to four times the requested candidate batch, reserves random exploration, and fills remaining evaluations with the
-highest predicted scores. **Only simulator scores select winners.** An optimistic model prediction alone never becomes a
-reported improvement.
+`search` loads the shared profession model, trains automatically when none exists and enough pooled data is available,
+and periodically refits using all registered builds. When guidance is active, it generates up to four times the
+requested candidate batch, reserves random exploration, and fills remaining evaluations with the highest predicted
+scores. **Only simulator scores select winners.** An optimistic model prediction alone never becomes a reported
+improvement.
 
 ### Resume and backup
 
@@ -209,9 +266,9 @@ dataset batches survive. If forcibly killed between dataset append and checkpoin
 dataset. Duplicate detection preserves evaluated examples, although the resumed trajectory may differ from an
 uninterrupted run.
 
-Back up the **whole run directory and compatible repository revision**. `.rotation-ai/` is ignored by Git, ESLint, and
-Prettier. These commands do not upload your examples, weights, or results. Do not edit experiment IDs, scores, or
-weights by hand. Use independent directories for different builds/settings.
+Back up the **whole run directory, shared models root, and compatible repository revision**. `.rotation-ai/` is ignored
+by Git, ESLint, and Prettier. These commands do not upload your examples, weights, or results. Do not edit experiment
+IDs, scores, or weights by hand. Use independent directories for different builds/settings.
 
 ## 6. Verify and load the winner
 
@@ -246,13 +303,22 @@ re-evaluate that separately. The tool does not automate game inputs.
 | `baseline.json`                         | Original fitted demonstration and deterministic score.                                   |
 | `actions.json`                          | Explicit additional proposal actions.                                                    |
 | `dataset.jsonl`                         | Evaluated candidates and rejection reasons; only valid rows train the damage predictor.  |
-| `model.json`                            | Weights, normalization, feature schema, dataset fingerprint, and validation metrics.     |
+| `model-source.json`                     | Relative path to the shared models root; there are no new per-run weights.               |
 | `checkpoint.json`                       | Search seed, RNG state, attempted count, and winner ID at the last checkpoint.           |
 | `winner.json`                           | Best unpadded combat sequence and measured score.                                        |
 | `best.build.json`, `best.rotation.json` | Ordinary UI imports; rotation includes precasts and the final wait.                      |
 | `report.json`                           | Baseline/best metrics, both DPS definitions, gain, and detailed replay status.           |
 | `verification.json`                     | Paired stochastic samples, winner ID, mean gain, and standard error.                     |
 | `run.lock`                              | Exclusive lock while a command uses the experiment.                                      |
+
+The models root contains a directory per profession:
+
+| File under `models/PROFESSION/` | Purpose                                                                                                     |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `bank.json`                     | Profession, engine-version, and objective compatibility boundary.                                           |
+| `datasets/SCENARIO_ID.json`     | Portable frozen context and valid scored examples; no dependency on the original run path.                  |
+| `model.json`                    | Shared neural weights, DPS normalization, schemas, dataset fingerprint, and whole-build validation metrics. |
+| `run.lock`                      | Prevents concurrent writers from losing pooled examples or replacing model checkpoints.                     |
 
 Verification records its winner ID. Run verification again after finding another winner. Checkpoints/model files use
 same-directory temporary writes and rename. Only the main process appends dataset rows; workers never write data.
@@ -287,10 +353,12 @@ measured workloads justify it.
 
 ## Does learning actually help?
 
-After collecting/training, copy the entire idle run directory into two experiments. Use the same additional budget,
-batch size, and worker count with `search` in one and `search --unguided` in the other. Both begin with the same archive
-and RNG checkpoint, then diverge when guidance affects selection. Compare verified damage, evaluation count, wall time,
-and stochastic outcomes. Repeat with independent initial runs/search seeds before concluding guidance is better.
+After collecting/training, copy the entire idle run directory into two experiments and copy the models root separately
+for each. Select the independent banks with `--models` so automatic retraining cannot contaminate the comparison. Use
+the same additional budget, batch size, and worker count with `search` in one and `search --unguided` in the other. Both
+begin with the same archive and RNG checkpoint, then diverge when guidance affects selection. Compare verified damage,
+evaluation count, wall time, and stochastic outcomes. Repeat with independent initial runs/search seeds before
+concluding guidance is better.
 
 Sequence features do not fully describe cooldowns, resources, effect expirations, or long-range dependencies. The model
 can miss useful patterns, and search can get stuck. Simulator modeling errors may look like opportunities to an
@@ -300,11 +368,13 @@ optimizer. Inspect unusually large gains in the detailed event/timing view.
 
 Code lives in `scripts/analysis/rotation-ai/`: `engine.mjs` adapts simulation, `model.mjs` owns neural
 features/training, `mutations.mjs` proposes candidates, `pool.mjs`/`worker.mjs` run evaluations, and
-`storage.mjs`/`cli.mjs` manage experiments.
+`storage.mjs`/`cli.mjs` manage experiments. `profession-models.mjs` manages compatible pooled datasets.
 
 `npm run test:rotation-ai` checks gradients against finite differences, held-out synthetic learning, real-preset
 scoring, detailed replay, worker failures, ingestion/deduplication, training, resume, compatibility/corruption
-rejection, stochastic validation, and ordinary exports. Run lint and format checks on changed files.
+rejection, stochastic validation, and ordinary exports. Tests also train one model on two real Core Engineer trait
+setups plus Holosmith, reuse identical weights across searches, reject cross-profession data, and check whole-build
+split isolation and duration normalization. Run lint and format checks on changed files.
 
 Fingerprints cover compiled modules and the scoring adapter. Bump the model feature schema when feature meanings change,
 and experiment schemas when serialized contracts change incompatibly. Never mix scores from engine versions.

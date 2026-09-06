@@ -21,6 +21,7 @@ import { makeScenario, createEvaluator, commandsFrom, splitRotation, validateBod
 import { trainModel, validateModel } from './model.mjs';
 import { actionVocabulary, propose } from './mutations.mjs';
 import { SimulationPool } from './pool.mjs';
+import { initializeBank, contributeRun, trainingCorpus, compatibleContext } from './profession-models.mjs';
 
 const HELP = `Local rotation AI — CPU neural surrogate + simulator-verified evolutionary search
 
@@ -32,7 +33,7 @@ Run from the repository root. npm run rotation:ai builds the simulation modules 
   npm run rotation:ai -- ingest --run DIR --rotations DIRECTORY
   npm run rotation:ai -- ingest --run DIR --actions allowed-actions.json
   npm run rotation:ai -- collect --run DIR --evaluations 1000 --workers 2
-  npm run rotation:ai -- train --run DIR --epochs 60
+  npm run rotation:ai -- train --run DIR --training-run OTHER_BUILD_DIR --epochs 60
   npm run rotation:ai -- search --run DIR --evaluations 5000 --workers 2
   npm run rotation:ai -- verify --run DIR --seeds 30 --seed 1000001
   npm run rotation:ai -- status --run DIR
@@ -46,7 +47,9 @@ Other options: --seed 42 (new search RNG), --batch 16, --timeout 30 (seconds per
 init defaults to 120 seconds and --example uses the repository's Core Engineer hammer preset.
 init/ingest trim demonstration suffixes that exceed the window; precasts remain locked.
 
-Outputs in DIR: dataset.jsonl, model.json, checkpoint.json, best.rotation.json,
+Each profession shares .rotation-ai/models/PROFESSION/model.json. Override with --models ROOT.
+train --training-run DIR can be repeated to add existing runs. New trait selections reuse the same model.
+Outputs in DIR: dataset.jsonl, checkpoint.json, best.rotation.json,
 best.build.json, report.json, verification.json. Import the build then the rotation in the UI.
 Read docs/LOCAL-ROTATION-AI.md for the full workflow, constraints, and troubleshooting.
 `;
@@ -55,7 +58,7 @@ const ALLOWED = {
   init: ['run', 'build', 'rotation', 'seconds', 'example'],
   ingest: ['run', 'rotation', 'rotations', 'actions'],
   collect: ['run', 'evaluations', 'workers', 'seed', 'batch', 'timeout'],
-  train: ['run', 'epochs', 'seed'],
+  train: ['run', 'epochs', 'seed', 'training-run'],
   search: ['run', 'evaluations', 'workers', 'seed', 'batch', 'timeout', 'retrain-every', 'exploration', 'unguided'],
   verify: ['run', 'seeds', 'seed', 'workers', 'timeout'],
   status: ['run'],
@@ -216,17 +219,20 @@ async function saveModel(directory, scenario, records, values) {
   });
   await writeJson(path.join(directory, 'model.json'), model);
   console.log(
-    `Model: ${model.metrics.trainingExamples} training / ${model.metrics.validationExamples} validation examples; validation RMSE ${format(model.metrics.validationRmse)} damage, constant-mean RMSE ${format(model.metrics.meanPredictorRmse)}.`
+    `Model: ${model.metrics.trainingExamples} training / ${model.metrics.validationExamples} validation examples; validation RMSE ${format(model.metrics.validationRmse)} damage/s, constant-mean RMSE ${format(model.metrics.meanPredictorRmse)}.`
   );
   console.log(
     model.metrics.useful
       ? 'Validation supports using this model to rank search proposals.'
       : 'This model has not beaten the mean predictor by 2%. Search keeps exploring without model guidance until a retrain passes that check.'
   );
+  console.log(
+    `Shared ${scenario.profession} model: ${model.metrics.builds} builds / ${model.metrics.scenarios} scenarios; validation: ${model.metrics.validationMode}. Saved ${path.join(directory, 'model.json')}`
+  );
   return model;
 }
 
-async function search(directory, scenario, values, guided) {
+async function search(directory, scenario, values, guided, bank) {
   const budget = numberOption(values, 'evaluations', 1000, 1, 10000000);
   const workers = numberOption(values, 'workers', Math.min(2, availableParallelism()), 1, 32);
   const batchSize = numberOption(values, 'batch', 16, 1, 256);
@@ -251,7 +257,7 @@ async function search(directory, scenario, values, guided) {
     records.filter((record) => record.valid),
     await readJson(path.join(directory, 'actions.json'))
   );
-  let model = guided ? await optionalJson(path.join(directory, 'model.json')) : null;
+  let model = guided ? await optionalJson(path.join(bank, 'model.json')) : null;
   if (model) validateModel(model, scenario);
   let lastTraining = records.length;
   let completed = 0;
@@ -269,10 +275,9 @@ async function search(directory, scenario, values, guided) {
   let best = top(records);
   const started = performance.now();
   const tryTrain = async () => {
-    const valid = records.filter((record) => record.valid);
-    if (valid.length < 30) return;
     try {
-      model = await saveModel(directory, scenario, records, {});
+      await contributeRun(bank, directory, scenario, records);
+      model = await saveModel(bank, scenario, await trainingCorpus(bank, scenario), {});
     } catch (error) {
       if (!error.message.startsWith('Need at least')) throw error;
     }
@@ -302,7 +307,8 @@ async function search(directory, scenario, values, guided) {
         rng,
         Math.min(batchSize, budget - completed),
         model,
-        exploration
+        exploration,
+        scenario
       );
       if (!candidates.length) {
         console.log('No new candidates found. Add demonstrations or actions to expand the search.');
@@ -410,7 +416,7 @@ async function verify(directory, scenario, values) {
   );
 }
 
-async function status(directory, scenario) {
+async function status(directory, scenario, bank) {
   const records = await readRecords(directory, scenario);
   const valid = records.filter((record) => record.valid);
   const report = await readJson(path.join(directory, 'report.json'));
@@ -428,7 +434,7 @@ async function status(directory, scenario) {
         bestFixedWindowDps: top(records)?.metrics.fixedWindowDps,
         exportedGainPercent: report.percentGain,
         commonRejections: [...reasons].sort((a, b) => b[1] - a[1]).slice(0, 5),
-        model: (await optionalJson(path.join(directory, 'model.json')))?.metrics || null
+        model: (await optionalJson(path.join(bank, 'model.json')))?.metrics || null
       },
       null,
       2
@@ -453,7 +459,8 @@ export async function main(args = process.argv.slice(2)) {
       'retrain-every',
       'exploration',
       'seeds',
-      'out'
+      'out',
+      'models'
     ].map((key) => [key, { type: 'string' }])
   );
   const { values, positionals } = parseArgs({
@@ -462,6 +469,7 @@ export async function main(args = process.argv.slice(2)) {
     options: {
       ...definitions,
       rotation: { type: 'string', multiple: true },
+      'training-run': { type: 'string', multiple: true },
       example: { type: 'boolean' },
       unguided: { type: 'boolean' },
       help: { type: 'boolean', short: 'h' }
@@ -476,23 +484,71 @@ export async function main(args = process.argv.slice(2)) {
   if (!ALLOWED[command] || positionals.length !== 1)
     throw new Error('Choose one command: init, ingest, collect, train, search, verify, status, catalog. Use --help.');
   for (const key of Object.keys(values))
-    if (!ALLOWED[command].includes(key)) throw new Error(`--${key} is not supported by ${command}.`);
+    if (key !== 'models' && !ALLOWED[command].includes(key))
+      throw new Error(`--${key} is not supported by ${command}.`);
   if (!values.run) throw new Error('Specify --run DIR so this experiment has its own data and checkpoints.');
   await access(path.join(ROOT, 'dist/js/games/gw2/platform/simulation/simulate.js')).catch(() => {
     throw new Error('Build the simulator first: npm run build:modules');
   });
   const directory = path.resolve(values.run);
   const release = await lockRun(directory, command);
+  let releaseBank;
   try {
-    if (command === 'init') return await initialize(directory, values);
+    if (command === 'init') await initialize(directory, values);
     const scenario = await loadRun(directory);
-    if (command === 'ingest') return await ingest(directory, scenario, values);
-    if (command === 'collect' || command === 'search')
-      return await search(directory, scenario, values, command === 'search' && !values.unguided);
-    if (command === 'train')
-      return await saveModel(directory, scenario, await readRecords(directory, scenario), values);
+    const selection = await optionalJson(path.join(directory, 'model-source.json'));
+    const modelsRoot = values.models
+      ? path.resolve(values.models)
+      : selection
+        ? path.resolve(directory, selection.root)
+        : path.join(ROOT, '.rotation-ai/models');
+    const bank = path.join(modelsRoot, scenario.profession);
+    // A consistent run-then-bank lock order keeps shared dataset/model writes safe.
+    releaseBank = await lockRun(bank, `profession:${command}`);
+    await initializeBank(bank, scenario);
+    await writeJson(path.join(directory, 'model-source.json'), { root: path.relative(directory, modelsRoot) });
+    await contributeRun(bank, directory, scenario);
+    if (command === 'init') {
+      console.log(`Shared profession model: ${path.join(bank, 'model.json')}`);
+      return;
+    }
+
+    if (command === 'ingest') {
+      await ingest(directory, scenario, values);
+      await contributeRun(bank, directory, scenario);
+      return;
+    }
+
+    if (command === 'collect' || command === 'search') {
+      await search(directory, scenario, values, command === 'search' && !values.unguided, bank);
+      await contributeRun(bank, directory, scenario);
+      return;
+    }
+
+    if (command === 'train') {
+      // Validate every additional run before admitting any of its examples.
+      const additional = await Promise.all(
+        (values['training-run'] || []).map(async (run) => ({
+          run: path.resolve(run),
+          context: await loadRun(path.resolve(run))
+        }))
+      );
+      additional.forEach(({ context }) => compatibleContext(context, scenario));
+      for (const { run, context } of additional) {
+        const unlock = path.resolve(run) === directory ? null : await lockRun(run, 'contribute-to-profession');
+        try {
+          await contributeRun(bank, run, context);
+          await writeJson(path.join(run, 'model-source.json'), { root: path.relative(run, modelsRoot) });
+        } finally {
+          if (unlock) await unlock();
+        }
+      }
+
+      return await saveModel(bank, scenario, await trainingCorpus(bank, scenario), values);
+    }
+
     if (command === 'verify') return await verify(directory, scenario, values);
-    if (command === 'status') return await status(directory, scenario);
+    if (command === 'status') return await status(directory, scenario, bank);
     if (command === 'catalog') {
       if (!values.out) throw new Error('catalog requires --out FILE.');
       const evaluator = await createEvaluator(scenario);
@@ -505,6 +561,7 @@ export async function main(args = process.argv.slice(2)) {
       );
     }
   } finally {
+    if (releaseBank) await releaseBank();
     await release();
   }
 }

@@ -63,7 +63,7 @@ export function mutate(parent, donor, actions, rng) {
   return result.slice(0, MAX_COMMANDS - 1);
 }
 
-export function propose(records, actions, seen, rng, count, model = null, exploration = 0.3) {
+export function propose(records, actions, seen, rng, count, model = null, exploration = 0.3, scenario = null) {
   const valid = records.filter((record) => record.valid).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   if (!valid.length) throw new Error('No valid seed rotations. Ingest a warning-free rotation first.');
   const elites = valid.slice(0, 24);
@@ -87,7 +87,7 @@ export function propose(records, actions, seen, rng, count, model = null, explor
   const selectedIds = new Set(selected.map(digest));
   const ranked = pool
     .filter((rotation) => !selectedIds.has(digest(rotation)))
-    .map((rotation) => ({ rotation, score: predict(model, rotation) }))
+    .map((rotation) => ({ rotation, score: predict(model, rotation, scenario) }))
     .sort((a, b) => b.score - a.score);
   return [...selected, ...ranked.slice(0, count - selected.length).map((item) => item.rotation)];
 }

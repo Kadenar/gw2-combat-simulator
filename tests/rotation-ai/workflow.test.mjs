@@ -21,10 +21,14 @@ test(
     const temporary = await mkdtemp(path.join(tmpdir(), 'rotation-ai-'));
     const run = path.join(temporary, 'run with spaces');
     const invoke = (...args) =>
-      exec(process.execPath, ['scripts/analysis/rotation-ai/cli.mjs', ...args, '--run', run], {
-        cwd: root,
-        maxBuffer: 2 * 1024 * 1024
-      });
+      exec(
+        process.execPath,
+        ['scripts/analysis/rotation-ai/cli.mjs', ...args, '--run', run, '--models', path.join(temporary, 'models')],
+        {
+          cwd: root,
+          maxBuffer: 2 * 1024 * 1024
+        }
+      );
     try {
       const seed = path.join(temporary, 'seed.json');
       await writeJson(seed, { rotation: ['Grenade Kit', ...Array(7).fill('Grenade')] });
@@ -47,7 +51,7 @@ test(
       assert.equal(collected.length, 161);
       assert.ok(collected.filter((record) => record.valid).length >= 30);
       await invoke('train', '--epochs', '30');
-      const model = await readJson(path.join(run, 'model.json'));
+      const model = await readJson(path.join(temporary, 'models', 'engineer', 'model.json'));
       assert.ok(model.metrics.validationExamples >= 4);
       const checkpoint = await readJson(path.join(run, 'checkpoint.json'));
       await invoke('search', '--evaluations', '24', '--workers', '1');
@@ -155,3 +159,69 @@ test('paired seed summaries preserve pairing and calculate uncertainty of the im
   assert.equal(result.standardErrorOfGain, 0);
   assert.throws(() => pairedSummary([1], [2]), /at least two/);
 });
+
+test(
+  'three real builds share one profession model across trait and specialization changes',
+  { timeout: 120000 },
+  async () => {
+    const temporary = await mkdtemp(path.join(tmpdir(), 'profession-ai-'));
+    const models = path.join(temporary, 'models');
+    const invoke = (run, ...args) =>
+      exec(process.execPath, ['scripts/analysis/rotation-ai/cli.mjs', ...args, '--run', run, '--models', models], {
+        cwd: root,
+        maxBuffer: 4 * 1024 * 1024
+      });
+    try {
+      const original = await readJson(path.join(root, 'data/gw2/builds/engineer/b-power-core-hammer.json'));
+      const traits = structuredClone(original);
+      traits.specializations[0].traits = '1-1-1';
+      const holo = structuredClone(original);
+      holo.specializations[2] = { name: 'Holosmith', traits: '1-1-1' };
+      const seed = path.join(temporary, 'seed.json');
+      await writeJson(seed, { rotation: ['Grenade Kit', ...Array(7).fill('Grenade')] });
+      const runs = [];
+      for (const [index, build] of [original, traits, holo].entries()) {
+        const file = path.join(temporary, `build-${index}.json`);
+        const run = path.join(temporary, `run-${index}`);
+        runs.push(run);
+        await writeJson(file, build);
+        await invoke(run, 'init', '--build', file, '--rotation', seed, '--seconds', '12');
+        await invoke(run, 'collect', '--evaluations', '160', '--workers', '2');
+      }
+
+      const contexts = await Promise.all(runs.map((run) => loadRun(run)));
+      assert.notDeepEqual(contexts[0].config.selectedTraitIds, contexts[1].config.selectedTraitIds);
+      assert.equal(contexts[2].config.specialization, 'Holosmith');
+      // Legacy per-run weights do not replace shared models or prevent reusing scored data.
+      await writeJson(path.join(runs[0], 'model.json'), { schema: 1, kind: 'rotation-damage-mlp' });
+      await invoke(runs[0], 'train', '--training-run', runs[1], '--training-run', runs[2], '--epochs', '20');
+      const modelFile = path.join(models, 'engineer', 'model.json');
+      const model = await readJson(modelFile);
+      assert.equal(model.profession, 'engineer');
+      assert.equal(model.metrics.builds, 3);
+      assert.equal(model.metrics.scenarios, 3);
+      assert.equal(model.metrics.validationMode, 'held-out-builds');
+      assert.ok(model.metrics.validationBuilds.every((key) => !model.metrics.trainingBuilds.includes(key)));
+      await invoke(runs[1], 'search', '--evaluations', '8', '--workers', '1');
+      await invoke(runs[2], 'search', '--evaluations', '8', '--workers', '1');
+      assert.deepEqual(
+        await readJson(modelFile),
+        model,
+        'trait and specialization changes reuse the existing weights without retraining'
+      );
+      await assert.rejects(access(path.join(runs[1], 'model.json')), { code: 'ENOENT' });
+      const replay = await createEvaluator(contexts[2]);
+      const exported = await readJson(path.join(runs[2], 'best.rotation.json'));
+      assert.equal(replay.run(exported.rotation, { detailed: true }).warnings.length, 0);
+      const manifest = await readJson(path.join(root, 'data/gw2/builds/mesmer/manifest.json'));
+      const preset = manifest.flatMap((section) => section.presets).find((entry) => entry.rotation);
+      const mesmer = path.join(temporary, 'mesmer');
+      await invoke(mesmer, 'init', '--build', preset.build, '--rotation', preset.rotation, '--seconds', '10');
+      await assert.rejects(invoke(runs[0], 'train', '--training-run', mesmer), /share profession/);
+      assert.deepEqual(await readJson(modelFile), model);
+      await assert.rejects(access(path.join(models, 'engineer', 'run.lock')), { code: 'ENOENT' });
+    } finally {
+      await rm(temporary, { recursive: true, force: true });
+    }
+  }
+);
