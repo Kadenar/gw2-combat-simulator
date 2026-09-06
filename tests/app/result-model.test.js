@@ -106,6 +106,29 @@ test('generic buffs remain visible on the timed-effects chart', () => {
   assert.equal(series.effectTypes['Custom Effect'], 'buff');
 });
 
+test('resolved buffs supply final audiences and stack caps without counting scheduled copies', () => {
+  const scheduled = playerBuff({ at: 0, kind: 'might', stacks: 3, duration: 2 });
+  const series = buildChartSeries(
+    {
+      duration: 2,
+      events: [scheduled, playerBuff({ at: 0, kind: 'fury', duration: 5 })],
+      resolvedEvents: [
+        { ...scheduled },
+        playerBuff({ at: 0, kind: 'derived-effect', stacks: 3, duration: 2 }),
+        {
+          ...playerBuff({ at: 0, kind: 'fury', duration: 5 }),
+          resolvedAudience: { ...PLAYER_AUDIENCE, includesSelf: false }
+        }
+      ]
+    },
+    1000,
+    [{ id: 'derived-effect', kind: 'derived-effect', name: 'Derived Effect', maximumStacks: 1 }]
+  );
+  assert.equal(series.effects.Might[0].v, 3);
+  assert.equal(series.effects['Derived Effect'][0].v, 1);
+  assert.equal(series.effects.Fury, undefined);
+});
+
 test('timed relic proc chart series shows binary uptime across refreshes', () => {
   const series = buildChartSeries(
     {

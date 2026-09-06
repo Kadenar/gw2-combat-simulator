@@ -265,8 +265,12 @@ export function scoreOptimizerRange(
   const warnings = new Map<string, number>();
   for (let ordinal = start; ordinal < end; ordinal++) {
     const candidate = equipmentAt(ordinal);
+    // Rejected assignments still count toward coverage but never run combat or enter result groups.
+    represented += candidate.represented;
+    const result = evaluator.score(candidate.equipment);
+    if (!result) continue;
     const key = optimizerEquivalenceKey(candidate.equipment, ordinary, adapter);
-    const score = optimizerScore(evaluator.score(candidate.equipment));
+    const score = optimizerScore(result);
     simulations++;
 
     for (const warning of score.warnings) {
@@ -275,7 +279,6 @@ export function scoreOptimizerRange(
       warnings.set(category, (warnings.get(category) || 0) + 1);
     }
 
-    represented += candidate.represented;
     retainOptimizerCandidate(
       winners,
       { key, equipment: candidate.equipment, score, represented: candidate.represented.toString() },

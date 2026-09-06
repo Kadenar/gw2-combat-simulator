@@ -1,5 +1,6 @@
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
 import {
+  OPTIMIZER_REQUIREMENTS,
   retainOptimizerCandidate,
   type GearOptimizerRequest,
   type OptimizerCandidate,
@@ -108,6 +109,9 @@ export class GearOptimizerRunner {
     this.request = request;
     this.state = this.emptyState();
     this.state.status = 'preparing';
+    const hasRequirements = Object.keys(OPTIMIZER_REQUIREMENTS).some(
+      (key) => request.selections[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
+    );
     let next = 0n;
     let chunkId = 0;
     let bootstrapped = false;
@@ -181,6 +185,14 @@ export class GearOptimizerRunner {
             ])
           ).values()
         ];
+        // An empty feasible set has no finalists to verify and must still complete normally.
+        if (!verification.length) {
+          this.state.status = 'complete';
+          this.batch.terminateAll();
+          this.publish(true);
+          return;
+        }
+
         for (const worker of ready) verify(worker);
         this.publish(true);
       }
@@ -219,9 +231,13 @@ export class GearOptimizerRunner {
       } else if (message.kind === 'chunk') {
         const chunk = pending.get(worker);
         if (!chunk || chunk.id !== message.chunkId) throw new Error('Unexpected optimizer chunk completion.');
-        // Every dispatched ordinal is unique across the pool and must produce exactly one search simulation.
-        if (BigInt(message.simulations!) !== chunk.size)
-          throw new Error('Optimizer did not evaluate each unique candidate once.');
+        // Requirements can reject unique candidates before simulation; coverage still includes every ordinal.
+        if (
+          BigInt(message.simulations!) < 0n ||
+          BigInt(message.simulations!) > chunk.size ||
+          (!hasRequirements && BigInt(message.simulations!) !== chunk.size)
+        )
+          throw new Error('Invalid optimizer simulation count.');
         pending.delete(worker);
         this.state.completed += chunk.size;
         this.state.represented += BigInt(message.represented!);

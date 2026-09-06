@@ -148,7 +148,9 @@ export function buildChartSeries(
     }
   }
 
-  for (const event of result.events || []) {
+  // Resolved buffs include trait procs and final audiences; scheduled-only results remain supported.
+  const buffs = resolved.some((event) => event.type === 'buff') ? resolved : result.events || [];
+  for (const event of buffs) {
     // Generic buffs and materialized boons share timed-effect visualization.
     if (event.type !== 'buff' || event.resolvedAudience?.includesSelf !== true || !Number(event.duration || 0)) {
       continue;

@@ -217,10 +217,16 @@ test('relic comparison controls and loading layout survive a narrow host', async
       relicComparisonAvailable: true,
       relicComparisonStale: true,
       relicComparisonTarget: 'Fireworks',
-      relicComparisonTargets: ['Fireworks']
+      relicComparisonTargets: ['Fireworks', 'Thorns', 'Nourys']
     });
   });
   const comparison = page.locator('[data-layout-fixture="relic-comparison"] .relic-cmp');
+  const relicSelect = comparison.getByRole('combobox', { name: 'Comparison relic' });
+  await expect(relicSelect).toHaveCSS('text-align', 'left');
+  await expect(relicSelect).toHaveCSS('font-size', '11px');
+  await expect(relicSelect.locator('optgroup')).toHaveCount(3);
+  await expect(relicSelect.locator('optgroup').first()).toHaveCSS('font-weight', '700');
+  await expect(relicSelect.locator('option').first()).toHaveCSS('font-weight', '400');
   await expect(comparison.locator('[data-role="relic-comparison-stacks-control"]')).toBeHidden();
   await expect(comparison.getByRole('button', { name: 'Running' })).toBeDisabled();
   const layout = await comparison.evaluate((element) => {

@@ -587,6 +587,134 @@ test('snapshot is immutable; empty selections retain current equipment', () => {
   assert.throws(() => ordinaryEquipmentAt(space, 1n), /outside search/);
 });
 
+test('optimizer requirements validate numeric bounds and reject inverted toughness ranges', () => {
+  for (const key of ['minToughness', 'maxToughness', 'minBoonDuration', 'minQuicknessDuration']) {
+    for (const value of [null, '', '10', NaN, Infinity, -1]) assert.throws(() => request({ [key]: value }), /Invalid/);
+    assert.doesNotThrow(() => request({ [key]: 0 }));
+  }
+
+  for (const key of ['minBoonDuration', 'minQuicknessDuration'])
+    assert.throws(() => request({ [key]: 100.1 }), /Invalid/);
+  assert.throws(() => request({ minToughness: 1200, maxToughness: 1100 }), /must not exceed/);
+});
+
+test('requirements use inclusive finalized stats and reject before simulation config preparation', () => {
+  const overrides = {
+    rune: 'Firebrand',
+    food: '',
+    utility: '',
+    infusions: [],
+    weaponSigils: [
+      ['Force', 'Accuracy'],
+      ['Force', 'Accuracy']
+    ]
+  };
+  const captured = request({}, overrides);
+  const app = { build: captured.build, attributeWeaponSet: captured.build.startingWeaponSet };
+  adapter.recalculate(app);
+  const toughness = app.attributeData.attributes.Toughness.final;
+  const boon = app.attributeData.attributes['Boon Duration'].final;
+  const quickness = boon + 30;
+  const inclusive = request(
+    { minToughness: toughness, maxToughness: toughness, minBoonDuration: boon, minQuicknessDuration: quickness },
+    overrides
+  );
+  assert.notEqual(createOptimizerEvaluator(inclusive, adapter).score(inclusive.build), null);
+  assert.notEqual(createOptimizerEvaluator(captured, adapter).score(captured.build), null);
+  const mustNotPrepareCombat = {
+    ...adapter,
+    simulationConfig() {
+      assert.fail('Rejected gear must not prepare combat');
+    }
+  };
+  for (const limits of [
+    { minToughness: toughness + 1 },
+    { maxToughness: toughness - 1 },
+    { minBoonDuration: boon + 0.01 },
+    { minQuicknessDuration: quickness + 0.01 }
+  ]) {
+    const rejected = request(limits, overrides);
+    assert.equal(createOptimizerEvaluator(rejected, mustNotPrepareCombat).score(rejected.build), null);
+  }
+});
+
+test('requirements check alternate weapon stats even when the starting set qualifies', () => {
+  const base = request().build;
+  const captured = request(
+    { maxToughness: 1000 },
+    {
+      gear: Object.fromEntries(Object.keys(base.gear).map((slot) => [slot, "Berserker's"])),
+      rune: '',
+      food: '',
+      utility: '',
+      infusions: [],
+      weapons: ['Axe', 'Axe'],
+      alternateWeapons: ['Axe', 'Axe'],
+      alternateWeaponPrefixes: ['Celestial', 'Celestial'],
+      startingWeaponSet: 1
+    }
+  );
+  assert.equal(createOptimizerEvaluator(captured, adapter).score(captured.build), null);
+  const allowed = {
+    ...captured,
+    build: { ...captured.build, alternateWeaponPrefixes: ["Berserker's", "Berserker's"] }
+  };
+  assert.notEqual(createOptimizerEvaluator(allowed, adapter).score(allowed.build), null);
+});
+
+test('exact and fast searches discard failing runes while retaining coverage and display groups', () => {
+  const captured = request(
+    { rune: ['Firebrand', 'Fireworks'], minQuicknessDuration: 40 },
+    {
+      food: '',
+      utility: '',
+      infusions: [],
+      weaponSigils: [
+        ['Force', 'Accuracy'],
+        ['Force', 'Accuracy']
+      ]
+    }
+  );
+  for (const create of [createGroupedOptimizer, createFastOptimizer]) {
+    const job = create(captured, adapter);
+    const result = job.evaluateRange(0n, job.space.count);
+    assert.equal(result.represented, '2');
+    assert.equal(result.simulations, '1');
+    assert.deepEqual(
+      result.winners.map(({ equipment }) => equipment.rune),
+      ['Firebrand']
+    );
+    for (const candidates of Object.values(result.groups))
+      assert.ok(candidates.every(({ equipment }) => equipment.rune === 'Firebrand'));
+  }
+
+  assert.deepEqual(
+    runOrdinaryOptimizer(captured, adapter).map(({ equipment }) => equipment.rune),
+    ['Firebrand']
+  );
+});
+
+test('workers finish exact and fast searches when every candidate fails requirements', { timeout: 10000 }, async () => {
+  for (const search of ['exact', 'fast']) {
+    const captured = { ...request({ maxToughness: 0 }), search };
+    const state = await new Promise((resolve, reject) => {
+      const runner = new GearOptimizerRunner(
+        { buildRevision: captured.revision },
+        () => {
+          if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+          if (runner.state.status === 'complete') resolve(runner.state);
+        },
+        () => new OptimizerTestWorker()
+      );
+      runner.run(captured);
+    });
+    assert.equal(state.simulations, 0n);
+    assert.equal(state.completed, state.count);
+    assert.equal(state.represented, 1n);
+    assert.deepEqual(state.winners, []);
+  }
+});
+
 test('mixed prefixes, locks outside candidates, independent sigils, and infusion endpoints', () => {
   const initial = request();
   const locks = optimizerSlots(initial.build, adapter).filter((slot) => !['Helm', 'Shoulders'].includes(slot));

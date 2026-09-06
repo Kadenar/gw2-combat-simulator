@@ -22,6 +22,7 @@ import {
   applyOptimizerCandidate,
   isOptimizerRequestCurrent,
   optimizerAppliedCandidate,
+  OPTIMIZER_REQUIREMENTS,
   type GearOptimizerSelections,
   type OptimizerCandidate,
   type OptimizerEquipment
@@ -270,7 +271,15 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       <fieldset class="optimizer-section"><legend>Infusions</legend><div class="optimizer-infusion-row">
         ${candidatePicker('infusionStats', 'Infusion stats', INFUSION_STATS, [...new Set(build.infusions.filter((entry) => entry.count).map((entry) => entry.stat))], 2, undefined, 'Choose stats to change the infusion total')}
         <label class="optimizer-infusion-count">Total slots<input name="infusionCount" aria-label="Total infusions" type="number" min="0" max="18" step="1" value="${build.infusions.reduce((sum, entry) => sum + entry.count, 0)}"></label>
-      </div></fieldset></div>`;
+      </div></fieldset>
+      <fieldset class="optimizer-section"><legend>Requirements (optional)</legend>
+        <div class="optimizer-pair">${Object.entries(OPTIMIZER_REQUIREMENTS)
+          .map(
+            ([key, label]) =>
+              `<label class="optimizer-infusion-count">${label}<input name="${key}" type="number" min="0" ${key.endsWith('Duration') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
+          )
+          .join('')}</div>
+      </fieldset></div>`;
     panel.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
     // An invalid current build can disable optimization without interrupting the normal editor's change flow.
     try {
@@ -312,7 +321,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   // Report measured work completed without predicting how long unseen candidates will take.
   panel.querySelector('[data-role="optimizer-counts"]')!.textContent = state.count
     ? runner.request?.search === 'fast'
-      ? `${state.simulations.toLocaleString()} candidates checked.`
+      ? `${state.completed.toLocaleString()} candidates checked.${state.completed !== state.simulations ? ` ${state.simulations.toLocaleString()} simulations; ${(state.completed - state.simulations).toLocaleString()} rejected by requirements.` : ''}`
       : `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked; ${state.simulations.toLocaleString()} simulations.`
     : '';
 
@@ -327,6 +336,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const list = panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!;
   const candidates = displayedResults();
   const signature = JSON.stringify([
+    state.status,
     runner.request?.revision,
     equippedScore?.dps,
     applied?.key,
@@ -339,6 +349,8 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const slots = runner.request ? optimizerSlots(runner.request.build, app.adapter) : [];
     const sets = runner.request ? optimizerWeaponSets(runner.request.build, app.adapter) : [];
     const best = candidates[0] || state.winners[0];
+    // Rank against the equipped setup as well as search results, using unrounded DPS for labels and comparisons.
+    const bestDps = Math.max(baseline, best?.score.dps || 0, state.winners[0]?.score.dps || 0);
     const infusions = (equipment: OptimizerEquipment): string =>
       equipment.infusions
         .filter((entry) => entry.count)
@@ -348,8 +360,9 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const renderRow = (candidate: OptimizerCandidate, index: number, pinned = false): string => {
       const equipment = candidate.equipment;
       const difference = candidate.score.dps - baseline;
-      const percent = best.score.dps ? (candidate.score.dps / best.score.dps - 1) * 100 : 0;
-      return `<tr${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<small>Equipped</small>' : ''}${index ? `<small>${percent > 0 ? '+' : ''}${percent.toFixed(1)}%</small>` : '<small>Best</small>'}</td>${slots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
+      const percent = bestDps ? (candidate.score.dps / bestDps - 1) * 100 : 0;
+      const isBest = candidate.score.dps === bestDps;
+      return `<tr class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<small>Equipped</small>' : ''}${isBest ? '<small>Best</small>' : `<small>${percent.toFixed(1)}%</small>`}</td>${slots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
         .map((set) =>
           [0, 1]
             .map((slot) => {
@@ -366,7 +379,9 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     // Spell out weapon slots and put the set on its own line so adjacent headers stay distinguishable.
     list.innerHTML = best
       ? `<div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col">Damage <small>vs best</small></th>${slots.map((slot) => `<th scope="col">${SLOT_LABELS[slot] || escapeHtml(slot)}${slot.includes('Weapon') ? `<small class="optimizer-weapon-set">Weapon set ${slot.startsWith('Alternate') ? 2 : 1}</small>` : ''}</th>`).join('')}${sets.map((set) => [0, 1].map((slot) => `<th scope="col">Sigil ${slot + 1}<small class="optimizer-weapon-set">Weapon set ${set + 1}</small></th>`).join('')).join('')}<th scope="col">Rune</th><th scope="col">Relic</th><th scope="col">Food</th><th scope="col">Utility</th><th scope="col">Infusions</th><th scope="col">&Delta; equipped</th><th scope="col">Apply</th></tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
-      : '';
+      : state.status === 'complete'
+        ? '<p>No gear combinations met the requirements in this search.</p>'
+        : '';
   }
 
   list.querySelectorAll<HTMLButtonElement>('[data-apply]').forEach((button) => {
@@ -382,7 +397,15 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
 function readSelections(form: HTMLFormElement): GearOptimizerSelections {
   const data = new FormData(form);
   const values = (key: string): string[] => data.getAll(key).map(String);
+  // Keep empty numeric inputs absent so blank maximums do not become zero.
+  const requirements = Object.fromEntries(
+    Object.keys(OPTIMIZER_REQUIREMENTS).flatMap((key) => {
+      const value = String(data.get(key) ?? '').trim();
+      return value === '' ? [] : [[key, Number(value)]];
+    })
+  );
   return {
+    ...requirements,
     prefixes: values('prefixes'),
     rune: values('rune'),
     relic: values('relic'),

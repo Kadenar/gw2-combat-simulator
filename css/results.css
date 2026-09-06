@@ -1796,6 +1796,14 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
 .optimizer-feedback > p {
   margin: 0 0 10px;
 }
+/* Align empty results with the status text and keep them clear of the panel border. */
+.gear-optimizer [data-role='optimizer-results'] > p {
+  margin: 0;
+  padding: 0 20px 20px;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.5;
+}
 /* Keep display controls outside the search form so changing a filter never restarts optimization. */
 .optimizer-status-row {
   display: flex;
@@ -1899,7 +1907,7 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
   z-index: 1;
   background: var(--bg-panel-alt);
 }
-.gear-optimizer tbody tr:first-child {
+.gear-optimizer .optimizer-best > td {
   background: color-mix(in srgb, #25b8b7 24%, var(--bg-panel));
 }
 .optimizer-damage,

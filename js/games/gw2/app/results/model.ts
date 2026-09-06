@@ -86,7 +86,8 @@ function effectStackCaps(
   presentations: readonly ProfessionEffectPresentation[]
 ): Readonly<Record<string, number>> {
   const caps: Record<string, number> = { ...STANDARD_STACK_CAPS };
-  for (const event of result.events || []) {
+  // Resolver-generated profession buffs need the same display caps as scheduled effects.
+  for (const event of [...(result.events || []), ...(result.resolvedEvents || [])]) {
     if (event.type !== 'buff') continue;
     const presentation = effectPresentation(event.kind, presentations);
     if (presentation?.maximumStacks == null) continue;

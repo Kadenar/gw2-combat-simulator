@@ -1,5 +1,41 @@
 import { expect, test } from '@playwright/test';
 
+// Optional requirements survive worker updates, reject before combat, and disappear when cleared.
+test('optimizer requirement inputs reject candidates and blank fields remove limits', async ({ page }) => {
+  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  const panel = page.locator('#gear-optimizer');
+  await panel.locator(':scope > summary').click();
+  for (const label of [
+    'Minimum toughness',
+    'Maximum toughness',
+    'Minimum boon duration (%)',
+    'Minimum quickness duration (%)'
+  ])
+    await expect(panel.getByRole('spinbutton', { name: label, exact: true })).toHaveValue('');
+  await panel.getByRole('spinbutton', { name: 'Maximum toughness', exact: true }).fill('0');
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+  await expect(panel.locator('[data-role="optimizer-counts"]')).toContainText('0 simulations');
+  await expect(panel.locator('[data-role="optimizer-results"]')).toContainText(
+    'No gear combinations met the requirements'
+  );
+  await panel.getByRole('spinbutton', { name: 'Maximum toughness', exact: true }).fill('');
+  await panel.getByRole('spinbutton', { name: 'Minimum boon duration (%)', exact: true }).fill('0');
+  await panel.getByRole('spinbutton', { name: 'Minimum quickness duration (%)', exact: true }).fill('0');
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+  expect(await page.evaluate(() => ({ ...window.professionApp.gearOptimizerRunner.request.selections }))).toMatchObject(
+    { minBoonDuration: 0, minQuicknessDuration: 0 }
+  );
+  expect(await page.evaluate(() => 'maxToughness' in window.professionApp.gearOptimizerRunner.request.selections)).toBe(
+    false
+  );
+  await expect(panel.getByRole('table', { name: 'Gear comparison' })).toBeVisible();
+});
+
 /** Pick by the underlying equipment identity while the dropdown supplies readable attribute descriptions. */
 async function addChoice(panel, label, choice) {
   const select = panel.getByRole('combobox', { name: `Add ${label}`, exact: true });
@@ -45,6 +81,13 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(panel.locator('tbody tr')).toHaveCount(1);
   const results = panel.getByRole('table', { name: 'Gear comparison' });
   await expect(results.locator('details')).toHaveCount(0);
+  await expect(results.locator('tbody').getByText('Best', { exact: true })).toHaveCount(0);
+  await expect(results.locator('tfoot .optimizer-best').getByText('Best', { exact: true })).toBeVisible();
+  const percentage = await page.evaluate(() => {
+    const state = window.professionApp.gearOptimizerRunner.state;
+    return `${((state.winners[0].score.dps / state.baseline.dps - 1) * 100).toFixed(1)}%`;
+  });
+  await expect(results.locator('tbody .optimizer-damage small')).toHaveText(percentage);
   await expect(results.getByRole('cell', { name: 'Food: None', exact: true })).toBeVisible();
   await expect(results.getByRole('columnheader', { name: 'Helm', exact: true })).toBeVisible();
   for (const set of [1, 2]) {
@@ -254,6 +297,8 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     revision: window.professionApp.buildRevision
   }));
   const pinned = panel.getByRole('row', { name: 'Equipped setup', exact: true });
+  await expect(panel.locator('tbody .optimizer-best').getByText('Best', { exact: true })).toBeVisible();
+  await expect(pinned.getByText('Best', { exact: true })).toHaveCount(0);
   await expect(pinned.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true })).toBeVisible();
   await expect(pinned.getByRole('button')).toHaveCount(0);
   await panel.locator('.optimizer-filter-settings > summary').click();

@@ -21,7 +21,18 @@ export interface GearOptimizerSelections {
   infusionStats?: string[];
   infusionCount?: number;
   locks?: string[];
+  minToughness?: number;
+  maxToughness?: number;
+  minBoonDuration?: number;
+  minQuicknessDuration?: number;
 }
+
+export const OPTIMIZER_REQUIREMENTS = {
+  minToughness: 'Minimum toughness',
+  maxToughness: 'Maximum toughness',
+  minBoonDuration: 'Minimum boon duration (%)',
+  minQuicknessDuration: 'Minimum quickness duration (%)'
+} as const;
 
 export interface GearOptimizerRequest {
   readonly gameId: 'gw2';
@@ -177,13 +188,39 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2
     Array.isArray(selections) ||
     Object.keys(selections).some(
       (key) =>
-        !['prefixes', 'rune', 'relic', 'food', 'utility', 'sigils', 'infusionStats', 'infusionCount', 'locks'].includes(
-          key
-        )
+        ![
+          'prefixes',
+          'rune',
+          'relic',
+          'food',
+          'utility',
+          'sigils',
+          'infusionStats',
+          'infusionCount',
+          'locks',
+          ...Object.keys(OPTIMIZER_REQUIREMENTS)
+        ].includes(key)
     )
   ) {
     throw new TypeError('Invalid optimizer selections.');
   }
+
+  // Omitted requirements are unrestricted; reject malformed bounds before starting workers.
+  for (const key of Object.keys(OPTIMIZER_REQUIREMENTS) as (keyof typeof OPTIMIZER_REQUIREMENTS)[]) {
+    const value = selections[key];
+    if (
+      value !== undefined &&
+      (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || (key.endsWith('Duration') && value > 100))
+    )
+      throw new RangeError(`Invalid ${OPTIMIZER_REQUIREMENTS[key].toLowerCase()}.`);
+  }
+
+  if (
+    selections.minToughness !== undefined &&
+    selections.maxToughness !== undefined &&
+    selections.minToughness > selections.maxToughness
+  )
+    throw new RangeError('Minimum toughness must not exceed maximum toughness.');
 
   if (
     build.infusions.some((entry) => typeof entry.count !== 'number') ||
@@ -328,7 +365,9 @@ export function ordinaryEquipmentAt(space: OptimizerSpace, ordinal: bigint): Opt
 export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter: Gw2AppAdapter) {
   createOptimizerSpace(request, adapter);
   const activeCatalog = adapter.profession.catalogFor?.(request.patchId) || adapter.profession.catalog;
-  const prepare = (equipment: OptimizerEquipment): Gw2Config => {
+  function prepare(equipment: OptimizerEquipment): Gw2Config;
+  function prepare(equipment: OptimizerEquipment, enforceRequirements: true): Gw2Config | null;
+  function prepare(equipment: OptimizerEquipment, enforceRequirements = false): Gw2Config | null {
     // The runtime preparation seam reads only these fields; UI methods are deliberately unavailable headlessly.
     const app = {
       build: { ...request.build, ...equipment },
@@ -342,24 +381,58 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
       results: null
     } as ProfessionAppState;
     adapter.recalculate(app);
+    // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
+    const limits = request.selections;
+    if (
+      enforceRequirements &&
+      Object.keys(OPTIMIZER_REQUIREMENTS).some(
+        (key) => limits[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
+      )
+    ) {
+      const startingAttributes = app.attributeData;
+      for (const set of optimizerWeaponSets(request.build, adapter)) {
+        app.attributeWeaponSet = set + 1;
+        if (app.attributeWeaponSet === request.build.startingWeaponSet) app.attributeData = startingAttributes;
+        else adapter.recalculate(app);
+        const attributes = app.attributeData!.attributes;
+        const toughness = attributes.Toughness.final;
+        const boonDuration = attributes['Boon Duration']?.final || 0;
+        const quicknessDuration = boonDuration + (attributes['Quickness Duration']?.final || 0);
+        if (
+          (limits.minToughness !== undefined && toughness < limits.minToughness) ||
+          (limits.maxToughness !== undefined && toughness > limits.maxToughness) ||
+          (limits.minBoonDuration !== undefined && Math.min(100, boonDuration) < limits.minBoonDuration) ||
+          (limits.minQuicknessDuration !== undefined && Math.min(100, quicknessDuration) < limits.minQuicknessDuration)
+        )
+          return null;
+      }
+
+      app.attributeWeaponSet = request.build.startingWeaponSet;
+      app.attributeData = startingAttributes;
+    }
+
     const config = adapter.simulationConfig(app);
     return {
       ...config,
       patchValues: request.patchValues,
       randomness: { ...config.randomness, mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC }
     };
-  };
+  }
 
   const evaluate = (equipment: OptimizerEquipment): Gw2SimulationResult =>
     adapter.simulateBuild(request.build.rotation, prepare(equipment), request.observationPolicy);
-  const score = (equipment: OptimizerEquipment): OptimizerScore =>
-    simulateGw2({
+  const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
+    const config = prepare(equipment, true);
+    if (!config) return null;
+    return simulateGw2({
       profession: adapter.profession,
       rotation: request.build.rotation,
-      config: prepare(equipment),
+      config,
       observationPolicy: request.observationPolicy,
       output: 'score'
     });
+  };
+
   return { prepare, evaluate, score };
 }
 
@@ -470,12 +543,14 @@ export function runOrdinaryOptimizer(request: GearOptimizerRequest, adapter: Gw2
   const winners: OptimizerCandidate[] = [];
   for (let ordinal = 0n; ordinal < space.rawCount; ordinal++) {
     const equipment = ordinaryEquipmentAt(space, ordinal);
+    const config = evaluator.prepare(equipment, true);
+    if (!config) continue;
     retainOptimizerCandidate(
       winners,
       {
         key: JSON.stringify(equipment),
         equipment,
-        score: optimizerScore(evaluator.evaluate(equipment)),
+        score: optimizerScore(adapter.simulateBuild(request.build.rotation, config, request.observationPolicy)),
         represented: '1'
       },
       request.limit
