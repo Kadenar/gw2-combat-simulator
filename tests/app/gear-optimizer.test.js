@@ -479,9 +479,9 @@ test('cancel, stale revisions, constructor and postMessage failures never report
   assert.match(runner.state.error, /stale/);
 });
 
-test('verification mismatches fail and Apply mutates equipment once with a revision guard', () => {
-  const captured = request();
-  const winner = runOrdinaryOptimizer(captured, adapter)[0];
+test('successive result applies remain valid while unrelated edits still fail the revision guard', () => {
+  const captured = request({ food: ['', request().build.food] });
+  const [winner, another] = runOrdinaryOptimizer(captured, adapter);
   assert.throws(
     () => verifyOptimizerScore(winner.score, { ...winner.score, dps: winner.score.dps + 1 }),
     /correctness failure/
@@ -501,6 +501,12 @@ test('verification mismatches fail and Apply mutates equipment once with a revis
   applyOptimizerCandidate(app, captured, winner);
   assert.equal(app.build.rotation, rotation);
   assert.equal(changes, 1);
+  applyOptimizerCandidate(app, captured, another);
+  assert.equal(app.build.food, another.equipment.food);
+  assert.equal(app.build.rotation, rotation);
+  assert.equal(changes, 2);
+  assert.equal(captured.revision, app.buildRevision - 2);
+  app.changed();
   assert.throws(() => applyOptimizerCandidate(app, captured, winner), /stale/);
 });
 

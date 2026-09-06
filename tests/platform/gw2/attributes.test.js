@@ -19,11 +19,77 @@ import {
 } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
+import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
+import { createModifierContributionRequest } from '#gw2/app/simulation/modifiers/request.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calcAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
 const replaceBuild = (saved) => replaceBuildFor(saved, mesmerAppAdapter);
+
+test('config preparation calculates each affected weapon set once and reuses the displayed set for hooks', () => {
+  const calculatedSets = [];
+  let hookAttributes;
+  const runtime = createProfessionRuntime({
+    profession: mesmerAppAdapter.profession,
+    // Distinct set values expose accidentally selecting the first set for displayed-attribute hooks.
+    calculateAttributes(_build, _skills, weaponSet) {
+      calculatedSets.push(weaponSet);
+      return { attributes: { Power: { final: weaponSet * 100 } }, activeTraits: [{ id: weaponSet }] };
+    },
+    buildConfigExtras(_app, { attributeData }) {
+      hookAttributes = attributeData;
+      return {};
+    }
+  });
+  const build = createDefaultBuild();
+  build.selectedSkills = {};
+  const app = { build, attributeWeaponSet: 2, skillByName: new Map() };
+  runtime.recalculate(app);
+  for (const type of ['Trait', 'Boon', 'Sigil', 'Food']) {
+    calculatedSets.length = 0;
+    const config = runtime.simulationConfig(app, { id: `${type}:Test`, type, name: 'Test', label: 'Test' });
+    assert.deepEqual(calculatedSets, [1, 2]);
+    assert.deepEqual(
+      config.weaponSetStats.map((stats) => stats.power),
+      [100, 200]
+    );
+    assert.equal(hookAttributes.attributes.Power.final, 200);
+    assert.deepEqual(config.selectedTraitIds, [2]);
+  }
+
+  calculatedSets.length = 0;
+  runtime.simulationConfig(app);
+  assert.deepEqual(calculatedSets, [1], 'ordinary preparation retains the cached displayed attributes');
+  assert.equal(hookAttributes, app.attributeData);
+});
+
+test('modifier requests apply one deterministic health policy to baseline and removed effects', () => {
+  const sourceConfig = Object.freeze({
+    randomness: Object.freeze({ mode: 'stochastic', seed: 7 }),
+    target: Object.freeze({ health: 1000, armor: 2000, startingHealthFraction: 0.75 })
+  });
+  for (const relic of ['', 'Thief', 'Eagle']) {
+    const app = {
+      build: { rotation: [], relic, assumptions: { might: 1 }, weaponSigils: [], food: '' },
+      attributeData: { activeTraits: [] }
+    };
+    const disabledEffects = [];
+    const request = createModifierContributionRequest(app, 'mesmer', (_app, disabled) => {
+      disabledEffects.push(disabled?.id ?? null);
+      return sourceConfig;
+    });
+    assert.deepEqual(disabledEffects, [null, 'Boon:Might', ...(relic ? [`Relic:${relic}`] : [])]);
+    assert.equal(request.contentId, 'mesmer');
+    for (const config of [request.baseConfig, ...request.comparisons.map(({ config }) => config)]) {
+      assert.deepEqual(config.randomness, { mode: 'deterministic', seed: 7 });
+      assert.deepEqual(config.target, { ...sourceConfig.target, health: relic === 'Eagle' ? 1000 : 0 });
+    }
+  }
+
+  assert.equal(sourceConfig.randomness.mode, 'stochastic');
+  assert.equal(sourceConfig.target.health, 1000);
+});
 
 test('shared contribution comparisons accept a profession simulator', () => {
   const simulate = (_rotation, config) => ({ dps: config.dps });

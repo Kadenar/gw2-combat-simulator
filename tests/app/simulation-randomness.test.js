@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
+import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/config.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   calculateRandomDistribution,
@@ -55,6 +55,20 @@ function simulationConfig(profession, build, specialization) {
 function traitConditionCount(result, traitId) {
   return result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === traitId).length;
 }
+
+test('deterministic analysis config converts only stochastic mode without mutating its input', () => {
+  const config = Object.freeze({
+    randomness: Object.freeze({ mode: 'stochastic', seed: 42 }),
+    target: Object.freeze({ health: 1000 })
+  });
+  const deterministic = deterministicSimulationConfig(config);
+  assert.deepEqual(deterministic.randomness, { mode: 'deterministic', seed: 42 });
+  assert.equal(deterministic.target, config.target);
+  assert.equal(config.randomness.mode, 'stochastic');
+  assert.equal(deterministicSimulationConfig(deterministic), deterministic);
+  const unspecified = { target: config.target };
+  assert.equal(deterministicSimulationConfig(unspecified), unspecified);
+});
 
 test('seeded simulation random streams are reproducible and independent', () => {
   const first = createSimulationRandom({ mode: 'stochastic', seed: 42 });

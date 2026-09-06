@@ -430,7 +430,10 @@ export function verifyOptimizerScore(expected: OptimizerScore, actual: Optimizer
   }
 }
 
-const optimizerApplications = new WeakMap<ProfessionAppState, { request: GearOptimizerRequest; revision: number; candidate: OptimizerCandidate }>();
+const optimizerApplications = new WeakMap<
+  ProfessionAppState,
+  { request: GearOptimizerRequest; revision: number; candidate: OptimizerCandidate }
+>();
 
 /** Only this search's own Apply operations advance its accepted revision; unrelated edits still invalidate results. */
 export function isOptimizerRequestCurrent(app: ProfessionAppState, request: GearOptimizerRequest): boolean {
@@ -440,7 +443,10 @@ export function isOptimizerRequestCurrent(app: ProfessionAppState, request: Gear
 }
 
 /** The pinned comparison follows the last applied result without modifying the immutable search snapshot. */
-export function optimizerAppliedCandidate(app: ProfessionAppState, request: GearOptimizerRequest): OptimizerCandidate | null {
+export function optimizerAppliedCandidate(
+  app: ProfessionAppState,
+  request: GearOptimizerRequest
+): OptimizerCandidate | null {
   const applied = optimizerApplications.get(app);
   return applied?.request === request && isOptimizerRequestCurrent(app, request) ? applied.candidate : null;
 }
@@ -451,8 +457,7 @@ export function applyOptimizerCandidate(
   request: GearOptimizerRequest,
   candidate: OptimizerCandidate
 ): void {
-  if (!isOptimizerRequestCurrent(app, request))
-    throw new Error('This optimizer result is stale. Run a new search.');
+  if (!isOptimizerRequestCurrent(app, request)) throw new Error('This optimizer result is stale. Run a new search.');
   Object.assign(app.build, structuredClone(candidate.equipment));
   app.changed();
   optimizerApplications.set(app, { request, revision: app.buildRevision, candidate });

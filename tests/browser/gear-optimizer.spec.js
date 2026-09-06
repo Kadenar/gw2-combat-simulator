@@ -64,7 +64,12 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
     food: window.professionApp.build.food
   }));
   expect(after).toEqual({ ...before, revision: before.revision + 1, food: '' });
-  await expect(panel.getByRole('button', { name: 'Apply result 1', exact: true })).toBeDisabled();
+  await expect(panel.locator('[data-apply]')).toHaveCount(0);
+  await expect(
+    panel
+      .getByRole('row', { name: 'Equipped setup', exact: true })
+      .getByRole('cell', { name: 'Food: None', exact: true })
+  ).toBeVisible();
 });
 
 test('large search remains responsive and navigation cancels its workers', async ({ page }) => {
@@ -80,6 +85,12 @@ test('large search remains responsive and navigation cancels its workers', async
   await expect(panel.getByRole('spinbutton', { name: 'Workers', exact: true })).toBeDisabled();
   await expect.poll(() => page.evaluate(() => window.professionApp.gearOptimizerRunner.batch.workers.size)).toBe(4);
   await expect(panel.locator('[data-role="optimizer-counts"]')).toHaveText(/^[\d,]+ candidates checked\.$/);
+  const inlineProgress = await panel.locator('.optimizer-status-text').evaluate((element) => {
+    const status = element.querySelector('[data-role="optimizer-status"]').getBoundingClientRect();
+    const counts = element.querySelector('[data-role="optimizer-counts"]').getBoundingClientRect();
+    return counts.left >= status.right && Math.abs(counts.bottom - status.bottom) < 2;
+  });
+  expect(inlineProgress).toBe(true);
   await page.locator('.simulator-view-tab[data-simulator-view="workspace"]').click();
   expect(
     await page.evaluate(() => ({
@@ -168,6 +179,7 @@ test('results expose every equipment choice without expanding rows', async ({ pa
   await expect(results.locator('tbody tr')).toHaveCount(3);
   await expect(results.locator('details')).toHaveCount(0);
   await expect(results.locator('.optimizer-changed')).toHaveCount(0);
+  await expect(panel.locator('.optimizer-results-heading')).toHaveCount(0);
   await expect(results.getByRole('cell', { name: 'Food: None', exact: true }).first()).toBeVisible();
   for (const key of ['food', 'utility', 'rune']) {
     const icon = results
@@ -310,6 +322,28 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe('');
   expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(before.revision + 1);
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.');
+  await expect(pinned.getByRole('cell', { name: 'Food: None', exact: true })).toBeVisible();
+  const nextResult = panel
+    .locator('tbody tr')
+    .filter({ has: page.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true }) });
+  await nextResult.getByRole('button', { name: /^Apply result/ }).click();
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  expect(await page.evaluate(() => window.professionApp.build.food)).toBe(equipped.food);
+  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(before.revision + 2);
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.');
+  await expect(pinned.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true })).toBeVisible();
+  expect(await page.evaluate(() => String(window.professionApp.gearOptimizerRunner.state.simulations))).toBe(
+    before.simulations
+  );
+  // A real rotation edit still invalidates the retained search, even after successive equipment applies.
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.rotation.push(structuredClone(app.build.rotation[0]));
+    app.changed();
+  });
+  await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Results are stale');
+  for (const button of await panel.locator('[data-apply]').all()) await expect(button).toBeDisabled();
 });
 
 test('an unchanged setup appears only in the pinned row', async ({ page }) => {

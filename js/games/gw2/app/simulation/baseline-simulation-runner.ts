@@ -71,7 +71,9 @@ export class BaselineSimulationRunner {
     if (typeof Worker !== 'function') {
       // Tests and older browsers retain correctness; the timeout still separates mutation from calculation.
       setTimeout(() => {
-        if (job.requestId !== this.requestId) return;
+        // Superseded fallback jobs must release the slot so the newest pending edit can run.
+        if (job.requestId !== this.requestId)
+          return this.finish(job, { requestId: job.requestId, revision: job.revision });
         try {
           this.finish(job, {
             requestId: job.requestId,

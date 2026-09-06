@@ -209,15 +209,14 @@ Shared-code assessment:
   adapter's attribute/config preparation and the engine's score-only output. Exact and fast searches already share
   `createOptimizerEvaluator` and `scoreOptimizerRange`. Relic comparison reuses `buildChartSeries` from the results
   layer. These shared pieces should stay outside individual feature directories.
-- One small extraction candidate remains: identical stochastic-to-deterministic config conversion appears in
-  `modifierContributionRequest` and `baselineSimulationConfig` inside `create-runtime.ts`. A local helper could remove
-  that duplication. The optimizer deliberately forces deterministic mode unconditionally, so it should not be folded
-  into a helper that only converts stochastic mode. This directory migration leaves those policies unchanged.
+- Baseline and modifier requests share `deterministicSimulationConfig` in `config.ts`. The optimizer deliberately forces
+  deterministic mode unconditionally, so it does not use the helper that only converts stochastic mode. Modifier
+  candidate enumeration and request assembly belong to `modifiers/request.ts`; one config policy preserves finite target
+  health for Eagle and removes the death cutoff for other modifier comparisons. The runtime supplies profession identity
+  and config preparation, calculating each affected weapon set once per config.
 - No general analysis-runner superclass, batch partitioner, or statistics utility is needed. Similar timer cleanup and
   hardware-concurrency arithmetic are small; the scheduling, partitioning, and result semantics differ. RNG statistics
-  currently have one feature owner. Modifier candidate enumeration and request assembly remain in the runtime's adapter
-  composition; moving those closures would be a separate feature-boundary cleanup, not extraction of duplicated common
-  code.
+  currently have one feature owner.
 
 ---
 

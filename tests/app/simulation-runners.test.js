@@ -347,6 +347,49 @@ test('baseline runner publishes only the newest revision and reuses one worker',
   assert.equal(workers.length, 1, 'the persistent worker handles both jobs');
 });
 
+test('superseded baseline fallbacks release the slot and publish only the newest edit', (t) => {
+  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: undefined });
+  t.after(() => {
+    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
+    else delete globalThis.Worker;
+  });
+  // Hold the fallback callback until a newer edit has replaced its request.
+  const callbacks = [];
+  t.mock.method(globalThis, 'setTimeout', (callback) => {
+    callbacks.push(callback);
+    return callbacks.length;
+  });
+  t.mock.method(globalThis, 'clearTimeout', () => {});
+  const calculated = [];
+  const published = [];
+  const app = {
+    buildRevision: 1,
+    adapter: {
+      baselineSimulationRequest: () => ({ revision: app.buildRevision }),
+      calculateBaselineSimulation(request) {
+        calculated.push(request.revision);
+        return { result: { revision: request.revision } };
+      }
+    },
+    publishBaselineSimulation(output, revision) {
+      published.push([output.result.revision, revision]);
+    },
+    failBaselineSimulation: (error) => assert.fail(error)
+  };
+  const runner = new BaselineSimulationRunner(app);
+  runner.schedule(1);
+  callbacks.shift()();
+  app.buildRevision = 2;
+  runner.schedule(2);
+  while (callbacks.length) callbacks.shift()();
+
+  assert.deepEqual(calculated, [2]);
+  assert.deepEqual(published, [[2, 2]]);
+  assert.equal(runner.inFlight, null);
+  assert.equal(runner.pending, null);
+});
+
 test('baseline requests refresh a queued reference once, using independent command clones', async () => {
   const adapter = await loadProfessionAppAdapter('engineer');
   const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());

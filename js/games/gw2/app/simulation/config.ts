@@ -11,6 +11,17 @@ import {
 } from '#gw2/platform/simulation/randomness.js';
 import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
+
+/** Keep baseline and modifier comparisons stable while preserving all other simulation settings. */
+export function deterministicSimulationConfig(config: Gw2Config): Gw2Config {
+  return config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
+    ? {
+        ...config,
+        randomness: { ...config.randomness, mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC }
+      }
+    : config;
+}
 
 /**
  * Assembles common equipment, boon, target, weapon, and stat simulation input.

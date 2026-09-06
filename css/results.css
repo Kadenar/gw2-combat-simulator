@@ -1806,6 +1806,13 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
 .optimizer-status-row p {
   margin: 0;
 }
+/* Keep measured progress beside the status, allowing wrapping only when the available width requires it. */
+.optimizer-status-text {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
 .optimizer-filter-settings {
   position: relative;
 }
@@ -1860,7 +1867,6 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
   display: none;
 }
 .optimizer-feedback [data-role='optimizer-counts'] {
-  margin-top: 8px;
   color: var(--text-dim);
   font-size: 11px;
 }
@@ -1925,23 +1931,11 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
   display: block;
   border-radius: 2px;
 }
-.optimizer-results-heading {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-}
-.optimizer-results-heading span {
-  font-size: 11px;
-  color: var(--text-dim);
-}
 /* Keep all candidate equipment in view, with local scrolling for narrow screens and long result lists. */
 .optimizer-table-scroll {
   max-height: 480px;
   overflow: auto;
+  border-top: 1px solid var(--border);
 }
 .optimizer-table-scroll:focus-visible {
   outline: 2px solid var(--accent);

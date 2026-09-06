@@ -1,4 +1,5 @@
-import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
+import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/config.js';
+import { createModifierContributionRequest } from '#gw2/app/simulation/modifiers/request.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
 import {
   DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
@@ -6,7 +7,6 @@ import {
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
-import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { ObservationPolicy, RotationCommand } from '#gw2/platform/engine/execution/types.js';
@@ -24,7 +24,7 @@ import type {
 import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
-import type { Gw2ApplicationBuild, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.
@@ -103,20 +103,19 @@ export function createProfessionRuntime({
   function attributesWithModifierDisabled(
     app: ProfessionAppState,
     disabled: ProfessionModifier | null,
-    weaponSet?: number
+    weaponSet: number
   ): ProfessionAttributeData {
     if (!app.attributeData) {
       throw new Error('Profession attributes must be calculated before simulation.');
     }
 
     const displayedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
-    const targetWeaponSet = weaponSet ?? displayedWeaponSet;
     const recalculatesAttributes =
       disabled?.type === 'Trait' ||
       disabled?.type === 'Boon' ||
       disabled?.type === 'Sigil' ||
       disabled?.type === 'Food';
-    if (targetWeaponSet === displayedWeaponSet && !recalculatesAttributes) {
+    if (weaponSet === displayedWeaponSet && !recalculatesAttributes) {
       return app.attributeData;
     }
 
@@ -138,17 +137,18 @@ export function createProfessionRuntime({
     return calculateAttributes(
       build,
       selectedSkills(app),
-      targetWeaponSet,
+      weaponSet,
       disabled?.type === 'Trait' ? disabled.name : null,
       disabled?.type === 'Sigil' ? disabled.name : null
     ) as ProfessionAttributeData;
   }
 
   function simulationConfig(app: ProfessionAppState, disabled: ProfessionModifier | null = null): Gw2Config {
-    const attributeData = attributesWithModifierDisabled(app, disabled);
     const attributeDataByWeaponSet = [1, 2].map((weaponSet) =>
       attributesWithModifierDisabled(app, disabled, weaponSet)
     );
+    // Reuse the displayed set from this pass so removing a modifier calculates each weapon set only once.
+    const attributeData = attributeDataByWeaponSet[Number(app.attributeWeaponSet) === 2 ? 1 : 0];
     const specialization = eliteSpecialization(app.build);
     const activeTraits = attributeData.activeTraits || [];
     const runtimeContext = { attributeData, specialization, activeTraits };
@@ -162,124 +162,6 @@ export function createProfessionRuntime({
       ...(buildConfigInputs ? buildConfigInputs(app, runtimeContext) : null)
     });
     return buildConfigExtras ? { ...config, ...buildConfigExtras(app, runtimeContext) } : config;
-  }
-
-  function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
-    const candidates: ProfessionModifier[] = [];
-    const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
-    if (Number(assumptions.might) > 0) {
-      candidates.push({
-        id: 'Boon:Might',
-        type: 'Boon',
-        name: 'Might',
-        label: 'Might'
-      });
-    }
-
-    if (assumptions.fury) {
-      candidates.push({
-        id: 'Boon:Fury',
-        type: 'Boon',
-        name: 'Fury',
-        label: 'Fury'
-      });
-    }
-
-    if (assumptions.resolution) {
-      candidates.push({
-        id: 'Boon:Resolution',
-        type: 'Boon',
-        name: 'Resolution',
-        label: 'Resolution'
-      });
-    }
-
-    if (Number(assumptions.targetConditions?.Vulnerability) > 0) {
-      candidates.push({
-        id: 'Target:Vulnerability',
-        type: 'Target',
-        name: 'Vulnerability',
-        label: 'Vulnerability'
-      });
-    }
-
-    for (const name of new Set((app.build.weaponSigils || []).flat())) {
-      if (!name) continue;
-      candidates.push({
-        id: `Sigil:${name}`,
-        type: 'Sigil',
-        name,
-        label: `Sigil of ${name}`
-      });
-    }
-
-    if (app.build.relic) {
-      candidates.push({
-        id: `Relic:${app.build.relic}`,
-        type: 'Relic',
-        name: app.build.relic,
-        label: `Relic of ${app.build.relic}`
-      });
-    }
-
-    if (FOOD_DATA[app.build.food]?.proc) {
-      candidates.push({
-        id: `Food:${app.build.food}`,
-        type: 'Food',
-        name: app.build.food,
-        label: `Food: ${FOOD_DATA[app.build.food].proc.name}`
-      });
-    }
-
-    for (const trait of app.attributeData?.activeTraits || []) {
-      candidates.push({
-        id: `Trait:${trait.name}`,
-        type: 'Trait',
-        name: trait.name,
-        label: trait.name
-      });
-    }
-
-    return candidates;
-  }
-
-  function modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest {
-    const deterministicConfig = (config: Gw2Config): Gw2Config =>
-      config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
-        ? {
-            ...config,
-            randomness: {
-              ...config.randomness,
-              mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC
-            }
-          }
-        : config;
-    let baseConfig = deterministicConfig(simulationConfig(app));
-    if (app.build.relic !== 'Eagle') {
-      baseConfig = {
-        ...baseConfig,
-        target: { ...baseConfig.target, health: 0 }
-      };
-    }
-
-    const comparisons = modifierCandidates(app).map((modifier) => {
-      let config = deterministicConfig(simulationConfig(app, modifier));
-      if (app.build.relic !== 'Eagle') {
-        config = {
-          ...config,
-          target: { ...config.target, health: 0 }
-        };
-      }
-
-      return { modifier, config };
-    });
-    return {
-      gameId: 'gw2',
-      contentId: profession.id,
-      rotation: app.build.rotation,
-      baseConfig,
-      comparisons
-    };
   }
 
   function calculateModifierContributions({ rotation, baseConfig, comparisons }: ModifierContributionRequest) {
@@ -327,19 +209,7 @@ export function createProfessionRuntime({
   }
 
   function baselineSimulationConfig(app: ProfessionAppState): Gw2Config {
-    const config = simulationConfig(app);
-    // Detailed tables and timelines need one stable run. When distribution
-    // mode is selected, keep that baseline deterministic and calculate RNG
-    // percentiles separately.
-    return config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
-      ? {
-          ...config,
-          randomness: {
-            ...config.randomness,
-            mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC
-          }
-        }
-      : config;
+    return deterministicSimulationConfig(simulationConfig(app));
   }
 
   function rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'] {
@@ -407,7 +277,7 @@ export function createProfessionRuntime({
     eliteSpecialization,
     recalculate,
     simulationConfig,
-    modifierContributionRequest,
+    modifierContributionRequest: (app) => createModifierContributionRequest(app, profession.id, simulationConfig),
     calculateModifierContributions,
     randomDistributionRequest,
     relicComparisonRequest,
