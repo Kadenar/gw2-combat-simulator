@@ -384,8 +384,8 @@ function consumeDoubleEdgeOutcome(context: ThiefCastContext, skill: ThiefSkill):
   return peekRiskyOutcome(context);
 }
 
-// Materialize Canach's backfire damage and conditions against the player at the
-// resolved cannon outcome timestamp.
+// Emit the cannon backfire's damage and conditions against nearby enemies;
+// the self-hit is omitted by the outgoing-only combat model.
 function emitCannonBackfire(context: ThiefCastContext, at: number): void {
   const profile = balanceProfileFromContext(context, PROFILE.cannonBackfire);
   const strike = balanceProfileEffect(profile, 'strike');

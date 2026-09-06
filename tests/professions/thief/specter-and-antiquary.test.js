@@ -4,6 +4,7 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
@@ -127,6 +128,69 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
   assert.equal(result.endState.profession.shadowShroudActive, false);
   assert.equal(result.endState.profession.shadowForce, 0);
   assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
+  assert.deepEqual(result.warnings, []);
+  const depleted = result.events.filter((event) => event.sourceId === 'thief.shadow-shroud-depleted');
+  assert.equal(depleted.length, 1);
+  assert.equal(depleted[0].at, 0.5);
+  const snapshot = result.events.find((event) => event.reason === 'shadow-shroud-depleted');
+  assert.equal(snapshot.at, 0.5);
+  assert.equal(snapshot.state.shadowShroudActive, false);
+  assert.equal(snapshot.state.shadowForce, 0);
+});
+
+// Observe the live clock so backdating an exit after the wait cannot satisfy the timing contract.
+test('Shadow Shroud depletion executes at the scheduler boundary', () => {
+  const scheduler = createScheduler({
+    profession: thiefProfession,
+    config: { specialization: 'Specter', initialShadowForce: 1 }
+  });
+  const emit = scheduler.context.emit;
+  const observed = [];
+  scheduler.context.emit = (event) => {
+    if (event.reason === 'shadow-shroud-depleted') observed.push(scheduler.context.state.time);
+    return emit(event);
+  };
+
+  scheduler.run(['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }]);
+  assert.deepEqual(observed, [0.5]);
+});
+
+test('Shadow Shroud depletion follows force gains and cooldown resets', () => {
+  for (const [command, expectedExit] of [
+    ['Siphon', 13],
+    [{ type: 'cooldown-reset' }, 50.25]
+  ]) {
+    const result = simulate(
+      'Specter',
+      ['Enter Shadow Shroud', { type: 'wait', durationMs: 250 }, command, { type: 'wait', durationMs: 51000 }],
+      { initialShadowForce: 1 }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      result.events.filter((event) => event.reason === 'shadow-shroud-depleted').map((event) => event.at),
+      [expectedExit]
+    );
+  }
+});
+
+test('manual Shadow Shroud exit cancels depletion and preserves remaining force', () => {
+  const result = simulate(
+    'Specter',
+    [
+      'Enter Shadow Shroud',
+      { type: 'wait', durationMs: 250 },
+      'Exit Shadow Shroud',
+      { type: 'wait', durationMs: 1000 }
+    ],
+    { initialShadowForce: 1 }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some((event) => event.reason === 'shadow-shroud-depleted'),
+    false
+  );
+  assert.equal(result.endState.profession.shadowForce, 0.5);
+  assert.equal(result.endState.profession.shadowShroudActive, false);
 });
 
 test('Specter shadow force is 69% of health and drains 2% per second', () => {

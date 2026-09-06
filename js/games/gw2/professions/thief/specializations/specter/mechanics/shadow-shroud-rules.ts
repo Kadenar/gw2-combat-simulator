@@ -8,6 +8,8 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterCastAvailability } from '#gw2/professions/thief/specializations/specter/mechanics/availability.js';
 import {
   advanceSpecterResources,
+  handleShadowShroudDepletion,
+  SHADOW_SHROUD_DEPLETION_TASK,
   spendSpecterResources
 } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
@@ -43,6 +45,7 @@ export const specterSchedulerHooks = Object.freeze({
     handler: observeSpecterEvent
   },
   taskHandlers: Object.freeze({
+    [SHADOW_SHROUD_DEPLETION_TASK]: handleShadowShroudDepletion,
     'thief.larcenous-torment': handleLarcenousTorment,
     'thief.specter-dark-sentry': handleDarkSentry
   })

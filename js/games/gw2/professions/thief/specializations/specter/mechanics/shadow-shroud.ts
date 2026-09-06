@@ -12,6 +12,37 @@ import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '#gw2/p
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
+export const SHADOW_SHROUD_DEPLETION_TASK = 'thief.shadow-shroud-depleted';
+
+// Stop advancement at the zero crossing; gains can postpone it when the task rechecks the remaining force.
+function scheduleShadowShroudDepletion(context: ThiefSchedulerContext): void {
+  const state = specterState.from(context);
+  const resources = balanceProfileFromContext(context, PROFILE.resources);
+  const drain = state.maximumShadowForce * Number(resources?.lifeForceDrain ?? 0.02);
+  if (!(drain > 0)) return;
+  const remaining = state.shadowForce / drain;
+  context.tasks.schedule({
+    type: SHADOW_SHROUD_DEPLETION_TASK,
+    at: state.shadowForceUpdatedAt + remaining,
+    priority: -10,
+    ownerId: SHADOW_SHROUD_DEPLETION_TASK
+  });
+}
+
+export function handleShadowShroudDepletion(context: ThiefSchedulerContext): void {
+  const state = specterState.from(context);
+  if (!state.shadowShroudActive) return;
+  if (state.shadowForce > context.epsilon) {
+    scheduleShadowShroudDepletion(context);
+    return;
+  }
+
+  state.shadowForce = 0;
+  state.shadowShroudActive = false;
+  emitThiefShroudSwap(context, { id: SHADOW_SHROUD_DEPLETION_TASK, name: 'Exit Shadow Shroud' }, context.state.time);
+  emitThiefStateSnapshot(context, context.state.time, 'shadow-shroud-depleted');
+}
+
 export function completeSiphon(context: ThiefCastContext): void {
   const state = specterState.from(context);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
@@ -33,6 +64,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   const barrier = balanceProfileEffect(profile, 'buff');
   state.shadowShroudActive = true;
   state.shadowForceUpdatedAt = at;
+  scheduleShadowShroudDepletion(context);
   // Enter Shadow Shroud barriers one tethered ally, not the caster or whole party.
   const alliedRecipients = Math.min(
     Number(profile?.maximumTargets ?? 1),
@@ -66,6 +98,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
 export function exitShadowShroud(context: ThiefCastContext, skill: ThiefSkill): void {
   const at = context.effectiveEnd;
   specterState.from(context).shadowShroudActive = false;
+  context.tasks.cancelOwner(SHADOW_SHROUD_DEPLETION_TASK);
   emitThiefShroudSwap(context, skill, at);
   emitThiefStateSnapshot(context, at, 'exit-shadow-shroud');
 }
@@ -98,19 +131,6 @@ export function advanceSpecterResources(context: ThiefSchedulerContext, target: 
       0,
       state.shadowForce - (target - shadowFrom) * state.maximumShadowForce * Number(resources?.lifeForceDrain ?? 0.02)
     );
-    // When force hits exactly 0, shroud collapses automatically without an explicit exit cast.
-    if (state.shadowForce === 0) {
-      state.shadowShroudActive = false;
-      emitThiefShroudSwap(
-        context,
-        {
-          id: 'thief.shadow-shroud-depleted',
-          name: 'Exit Shadow Shroud'
-        },
-        target
-      );
-      emitThiefStateSnapshot(context, target, 'shadow-shroud-depleted');
-    }
   }
 
   state.shadowForceUpdatedAt = target;
