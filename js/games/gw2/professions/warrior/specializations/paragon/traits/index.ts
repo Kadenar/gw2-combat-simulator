@@ -85,7 +85,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
     });
   }
 
-  // Emit every selected opening packet directly so attribution stays visible at the behavior site.
+  // Opening boons include the caster and party, matching the chant's initial effects.
   for (const boon of openingBoons) {
     emitSkillBuff(context, {
       skill,
@@ -100,7 +100,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
       boon: boon.kind,
       duration: boon.duration,
       stacks: boon.stacks,
-      audience: { recipients: 'party' as const, affectsSelf: false }
+      audience: { recipients: 'party' as const }
     });
   }
 

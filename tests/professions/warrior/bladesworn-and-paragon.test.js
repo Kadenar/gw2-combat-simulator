@@ -892,6 +892,52 @@ test('Paragon chants consume adrenaline and start a refrain', () => {
   assert.equal(result.endState.profession.activeRefrain, 'Chant of Action');
 });
 
+test('Paragon chant opening boons reach the caster and party', () => {
+  // Each chant must share its opening boons with the caster as well as allied players.
+  for (const [skillId, kinds] of [
+    [ID.CHANT_OF_ACTION, ['might', 'fury']],
+    [ID.CHANT_OF_RECUPERATION, ['vigor']],
+    [ID.CHANT_OF_FREEDOM, ['stability']]
+  ]) {
+    const result = simulate('Paragon', [skillId], {
+      initialResource: 10,
+      allies: { count: 4 }
+    });
+    const boons = result.events.filter((event) => event.type === 'buff' && event.skillId === skillId);
+
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      boons.map((event) => event.kind),
+      kinds
+    );
+    for (const boon of boons) {
+      assert.equal(boon.audience.recipients, 'party');
+      assert.equal(boon.resolvedAudience.includesSelf, true);
+      assert.equal(boon.resolvedAudience.alliedPlayerCount, 4);
+    }
+  }
+});
+
+test('Paragon Action refrain boons reach the caster and party', () => {
+  const result = simulate('Paragon', [ID.CHANT_OF_ACTION, { type: 'wait', durationMs: 3100 }], {
+    initialResource: 10,
+    allies: { count: 4 }
+  });
+  const boons = result.events.filter((event) => event.type === 'buff' && event.skillId === ID.CHANT_OF_ACTION);
+  const refrain = boons.filter((event) => event.at > boons[0].at);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    refrain.map((event) => event.kind),
+    ['might', 'fury']
+  );
+  for (const boon of refrain) {
+    assert.equal(boon.audience.recipients, 'party');
+    assert.equal(boon.resolvedAudience.includesSelf, true);
+    assert.equal(boon.resolvedAudience.alliedPlayerCount, 4);
+  }
+});
+
 test('Rally the Valiant grants motivation when a burst starts', () => {
   const selectedTraitIds = [TRAIT.CALL_TO_ACTION, TRAIT.RALLY_THE_VALIANT];
   const result = simulate('Paragon', ['__combat_start', 'Breaching Strike'], {
