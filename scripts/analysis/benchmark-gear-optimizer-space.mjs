@@ -15,7 +15,15 @@ for (const prefixes of [
   );
   const ordinary = createOptimizerSpace(request, adapter);
   const started = performance.now();
-  const space = groupOptimizerSpace(ordinary, adapter);
+  let space;
+  try {
+    space = groupOptimizerSpace(ordinary, adapter);
+  } catch (error) {
+    if (!(error instanceof RangeError) || !error.message.includes('preparation memory limit')) throw error;
+    console.log(JSON.stringify({ prefixes, preparationStopped: error.message }));
+    continue;
+  }
+  
   console.log(
     JSON.stringify({
       prefixes,
