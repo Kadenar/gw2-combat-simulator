@@ -180,14 +180,6 @@ body[data-profession] .rotation-section {
   color: inherit;
 }
 
-.rotation-focus-indicator {
-  color: var(--text-dim);
-  font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 .rotation-builder-controls {
   margin-left: auto;
 }

@@ -473,7 +473,8 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   await loadDialog.getByRole('button', { name: 'Load selected' }).click();
   await expect(loadDialog.getByRole('button', { name: 'Use as reference' })).toBeEnabled();
   await loadDialog.getByRole('button', { name: 'Use as reference' }).click();
-  await expect(page.locator('[data-comparison-status]')).toHaveText('Fresh');
+  await expect(page.locator('[data-comparison-swap]')).toBeEnabled();
+  await expect(page.locator('[data-comparison-status]')).toBeHidden();
   await expect(referenceSection.getByRole('button', { name: 'Load rotation' })).toBeVisible();
   await expect(referenceSection.getByRole('button', { name: 'Swap' })).toBeVisible();
   await expect(referenceSection.getByRole('button', { name: 'Clear' })).toBeVisible();
@@ -499,7 +500,8 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   expect(updatingStatus.status).toBe('Updating');
   expect(updatingStatus.referenceDps).not.toBe('');
   expect(updatingStatus.currentDps).not.toBe('');
-  await expect(page.locator('[data-comparison-status]')).toHaveText('Fresh');
+  await expect(page.locator('[data-comparison-swap]')).toBeEnabled();
+  await expect(page.locator('[data-comparison-status]')).toBeHidden();
 
   const finalValues = await page
     .locator('#rotation-comparison-summary')
@@ -508,35 +510,27 @@ test('rotation comparison keeps editable and read-only timelines stacked without
       summary.querySelector('[data-comparison-current-dps]').textContent
     ]);
   // Mouse and keyboard cursor changes update both comparisons without editing or resimulating the rotation.
-  const comparisonLabel = page.locator('[data-comparison-metric-label]');
+  await expect(page.locator('.rotation-comparison-time, [data-comparison-metric-label]')).toHaveCount(0);
   const currentTimeline = page.locator('#rotation-timeline');
   const buildRevision = await page.evaluate(() => window.professionApp.buildRevision);
   await expect(page.locator('#rotation-comparison-summary input[type="range"]')).toHaveCount(0);
   await currentTimeline.locator('[data-insertion-index="0"]').click();
-  await expect(comparisonLabel).toHaveText('Average DPS through 0.00s');
   await expect(page.locator('[data-comparison-reference-dps]')).toHaveText('0');
   await expect(page.locator('[data-comparison-current-dps]')).toHaveText('0');
 
   await page.keyboard.press('ArrowRight');
   await expect(currentTimeline.locator('.rot-insertion-gap.active')).toHaveAttribute('data-insertion-index', '1');
-  const checkpointLabel = await page.evaluate(async () => {
-    const { paletteEndState } = await import('/js/games/gw2/app/rotation/shared/context.ts');
-    const app = window.professionApp;
-    const elapsedMs = paletteEndState(app).time - app.results.dpsStartTime * 1000;
-    return `Average DPS through ${(elapsedMs / 1000).toFixed(2)}s`;
-  });
-  await expect(comparisonLabel).toHaveText(checkpointLabel);
   await expect(currentTimeline.locator('.rot-preview-active').first()).toBeVisible();
   await expect(referenceTimeline.locator('.rot-preview-active').first()).toBeVisible();
 
   await page.keyboard.press('Escape');
-  await expect(comparisonLabel).toHaveText('Final DPS');
   await expect(page.locator('[data-comparison-reference-dps]')).toHaveText(finalValues[0]);
   await expect(page.locator('[data-comparison-current-dps]')).toHaveText(finalValues[1]);
   await expect(page.locator('.rot-preview-active')).toHaveCount(0);
   await currentTimeline.locator('[data-insertion-index="0"]').click();
   await currentTimeline.locator('.rot-insertion-gap').last().click();
-  await expect(comparisonLabel).toHaveText('Final DPS');
+  await expect(page.locator('[data-comparison-reference-dps]')).toHaveText(finalValues[0]);
+  await expect(page.locator('[data-comparison-current-dps]')).toHaveText(finalValues[1]);
   expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(buildRevision);
 
   const beforeSwap = await page.evaluate(() => ({
@@ -574,11 +568,48 @@ test('rotation comparison keeps editable and read-only timelines stacked without
     });
     await expect(page.locator('#rotation-timeline')).toBeVisible();
     await expect(referenceTimeline).toBeVisible();
+    const header = referenceSection.locator('.rotation-comparison-reference-header');
+    await expect(header.locator('#rotation-comparison-summary')).toBeVisible();
+    if (viewport.width > 900) {
+      const summaryBox = await header.locator('#rotation-comparison-summary').boundingBox();
+      const actionsBox = await header.locator('[data-comparison-reference-actions]').boundingBox();
+      expect(Math.abs(summaryBox.y + summaryBox.height / 2 - actionsBox.y - actionsBox.height / 2)).toBeLessThan(2);
+    }
+
+    // Collapsing the palette gives both views more room and survives normal editor refreshes.
+    const palette = page.locator('#rotation-palette');
+    const skills = page.locator('#rotation-comparison-skills');
+    const toggle = skills.locator('summary');
+    await expect(page.locator('.rotation-focus-indicator, [data-comparison-palette-toggle]')).toHaveCount(0);
+    await expect(toggle).toBeInViewport();
+    const expandedHeights = await Promise.all(
+      [currentTimeline, referenceTimeline].map((view) => view.evaluate((el) => el.clientHeight))
+    );
+    await toggle.click();
+    await expect(skills).not.toHaveAttribute('open');
+    await expect(palette).toBeHidden();
+    const collapsedHeights = await Promise.all(
+      [currentTimeline, referenceTimeline].map((view) => view.evaluate((el) => el.clientHeight))
+    );
+    collapsedHeights.forEach((height, index) => expect(height).toBeGreaterThanOrEqual(expandedHeights[index]));
+    expect(collapsedHeights[0] + collapsedHeights[1]).toBeGreaterThan(expandedHeights[0] + expandedHeights[1]);
+    const referenceBox = await referenceTimeline.boundingBox();
+    expect(referenceBox.y + referenceBox.height).toBeLessThanOrEqual(viewport.height);
+
+    await page.evaluate(() => window.professionApp.adapter.renderRotationBuilder(window.professionApp));
+    await expect(palette).toBeHidden();
+    await toggle.focus();
+    await page.keyboard.press('Enter');
+    await expect(skills).toHaveAttribute('open');
+    await expect(palette).toBeVisible();
   }
 
+  await page.locator('#rotation-comparison-skills > summary').click();
   await page.getByRole('button', { name: 'Exit comparison' }).click();
   await expect(page.locator('body')).not.toHaveAttribute('data-rotation-comparison', '');
   await expect(page.locator('body')).toHaveAttribute('data-rotation-focus', '');
+  await expect(page.locator('#rotation-palette')).toBeVisible();
+  await expect(page.locator('#rotation-comparison-skills')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Compare' }).click();
   await page.getByRole('button', { name: 'Exit focus' }).click();
@@ -596,7 +627,7 @@ test('rotation comparison links scrolling in both directions across unequal view
   await expect(page.getByRole('button', { name: 'Compare', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Compare', exact: true }).click();
   await page.evaluate(() => window.professionApp.loadRotationReference(window.professionApp.build.rotation));
-  await expect(page.locator('[data-comparison-status]')).toHaveText('Fresh');
+  await expect(page.locator('[data-comparison-swap]')).toBeEnabled();
 
   const current = page.locator('#rotation-timeline');
   const reference = page.locator('#rotation-reference-timeline');

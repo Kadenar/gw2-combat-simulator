@@ -17,7 +17,6 @@ type RotationWorkspaceController = {
   configPanel: HTMLElement;
   document: Document;
   focusButton: HTMLButtonElement;
-  focusIndicator: HTMLElement;
   focusScrollPosition?: Readonly<{ left: number; top: number }>;
   state: RotationWorkspaceState;
 };
@@ -145,7 +144,6 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
 
   controller.focusButton.setAttribute('aria-pressed', String(state.focus));
   controller.focusButton.textContent = state.focus ? 'Exit focus' : 'Focus';
-  controller.focusIndicator.hidden = !state.focus;
 
   if (previous.focus && !state.focus && controller.focusScrollPosition) {
     const { left, top } = controller.focusScrollPosition;
@@ -183,7 +181,6 @@ function mountRotationHeading(
 ): {
   configButton: HTMLButtonElement;
   focusButton: HTMLButtonElement;
-  focusIndicator: HTMLElement;
 } {
   const titleText =
     heading.querySelector('.rotation-builder-title')?.textContent?.trim() ||
@@ -194,14 +191,9 @@ function mountRotationHeading(
   title.className = 'rotation-builder-title';
   title.textContent = titleText;
 
-  const focusIndicator = root.createElement('span');
-  focusIndicator.className = 'rotation-focus-indicator';
-  focusIndicator.textContent = 'Focus mode';
-  focusIndicator.hidden = true;
-
   const headingTitle = root.createElement('span');
   headingTitle.className = 'rotation-builder-heading-title';
-  headingTitle.append(title, focusIndicator);
+  headingTitle.append(title);
   // Keep the compact interaction guide beside the title instead of consuming a separate builder row.
   if (hint) headingTitle.append(hint);
 
@@ -224,7 +216,7 @@ function mountRotationHeading(
   heading.replaceChildren(headingTitle, controls);
   heading.classList.add('rotation-builder-heading');
 
-  return { configButton, focusButton, focusIndicator };
+  return { configButton, focusButton };
 }
 
 function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonElement {
@@ -288,7 +280,7 @@ export function mountRotationWorkspace(root: Document = document): void {
 
   const configCloseButton = mountConfigHeading(root, configHeading);
   configHeading.querySelector('.simulation-config-title')!.id = 'simulation-config-title';
-  const { configButton, focusButton, focusIndicator } = mountRotationHeading(root, rotationHeading, configPanel.id);
+  const { configButton, focusButton } = mountRotationHeading(root, rotationHeading, configPanel.id);
 
   const controller: RotationWorkspaceController = {
     configButton,
@@ -296,7 +288,6 @@ export function mountRotationWorkspace(root: Document = document): void {
     configPanel,
     document: root,
     focusButton,
-    focusIndicator,
     state: DEFAULT_ROTATION_WORKSPACE_STATE
   };
   controllers.set(root, controller);
