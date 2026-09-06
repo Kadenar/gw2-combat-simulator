@@ -1,12 +1,11 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   actualNecromancerLifeForceCost,
   normalizedNecromancerLifeForceCost
 } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as deny, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -150,18 +149,6 @@ function activeMinionGate(
     : null;
 }
 
-// Reject unselected heal, utility, and elite skills while allowing profession
-// mechanics and generated replacement skills through their own gates.
-function selectedSlotSkillGate(context: NecromancerPrecastContext, skill: NecromancerSkill): AvailabilityVerdict {
-  if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type || '')) || skill.flipParentId != null) {
-    return null;
-  }
-
-  const selected = selectedSkillNameSet(context.config?.selectedSkills);
-  if (selected.size === 0 || selected.has(skill.name)) return null;
-  return deny(skill, 'necromancer.slot-skill', 'the skill is not equipped.');
-}
-
 // Terminal gate for ordinary out-of-shroud skills. Always yields a verdict.
 function baselineGate(
   context: NecromancerPrecastContext,
@@ -197,17 +184,16 @@ function baselineGate(
   return READY;
 }
 
-// First-match dispatch: each gate returns a verdict for skills in its domain or
-// null to defer. Order reproduces the original if-ladder exactly, so the first
-// non-null verdict is authoritative.
+// Validate slot selection before transform-specific gates can approve a cast.
+// The first non-null verdict is authoritative; null defers to the next gate.
 const CAST_STATE_GATES: readonly CastStateGate[] = Object.freeze([
+  selectedSlotSkillAvailability,
   devouringGate,
   shroudEntryGate,
   shroudExitGate,
   lichFormGate,
   lichSkillGate,
   inShroudGate,
-  selectedSlotSkillGate,
   activeMinionGate,
   baselineGate
 ]);

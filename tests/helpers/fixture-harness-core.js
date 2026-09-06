@@ -11,7 +11,7 @@ export function defaultSimulationConfig(overrides = {}) {
   return {
     specialization: 'Virtuoso',
     selectedTraitIds: [],
-    selectedSkills: [],
+    // Omit the loadout for sandbox tests; explicit selections still enforce equipped skills.
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',
     initialResource: 5,

@@ -7,7 +7,7 @@ export function createDefaultConfig() {
     duration: 30,
     specialization: 'Virtuoso',
     selectedTraitIds: [],
-    selectedSkills: [],
+    // Omit the loadout for sandbox tests; explicit selections still enforce equipped skills.
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',
     weaponSet2Primary: 'Spear',

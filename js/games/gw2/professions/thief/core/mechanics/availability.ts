@@ -7,7 +7,7 @@ import {
 import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
 import { thiefTrapCastAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as deny, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {
   ThiefCoreState,
@@ -32,6 +32,8 @@ function weaponFlipActive(state: ThiefCoreState, skillId: number, at: number): b
 // Centralize Thief gates for initiative, endurance, stealth replacements, weapon
 // sequences, spear stages, rifle stance, preparations, and stored stolen skills.
 export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
+  const selection = selectedSlotSkillAvailability(context, skill);
+  if (selection) return selection;
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;
   const specializationState = specialization.state as Partial<ThiefStealthAttackChargeState>;

@@ -206,6 +206,8 @@ const supplementalSource: readonly ThiefSkill[] = THIEF_SUPPLEMENTAL_SKILLS.filt
 const allDeclared = [...generatedSource, ...supplementalSource];
 const declaredIds = new Set(allDeclared.map((skill) => skill.id));
 const flipParentById = createFlipParentMap(allDeclared);
+// The API omits this follow-up link; Palm Strike shares Fist Flurry's equipped slot.
+flipParentById.set(ID.PALM_STRIKE, ID.FIST_FLURRY);
 const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...skill,
   ...scepterAutoattackMetadata(skill),

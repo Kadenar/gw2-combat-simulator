@@ -1,6 +1,6 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast } from '#gw2/professions/lib/availability.js';
+import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { RangerPrecastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -15,6 +15,8 @@ import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/cor
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
 export function rangerCoreCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
+  const selection = selectedSlotSkillAvailability(context, skill);
+  if (selection) return selection;
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
     const cost = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', 50);

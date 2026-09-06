@@ -1,6 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
@@ -35,6 +36,8 @@ export function mesmerAvailability(
   },
   skill: MesmerSkill
 ): AvailabilityResult {
+  const selection = selectedSlotSkillAvailability(context, skill);
+  if (selection) return selection;
   const runtime = mesmerRuntimeFor(context);
   const { state } = context;
   const at = context.start;

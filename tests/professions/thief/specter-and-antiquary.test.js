@@ -380,6 +380,7 @@ test('Malicious stealth attacks use their supplied coefficients and malice scali
   );
 
   const rifleConfig = {
+    selectedSkills: ['Shadow Meld'],
     primaryWeapon: 'Rifle',
     secondaryWeapon: '',
     stats: { precision: 5000 }
@@ -1134,6 +1135,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
       }
     ],
     {
+      selectedSkills: ['Stone Summit Cannon'],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Dagger'
     }
@@ -1152,6 +1154,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
       }
     ],
     {
+      selectedSkills: ['Stone Summit Cannon'],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Dagger'
     }
@@ -1404,6 +1407,7 @@ test('Thieves Guild uses independent summon weapons and attack profiles', () => 
 test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   const expectedArtifactIds = [...THIEF_ARTIFACT_IDS.OFFENSIVE, ...THIEF_ARTIFACT_IDS.DEFENSIVE];
   const config = {
+    selectedSkills: ['Skritt Scuffle'],
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger'
   };

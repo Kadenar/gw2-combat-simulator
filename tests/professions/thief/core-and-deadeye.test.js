@@ -1174,17 +1174,20 @@ test('Daredevil skills and endurance traits use configured values', () => {
     [0.75, 0.75, 1]
   );
 
-  const directPalm = simulate('Daredevil', ['Palm Strike']);
+  // Equip the parent so these assertions isolate its hit-gated follow-up window.
+  const directPalm = simulate('Daredevil', ['Palm Strike'], { selectedSkills: ['Fist Flurry'] });
 
   assert.match(directPalm.warnings[0], /Fist Flurry must connect/i);
 
   const traits = [TRAIT.BRAWLERS_TENACITY, TRAIT.WEAKENING_STRIKES, TRAIT.BOUNDING_DODGER];
   const skillSequence = ['Dodge', 'Fist Flurry', 'Palm Strike', { name: '__wait', waitMs: 2100 }];
   const base = simulate('Daredevil', skillSequence, {
+    selectedSkills: ['Fist Flurry'],
     selectedDodge: 'Bounding Dodger',
     selectedTraitIds: traits.filter((id) => id !== TRAIT.BRAWLERS_TENACITY)
   });
   const brawler = simulate('Daredevil', skillSequence, {
+    selectedSkills: ['Fist Flurry'],
     selectedDodge: 'Bounding Dodger',
     selectedTraitIds: traits
   });

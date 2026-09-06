@@ -149,6 +149,8 @@ export const ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS: readonly Skill[] = Object.f
   {
     id: ID.STOW_ELITE_MORTAR_KIT,
     name: 'Stow Elite Mortar Kit',
+    // The stow face shares the equipped mortar slot, like the other kit flips.
+    flipParentId: ID.ELITE_MORTAR_KIT,
     description: 'Stow the elite mortar kit and return to equipped weapons.',
     icon: 'https://render.guildwars2.com/file/' + '7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Elite',
