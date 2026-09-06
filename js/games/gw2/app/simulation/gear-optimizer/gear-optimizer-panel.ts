@@ -16,15 +16,20 @@ import {
 } from '#gw2/app/build/equipment-option-labels.js';
 import {
   captureGearOptimizerRequest,
-  createOptimizerSpace,
   optimizerSlots,
   optimizerWeaponSets,
+  optimizerEquipment,
   applyOptimizerCandidate,
   type GearOptimizerSelections,
+  type OptimizerCandidate,
   type OptimizerEquipment
-} from '#gw2/app/simulation/gear-optimizer.js';
-import { estimateOptimizerCount } from '#gw2/app/simulation/gear-optimizer-space.js';
-import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/simulation/gear-optimizer-runner.js';
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
+import {
+  OPTIMIZER_RESULT_FILTERS,
+  optimizerEquipmentIdentity,
+  type OptimizerResultFilter
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 const SLOT_LABELS: Record<string, string> = {
@@ -40,16 +45,16 @@ const SLOT_LABELS: Record<string, string> = {
   Accessory1: 'Acc1',
   Accessory2: 'Acc2',
   Back: 'Back',
-  Weapon1: 'Wep1',
-  Weapon2: 'Wep2',
-  AlternateWeapon1: 'S2 W1',
-  AlternateWeapon2: 'S2 W2'
+  Weapon1: 'Main hand',
+  Weapon2: 'Off hand',
+  AlternateWeapon1: 'Main hand',
+  AlternateWeapon2: 'Off hand'
 };
 
-/** Each candidate exposes the same columns; color marks changes from the highest-ranked equipment. */
-function equipmentCell(label: string, value: string, best: string, compact = false, icon?: string): string {
+/** Show each equipment choice consistently, with full names available on icons and abbreviated cells. */
+function equipmentCell(label: string, value: string, compact = false, icon?: string): string {
   const name = value || 'None';
-  return `<td class="optimizer-equipment${value !== best ? ' optimizer-changed' : ''}" aria-label="${escapeHtml(`${label}: ${name}`)}" title="${escapeHtml(`${label}: ${name}`)}">${icon ? `<img src="${escapeHtml(icon)}" alt="${escapeHtml(name)}" width="24" height="24">` : `<span>${escapeHtml(compact ? name.slice(0, 4) : name)}</span>`}</td>`;
+  return `<td class="optimizer-equipment" aria-label="${escapeHtml(`${label}: ${name}`)}" title="${escapeHtml(`${label}: ${name}`)}">${icon ? `<img src="${escapeHtml(icon)}" alt="${escapeHtml(name)}" width="24" height="24">` : `<span>${escapeHtml(compact ? name.slice(0, 4) : name)}</span>`}</td>`;
 }
 
 function slotPrefix(equipment: OptimizerEquipment, slot: string): string {
@@ -68,8 +73,11 @@ function candidatePicker(
   describe: (name: string) => string = (name) => name,
   emptyLabel = 'Keep current equipment'
 ): string {
+  // Section legends supply context visually; keep the full label on the select for accessible identification.
+  const displayLabel =
+    key === 'prefixes' || key === 'infusionStats' ? '' : key.startsWith('sigil') ? `Sigil ${key.at(-1)}` : label;
   return `<div class="optimizer-picker" data-picker="${key}" data-limit="${limit}">
-    <div class="optimizer-picker-heading"><label for="optimizer-add-${key}">${escapeHtml(label)}</label>${limit ? `<span>Up to ${limit}</span>` : ''}</div>
+    <div class="optimizer-picker-heading">${displayLabel ? `<label for="optimizer-add-${key}">${escapeHtml(displayLabel)}</label>` : ''}${limit ? `<span>Up to ${limit}</span>` : ''}</div>
     <div class="optimizer-choices">${current.map((name) => candidateChip(key, name, describe(name))).join('')}</div>
     <p class="optimizer-picker-empty" title="${escapeHtml(emptyLabel)}">${escapeHtml(emptyLabel)}</p>
     <select id="optimizer-add-${key}" data-add-choice aria-label="Add ${escapeHtml(label.toLowerCase())}">
@@ -99,6 +107,14 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const runner = app.gearOptimizerRunner;
   if (!runner || typeof document === 'undefined') return;
   let panel = document.getElementById('gear-optimizer');
+  const displayedResults = (): OptimizerCandidate[] => {
+    const filter = (panel?.querySelector<HTMLInputElement>('input[name="optimizer-filter"]:checked')?.value ||
+      'none') as OptimizerResultFilter;
+    const results = filter === 'none' ? runner.state.winners : runner.state.groups[filter];
+    const equipped = runner.request && optimizerEquipmentIdentity(optimizerEquipment(runner.request.build));
+    return results.filter((candidate) => optimizerEquipmentIdentity(candidate.equipment) !== equipped);
+  };
+
   if (!panel) {
     const results = document.getElementById('rotation-results');
     if (!results) return;
@@ -109,7 +125,15 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       <form data-role="optimizer-form"><div data-role="optimizer-controls"></div>
       <div class="optimizer-actions"><p data-role="optimizer-estimate"></p><div><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
       <div class="optimizer-feedback">
-      <p data-role="optimizer-status" role="status" aria-live="polite"></p>
+      <div class="optimizer-status-row"><p data-role="optimizer-status" role="status" aria-live="polite"></p>
+      <details class="optimizer-filter-settings"><summary aria-label="Filter results" title="Filter results">&#9881;</summary>
+      <fieldset><legend>Filter results</legend>${Object.entries(OPTIMIZER_RESULT_FILTERS)
+        .map(
+          ([value, label]) =>
+            `<label><input type="radio" name="optimizer-filter" value="${value}"${value === 'none' ? ' checked' : ''}>${label}</label>`
+        )
+        .join('')}
+      <p>Show the best result found for each option or combination, up to 100 results.</p></fieldset></details></div>
       <progress data-role="optimizer-progress" max="100" value="0" aria-label="Optimizer coverage"></progress>
       <p data-role="optimizer-counts"></p><p data-role="optimizer-warnings"></p></div>
       <div data-role="optimizer-results"></div>`;
@@ -117,10 +141,8 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const form = panel.querySelector('form')!;
     const estimate = (): void => {
       try {
-        const request = captureGearOptimizerRequest(app, readSelections(form));
-        const count = estimateOptimizerCount(createOptimizerSpace(request, app.adapter), app.adapter);
-        panel!.querySelector('[data-role="optimizer-estimate"]')!.textContent =
-          `Up to ${count.toLocaleString()} candidates before stat merging.`;
+        captureGearOptimizerRequest(app, readSelections(form), { kind: 'rotation' }, 'fast');
+        panel!.querySelector('[data-role="optimizer-estimate"]')!.textContent = '';
       } catch (error) {
         panel!.querySelector('[data-role="optimizer-estimate"]')!.textContent = String(
           error instanceof Error ? error.message : error
@@ -163,7 +185,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       try {
         if (app.simulationStatus !== 'idle' || app.resultRevision !== app.buildRevision)
           throw new Error('Wait for the current build simulation to finish.');
-        const request = captureGearOptimizerRequest(app, readSelections(form));
+        const request = captureGearOptimizerRequest(app, readSelections(form), { kind: 'rotation' }, 'fast');
         app.randomDistributionRunner.cancel?.();
         app.modifierContributionRunner.cancel?.();
         app.relicComparisonRunner.cancel?.();
@@ -176,10 +198,18 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       }
     });
     panel.querySelector('[data-role="optimizer-cancel"]')!.addEventListener('click', () => runner.cancel());
+    // Result filters only change the displayed rows; the completed search and equipped build stay intact.
+    panel.querySelector('.optimizer-filter-settings')!.addEventListener('change', () => renderGearOptimizer(app));
+    panel.querySelector<HTMLDetailsElement>('.optimizer-filter-settings')!.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      const settings = event.currentTarget as HTMLDetailsElement;
+      settings.open = false;
+      settings.querySelector('summary')!.focus();
+    });
     panel.querySelector('[data-role="optimizer-results"]')!.addEventListener('click', (event) => {
       const target = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-apply]');
       if (!target || !runner.request || runner.state.status !== 'complete') return;
-      const candidate = runner.state.winners[Number(target.dataset.apply)];
+      const candidate = displayedResults()[Number(target.dataset.apply)];
       try {
         applyOptimizerCandidate(app, runner.request, candidate);
       } catch (error) {
@@ -237,9 +267,8 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
     // An invalid current build can disable optimization without interrupting the normal editor's change flow.
     try {
-      const request = captureGearOptimizerRequest(app, readSelections(panel.querySelector('form')!));
-      panel.querySelector('[data-role="optimizer-estimate"]')!.textContent =
-        `Up to ${estimateOptimizerCount(createOptimizerSpace(request, app.adapter), app.adapter).toLocaleString()} candidates before stat merging.`;
+      captureGearOptimizerRequest(app, readSelections(panel.querySelector('form')!), { kind: 'rotation' }, 'fast');
+      panel.querySelector('[data-role="optimizer-estimate"]')!.textContent = '';
     } catch (error) {
       panel.querySelector('[data-role="optimizer-estimate"]')!.textContent = String(
         error instanceof Error ? error.message : error
@@ -252,13 +281,13 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const stale = runner.request !== null && runner.request.revision !== app.buildRevision;
   const status =
     state.status === 'failed'
-      ? `Failed: ${state.error}. Best found so far; incomplete.`
+      ? `Failed: ${state.error}`
       : state.status === 'canceled'
-        ? 'Canceled. Best found so far; incomplete.'
+        ? 'Canceled.'
         : state.status === 'complete'
-          ? 'Complete — results verified.'
+          ? 'Complete.'
           : state.status === 'preparing'
-            ? 'Merging equivalent gear and preparing workers…'
+            ? 'Preparing candidates and workers…'
             : state.status === 'verifying'
               ? 'Verifying winners with detailed simulation…'
               : state.status === 'running'
@@ -266,12 +295,16 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
                 : 'Ready to run.';
   panel.querySelector('[data-role="optimizer-status"]')!.textContent =
     `${status}${stale ? ' Results are stale; run again to apply.' : ''}`;
+  (panel.querySelector('[data-role="optimizer-progress"]') as HTMLProgressElement).hidden =
+    runner.request?.search === 'fast';
   (panel.querySelector('[data-role="optimizer-progress"]') as HTMLProgressElement).value = state.count
     ? Number((state.completed * 10000n) / state.count) / 100
     : 0;
   // Report measured work completed without predicting how long unseen candidates will take.
   panel.querySelector('[data-role="optimizer-counts"]')!.textContent = state.count
-    ? `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked; ${state.simulations.toLocaleString()} simulations.`
+    ? runner.request?.search === 'fast'
+      ? `${state.simulations.toLocaleString()} candidates checked.`
+      : `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked; ${state.simulations.toLocaleString()} simulations.`
     : '';
 
   panel.querySelector('[data-role="optimizer-warnings"]')!.textContent = [...state.warnings]
@@ -283,45 +316,47 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   }
 
   const list = panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!;
-  const signature = JSON.stringify(state.winners.map((winner) => [winner.key, winner.score.dps]));
+  const candidates = displayedResults();
+  const signature = JSON.stringify([
+    runner.request?.revision,
+    state.baseline?.dps,
+    state.winners[0]?.key,
+    candidates.map((winner) => [winner.key, winner.equipment, winner.score.dps])
+  ]);
   if (list.dataset.signature !== signature) {
     list.dataset.signature = signature;
     const baseline = state.baseline?.dps || 0;
     const slots = runner.request ? optimizerSlots(runner.request.build, app.adapter) : [];
     const sets = runner.request ? optimizerWeaponSets(runner.request.build, app.adapter) : [];
-    const best = state.winners[0];
+    const best = candidates[0] || state.winners[0];
     const infusions = (equipment: OptimizerEquipment): string =>
       equipment.infusions
         .filter((entry) => entry.count)
         .map((entry) => `${entry.count} ${entry.stat}`)
         .join(', ');
+    // Reuse the equipment columns for a sticky baseline row outside the filtered rankings.
+    const renderRow = (candidate: OptimizerCandidate, index: number, pinned = false): string => {
+      const equipment = candidate.equipment;
+      const difference = candidate.score.dps - baseline;
+      const percent = best.score.dps ? (candidate.score.dps / best.score.dps - 1) * 100 : 0;
+      return `<tr${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<small>Equipped</small>' : ''}${index ? `<small>${percent > 0 ? '+' : ''}${percent.toFixed(1)}%</small>` : '<small>Best</small>'}</td>${slots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
+        .map((set) =>
+          [0, 1]
+            .map((slot) => {
+              const value = equipment.weaponSigils[set][slot];
+              return equipmentCell(`Set ${set + 1} sigil ${slot + 1}`, value, true, SIGIL_DATA[value]?.icon);
+            })
+            .join('')
+        )
+        .join(
+          ''
+        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}<td class="optimizer-delta">${difference >= 0 ? '+' : ''}${difference.toFixed(2)}</td><td>${pinned ? '&mdash;' : `<button type="button" data-apply="${index}" aria-label="Apply result ${index + 1}">Apply</button>`}</td></tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 8}">${candidate.score.warnings.map(escapeHtml).join('<br>')}</td></tr>` : ''}`;
+    };
+
+    // Spell out weapon slots and put the set on its own line so adjacent headers stay distinguishable.
     list.innerHTML = best
-      ? `<div class="optimizer-results-heading"><strong>Best gear</strong><span>Changes from the best result are highlighted. Equipped: ${baseline.toFixed(2)} DPS.</span></div>
-        <div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col">Damage <small>vs best</small></th>${slots.map((slot) => `<th scope="col" title="${escapeHtml(slot)}">${SLOT_LABELS[slot] || escapeHtml(slot)}</th>`).join('')}${sets.map((set) => [0, 1].map((slot) => `<th scope="col" title="Set ${set + 1} sigil ${slot + 1}">S${set + 1} Sig${slot + 1}</th>`).join('')).join('')}<th scope="col">Rune</th><th scope="col">Relic</th><th scope="col">Food</th><th scope="col">Utility</th><th scope="col">Infusions</th><th scope="col">&Delta; equipped</th><th scope="col">Apply</th></tr></thead><tbody>${state.winners
-          .map((candidate, index) => {
-            const equipment = candidate.equipment;
-            const difference = candidate.score.dps - baseline;
-            const percent = best.score.dps ? (candidate.score.dps / best.score.dps - 1) * 100 : 0;
-            return `<tr><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${index ? `<small>${percent.toFixed(1)}%</small>` : '<small>Best</small>'}</td>${slots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), slotPrefix(best.equipment, slot), true)).join('')}${sets
-              .map((set) =>
-                [0, 1]
-                  .map((slot) => {
-                    const value = equipment.weaponSigils[set][slot];
-                    return equipmentCell(
-                      `Set ${set + 1} sigil ${slot + 1}`,
-                      value,
-                      best.equipment.weaponSigils[set][slot],
-                      true,
-                      SIGIL_DATA[value]?.icon
-                    );
-                  })
-                  .join('')
-              )
-              .join(
-                ''
-              )}${equipmentCell('Rune', equipment.rune, best.equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, best.equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, best.equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, best.equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment), infusions(best.equipment))}<td class="optimizer-delta">${difference >= 0 ? '+' : ''}${difference.toFixed(2)}</td><td><button type="button" data-apply="${index}" aria-label="Apply result ${index + 1}">Apply</button></td></tr>${candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 8}">${candidate.score.warnings.map(escapeHtml).join('<br>')}</td></tr>` : ''}`;
-          })
-          .join('')}</tbody></table></div>`
+      ? `<div class="optimizer-results-heading"><strong>Best gear found</strong><span>Equipped: ${baseline.toFixed(2)} DPS.</span></div>
+        <div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col">Damage <small>vs best</small></th>${slots.map((slot) => `<th scope="col">${SLOT_LABELS[slot] || escapeHtml(slot)}${slot.includes('Weapon') ? `<small class="optimizer-weapon-set">Weapon set ${slot.startsWith('Alternate') ? 2 : 1}</small>` : ''}</th>`).join('')}${sets.map((set) => [0, 1].map((slot) => `<th scope="col">Sigil ${slot + 1}<small class="optimizer-weapon-set">Weapon set ${set + 1}</small></th>`).join('')).join('')}<th scope="col">Rune</th><th scope="col">Relic</th><th scope="col">Food</th><th scope="col">Utility</th><th scope="col">Infusions</th><th scope="col">&Delta; equipped</th><th scope="col">Apply</th></tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${state.baseline && runner.request ? renderRow({ key: 'equipped', equipment: optimizerEquipment(runner.request.build), score: state.baseline, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
       : '';
   }
 

@@ -130,7 +130,7 @@ The registry is also where a completely new profession would be exposed to the a
 
 Build authoring and persistence.
 
-Examples include:
+Feature implementations, runners, workers, and feature-owned contracts live together:
 
 ```text
 state/persistence.ts
@@ -178,17 +178,46 @@ Examples include:
 
 ```text
 config.ts
-random-distribution.ts
-random-distribution-runner.ts
-modifier-contributions.ts
-modifier-contribution-runner.ts
-relic-comparison-runner.ts
-relic-comparison.ts
+types.d.ts
+baseline-simulation-runner.ts
+baseline-simulation-worker.ts
+gear-optimizer/
+modifiers/
+random-distribution/
+relic-comparison/
 ```
 
-These modules orchestrate simulation work around the shared engine.
+The root owns common config construction and baseline execution. `types.d.ts` retains baseline and patch-comparison
+contracts; modifier, RNG, and relic request/result contracts live in their feature directories. Optimizer contracts
+remain beside their implementations. Consumers import the owning module directly, without compatibility re-exports.
 
-They should not own profession mechanics.
+These modules orchestrate simulation work around the shared engine. They should not own profession mechanics.
+
+Shared-code assessment:
+
+- Worker lifecycle is already extracted into `js/app/simulation/game-worker-harness.ts`. `ManagedWorkerBatch` owns
+  cancellation, stale-response filtering, and failure cleanup for modifiers, RNG, and the optimizer.
+  `createGameWorkerEndpoint` shares driver loading, request IDs, progress envelopes, and error serialization for
+  baseline, modifier, and RNG workers.
+- Keep scheduling feature-specific. Modifiers debounce and defer to RNG work; RNG partitions reproducible seed ranges
+  and merges statistical samples; the optimizer retains worker state across search chunks, refinement rounds, and
+  verification. Its stateful protocol does not fit the existing single-request endpoint. Baseline execution coalesces
+  edits through one persistent worker. Relic comparison currently runs one deferred main-thread simulation against the
+  displayed baseline and does not own a worker.
+- Config construction and profession integration already converge through `createProfessionRuntime` in
+  `js/games/gw2/app/create-runtime.ts`, `config.ts`, and the shared `simulateGw2` engine. The optimizer reuses the
+  adapter's attribute/config preparation and the engine's score-only output. Exact and fast searches already share
+  `createOptimizerEvaluator` and `scoreOptimizerRange`. Relic comparison reuses `buildChartSeries` from the results
+  layer. These shared pieces should stay outside individual feature directories.
+- One small extraction candidate remains: identical stochastic-to-deterministic config conversion appears in
+  `modifierContributionRequest` and `baselineSimulationConfig` inside `create-runtime.ts`. A local helper could remove
+  that duplication. The optimizer deliberately forces deterministic mode unconditionally, so it should not be folded
+  into a helper that only converts stochastic mode. This directory migration leaves those policies unchanged.
+- No general analysis-runner superclass, batch partitioner, or statistics utility is needed. Similar timer cleanup and
+  hardware-concurrency arithmetic are small; the scheduling, partitioning, and result semantics differ. RNG statistics
+  currently have one feature owner. Modifier candidate enumeration and request assembly remain in the runtime's adapter
+  composition; moving those closures would be a separate feature-boundary cleanup, not extraction of duplicated common
+  code.
 
 ---
 

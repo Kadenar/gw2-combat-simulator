@@ -1,21 +1,23 @@
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer-space.js';
+import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+import { createFastOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js';
 import {
   optimizerEquipment,
   optimizerScore,
   verifyOptimizerScore,
   type GearOptimizerRequest,
   type OptimizerCandidate
-} from '#gw2/app/simulation/gear-optimizer.js';
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 
 export type GearOptimizerWorkerRequest = { readonly requestId: number } & (
   | { readonly kind: 'init'; readonly request: GearOptimizerRequest }
   | { readonly kind: 'chunk'; readonly chunkId: number; readonly start: string; readonly end: string }
   | { readonly kind: 'verify'; readonly candidates: readonly OptimizerCandidate[] }
+  | { readonly kind: 'refine'; readonly candidates: readonly OptimizerCandidate[] }
 );
 
 let activeId = -1;
-let job: ReturnType<typeof createGroupedOptimizer> | null = null;
+let job: ReturnType<typeof createGroupedOptimizer> | ReturnType<typeof createFastOptimizer> | null = null;
 
 /** Each worker validates and prepares once, then evaluates bounded ranges until its owner terminates it. */
 self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWorkerRequest>) => {
@@ -26,7 +28,10 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
       const adapter = await loadProfessionAppAdapter(data.request.contentId);
       if (!adapter) throw new TypeError('Optimizer profession is unavailable.');
       if (activeId !== data.requestId) return;
-      job = createGroupedOptimizer(data.request, adapter);
+      job =
+        data.request.search === 'fast'
+          ? createFastOptimizer(data.request, adapter)
+          : createGroupedOptimizer(data.request, adapter);
       const baseline = optimizerScore(job.evaluator.evaluate(optimizerEquipment(data.request.build)));
       post({
         kind: 'ready',
@@ -38,6 +43,14 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
     }
 
     if (data.requestId !== activeId || !job) throw new TypeError('Optimizer worker is not initialized.');
+    // Every worker derives the same bounded round from the merged winners before ranges are divided again.
+    if (data.kind === 'refine') {
+      if (!('refine' in job) || data.candidates.length > 20) throw new TypeError('Invalid optimizer refinement.');
+      job.refine(data.candidates);
+      post({ kind: 'ready', count: job.space.count.toString(), rawCount: job.space.ordinary.rawCount.toString() });
+      return;
+    }
+
     if (data.kind === 'chunk') {
       if (!Number.isSafeInteger(data.chunkId) || !/^\d+$/.test(data.start) || !/^\d+$/.test(data.end))
         throw new TypeError('Invalid optimizer chunk identity.');

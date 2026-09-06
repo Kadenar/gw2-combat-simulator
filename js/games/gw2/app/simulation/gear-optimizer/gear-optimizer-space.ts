@@ -3,6 +3,12 @@ import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import type { Gw2AppAdapter } from '#gw2/app/types.js';
 import {
+  createOptimizerResultGroups,
+  optimizerEquipmentIdentity,
+  retainOptimizerGroup,
+  type OptimizerGroupedFilter
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
+import {
   assignOptimizerChoice,
   optimizerCardinality,
   optimizerWeaponSets,
@@ -16,7 +22,7 @@ import {
   type OptimizerEquipment,
   type OptimizerSpace,
   type OptimizerDimension
-} from '#gw2/app/simulation/gear-optimizer.js';
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 
 const stats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>>;
 export const MAX_OPTIMIZER_STAT_TOTALS = 100_000;
@@ -226,37 +232,76 @@ export function createGroupedOptimizer(request: GearOptimizerRequest, adapter: G
   const evaluator = createOptimizerEvaluator(request, adapter);
   const evaluateRange = (start: bigint, end: bigint) => {
     if (start < 0n || end > space.count || end <= start) throw new RangeError('Invalid optimizer chunk.');
-    const winners: OptimizerCandidate[] = [];
-    let represented = 0n;
-    let simulations = 0n;
-    const warnings = new Map<string, number>();
-    for (let ordinal = start; ordinal < end; ordinal++) {
-      const candidate = groupedEquipmentAt(space, ordinal);
-      const key = optimizerEquivalenceKey(candidate.equipment, ordinary, adapter);
-      const score = optimizerScore(evaluator.score(candidate.equipment));
-      simulations++;
-
-      for (const warning of score.warnings) {
-        const category =
-          warnings.has(warning) || warnings.size < 32 ? warning : 'Additional warnings (see retained candidates)';
-        warnings.set(category, (warnings.get(category) || 0) + 1);
-      }
-
-      represented += candidate.represented;
-      retainOptimizerCandidate(
-        winners,
-        { key, equipment: candidate.equipment, score, represented: candidate.represented.toString() },
-        request.limit
-      );
-    }
-
-    return {
-      winners,
-      represented: represented.toString(),
-      simulations: simulations.toString(),
-      warnings: [...warnings]
-    };
+    return scoreOptimizerRange(ordinary, adapter, evaluator, start, end, (ordinal) =>
+      groupedEquipmentAt(space, ordinal)
+    );
   };
 
   return { space, evaluator, evaluateRange };
+}
+
+/** Exact and bounded searches share scoring, warning retention and top-result limits. */
+export function scoreOptimizerRange(
+  ordinary: OptimizerSpace,
+  adapter: Gw2AppAdapter,
+  evaluator: ReturnType<typeof createOptimizerEvaluator>,
+  start: bigint,
+  end: bigint,
+  equipmentAt: (ordinal: bigint) => { equipment: OptimizerEquipment; represented: bigint }
+) {
+  const winners: OptimizerCandidate[] = [];
+  const groups = createOptimizerResultGroups();
+  const equippedIdentity = optimizerEquipmentIdentity(optimizerEquipment(ordinary.request.build));
+  const sets = optimizerWeaponSets(ordinary.request.build, adapter);
+  // Equal-stat rune names still need separate display groups even though they share a combat simulation.
+  const runeAliases = new Map<string, string[]>();
+  for (const rune of ordinary.dimensions.find(({ key }) => key === 'rune')!.choices as readonly string[]) {
+    const key = JSON.stringify(contribution('rune', rune, ordinary, adapter));
+    runeAliases.set(key, [...(runeAliases.get(key) || []), rune]);
+  }
+
+  let represented = 0n;
+  let simulations = 0n;
+  const warnings = new Map<string, number>();
+  for (let ordinal = start; ordinal < end; ordinal++) {
+    const candidate = equipmentAt(ordinal);
+    const key = optimizerEquivalenceKey(candidate.equipment, ordinary, adapter);
+    const score = optimizerScore(evaluator.score(candidate.equipment));
+    simulations++;
+
+    for (const warning of score.warnings) {
+      const category =
+        warnings.has(warning) || warnings.size < 32 ? warning : 'Additional warnings (see retained candidates)';
+      warnings.set(category, (warnings.get(category) || 0) + 1);
+    }
+
+    represented += candidate.represented;
+    retainOptimizerCandidate(
+      winners,
+      { key, equipment: candidate.equipment, score, represented: candidate.represented.toString() },
+      ordinary.request.limit
+    );
+    for (const rune of runeAliases.get(
+      JSON.stringify(contribution('rune', candidate.equipment.rune, ordinary, adapter))
+    )!) {
+      const result = {
+        key,
+        equipment: { ...candidate.equipment, rune },
+        score,
+        represented: candidate.represented.toString()
+      };
+      // The pinned row owns the equipped setup; keep the strongest alternative for each display group.
+      if (optimizerEquipmentIdentity(result.equipment) === equippedIdentity) continue;
+      for (const filter of Object.keys(groups) as OptimizerGroupedFilter[])
+        retainOptimizerGroup(groups[filter], result, filter, sets);
+    }
+  }
+
+  return {
+    winners,
+    groups,
+    represented: represented.toString(),
+    simulations: simulations.toString(),
+    warnings: [...warnings]
+  };
 }

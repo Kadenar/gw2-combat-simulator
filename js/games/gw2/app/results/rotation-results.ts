@@ -431,9 +431,11 @@ function resultDpsSnapshotsHtml(metric: ResultMetric, breakpoints: readonly Resu
   </div>`;
 }
 
-/** Closes open metric disclosures unless the click occurred inside that same disclosure. */
+/** Closes open result disclosures unless the click occurred inside that same disclosure. */
 export function dismissResultMetricDetails(root: ParentNode, target: EventTarget | null): void {
-  for (const details of root.querySelectorAll<HTMLDetailsElement>('.res-metric-info[open], .res-dps-snapshots[open]')) {
+  for (const details of root.querySelectorAll<HTMLDetailsElement>(
+    '.res-metric-info[open], .res-dps-snapshots[open], .optimizer-filter-settings[open]'
+  )) {
     if (target && details.contains(target as Node)) continue;
     details.open = false;
   }

@@ -8,11 +8,11 @@ import {
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { cloneRotation, recordRotationHistory, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contribution-runner.js';
-import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution-runner.js';
-import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer-runner.js';
-import { renderGearOptimizer } from '#gw2/app/simulation/gear-optimizer-panel.js';
-import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison-runner.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifier-contribution-runner.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
+import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
+import { renderGearOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-panel.js';
+import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';

@@ -6,17 +6,21 @@ import type { SchedulerRecord, RotationCommand, ObservationPolicy } from '#gw2/p
 import type {
   PatchComparison,
   BaselineSimulationOutput,
-  ModifierContribution,
-  RandomDistributionProgress,
-  RandomDistributionSummary,
-  ProfessionModifier,
-  ModifierContributionRequest,
-  RandomDistributionJobRequest,
-  RelicComparisonJobRequest,
-  RandomDistributionRequest,
-  RandomDistributionOptions,
   BaselineSimulationRequest
 } from '#gw2/app/simulation/types.js';
+import type {
+  ModifierContribution,
+  ProfessionModifier,
+  ModifierContributionRequest
+} from '#gw2/app/simulation/modifiers/types.js';
+import type {
+  RandomDistributionProgress,
+  RandomDistributionSummary,
+  RandomDistributionJobRequest,
+  RandomDistributionRequest,
+  RandomDistributionOptions
+} from '#gw2/app/simulation/random-distribution/types.js';
+import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
 import type {
   Gw2ApplicationBuild,
   Gw2CalculateAttributes,
@@ -33,7 +37,7 @@ import type {
   ProfessionDefaultOffhand,
   ProfessionSlotLoadout
 } from '#gw2/app/build/types.js';
-import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison.js';
+import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RotationHotkeyImport } from '#gw2/app/rotation/input/hotkeys.js';
 import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
@@ -62,7 +66,7 @@ export interface RotationComparisonState {
 }
 
 export interface ProfessionAppState {
-  gearOptimizerRunner?: import('#gw2/app/simulation/gear-optimizer-runner.js').GearOptimizerRunner;
+  gearOptimizerRunner?: import('#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string): void;
   readonly gameId: string;

@@ -327,7 +327,7 @@ randomness: { mode: "stochastic", seed: 42 }
 ```
 
 One stochastic run is not a distribution. Scripts that compare random outcomes should run multiple seeds and summarize
-their results, as done by `js/games/gw2/app/simulation/random-distribution.ts`.
+their results, as done by `js/games/gw2/app/simulation/random-distribution/random-distribution.ts`.
 
 ## Current API status
 

@@ -4,8 +4,14 @@ import {
   type GearOptimizerRequest,
   type OptimizerCandidate,
   type OptimizerScore
-} from '#gw2/app/simulation/gear-optimizer.js';
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import {
+  createOptimizerResultGroups,
+  retainOptimizerGroup,
+  type OptimizerResultGroups,
+  type OptimizerGroupedFilter
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
 
 export const MAX_OPTIMIZER_WORKERS = 4;
 
@@ -18,6 +24,7 @@ interface OptimizerMessage extends GameWorkerResponseEnvelope {
   readonly represented?: string;
   readonly simulations?: string;
   readonly winners?: OptimizerCandidate[];
+  readonly groups?: OptimizerResultGroups;
   readonly warnings?: [string, number][];
   readonly elapsedMs?: number;
 }
@@ -32,6 +39,7 @@ export interface OptimizerProgress {
   simulations: bigint;
   baseline: OptimizerScore | null;
   winners: OptimizerCandidate[];
+  groups: OptimizerResultGroups;
   warnings: Map<string, bigint>;
   started: number;
   elapsedMs: number;
@@ -65,6 +73,7 @@ export class GearOptimizerRunner {
       simulations: 0n,
       baseline: null,
       winners: [],
+      groups: createOptimizerResultGroups(),
       warnings: new Map(),
       started: performance.now(),
       elapsedMs: 0
@@ -102,9 +111,16 @@ export class GearOptimizerRunner {
     let next = 0n;
     let chunkId = 0;
     let bootstrapped = false;
+    let poolSize = 1;
+    let roundStarted = false;
+    let roundOffset = 0n;
+    let roundCount = 0n;
     let chunkSize = 1n;
     const pending = new Map<Worker, { id: number; size: bigint }>();
     const ready = new Set<Worker>();
+    const verifying = new Set<Worker>();
+    let verification: OptimizerCandidate[] = [];
+    let verificationNext = 0;
     const fail = (error: unknown): void => {
       this.state.status = 'failed';
       this.state.error = error instanceof Error ? error.message : String(error);
@@ -119,8 +135,55 @@ export class GearOptimizerRunner {
       const end = next + chunkSize < this.state.count ? next + chunkSize : this.state.count;
       const id = ++chunkId;
       pending.set(worker, { id, size: end - next });
-      worker.postMessage({ kind: 'chunk', requestId, chunkId: id, start: next.toString(), end: end.toString() });
+      worker.postMessage({
+        kind: 'chunk',
+        requestId,
+        chunkId: id,
+        start: (next - roundOffset).toString(),
+        end: (end - roundOffset).toString()
+      });
       next = end;
+    };
+
+    // Verify every retained display result in small batches, sharing the existing pool and cancellation path.
+    const verify = (worker: Worker): void => {
+      if (verificationNext >= verification.length) return;
+      const candidates = verification.slice(verificationNext, verificationNext + 20);
+      verificationNext += candidates.length;
+      verifying.add(worker);
+      worker.postMessage({ kind: 'verify', requestId, candidates });
+    };
+
+    // Synchronize bounded rounds so every worker deduplicates the same history and receives disjoint ranges.
+    const finishRound = (): void => {
+      if (
+        this.state.status !== 'running' ||
+        ready.size !== poolSize ||
+        pending.size ||
+        this.state.completed !== this.state.count
+      )
+        return;
+      if (request.search === 'fast' && roundCount > 0n) {
+        const workers = [...ready];
+        ready.clear();
+        roundStarted = false;
+        roundOffset = this.state.completed;
+        for (const worker of workers) worker.postMessage({ kind: 'refine', requestId, candidates: this.state.winners });
+      } else {
+        if (request.search !== 'fast' && this.state.represented !== this.state.rawCount)
+          throw new Error('Optimizer coverage does not match the legal search space.');
+        this.state.status = 'verifying';
+        verification = [
+          ...new Map(
+            [...this.state.winners, ...Object.values(this.state.groups).flat()].map((candidate) => [
+              JSON.stringify(candidate.equipment),
+              candidate
+            ])
+          ).values()
+        ];
+        for (const worker of ready) verify(worker);
+        this.publish(true);
+      }
     };
 
     const receive = (message: OptimizerMessage, worker: Worker): void => {
@@ -132,19 +195,27 @@ export class GearOptimizerRunner {
       if (message.kind === 'ready') {
         if (ready.has(worker)) throw new Error('Duplicate optimizer readiness.');
         ready.add(worker);
+        if (!roundStarted) {
+          roundStarted = true;
+          roundCount = BigInt(message.count!);
+          this.state.count = roundOffset + roundCount;
+        } else if (BigInt(message.count!) !== roundCount) {
+          throw new Error('Optimizer workers disagree on the search space.');
+        }
+
         if (!bootstrapped) {
           bootstrapped = true;
-          this.state.count = BigInt(message.count!);
           this.state.rawCount = BigInt(message.rawCount!);
           this.state.baseline = message.baseline!;
           this.state.status = 'running';
-          const workers = Number(this.state.count < BigInt(workerCount) ? this.state.count : BigInt(workerCount));
-          for (let index = 1; index < workers; index++) spawn();
-        } else if (BigInt(message.count!) !== this.state.count || BigInt(message.rawCount!) !== this.state.rawCount) {
+          poolSize = Number(this.state.count < BigInt(workerCount) ? this.state.count : BigInt(workerCount));
+          for (let index = 1; index < poolSize; index++) spawn();
+        } else if (BigInt(message.rawCount!) !== this.state.rawCount) {
           throw new Error('Optimizer workers disagree on the search space.');
         }
 
         dispatch(worker);
+        finishRound();
       } else if (message.kind === 'chunk') {
         const chunk = pending.get(worker);
         if (!chunk || chunk.id !== message.chunkId) throw new Error('Unexpected optimizer chunk completion.');
@@ -157,6 +228,12 @@ export class GearOptimizerRunner {
         this.state.simulations += BigInt(message.simulations!);
         for (const candidate of message.winners || [])
           retainOptimizerCandidate(this.state.winners, candidate, request.limit);
+        // Unusable sets stay fixed in the captured equipment, so including them here cannot split a group.
+        for (const filter of Object.keys(this.state.groups) as OptimizerGroupedFilter[]) {
+          for (const candidate of message.groups?.[filter] || [])
+            retainOptimizerGroup(this.state.groups[filter], candidate, filter, [0, 1]);
+        }
+
         for (const [warning, count] of message.warnings || []) {
           const category =
             this.state.warnings.has(warning) || this.state.warnings.size < 32
@@ -170,15 +247,12 @@ export class GearOptimizerRunner {
           Math.max(1, Math.min(256, Math.round((Number(chunk.size) * 150) / Math.max(1, message.elapsedMs || 1))))
         );
         dispatch(worker);
-        if (this.state.completed === this.state.count && !pending.size) {
-          if (this.state.represented !== this.state.rawCount)
-            throw new Error('Optimizer coverage does not match the legal search space.');
-          this.state.status = 'verifying';
-          worker.postMessage({ kind: 'verify', requestId, candidates: this.state.winners });
-          this.publish(true);
-        }
+        finishRound();
       } else if (message.kind === 'verified') {
-        if (this.state.status !== 'verifying') throw new Error('Unexpected optimizer verification.');
+        if (this.state.status !== 'verifying' || !verifying.delete(worker))
+          throw new Error('Unexpected optimizer verification.');
+        verify(worker);
+        if (verifying.size) return;
         this.state.status = 'complete';
         this.batch.terminateAll();
         this.publish(true);

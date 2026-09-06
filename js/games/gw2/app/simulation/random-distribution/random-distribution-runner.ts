@@ -3,14 +3,14 @@ import {
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
-} from '#gw2/app/simulation/random-distribution.js';
+} from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
   RandomDistributionOutcome,
   RandomDistributionProgress,
   RandomDistributionSummary
-} from '#gw2/app/simulation/types.js';
+} from '#gw2/app/simulation/random-distribution/types.js';
 
 interface RandomDistributionWorkerMessage extends GameWorkerResponseEnvelope {
   readonly progress?: { readonly completed?: number };

@@ -16,7 +16,7 @@ import {
   mergeModifierContributions,
   modifierContributionWorkerCount,
   partitionModifierComparisons
-} from '#gw2/app/simulation/modifier-contributions.js';
+} from '#gw2/app/simulation/modifiers/modifier-contributions.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 

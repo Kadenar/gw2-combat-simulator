@@ -1,15 +1,21 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer-runner.js';
-import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer-space.js';
-import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/simulation/gear-optimizer.js';
+import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
+import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+import {
+  createFastOptimizer,
+  OPTIMIZER_SEARCH_BUDGET
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js';
+import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 import {
   groupOptimizerSpace,
   groupedEquipmentAt,
   optimizerEquivalenceKey,
   estimateOptimizerCount
-} from '#gw2/app/simulation/gear-optimizer-space.js';
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
 import {
   captureGearOptimizerRequest,
   createOptimizerSpace,
@@ -20,10 +26,112 @@ import {
   optimizerCardinality,
   optimizerScore,
   runOrdinaryOptimizer
-} from '#gw2/app/simulation/gear-optimizer.js';
-import { retainOptimizerCandidate, compareOptimizerCandidates } from '#gw2/app/simulation/gear-optimizer.js';
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import {
+  retainOptimizerCandidate,
+  compareOptimizerCandidates
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import {
+  createOptimizerResultGroups,
+  retainOptimizerGroup,
+  optimizerEquipmentIdentity
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
 
 const adapter = await loadProfessionAppAdapter('warrior');
+
+test('equipped identity ignores entry ordering, while display groups retain different gear with equal DPS', () => {
+  const initial = request();
+  const captured = request({
+    prefixes: ["Berserker's", "Assassin's"],
+    locks: optimizerSlots(initial.build, adapter).filter((slot) => slot !== 'Helm')
+  });
+  const job = createGroupedOptimizer(captured, adapter);
+  const result = job.evaluateRange(0n, job.space.count);
+  assert.equal(result.winners.length, 2);
+  assert.equal(result.winners[0].score.dps, result.winners[1].score.dps);
+  assert.equal(result.groups.all.length, 1);
+  assert.notEqual(
+    optimizerEquipmentIdentity(result.groups.all[0].equipment),
+    optimizerEquipmentIdentity(captured.build)
+  );
+  const reordered = structuredClone(captured.build);
+  reordered.gear = Object.fromEntries(Object.entries(reordered.gear).reverse());
+  reordered.infusions = [
+    { stat: 'Power', count: 8 },
+    { stat: 'Precision', count: 0 },
+    { stat: 'Power', count: 10 }
+  ];
+  assert.equal(
+    optimizerEquipmentIdentity(reordered),
+    optimizerEquipmentIdentity({ ...captured.build, infusions: [{ stat: 'Power', count: 18 }] })
+  );
+});
+
+test('display groups retain weaker options outside the overall top twenty and cap distinct groups', () => {
+  const base = runOrdinaryOptimizer(request(), adapter)[0];
+  const winners = [];
+  const groups = createOptimizerResultGroups();
+  for (let index = 0; index < 25; index++) {
+    const candidate = { ...base, key: `strong-${index}`, score: { ...base.score, dps: 100 - index } };
+    retainOptimizerCandidate(winners, candidate);
+    retainOptimizerGroup(groups.food, candidate, 'food', [0]);
+  }
+
+  const weaker = {
+    ...base,
+    key: 'weaker',
+    equipment: { ...base.equipment, food: '' },
+    score: { ...base.score, dps: 1 }
+  };
+  retainOptimizerCandidate(winners, weaker);
+  retainOptimizerGroup(groups.food, weaker, 'food', [0]);
+  assert.equal(winners.length, 20);
+  assert.ok(!winners.includes(weaker));
+  assert.deepEqual(
+    groups.food.map(({ score }) => score.dps),
+    [100, 1]
+  );
+  retainOptimizerGroup(groups.food, { ...weaker, score: { ...weaker.score, dps: 101 } }, 'food', [0]);
+  assert.equal(groups.food[0].score.dps, 101);
+  for (let index = 0; index < 101; index++)
+    retainOptimizerGroup(
+      groups.food,
+      { ...base, equipment: { ...base.equipment, food: `option-${index}` }, score: { ...base.score, dps: index } },
+      'food',
+      [0]
+    );
+  assert.equal(groups.food.length, 100);
+  assert.equal(groups.food.at(-1).score.dps, 3);
+  const tied = [
+    { ...base, equipment: { ...base.equipment, food: 'a' } },
+    { ...base, equipment: { ...base.equipment, food: 'b' } }
+  ];
+  const ordered = [],
+    reversed = [];
+  for (const candidate of tied) retainOptimizerGroup(ordered, candidate, 'food', [0]);
+  for (const candidate of [...tied].reverse()) retainOptimizerGroup(reversed, candidate, 'food', [0]);
+  assert.deepEqual(reversed, ordered);
+});
+
+test('sigil display groups preserve permutations and usable sets; all combinations include other upgrades', () => {
+  const base = runOrdinaryOptimizer(request(), adapter)[0];
+  const swap = structuredClone(base);
+  swap.equipment.weaponSigils[0].reverse();
+  const alternate = structuredClone(base);
+  alternate.equipment.weaponSigils[1].reverse();
+  const food = { ...base, equipment: { ...base.equipment, food: '' } };
+  const groups = createOptimizerResultGroups();
+  for (const candidate of [base, swap, alternate, food]) {
+    retainOptimizerGroup(groups.sigils, candidate, 'sigils', [0, 1]);
+    retainOptimizerGroup(groups.all, candidate, 'all', [0, 1]);
+  }
+
+  assert.equal(groups.sigils.length, 3);
+  assert.equal(groups.all.length, 4);
+  const activeOnly = [];
+  for (const candidate of [base, alternate]) retainOptimizerGroup(activeOnly, candidate, 'sigils', [0]);
+  assert.equal(activeOnly.length, 1);
+});
 
 test('equal integer vectors merge before evaluation without losing coverage or representatives', () => {
   const initial = request();
@@ -108,6 +216,7 @@ class OptimizerTestWorker {
   listeners = new Map();
   terminated = false;
   job = null;
+  verified = [];
   constructor(searchedKeys = new Set()) {
     this.searchedKeys = searchedKeys;
   }
@@ -118,11 +227,15 @@ class OptimizerTestWorker {
     this.terminated = true;
   }
   postMessage(message) {
+    message = structuredClone(message);
     setImmediate(() => {
       if (this.terminated) return;
       let result;
       if (message.kind === 'init') {
-        this.job = createGroupedOptimizer(message.request, adapter);
+        this.job =
+          message.request.search === 'fast'
+            ? createFastOptimizer(message.request, adapter)
+            : createGroupedOptimizer(message.request, adapter);
         const score = this.job.evaluator.score;
         this.job.evaluator.score = (equipment) => {
           const key = optimizerEquivalenceKey(equipment, this.job.space.ordinary, adapter);
@@ -140,6 +253,13 @@ class OptimizerTestWorker {
           rawCount: this.job.space.ordinary.rawCount.toString(),
           baseline: optimizerScore(this.job.evaluator.evaluate(ordinaryEquipmentAt(this.job.space.ordinary, 0n)))
         };
+      } else if (message.kind === 'refine') {
+        this.job.refine(message.candidates);
+        result = {
+          kind: 'ready',
+          count: this.job.space.count.toString(),
+          rawCount: this.job.space.ordinary.rawCount.toString()
+        };
       } else if (message.kind === 'chunk') {
         result = {
           kind: 'chunk',
@@ -148,8 +268,12 @@ class OptimizerTestWorker {
           elapsedMs: 150
         };
       } else {
-        for (const candidate of message.candidates)
+        assert.ok(message.candidates.length <= 20, 'verification messages must stay bounded');
+        for (const candidate of message.candidates) {
           verifyOptimizerScore(candidate.score, optimizerScore(this.job.evaluator.evaluate(candidate.equipment)));
+          this.verified.push(JSON.stringify(candidate.equipment));
+        }
+
         result = { kind: 'verified' };
       }
 
@@ -157,6 +281,35 @@ class OptimizerTestWorker {
     });
   }
 }
+
+test('completion verifies group winners beyond the overall top twenty using bounded batches', async () => {
+  const captured = request({ rune: RUNE_NAMES, food: ['', request().build.food] });
+  const workers = [];
+  const searched = new Set();
+  const state = await new Promise((resolve, reject) => {
+    const runner = new GearOptimizerRunner(
+      { buildRevision: captured.revision },
+      () => {
+        if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+        if (runner.state.status === 'complete') resolve(runner.state);
+      },
+      () => {
+        const worker = new OptimizerTestWorker(searched);
+        workers.push(worker);
+        return worker;
+      },
+      2
+    );
+    runner.run(captured);
+  });
+  const expected = new Set(
+    [...state.winners, ...Object.values(state.groups).flat()].map((candidate) => JSON.stringify(candidate.equipment))
+  );
+  const verified = workers.flatMap((worker) => worker.verified);
+  assert.ok(expected.size > 20);
+  assert.equal(verified.length, expected.size);
+  assert.deepEqual(new Set(verified), expected);
+});
 
 test('selectable worker pools evaluate each unique candidate once and retain identical winners', async () => {
   const initial = request();
@@ -198,6 +351,80 @@ test('selectable worker pools evaluate each unique candidate once and retain ide
     assert.equal(multiple.simulations, 28n);
     assert.equal(multiple.completed, multiple.count);
   }
+});
+
+test('bounded refinement stays deterministic across worker counts without rescoring equivalents', async () => {
+  const captured = {
+    ...request(
+      { prefixes: ["Berserker's", "Assassin's", "Viper's"] },
+      {
+        rotation: adapter.toApplicationBuild({ rotation: ['Chop'] }).rotation,
+        weapons: ['Axe', 'Axe']
+      }
+    ),
+    search: 'fast'
+  };
+  const run = (count) =>
+    new Promise((resolve, reject) => {
+      const searchedKeys = new Set();
+      const runner = new GearOptimizerRunner(
+        { buildRevision: captured.revision },
+        () => {
+          if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+          if (runner.state.status === 'complete') {
+            assert.equal(BigInt(searchedKeys.size), runner.state.simulations);
+            assert.ok(runner.state.simulations > 256n, 'refinement must add new candidates after sampling');
+            assert.ok(runner.state.simulations <= BigInt(OPTIMIZER_SEARCH_BUDGET));
+            assert.ok(
+              runner.state.represented < runner.state.rawCount,
+              'bounded completion must not imply exhaustive coverage'
+            );
+            resolve(runner.state);
+          }
+        },
+        () => new OptimizerTestWorker(searchedKeys),
+        count
+      );
+      runner.run(captured);
+    });
+  const single = await run(1);
+  const multiple = await run(4);
+  assert.deepEqual(multiple.winners, single.winners);
+  assert.deepEqual(multiple.groups, single.groups);
+  assert.equal(multiple.simulations, single.simulations);
+});
+
+test('bounded search covers a small space and preserves the equipped candidate when allowed', () => {
+  const captured = request({ food: ['', request().build.food] });
+  const fast = createFastOptimizer(captured, adapter);
+  const exact = createGroupedOptimizer(captured, adapter);
+  const scores = (result) => result.winners.map(({ key, score }) => ({ key, score }));
+  const result = fast.evaluateRange(0n, fast.space.count);
+  assert.deepEqual(scores(result), scores(exact.evaluateRange(0n, exact.space.count)));
+  fast.refine(result.winners);
+  assert.equal(fast.space.count, 0n);
+});
+
+test('bounded search stops at its simulation budget even when promising neighbors remain', () => {
+  const captured = request({
+    prefixes: ["Berserker's", "Assassin's", "Viper's"],
+    rune: RUNE_NAMES,
+    sigils: [[SIGIL_NAMES, SIGIL_NAMES]]
+  });
+  const job = createFastOptimizer(captured, adapter);
+  const winners = [];
+  let checked = 0;
+  while (job.space.count) {
+    const result = job.evaluateRange(0n, job.space.count);
+    checked += Number(result.simulations);
+    assert.ok(checked <= OPTIMIZER_SEARCH_BUDGET);
+    for (const winner of result.winners) retainOptimizerCandidate(winners, winner);
+    job.refine(winners);
+  }
+
+  assert.equal(checked, OPTIMIZER_SEARCH_BUDGET);
+  job.refine(winners);
+  assert.equal(job.space.count, 0n);
 });
 
 test('invalid worker counts cannot replace an active optimizer job', () => {

@@ -1,7 +1,13 @@
 /** Measure unique-stat preparation without simulating the enormous Cartesian products it replaces. */
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { captureGearOptimizerRequest, createOptimizerSpace } from '#gw2/app/simulation/gear-optimizer.js';
-import { estimateOptimizerCount, groupOptimizerSpace } from '#gw2/app/simulation/gear-optimizer-space.js';
+import {
+  captureGearOptimizerRequest,
+  createOptimizerSpace
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import {
+  estimateOptimizerCount,
+  groupOptimizerSpace
+} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
 
 const adapter = await loadProfessionAppAdapter('warrior');
 const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
@@ -23,7 +29,7 @@ for (const prefixes of [
     console.log(JSON.stringify({ prefixes, preparationStopped: error.message }));
     continue;
   }
-  
+
   console.log(
     JSON.stringify({
       prefixes,

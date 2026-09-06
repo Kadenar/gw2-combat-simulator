@@ -10,7 +10,7 @@ import {
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
-} from '#gw2/app/simulation/random-distribution.js';
+} from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   createEngineerBuildDefaults,

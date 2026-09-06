@@ -1,10 +1,10 @@
 import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
-import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions.js';
+import { calculateContributionComparisons } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
 import {
   DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   calculateRandomDistribution as calculateDistribution
-} from '#gw2/app/simulation/random-distribution.js';
-import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison.js';
+} from '#gw2/app/simulation/random-distribution/random-distribution.js';
+import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
@@ -13,17 +13,15 @@ import type { ObservationPolicy, RotationCommand } from '#gw2/platform/engine/ex
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/types.js';
+import type { ModifierContributionRequest, ProfessionModifier } from '#gw2/app/simulation/modifiers/types.js';
 import type {
-  BaselineSimulationOutput,
-  BaselineSimulationRequest,
-  ModifierContributionRequest,
-  ProfessionModifier,
   RandomDistributionJobRequest,
   RandomDistributionOptions,
   RandomDistributionRequest,
-  RandomDistributionSummary,
-  RelicComparisonJobRequest
-} from '#gw2/app/simulation/types.js';
+  RandomDistributionSummary
+} from '#gw2/app/simulation/random-distribution/types.js';
+import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
 import type { Gw2ApplicationBuild, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';

@@ -1655,6 +1655,7 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
   font-size: 11px;
 }
 .optimizer-picker-heading span {
+  margin-left: auto;
   color: var(--text-dim);
   font-size: 10px;
   white-space: nowrap;
@@ -1732,16 +1733,21 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
 .optimizer-infusion-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 72px;
+  /* Align the editable controls even when infusion choices wrap onto multiple lines. */
+  align-items: end;
   gap: 14px;
 }
 .optimizer-infusion-count {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   color: var(--text-dim);
   font-size: 11px;
 }
 .optimizer-infusion-count input {
   width: 100%;
-  padding: 8px;
-  margin-top: 8px;
+  height: 34px;
+  padding: 6px 8px;
 }
 .optimizer-actions {
   display: flex;
@@ -1790,6 +1796,66 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
 .optimizer-feedback > p {
   margin: 0 0 10px;
 }
+/* Keep display controls outside the search form so changing a filter never restarts optimization. */
+.optimizer-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.optimizer-status-row p {
+  margin: 0;
+}
+.optimizer-filter-settings {
+  position: relative;
+}
+.optimizer-filter-settings > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 24px;
+  color: var(--text-light);
+}
+.optimizer-filter-settings > summary::-webkit-details-marker {
+  display: none;
+}
+.optimizer-filter-settings > summary:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.optimizer-filter-settings fieldset {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 4;
+  width: 250px;
+  max-width: calc(100vw - 48px);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel-alt);
+  box-shadow: 0 8px 24px #0006;
+}
+.optimizer-filter-settings legend {
+  padding: 0 4px;
+  color: var(--text-light);
+}
+.optimizer-filter-settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  cursor: pointer;
+}
+.optimizer-filter-settings input {
+  accent-color: var(--accent);
+}
+.optimizer-filter-settings fieldset p {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
 .optimizer-feedback [data-role='optimizer-warnings']:empty {
   display: none;
 }
@@ -1806,7 +1872,9 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
 .gear-optimizer table {
   width: 100%;
   text-align: left;
-  border-collapse: collapse;
+  /* Separate cell borders stay with sticky cells, preventing underlying rows from showing at the footer edge. */
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 12px;
   white-space: nowrap;
 }
@@ -1842,8 +1910,10 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
   font-size: 10px;
   color: var(--text-dim);
 }
-.gear-optimizer .optimizer-changed {
-  color: #42d5d1;
+/* Stack the weapon set beneath the slot name instead of compressing both into an abbreviation. */
+.gear-optimizer th .optimizer-weapon-set {
+  display: block;
+  margin: 3px 0 0;
 }
 .optimizer-equipment > span {
   display: block;
@@ -1854,10 +1924,6 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
 .optimizer-equipment img {
   display: block;
   border-radius: 2px;
-}
-.optimizer-changed img {
-  outline: 2px solid #42d5d1;
-  outline-offset: 2px;
 }
 .optimizer-results-heading {
   display: flex;
@@ -1889,6 +1955,14 @@ body:not([data-simulator-view='analysis']) .gear-optimizer {
   white-space: normal;
   color: var(--text-dim);
   font-size: 11px;
+}
+/* The equipped setup remains visible below the scrollable, filtered candidates. */
+.optimizer-equipped td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--bg-panel-alt);
+  box-shadow: 0 -2px var(--accent);
 }
 .gear-optimizer tbody tr:hover {
   background: color-mix(in srgb, #25b8b7 12%, var(--bg-panel));

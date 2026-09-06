@@ -14,8 +14,8 @@ import {
 import { loadTemplateAction } from '#gw2/app/build/panels/presets.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contribution-runner.js';
-import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution-runner.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifier-contribution-runner.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
 
 function storage(t, initial = {}) {
   const values = new Map(Object.entries(initial));

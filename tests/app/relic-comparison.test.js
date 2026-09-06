@@ -6,7 +6,7 @@ import {
   CROSSOVER_EVALUATION_START_MS,
   buildRelicComparisonModel,
   relicComparisonAvailable
-} from '#gw2/app/simulation/relic-comparison.js';
+} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 
 test('break-even chart hover shows the time and both relic DPS values', () => {
   const tooltip = { innerHTML: '', style: {} };

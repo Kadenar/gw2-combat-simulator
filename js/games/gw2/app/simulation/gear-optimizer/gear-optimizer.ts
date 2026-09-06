@@ -33,6 +33,7 @@ export interface GearOptimizerRequest {
   readonly observationPolicy: ObservationPolicy;
   readonly selections: GearOptimizerSelections;
   readonly limit: number;
+  readonly search?: 'exact' | 'fast';
 }
 
 export type OptimizerEquipment = Pick<
@@ -85,7 +86,8 @@ function freezeSnapshot<T>(value: T): T {
 export function captureGearOptimizerRequest(
   app: ProfessionAppState,
   selections: GearOptimizerSelections,
-  observationPolicy: ObservationPolicy = { kind: 'rotation' }
+  observationPolicy: ObservationPolicy = { kind: 'rotation' },
+  search: 'exact' | 'fast' = 'exact'
 ): GearOptimizerRequest {
   const request: GearOptimizerRequest = structuredClone({
     gameId: 'gw2',
@@ -96,7 +98,8 @@ export function captureGearOptimizerRequest(
     patchValues: app.profession.patchValuesFor?.(app.patchId) || {},
     observationPolicy,
     selections,
-    limit: 20
+    limit: 20,
+    search
   });
   // Resolve inherited alternate prefixes before any candidate can change the first set.
   request.build.alternateWeaponPrefixes = [0, 1].map(
@@ -141,6 +144,8 @@ export function optimizerSlots(build: Gw2ApplicationBuild, adapter: Gw2AppAdapte
 }
 
 export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2AppAdapter): OptimizerSpace {
+  if (request.search !== undefined && !['exact', 'fast'].includes(request.search))
+    throw new TypeError('Invalid optimizer search mode.');
   if (
     request.gameId !== 'gw2' ||
     request.contentId !== adapter.id ||
