@@ -35,6 +35,56 @@ const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(g
 
 const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
 
+test('Guardian slot skills require selection before casts can produce effects', () => {
+  // A single cast checks loadout rejection, including Effulgent's delayed detonation.
+  for (const name of ['Effulgent Stance', 'Shelter', 'Renewed Focus']) {
+    for (const selectedSkills of [[], {}, ['Signet of Wrath'], { Utility1: 'Signet of Wrath' }]) {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: [name, { type: 'wait', durationMs: 5000 }],
+        config: { ...config, specialization: 'Luminary', selectedSkills }
+      });
+      assert.equal(result.steps[0].invalid, true, name);
+      assert.match(result.warnings.join(' '), /is unavailable.*not equipped/);
+      assert.equal(
+        result.resolvedEvents.some((event) => event.skillName === name || event.name === name),
+        false
+      );
+    }
+  }
+
+  for (const selectedSkills of [undefined, ['Effulgent Stance'], { Utility1: { name: 'Effulgent Stance' } }]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Effulgent Stance', { type: 'wait', durationMs: 5000 }],
+      config: { ...config, specialization: 'Luminary', selectedSkills }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.ok(result.resolvedEvents.some((event) => event.name === 'Effulgent Stance' && event.damage > 0));
+  }
+});
+
+test('Guardian mantra flips inherit selection from the root slot skill', () => {
+  for (const selectedSkills of [[], ['Mantra of Flame']]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Flame Rush', 'Flame Rush', 'Flame Surge'],
+      config: { ...config, specialization: 'Firebrand', selectedSkills }
+    });
+    if (selectedSkills.length) {
+      assert.deepEqual(result.warnings, []);
+      assert.ok(result.resolvedEvents.some((event) => event.name === 'Flame Surge'));
+    } else {
+      assert.ok(result.steps.every((step) => step.invalid));
+      assert.match(result.warnings.join(' '), /not equipped/);
+      assert.equal(
+        result.resolvedEvents.some((event) => ['Flame Rush', 'Flame Surge'].includes(event.name)),
+        false
+      );
+    }
+  }
+});
+
 test('Virtue of Resolution replacement returns before later scheduled-event behavior', () => {
   const emitted = [];
   const event = {
