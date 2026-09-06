@@ -3,7 +3,8 @@ import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/chart
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
 import type { RelicComparisonModel } from '#gw2/app/results/charts/relic-comparison.js';
 import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/results/charts/relic-comparison.js';
-import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml, groupedOptions } from '#gw2/app/presentation/shared/html.js';
+import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
@@ -507,6 +508,11 @@ export function mountRotationResults(
   const relicComparisonError = String(model.relicComparisonError || '');
   const relicComparisonOpponent = String(model.relicComparisonOpponent || '');
   const relicComparisonTargets = model.relicComparisonTargets || [];
+  // Match the gear selector's categories while keeping only available comparison relics.
+  const relicComparisonGroups = RELIC_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((name) => relicComparisonTargets.includes(name))
+  })).filter((group) => group.items.length);
   const requestedRelicComparisonTarget = String(model.relicComparisonTarget || '');
   const relicComparisonTarget = relicComparisonTargets.includes(requestedRelicComparisonTarget)
     ? requestedRelicComparisonTarget
@@ -518,12 +524,7 @@ export function mountRotationResults(
   const relicComparisonAction = `<label class="relic-cmp-control">
           Compare with
           <select data-role="relic-comparison-target" aria-label="Comparison relic">
-            ${relicComparisonTargets
-              .map(
-                (name) =>
-                  `<option value="${escapeHtml(name)}"${name === relicComparisonTarget ? ' selected' : ''}>Relic of ${escapeHtml(name)}</option>`
-              )
-              .join('')}
+            ${groupedOptions(relicComparisonGroups, relicComparisonTarget, (name) => `Relic of ${name}`)}
           </select>
         </label>
         <label class="relic-cmp-control" data-role="relic-comparison-stacks-control"${relicComparisonTarget === 'Thorns' ? '' : ' hidden'}>

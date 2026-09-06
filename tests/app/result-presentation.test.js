@@ -816,6 +816,8 @@ test('relic comparison passes the selected relic and shows stacks only for Thorn
   assert.match(container.innerHTML, /Relic break-even comparison/);
   assert.doesNotMatch(container.innerHTML, /Off by default/);
   assert.match(container.innerHTML, /<option value="Akeem">Relic of Akeem<\/option>/);
+  assert.match(container.innerHTML, /<optgroup label="Condition">/);
+  assert.doesNotMatch(container.innerHTML, /<optgroup label="(?:Power|Hybrid)">/);
   assert.doesNotMatch(container.innerHTML, /value="Fractal"/);
   assert.match(container.innerHTML, /aria-label="Starting Thorns stacks"/);
   assert.match(container.innerHTML, /min="0" max="10" step="1" value="4"/);
@@ -825,6 +827,32 @@ test('relic comparison passes the selected relic and shows stacks only for Thorn
   runButton.onclick();
   assert.equal(targetRelic, 'Akeem');
   assert.equal(startingStacks, 4);
+});
+
+// Comparison choices keep the gear categories and selection even when targets arrive alphabetically.
+test('relic comparison groups available choices by damage category', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    metrics: [],
+    relicComparisonAvailable: true,
+    relicComparisonTarget: 'Thorns',
+    relicComparisonTargets: ['Akeem', 'Brawler', 'Nourys', 'Thorns']
+  });
+
+  const groups = [...container.innerHTML.matchAll(/<optgroup label="([^"]+)">([\s\S]*?)<\/optgroup>/g)];
+  assert.deepEqual(
+    groups.map(([, label, options]) => [
+      label,
+      [...options.matchAll(/<option value="([^"]+)"/g)].map(([, name]) => name)
+    ]),
+    [
+      ['Power', ['Brawler']],
+      ['Condition', ['Akeem', 'Thorns']],
+      ['Hybrid', ['Nourys']]
+    ]
+  );
+  assert.match(container.innerHTML, /<option value="Thorns" selected>Relic of Thorns<\/option>/);
 });
 
 test('relic comparison keeps its footprint while rerunning', () => {
