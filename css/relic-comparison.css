@@ -42,7 +42,6 @@
   padding: 5px;
   color: var(--text-bright);
   font: inherit;
-  text-align: center;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -50,6 +49,28 @@
 
 .relic-cmp-control input {
   width: 46px;
+  text-align: center;
+}
+
+/* Left-aligned names and accented headings make grouped relic choices easy to scan. */
+.relic-cmp-control select {
+  min-width: 180px;
+  padding: 5px 8px;
+  font-size: 11px;
+  text-align: left;
+}
+
+.relic-cmp-control optgroup {
+  padding-top: 4px;
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.relic-cmp-control optgroup option {
+  padding-left: 8px;
+  color: var(--text);
+  font-weight: 400;
 }
 
 .relic-cmp-status {
