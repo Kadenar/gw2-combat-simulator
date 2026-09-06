@@ -1,8 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { CAST_READY } from '#gw2/platform/engine/skills/availability.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { denySkillCast } from '#gw2/professions/lib/availability.js';
+import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {
@@ -33,7 +32,7 @@ export function selectedGuardianSpecialization(context: GuardianAvailabilityCont
  * running, so they deny the current command without advertising a retry time.
  */
 export function guardianBuildAvailability(
-  context: GuardianAvailabilityContext,
+  context: GuardianPrecastContext,
   skill: GuardianSkill
 ): Readonly<AvailabilityResult> {
   const specialization = selectedGuardianSpecialization(context) || 'Core';
@@ -41,21 +40,9 @@ export function guardianBuildAvailability(
     return denySkillCast(skill, 'guardian.specialization', `requires the ${skill.specialization} specialization.`);
   }
 
-  // Configured loadouts gate slot skills before effects are scheduled; flips inherit
-  // their root's selection, while omitted loadouts retain unrestricted sandbox casts.
-  const selectedSkills = context.config?.selectedSkills;
-  if (selectedSkills != null && ['Heal', 'Utility', 'Elite'].includes(skill.type || '')) {
-    let root = skill;
-    while (root.flipParentId != null) {
-      const parent = context.catalog?.skillsById.get(root.flipParentId);
-      if (!parent) break;
-      root = parent;
-    }
-
-    if (!selectedSkillNameSet(selectedSkills).has(root.name)) {
-      return denySkillCast(skill, 'guardian.not-equipped', `${root.name} is not equipped.`);
-    }
-  }
+  // Share equipped-slot validation, including parent selection for mantra flips.
+  const selection = selectedSlotSkillAvailability(context, skill);
+  if (selection) return selection;
 
   if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) {
     return hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART)
