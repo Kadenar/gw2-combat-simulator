@@ -430,16 +430,32 @@ export function verifyOptimizerScore(expected: OptimizerScore, actual: Optimizer
   }
 }
 
-/** Apply only a captured equipment assignment through the ordinary mutation and persistence path. */
+const optimizerApplications = new WeakMap<ProfessionAppState, { request: GearOptimizerRequest; revision: number; candidate: OptimizerCandidate }>();
+
+/** Only this search's own Apply operations advance its accepted revision; unrelated edits still invalidate results. */
+export function isOptimizerRequestCurrent(app: ProfessionAppState, request: GearOptimizerRequest): boolean {
+  const applied = optimizerApplications.get(app);
+  const revision = applied?.request === request ? applied.revision : request.revision;
+  return app.buildRevision === revision && app.contentId === request.contentId && app.patchId === request.patchId;
+}
+
+/** The pinned comparison follows the last applied result without modifying the immutable search snapshot. */
+export function optimizerAppliedCandidate(app: ProfessionAppState, request: GearOptimizerRequest): OptimizerCandidate | null {
+  const applied = optimizerApplications.get(app);
+  return applied?.request === request && isOptimizerRequestCurrent(app, request) ? applied.candidate : null;
+}
+
+/** Apply through normal persistence, then accept the resulting revision so other results can be tried. */
 export function applyOptimizerCandidate(
   app: ProfessionAppState,
   request: GearOptimizerRequest,
   candidate: OptimizerCandidate
 ): void {
-  if (app.buildRevision !== request.revision || app.contentId !== request.contentId || app.patchId !== request.patchId)
+  if (!isOptimizerRequestCurrent(app, request))
     throw new Error('This optimizer result is stale. Run a new search.');
   Object.assign(app.build, structuredClone(candidate.equipment));
   app.changed();
+  optimizerApplications.set(app, { request, revision: app.buildRevision, candidate });
 }
 
 /** Small-search reference: every legal assignment gets its own ordinary build and detailed simulation. */

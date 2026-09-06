@@ -20,6 +20,8 @@ import {
   optimizerWeaponSets,
   optimizerEquipment,
   applyOptimizerCandidate,
+  isOptimizerRequestCurrent,
+  optimizerAppliedCandidate,
   type GearOptimizerSelections,
   type OptimizerCandidate,
   type OptimizerEquipment
@@ -111,7 +113,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const filter = (panel?.querySelector<HTMLInputElement>('input[name="optimizer-filter"]:checked')?.value ||
       'none') as OptimizerResultFilter;
     const results = filter === 'none' ? runner.state.winners : runner.state.groups[filter];
-    const equipped = runner.request && optimizerEquipmentIdentity(optimizerEquipment(runner.request.build));
+    const equipped = runner.request && optimizerEquipmentIdentity(optimizerAppliedCandidate(app, runner.request)?.equipment || optimizerEquipment(runner.request.build));
     return results.filter((candidate) => optimizerEquipmentIdentity(candidate.equipment) !== equipped);
   };
 
@@ -212,6 +214,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       const candidate = displayedResults()[Number(target.dataset.apply)];
       try {
         applyOptimizerCandidate(app, runner.request, candidate);
+        renderGearOptimizer(app);
       } catch (error) {
         panel!.querySelector('[data-role="optimizer-status"]')!.textContent = String(error);
       }
@@ -277,8 +280,10 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   }
 
   const state = runner.state;
+  const applied = runner.request && optimizerAppliedCandidate(app, runner.request);
+  const equippedScore = applied?.score || state.baseline;
   panel.querySelector<HTMLElement>('.optimizer-feedback')!.hidden = state.status === 'idle';
-  const stale = runner.request !== null && runner.request.revision !== app.buildRevision;
+  const stale = runner.request !== null && !isOptimizerRequestCurrent(app, runner.request);
   const status =
     state.status === 'failed'
       ? `Failed: ${state.error}`
@@ -310,22 +315,23 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   panel.querySelector('[data-role="optimizer-warnings"]')!.textContent = [...state.warnings]
     .map(([warning, count]) => `${warning} (${count.toLocaleString()} evaluated candidates)`)
     .join(' • ');
-  if (state.baseline?.warnings.length) {
+  if (equippedScore?.warnings.length) {
     panel.querySelector('[data-role="optimizer-warnings"]')!.textContent +=
-      ` Current-build warnings: ${state.baseline.warnings.join(' • ')}`;
+      ` Current-build warnings: ${equippedScore.warnings.join(' • ')}`;
   }
 
   const list = panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!;
   const candidates = displayedResults();
   const signature = JSON.stringify([
     runner.request?.revision,
-    state.baseline?.dps,
+    equippedScore?.dps,
+    applied?.key,
     state.winners[0]?.key,
     candidates.map((winner) => [winner.key, winner.equipment, winner.score.dps])
   ]);
   if (list.dataset.signature !== signature) {
     list.dataset.signature = signature;
-    const baseline = state.baseline?.dps || 0;
+    const baseline = equippedScore?.dps || 0;
     const slots = runner.request ? optimizerSlots(runner.request.build, app.adapter) : [];
     const sets = runner.request ? optimizerWeaponSets(runner.request.build, app.adapter) : [];
     const best = candidates[0] || state.winners[0];
@@ -356,7 +362,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     // Spell out weapon slots and put the set on its own line so adjacent headers stay distinguishable.
     list.innerHTML = best
       ? `<div class="optimizer-results-heading"><strong>Best gear found</strong><span>Equipped: ${baseline.toFixed(2)} DPS.</span></div>
-        <div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col">Damage <small>vs best</small></th>${slots.map((slot) => `<th scope="col">${SLOT_LABELS[slot] || escapeHtml(slot)}${slot.includes('Weapon') ? `<small class="optimizer-weapon-set">Weapon set ${slot.startsWith('Alternate') ? 2 : 1}</small>` : ''}</th>`).join('')}${sets.map((set) => [0, 1].map((slot) => `<th scope="col">Sigil ${slot + 1}<small class="optimizer-weapon-set">Weapon set ${set + 1}</small></th>`).join('')).join('')}<th scope="col">Rune</th><th scope="col">Relic</th><th scope="col">Food</th><th scope="col">Utility</th><th scope="col">Infusions</th><th scope="col">&Delta; equipped</th><th scope="col">Apply</th></tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${state.baseline && runner.request ? renderRow({ key: 'equipped', equipment: optimizerEquipment(runner.request.build), score: state.baseline, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
+        <div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col">Damage <small>vs best</small></th>${slots.map((slot) => `<th scope="col">${SLOT_LABELS[slot] || escapeHtml(slot)}${slot.includes('Weapon') ? `<small class="optimizer-weapon-set">Weapon set ${slot.startsWith('Alternate') ? 2 : 1}</small>` : ''}</th>`).join('')}${sets.map((set) => [0, 1].map((slot) => `<th scope="col">Sigil ${slot + 1}<small class="optimizer-weapon-set">Weapon set ${set + 1}</small></th>`).join('')).join('')}<th scope="col">Rune</th><th scope="col">Relic</th><th scope="col">Food</th><th scope="col">Utility</th><th scope="col">Infusions</th><th scope="col">&Delta; equipped</th><th scope="col">Apply</th></tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
       : '';
   }
 
