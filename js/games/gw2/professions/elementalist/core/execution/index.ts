@@ -155,7 +155,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
   completeElementalistSpearProgression(context, skill);
 
   if (Number(skill.resourceGain || 0) > 0) {
-    updateEndurance(context, state, at, Boolean(context.config.boons?.vigor));
+    updateEndurance(context, state, at);
     Object.assign(
       state,
       grantEndurance(
@@ -242,7 +242,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   shareAttunementVariantRecharge(context, skill);
   // Dodge is modeled as a cast, so endurance is caught up to now before its cost is spent.
   if (Number(skill.id) === ID.DODGE) {
-    updateEndurance(context, state, context.effectiveEnd, Boolean(context.config.boons?.vigor));
+    updateEndurance(context, state, context.effectiveEnd);
     Object.assign(
       state,
       spendEndurance(

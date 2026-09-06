@@ -29,7 +29,7 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
 export function advanceElementalistState(context: ElementalistSchedulerContext, at: number): void {
   const state = professionCoreState(context);
   processFreshAirCandidates(context, at);
-  updateEndurance(context, state, at, Boolean(context.config.boons?.vigor));
+  updateEndurance(context, state, at);
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
   // Expire hammer orbs together with the metadata Grand Finale reads from them.
   for (const element of ELEMENTALIST_ATTUNEMENTS) {

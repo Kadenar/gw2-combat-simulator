@@ -13,6 +13,33 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
 import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
+import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+
+test('Elemental Balance reports the same patched duration used for its active window', () => {
+  // Two qualifying entries arm the trait; its marker must explain the effective balance profile.
+  const state = createEvokerState({ evokerElement: 'Fire' });
+  const events = [];
+  const context = {
+    catalog: applyBalanceProfilePatch(elementalistCatalog, {
+      balanceProfiles: {
+        [EVOKER_BALANCE_PROFILE_IDS.elementalBalance]: {
+          fields: { durationMultiplier: { from: 5, to: 8 } }
+        }
+      }
+    }),
+    traits: new Set(['Elemental Balance']),
+    state: { profession: { specialization: { kind: 'Evoker', state } } },
+    emit: (event) => events.push(event)
+  };
+  for (const at of [1, 2]) {
+    onEventScheduled(context, { type: 'elementalist.attunement-enter', at, to: 'Fire' });
+  }
+
+  assert.equal(state.elementalBalanceUntil, 10);
+  assert.equal(events.find((event) => event.name === 'Elemental Balance').detail, 'CDR armed (8s)');
+});
 
 test('Unravel requires Elements of Rage, disables dual attacks, and has a 25-second recharge', () => {
   const unavailable = runNative({

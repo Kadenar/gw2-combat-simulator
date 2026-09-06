@@ -11,7 +11,6 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { denySkillCast as unavailable } from '#gw2/professions/lib/availability.js';
 import type { ElementalistPrecastContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
@@ -32,7 +31,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
-  elementalistEnduranceRegenerationRate,
+  elementalistEnduranceReadyAt,
   updateEndurance
 } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 import {
@@ -83,7 +82,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   // Dodge settles endurance up to the current instant, then either passes or
   // reports the time regeneration covers the cost.
   if (Number(skill.id) === ID.DODGE) {
-    updateEndurance(context, state, context.start, Boolean(context.config.boons?.vigor));
+    updateEndurance(context, state, context.start);
     const enduranceCost = balanceProfileValueFromContext(
       context,
       PROFILE.resources,
@@ -96,13 +95,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
           skill,
           'elementalist.endurance',
           `requires ${enduranceCost} endurance.`,
-          enduranceReadyAt(
-            state.endurance,
-            enduranceCost,
-            context.start,
-            elementalistEnduranceRegenerationRate(context, Boolean(context.config.boons?.vigor)),
-            context.epsilon
-          )
+          elementalistEnduranceReadyAt(context, state.endurance, enduranceCost, context.start)
         );
   }
 

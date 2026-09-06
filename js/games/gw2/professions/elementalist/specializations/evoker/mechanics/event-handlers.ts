@@ -74,15 +74,16 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     if (state.elementalBalanceProgress >= threshold) {
       // subtract rather than reset so any overflow from simultaneous gains isn't lost
       state.elementalBalanceProgress -= threshold;
-      state.elementalBalanceUntil =
-        event.at + balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'durationMultiplier', 5);
+      // Keep the reported window consistent with the duration selected by a balance patch.
+      const duration = balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'durationMultiplier', 5);
+      state.elementalBalanceUntil = event.at + duration;
       emitElementalistProc(context as never, {
         at: event.at,
         name: 'Elemental Balance',
         procType: 'skill',
         sourceId: event.skillId ?? event.sourceId,
         sourceSkill: String(event.skillName || event.source || ''),
-        detail: 'CDR armed (5s)',
+        detail: `CDR armed (${duration}s)`,
         icon: 'https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png'
       });
     }
