@@ -7,6 +7,11 @@ import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import {
+  createMesmerBuildDefaults,
+  migrateMesmerBuild,
+  validateMesmerBuild
+} from '#gw2/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -730,7 +735,7 @@ test('supplied player and clone coefficient table is preserved', () => {
 });
 
 test('Lingering Thoughts variants use the six-second count recharge', () => {
-  for (const id of [ID.LINGERING_THOUGHTS, ID.TROUBADOUR_LINGERING_THOUGHTS]) {
+  for (const id of [ID.LINGERING_THOUGHTS, ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS]) {
     const skill = mesmerCatalog.skillsById.get(id);
 
     assert.equal(skill.ammo, 2);
@@ -1057,10 +1062,16 @@ test('duplicate Mesmer skill names resolve explicitly by specialization', () => 
     'Harmonious Harp'
   ]);
   const specializationCases = [
+    ['Axes of Symmetry', 'Core', ID.AXES_OF_SYMMETRY],
+    ['Axes of Symmetry', 'Chronomancer', ID.AXES_OF_SYMMETRY],
+    ['Axes of Symmetry', 'Virtuoso', ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY],
     ['Axes of Symmetry', 'Mirage', ID.AXES_OF_SYMMETRY],
-    ['Axes of Symmetry', 'Troubadour', ID.TROUBADOUR_AXES_OF_SYMMETRY],
+    ['Axes of Symmetry', 'Troubadour', ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY],
     ['Lingering Thoughts', 'Mirage', ID.LINGERING_THOUGHTS],
-    ['Lingering Thoughts', 'Troubadour', ID.TROUBADOUR_LINGERING_THOUGHTS],
+    ['Lingering Thoughts', 'Core', ID.LINGERING_THOUGHTS],
+    ['Lingering Thoughts', 'Chronomancer', ID.LINGERING_THOUGHTS],
+    ['Lingering Thoughts', 'Virtuoso', ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS],
+    ['Lingering Thoughts', 'Troubadour', ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS],
     ['Bladecall', 'Virtuoso', ID.BLADECALL],
     ['Bladecall', 'Troubadour', ID.TROUBADOUR_BLADECALL],
     ['Lively Lute', 'Troubadour', ID.LIVELY_LUTE],
@@ -1079,7 +1090,7 @@ test('duplicate Mesmer skill names resolve explicitly by specialization', () => 
     assert.equal(resolveMesmerSkillIdFromDuplicateName(name), null, name);
     assert.equal(
       resolveMesmerSkillIdFromDuplicateName(name, {
-        specialization: 'Chronomancer'
+        specialization: 'Unknown'
       }),
       null,
       name
@@ -1095,5 +1106,21 @@ test('duplicate Mesmer skill names resolve explicitly by specialization', () => 
   );
   for (const name of MESMER_DUPLICATE_SKILL_NAMES) {
     assert.ok(Number.isInteger(defaultMesmerSkillIdForDuplicateName(name)), name);
+  }
+});
+
+// Legacy strings and named cast objects must load the same Virtuoso Axe skills as stable IDs.
+test('Virtuoso Axe name migration is equivalent to ID migration', () => {
+  const build = { ...createMesmerBuildDefaults(), weapons: ['Axe', 'Sword'] };
+  for (const [name, skillId] of [
+    ['Lingering Thoughts', ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS],
+    ['Axes of Symmetry', ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]
+  ]) {
+    const byId = migrateMesmerBuild({ ...build, rotation: [{ type: 'cast', skillId }] });
+    for (const entry of [name, { type: 'cast', name }]) {
+      const byName = migrateMesmerBuild({ ...build, rotation: [entry] });
+      assert.deepEqual(byName.rotation, byId.rotation);
+      assert.equal(validateMesmerBuild(byName).valid, true);
+    }
   }
 });

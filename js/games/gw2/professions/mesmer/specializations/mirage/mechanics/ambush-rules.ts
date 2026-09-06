@@ -1,4 +1,9 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  remainingDurationStackSeconds
+} from '#gw2/platform/combat/state/boons.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -11,7 +16,7 @@ import {
   mirageControllerFor
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { SkillMechanicTrigger } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
@@ -127,7 +132,39 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
 /** Uses Mirage endurance recharge semantics only for the specialization's dodge action. */
 function modifyMirageRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
   if (context.ammoCastLockout || context.skill.id !== ID.DODGE_MIRAGE_CLOAK) return sharedDuration;
-  return Number(context.skill.cooldown || 0) / (context.config.boons?.vigor ? 1.5 : 1);
+  const scheduler = mesmerRuntimeFor(context).context;
+  return (
+    Number(context.skill.cooldown || 0) /
+    (scheduler.hasBuff('vigor', Number(context.at ?? scheduler.state.time)) ? 1.5 : 1)
+  );
+}
+
+/** Preserve earned endurance when Vigor starts or expires, including stacked duration. */
+function updateMirageDodgeRecharge(context: MesmerSchedulerContext, task: ScheduledTask): void {
+  const dodge = context.catalog.skillsById.get(ID.DODGE_MIRAGE_CLOAK);
+  const ammo = context.state.ammo.get(ID.DODGE_MIRAGE_CLOAK);
+  if (dodge && ammo) {
+    const duration = context.rechargeDurationFor(dodge, task.at);
+    if (ammo.nextRechargeAt != null && ammo.rechargeDuration > 0) {
+      ammo.nextRechargeAt = task.at + ((ammo.nextRechargeAt - task.at) * duration) / ammo.rechargeDuration;
+      if (ammo.charges === 0) context.state.cooldowns.set(dodge.id, ammo.nextRechargeAt);
+    }
+
+    ammo.rechargeDuration = duration;
+  }
+
+  context.tasks.cancelOwner('mesmer.mirage.vigor-expiry');
+  const remaining = remainingDurationStackSeconds(context.eventsOfType('buff'), task.at, {
+    includes: (event) => event.kind === 'vigor' && buffMatchesAudience(event, 'all'),
+    maximum: durationStackingBoonCapSeconds('vigor')
+  });
+  if (remaining > EPSILON) {
+    context.tasks.schedule({
+      type: 'mesmer.mirage.vigor-recharge',
+      at: task.at + remaining,
+      ownerId: 'mesmer.mirage.vigor-expiry'
+    });
+  }
 }
 
 export const mirageCastRules = Object.freeze({
@@ -145,8 +182,18 @@ function advanceMirageScheduler(context: MesmerSchedulerContext, target: number)
   state.mirrors = state.mirrors.filter((mirror) => mirror.expiresAt > target + EPSILON);
 }
 
-/** Converts Sigil of Energy's proc into Mirage dodge endurance without involving Core. */
+/** Updates Mirage dodge recovery for timed Vigor and Sigil of Energy's endurance grant. */
 function observeMirageEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
+  // Schedule at the application time so future buffs cannot accelerate recovery early.
+  if (
+    event.type === 'buff' &&
+    event.kind === 'vigor' &&
+    !context.config.boons?.vigor &&
+    buffMatchesAudience(event, 'all')
+  ) {
+    context.tasks.schedule({ type: 'mesmer.mirage.vigor-recharge', at: event.at });
+  }
+
   if (event.type !== 'proc' || event.sourceId !== 'sigil.energy') return;
   const runtime = mesmerRuntimeFor(context);
   const dodge = runtime.skillsById.get(ID.DODGE_MIRAGE_CLOAK);
@@ -202,6 +249,9 @@ export const mirageAttributeRules = Object.freeze({
 
 export const mirageSchedulerHooks = Object.freeze({
   initialize: initializeMirageRuntime,
+  taskHandlers: Object.freeze({
+    'mesmer.mirage.vigor-recharge': updateMirageDodgeRecharge
+  }),
   advance: {
     id: 'mesmer.mirage.mirrors',
     order: 20,

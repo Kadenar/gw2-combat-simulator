@@ -155,8 +155,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ],
     quicknessCastTimeMs: 920
   },
-  // Non-Mirage Axe variants retain separate IDs so their conditions and finishers resolve independently.
-  [ID.TROUBADOUR_LINGERING_THOUGHTS]: {
+  // Virtuoso and Troubadour Axe variants retain separate IDs so their conditions and finishers resolve independently.
+  [ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS]: {
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Troubadour',
@@ -198,10 +198,10 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         stacks: 3
       }
     ],
-    // The Troubadour variant keeps the same measured Axe cast timing as Mirage.
+    // The shared replacement keeps the same measured Axe cast timing as Mirage.
     quicknessCastTimeMs: 920
   },
-  [ID.TROUBADOUR_AXES_OF_SYMMETRY]: {
+  [ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]: {
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Troubadour',

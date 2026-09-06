@@ -103,7 +103,7 @@ export function createSkillSpecialEffectController({
   // Resolve each supported skill's side effects at its effective timestamp while
   // keeping reset, clone, and trait-proc mutations synchronized with emitted events.
   const apply = (skill: MesmerSkill, at: number, castStart = at): void => {
-    if (skill.id === ID.TROUBADOUR_AXES_OF_SYMMETRY) {
+    if (skill.id === ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY) {
       // The non-Mirage variant adds one Confusion stack per cast-start clone; its declarative packet covers the player.
       const clones = professionCoreState(state).clones.filter((clone) => clone.createdAt <= castStart + EPSILON);
       if (clones.length) {

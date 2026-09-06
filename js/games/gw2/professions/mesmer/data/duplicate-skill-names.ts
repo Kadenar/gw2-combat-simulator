@@ -9,22 +9,29 @@ interface DuplicateSkillNameFamily {
 /**
  * Current Mesmer skills that share a display name but have distinct stable IDs.
  * Name-based rotations need the active specialization to select the same skill
- * that an ID-based rotation identifies directly.
+ * that an ID-based rotation identifies directly. Core and Chronomancer retain
+ * clone variants; Virtuoso and Troubadour share the replacements.
  */
 const DUPLICATE_SKILL_NAME_FAMILIES: Readonly<Record<string, DuplicateSkillNameFamily>> = Object.freeze({
   'Axes of Symmetry': Object.freeze({
-    defaultId: ID.TROUBADOUR_AXES_OF_SYMMETRY,
+    defaultId: ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY,
     bySpecialization: Object.freeze({
+      Core: ID.AXES_OF_SYMMETRY,
+      Chronomancer: ID.AXES_OF_SYMMETRY,
       Mirage: ID.AXES_OF_SYMMETRY,
-      Troubadour: ID.TROUBADOUR_AXES_OF_SYMMETRY
+      Virtuoso: ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY,
+      Troubadour: ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY
     }),
     requiresSpecialization: true
   }),
   'Lingering Thoughts': Object.freeze({
-    defaultId: ID.TROUBADOUR_LINGERING_THOUGHTS,
+    defaultId: ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS,
     bySpecialization: Object.freeze({
+      Core: ID.LINGERING_THOUGHTS,
+      Chronomancer: ID.LINGERING_THOUGHTS,
       Mirage: ID.LINGERING_THOUGHTS,
-      Troubadour: ID.TROUBADOUR_LINGERING_THOUGHTS
+      Virtuoso: ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS,
+      Troubadour: ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS
     }),
     requiresSpecialization: true
   }),
