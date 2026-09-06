@@ -74,6 +74,34 @@ const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 const strikeCoefficient = (effect) =>
   effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
 
+test('Ferocious Aggression follows self Fury activation and expiry for strike and condition damage', () => {
+  const fury = { at: 1, expiresAt: 2, resolvedAudience: PLAYER_AUDIENCE };
+  const context = {
+    config: { specialization: 'Core', selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION], boons: {} },
+    event: { actorType: 'player' },
+    condition: 'Burning',
+    runtime: { boons: new Map([['fury', [fury]]]) }
+  };
+
+  // Only self Fury grants the additive bonus, including both edges of its active window.
+  for (const modify of [revenantAttributeRules.modifyStrikeDamage, revenantAttributeRules.modifyConditionDamage]) {
+    for (const [time, expected] of [
+      [0, 1],
+      [1, 1.1],
+      [1.5, 1.1],
+      [2, 1]
+    ]) {
+      assert.equal(modify({ ...context, time }, 1), expected);
+    }
+
+    fury.resolvedAudience = { ...PLAYER_AUDIENCE, includesSelf: false, alliedPlayerCount: 1 };
+    assert.equal(modify({ ...context, time: 1 }, 1), 1);
+    fury.resolvedAudience = PLAYER_AUDIENCE;
+    assert.equal(modify({ ...context, config: { ...context.config, selectedTraitIds: [] }, time: 1 }, 1), 1);
+    assert.equal(modify({ ...context, config: { ...context.config, boons: { fury: true } }, time: 2 }, 1), 1.1);
+  }
+});
+
 test('Demon skills use their current projectile and condition packets', () => {
   const banish = simulate('Core', ['Banish Enchantment'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],

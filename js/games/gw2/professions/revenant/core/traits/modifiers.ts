@@ -129,6 +129,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
+  boonActive,
   playerHealthFraction,
   targetConditionActive,
   targetHealthFraction,
@@ -217,10 +218,11 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     amount: 0.1,
+    // Grant the bonus only while permanent or simulated Fury affects the player.
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.FEROCIOUS_AGGRESSION) &&
-      Boolean(context.config?.boons?.fury)
+      boonActive(context, 'fury')
   },
   {
     id: 'revenant.rising-tide',
