@@ -8,7 +8,8 @@ import type {
 
 const KIT_SWAP_SIGNAL_WINDOW_MS = 25;
 const MINE_SETUP_WAIT_MS = 5000;
-const TRIGGERED_PROC_SKILL_IDS = new Set([43630]);
+// EI can list Vent Exhaust and the mech's triggered Rocket Punch as casts; the simulator already generates them.
+const TRIGGERED_PROC_SKILL_IDS = new Set([43630, 63185]);
 
 function kitName(skill: Skill | null): string | null {
   if (skill?.handlerId !== 'engineer.kit-equip') return null;

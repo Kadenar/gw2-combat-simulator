@@ -16,6 +16,7 @@ import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
@@ -488,6 +489,45 @@ test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relyi
     result.rotation.some((command) => command.name === 'Vent Exhaust'),
     false
   );
+});
+
+test('imports reported Mechanist commands and Overclock without replaying passive Rocket Punch', async () => {
+  const commands = [
+    [63334, 'Rolling Smash'],
+    [63121, 'Jade Mortar'],
+    [63367, 'Discharge Array'],
+    [63095, 'Overclock Signet']
+  ];
+  const entries = [...commands, [63185, 'Rocket Punch']];
+  const input = {
+    players: [
+      {
+        name: 'Fixture Mechanist',
+        profession: 'Mechanist',
+        rotation: entries.map(([id], index) => ({
+          id,
+          skills: [{ castTime: 1000 + index * 1000, duration: 0 }]
+        }))
+      }
+    ],
+    phases: [{ start: 0, end: 6000, name: 'Full Fight' }],
+    skillMap: Object.fromEntries(entries.map(([id, name]) => [`s${id}`, { name, isInstantCast: true }]))
+  };
+  const app = appFixture();
+  app.activeCatalog = engineerCatalog;
+  app.adapter.eliteSpecialization = () => 'Mechanist';
+
+  const imported = await readDpsReportRotationData(input, app);
+
+  // Command inputs survive the app's strict import boundary; the unlabelled passive proc does not.
+  assert.deepEqual(
+    imported.rotation.filter((command) => command.skillId > 0).map((command) => command.skillId),
+    commands.map(([id]) => id)
+  );
+  assert.equal(imported.actionCount, commands.length);
+  assert.deepEqual(imported.warnings, [
+    'Source limitation: dps.report may omit instant casts and pre-combat state. Review the imported opening.'
+  ]);
 });
 
 test('keeps simulator-generated Engineer packets out of imported rotations', () => {
