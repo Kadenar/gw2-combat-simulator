@@ -1,6 +1,7 @@
 /**
  * Stable event queue helpers used by both scheduling and resolution. Events are
- * ordered by timestamp, then explicit priority, then insertion order.
+ * ordered by timestamp, priority, causal placement (untagged last), then stable
+ * insertion order. Missing or nonfinite causal metadata shares the untagged tier.
  */
 export { EPSILON } from '#kernel/core/clock.js';
 
@@ -30,26 +31,29 @@ interface HeapEntry<T extends QueuedEvent> {
 }
 
 function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: HeapEntry<T>): number {
-  const eventOrder = compareQueuedEvents(left.event, right.event);
-  if (eventOrder) return eventOrder;
-  if (left.causalOrder != null && right.causalOrder != null && left.causalOrder !== right.causalOrder) {
-    return left.causalOrder - right.causalOrder;
-  }
-
-  return left.sequence - right.sequence;
+  return (
+    compareEventPlacement(left.event, right.event, left.causalOrder, right.causalOrder) ||
+    left.sequence - right.sequence
+  );
 }
 
-/**
- * Sort comparator for queued events.
- */
-export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): number {
+/** Shares one ordering policy while allowing heap entries to retain inherited causal placement. */
+function compareEventPlacement(
+  left: QueuedEvent,
+  right: QueuedEvent,
+  leftOrder: number | null,
+  rightOrder: number | null
+): number {
   const time = eventTimestamp(left) - eventTimestamp(right);
   if (time) return time;
   const priority = Number(left.priority || 0) - Number(right.priority || 0);
   if (priority) return priority;
-  const leftOrder = eventCausalOrder(left);
-  const rightOrder = eventCausalOrder(right);
-  return leftOrder != null && rightOrder != null ? leftOrder - rightOrder : 0;
+  return (leftOrder ?? Infinity) - (rightOrder ?? Infinity) || 0;
+}
+
+/** Sorts arrays by the queue policy; stable sorting preserves insertion order for ties. */
+export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): number {
+  return compareEventPlacement(left, right, eventCausalOrder(left), eventCausalOrder(right));
 }
 
 /**

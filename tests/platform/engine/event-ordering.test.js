@@ -21,6 +21,6 @@ test('event queues retain timestamp, priority, causal, and stable insertion orde
   const ordered = [];
   while (queue.length) ordered.push(queue.dequeue().name);
 
-  assert.deepEqual(ordered, ['priority-first', 'stable-first', 'causal-first', 'causal-second', 'later']);
+  assert.deepEqual(ordered, ['priority-first', 'causal-first', 'causal-second', 'stable-first', 'later']);
   assert.ok(compareQueuedEvents({ time: 1 }, { at: 2 }) < 0);
 });
