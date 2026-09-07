@@ -1054,18 +1054,92 @@
   text-transform: uppercase;
 }
 
+/* Single-column stats leave space for base → preview deltas and the conditional controls below. */
+.attribute-values {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.attribute-effects {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10px;
+}
+.attribute-effects summary {
+  cursor: pointer;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.attribute-effects summary small {
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: normal;
+  font-style: italic;
+}
+.attribute-effects fieldset {
+  border: 0;
+  padding: 4px 0 0;
+  margin: 10px 0 0;
+  min-width: 0;
+}
+.attribute-effects legend {
+  width: 100%;
+  padding: 0 0 3px;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.attribute-effect {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) 64px minmax(0, 1.2fr);
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+}
+.attribute-effects .attribute-effect :is(input[type='number'], select) {
+  width: 64px;
+  min-width: 0;
+  padding: 2px;
+  font-size: 10px;
+  background: var(--bg-panel-alt);
+  color: var(--text);
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+}
+.attribute-effect input[type='checkbox'] {
+  justify-self: start;
+  margin: 0;
+}
+.attribute-effect small {
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+.attr-before,
+.attr-delta {
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: normal;
+}
+.attr-changed .attr-current {
+  color: #58cfff;
+  font-weight: 700;
+}
 #attributes-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 #attributes-list .attr-section {
   min-width: 0;
 }
 
-#attributes-list .attr-section + .attr-section {
-  padding-left: 12px;
-  border-left: 1px solid var(--border);
+.attribute-values .attr-section + .attr-section {
+  margin-top: 12px;
 }
 
 .attr-row {
@@ -1278,13 +1352,21 @@
 }
 
 .spec-tiers {
+  container-type: inline-size;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
+  min-width: 0;
   gap: 0;
   margin-top: 2px;
+}
+
+/* Scale icons, gaps, and connectors together to fit all three tiers in the available width. */
+.spec-tier,
+.spec-line {
+  font-size: min(1px, calc(100cqw / 372));
 }
 
 /* Keep the selected specialization emblem aligned with the full trait stack on the left. */
@@ -1300,13 +1382,13 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 24em;
 }
 
 .spec-line {
   position: relative;
-  width: 24px;
-  height: 134px;
+  width: 24em;
+  height: 134em;
   flex-shrink: 0;
 }
 
@@ -1324,50 +1406,50 @@
 
 .spec-tier::before {
   top: calc(50% - 1px);
-  left: 21px;
+  left: 21em;
 }
 
 .spec-tier.pick-1::before {
-  width: 80px;
+  width: 80em;
   transform: rotate(-35deg);
 }
 
 .spec-tier.pick-2::before {
-  width: 66px;
+  width: 66em;
 }
 
 .spec-tier.pick-3::before {
-  width: 80px;
+  width: 80em;
   transform: rotate(35deg);
 }
 
 .spec-line::before {
-  left: -21px;
+  left: -21em;
 }
 
 .spec-line.pick-1::before {
-  top: calc(50% - 47px);
-  width: 80px;
+  top: calc(50% - 46em - 1px);
+  width: 80em;
   transform: rotate(35deg);
 }
 
 .spec-line.pick-2::before {
   top: calc(50% - 1px);
-  width: 66px;
+  width: 66em;
 }
 
 .spec-line.pick-3::before {
-  top: calc(50% + 45px);
-  width: 80px;
+  top: calc(50% + 46em - 1px);
+  width: 80em;
   transform: rotate(-35deg);
 }
 
 .spec-trait-minor {
   position: relative;
   z-index: 1;
-  width: 42px;
-  height: 42px;
-  padding: 2px;
+  width: 42em;
+  height: 42em;
+  padding: 2em;
   overflow: hidden;
   background: #050508;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
@@ -1388,14 +1470,14 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 4em;
 }
 
 /* Distinguish fixed minor traits with hexagons and selectable major traits with square frames. */
 .spec-trait-major {
-  width: 42px;
-  height: 42px;
-  padding: 2px;
+  width: 42em;
+  height: 42em;
+  padding: 2em;
   background: #050508;
   flex-shrink: 0;
   cursor: pointer;

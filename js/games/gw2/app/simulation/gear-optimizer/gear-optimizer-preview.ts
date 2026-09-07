@@ -1,4 +1,4 @@
-import { attributesHtml } from '#gw2/app/build/panels/attributes.js';
+import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
 import { getProfessionEntry } from '#gw2/app/profession/registry.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/platform/equipment/icons.js';
@@ -19,6 +19,7 @@ export function renderOptimizerPreview(
   candidate: OptimizerCandidate,
   weaponSet = request.build.startingWeaponSet
 ): void {
+  const attributePreview = readAttributePreviewValues(container);
   const build = structuredClone({ ...request.build, ...candidate.equipment });
   const activeCatalog = app.profession.catalogFor?.(request.patchId) || app.profession.catalog;
   const preview = {
@@ -107,9 +108,14 @@ export function renderOptimizerPreview(
     <div class="optimizer-character">
       <div class="optimizer-preview-equipment">${card('Armor', armor)}${card('Weapons', weapons)}</div>
       <div class="optimizer-preview-portrait">${artwork ? `<img src="${escapeHtml(artwork)}" alt="${escapeHtml(specialization)} artwork" width="600" height="600">` : ''}</div>
-      <div class="optimizer-preview-details">${card('Stats', `<label class="optimizer-preview-weapon-set"${sets.length < 2 ? ' hidden' : ''}>Weapon set <select aria-label="Preview weapon set">${sets.map((set) => `<option value="${set + 1}"${set + 1 === weaponSet ? ' selected' : ''}>${set + 1}</option>`).join('')}</select></label><div class="optimizer-preview-attributes">${attributesHtml(preview.attributeData!)}</div>`)}
+      <div class="optimizer-preview-details">${card('Stats', `<label class="optimizer-preview-weapon-set"${sets.length < 2 ? ' hidden' : ''}>Weapon set <select aria-label="Preview weapon set">${sets.map((set) => `<option value="${set + 1}"${set + 1 === weaponSet ? ' selected' : ''}>${set + 1}</option>`).join('')}</select></label><div class="optimizer-preview-attributes"></div>`)}
       ${card('Trinkets', `<div class="optimizer-preview-trinkets">${trinkets}</div>`)}${card('Upgrades &amp; consumables', upgrades)}${card('Infusions', infusions)}</div>
     </div>`;
+  renderAttributeStats(
+    container.querySelector<HTMLElement>('.optimizer-preview-attributes')!,
+    preview,
+    attributePreview
+  );
   container.querySelector<HTMLSelectElement>('select')!.addEventListener('change', (event) => {
     renderOptimizerPreview(container, app, request, candidate, Number((event.target as HTMLSelectElement).value));
     container.querySelector<HTMLSelectElement>('select')!.focus();

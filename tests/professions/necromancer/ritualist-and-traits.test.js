@@ -1102,7 +1102,8 @@ test('signet passives and Soul Battery are profession-owned resources', () => {
   );
 
   assert.ok(Math.abs(lifeBlast.criticalChance - 0.6761904761904762) < 1e-12);
-  assert.ok(Math.abs(lifeBlast.criticalDamage - 1.8333333333333333) < 1e-12);
+  // Shroud critical damage includes Death Perception directly; the unconditional chance persists after exit.
+  assert.ok(Math.abs(lifeBlast.criticalDamage - 1.8333333333333333 * 1.1) < 1e-12);
   assert.ok(Math.abs(bloodCurse.criticalChance - 0.6761904761904762) < 1e-12);
   assert.ok(Math.abs(bloodCurse.criticalDamage - 1.8333333333333333) < 1e-12);
 });

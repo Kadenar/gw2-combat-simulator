@@ -88,7 +88,8 @@ test('Kinetic Battery resets on the fifth command and grants five seconds of spe
   assert.equal(hits(active)[1].damage, hits(disabled)[1].damage);
 });
 
-test('Kinetic Battery charge progress and activation are visible across Engineer specializations', () => {
+// Active State follows the inspected time, including before activation and at buff expiry.
+test('Kinetic Battery charges and buff timer appear in Active State across Engineer specializations', () => {
   for (const specialization of ['Core', 'Mechanist', 'Holosmith', 'Scrapper', 'Amalgam']) {
     const runtime = engineerProfession.resolveRuntime({ specialization });
     const context = {
@@ -96,11 +97,30 @@ test('Kinetic Battery charge progress and activation are visible across Engineer
       config: { selectedTraitIds: [TRAIT.KINETIC_BATTERY] },
       professionState: { kineticCharges: 4 }
     };
-    const resource = runtime.ui.resourceViews(context).find((view) => view.id === 'kineticCharges');
-    assert.equal(resource.value, 4);
-    assert.equal(resource.maximum, 5);
     assert.equal(
-      runtime.ui.resourceViews({ specialization }).some((view) => view.id === 'kineticCharges'),
+      runtime.ui.resourceViews(context).some((view) => view.id === 'kineticCharges'),
+      false
+    );
+    const snapshot = (atSeconds, charges) =>
+      Object.fromEntries(
+        runtime.ui
+          .rotationStateSnapshot({
+            ...context,
+            professionState: { kineticCharges: charges },
+            atSeconds,
+            result: { events: [{ type: 'buff', kind: 'kinetic-battery', at: 10, duration: 5 }] }
+          })
+          .map((item) => [item.id, item.value])
+      );
+    assert.equal(snapshot(9, 4)['engineer-kinetic-charges'], '4/5');
+    assert.equal(snapshot(9, 4)['engineer-kinetic-battery'], undefined);
+    assert.equal(snapshot(10, 0)['engineer-kinetic-charges'], '0/5');
+    assert.equal(snapshot(10, 0)['engineer-kinetic-battery'], '5.0s');
+    assert.equal(snapshot(12, 1)['engineer-kinetic-charges'], '1/5');
+    assert.equal(snapshot(12, 1)['engineer-kinetic-battery'], '3.0s');
+    assert.equal(snapshot(15, 1)['engineer-kinetic-battery'], undefined);
+    assert.equal(
+      runtime.ui.rotationStateSnapshot({ specialization }).some((item) => item.id === 'engineer-kinetic-charges'),
       false
     );
     const event = { type: 'engineer.state', reason: 'kinetic-battery', state: { kineticCharges: 4 } };

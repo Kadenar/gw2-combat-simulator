@@ -84,15 +84,6 @@ export function cloneNecromancerAttributes(attributes: SchedulerRecord): Schedul
   };
 }
 
-/** Converts a critical-hit-only multiplier into its expected strike-damage factor. */
-export function necromancerCriticalExpectedFactor(context: Gw2ModifierContext, criticalHitFactor: number): number {
-  if (!context.query || !context.event) return 1;
-  const critical = context.query.critical(context.event, context.time, context.runtime);
-  const normalExpected = 1 + critical.chance * (critical.damage - 1);
-  const modifiedExpected = 1 - critical.chance + critical.chance * critical.damage * criticalHitFactor;
-  return modifiedExpected / normalExpected;
-}
-
 /** Checks whether Signet of Spite's selected, out-of-shroud, off-cooldown passive is active. */
 function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
   return (
@@ -236,10 +227,11 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
   },
   {
     id: 'necromancer.death-perception-critical-hit-damage',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    // Apply critical-only bonuses at their source so previews and expected strike damage agree.
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
     parameters: { criticalHitFactor: 1.1 } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) => necromancerCriticalExpectedFactor(context, parameters.criticalHitFactor),
+    factor: (_context, _target, parameters) => parameters.criticalHitFactor,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION) && Boolean(necromancerActiveShroud(context))
   },

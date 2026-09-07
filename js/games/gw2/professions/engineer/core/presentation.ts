@@ -6,6 +6,8 @@ import {
   type Gw2SelectedSkillLoadout
 } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
@@ -14,7 +16,8 @@ import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionSkillBarGroup,
-  ProfessionUiContract
+  ProfessionUiContract,
+  RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
@@ -354,21 +357,34 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
     };
     // endurance bar only shown when Tools traitline is active — that's when endurance management is relevant
     if (usesToolsTraitline(context)) views.push(endurance);
-    // Reuse the shared resource display so every Engineer specialization exposes battery progress.
+    return views;
+  },
+  // Keep battery progress and its active buff timer together at the inspected rotation point.
+  rotationStateSnapshot: (context: EngineerUiContext): RotationStateSnapshotItem[] => {
+    const items: RotationStateSnapshotItem[] = [];
     if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
-      views.push({
-        id: 'kineticCharges',
-        singular: 'Kinetic Charge',
-        plural: 'Kinetic Charges',
-        maximum: 5,
-        value: Number(state.kineticCharges || 0),
-        canStart: false,
-        shortLabel: 'Kinetic',
-        statusLabel: 'Current'
+      items.push({
+        id: 'engineer-kinetic-charges',
+        label: 'Kinetic Charges',
+        value: `${Number(engineerUiState(context).kineticCharges || 0)}/5`
       });
     }
 
-    return views;
+    const buff = timedBuffAt(
+      context.result as Gw2SimulationResult | null | undefined,
+      'kinetic-battery',
+      Number(context.atSeconds || 0)
+    );
+    if (buff) {
+      items.push({
+        id: 'engineer-kinetic-battery',
+        label: 'Kinetic Battery',
+        value: `${buff.remaining.toFixed(1)}s`,
+        title: 'Kinetic Battery is active; time remaining'
+      });
+    }
+
+    return items;
   },
   paletteSkillAvailability: engineerCorePaletteSkillAvailability,
   // Excludes contextual flips and palette-only kit controls from loadout slots.

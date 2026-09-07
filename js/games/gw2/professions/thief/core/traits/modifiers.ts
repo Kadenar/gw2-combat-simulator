@@ -98,7 +98,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'thief.twin-fangs-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    factor: 1.07,
+    // Preserve the unconditional bonus below the health threshold; only the additional bonus is conditional.
+    factor: (context) => (Number(context.config?.playerHealthFraction ?? 1) > 0.5 ? 1.07 : 1.05),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TWIN_FANGS)
   },
   {
@@ -208,7 +209,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'thief.keen-observer',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    // Keen Observer retains its base critical chance when the high-health condition is inactive.
+    amount: (context) => (Number(context.config?.playerHealthFraction ?? 1) > 0.5 ? 0.15 : 0.1),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.KEEN_OBSERVER)
   },
   {

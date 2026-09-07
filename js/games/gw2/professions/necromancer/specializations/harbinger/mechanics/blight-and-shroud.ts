@@ -11,8 +11,6 @@ import { advanceHarbingerBlight } from '#gw2/professions/necromancer/specializat
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import {
   cloneNecromancerAttributes,
-  necromancerActiveShroud,
-  necromancerCriticalExpectedFactor,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
@@ -193,24 +191,6 @@ function activeBlight(context: Gw2ModifierContext): number {
   );
 }
 
-/** Computes Wicked Corruption's incremental expected critical factor without double-counting Death Perception. */
-function wickedCorruptionCriticalFactor(
-  context: Gw2ModifierContext,
-  parameters: Readonly<Record<string, number>>
-): number {
-  const deathPerceptionActive = hasTrait(context, TRAIT.DEATH_PERCEPTION) && Boolean(necromancerActiveShroud(context));
-  // Death Perception already contributes a 10% crit-chance bonus in shroud; Wicked Corruption adds another 10%.
-  // To avoid double-counting, compute the combined factor (1.21) and divide out the Death Perception factor (1.1).
-  const coreFactor = deathPerceptionActive
-    ? necromancerCriticalExpectedFactor(context, parameters.deathPerceptionCriticalHitFactor)
-    : 1;
-  const combinedFactor = necromancerCriticalExpectedFactor(
-    context,
-    deathPerceptionActive ? parameters.combinedCriticalHitFactor : parameters.criticalHitFactor
-  );
-  return combinedFactor / coreFactor;
-}
-
 /** Applies Dark Gunslinger's pistol recharge reduction. */
 function modifyHarbingerRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   return context.skill?.weapon === 'Pistol' && hasTrait(context, TRAIT.DARK_GUNSLINGER)
@@ -229,14 +209,13 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
   },
   {
     id: 'necromancer.wicked-corruption-critical-hit-damage',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    // Multiplying critical damage directly also composes with Death Perception exactly once.
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
     parameters: {
-      criticalHitFactor: 1.1,
-      deathPerceptionCriticalHitFactor: 1.1,
-      combinedCriticalHitFactor: 1.21
+      criticalHitFactor: 1.1
     } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) => wickedCorruptionCriticalFactor(context, parameters),
+    factor: (_context, _target, parameters) => parameters.criticalHitFactor,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.WICKED_CORRUPTION) && targetConditionActive(context, 'Torment')
   },

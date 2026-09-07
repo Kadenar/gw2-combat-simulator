@@ -128,6 +128,8 @@ export function renderTraits(app: ProfessionAppState): void {
       const spec = app.build.specializations[line];
       if (!spec) return;
       const picks = spec.traits.split('-');
+      // Re-selecting the active trait leaves the build unchanged and must not schedule another simulation.
+      if (picks[tier] === pick) return;
       picks[tier] = pick;
       spec.traits = picks.join('-');
       app.changed();
