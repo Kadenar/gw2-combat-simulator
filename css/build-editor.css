@@ -1054,7 +1054,7 @@
   text-transform: uppercase;
 }
 
-/* Single-column stats leave space for base → preview deltas and the conditional controls below. */
+/* Single-column stats leave space for base → preview deltas. */
 .attribute-values {
   grid-column: 1 / -1;
   min-width: 0;
@@ -1101,7 +1101,7 @@
   margin: 3px 0;
 }
 .attribute-effects .attribute-effect :is(input[type='number'], select) {
-  width: 64px;
+  width: 100%;
   min-width: 0;
   padding: 2px;
   font-size: 10px;
@@ -1117,6 +1117,48 @@
 .attribute-effect small {
   font-size: 9px;
   overflow-wrap: anywhere;
+}
+
+/* Preview groups use the width below gear and wrap into a single column on narrow screens. */
+#attribute-preview {
+  margin-top: 16px;
+}
+#attribute-preview .attribute-effect-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 12px;
+}
+#attribute-preview fieldset {
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+}
+#attribute-preview legend {
+  border: 0;
+}
+
+/* Details reveals baseline-matching durations; exceptions remain indented and highlighted. */
+.attr-row[hidden] {
+  display: none;
+}
+.attr-specific-duration {
+  padding-left: 10px;
+}
+.attr-duration-exception :is(.attr-name, .attr-current) {
+  color: var(--accent);
+}
+.attr-duration-details {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  background: var(--bg-panel-alt);
+  color: var(--text-bright);
+  font: inherit;
+  cursor: pointer;
+}
+.attr-duration-details:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .attr-before,
 .attr-delta {

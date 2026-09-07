@@ -69,10 +69,12 @@ export function templateTileContent(preset: BuildTemplatePreset): {
     ' & '
   );
   const benchmarkDps = Number(preset.benchmarkDps);
+  // Keep trailing variant labels visible so builds with the same weapons remain distinguishable.
+  const variant = weaponMatch ? preset.label.slice(detailsStart + weaponMatch[0].length).trim() : '';
 
   return {
     name,
-    weapons,
+    weapons: [weapons, variant].filter(Boolean).join(' '),
     dps:
       Number.isFinite(benchmarkDps) && benchmarkDps > 0 ? `${Math.round(benchmarkDps).toLocaleString('en-US')} DPS` : ''
   };

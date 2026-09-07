@@ -21,6 +21,7 @@
       {
         "label": "Power Alacrity (Sword/Sword)",
         "build": "data/gw2/builds/revenant/b-power-alac-renegade-sword-sword.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-staff-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-bench.json",
         "benchmarkDps": 34295
       },
@@ -88,6 +89,7 @@
       {
         "label": "Power (Greatsword - Sword/Sword)",
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
         "benchmarkDps": 42522,
         "upToDate": true

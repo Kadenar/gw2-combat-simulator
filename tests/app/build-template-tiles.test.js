@@ -22,6 +22,18 @@ test('build template tiles separate canonical roles, weapons, and DPS', () => {
   );
 });
 
+test('build template tiles preserve trait variants alongside their weapons', () => {
+  // Same-weapon presets need their trait suffix to distinguish BTTH from FA in the selector.
+  for (const variant of ['BTTH', 'FA']) {
+    const content = templateTileContent({
+      label: `Power (Sword/Dagger) - ${variant}`,
+      build: 'b-power-catalyst-sword.json'
+    });
+    assert.equal(content.weapons, `Sword & Dagger - ${variant}`);
+    assert.equal(content.name, 'Power');
+  }
+});
+
 test('build template actions expose only configured Snow Crows links', () => {
   assert.match(
     templateSnowCrowsLink({ snowCrowsUrl: 'https://snowcrows.com/builds/example?role=power&weapon=hammer' }),

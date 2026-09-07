@@ -1,5 +1,67 @@
 import { expect, test } from '@playwright/test';
 
+// General duration stays visible; rune-specific bonuses remain visible even when Details is collapsed.
+test('condition details show exceptions and preview controls sit below gear', async ({ page }) => {
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.specializations = [];
+    app.build.rune = 'Trapper';
+    app.build.food = 'None';
+    app.build.weaponSigils = [
+      ['None', 'None'],
+      ['None', 'None']
+    ];
+    app.changed();
+  });
+  const stats = page.locator('#attributes-list');
+  const details = stats.getByRole('button', { name: 'Details', exact: true });
+  const specific = stats.locator('.attr-specific-duration:visible');
+  const preview = page.locator('#attribute-preview');
+  await expect(preview.locator('.attribute-effects')).not.toHaveAttribute('open');
+  await preview.locator('summary').click();
+  await expect(details).toHaveAttribute('aria-expanded', 'false');
+  await expect(specific).toHaveCount(0);
+  await details.press('Enter');
+  await expect(specific).toHaveCount(5);
+  const baseline = await stats
+    .locator('.attr-row')
+    .filter({ hasText: /^Condition Duration/ })
+    .locator('.attr-current')
+    .textContent();
+  expect(await specific.locator('.attr-current').allTextContents()).toEqual(Array(5).fill(baseline));
+  await preview.getByRole('spinbutton', { name: 'Might', exact: true }).fill('10');
+  await page.locator('#attribute-weapon-set').selectOption('2');
+  await expect(preview.locator('.attribute-effects')).toHaveAttribute('open');
+  await expect(details).toHaveAttribute('aria-expanded', 'true');
+  await expect(specific).toHaveCount(5);
+  await details.click();
+  await page.evaluate(() => {
+    window.professionApp.build.rune = 'Balthazar';
+    window.professionApp.changed();
+  });
+  await expect(specific).toHaveCount(1);
+  await expect(specific.locator('.attr-name')).toHaveText('Burning Duration');
+  await expect(specific).toHaveClass(/attr-duration-exception/);
+  await details.click();
+  await expect(specific).toHaveCount(5);
+  await details.click();
+  await expect(specific).toHaveCount(1);
+  await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('10');
+  const gearBox = await page.locator('.gear-columns').boundingBox();
+  const previewBox = await preview.boundingBox();
+  const statsBox = await stats.boundingBox();
+  expect(previewBox.y).toBeGreaterThanOrEqual(gearBox.y + gearBox.height);
+  expect(previewBox.x + previewBox.width).toBeLessThanOrEqual(statsBox.x);
+  await page.locator('.gear-panel').screenshot({ path: '.scratch/attributes-desktop.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await expect(details).toBeVisible();
+  await page.locator('.gear-panel').screenshot({ path: '.scratch/attributes-mobile.png' });
+});
+
 // Both panels keep independent conditional inputs while using the same displayed-stat calculation.
 test('workspace and optimizer preview individual conditions, deltas and weapon changes without saving', async ({
   page
@@ -17,11 +79,13 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
     );
   const original = await state();
   const workspace = page.locator('#attributes-list');
+  const controls = page.locator('#attribute-preview');
+  await controls.locator('summary').click();
   const base = await workspace.locator('.attr-current').allTextContents();
   await expect(workspace.locator('.attr-before')).toHaveCount(0);
-  await workspace.getByRole('spinbutton', { name: 'Might', exact: true }).fill('25');
-  await workspace.getByRole('checkbox', { name: 'Fury', exact: true }).check();
-  await workspace.getByRole('spinbutton', { name: "Fencer's Finesse", exact: true }).fill('5');
+  await controls.getByRole('spinbutton', { name: 'Might', exact: true }).fill('25');
+  await controls.getByRole('checkbox', { name: 'Fury', exact: true }).check();
+  await controls.getByRole('spinbutton', { name: "Fencer's Finesse", exact: true }).fill('5');
   const buffed = await workspace.locator('.attr-current').allTextContents();
   expect(buffed).not.toEqual(base);
   await expect(
@@ -38,7 +102,7 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   ).toHaveCount(0);
   expect(await state()).toBe(original);
   await page.locator('#attribute-weapon-set').selectOption('2');
-  await expect(workspace.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('25');
+  await expect(controls.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('25');
   await page.locator('#attribute-weapon-set').selectOption('1');
   await workspace.screenshot({ path: '.scratch/optimizer/conditional-workspace.png' });
 
@@ -48,6 +112,8 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
   await panel.getByRole('row', { name: 'Equipped setup', exact: true }).click();
   const preview = panel.locator('[data-role="optimizer-preview"]');
+  await expect(preview.locator('.attribute-effects')).not.toHaveAttribute('open');
+  await preview.locator('.attribute-effects summary').click();
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('0');
   const simulations = await page.evaluate(() => String(window.professionApp.gearOptimizerRunner.state.simulations));
   await preview.getByRole('spinbutton', { name: 'Might', exact: true }).fill('25');
@@ -55,8 +121,10 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await preview.getByRole('spinbutton', { name: "Fencer's Finesse", exact: true }).fill('5');
   expect(await preview.locator('.attr-current').allTextContents()).toEqual(buffed);
   await preview.getByRole('combobox', { name: 'Preview weapon set', exact: true }).selectOption('2');
+  await preview.locator('.attribute-effects summary').click();
   await expect(preview.getByRole('checkbox', { name: 'Fury', exact: true })).toBeChecked();
   await panel.getByRole('row', { name: 'Equipped setup', exact: true }).click();
+  await preview.locator('.attribute-effects summary').click();
   await expect(preview.getByRole('spinbutton', { name: "Fencer's Finesse", exact: true })).toHaveValue('5');
   expect(await state()).toBe(original);
   expect(await page.evaluate(() => String(window.professionApp.gearOptimizerRunner.state.simulations))).toBe(
@@ -100,7 +168,8 @@ for (const [profession, traitName, controlName, value] of [
       app.changed();
     }, traitName);
     await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-    const panel = page.locator('#attributes-list');
+    const panel = page.locator('.gear-panel');
+    await panel.locator('.attribute-effects summary').click();
     const before = await page.evaluate(() => JSON.stringify(window.professionApp.build));
     const control = panel.getByRole(value === null ? 'checkbox' : 'spinbutton', { name: controlName, exact: true });
     if (value === null) await control.check();

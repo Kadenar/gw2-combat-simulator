@@ -7,20 +7,23 @@
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
         "benchmarkDps": 43826,
-        "referenceDps": 44179
+        "referenceDps": 44179,
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword"
       },
       {
         "label": "Power (Spear-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
         "benchmarkDps": 44281,
-        "referenceDps": 44458
+        "referenceDps": 44458,
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-spear-dagger-sword"
       },
       {
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46773
+        "benchmarkDps": 46773,
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-chronomancer-staff-scepter-pistol"
       }
     ]
   },
@@ -38,7 +41,8 @@
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
         "benchmarkDps": 41025,
-        "referenceDps": 40936
+        "referenceDps": 40936,
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch"
       }
     ]
   },
@@ -50,13 +54,15 @@
         "build": "data/gw2/builds/mesmer/b-power-virtuoso-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
         "benchmarkDps": 41995,
-        "referenceDps": 42191
+        "referenceDps": 42191,
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-virtuoso-spear-greatsword"
       },
       {
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39953
+        "benchmarkDps": 39953,
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-virtuoso-dagger-sword-pistol"
       }
     ]
   },
@@ -68,7 +74,8 @@
         "build": "data/gw2/builds/mesmer/b-power-troubadour.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-troubadour-bench.json",
         "benchmarkDps": 42842,
-        "referenceDps": 42509
+        "referenceDps": 42509,
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-troubadour-spear-dagger-sword"
       }
     ]
   }
