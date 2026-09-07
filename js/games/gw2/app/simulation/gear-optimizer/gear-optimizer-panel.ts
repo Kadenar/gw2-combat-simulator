@@ -34,6 +34,7 @@ import {
   type OptimizerResultFilter
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { renderOptimizerPreview } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-preview.js';
 
 const SLOT_LABELS: Record<string, string> = {
   Helm: 'Helm',
@@ -105,6 +106,18 @@ function updatePicker(picker: HTMLElement): void {
   picker.querySelector<HTMLElement>('.optimizer-picker-empty')!.hidden = values.length > 0;
 }
 
+/** Keep the visible and accessible selection tied to the character preview, including after result refreshes. */
+function updatePreviewSelection(panel: HTMLElement, candidates: OptimizerCandidate[]): void {
+  panel.querySelectorAll<HTMLElement>('[data-preview]').forEach((row) => {
+    const index = Number(row.dataset.preview);
+    const key = index < 0 ? 'equipped' : candidates[index]?.key;
+    const selected = panel.dataset.selectedKey !== undefined && panel.dataset.selectedKey === key;
+    row.classList.toggle('optimizer-selected', selected);
+    if (selected) row.setAttribute('aria-current', 'true');
+    else row.removeAttribute('aria-current');
+  });
+}
+
 /** Keep selectors outside the simulation result subtree so baseline rendering cannot discard an active search. */
 export function renderGearOptimizer(app: ProfessionAppState): void {
   const runner = app.gearOptimizerRunner;
@@ -123,13 +136,13 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   };
 
   if (!panel) {
-    const results = document.getElementById('rotation-results');
+    const results = document.getElementById('optimizer-search');
     if (!results) return;
-    panel = document.createElement('details');
+    // The tab supplies the title; open directly on its controls without a second disclosure heading.
+    panel = document.createElement('div');
     panel.id = 'gear-optimizer';
     panel.className = 'gear-optimizer';
-    panel.innerHTML = `<summary><span>Gear optimizer<small>Find the best equipment for your rotation</small></span></summary>
-      <form data-role="optimizer-form"><div data-role="optimizer-controls"></div>
+    panel.innerHTML = `<form data-role="optimizer-form"><div data-role="optimizer-controls"></div>
       <div class="optimizer-actions"><p data-role="optimizer-estimate"></p><div><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
       <div class="optimizer-feedback">
       <div class="optimizer-status-row"><div class="optimizer-status-text"><p data-role="optimizer-status" role="status" aria-live="polite"></p><p data-role="optimizer-counts"></p></div>
@@ -143,8 +156,9 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       <p>Show the best result found for each option or combination, up to 100 results.</p></fieldset></details></div>
       <progress data-role="optimizer-progress" max="100" value="0" aria-label="Optimizer coverage"></progress>
       <p data-role="optimizer-warnings"></p></div>
-      <div data-role="optimizer-results"></div>`;
-    results.before(panel);
+      <div data-role="optimizer-results"></div>
+      <section data-role="optimizer-preview" class="optimizer-preview" aria-label="Result character" hidden></section>`;
+    results.append(panel);
     const form = panel.querySelector('form')!;
     const estimate = (): void => {
       try {
@@ -213,17 +227,49 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       settings.open = false;
       settings.querySelector('summary')!.focus();
     });
-    panel.querySelector('[data-role="optimizer-results"]')!.addEventListener('click', (event) => {
-      const target = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-apply]');
-      if (!target || !runner.request || runner.state.status !== 'complete') return;
-      const candidate = displayedResults()[Number(target.dataset.apply)];
+    const selectResult = (event: MouseEvent | KeyboardEvent): void => {
+      const element = event.target as HTMLElement;
+      if (event instanceof KeyboardEvent) {
+        if (element.closest('button') || !['Enter', ' '].includes(event.key)) return;
+        event.preventDefault();
+      }
+
+      const row = element.closest<HTMLElement>('[data-preview]');
+      if (!row || !runner.request) return;
+      const index = Number(row.dataset.preview);
+      const applied = optimizerAppliedCandidate(app, runner.request);
+      const candidate =
+        index < 0
+          ? {
+              key: 'equipped',
+              equipment: applied?.equipment || optimizerEquipment(runner.request.build),
+              score: applied?.score || runner.state.baseline!,
+              represented: '1'
+            }
+          : displayedResults()[index];
+      if (!candidate) return;
       try {
-        applyOptimizerCandidate(app, runner.request, candidate);
-        renderGearOptimizer(app);
+        if (element.closest('[data-apply]')) {
+          if (runner.state.status !== 'complete') return;
+          applyOptimizerCandidate(app, runner.request, candidate);
+          renderGearOptimizer(app);
+        } else {
+          panel!.dataset.selectedKey = candidate.key;
+          updatePreviewSelection(panel!, displayedResults());
+          renderOptimizerPreview(
+            panel!.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!,
+            app,
+            runner.request,
+            candidate
+          );
+        }
       } catch (error) {
         panel!.querySelector('[data-role="optimizer-status"]')!.textContent = String(error);
       }
-    });
+    };
+
+    panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!.addEventListener('click', selectResult);
+    panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!.addEventListener('keydown', selectResult);
   }
 
   if (panel.dataset.revision !== String(app.buildRevision)) {
@@ -297,6 +343,16 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const equippedScore = applied?.score || state.baseline;
   panel.querySelector<HTMLElement>('.optimizer-feedback')!.hidden = state.status === 'idle';
   const stale = runner.request !== null && !isOptimizerRequestCurrent(app, runner.request);
+  // A new search or unrelated edit invalidates the selected character along with its captured build context.
+  const preview = panel.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!;
+  const previewRequest = `${runner.request?.revision}:${state.started}`;
+  if (preview.dataset.request !== previewRequest || stale) {
+    preview.dataset.request = previewRequest;
+    preview.hidden = true;
+    preview.innerHTML = '';
+    delete panel.dataset.selectedKey;
+  }
+
   const status =
     state.status === 'failed'
       ? `Failed: ${state.error}`
@@ -362,7 +418,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       const difference = candidate.score.dps - baseline;
       const percent = bestDps ? (candidate.score.dps / bestDps - 1) * 100 : 0;
       const isBest = candidate.score.dps === bestDps;
-      return `<tr class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<small>Equipped</small>' : ''}${isBest ? '<small>Best</small>' : `<small>${percent.toFixed(1)}%</small>`}</td>${slots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
+      return `<tr tabindex="0" data-preview="${index}" class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<small>Equipped</small>' : ''}${isBest ? '<small>Best</small>' : `<small>${percent.toFixed(1)}%</small>`}<span class="optimizer-preview-marker">Previewing</span></td>${slots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
         .map((set) =>
           [0, 1]
             .map((slot) => {
@@ -384,6 +440,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         : '';
   }
 
+  updatePreviewSelection(panel, candidates);
   list.querySelectorAll<HTMLButtonElement>('[data-apply]').forEach((button) => {
     button.disabled = stale || state.status !== 'complete';
   });

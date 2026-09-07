@@ -160,10 +160,13 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     await this.adapter.capabilities.patchPreview?.mount(this);
     bindPageControls(this);
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
-      // Analysis jobs belong to the captured tab and stop when navigation gives editing priority.
-      this.gearOptimizerRunner?.cancel();
+      // Leaving the optimizer gives the next view priority; entering it preserves an active search.
+      if (document.body?.dataset.simulatorView !== 'gear-optimizer') this.gearOptimizerRunner?.cancel();
       const results = document.getElementById('rotation-results');
-      if (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true') {
+      if (
+        document.body?.dataset.simulatorView === 'gear-optimizer' ||
+        (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true')
+      ) {
         this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
       }
     });

@@ -23,7 +23,14 @@ export function renderAttributes(app: ProfessionAppState): void {
     throw new Error('Profession attributes must exist before rendering.');
   }
 
-  const attributes = app.attributeData.attributes;
+  const list = document.getElementById('attributes-list');
+  if (!list) throw new Error('Required attributes list is missing.');
+  list.innerHTML = attributesHtml(app.attributeData);
+}
+
+/** Share attribute formatting and breakdowns between the editor and isolated optimizer previews. */
+export function attributesHtml(data: NonNullable<ProfessionAppState['attributeData']>): string {
+  const attributes = data.attributes;
   const section = (title: string, names: readonly string[]): string =>
     `<div class="attr-section"><h4>${title}</h4>${names
       .map((name) => {
@@ -42,7 +49,5 @@ export function renderAttributes(app: ProfessionAppState): void {
                 <span class="attr-val">${PERCENT_ATTRIBUTES.has(name) ? `${value.toFixed(2)}%` : Math.round(value).toLocaleString()}</span></div>`;
       })
       .join('')}</div>`;
-  const list = document.getElementById('attributes-list');
-  if (!list) throw new Error('Required attributes list is missing.');
-  list.innerHTML = section('Primary', PRIMARY_ATTRIBUTES) + section('Derived', DERIVED_ATTRIBUTES);
+  return section('Primary', PRIMARY_ATTRIBUTES) + section('Derived', DERIVED_ATTRIBUTES);
 }

@@ -1028,51 +1028,51 @@
 }
 
 [data-resource-id='active-shades'][data-resource-count='0'] .necromancer-scourge-shades {
-  --necromancer-resource-image: url('../assets/necromancer/scourge-shades-0.png');
+  --necromancer-resource-image: url('@assets/necromancer/scourge-shades-0.png');
 }
 
 [data-resource-id='active-shades'][data-resource-count='1'] .necromancer-scourge-shades {
-  --necromancer-resource-image: url('../assets/necromancer/scourge-shades-1.png');
+  --necromancer-resource-image: url('@assets/necromancer/scourge-shades-1.png');
 }
 
 [data-resource-id='active-shades'][data-resource-count='2'] .necromancer-scourge-shades {
-  --necromancer-resource-image: url('../assets/necromancer/scourge-shades-2.png');
+  --necromancer-resource-image: url('@assets/necromancer/scourge-shades-2.png');
 }
 
 [data-resource-id='active-shades'][data-resource-count='3'] .necromancer-scourge-shades {
-  --necromancer-resource-image: url('../assets/necromancer/scourge-shades-3.png');
+  --necromancer-resource-image: url('@assets/necromancer/scourge-shades-3.png');
 }
 
 [data-resource-id='soul-shards'][data-resource-count='0'] .necromancer-soul-shards {
-  --necromancer-resource-image: url('../assets/necromancer/soul-shards-0.png');
+  --necromancer-resource-image: url('@assets/necromancer/soul-shards-0.png');
 }
 
 [data-resource-id='soul-shards'][data-resource-count='1'] .necromancer-soul-shards {
-  --necromancer-resource-image: url('../assets/necromancer/soul-shards-1.png');
+  --necromancer-resource-image: url('@assets/necromancer/soul-shards-1.png');
 }
 
 [data-resource-id='soul-shards'][data-resource-count='2'] .necromancer-soul-shards {
-  --necromancer-resource-image: url('../assets/necromancer/soul-shards-2.png');
+  --necromancer-resource-image: url('@assets/necromancer/soul-shards-2.png');
 }
 
 [data-resource-id='soul-shards'][data-resource-count='3'] .necromancer-soul-shards {
-  --necromancer-resource-image: url('../assets/necromancer/soul-shards-3.png');
+  --necromancer-resource-image: url('@assets/necromancer/soul-shards-3.png');
 }
 
 [data-resource-id='soul-shards'][data-resource-count='4'] .necromancer-soul-shards {
-  --necromancer-resource-image: url('../assets/necromancer/soul-shards-4.png');
+  --necromancer-resource-image: url('@assets/necromancer/soul-shards-4.png');
 }
 
 [data-resource-id='soul-shards'][data-resource-count='5'] .necromancer-soul-shards {
-  --necromancer-resource-image: url('../assets/necromancer/soul-shards-5.png');
+  --necromancer-resource-image: url('@assets/necromancer/soul-shards-5.png');
 }
 
 [data-resource-id='soul-shards'][data-resource-count='6'] .necromancer-soul-shards {
-  --necromancer-resource-image: url('../assets/necromancer/soul-shards-6.png');
+  --necromancer-resource-image: url('@assets/necromancer/soul-shards-6.png');
 }
 
 .active-resource-counter.warrior-motivation {
-  background: url('../assets/warrior-motivation-badge.svg') center / contain no-repeat;
+  background: url('@assets/warrior-motivation-badge.svg') center / contain no-repeat;
   isolation: isolate;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
 }

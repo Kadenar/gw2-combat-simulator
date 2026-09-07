@@ -1,13 +1,46 @@
 import { expect, test } from '@playwright/test';
 
+// The dedicated route owns both tools and can run a relic graph without ever mounting Analysis.
+test('gear optimizer tab owns relic comparison and restores through browser history', async ({ page }) => {
+  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const tab = page.getByRole('link', { name: 'Gear Optimizer', exact: true });
+  await expect(tab).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('#gear-optimizer form')).toBeVisible();
+  await expect(page.locator('#gear-optimizer-view > .optimizer-view-heading, #gear-optimizer > summary')).toHaveCount(
+    0
+  );
+  await expect(page.locator('#rotation-results')).toBeHidden();
+  await page
+    .getByRole('navigation', { name: 'Simulator sections' })
+    .getByRole('link', { name: 'Workspace', exact: true })
+    .click();
+  for (let index = 0; index < 3; index++) {
+    await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+    await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  }
+
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await tab.click();
+  const comparison = page.locator('#optimizer-relic-comparison');
+  await expect(comparison.getByRole('combobox', { name: 'Comparison relic' })).toBeVisible();
+  await comparison.getByRole('button', { name: 'Run comparison', exact: true }).click();
+  await expect(comparison.locator('[data-role="relic-comparison-chart"]')).toBeVisible();
+  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await expect(page.locator('#gear-optimizer-view')).toBeHidden();
+  await expect(page.locator('#rotation-results .relic-cmp')).toHaveCount(0);
+  await page.goBack();
+  await expect(tab).toHaveAttribute('aria-current', 'page');
+  await expect(comparison.locator('[data-role="relic-comparison-chart"]')).toBeVisible();
+});
+
 // Optional requirements survive worker updates, reject before combat, and disappear when cleared.
 test('optimizer requirement inputs reject candidates and blank fields remove limits', async ({ page }) => {
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   for (const label of [
     'Minimum toughness',
     'Maximum toughness',
@@ -52,9 +85,8 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   await expect(panel).toBeVisible();
   await expect(panel.locator('[data-picker="prefixes"] label, [data-picker="infusionStats"] label')).toHaveCount(0);
   for (const set of [1, 2]) {
@@ -98,6 +130,63 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   }
 
   await expect(results.locator('tbody').getByRole('cell', { name: /^Set 2 sigil 1:/ })).toBeVisible();
+  // Row selection inspects an isolated candidate; changing preview sets must never save or equip it.
+  const equippedBuild = await page.evaluate(() => JSON.stringify(window.professionApp.build));
+  await results.locator('tbody tr').first().getByRole('cell', { name: 'Food: None', exact: true }).click();
+  const preview = panel.getByRole('region', { name: 'Result character', exact: true });
+  await expect(preview).toBeVisible();
+  await expect(results.locator('tbody tr').first()).toHaveClass(/optimizer-selected/);
+  await expect(results.locator('[aria-current="true"]')).toHaveCount(1);
+  await expect(results.locator('tbody tr').first().getByText('Previewing', { exact: true })).toBeVisible();
+  const selectedBackground = await results
+    .locator('tbody .optimizer-selected td')
+    .first()
+    .evaluate((cell) => getComputedStyle(cell).backgroundColor);
+  // Equipment icons replace slot labels, while upgrades stay attached to their actual armor or weapon.
+  const armor = preview.getByRole('region', { name: 'Armor', exact: true });
+  await expect(armor.locator('.optimizer-preview-item-icon')).toHaveCount(6);
+  await expect(armor.getByRole('group', { name: /^Helm:/ }).locator('.optimizer-preview-item-icon')).toHaveAttribute(
+    'src',
+    'https://render.guildwars2.com/file/AD7849A39265D6AA1C712ACD476E912E1EC30839/699210.png'
+  );
+  await expect(armor.getByText('Helm', { exact: true })).toHaveCount(0);
+  const secondSet = preview.getByRole('group', { name: 'Weapon set 2', exact: true });
+  await expect(secondSet.locator('.optimizer-preview-item-icon')).toHaveCount(1);
+  await expect(secondSet.locator('.optimizer-preview-upgrade')).toHaveCount(2);
+  await expect(preview.getByText('Weapon set 2', { exact: true })).toHaveCount(0);
+  await expect(preview.locator('.optimizer-preview-portrait strong')).toHaveCount(0);
+  await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
+  await expect(preview.locator('.attr-row').filter({ hasText: /^Power/ })).toBeVisible();
+  await expect(preview.locator('.optimizer-preview-portrait img')).toHaveAttribute(
+    'src',
+    /\/images\/professions\/virtuoso\.png$/
+  );
+  await expect
+    .poll(() => preview.locator('.optimizer-preview-portrait img').evaluate((image) => image.naturalWidth))
+    .toBeGreaterThan(0);
+  await preview.screenshot({ path: '.scratch/optimizer/character-desktop.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await preview.screenshot({ path: '.scratch/optimizer/character-mobile.png' });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await preview.getByRole('combobox', { name: 'Preview weapon set', exact: true }).selectOption('2');
+  expect(await page.evaluate(() => JSON.stringify(window.professionApp.build))).toBe(equippedBuild);
+  await results.getByRole('row', { name: 'Equipped setup', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  // Selecting the best/equipped row uses the same preview highlight, overriding its ranking color.
+  await expect(results.locator('tbody .optimizer-selected')).toHaveCount(0);
+  await expect(results.locator('tfoot .optimizer-selected')).toHaveAttribute('aria-current', 'true');
+  await expect(results.locator('.optimizer-preview-marker:visible')).toHaveCount(1);
+  expect(
+    await results
+      .locator('tfoot .optimizer-selected td')
+      .first()
+      .evaluate((cell) => getComputedStyle(cell).backgroundColor)
+  ).toBe(selectedBackground);
+  await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText(currentFood);
+  await results.locator('tbody tr').first().focus();
+  await page.keyboard.press('Space');
+  await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
   await panel.getByRole('button', { name: 'Apply result 1', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   const after = await page.evaluate(() => ({
@@ -118,9 +207,10 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
 test('large search remains responsive and navigation cancels its workers', async ({ page }) => {
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   await panel.getByRole('spinbutton', { name: 'Workers', exact: true }).fill('4');
   await addChoice(panel, 'prefixes', "Assassin's");
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
@@ -148,9 +238,17 @@ test('prepopulated choices enforce limits and stay usable on mobile', async ({ p
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
+  // All navigation tabs fit one row even with the optimizer's longer label.
+  const tabs = await page.locator('.simulator-view-tab').evaluateAll((elements) =>
+    elements.map((element) => {
+      const { top, right } = element.getBoundingClientRect();
+      return { top, right, fits: element.scrollWidth <= element.clientWidth };
+    })
+  );
+  expect(new Set(tabs.map(({ top }) => top)).size).toBe(1);
+  expect(tabs.every(({ right, fits }) => right <= 390 && fits)).toBe(true);
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   const prefixes = panel.getByRole('combobox', { name: 'Add prefixes', exact: true });
   for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
   await expect(prefixes).toBeDisabled();
@@ -169,9 +267,8 @@ test('prepopulated choices enforce limits and stay usable on mobile', async ({ p
 test('bounded preparation can be canceled before scoring begins', async ({ page }) => {
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
   // Submit and cancel in the same task so the assertion does not depend on machine preparation speed.
   await panel.evaluate((element) => {
@@ -198,9 +295,8 @@ test('results expose every equipment choice without expanding rows', async ({ pa
     prefixes: [...new Set(Object.values(window.professionApp.build.gear))],
     weaponSigils: window.professionApp.build.weaponSigils
   }));
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   for (const key of ['rune', 'relic']) await expect(panel.locator(`input[name="${key}"]`)).toHaveValue(equipped[key]);
   expect(
     await panel.locator('input[name="prefixes"]').evaluateAll((inputs) => inputs.map((input) => input.value))
@@ -252,9 +348,8 @@ test('results expose every equipment choice without expanding rows', async ({ pa
 test('large searches use a bounded candidate budget and leave the page usable', async ({ page }) => {
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', {
@@ -279,9 +374,8 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     rune: window.professionApp.build.rune,
     sigils: window.professionApp.build.weaponSigils[0]
   }));
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   await addChoice(panel, 'food', '');
   await addChoice(panel, 'utility', '');
   await addChoice(panel, 'rune sets', equipped.rune === 'Scholar' ? 'Dragonhunter' : 'Scholar');
@@ -394,9 +488,8 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
 test('an unchanged setup appears only in the pinned row', async ({ page }) => {
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
-  await panel.locator(':scope > summary').click();
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
   await expect(panel.locator('tbody tr')).toHaveCount(0);

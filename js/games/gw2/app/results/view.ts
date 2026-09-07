@@ -154,15 +154,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         contributionsStale: result.modifierContributionsStale === true,
         contributionsError: result.modifierContributionsError || '',
         ...randomDistributionModel(result),
-        chartSeries: buildChartSeries(result, 250, effectPresentations),
-        relicComparison: result.relicComparison || null,
-        relicComparisonAvailable: result.relicComparisonAvailable === true,
-        relicComparisonStale: result.relicComparisonStale === true,
-        relicComparisonError: result.relicComparisonError || '',
-        relicComparisonOpponent: result.relicComparisonOpponent || '',
-        relicComparisonTarget: result.relicComparisonTarget || '',
-        relicComparisonTargets: (app.relicNames || []).filter((name) => name !== result.relicComparisonOpponent),
-        relicComparisonInitialStacks: result.relicComparisonInitialStacks || 0
+        chartSeries: buildChartSeries(result, 250, effectPresentations)
       },
       {
         resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),
@@ -187,13 +179,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
           app._skillSortCol = nextState.column;
           app._skillSortDir = nextState.direction;
         },
-        onRunRandomDistribution: () => app.runRandomDistribution(),
-        ...(app.adapter?.capabilities?.relicComparison
-          ? {
-              onRunRelicComparison: (comparisonRelic: string, initialStacks: number) =>
-                app.runRelicComparison(comparisonRelic, initialStacks)
-            }
-          : null)
+        onRunRandomDistribution: () => app.runRandomDistribution()
       }
     ),
     afterAnalysisRender(container) {

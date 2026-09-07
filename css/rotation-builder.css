@@ -32,7 +32,7 @@
   font-size: 12px;
 }
 
-body[data-profession][data-simulator-view='workspace'] .analysis-view-heading {
+body[data-profession]:not([data-simulator-view='analysis']) .analysis-view-heading {
   display: none;
 }
 
@@ -45,47 +45,55 @@ body[data-profession][data-simulator-view='workspace'] #rotation-results:not(:ha
 }
 
 /* Hide the settings drawer in Analysis even when mounted directly on the body. */
-body[data-profession][data-simulator-view='analysis']
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer'])
   :is(.build-templates-region, .build-section, .skills-section, .rotation-panel-shell, .perma-section) {
   display: none;
 }
 
-body[data-profession][data-simulator-view='analysis'] .profession-layout {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer']) .profession-layout {
   display: block;
 }
 
-body[data-profession][data-simulator-view='analysis'] .profession-main {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer']) .profession-main {
   width: 100%;
   container: none;
 }
 
 /* Analysis reuses the nested results host without carrying the editor card around it. */
-body[data-profession][data-simulator-view='analysis'] .build-editor {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer']) .build-editor {
   margin: 0;
   background: transparent;
   border: 0;
 }
 
-body[data-profession][data-simulator-view='analysis'] .build-editor > .simulation-workspace {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer'])
+  .build-editor
+  > .simulation-workspace {
   border-top: 0;
 }
 
-body[data-profession][data-simulator-view='analysis'] .simulation-workspace,
-body[data-profession][data-simulator-view='analysis'] .rotation-section,
-body[data-profession][data-simulator-view='analysis'] .rotation-results {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer'])
+  .simulation-workspace,
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer']) .rotation-section,
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer']) .rotation-results {
   margin: 0;
 }
 
-body[data-profession][data-simulator-view='analysis'] .simulation-workspace {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer'])
+  .simulation-workspace {
   display: block;
 }
 
-body[data-profession][data-simulator-view='analysis'] .rotation-section > .rotation-results {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer'])
+  .rotation-section
+  > .rotation-results {
   padding-top: 0;
   background: transparent;
 }
 
-body[data-profession][data-simulator-view='analysis'] #rotation-results > :is(.res-summary, .rng-distribution) {
+body[data-profession]:is([data-simulator-view='analysis'], [data-simulator-view='gear-optimizer'])
+  #rotation-results
+  > :is(.res-summary, .rng-distribution) {
   display: none;
 }
 
@@ -661,4 +669,10 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 .btn-dpsreport {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+/* Each tool view owns its content while sharing the full-width simulation shell. */
+body:not([data-simulator-view='gear-optimizer']) #gear-optimizer-view,
+body[data-simulator-view='gear-optimizer'] #rotation-results {
+  display: none;
 }

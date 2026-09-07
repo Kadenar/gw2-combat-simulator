@@ -155,6 +155,12 @@ header h1 {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
+/* Simulator pages have four tools; keep the longer optimizer label on the same row. */
+body[data-profession] .simulator-view-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr);
+  width: min(100%, 520px);
+}
+
 .simulator-view-tab {
   display: flex;
   min-height: 34px;
@@ -169,10 +175,19 @@ header h1 {
   letter-spacing: 0.055em;
   text-decoration: none;
   text-transform: uppercase;
+  white-space: nowrap;
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
     color 0.15s ease;
+}
+
+@media (max-width: 600px) {
+  body[data-profession] .simulator-view-tab {
+    padding: 6px 4px;
+    font-size: 10px;
+    letter-spacing: 0;
+  }
 }
 
 a.simulator-view-tab:hover,

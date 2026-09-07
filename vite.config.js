@@ -182,6 +182,14 @@ function injectGithubPagesRedirect() {
 export default defineConfig(({ command, mode }) => ({
   base: command === 'serve' ? '/' : './',
   publicDir: false,
+  // Resolve local artwork independently of source-file depth in JavaScript URLs and CSS.
+  resolve: {
+    alias: {
+      '@images': path.resolve('images'),
+      '@assets': path.resolve('assets'),
+      '@docs-assets': path.resolve('docs/assets')
+    }
+  },
   plugins: [
     renderProfessionPages(),
     copyRuntimeData(),

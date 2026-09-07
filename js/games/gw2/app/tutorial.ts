@@ -1,17 +1,16 @@
 const TUTORIAL_DIALOG_ID = 'simulator-tutorial-dialog';
 const DEFAULT_TUTORIAL_ID = 'quick-start';
 
-export const TUTORIAL_GIF_URL = new URL('../../../../docs/assets/gw2-combat-simulator-usage.gif', import.meta.url).href;
+// Bundle walkthroughs through the asset alias so moving this module cannot break their URLs.
+export const TUTORIAL_GIF_URL = new URL('@docs-assets/gw2-combat-simulator-usage.gif', import.meta.url).href;
 
 export const ROTATION_TUTORIAL_GIF_URL = new URL(
-  '../../../../docs/assets/gw2-combat-simulator-rotation-builder.gif',
+  '@docs-assets/gw2-combat-simulator-rotation-builder.gif',
   import.meta.url
 ).href;
 
-export const ANALYSIS_TUTORIAL_GIF_URL = new URL(
-  '../../../../docs/assets/gw2-combat-simulator-analysis.gif',
-  import.meta.url
-).href;
+export const ANALYSIS_TUTORIAL_GIF_URL = new URL('@docs-assets/gw2-combat-simulator-analysis.gif', import.meta.url)
+  .href;
 
 /** Keeps the looping GIF unloaded while the tutorial is closed or motion is reduced. */
 export function setTutorialAnimationState(image: HTMLImageElement, shouldPlay: boolean): void {

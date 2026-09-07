@@ -8,6 +8,7 @@ import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build-editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
+import { renderGearOptimizerView } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-view.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
 import type {
@@ -91,7 +92,14 @@ export function defineProfessionApp({
     ...runtimeApi,
     renderRotationBuilder,
     buildEditor: gw2BuildEditor,
-    presentation: gw2SimulationPresentation,
+    // Coordinate independent result and optimizer views when simulation state changes.
+    presentation: Object.freeze<Gw2AppAdapter['presentation']>({
+      ...gw2SimulationPresentation,
+      render(app, viewModel) {
+        renderGearOptimizerView(app);
+        gw2SimulationPresentation.render(app, viewModel);
+      }
+    }),
     capabilities: gw2AppCapabilities,
     slotLoadout: profession.ui.slotLoadout ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout) : null,
     assumptionControls: (profession.ui.assumptionControls ||

@@ -1,7 +1,7 @@
 /**
- * Shared Professions / Workspace / Analysis navigation for simulator pages.
+ * Shared profession and simulator tool navigation for simulator pages.
  *
- * Professions returns to the standalone landing page. Workspace and Analysis
+ * Professions returns to the standalone landing page. Simulator tools
  * remain single-page views driven by the URL hash and remember their scroll
  * positions when switching. `mountSimulatorNavigation` is the entry point;
  * the rest are its DOM helpers.
@@ -10,20 +10,22 @@
 import { resetRotationWorkspace } from '#app/shell/workspace.js';
 import { embedRoute, isEmbedded } from '#app/embed.js';
 
-export type SimulatorView = 'workspace' | 'analysis';
+export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer';
 type SimulatorSection = 'professions' | SimulatorView;
 
 type ScrollPosition = Readonly<{ left: number; top: number }>;
 
 const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   workspace: '#workspace',
-  analysis: '#analysis'
+  analysis: '#analysis',
+  'gear-optimizer': '#gear-optimizer'
 };
 
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
   if (normalized === VIEW_HASHES.analysis) return 'analysis';
+  if (normalized === VIEW_HASHES['gear-optimizer']) return 'gear-optimizer';
   return 'workspace';
 }
 
@@ -46,8 +48,8 @@ function createNavigationLink(root: Document, label: string, href: string, view?
   return link;
 }
 
-/** Inserts the analysis-view heading and DPS-summary mirror before the results block (idempotent). */
-function mountAnalysisHeading(root: Document): void {
+/** Mounts the analysis heading and independent optimizer hosts before the results block (idempotent). */
+function mountToolViews(root: Document): void {
   const results = root.getElementById('rotation-results');
   if (!results || root.getElementById('analysis-view-title')) return;
 
@@ -62,6 +64,13 @@ function mountAnalysisHeading(root: Document): void {
   results.before(summaryMirror);
 
   results.setAttribute('aria-labelledby', 'analysis-view-title');
+
+  // Keep optimization tools outside result rendering so simulation updates preserve their controls and selection.
+  const optimizer = root.createElement('section');
+  optimizer.id = 'gear-optimizer-view';
+  optimizer.setAttribute('aria-label', 'Gear Optimizer');
+  optimizer.innerHTML = '<div id="optimizer-search"></div><div id="optimizer-relic-comparison"></div>';
+  results.before(optimizer);
 }
 
 /** Groups the profession title into the top-left brand block. */
@@ -112,7 +121,7 @@ function viewportScrollPosition(root: Document): ScrollPosition {
  * Mounts the shared Professions / Workspace / Analysis navigation into the
  * simulator header. No-op unless the header exists, a profession is set, and the
  * tabs are not already mounted. Mounts the brand block and analysis heading,
- * builds the landing-page link and two simulator tabs, and
+ * builds the landing-page link and simulator tabs, and
  * wires hash/history-driven view switching with per-view scroll restoration.
  */
 export function mountSimulatorNavigation(root: Document = document): void {
@@ -161,12 +170,18 @@ export function mountSimulatorNavigation(root: Document = document): void {
   };
 
   mountHeaderBrand(root, header);
-  for (const section of ['professions', 'workspace', 'analysis'] as const) {
+  for (const section of ['professions', 'workspace', 'analysis', 'gear-optimizer'] as const) {
     const route = simulatorViewHref(pathname, section);
     const view = section === 'professions' ? undefined : section;
     const link = createNavigationLink(
       root,
-      section === 'professions' ? 'Professions' : section === 'workspace' ? 'Workspace' : 'Analysis',
+      section === 'professions'
+        ? 'Professions'
+        : section === 'workspace'
+          ? 'Workspace'
+          : section === 'analysis'
+            ? 'Analysis'
+            : 'Gear Optimizer',
       isEmbedded() ? embedRoute(route) : route,
       view
     );
@@ -188,7 +203,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
   }
 
   header.prepend(navigation);
-  mountAnalysisHeading(root);
+  mountToolViews(root);
   updateActiveView(root, activeView);
   root.defaultView?.addEventListener('hashchange', () => {
     showView(simulatorViewFromHash(root.defaultView?.location.hash || ''));

@@ -86,3 +86,57 @@ export const EQUIPMENT_ICONS: Readonly<Record<string, string>> = {
   Trapper: 'https://render.guildwars2.com/file/4A322301EDD61898193B9B94A0A6A1F1DC06BF24/866844.png',
   Weaver: 'https://render.guildwars2.com/file/C0D36E7D6CAAA060F2EFB0E1CAA2587002F3F451/1766394.png'
 };
+
+/** Representative ascended icons by armor weight and item type, matching Discretize's CreateItem catalog. */
+export const ARMOR_ICONS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  light: {
+    Helm: 'https://render.guildwars2.com/file/AD7849A39265D6AA1C712ACD476E912E1EC30839/699210.png',
+    Shoulders: 'https://render.guildwars2.com/file/0C4E1FEED2C75BC8F6F1D3D11C18303EEF573EED/699208.png',
+    Chest: 'https://render.guildwars2.com/file/6E0C12721BAA5E343813DE9F2C7EFE064AECCE0A/699212.png',
+    Gloves: 'https://render.guildwars2.com/file/5859B5CF97C0D394CF5CB5B3042775C6E6C1A1EB/699211.png',
+    Leggins: 'https://render.guildwars2.com/file/58F7090A0E429EA35DF1C9F36DBD281552CA12F9/699209.png',
+    Boots: 'https://render.guildwars2.com/file/5C63AF3E5541CBBF54C8656DD8F5E274590BEA52/699213.png'
+  },
+  medium: {
+    Helm: 'https://render.guildwars2.com/file/0EBB9F33579CC54CC39F685868FFD79D7A0FEEDC/699204.png',
+    Shoulders: 'https://render.guildwars2.com/file/D52D7C621150ADD5AC264256194D9A58B85E447B/699202.png',
+    Chest: 'https://render.guildwars2.com/file/957B01535AB96230450BA110704557C9C607054F/699206.png',
+    Gloves: 'https://render.guildwars2.com/file/E3BCBC4053466DEBC50B0B0894996353DE03C749/699205.png',
+    Leggins: 'https://render.guildwars2.com/file/0D284759AF7E3E9454210A3E7DECF0000B7E5D7F/699203.png',
+    Boots: 'https://render.guildwars2.com/file/33BC7FAC99DD9F5E68DFEAED70AC3145DBA707B0/699207.png'
+  },
+  heavy: {
+    Helm: 'https://render.guildwars2.com/file/D4FC06FD1B58AF62E771D7747C66F0E8FAAB8054/699216.png',
+    Shoulders: 'https://render.guildwars2.com/file/BCF8FD08CF3F4A263704370659D69FEE2EDD0C45/699214.png',
+    Chest: 'https://render.guildwars2.com/file/64725E0CEBDA22C75C16B70B0CDE58E4E6E7400A/699218.png',
+    Gloves: 'https://render.guildwars2.com/file/BD20599D290345BE7D98BD270FBE502CF5212654/699217.png',
+    Leggins: 'https://render.guildwars2.com/file/089C3C370428039590EF055CA33AED03E99E7951/699215.png',
+    Boots: 'https://render.guildwars2.com/file/DBEE7E93AF2FF0FAEC1CE996F52B949EC872D69C/699219.png'
+  }
+};
+
+export const GEAR_ICONS: Readonly<Record<string, string>> = {
+  Ring: 'https://render.guildwars2.com/file/EAA61AAF9BEF031104FD063C0A301A520EF5F5E6/1614682.png',
+  Accessory: 'https://render.guildwars2.com/file/741D3F520D1DFD7BB9A35AD50FC75152D2B3CA6B/1614709.png',
+  Amulet: 'https://render.guildwars2.com/file/4944FD054FD80D805B0BFFB2DA60363A7DD31FDB/1614376.png',
+  Back: 'https://render.guildwars2.com/file/66A65645BE085493A9E30EA659651715CDE91D07/1202361.png',
+  Greatsword: 'https://render.guildwars2.com/file/B1A52DB3FCD8A6C744144FD4770BCBE8F95A4CBA/631562.png',
+  Hammer: 'https://render.guildwars2.com/file/A3455EC1C59AC001E12C65740DE32DA12645EFA5/631576.png',
+  Longbow: 'https://render.guildwars2.com/file/773EB91B749EB947CBB277D3219090CC1BDCCAC4/631592.png',
+  Rifle: 'https://render.guildwars2.com/file/9D0F6CE0C16A43FD0E66C55E3E27CCDF260779ED/631616.png',
+  Shortbow: 'https://render.guildwars2.com/file/3D7A68807006A225D124A4315DDAFB10AA07CE0F/631634.png',
+  Staff: 'https://render.guildwars2.com/file/F86C3CD9FA20D20EE920590517993211C6F9B99C/631650.png',
+  Focus: 'https://render.guildwars2.com/file/3F2F9F46E00592FE966F0E976445A87536743513/631554.png',
+  Shield: 'https://render.guildwars2.com/file/59060CD4B67508090C0F5F436499F07B71080E1B/631632.png',
+  Torch: 'https://render.guildwars2.com/file/081557906F6FDA4160320E3AFD42D4B11FEDDC0B/631666.png',
+  Warhorn: 'https://render.guildwars2.com/file/F4407BC09091D6042078B05D4B0757037300A333/631683.png',
+  Axe: 'https://render.guildwars2.com/file/AE4909124900E1A3006CEA394670603D5B0C15EE/631536.png',
+  Dagger: 'https://render.guildwars2.com/file/2F94A543C87EAEE701BE28B26564C7B3D19C0977/631546.png',
+  Mace: 'https://render.guildwars2.com/file/6EA5EEBFDC1278F3F997A248362A6F9698CA09FD/631600.png',
+  Pistol: 'https://render.guildwars2.com/file/51217142E12EB2FE19B1DB1CAE4F1D275CC9EA03/631608.png',
+  Scepter: 'https://render.guildwars2.com/file/3832066C1A5B45F1C40930C703573C65CB53D73B/631624.png',
+  Sword: 'https://render.guildwars2.com/file/3C4AA1BD79DAB49201C81D934AC7567B286E711B/631658.png',
+  Speargun: 'https://render.guildwars2.com/file/5C473933354CB8F1542F9F0FF39A5B445877CC06/631642.png',
+  Spear: 'https://render.guildwars2.com/file/C427A73B00AB091FE8049AC2FD7EDEB4AF9A093F/631584.png',
+  Trident: 'https://render.guildwars2.com/file/434F5946A9020500C2EE2E1F0F38E2CF7F0654BC/631675.png'
+};

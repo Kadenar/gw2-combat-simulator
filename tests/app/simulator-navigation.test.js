@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulatorViewFromHash, simulatorViewHref } from '#gw2/app/profession/navigation.js';
 
-test('simulator navigation defaults to the workspace and recognizes analysis', () => {
+test('simulator navigation defaults to the workspace and recognizes analysis and gear optimization', () => {
   assert.equal(simulatorViewFromHash(''), 'workspace');
   assert.equal(simulatorViewFromHash('#professions'), 'workspace');
   assert.equal(simulatorViewFromHash('#workspace'), 'workspace');
   assert.equal(simulatorViewFromHash('#analysis'), 'analysis');
   assert.equal(simulatorViewFromHash('#ANALYSIS'), 'analysis');
+  assert.equal(simulatorViewFromHash('#gear-optimizer'), 'gear-optimizer');
+  assert.equal(simulatorViewFromHash('#GEAR-OPTIMIZER'), 'gear-optimizer');
   assert.equal(simulatorViewFromHash('#unknown'), 'workspace');
 });
 
@@ -15,5 +17,6 @@ test('professions has its own page while simulator views stay on the active prof
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'professions'), 'index.html');
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'workspace'), 'elementalist.html#workspace');
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'analysis'), 'elementalist.html#analysis');
+  assert.equal(simulatorViewHref('/simulator/elementalist.html', 'gear-optimizer'), 'elementalist.html#gear-optimizer');
   assert.equal(simulatorViewHref('', 'workspace'), 'index.html#workspace');
 });
