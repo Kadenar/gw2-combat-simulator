@@ -74,8 +74,24 @@ test('conditions use separate bounded windows with accessible tick details', asy
     await expect(strikes.locator('tbody tr')).toHaveCount(2);
     await strikes.getByRole('button', { name: 'Close hit details' }).click();
     const window = conditions.getByRole('button', { name: '5.00s–10.00s · 5 ticks', exact: true });
+    await conditions.locator('canvas').hover({ position: { x: 1, y: 1 } });
     await window.focus();
-    await expect(conditions.locator('[data-role="hit-timeline-tooltip"]')).toContainText('Total damage: 50');
+    const tooltip = conditions.locator('[data-role="hit-timeline-tooltip"]');
+    await expect(tooltip).toContainText('Total damage: 50');
+    // Pointer events, including those caused by scrolling, must preserve the keyboard-focused window's tooltip.
+    const lastWindow = conditions.getByRole('button', { name: '10.00s–12.00s · 2 ticks', exact: true });
+    await lastWindow.hover();
+    await expect(window).toBeFocused();
+    await expect(tooltip).toContainText('Total damage: 50');
+    await conditions.locator('canvas').hover({ position: { x: 1, y: 1 } });
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText('Total damage: 50');
+    await strike.focus();
+    await lastWindow.hover();
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText('Total damage: 20');
+    await window.focus();
+    await expect(tooltip).toContainText('Total damage: 50');
     await window.press('Enter');
     const detail = conditions.locator('[data-role="hit-detail"]');
     await expect(detail).toBeVisible();

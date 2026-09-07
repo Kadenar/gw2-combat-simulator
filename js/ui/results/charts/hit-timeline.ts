@@ -425,9 +425,16 @@ function mountHitTimelineLane(
         tooltip.style.top = `${layout.pad.top + layout.plotHeight + 4}px`;
       };
 
-      button.onmouseenter = showTooltip;
+      // Keep keyboard inspection stable when scrolling or layout changes move another group under the pointer.
+      button.onmouseenter = () => {
+        if (!controls.contains(container.ownerDocument.activeElement)) showTooltip();
+      };
+
       button.onfocus = showTooltip;
-      button.onmouseleave = hideTooltip;
+      button.onmouseleave = () => {
+        if (!controls.contains(container.ownerDocument.activeElement)) hideTooltip();
+      };
+
       button.onblur = hideTooltip;
       button.onclick = () => selectGroup(selectedGroup === index ? null : index);
       button.onkeydown = (event) => {
