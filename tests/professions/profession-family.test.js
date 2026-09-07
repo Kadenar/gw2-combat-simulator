@@ -1058,7 +1058,7 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
   );
 });
 
-test('Mesmer runtime UI exposes only the active specialization resource', () => {
+test('Mesmer runtime UI exposes only the active specialization resources', () => {
   for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
     const runtime = mesmerProfession.resolveRuntime(config);
@@ -1068,9 +1068,13 @@ test('Mesmer runtime UI exposes only the active specialization resource', () => 
       state: { profession: state }
     });
 
+    // Mirage exposes dodge endurance alongside clones; sibling specializations must not inherit it.
     assert.deepEqual(
       resources.map((resource) => resource.id),
-      [active === 'Virtuoso' ? 'blades' : active === 'Troubadour' ? 'notes' : 'clones'],
+      [
+        active === 'Virtuoso' ? 'blades' : active === 'Troubadour' ? 'notes' : 'clones',
+        ...(active === 'Mirage' ? ['endurance'] : [])
+      ],
       active
     );
     assert.equal(runtime.ui.skillBarGroups({ config }).length, 1, active);

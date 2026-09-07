@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createNativeApp, runNative, resolvedAndScheduledEvents } from '../../helpers/elementalist-simulation.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
@@ -106,12 +107,12 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
 });
 
 test("Fox's Fury scales its impact with cast speed and applies the PvE high-Might burn", () => {
-  // Quickness changes when the payload lands, while its base condition duration stays fixed.
+  // Set engine boons directly to cover both cast speeds despite the app's permanent Quickness policy.
   for (const quickness of [true, false]) {
-    const result = runNative({
+    const { app, commands } = createNativeApp({
       lines: [['Fire'], ['Air'], ['Evoker']],
       rotation: ["Fox's Fury"],
-      assumptions: { quickness, might: 25 },
+      assumptions: { might: 25 },
       selectedSkills: {
         Heal: 'Glyph of Elemental Harmony',
         Utility1: "Fox's Fury",
@@ -120,6 +121,9 @@ test("Fox's Fury scales its impact with cast speed and applies the PvE high-Migh
         Elite: 'Glyph of Elementals'
       }
     });
+    const config = elementalistAppAdapter.simulationConfig(app);
+    config.boons.quickness = quickness;
+    const result = simulateGw2({ profession: elementalistProfession, rotation: commands, config });
     const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
     const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
 
@@ -658,13 +662,14 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
 });
 
 test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
+  // Permanent player Quickness shortens the Glyph cast; the summon keeps its own attack cadence.
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Glyph of Elementals', 15000],
     startAttunement: 'Fire',
     assumptions: {
       ...elementalistProfession.createBuildDefaults().assumptions,
-      quickness: false
+      quickness: true
     }
   });
   const elementalActions = result.events.filter(
@@ -677,11 +682,11 @@ test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
   assert.deepEqual(
     elementalActions.map((event) => [event.skillName, Math.round(event.at * 1000), Boolean(event.interrupted)]),
     [
-      ['Flame Burst', 1410, false],
-      ['Fireball', 6050, false],
-      ['Fireball', 9250, false],
-      ['Fireball', 12450, false],
-      ['Fireball', 15650, false]
+      ['Flame Burst', 1000, false],
+      ['Fireball', 5640, false],
+      ['Fireball', 8840, false],
+      ['Fireball', 12040, false],
+      ['Fireball', 15240, false]
     ]
   );
 
@@ -703,13 +708,14 @@ test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
 });
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {
+  // Commands follow the quickened Glyph cast and explicit wait, then respect their unalacritized cooldown.
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Glyph of Elementals', 1000, 'Flame Barrage', 'Flame Barrage', 4000],
     startAttunement: 'Air',
     assumptions: {
       ...elementalistProfession.createBuildDefaults().assumptions,
-      quickness: false,
+      quickness: true,
       alacrity: false
     }
   });
@@ -719,11 +725,11 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   assert.equal(result.endState.profession.summonedElemental.element, 'Fire');
   assert.deepEqual(
     elementalActions.filter((event) => event.skillName === 'Flame Barrage').map((event) => Math.round(event.at * 1000)),
-    [2250, 17250]
+    [1840, 16840]
   );
   assert.ok(
     elementalActions.some(
-      (event) => event.skillName === 'Flame Burst' && Math.round(event.at * 1000) === 1410 && event.interrupted === true
+      (event) => event.skillName === 'Flame Burst' && Math.round(event.at * 1000) === 1000 && event.interrupted === true
     )
   );
   assert.ok(
@@ -738,7 +744,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
 
   assert.deepEqual(
     firstBarrageDamage.map((event) => Math.round(event.at * 1000)),
-    [3370, 3570, 3770, 3770]
+    [2960, 3160, 3360, 3360]
   );
   assert.ok(firstBarrageDamage.every((event) => event.actorType === 'summon'));
 
