@@ -5,13 +5,22 @@
   --accent: #d0aa55;
   --accent-dim: #8e7135;
   min-height: 100vh;
+  padding-bottom: 0;
   background:
     radial-gradient(circle at 15% 0%, rgba(110, 77, 156, 0.18), transparent 34rem),
     radial-gradient(circle at 85% 8%, rgba(208, 170, 85, 0.12), transparent 30rem), var(--bg-dark);
 }
 
-.landing-shell {
+#app.landing-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   max-width: 1500px;
+  padding-bottom: 0;
+}
+
+.landing-shell > .landing-section {
+  width: 100%;
 }
 
 /* Keep the shared title-bar layout without covering the landing-page background. */
@@ -69,6 +78,55 @@
 
 .landing-community a {
   color: var(--accent);
+}
+
+/* Keep credits short by placing each name and contribution inline. */
+.landing-credits {
+  margin: 16px auto 24px;
+  padding: 12px 12px 0;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.landing-credits summary {
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.landing-credits h2 {
+  display: inline;
+  color: var(--text-bright);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.landing-credits-list {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 20px;
+  line-height: 1.4;
+}
+
+.landing-credits-list dt {
+  display: inline;
+  color: var(--text-bright);
+  font-weight: 600;
+}
+
+.landing-credits-list dt::after {
+  content: ' — ';
+}
+
+.landing-credits-list dd {
+  display: inline;
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.landing-credits-note {
+  margin-top: 10px;
+  line-height: 1.4;
 }
 
 .profession-grid {
@@ -260,6 +318,12 @@
   border-top: 1px solid var(--border);
 }
 
+/* Anchor the footer to the viewport bottom on short pages and below content on long pages. */
+.landing-page .landing-footer {
+  position: static;
+  margin-top: auto;
+}
+
 @media (max-width: 900px) {
   body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     right: 0;
@@ -404,6 +468,10 @@
 }
 
 @media (max-width: 640px) {
+  .landing-credits-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .profession-grid {
     grid-template-columns: 1fr;
   }
