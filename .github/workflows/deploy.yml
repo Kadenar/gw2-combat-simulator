@@ -61,11 +61,59 @@ jobs:
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
           --test-reporter-destination=dist/test-reports/engine.xml tests/kernel tests/platform
-      - name: Test professions
+      # Keep shared contracts and each profession visible independently without skipping checks after a failure.
+      - name: Test shared profession contracts
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
-          --test-reporter-destination=dist/test-reports/professions.xml tests/professions
+          --test-reporter-destination=dist/test-reports/professions-shared.xml tests/professions/*.test.js
+      - name: Test Elementalist
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-elementalist.xml
+          tests/professions/elementalist/*.test.js
+      - name: Test Engineer
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-engineer.xml tests/professions/engineer/*.test.js
+      - name: Test Guardian
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-guardian.xml tests/professions/guardian/*.test.js
+      - name: Test Mesmer
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-mesmer.xml tests/professions/mesmer/*.test.js
+      - name: Test Necromancer
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-necromancer.xml
+          tests/professions/necromancer/*.test.js
+      - name: Test Ranger
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-ranger.xml tests/professions/ranger/*.test.js
+      - name: Test Revenant
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-revenant.xml tests/professions/revenant/*.test.js
+      - name: Test Thief
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-thief.xml tests/professions/thief/*.test.js
+      - name: Test Warrior
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
+          --test-reporter-destination=dist/test-reports/professions-warrior.xml tests/professions/warrior/*.test.js
       - name: Test app and UI
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-

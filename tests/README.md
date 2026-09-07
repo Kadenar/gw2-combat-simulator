@@ -18,6 +18,10 @@ Tests follow the same ownership boundaries as the source tree:
 Place new tests under the narrowest directory that owns the behavior. Keep shared support in the existing support
 directories instead of duplicating it under an owner.
 
+Pages and release CI run each of the nine profession directories in a named step with its own JUnit report. The separate
+shared profession contracts step runs `tests/professions/*.test.js`. A failed step does not skip the remaining test
+groups, but any failed check still blocks deployment or release asset publication.
+
 GW2 palette, timeline, chart, result, and icon views belong in `app/`, even when their exported names describe shared
 UI. Neutral `#ui/` primitives belong in `ui/`. View tests can reuse `helpers/dom.js` to capture markup without browser
 nodes.
