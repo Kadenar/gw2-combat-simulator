@@ -1,7 +1,12 @@
+import { mountRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
+import { inertContainer } from '../helpers/dom.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/results/charts/relic-comparison.js';
+import {
+  bindRelicComparisonChartHover,
+  relicComparisonChartSvg
+} from '#gw2/app/simulation/relic-comparison/relic-comparison-chart.js';
 import {
   CROSSOVER_EVALUATION_START_MS,
   buildRelicComparisonModel,
@@ -239,4 +244,97 @@ test('break-even model reports no crossover when Thorns never catches up', () =>
 
   assert.equal(model.crossoverMs, null);
   assert.equal(model.targetAlwaysAhead, false);
+});
+
+test('relic comparison passes the selected relic and shows stacks only for Thorns', () => {
+  const runButton = {};
+  const targetInput = { value: 'Thorns' };
+  const stackInput = { value: '4' };
+  const stackControl = { hidden: false };
+  const container = {
+    ...inertContainer(),
+    querySelector: (selector) =>
+      selector === '[data-role="relic-comparison-run"]'
+        ? runButton
+        : selector === '[data-role="relic-comparison-target"]'
+          ? targetInput
+          : selector === '[data-role="relic-comparison-stacks-control"]'
+            ? stackControl
+            : selector === '[data-role="relic-comparison-stacks"]'
+              ? stackInput
+              : null
+  };
+  let targetRelic = null;
+  let startingStacks = null;
+
+  mountRelicComparison(
+    container,
+    {
+      relicComparisonAvailable: true,
+      relicComparisonOpponent: 'Fractal',
+      relicComparisonTarget: 'Thorns',
+      relicComparisonTargets: ['Akeem', 'Thorns'],
+      relicComparisonInitialStacks: 4
+    },
+    (relic, stacks) => {
+      targetRelic = relic;
+      startingStacks = stacks;
+    }
+  );
+
+  assert.match(container.innerHTML, /Relic break-even comparison/);
+  assert.doesNotMatch(container.innerHTML, /Off by default/);
+  assert.match(container.innerHTML, /<option value="Akeem">Relic of Akeem<\/option>/);
+  assert.match(container.innerHTML, /<optgroup label="Condition">/);
+  assert.doesNotMatch(container.innerHTML, /<optgroup label="(?:Power|Hybrid)">/);
+  assert.doesNotMatch(container.innerHTML, /value="Fractal"/);
+  assert.match(container.innerHTML, /aria-label="Starting Thorns stacks"/);
+  assert.match(container.innerHTML, /min="0" max="10" step="1" value="4"/);
+  targetInput.value = 'Akeem';
+  targetInput.onchange();
+  assert.equal(stackControl.hidden, true);
+  runButton.onclick();
+  assert.equal(targetRelic, 'Akeem');
+  assert.equal(startingStacks, 4);
+});
+
+// Comparison choices keep the gear categories and selection even when targets arrive alphabetically.
+test('relic comparison groups available choices by damage category', () => {
+  const container = inertContainer();
+
+  mountRelicComparison(container, {
+    relicComparisonAvailable: true,
+    relicComparisonTarget: 'Thorns',
+    relicComparisonTargets: ['Akeem', 'Brawler', 'Nourys', 'Thorns']
+  });
+
+  const groups = [...container.innerHTML.matchAll(/<optgroup label="([^"]+)">([\s\S]*?)<\/optgroup>/g)];
+  assert.deepEqual(
+    groups.map(([, label, options]) => [
+      label,
+      [...options.matchAll(/<option value="([^"]+)"/g)].map(([, name]) => name)
+    ]),
+    [
+      ['Power', ['Brawler']],
+      ['Condition', ['Akeem', 'Thorns']],
+      ['Hybrid', ['Nourys']]
+    ]
+  );
+  assert.match(container.innerHTML, /<option value="Thorns" selected>Relic of Thorns<\/option>/);
+});
+
+test('relic comparison keeps its footprint while rerunning', () => {
+  const container = inertContainer();
+
+  mountRelicComparison(container, {
+    relicComparisonAvailable: true,
+    relicComparisonStale: true,
+    relicComparisonOpponent: 'Fractal',
+    relicComparisonTarget: 'Thorns',
+    relicComparisonTargets: ['Thorns']
+  });
+
+  assert.match(container.innerHTML, /class="relic-cmp-skeleton" role="status"/);
+  assert.match(container.innerHTML, /data-role="relic-comparison-run" disabled/);
+  assert.match(container.innerHTML, /Running…/);
 });

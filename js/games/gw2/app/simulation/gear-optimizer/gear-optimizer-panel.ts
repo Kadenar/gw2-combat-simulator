@@ -36,6 +36,8 @@ import {
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { renderOptimizerPreview } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-preview.js';
 
+const filterDismissalRoots = new WeakSet<Document>();
+
 const SLOT_LABELS: Record<string, string> = {
   Helm: 'Helm',
   Shoulders: 'Shld',
@@ -219,6 +221,16 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       }
     });
     panel.querySelector('[data-role="optimizer-cancel"]')!.addEventListener('click', () => runner.cancel());
+    // Outside clicks close the optimizer filter even when no results view has been mounted.
+    const root = panel.ownerDocument;
+    if (!filterDismissalRoots.has(root)) {
+      filterDismissalRoots.add(root);
+      root.addEventListener('pointerdown', (event) => {
+        const settings = root.querySelector<HTMLDetailsElement>('.optimizer-filter-settings[open]');
+        if (settings && !settings.contains(event.target as Node)) settings.open = false;
+      });
+    }
+
     // Result filters only change the displayed rows; the completed search and equipped build stay intact.
     panel.querySelector('.optimizer-filter-settings')!.addEventListener('change', () => renderGearOptimizer(app));
     panel.querySelector<HTMLDetailsElement>('.optimizer-filter-settings')!.addEventListener('keydown', (event) => {

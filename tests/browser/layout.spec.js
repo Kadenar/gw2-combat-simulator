@@ -245,12 +245,13 @@ test('relic comparison controls and loading layout survive a narrow host', async
   await openSimulator(page, { width: 390, height: 900 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(async () => {
-    const { mountRotationResults } = await import('/js/games/gw2/app/results/rotation-results.ts');
+    const { mountRelicComparison } =
+      await import('/js/games/gw2/app/simulation/relic-comparison/relic-comparison-panel.ts');
     const host = document.createElement('div');
     host.dataset.layoutFixture = 'relic-comparison';
     host.style.width = '350px';
     document.body.append(host);
-    mountRotationResults(host, {
+    mountRelicComparison(host, {
       relicComparisonAvailable: true,
       relicComparisonStale: true,
       relicComparisonTarget: 'Fireworks',

@@ -855,12 +855,12 @@ test('relic comparison run simulates each selected relic and gives opening stack
 
         return minimalResult(4200);
       },
-      presentation: testPresentation(() => {
-        renderCount += 1;
-      })
+      presentation: testPresentation(() => assert.fail('Relic updates must not render Analysis'))
     }
   };
-  const runner = new RelicComparisonRunner(app);
+  const runner = new RelicComparisonRunner(app, () => {
+    renderCount += 1;
+  });
 
   runner.run('Akeem');
   runner.run('Thorns', 4);

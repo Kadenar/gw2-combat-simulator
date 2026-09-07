@@ -1,5 +1,28 @@
 import { expect, test } from '@playwright/test';
 
+// The optimizer must initialize and run comparisons without an Analysis host or renderer.
+test('optimizer works without the Analysis results container', async ({ page }) => {
+  await page.route('**/mesmer.html', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace('<div id="rotation-results" class="rotation-results"></div>', '');
+    await route.fulfill({ response, body });
+  });
+  await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect(page.locator('#rotation-results')).toHaveCount(0);
+  await expect(page.locator('#app > #gear-optimizer-view')).toHaveCount(1);
+  for (let index = 0; index < 3; index++) {
+    await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+    await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  }
+
+  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
+  await expect(page.locator('#gear-optimizer form')).toBeVisible();
+  const comparison = page.locator('#optimizer-relic-comparison');
+  await comparison.getByRole('button', { name: 'Run comparison', exact: true }).click();
+  await expect(comparison.locator('[data-role="relic-comparison-chart"]')).toBeVisible();
+});
+
 // The dedicated route owns both tools and can run a relic graph without ever mounting Analysis.
 test('gear optimizer tab owns relic comparison and restores through browser history', async ({ page }) => {
   await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });

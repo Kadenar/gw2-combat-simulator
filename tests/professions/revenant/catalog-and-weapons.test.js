@@ -1415,9 +1415,11 @@ test('Searing Fissure commits at 480ms and an earlier cancel only starts cooldow
     cancelled.events.find((event) => event.type === 'action' && event.skillName === 'Searing Fissure').cancelled,
     true
   );
+  // The observation tail outlasts the cooldown, but its deadline still records the cancel time.
+  assert.equal(cancelled.endState.time, 4479);
   assert.deepEqual(cancelled.endState.cooldowns['Searing Fissure'], {
     readyAt: 3479,
-    remaining: 3000
+    remaining: 0
   });
 
   assert.equal(committed.steps[0].end, 480);
@@ -1444,9 +1446,10 @@ test('Searing Fissure commits at 480ms and an earlier cancel only starts cooldow
       [3.48, 1, 1]
     ]
   );
+  assert.equal(committed.endState.time, 4480);
   assert.deepEqual(committed.endState.cooldowns['Searing Fissure'], {
     readyAt: 3480,
-    remaining: 3000
+    remaining: 0
   });
 
   const comboConfig = {
@@ -1664,12 +1667,17 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
   const rechargeProc = result.procSteps.find((proc) => proc.skill.endsWith('Abyssal Raze recharge'));
 
   assert.equal(rechargeProc.cooldownReduction, 1);
-  assert.deepEqual(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE), {
-    charges: 1,
-    maximum: 3,
-    rechargeDuration: 15,
-    nextRechargeAt: 29.9
-  });
+  // Verify serial recharge overflow independently of the separate between-cast lockout.
+  const { charges, maximum, rechargeDuration, nextRechargeAt } = result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE);
+  assert.deepEqual(
+    { charges, maximum, rechargeDuration, nextRechargeAt },
+    {
+      charges: 1,
+      maximum: 3,
+      rechargeDuration: 15,
+      nextRechargeAt: 29.9
+    }
+  );
   assert.equal(result.endState.cooldowns['Abyssal Raze'], undefined);
 });
 

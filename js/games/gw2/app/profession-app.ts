@@ -12,6 +12,8 @@ import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifi
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
 import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
 import { renderGearOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-panel.js';
+import { renderGearOptimizerView } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-view.js';
+import { renderRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
@@ -129,7 +131,9 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.randomDistributionRunner = adapter.capabilities.randomDistribution
       ? new RandomDistributionRunner(this)
       : NOOP_FEATURE;
-    this.relicComparisonRunner = adapter.capabilities.relicComparison ? new RelicComparisonRunner(this) : NOOP_FEATURE;
+    this.relicComparisonRunner = adapter.capabilities.relicComparison
+      ? new RelicComparisonRunner(this, () => renderRelicComparison(this))
+      : NOOP_FEATURE;
     this.baselineSimulationRunner = new BaselineSimulationRunner(this);
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
     this.initialRenderGeneration = 0;
@@ -162,11 +166,13 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
       // Leaving the optimizer gives the next view priority; entering it preserves an active search.
       if (document.body?.dataset.simulatorView !== 'gear-optimizer') this.gearOptimizerRunner?.cancel();
+      if (document.body?.dataset.simulatorView === 'gear-optimizer') {
+        renderGearOptimizerView(this);
+        return;
+      }
+
       const results = document.getElementById('rotation-results');
-      if (
-        document.body?.dataset.simulatorView === 'gear-optimizer' ||
-        (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true')
-      ) {
+      if (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true') {
         this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
       }
     });

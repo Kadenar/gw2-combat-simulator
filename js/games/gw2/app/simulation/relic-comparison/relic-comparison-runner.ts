@@ -9,13 +9,16 @@ export class RelicComparisonRunner {
   requestId: number;
   comparisonRelic: string;
   initialStacks: number;
+  readonly onUpdate: () => void;
 
-  constructor(app: ProfessionAppState) {
+  constructor(app: ProfessionAppState, onUpdate: () => void = () => {}) {
     this.app = app;
     this.timer = null;
     this.requestId = 0;
     this.comparisonRelic = '';
     this.initialStacks = 0;
+    // Let the owning relic panel refresh without rerendering unrelated simulation views.
+    this.onUpdate = onUpdate;
   }
 
   /** Keeps a valid selection, preferring Thorns as the initial comparison when available. */
@@ -90,7 +93,7 @@ export class RelicComparisonRunner {
     const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app, this.comparisonRelic) : null;
     if (!request) {
       this.schedule();
-      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+      this.onUpdate();
       return;
     }
 
@@ -100,7 +103,7 @@ export class RelicComparisonRunner {
     results.relicComparisonError = '';
     results.relicComparisonOpponent = request.opponentRelic;
     results.relicComparisonTarget = request.comparisonRelic;
-    app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+    this.onUpdate();
 
     this.timer = setTimeout(() => {
       this.timer = null;
@@ -124,13 +127,13 @@ export class RelicComparisonRunner {
         app.results.relicComparison = model;
         app.results.relicComparisonStale = false;
         app.results.relicComparisonError = '';
-        app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+        this.onUpdate();
       } catch (error) {
         if (requestId !== this.requestId || !app.results) return;
         app.results.relicComparisonStale = false;
         app.results.relicComparisonError =
           error instanceof Error ? error.message : String(error || 'Relic comparison failed.');
-        app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+        this.onUpdate();
       }
     }, 0);
   }

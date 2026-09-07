@@ -48,8 +48,8 @@ function createNavigationLink(root: Document, label: string, href: string, view?
   return link;
 }
 
-/** Mounts the analysis heading and independent optimizer hosts before the results block (idempotent). */
-function mountToolViews(root: Document): void {
+/** Labels the Analysis results host without controlling other tool views. */
+function mountAnalysisView(root: Document): void {
   const results = root.getElementById('rotation-results');
   if (!results || root.getElementById('analysis-view-title')) return;
 
@@ -64,13 +64,6 @@ function mountToolViews(root: Document): void {
   results.before(summaryMirror);
 
   results.setAttribute('aria-labelledby', 'analysis-view-title');
-
-  // Keep optimization tools outside result rendering so simulation updates preserve their controls and selection.
-  const optimizer = root.createElement('section');
-  optimizer.id = 'gear-optimizer-view';
-  optimizer.setAttribute('aria-label', 'Gear Optimizer');
-  optimizer.innerHTML = '<div id="optimizer-search"></div><div id="optimizer-relic-comparison"></div>';
-  results.before(optimizer);
 }
 
 /** Groups the profession title into the top-left brand block. */
@@ -203,7 +196,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
   }
 
   header.prepend(navigation);
-  mountToolViews(root);
+  mountAnalysisView(root);
   updateActiveView(root, activeView);
   root.defaultView?.addEventListener('hashchange', () => {
     showView(simulatorViewFromHash(root.defaultView?.location.hash || ''));

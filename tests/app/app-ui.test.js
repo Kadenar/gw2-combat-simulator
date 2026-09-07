@@ -848,12 +848,14 @@ test('the landing selector records supplied specialization artwork for every pro
     engineer: ['Core', 'Scrapper', 'Holosmith', 'Mechanist', 'Amalgam'],
     guardian: ['Core', 'Dragonhunter', 'Firebrand', 'Willbender', 'Luminary'],
     warrior: ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon'],
-    revenant: ['Herald', 'Renegade', 'Vindicator', 'Conduit']
+    revenant: ['Core', 'Herald', 'Renegade', 'Vindicator', 'Conduit']
   });
   assert.equal(
     professionRegistry
       .flatMap((entry) => entry.specializationArtwork || [])
-      .every(({ image }) => image.startsWith('https://assets.snowcrows.com/')),
+      .every(
+        ({ image }) => image.startsWith('https://assets.snowcrows.com/') || image.endsWith('/professions/revenant.png')
+      ),
     true
   );
 });

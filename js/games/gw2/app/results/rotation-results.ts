@@ -1,10 +1,7 @@
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
-import type { RelicComparisonModel } from '#gw2/app/results/charts/relic-comparison.js';
-import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/results/charts/relic-comparison.js';
-import { escapeHtml, groupedOptions } from '#gw2/app/presentation/shared/html.js';
-import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
@@ -130,14 +127,6 @@ export interface RotationResultsModel {
   readonly randomDistributionProgress?: ResultRandomDistributionProgress | null;
   readonly randomDistributionError?: string;
   readonly chartSeries?: ChartSeries | null;
-  readonly relicComparison?: RelicComparisonModel | null;
-  readonly relicComparisonAvailable?: boolean;
-  readonly relicComparisonStale?: boolean;
-  readonly relicComparisonError?: string;
-  readonly relicComparisonOpponent?: string;
-  readonly relicComparisonTarget?: string;
-  readonly relicComparisonTargets?: readonly string[];
-  readonly relicComparisonInitialStacks?: number;
 }
 
 export interface RotationResultsOptions {
@@ -148,7 +137,6 @@ export interface RotationResultsOptions {
   readonly sortState?: Partial<ResultSortState>;
   readonly onSortStateChange?: (state: ResultSortState) => unknown;
   readonly onRunRandomDistribution?: () => unknown;
-  readonly onRunRelicComparison?: (comparisonRelic: string, initialStacks: number) => unknown;
 }
 
 // Default column schema shared by the renderer and profession adapters.
@@ -434,9 +422,7 @@ function resultDpsSnapshotsHtml(metric: ResultMetric, breakpoints: readonly Resu
 
 /** Closes open result disclosures unless the click occurred inside that same disclosure. */
 export function dismissResultMetricDetails(root: ParentNode, target: EventTarget | null): void {
-  for (const details of root.querySelectorAll<HTMLDetailsElement>(
-    '.res-metric-info[open], .res-dps-snapshots[open], .optimizer-filter-settings[open]'
-  )) {
+  for (const details of root.querySelectorAll<HTMLDetailsElement>('.res-metric-info[open], .res-dps-snapshots[open]')) {
     if (target && details.contains(target as Node)) continue;
     details.open = false;
   }
@@ -502,38 +488,6 @@ export function mountRotationResults(
         </button>`
     : '';
   const chartSeries = model.chartSeries || null;
-  const relicComparison = model.relicComparison || null;
-  const relicComparisonAvailable = model.relicComparisonAvailable === true;
-  const relicComparisonStale = model.relicComparisonStale === true;
-  const relicComparisonError = String(model.relicComparisonError || '');
-  const relicComparisonOpponent = String(model.relicComparisonOpponent || '');
-  const relicComparisonTargets = model.relicComparisonTargets || [];
-  // Match the gear selector's categories while keeping only available comparison relics.
-  const relicComparisonGroups = RELIC_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((name) => relicComparisonTargets.includes(name))
-  })).filter((group) => group.items.length);
-  const requestedRelicComparisonTarget = String(model.relicComparisonTarget || '');
-  const relicComparisonTarget = relicComparisonTargets.includes(requestedRelicComparisonTarget)
-    ? requestedRelicComparisonTarget
-    : String(relicComparisonTargets[0] || '');
-  const relicComparisonInitialStacks = Math.min(
-    10,
-    Math.max(0, Math.trunc(Number(model.relicComparisonInitialStacks) || 0))
-  );
-  const relicComparisonAction = `<label class="relic-cmp-control">
-          Compare with
-          <select data-role="relic-comparison-target" aria-label="Comparison relic">
-            ${groupedOptions(relicComparisonGroups, relicComparisonTarget, (name) => `Relic of ${name}`)}
-          </select>
-        </label>
-        <label class="relic-cmp-control" data-role="relic-comparison-stacks-control"${relicComparisonTarget === 'Thorns' ? '' : ' hidden'}>
-          Starting stacks
-          <input type="number" min="0" max="10" step="1" value="${relicComparisonInitialStacks}" data-role="relic-comparison-stacks" aria-label="Starting Thorns stacks" />
-        </label>
-        <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run"${relicComparisonStale ? ' disabled' : ''}>
-          ${relicComparisonStale ? 'Running…' : relicComparisonError ? 'Retry' : relicComparison ? 'Run again' : 'Run comparison'}
-        </button>`;
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
     direction: options.sortState?.direction || null
@@ -688,30 +642,6 @@ export function mountRotationResults(
   }
   ${chartSeries ? '<div data-role="result-charts"></div>' : ''}
   ${
-    relicComparisonAvailable
-      ? `<section class="relic-cmp">
-    <div class="relic-cmp-heading">
-      <div>
-        <h4>Relic break-even comparison</h4>
-        <p>Choose a relic to compare against ${escapeHtml(relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : 'your equipped relic')} across fight durations.</p>
-      </div>
-    </div>
-    <div class="relic-cmp-manual">${relicComparisonAction}</div>
-    ${
-      relicComparisonStale
-        ? `<div class="relic-cmp-skeleton" role="status">Running comparison simulation…</div>`
-        : relicComparisonError
-          ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(relicComparisonError)}</div>`
-          : relicComparison
-            ? relicComparisonChartSvg(relicComparison, {
-                opponentLabel: relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : undefined
-              })
-            : ''
-    }
-  </section>`
-      : ''
-  }
-  ${
     contributions.length || contributionsStale || contributionsError
       ? `<div class="res-contributions">
     <h4>
@@ -849,39 +779,11 @@ export function mountRotationResults(
       }) || null;
   }
 
-  // The comparison SVG uses the same hover-value interaction as the time-series charts.
-  if (relicComparison) bindRelicComparisonChartHover(container, relicComparison);
-
   bindSkillSelection();
   const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');
   if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
     runRandomDistribution.onclick = () => {
       options.onRunRandomDistribution?.();
-    };
-  }
-
-  const runRelicComparison = container.querySelector<HTMLElement>('[data-role="relic-comparison-run"]');
-  const relicComparisonTargetInput = container.querySelector<HTMLSelectElement>(
-    '[data-role="relic-comparison-target"]'
-  );
-  const relicComparisonStacksControl = container.querySelector<HTMLElement>(
-    '[data-role="relic-comparison-stacks-control"]'
-  );
-
-  if (relicComparisonTargetInput && relicComparisonStacksControl) {
-    // Thorns alone needs opening stack configuration; other relics keep the control out of the way.
-    relicComparisonTargetInput.onchange = () => {
-      relicComparisonStacksControl.hidden = relicComparisonTargetInput.value !== 'Thorns';
-    };
-  }
-
-  if (runRelicComparison && typeof options.onRunRelicComparison === 'function') {
-    runRelicComparison.onclick = () => {
-      const initialStacks = container.querySelector<HTMLInputElement>('[data-role="relic-comparison-stacks"]');
-      options.onRunRelicComparison?.(
-        relicComparisonTargetInput?.value || relicComparisonTarget,
-        Number(initialStacks?.value || 0)
-      );
     };
   }
 
