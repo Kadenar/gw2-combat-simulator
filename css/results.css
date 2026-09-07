@@ -1125,6 +1125,11 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   cursor: pointer;
 }
 
+/* Single-event markers expose tooltips without suggesting an expandable control. */
+span.hit-group {
+  cursor: default;
+}
+
 .hit-group:hover,
 .hit-group:focus-visible,
 .hit-group[aria-expanded='true'] {

@@ -385,18 +385,20 @@ function mountHitTimelineLane(
       timeOffsetMs
     });
     if (!layout || !controls) return;
-    // Native buttons cover each group's full hit span, supporting mouse, touch, and keyboard inspection.
+    // Single events keep focusable tooltips; only groups with multiple events need a drill-down button.
     if (!controls.children.length) {
       controls.innerHTML = layout.groups
-        .map(
-          (group, index) =>
-            `<button type="button" class="hit-group" data-group="${index}" aria-expanded="false"
-          aria-label="${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}"></button>`
-        )
+        .map((group, index) => {
+          const attributes = `class="hit-group" data-group="${index}"
+            aria-label="${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}"`;
+          return group.length > 1
+            ? `<button type="button" ${attributes} aria-expanded="false"></button>`
+            : `<span ${attributes} tabindex="0" role="img"></span>`;
+        })
         .join('');
     }
 
-    for (const button of controls.querySelectorAll<HTMLButtonElement>('button')) {
+    for (const button of controls.querySelectorAll<HTMLElement>('[data-group]')) {
       const index = Number(button.dataset.group);
       const group = layout.groups[index]!;
       const first = group[0]!;
@@ -417,9 +419,9 @@ function mountHitTimelineLane(
       const showTooltip = (): void => {
         if (!tooltip || !layout) return;
         tooltip.innerHTML = `<div><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b></div>
-          <div>First ${noun}: ${hitTime(first.t + timeOffsetMs)}</div>
-          <div>Last ${noun}: ${hitTime(last.t + timeOffsetMs)}</div>
-          <div>Total damage: ${Math.round(group.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()}</div>`;
+          ${group.length > 1 ? `<div>First ${noun}: ${hitTime(first.t + timeOffsetMs)}</div><div>Last ${noun}: ${hitTime(last.t + timeOffsetMs)}</div>` : ''}
+          <div>Total damage: ${Math.round(group.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()}</div>
+          ${group.length === 1 && first.crit != null ? `<div>Critical: ${first.crit ? 'Yes' : 'No'}</div>` : ''}`;
         tooltip.style.display = 'block';
         tooltip.style.left = `${Math.max(0, Math.min(left, layout.cssWidth - tooltip.offsetWidth))}px`;
         tooltip.style.top = `${layout.pad.top + layout.plotHeight + 4}px`;
@@ -436,7 +438,7 @@ function mountHitTimelineLane(
       };
 
       button.onblur = hideTooltip;
-      button.onclick = () => selectGroup(selectedGroup === index ? null : index);
+      if (group.length > 1) button.onclick = () => selectGroup(selectedGroup === index ? null : index);
       button.onkeydown = (event) => {
         if (event.key === 'Escape') {
           selectGroup(null);

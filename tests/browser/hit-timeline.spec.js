@@ -69,6 +69,9 @@ test('conditions use separate bounded windows with accessible tick details', asy
     const conditions = chart.getByRole('group', { name: 'Condition damage', exact: true });
     await expect(strikes.locator('.hit-group')).toHaveCount(2);
     await expect(conditions.locator('.hit-group')).toHaveCount(3);
+    const singleStrike = strikes.getByRole('img', { name: '9.10s · 1 hit', exact: true });
+    await singleStrike.focus();
+    await expect(strikes.locator('[data-role="hit-timeline-tooltip"]')).toContainText('Critical: Yes');
     const strike = strikes.getByRole('button', { name: '0.10s · 2 hits', exact: true });
     await strike.click();
     await expect(strikes.locator('tbody tr')).toHaveCount(2);
@@ -219,9 +222,26 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
     await expect(detail).toBeHidden();
     await group.press('Space');
     await expect(detail).toBeVisible();
-    await chart.getByRole('button', { name: '13.00s · 1 hit', exact: true }).click();
-    await expect(detail.getByRole('columnheader', { name: 'Critical', exact: true })).toHaveCount(0);
-    await expect(detail.locator('tbody td')).toHaveText(['1', '13.00s', '50']);
+    await detail.getByRole('button', { name: 'Close hit details' }).click();
+    // Single-hit markers retain hover and keyboard information without opening a redundant detail panel.
+    const single = chart.getByRole('img', { name: '13.00s · 1 hit', exact: true });
+    await expect(chart.getByRole('button', { name: '13.00s · 1 hit', exact: true })).toHaveCount(0);
+    await expect(single).toHaveCSS('cursor', 'default');
+    await single.focus();
+    await expect(tooltip).toContainText('Total damage: 50');
+    await single.click();
+    await expect(detail).toBeHidden();
+    await single.press('Enter');
+    await expect(detail).toBeHidden();
+    await single.press('Space');
+    await expect(detail).toBeHidden();
+    await group.focus();
+    await group.press('Tab');
+    await expect(single).toBeFocused();
+    await single.press('Escape');
+    await single.evaluate((element) => element.blur());
+    await single.hover();
+    await expect(tooltip).toContainText('Total damage: 50');
   }
 
   await page.locator('#standalone').getByRole('button', { name: '5.51s · 5 hits', exact: true }).click();
