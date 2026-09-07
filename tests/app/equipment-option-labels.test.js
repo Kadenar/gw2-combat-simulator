@@ -59,7 +59,7 @@ test('equipment dropdown labels expose their effects without hover text', () => 
   );
   assert.equal(
     relicOptionLabel('Fireworks'),
-    'Fireworks — Use a weapon skill with recharge ≥20s (+7% strike damage for 7s)'
+    'Fireworks — Deal strike damage with a skill with recharge ≥20s (+7% strike damage for 6s)'
   );
   assert.equal(
     relicOptionLabel('Akeem'),

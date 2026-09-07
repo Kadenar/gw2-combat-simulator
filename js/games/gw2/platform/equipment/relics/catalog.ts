@@ -19,7 +19,7 @@ export const RELIC_DATA = {
     icon: 'https://render.guildwars2.com/file/A7327A7EDB4705EA05261110526D72AFEAF7DAB4/3629397.png'
   },
   Fireworks: {
-    trigger: 'Use a weapon skill with recharge ≥20s (+7% strike damage for 7s)',
+    trigger: 'Deal strike damage with a skill with recharge ≥20s (+7% strike damage for 6s)',
     cooldown: 0,
     icon: 'https://render.guildwars2.com/file/2999CCF7C94267B2EE3DDA7459050864622927C9/3122349.png'
   },
