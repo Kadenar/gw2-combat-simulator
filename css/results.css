@@ -1177,6 +1177,13 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   color: var(--text-dim);
 }
 
+/* Native disclosures keep each triggering skill's count and timestamps compact and keyboard accessible. */
+[data-role='skill-procs'] summary {
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
 .res-skill-timeline {
   margin: 2px 0 6px;
   padding: 6px 4px 2px;

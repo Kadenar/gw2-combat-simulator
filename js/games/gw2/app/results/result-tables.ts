@@ -21,6 +21,7 @@ export interface SkillBreakdownRow {
   readonly dps: number;
   readonly average: number | null;
   readonly dct: number | null;
+  readonly procDamage: readonly { sourceSkill: string; total: number; dps: number }[];
   // Stable identity shared with the chart's per-hit series (`group|name`), so a
   // clicked breakdown row can highlight its own damage over time.
   readonly key: string;
@@ -208,6 +209,18 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
 }
 
 export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow[] {
+  // Attribute resolved proc damage to its trigger, retaining actual tick damage and the report's DPS window.
+  const damageByTrigger = new Map<string, Map<string, number>>();
+  const keyByIdentity = skillDamageKeyByIdentity(result);
+  for (const event of result.resolvedEvents || []) {
+    if (!event.triggeredBy || (event.type !== 'damage' && event.type !== 'condition')) continue;
+    const key = keyByIdentity.get(skillDamageIdentityKey({ ...event, parentSkill: event.parentSkillName }));
+    if (!key) continue;
+    const sources = damageByTrigger.get(key) || new Map<string, number>();
+    sources.set(event.triggeredBy, (sources.get(event.triggeredBy) || 0) + Number(event.damage || 0));
+    damageByTrigger.set(key, sources);
+  }
+
   // Canonical action events are the authoritative source for cast count/time.
   const actionDurations = new Map<string, number>();
   const actionCounts = new Map<string, number>();
@@ -284,6 +297,13 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
         hits: entry.hits,
         total,
         dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0)),
+        procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name)) || [])].map(
+          ([sourceSkill, damage]) => ({
+            sourceSkill,
+            total: damage,
+            dps: damage / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0))
+          })
+        ),
         average: casts > 0 ? total / casts : null,
         // DCT is damage divided by occupied cast time, not encounter duration.
         dct: castTime > 0 ? total / castTime : null,

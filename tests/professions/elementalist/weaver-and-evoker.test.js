@@ -742,20 +742,61 @@ test('Sunspot uses its own icon in the damage breakdown', () => {
   assert.equal(row?.icon, expectedIcon);
 });
 
-test('Earthen Blast uses its own icon in the damage breakdown', () => {
-  const result = runNative({
-    lines: [['Earth'], ['Air'], ['Arcane']],
-    rotation: ['Lightning Strike', 'Earth Attunement'],
-    startAttunement: 'Air',
-    weapons: ['Scepter', 'Dagger']
+// Both entry paths must retain trigger attribution through strike and Burning resolution.
+for (const [specialization, startAttunement, rotation, trigger] of [
+  ['Arcane', 'Air', ['Lightning Strike', 'Fire Attunement', 5000], 'Fire Attunement'],
+  ['Tempest', 'Fire', [6000, 'Overload Fire', 5000], 'Overload Fire']
+]) {
+  test(`Sunspot attributes its strike and Burning to ${trigger}`, () => {
+    const result = runNative({
+      lines: [['Fire', '1-1-1'], ['Air'], [specialization]],
+      rotation,
+      startAttunement,
+      weapons: ['Scepter', 'Dagger']
+    });
+    const packets = result.resolvedEvents.filter(
+      (event) => event.skillName === 'Sunspot' && (event.type === 'damage' || event.type === 'condition')
+    );
+    assert.ok(packets.some((event) => event.type === 'damage' && event.damage > 0));
+    assert.ok(packets.some((event) => event.type === 'condition' && event.damage > 0));
+    assert.ok(packets.every((event) => event.triggeredBy === trigger));
+    const row = skillBreakdownRows(result).find((entry) => entry.name === 'Sunspot');
+    const attributed = row.procDamage.find((entry) => entry.sourceSkill === trigger);
+    assert.ok(attributed);
+    assert.ok(Math.abs(attributed.total - row.total) < 1e-6);
+    assert.ok(Math.abs(attributed.dps - row.dps) < 1e-6);
   });
-  const expectedIcon = 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png';
-  const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Earthen Blast');
-  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Earthen Blast');
+}
 
-  assert.equal(packet?.icon, expectedIcon);
-  assert.equal(row?.icon, expectedIcon);
-});
+// Attunement and overload activations must retain both the effect icon and the actual damage trigger.
+for (const [specialization, startAttunement, rotation, trigger] of [
+  ['Arcane', 'Air', ['Lightning Strike', 'Earth Attunement'], 'Earth Attunement'],
+  ['Tempest', 'Earth', [6000, 'Overload Earth'], 'Overload Earth']
+]) {
+  test(`Earthen Blast preserves its icon and attributes damage to ${trigger}`, () => {
+    const result = runNative({
+      lines: [['Earth'], ['Air'], [specialization]],
+      rotation,
+      startAttunement,
+      weapons: ['Scepter', 'Dagger']
+    });
+    const expectedIcon = 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png';
+    const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Earthen Blast');
+    const row = skillBreakdownRows(result).find((entry) => entry.name === 'Earthen Blast');
+
+    assert.equal(packet?.icon, expectedIcon);
+    assert.equal(row?.icon, expectedIcon);
+    const damage = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillName === 'Earthen Blast'
+    );
+    assert.ok(damage?.damage > 0);
+    assert.equal(damage.triggeredBy, trigger);
+    const attributed = row.procDamage.find((entry) => entry.sourceSkill === trigger);
+    assert.ok(attributed);
+    assert.equal(attributed.total, row.total);
+    assert.equal(attributed.dps, row.dps);
+  });
+}
 
 test('Air-specialized Evoker leaves Electric Discharge without an internal cooldown', () => {
   const result = runNative({

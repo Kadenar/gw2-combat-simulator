@@ -34,6 +34,8 @@ const EARTHEN_BLAST_ICON = 'https://render.guildwars2.com/file/2531DCAFAEAB452C9
 /** Emits Earthen Blast's uncritable strike after entering Earth in combat. */
 export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Earthen Blast')) return;
+  // Use the same attunement or overload trigger for the damage packet and its proc record.
+  const sourceSkill = context.catalog.skillsById.get(sourceId)?.name || '';
   emitSkillDamage(context, {
     at,
     source: 'Earthen Blast',
@@ -41,6 +43,7 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
     actorType: 'effect',
     ownerActorType: 'player',
     skillName: 'Earthen Blast',
+    triggeredBy: sourceSkill,
     icon: EARTHEN_BLAST_ICON,
     coefficient: balanceProfileValue(
       balanceProfileEffectFromContext(context, PROFILE.earthenBlast, 'strike'),
@@ -55,7 +58,7 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
     name: 'Earthen Blast',
     procType: 'trait',
     sourceId,
-    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+    sourceSkill,
     icon: EARTHEN_BLAST_ICON
   });
 }

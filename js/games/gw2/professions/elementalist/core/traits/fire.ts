@@ -44,6 +44,8 @@ export function triggerSunspot(
 ): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) return;
 
+  // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
+  const sourceSkill = context.catalog.skillsById.get(sourceId)?.name || '';
   applyAura(context, {
     at,
     aura: 'Fire Aura',
@@ -63,6 +65,7 @@ export function triggerSunspot(
     ownerActorType: 'player',
     skillName: 'Sunspot',
     icon: SUNSPOT_ICON,
+    triggeredBy: sourceSkill,
     coefficient: balanceProfileValue(
       balanceProfileEffectFromContext(context, PROFILE.sunspot, 'strike', 0, 'Sunspot'),
       'coefficient',
@@ -72,7 +75,18 @@ export function triggerSunspot(
     noCrit: true
   });
   if (hasTrait(context, 'Burning Rage')) {
-    emitProfiledCondition(context, at, PROFILE.burningRage, 'Sunspot Burning', 'Burning', 2, 4, 'Sunspot', sourceId);
+    emitProfiledCondition(
+      context,
+      at,
+      PROFILE.burningRage,
+      'Sunspot Burning',
+      'Burning',
+      2,
+      4,
+      'Sunspot',
+      sourceId,
+      sourceSkill
+    );
   }
 
   emitElementalistProc(context, {
@@ -80,7 +94,7 @@ export function triggerSunspot(
     name: 'Sunspot',
     procType: 'trait',
     sourceId,
-    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+    sourceSkill,
     icon: SUNSPOT_ICON
   });
 }

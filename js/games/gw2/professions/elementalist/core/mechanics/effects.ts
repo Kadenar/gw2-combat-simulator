@@ -101,7 +101,8 @@ export function emitProfiledCondition(
   fallbackStacks: number,
   fallbackDuration: number,
   source: string,
-  sourceId: Skill['id']
+  sourceId: Skill['id'],
+  triggeredBy = ''
 ): void {
   const effect = balanceProfileEffectFromContext(context, profileId, 'condition', 0, effectName);
   emitSkillCondition(context, elementalistEventSkill(context, source, sourceId), {
@@ -112,7 +113,9 @@ export function emitProfiledCondition(
     condition: String(effect?.condition || fallbackCondition),
     stacks: Number(effect?.stacks ?? fallbackStacks),
     duration: Number(effect?.duration ?? fallbackDuration),
-    skillName: source
+    skillName: source,
+    // Preserve an explicit trigger so resolved condition ticks can be attributed to their originating skill.
+    triggeredBy
   });
 }
 

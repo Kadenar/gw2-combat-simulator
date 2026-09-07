@@ -3,6 +3,7 @@ import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/chart
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+import type { SkillBreakdownRow } from '#gw2/app/results/result-tables.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
@@ -13,6 +14,7 @@ export interface ResultRow {
   readonly name: string;
   readonly total?: unknown;
   readonly group?: string;
+  readonly procDamage?: SkillBreakdownRow['procDamage'];
   readonly [field: string]: unknown;
 }
 
@@ -747,17 +749,32 @@ export function mountRotationResults(
     timeline.setAttribute('data-role', 'skill-timeline');
     target.after(timeline);
     if (procs.length) {
-      timeline.innerHTML = `<div class="hit-detail-table" data-role="skill-procs">
-        <table>
-          <caption>Procs (${procs.length})</caption>
-          <thead><tr><th scope="col">Time</th><th scope="col">Triggered by</th></tr></thead>
-          <tbody>${procs
-            .map(
-              (proc) =>
-                `<tr><td>${(proc.start / 1000).toFixed(2)}s</td><td>${escapeHtml(proc.sourceSkill || '\u2014')}</td></tr>`
-            )
-            .join('')}</tbody>
-        </table>
+      // Group activations by their trigger so each skill can disclose its own chronological proc times.
+      const timesBySource = new Map<string, number[]>();
+      for (const proc of procs) {
+        const times = timesBySource.get(proc.sourceSkill) || [];
+        times.push(proc.start);
+        timesBySource.set(proc.sourceSkill, times);
+      }
+
+      // Scroll each timestamp list independently so trigger summaries stay outside the scrolling area.
+      timeline.innerHTML = `<div data-role="skill-procs">
+        <div class="chart-panel-title">Procs (${procs.length})</div>
+        ${[...timesBySource]
+          .map(([source, times]) => {
+            const damage = selectedRow?.procDamage?.find((entry) => entry.sourceSkill === source);
+            // Missing attribution remains unknown rather than estimating damage from activation counts.
+            return `<details>
+              <summary>${escapeHtml(source || '\u2014')} \u2014 ${times.length} ${times.length === 1 ? 'proc' : 'procs'} \u2014 (${damage ? number(damage.total) : '\u2014'} damage | ${damage ? number(damage.dps) : '\u2014'} DPS)</summary>
+              <div class="hit-detail-table">
+                <table>
+                  <thead><tr><th scope="col">Time</th></tr></thead>
+                  <tbody>${times.map((time) => `<tr><td>${(time / 1000).toFixed(2)}s</td></tr>`).join('')}</tbody>
+                </table>
+              </div>
+            </details>`;
+          })
+          .join('')}
       </div>`;
     }
 
