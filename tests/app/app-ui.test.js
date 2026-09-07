@@ -149,11 +149,55 @@ test('specialization selection replaces another elite line and refreshes its res
 
   assert.deepEqual(app.build.specializations, [
     { name: 'Damage', traits: '2-2-2' },
-    { name: 'Fallback', traits: '1-1-1' },
+    { name: 'Support', traits: '2-2-2' },
     { name: 'New Elite', traits: '1-1-1' }
   ]);
   assert.equal(app.build.initialResource, 5);
   assert.equal(changed, 1);
+});
+
+test('elite specialization changes preserve unique Warrior lines through persistence normalization', async () => {
+  const adapter = await loadProfessionAppAdapter('warrior');
+  for (const line of [0, 1, 2]) {
+    const build = createDefaultBuild(adapter);
+    build.specializations = [
+      { name: 'Strength', traits: '2-2-2' },
+      { name: 'Berserker', traits: '3-3-3' },
+      { name: 'Arms', traits: '2-3-1' }
+    ];
+    const original = structuredClone(build.specializations);
+    let changed = 0;
+    const app = {
+      build,
+      adapter,
+      specializations: adapter.specializations,
+      resourceDefinitions: (specialization) => adapter.profession.ui.resourceViews({ specialization }),
+      changed() {
+        changed += 1;
+      }
+    };
+
+    selectSpecialization(app, line, 'Spellbreaker');
+
+    const expected = [...original];
+    expected[line] = { name: 'Spellbreaker', traits: '1-1-1' };
+    if (line !== 1) expected[1] = original[line];
+    assert.deepEqual(build.specializations, expected);
+    assert.equal(new Set(build.specializations.map(({ name }) => name)).size, 3);
+    assert.equal(
+      build.specializations.filter(({ name }) => adapter.specializations.find((spec) => spec.name === name).elite)
+        .length,
+      1
+    );
+    // Save-time migration and application loading must retain the chosen elite and the existing core traits.
+    const saved = adapter.profession.migrateBuild(build);
+    assert.deepEqual(saved.specializations, expected);
+    assert.deepEqual(adapter.toApplicationBuild(JSON.parse(JSON.stringify(saved))).specializations, expected);
+    assert.equal(changed, 1);
+    selectSpecialization(app, line === 0 ? 2 : 0, 'Spellbreaker');
+    assert.deepEqual(build.specializations, expected);
+    assert.equal(changed, 1);
+  }
 });
 
 test('target armor presets use base by default and allow custom values', () => {

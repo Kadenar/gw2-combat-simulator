@@ -32,19 +32,24 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
     return;
   }
 
-  app.build.specializations[line] = { name, traits: '1-1-1' };
+  const next = [...app.build.specializations];
+  next[line] = { name, traits: '1-1-1' };
   if (selected.elite) {
-    app.build.specializations.forEach((specialization, index) => {
-      if (index === line) return;
+    for (const [index, specialization] of next.entries()) {
+      if (index === line) continue;
       if (specializations.find((candidate) => candidate.name === specialization.name)?.elite) {
-        app.build.specializations[index] = {
-          name: app.adapter.specializationFallback,
-          traits: '1-1-1'
-        };
+        // Move the displaced core line with its traits; an unused core keeps migration from resetting the build.
+        const replacement = [
+          specializations.find((candidate) => candidate.name === current.name),
+          ...specializations
+        ].find((candidate) => candidate && !candidate.elite && !next.some((entry) => entry.name === candidate.name));
+        if (!replacement) return;
+        next[index] = replacement.name === current.name ? current : { name: replacement.name, traits: '1-1-1' };
       }
-    });
+    }
   }
 
+  app.build.specializations = next;
   clampStartingResourceValues(app, app.adapter.eliteSpecialization(app.build));
   app.changed();
 }
