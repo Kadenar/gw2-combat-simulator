@@ -18,6 +18,7 @@ import {
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/stats.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifiers/request.js';
@@ -174,6 +175,29 @@ test('core attribute calculation does not apply Mesmer build rules', () => {
   assert.equal(common.activeTraits, undefined);
   assert.equal(common.attributes['Condition Damage'].traits, 0);
   assert.equal(mesmer.attributes['Condition Damage'].final - common.attributes['Condition Damage'].final, 180);
+});
+
+test('every Celestial slot grants equal Vitality and Healing Power', () => {
+  // Celestial grants both attributes at the same value as its other slot attributes.
+  for (const [slot, stats] of Object.entries(GEAR_STATS.Celestial)) {
+    assert.equal(stats.Vitality, stats.Power, `${slot} Vitality`);
+    assert.equal(stats['Healing Power'], stats.Power, `${slot} Healing Power`);
+  }
+});
+
+test('a Celestial helm contributes Vitality and Healing Power before utility conversion', () => {
+  // Isolate one item so missing gear stats cannot hide behind profession or upgrade bonuses.
+  const { attributes } = calculateCommonAttributes({
+    gear: { Helm: 'Celestial' },
+    utility: 'Magnanimous Tuning Crystal'
+  });
+
+  assert.equal(attributes.Vitality.gear, 30);
+  assert.equal(attributes.Vitality.final, 1030);
+  assert.equal(attributes['Healing Power'].gear, 30);
+  assert.equal(attributes['Healing Power'].final, 30);
+  assert.equal(attributes['Condition Damage'].utility, 62);
+  assert.equal(attributes['Condition Damage'].final, 92);
 });
 
 test('Leviathan Tempering Oil grants three percent of every primary attribute', () => {

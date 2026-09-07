@@ -278,6 +278,7 @@ export const GEAR_STATS = {
     Weapon2: { Toughness: 90, Vitality: 90, 'Condition Damage': 125 },
     Weapon2H: { Toughness: 179, Vitality: 179, 'Condition Damage': 251 }
   },
+  // Celestial grants all nine PvE attributes equally so totals and conversions include every bonus.
   Celestial: {
     Helm: {
       Power: 30,
@@ -286,7 +287,9 @@ export const GEAR_STATS = {
       Concentration: 30,
       'Condition Damage': 30,
       Expertise: 30,
-      Toughness: 30
+      Toughness: 30,
+      Vitality: 30,
+      'Healing Power': 30
     },
     Shoulders: {
       Power: 22,
@@ -295,7 +298,9 @@ export const GEAR_STATS = {
       Concentration: 22,
       'Condition Damage': 22,
       Expertise: 22,
-      Toughness: 22
+      Toughness: 22,
+      Vitality: 22,
+      'Healing Power': 22
     },
     Chest: {
       Power: 67,
@@ -304,7 +309,9 @@ export const GEAR_STATS = {
       Concentration: 67,
       'Condition Damage': 67,
       Expertise: 67,
-      Toughness: 67
+      Toughness: 67,
+      Vitality: 67,
+      'Healing Power': 67
     },
     Gloves: {
       Power: 22,
@@ -313,7 +320,9 @@ export const GEAR_STATS = {
       Concentration: 22,
       'Condition Damage': 22,
       Expertise: 22,
-      Toughness: 22
+      Toughness: 22,
+      Vitality: 22,
+      'Healing Power': 22
     },
     Leggins: {
       Power: 44,
@@ -322,7 +331,9 @@ export const GEAR_STATS = {
       Concentration: 44,
       'Condition Damage': 44,
       Expertise: 44,
-      Toughness: 44
+      Toughness: 44,
+      Vitality: 44,
+      'Healing Power': 44
     },
     Boots: {
       Power: 22,
@@ -331,7 +342,9 @@ export const GEAR_STATS = {
       Concentration: 22,
       'Condition Damage': 22,
       Expertise: 22,
-      Toughness: 22
+      Toughness: 22,
+      Vitality: 22,
+      'Healing Power': 22
     },
     Amulet: {
       Power: 72,
@@ -340,7 +353,9 @@ export const GEAR_STATS = {
       Concentration: 72,
       'Condition Damage': 72,
       Expertise: 72,
-      Toughness: 72
+      Toughness: 72,
+      Vitality: 72,
+      'Healing Power': 72
     },
     Ring1: {
       Power: 57,
@@ -349,7 +364,9 @@ export const GEAR_STATS = {
       Concentration: 57,
       'Condition Damage': 57,
       Expertise: 57,
-      Toughness: 57
+      Toughness: 57,
+      Vitality: 57,
+      'Healing Power': 57
     },
     Ring2: {
       Power: 57,
@@ -358,7 +375,9 @@ export const GEAR_STATS = {
       Concentration: 57,
       'Condition Damage': 57,
       Expertise: 57,
-      Toughness: 57
+      Toughness: 57,
+      Vitality: 57,
+      'Healing Power': 57
     },
     Accessory1: {
       Power: 50,
@@ -367,7 +386,9 @@ export const GEAR_STATS = {
       Concentration: 50,
       'Condition Damage': 50,
       Expertise: 50,
-      Toughness: 50
+      Toughness: 50,
+      Vitality: 50,
+      'Healing Power': 50
     },
     Accessory2: {
       Power: 50,
@@ -376,7 +397,9 @@ export const GEAR_STATS = {
       Concentration: 50,
       'Condition Damage': 50,
       Expertise: 50,
-      Toughness: 50
+      Toughness: 50,
+      Vitality: 50,
+      'Healing Power': 50
     },
     Back: {
       Power: 28,
@@ -385,7 +408,9 @@ export const GEAR_STATS = {
       Concentration: 28,
       'Condition Damage': 28,
       Expertise: 28,
-      Toughness: 28
+      Toughness: 28,
+      Vitality: 28,
+      'Healing Power': 28
     },
     Weapon1: {
       Power: 59,
@@ -394,7 +419,9 @@ export const GEAR_STATS = {
       Concentration: 59,
       'Condition Damage': 59,
       Expertise: 59,
-      Toughness: 59
+      Toughness: 59,
+      Vitality: 59,
+      'Healing Power': 59
     },
     Weapon2: {
       Power: 59,
@@ -403,7 +430,9 @@ export const GEAR_STATS = {
       Concentration: 59,
       'Condition Damage': 59,
       Expertise: 59,
-      Toughness: 59
+      Toughness: 59,
+      Vitality: 59,
+      'Healing Power': 59
     },
     Weapon2H: {
       Power: 118,
@@ -412,7 +441,9 @@ export const GEAR_STATS = {
       Concentration: 118,
       'Condition Damage': 118,
       Expertise: 118,
-      Toughness: 118
+      Toughness: 118,
+      Vitality: 118,
+      'Healing Power': 118
     }
   },
   "Dragon's": {
