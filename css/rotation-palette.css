@@ -78,7 +78,6 @@
   border-right: 1px solid var(--border);
 }
 
-.pal-group.pal-group-concealed,
 .pal-skill.pal-concealed {
   visibility: hidden;
   pointer-events: none;
@@ -449,19 +448,6 @@
   padding: 0;
 }
 
-.endurance-readout {
-  min-width: 46px;
-  padding: 0 6px;
-  color: #d8e7ef;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  line-height: 32px;
-  border-radius: 4px;
-  background: rgba(127, 182, 216, 0.12);
-  border: 1px solid rgba(127, 182, 216, 0.3);
-  text-align: center;
-}
-
 .pal-skill {
   position: relative;
   width: 42px;
@@ -529,14 +515,7 @@
 }
 
 .pal-skill.pal-disabled {
-  opacity: 0.18;
   filter: grayscale(0.85);
-  cursor: not-allowed;
-}
-
-.pal-skill.pal-disabled:hover {
-  transform: none;
-  box-shadow: none;
 }
 
 .pal-skill[draggable='true'] {

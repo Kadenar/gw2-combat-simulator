@@ -185,7 +185,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .optimizer-section > legend {
   padding: 0 6px;
-  color: var(--text-light);
+  color: var(--text);
   font-size: 11px;
   font-weight: 600;
 }
@@ -214,7 +214,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
-  color: var(--text-light);
+  color: var(--text);
   font-size: 11px;
 }
 .optimizer-picker-heading span {
@@ -242,7 +242,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
   border-radius: 4px;
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-panel));
-  color: var(--text-light);
+  color: var(--text);
   font-size: 11px;
 }
 .optimizer-choice > span {
@@ -254,7 +254,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .gear-optimizer input[type='number'] {
   font: inherit;
   font-size: 11px;
-  color: var(--text-light);
+  color: var(--text);
   background: var(--bg-deep);
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -392,7 +392,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   cursor: pointer;
   padding: 4px 8px;
   font-size: 24px;
-  color: var(--text-light);
+  color: var(--text);
 }
 .optimizer-filter-settings > summary::-webkit-details-marker {
   display: none;
@@ -417,7 +417,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .optimizer-filter-settings legend {
   padding: 0 4px;
-  color: var(--text-light);
+  color: var(--text);
 }
 .optimizer-filter-settings label {
   display: flex;
@@ -479,7 +479,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .optimizer-damage strong {
   font-weight: 500;
-  color: var(--text-light);
+  color: var(--text);
 }
 .optimizer-damage small,
 .gear-optimizer th small {

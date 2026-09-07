@@ -423,6 +423,7 @@ function ensureStyles(document: Document): void {
   if (document.getElementById('rotation-hotkey-styles')) return;
   const style = document.createElement('style');
   style.id = 'rotation-hotkey-styles';
+  // Reuse the shared control surface so injected styles resolve the same theme tokens.
   style.textContent = `
     .pal-hotkey { position:absolute; z-index:4; top:-13px; right:1px; box-sizing:border-box;
       min-width:12px; max-width:calc(100% - 2px); padding:1px 3px; overflow:hidden;
@@ -450,7 +451,7 @@ function ensureStyles(document: Document): void {
     .rotation-hotkey-group legend { padding:0 5px; color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; }
     .rotation-hotkey-field { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:6px 0; font-size:11px; }
     .rotation-hotkey-field input { width:92px; padding:4px 6px; border:1px solid var(--border-light);
-      border-radius:4px; background:var(--bg); color:var(--text-bright); text-align:center; cursor:pointer; }
+      border-radius:4px; background:var(--bg-panel-alt); color:var(--text-bright); text-align:center; cursor:pointer; }
     .rotation-hotkey-field input:focus { border-color:var(--accent); outline:1px solid var(--accent); }
     .rotation-hotkey-import-status { margin:12px 0 0; color:var(--health); font-size:11px; }
     .rotation-hotkey-error { margin:12px 0 0; color:var(--condi); font-size:11px; }

@@ -17,7 +17,7 @@
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--bg-panel-alt);
-  color: var(--text-light, var(--text));
+  color: var(--text);
   font: inherit;
   cursor: pointer;
 }

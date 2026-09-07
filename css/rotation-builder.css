@@ -502,7 +502,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   padding: 5px 7px;
   border: 1px solid var(--border-light);
   border-radius: 4px;
-  background: var(--bg-input);
+  background: var(--bg-panel-alt);
   color: var(--text);
   font-size: 10px;
 }
@@ -656,9 +656,4 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 
 .btn:disabled:hover {
   background: var(--bg-panel-alt);
-}
-
-.btn-dpsreport {
-  flex: 0 0 auto;
-  white-space: nowrap;
 }

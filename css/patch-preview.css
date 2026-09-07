@@ -708,7 +708,7 @@ pre {
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
   background: var(--panel-soft);
-  color: var(--accent-warm);
+  color: var(--accent);
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

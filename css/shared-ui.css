@@ -11,15 +11,11 @@
   --text: #d8d8e0;
   --text-dim: #888899;
   --text-bright: #f0f0ff;
-  --accent: #c8a24c;
-  --accent-dim: #a08030;
-  --fire: #e05530;
-  --water: #4488cc;
-  --air: #c06ad0;
-  --earth: #aa7744;
   --health: #44bb44;
   --condi: #cc4444;
   --radius: 4px;
+  /* Use one monospace stack for numeric controls and readouts. */
+  --mono: 'Consolas', 'Courier New', monospace;
 }
 
 * {
@@ -855,4 +851,32 @@ header .community-actions {
   .patch-delta-table strong {
     text-align: left;
   }
+}
+
+/* Analysis distributions and optimizer comparisons share their panel and heading presentation. */
+
+.rng-distribution,
+.relic-cmp {
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.rng-distribution-heading h4,
+.relic-cmp-heading h4 {
+  margin: 0 0 3px;
+  color: var(--text-bright);
+  font-size: 12px;
+}
+
+.rng-distribution-heading p,
+.rng-distribution-heading-actions > span,
+.rng-distribution-status,
+.relic-cmp-heading p,
+.relic-cmp-verdict {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 10px;
 }

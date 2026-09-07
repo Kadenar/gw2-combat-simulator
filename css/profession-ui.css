@@ -161,16 +161,6 @@
   height: 60px;
 }
 
-.selectable-skills-bar .ranger-mechanics .ranger-pet .skill-bar-type {
-  display: block;
-  width: 100%;
-  text-align: center;
-  font-size: 11px;
-  line-height: 1.15;
-  color: var(--text-dim);
-  margin-top: 3px;
-}
-
 .revenant-theme {
   --accent: #c4565d;
   --accent-dim: #84343a;
@@ -1462,7 +1452,6 @@
 }
 
 #perma-boons {
-  flex-direction: column;
   align-items: stretch;
 }
 
@@ -1563,14 +1552,4 @@
 .assumption-icon-options button[aria-selected='true'] {
   background: color-mix(in srgb, var(--accent) 18%, var(--bg-panel-alt));
   color: var(--text-bright);
-}
-
-#skill-info-table {
-  margin: 0;
-}
-
-.result-label {
-  color: var(--text-dim);
-  font-size: 9px;
-  text-transform: uppercase;
 }

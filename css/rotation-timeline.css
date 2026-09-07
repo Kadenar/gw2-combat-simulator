@@ -618,13 +618,6 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   margin-top: 1px;
 }
 
-.rot-arrow {
-  color: var(--text-dim);
-  font-size: 10px;
-  flex-shrink: 0;
-  user-select: none;
-}
-
 .rot-concurrent {
   border-style: dashed;
   opacity: 0.85;

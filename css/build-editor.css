@@ -641,11 +641,6 @@
   }
 }
 
-#loading-status {
-  color: var(--text-dim);
-  font-size: 14px;
-}
-
 /* ─── Panels ─── */
 .panel {
   background: var(--bg-panel);
@@ -766,9 +761,6 @@
   grid-template-columns: minmax(70px, 1fr) minmax(0, 170px);
   align-items: center;
   gap: 10px;
-}
-
-.gear-row {
   /* Keep repeated gear controls dense so the editor does not dominate the workspace. */
   padding: 0;
   border-bottom: 1px solid var(--border);
@@ -788,24 +780,6 @@
   color: var(--text-dim);
   min-width: 70px;
   flex-shrink: 0;
-}
-
-.gear-value {
-  color: var(--text);
-  text-align: right;
-}
-
-.gear-value.small-text {
-  font-size: 10px;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gear-value.weapon-name {
-  color: var(--accent);
-  font-weight: 600;
 }
 
 .weapon-select {
@@ -985,11 +959,6 @@
 .gear-panel :is(.gear-select, .gear-select-trigger):focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
-}
-
-.gear-select.small-select {
-  font-size: 10px;
-  max-width: 130px;
 }
 
 .gear-select optgroup {
@@ -1464,25 +1433,6 @@
   filter: grayscale(0);
 }
 
-/* ─── Effective Power Section ─── */
-.ep-section {
-  margin-bottom: 12px;
-}
-
-.ep-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-}
-
-.ep-modifiers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  margin-top: 4px;
-}
-
 /* ─── Skills Section ─── */
 .skills-section {
   display: grid;
@@ -1766,12 +1716,6 @@
 
 .skill-bar-slot.elite-border .sbar-icon {
   border-color: var(--accent);
-}
-
-.sbar-empty {
-  color: var(--text-dim);
-  font-size: 16px;
-  font-weight: 700;
 }
 
 .sbar-arrow {

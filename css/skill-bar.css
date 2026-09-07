@@ -32,42 +32,6 @@
   border-color: #53a540;
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key,
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-type {
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key {
-  position: relative;
-  margin-top: 5px;
-  color: #c4c4cc;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12px;
-}
-
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key::after {
-  position: absolute;
-  bottom: -7px;
-  left: 50%;
-  width: 1px;
-  height: 5px;
-  background: var(--border-light);
-  content: '';
-}
-
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-type {
-  margin-top: 7px;
-  padding-top: 5px;
-  color: #777785;
-  font-size: 9px;
-  letter-spacing: 0.6px;
-  line-height: 1;
-  text-transform: uppercase;
-  border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
-}
-
 :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon-arrow {
   position: absolute;
   right: 2px;
