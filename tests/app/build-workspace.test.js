@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import {
   addBuildTab,
   captureBuildDestination,
@@ -118,6 +119,42 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   assert.equal(restored.activeTabId, other.id);
   assert.equal(restored.tabs[1].patchId, 'preview');
   assert.equal(restored.tabs[1].session.results, null);
+});
+
+test('workspace save and load preserve an explicitly empty infusion selection', async (t) => {
+  const values = storage(t);
+  const warrior = await loadProfessionAppAdapter('warrior');
+  const build = warrior.profession.createBuildDefaults();
+  build.infusions = [];
+  assert.equal(warrior.profession.validateBuild(build).valid, true);
+  const tab = createBuildTab(build);
+  // Exercise the real codec on both sides of persistence so saving cannot restore unwanted stats.
+  const app = {
+    adapter: warrior,
+    profession: warrior.profession,
+    build,
+    patchId: 'current',
+    workspace: { tabs: [tab], activeTabId: tab.id }
+  };
+  saveBuildWorkspace(app);
+  const saved = JSON.parse(values.get(workspaceStorageKey(warrior))).tabs[0].build;
+  const restored = loadBuildWorkspace(warrior).tabs[0].build;
+  const emptyRows = warrior.profession.createBuildDefaults().infusions.map(({ stat }) => ({ stat, count: 0 }));
+  assert.deepEqual(saved.infusions, emptyRows);
+  assert.deepEqual(restored.infusions, emptyRows);
+  assert.deepEqual(build.infusions, []);
+});
+
+test('legacy missing and malformed infusion selections still receive defaults', async (t) => {
+  const values = storage(t);
+  const warrior = await loadProfessionAppAdapter('warrior');
+  const build = warrior.profession.createBuildDefaults();
+  const defaults = build.infusions;
+  delete build.infusions;
+  for (const fields of [{}, { infusions: null }, { infusions: [{ stat: 'invalid', count: 18 }] }]) {
+    values.set(warrior.storageKey, JSON.stringify({ ...build, ...fields }));
+    assert.deepEqual(loadBuildWorkspace(warrior).tabs[0].build.infusions, defaults);
+  }
 });
 
 test('workspace validation keeps valid tabs and handles missing active IDs and removed patches', (t) => {

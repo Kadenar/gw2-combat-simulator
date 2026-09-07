@@ -537,9 +537,8 @@ function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[
       remaining -= count;
       return { stat: infusion.stat as string, count };
     });
-  // If no valid entries survived filtering, the whole list is unreadable;
-  // fall back to defaults rather than returning an empty array.
-  if (!infusions.length) return clone([...fallback]);
+  // Preserve an explicit empty selection; only unreadable nonempty lists need defaults.
+  if (value.length && !infusions.length) return clone([...fallback]);
   // Ensure the canonical stat rows are always present (count 0 when absent)
   // so the gear panel never collapses to a single infusion type.
   const present = new Set(infusions.map((infusion) => infusion.stat));
