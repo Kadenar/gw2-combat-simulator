@@ -2,9 +2,11 @@ import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const siteRoot = path.resolve('dist', 'site');
+// Production artifacts must omit local authoring; opt in when validating npm run build:dev.
+const development = process.argv.includes('--development');
 const pages = [
   'index.html',
-  'patch-preview.html',
+  ...(development ? ['patch-preview.html'] : []),
   'elementalist.html',
   'engineer.html',
   'guardian.html',
@@ -22,6 +24,10 @@ const runtimeAssets = [
   path.join('Rotations', 'elementalist', 'r-power-tempest-sword.json')
 ];
 const sourceAssetPattern = /(?:src|href)=["'](?:\.\/)?(?:css|js)\//;
+
+if (!development && (await readdir(siteRoot)).includes('patch-preview.html')) {
+  throw new Error('Production site must not include the local patch-preview.html authoring page.');
+}
 
 for (const page of pages) {
   const source = await readFile(path.join(siteRoot, page), 'utf8');

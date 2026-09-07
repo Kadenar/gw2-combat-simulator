@@ -231,6 +231,10 @@ dist/site/
 
 Compiled TypeScript used by tests and command-line tooling is emitted separately under the ignored `dist/js/` tree.
 
+Production and GitHub Pages builds exclude the local `patch-preview.html` authoring page. Use
+`npm run author:patch-preview` for the local editor; its development build includes that page and its server provides
+the authoring API. Validate a development artifact with `node scripts/build/check-site.mjs --development`.
+
 Do not commit generated `dist/` output.
 
 ---

@@ -62,12 +62,8 @@ const professionPages = {
 
 const professionPageTemplate = readFileSync(path.resolve('templates', 'profession.html'), 'utf8');
 
-// Defines the entry points for the application's pages.
-const pageEntries = [
-  'index.html',
-  'patch-preview.html',
-  ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)
-];
+// Public entry points; the local authoring page is added only to development builds below.
+const pageEntries = ['index.html', ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)];
 
 // Expands each thin profession entry into the shared simulator document before Vite processes its assets.
 function renderProfessionPages() {
@@ -206,7 +202,9 @@ export default defineConfig(({ command, mode }) => ({
     minify: mode !== 'development',
     sourcemap: mode === 'development',
     rolldownOptions: {
-      input: pageEntries.map((page) => path.resolve(page))
+      input: [...pageEntries, ...(mode === 'development' ? ['patch-preview.html'] : [])].map((page) =>
+        path.resolve(page)
+      )
     }
   }
 }));
