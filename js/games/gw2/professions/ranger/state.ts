@@ -51,6 +51,9 @@ export function projectRangerEndState({
 }: RangerEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotRangerState(schedulerState.profession);
   const resolver = flattenProfessionState(resolverState || {});
+  // Remaining stones are owned by landed-hit resolution and retain their original expiry.
+  const stones = (resolver.sharpeningStoneExpirations as number[] | undefined) || [];
+  state.sharpeningStoneExpirations = stones.filter((at) => at > schedulerState.time);
   // Ferocious Symbiosis advances from resolved player/pet hits, so its resolver
   // values supersede the scheduler copy in the public insertion-aware state.
   for (const key of UNTAMED_RESOLVER_END_STATE_KEYS) {

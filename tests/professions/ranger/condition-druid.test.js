@@ -769,7 +769,8 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     selectedTraitIds: [TRAIT.NATURAL_MENDER]
   });
 
-  assert.equal(directDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 1000);
+  // Astral Force becomes available on the second delayed trap pulse.
+  assert.equal(directDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 2400);
 
   const petDamage = simulate(['Poisonous Cloud', 'Celestial Avatar'], {
     initialAstralForce: 99.25,

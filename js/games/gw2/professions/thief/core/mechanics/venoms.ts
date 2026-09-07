@@ -14,25 +14,11 @@ import type {
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
 
-type VenomNumberField =
-  | 'spiderVenomCharges'
-  | 'spiderVenomExpiresAt'
-  | 'spiderVenomGeneration'
-  | 'skaleVenomCharges'
-  | 'skaleVenomExpiresAt'
-  | 'skaleVenomGeneration'
-  | 'devourerVenomCharges'
-  | 'devourerVenomExpiresAt'
-  | 'devourerVenomGeneration';
-
 interface VenomDefinition {
   readonly skillId: SkillId;
   readonly skillName: string;
   readonly kind: string;
   readonly profileId: SkillId;
-  readonly chargesField: VenomNumberField;
-  readonly expiresAtField: VenomNumberField;
-  readonly generationField: VenomNumberField;
 }
 
 const VENOMS: readonly VenomDefinition[] = Object.freeze([
@@ -40,28 +26,19 @@ const VENOMS: readonly VenomDefinition[] = Object.freeze([
     skillId: ID.SPIDER_VENOM,
     skillName: 'Spider Venom',
     kind: 'spider-venom',
-    profileId: PROFILE.spiderVenomProc,
-    chargesField: 'spiderVenomCharges',
-    expiresAtField: 'spiderVenomExpiresAt',
-    generationField: 'spiderVenomGeneration'
+    profileId: PROFILE.spiderVenomProc
   },
   {
     skillId: ID.SKALE_VENOM,
     skillName: 'Skale Venom',
     kind: 'skale-venom',
-    profileId: PROFILE.skaleVenomProc,
-    chargesField: 'skaleVenomCharges',
-    expiresAtField: 'skaleVenomExpiresAt',
-    generationField: 'skaleVenomGeneration'
+    profileId: PROFILE.skaleVenomProc
   },
   {
     skillId: ID.DEVOURER_VENOM,
     skillName: 'Devourer Venom',
     kind: 'devourer-venom',
-    profileId: PROFILE.devourerVenomProc,
-    chargesField: 'devourerVenomCharges',
-    expiresAtField: 'devourerVenomExpiresAt',
-    generationField: 'devourerVenomGeneration'
+    profileId: PROFILE.devourerVenomProc
   }
 ]);
 
@@ -75,6 +52,40 @@ function conditionEffects(context: unknown, venom: VenomDefinition): readonly Co
   );
 }
 
+/** Keep each grant's expiry and spend older charges before newer applications. */
+export function refreshVenomCharges(state: ThiefCoreState, at: number): void {
+  for (const [skillId, batches] of Object.entries(state.venomChargeBatches)) {
+    const active = batches.filter((batch) => batch.expiresAt > at && batch.charges > 0);
+    active.sort((a, b) => a.expiresAt - b.expiresAt);
+    state.venomChargeBatches[skillId] = active;
+  }
+}
+
+/** Add a fresh grant; a trait cap can limit new charges without deleting stacked utility grants. */
+export function addVenomCharges(
+  state: ThiefCoreState,
+  skillId: SkillId,
+  at: number,
+  charges: number,
+  duration: number,
+  cap = Infinity
+): void {
+  const venom = venomForSkill(skillId);
+  if (!venom) return;
+  refreshVenomCharges(state, at);
+  const batches = (state.venomChargeBatches[String(skillId)] ??= []);
+  const remaining = batches.reduce((sum, batch) => sum + batch.charges, 0);
+  const added = Math.max(0, Math.min(charges, cap - remaining));
+  if (!added) return;
+  state.venomGeneration += 1;
+  batches.push({
+    generation: state.venomGeneration,
+    charges: added,
+    expiresAt: at + duration
+  });
+  refreshVenomCharges(state, at);
+}
+
 /** Arms the caster's finite venom charges and schedules each assumed ally's same bounded proc sequence. */
 export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): void {
   const venom = venomForSkill(skill.id);
@@ -84,15 +95,19 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
   const profile = balanceProfileFromContext(context, venom.profileId);
   const maximumStacks = Number(profile?.maximumStacks || 0);
   const duration = Number(profile?.durationMultiplier ?? 24);
-  state[venom.chargesField] = maximumStacks;
-  state[venom.expiresAtField] = at + duration;
-  state[venom.generationField] += 1;
+  addVenomCharges(state, skill.id, at, maximumStacks, duration);
   const effects = conditionEffects(context, venom);
+  // Recasts queue behind remaining ally charges, keeping one proc per assumed strike.
+  const alliedStart = Math.max(at, state.venomAllyLastProcAt[String(skill.id)] ?? at);
   const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
-    start: at,
-    duration,
+    start: alliedStart,
+    duration: Math.max(0, at + duration - alliedStart),
     maximumPerAlly: maximumStacks
   });
+  if (alliedProcs.length) {
+    state.venomAllyLastProcAt[String(skill.id)] = Math.max(...alliedProcs.map((proc) => proc.at));
+  }
+
   for (const proc of alliedProcs) {
     for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
       const effect = effects[effectIndex];
@@ -121,10 +136,12 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
 export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): number {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return 0;
   const state = professionCoreState(context) as ThiefCoreState;
+  refreshVenomCharges(state, event.at);
   let procCount = 0;
   for (const venom of VENOMS) {
-    if (state[venom.chargesField] <= 0 || state[venom.expiresAtField] <= event.at) continue;
-    state[venom.chargesField] -= 1;
+    const batch = state.venomChargeBatches[String(venom.skillId)]?.find((entry) => entry.charges > 0);
+    if (!batch) continue;
+    batch.charges -= 1;
     procCount += 1;
     const effects = conditionEffects(context, venom);
     for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {

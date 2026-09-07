@@ -88,15 +88,9 @@ export interface ThiefCoreState {
   spearPreviousSkillId: SkillId | null;
   spearLastWasFinisher: boolean;
   distractingThrowBuffUntil: number;
-  spiderVenomCharges: number;
-  spiderVenomExpiresAt: number;
-  spiderVenomGeneration: number;
-  skaleVenomCharges: number;
-  skaleVenomExpiresAt: number;
-  skaleVenomGeneration: number;
-  devourerVenomCharges: number;
-  devourerVenomExpiresAt: number;
-  devourerVenomGeneration: number;
+  venomChargeBatches: Record<string, { generation: number; charges: number; expiresAt: number }[]>;
+  venomAllyLastProcAt: Record<string, number>;
+  venomGeneration: number;
   thousandNeedlesPrepared: boolean;
   thousandNeedlesArmedAt: number;
   pitfallPrepared: boolean;
@@ -322,6 +316,7 @@ export interface ThiefResolverReactionDetails extends SchedulerRecord {
 
 export interface ThiefEndStateProjectionOptions {
   readonly schedulerState: SchedulerState<ThiefRuntimeState>;
+  readonly resolverState?: Partial<ThiefState> | null;
 }
 
 export interface ThiefUiContext extends SchedulerRecord {

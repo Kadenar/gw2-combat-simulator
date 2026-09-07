@@ -24,7 +24,8 @@ export const REFRESH_ARROW_ICON =
 
 export const COMBAT_START_ICON = 'https://wiki.guildwars2.com/images/e/e9/Call_Target.png';
 
-export const COOLDOWN_RESET_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mistlock_Singularity.png';
+// Mushroom King's Blessing reuses Cap Hop's icon in the training area.
+export const COOLDOWN_RESET_ICON = 'https://wiki.guildwars2.com/images/8/86/Cap_Hop.png';
 
 export const WAIT_ICON = 'https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png';
 

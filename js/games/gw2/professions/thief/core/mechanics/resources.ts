@@ -7,6 +7,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { refreshVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import type {
   ThiefPrecastContext,
   ThiefCastContext,
@@ -52,17 +53,7 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   state.leadAttacksUntil = state.leadAttackExpirations.length ? Math.max(...state.leadAttackExpirations) : 0;
-  if (Number(state.spiderVenomExpiresAt || 0) <= target) {
-    state.spiderVenomCharges = 0;
-  }
-
-  if (Number(state.skaleVenomExpiresAt || 0) <= target) {
-    state.skaleVenomCharges = 0;
-  }
-
-  if (Number(state.devourerVenomExpiresAt || 0) <= target) {
-    state.devourerVenomCharges = 0;
-  }
+  refreshVenomCharges(state, target);
 
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt || 0) <= target) {
     state.activeThievesGuild = null;

@@ -1,7 +1,8 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import { spearChainStageForSkill, updateSpearChainState } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
@@ -77,9 +78,7 @@ export function grantThiefStealth(
   }
 
   if (entering && hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
-    state.spiderVenomCharges = Math.min(6, Number(state.spiderVenomCharges || 0) + 3);
-    state.spiderVenomExpiresAt = at + 24;
-    state.spiderVenomGeneration += 1;
+    addVenomCharges(state, ID.SPIDER_VENOM, at, 3, 24, 6);
   }
 
   if (entering && hasTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {

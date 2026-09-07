@@ -44,15 +44,14 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: R
 
 export function triggerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
-  if (event.at > state.sharpeningStoneExpiresAt) {
-    state.sharpeningStoneCharges = 0;
-  }
+  // Expire each application independently and spend the oldest surviving charge first.
+  state.sharpeningStoneExpirations = state.sharpeningStoneExpirations.filter((at) => at > event.at);
 
-  if (state.sharpeningStoneCharges <= 0 || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
+  if (!state.sharpeningStoneExpirations.length || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
   }
 
-  state.sharpeningStoneCharges -= 1;
+  state.sharpeningStoneExpirations.shift();
   const bleeding = profileEffect(context, PROFILE.sharpeningStone, 'condition');
   enqueueOrdered(context.queue, {
     type: 'condition',

@@ -34,8 +34,12 @@ export function handleRangerPoisonousStrikes(context: RangerResolverContext, eve
 
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
-  state.sharpeningStoneCharges = Math.max(0, Number(event.charges || 0));
-  state.sharpeningStoneExpiresAt = event.at + Number(event.duration || 0);
+  // Recasts add charges without renewing the lifetime of the remaining stones.
+  state.sharpeningStoneExpirations = state.sharpeningStoneExpirations.filter((at) => at > event.at);
+  state.sharpeningStoneExpirations.push(
+    ...Array.from({ length: Math.max(0, Number(event.charges || 0)) }, () => event.at + Number(event.duration || 0))
+  );
+  state.sharpeningStoneExpirations.sort((a, b) => a - b);
 }
 
 // Retire the outgoing companion's lingering conditions after the swap delay,

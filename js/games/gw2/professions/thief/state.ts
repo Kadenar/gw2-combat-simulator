@@ -1,4 +1,8 @@
-import { professionCoreState, projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  professionCoreState,
+  projectPublicProfessionState,
+  flattenProfessionState
+} from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type {
   ProfessionStateSnapshotEmissionContext,
@@ -56,8 +60,20 @@ export function emitThiefStateSnapshot(
   return emitStateSnapshot(context, 'thief', at, reason, snapshotThiefState(context.state.profession), options);
 }
 
-export function projectThiefEndState({ schedulerState }: ThiefEndStateProjectionOptions): Record<string, unknown> {
+export function projectThiefEndState({
+  schedulerState,
+  resolverState
+}: ThiefEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotThiefState<ThiefState>(schedulerState.profession);
+  // Report resolved spending, since scheduler snapshots only know which charges were granted.
+  const resolver = flattenProfessionState<ThiefState>(resolverState);
+  state.venomChargeBatches = Object.fromEntries(
+    Object.entries(resolver.venomChargeBatches || {}).map(([skillId, batches]) => [
+      skillId,
+      batches.filter((batch) => batch.charges > 0 && batch.expiresAt > schedulerState.time)
+    ])
+  );
+
   return projectPublicProfessionState(state, THIEF_PUBLIC_END_STATE_KEYS, INACTIVE_STATE_DEFAULTS);
 }
 
@@ -72,6 +88,21 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
     traitProcProgress: core.traitProcProgress || {},
     traitProcReadyAt: core.traitProcReadyAt || {}
   };
+  // Snapshots contain scheduled grants, not resolved spending. Merge only unseen
+  // generations so later casts cannot restore consumed charges or erase leftovers.
+  const batches = (core.venomChargeBatches || {}) as ThiefState['venomChargeBatches'];
+  const incomingBatches = (incoming.venomChargeBatches || {}) as ThiefState['venomChargeBatches'];
+  const mergedBatches: ThiefState['venomChargeBatches'] = {};
+  const generation = Number(core.venomGeneration || 0);
+  for (const skillId of new Set([...Object.keys(batches), ...Object.keys(incomingBatches)])) {
+    const active = [
+      ...(batches[skillId] || []),
+      ...(incomingBatches[skillId] || []).filter((batch) => batch.generation > generation)
+    ].filter((batch) => batch.charges > 0 && batch.expiresAt > event.at);
+    active.sort((a, b) => a.expiresAt - b.expiresAt);
+    mergedBatches[skillId] = active;
+  }
+
   for (const generationField of Object.keys(incoming).filter((key) => key.endsWith('Generation'))) {
     const prefix = generationField.slice(0, -'Generation'.length);
     const chargesField = `${prefix}Charges`;
@@ -79,13 +110,6 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
     const owner = ownerFor(generationField);
     const incomingGeneration = Number(incoming[generationField] || 0);
     const currentGeneration = Number(owner[generationField] || 0);
-    if (generationField.endsWith('VenomGeneration') && incomingGeneration < currentGeneration) {
-      preserved[generationField] = owner[generationField] || 0;
-      if (Object.hasOwn(owner, chargesField)) preserved[chargesField] = owner[chargesField] || 0;
-      if (Object.hasOwn(owner, expiresAtField)) preserved[expiresAtField] = owner[expiresAtField] || 0;
-      continue;
-    }
-
     if (
       incomingGeneration === currentGeneration &&
       Number(incoming[expiresAtField] || 0) > event.at &&
@@ -94,6 +118,9 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
       preserved[chargesField] = owner[chargesField] || 0;
     }
   }
+
+  preserved.venomChargeBatches = mergedBatches;
+  preserved.venomGeneration = Math.max(generation, Number(incoming.venomGeneration || 0));
 
   for (const [key, value] of Object.entries(incoming)) ownerFor(key)[key] = value;
   for (const [key, value] of Object.entries(preserved)) ownerFor(key)[key] = value;

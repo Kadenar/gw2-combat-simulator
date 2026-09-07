@@ -144,11 +144,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 167
   },
   [ID.VIPERS_NEST]: {
-    interruptCommitMs: 0,
+    interruptCommitMs: 440,
     effects: [
       {
         type: 'strike',
-        ticks: [0, 1000, 2000].map((atMs) => ({
+        ticks: [1400, 2400, 3400].map((atMs) => ({
           atMs,
           coefficient: 0.3
         })),
@@ -158,7 +158,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       },
       {
         type: 'condition',
-        ticks: [0, 1000, 2000].map((atMs) => ({
+        ticks: [1400, 2400, 3400].map((atMs) => ({
           atMs,
           condition: 'Poisoned',
           stacks: 2,
@@ -176,7 +176,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         ownerId: 'ranger',
         fieldType: 'Poison',
         duration: 2,
-        startAnchor: 'castEnd'
+        startMs: 1400,
+        startAnchor: 'castStart'
       }
     ]
   },

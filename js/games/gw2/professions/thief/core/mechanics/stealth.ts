@@ -2,7 +2,8 @@ import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import type {
@@ -40,12 +41,14 @@ function breakThiefStealth(context: ThiefSchedulerContext, skill: ThiefSkill, at
 
   if (hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     const profile = balanceProfileFromContext(context, PROFILE.leechingVenoms);
-    state.spiderVenomCharges = Math.min(
-      Number(profile?.maximumStacks ?? 6),
-      Number(state.spiderVenomCharges || 0) + Number(profile?.resourceGain ?? 3)
+    addVenomCharges(
+      state,
+      ID.SPIDER_VENOM,
+      at,
+      Number(profile?.resourceGain ?? 3),
+      Number(profile?.durationMultiplier ?? 24),
+      Number(profile?.maximumStacks ?? 6)
     );
-    state.spiderVenomExpiresAt = at + Number(profile?.durationMultiplier ?? 24);
-    state.spiderVenomGeneration += 1;
   }
 
   state.stealthStartedAt = at;

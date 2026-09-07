@@ -100,8 +100,7 @@ export interface RangerCoreState {
   poisonMasterPetAttackReady: boolean;
   poisonousStrikesCharges: number;
   poisonousStrikesExpiresAt: number;
-  sharpeningStoneCharges: number;
-  sharpeningStoneExpiresAt: number;
+  sharpeningStoneExpirations: number[];
   petSwapCount: number;
   petAutoGeneration: number;
   petAutoNextAt: number;
