@@ -8,6 +8,26 @@ async function openSimulator(page, viewport = { width: 1280, height: 900 }) {
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 }
 
+// Injected dialogs and numeric controls must resolve the shared theme instead of falling back to transparent surfaces.
+test('import and hotkey controls use the shared surface and numeric font', async ({ page }) => {
+  await openSimulator(page);
+  await page.locator('.rotation-hotkey-button').click();
+  const surface = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.background = 'var(--bg-panel-alt)';
+    document.body.append(probe);
+    const color = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return color;
+  });
+
+  for (const selector of ['.rotation-import-report input', '.rotation-hotkey-field input']) {
+    await expect(page.locator(selector).first()).toHaveCSS('background-color', surface);
+  }
+
+  await expect(page.locator('#target-armor')).toHaveCSS('font-family', /Consolas/);
+});
+
 test('landing page exposes profession navigation and restores focus after its tutorial', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 

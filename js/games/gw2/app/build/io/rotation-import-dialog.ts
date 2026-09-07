@@ -166,10 +166,10 @@ function ensureStyles(document: Document): void {
     .rotation-import-drop small { display:block; margin:8px 0; color:var(--text-dim); font-size:10px; }
     .rotation-import-report { display:flex; gap:6px; margin-top:10px; }
     .rotation-import-report input { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
-      border-radius:5px; background:var(--bg-input); color:var(--text); }
+      border-radius:5px; background:var(--bg-panel-alt); color:var(--text); }
     .rotation-import-preset { display:flex; gap:6px; margin-top:10px; }
     .rotation-import-preset select { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
-      border-radius:5px; background:var(--bg-input); color:var(--text); }
+      border-radius:5px; background:var(--bg-panel-alt); color:var(--text); }
     .rotation-import-status { margin:12px 0 0; color:var(--text-dim); font-size:12px; }
     .rotation-import-status.is-success { color:var(--health); }
     .rotation-import-error { margin:12px 0 0; color:var(--condi); font-size:12px; white-space:pre-wrap; }

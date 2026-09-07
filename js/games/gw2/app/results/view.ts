@@ -141,6 +141,12 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         showSummary: false,
         breakpoints,
         skillRows,
+        // Proc records use absolute milliseconds; align them with the damage charts' DPS clock.
+        procSteps: (result.procSteps || []).map((proc) => ({
+          skill: proc.skill,
+          sourceSkill: proc.sourceSkill,
+          start: proc.start - Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000)
+        })),
         skillColumns: SKILL_COLS,
         conditions,
         conditionTotal: conditions.length

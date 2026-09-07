@@ -2,6 +2,7 @@ import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
@@ -127,6 +128,8 @@ export interface RotationResultsModel {
   readonly randomDistributionProgress?: ResultRandomDistributionProgress | null;
   readonly randomDistributionError?: string;
   readonly chartSeries?: ChartSeries | null;
+  /** Recorded activations with timestamps relative to the same DPS window as the charts. */
+  readonly procSteps?: readonly Pick<Gw2ProcStep, 'start' | 'skill' | 'sourceSkill'>[];
 }
 
 export interface RotationResultsOptions {
@@ -722,8 +725,13 @@ export function mountRotationResults(
     if (!rowsRoot) return;
     rowsRoot.querySelector('[data-role="skill-timeline"]')?.remove();
     if (!selectedSkillKey || !chartSeries) return;
-    const hits = chartSeries.skillDamage?.[selectedSkillKey];
-    if (!hits || !hits.length) return;
+    const hits = chartSeries.skillDamage?.[selectedSkillKey] || [];
+    // List only activations of the selected effect so its count and sources exclude downstream procs.
+    const selectedRow = skillRows.find((row) => row.key === selectedSkillKey);
+    const procs = (model.procSteps || [])
+      .filter((proc) => selectedRow?.group === 'Player' && proc.skill === selectedRow.sourceSkill)
+      .sort((left, right) => left.start - right.start);
+    if (!hits.length && !procs.length) return;
     let target: HTMLElement | null = null;
     for (const rowElement of rowsRoot.querySelectorAll<HTMLElement>('.res-row-selectable')) {
       if (rowElement.dataset.skillKey === selectedSkillKey) {
@@ -738,11 +746,30 @@ export function mountRotationResults(
     timeline.className = 'res-skill-timeline';
     timeline.setAttribute('data-role', 'skill-timeline');
     target.after(timeline);
-    mountHitTimeline(timeline, hits, {
-      durationMs: chartSeries.durationMs,
-      color: options.chartOptions?.skillDamageColor,
-      label: 'Damage Events'
-    });
+    if (procs.length) {
+      timeline.innerHTML = `<div class="hit-detail-table" data-role="skill-procs">
+        <table>
+          <caption>Procs (${procs.length})</caption>
+          <thead><tr><th scope="col">Time</th><th scope="col">Triggered by</th></tr></thead>
+          <tbody>${procs
+            .map(
+              (proc) =>
+                `<tr><td>${(proc.start / 1000).toFixed(2)}s</td><td>${escapeHtml(proc.sourceSkill || '\u2014')}</td></tr>`
+            )
+            .join('')}</tbody>
+        </table>
+      </div>`;
+    }
+
+    if (hits.length) {
+      const damageTimeline = doc.createElement('div');
+      timeline.append(damageTimeline);
+      mountHitTimeline(damageTimeline, hits, {
+        durationMs: chartSeries.durationMs,
+        color: options.chartOptions?.skillDamageColor,
+        label: 'Damage Events'
+      });
+    }
   };
 
   const selectSkill = (key: string | null): void => {
