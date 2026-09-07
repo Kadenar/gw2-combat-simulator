@@ -169,6 +169,9 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         placeholderIcon: PLACEHOLDER_ICON,
         skillBreakdownClassName: `${app.adapter?.id || 'simulation'}-skill-breakdown`,
         chartOptions: {
+          // Phase controls need actual health endpoints to distinguish complete ranges from partial observations.
+          targetStartingHealthPercent: app.build.targetStartingHealthPercent ?? 100,
+          targetDied: result.deathTime != null,
           title: 'DPS & Effects Over Time',
           dpsLabel: 'Average DPS',
           dpsColor: '#54c96b',

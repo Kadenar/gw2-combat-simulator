@@ -24,6 +24,8 @@ export interface ChartOptions {
   readonly defaultVisibleEffectLimit: number;
   readonly emptyEffectsText: string;
   readonly healthBreakpoints: readonly ChartHealthBreakpoint[];
+  readonly targetStartingHealthPercent: number;
+  readonly targetDied: boolean;
   readonly healthBreakpointColor: string;
   // Colour of the per-skill hit markers on the DPS strip and table timeline.
   readonly skillDamageColor: string;
@@ -86,6 +88,8 @@ const DEFAULT_OPTIONS: ChartOptions = {
   defaultVisibleEffectLimit: 8,
   emptyEffectsText: 'No timed effects in this rotation',
   healthBreakpoints: [],
+  targetStartingHealthPercent: 100,
+  targetDied: false,
   healthBreakpointColor: '#e1c070',
   skillDamageColor: '#b57ce0'
 };
@@ -169,11 +173,11 @@ const FIGHT_PHASE_RANGES = [
   { id: '20-0', label: '20-0%', startHealth: 20, endHealth: 0 }
 ] as const;
 
-function fightPhases(series: ChartSeries, markers: readonly ChartMarker[]): ChartFightPhase[] {
+function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], options: ChartOptions): ChartFightPhase[] {
   const cumulativeDamage = series.cumulativeDamage || [];
   const finalDamage = Number(cumulativeDamage.at(-1)?.v);
   const boundaries = new Map<number, { readonly timeMs: number; readonly damage: number }>([
-    [100, { timeMs: 0, damage: 0 }]
+    [options.targetStartingHealthPercent, { timeMs: 0, damage: 0 }]
   ]);
   for (const marker of markers) {
     if (Number.isFinite(marker.damage)) {
@@ -184,7 +188,8 @@ function fightPhases(series: ChartSeries, markers: readonly ChartMarker[]): Char
     }
   }
 
-  if (Number.isFinite(finalDamage)) {
+  // Only recorded death completes the final health range; observation end may leave the target alive.
+  if (options.targetDied && Number.isFinite(finalDamage)) {
     boundaries.set(0, {
       timeMs: series.durationMs,
       damage: finalDamage
@@ -444,7 +449,7 @@ function chartHtml(
   return `<div class="chart-wrap">
     <div class="chart-title">${escapeHtml(options.title)}</div>
     ${
-      healthMarkers.length
+      healthMarkers.length || phases.some((phase) => phase.id !== 'full' && phase.enabled)
         ? `<div class="chart-phase-toggles" data-role="chart-phase-toggles">
       <span class="chart-toggle-label">Chart range</span>
       ${phases
@@ -527,7 +532,7 @@ export function mountTimeSeriesCharts(
     resolvedSeries.durationMs,
     resolvedOptions.healthBreakpointColor
   );
-  const phases = fightPhases(resolvedSeries, healthMarkers);
+  const phases = fightPhases(resolvedSeries, healthMarkers, resolvedOptions);
   let activePhaseId = 'full';
   // Which breakdown row's hits the DPS strip highlights (null until a row is
   // clicked).

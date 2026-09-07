@@ -7,6 +7,7 @@ import {
   chartValueAt
 } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
+import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { eventLogCsv, mountEventLog } from '#gw2/app/results/event-log-view.js';
 import { resultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import {
@@ -307,6 +308,7 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
       ]
     },
     {
+      targetDied: true,
       healthBreakpoints: [
         { healthPercent: 80, elapsed: 0.2, damage: 200 },
         { healthPercent: 60, elapsed: 0.4, damage: 400 },
@@ -346,6 +348,52 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
   assert.doesNotMatch(finalPhaseButton[0], /disabled/);
   assert.doesNotMatch(container.innerHTML, /\sid="/);
 });
+
+// Mount the result flow so health metadata and completed-range controls are checked together.
+for (const [startingHealthPercent, targetDied] of [
+  [100, false],
+  [100, true],
+  [90, true],
+  [80, true],
+  [20, true]
+]) {
+  test(`chart health phases respect a ${startingHealthPercent}% start and target ${targetDied ? 'death' : 'survival'}`, () => {
+    const chartContainer = inertContainer();
+    const container = {
+      ...inertContainer(),
+      querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null)
+    };
+    const view = createGw2SimulationViewModel({
+      build: {
+        rotation: [{ type: 'cast', skillId: 'Strike' }],
+        targetHealth: 100,
+        targetStartingHealthPercent: startingHealthPercent
+      },
+      results: {
+        duration: 10,
+        dpsStartTime: 0,
+        deathTime: targetDied ? 10 : null,
+        totalDamage: startingHealthPercent - (targetDied ? 0 : 10),
+        conditionDamage: 0,
+        resolvedEvents: [
+          { type: 'damage', at: 8, damage: startingHealthPercent - 20 },
+          { type: 'damage', at: 10, damage: targetDied ? 20 : 10 }
+        ]
+      }
+    });
+    view.analysis.panels[0].mount(container);
+
+    const phaseEnabled = (id) => {
+      const button = chartContainer.innerHTML.match(new RegExp(`<button[^>]*data-chart-phase="${id}"[^>]*>`));
+      assert.ok(button, `Missing ${id} phase control`);
+      return !button[0].includes('disabled');
+    };
+
+    assert.equal(phaseEnabled('20-0'), targetDied);
+    assert.equal(phaseEnabled('100-80'), startingHealthPercent === 100);
+    assert.equal(phaseEnabled('80-60'), startingHealthPercent === 80);
+  });
+}
 
 test('chart canvases stay fluid when their initial container width is unavailable', () => {
   const context = {
