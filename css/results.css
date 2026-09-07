@@ -1097,6 +1097,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 .chart-canvas-wrap {
   position: relative;
+  /* Contain stale hit-control positions during resize while allowing tooltips to extend below the chart. */
+  overflow-x: clip;
 }
 
 [data-role='dps-canvas'],

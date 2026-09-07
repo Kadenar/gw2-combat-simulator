@@ -1,5 +1,21 @@
 import { expect, test } from '@playwright/test';
 
+// Sample the resize event before observers redraw controls so transient desktop geometry cannot escape the chart.
+async function resizeToMobile(page) {
+  await page.evaluate(() => {
+    window.resizeOverflow = null;
+    window.addEventListener(
+      'resize',
+      () => {
+        window.resizeOverflow = document.documentElement.scrollWidth - innerWidth;
+      },
+      { once: true }
+    );
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => page.evaluate(() => window.resizeOverflow)).toBe(0);
+}
+
 // Window controls retain precise ticks in both placements, including clipped phases and narrow screens.
 test('conditions use separate bounded windows with accessible tick details', async ({ page }, testInfo) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
@@ -80,7 +96,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
   }
 
   await page.locator('#standalone').screenshot({ path: testInfo.outputPath('condition-windows.png') });
-  await page.setViewportSize({ width: 390, height: 844 });
+  await resizeToMobile(page);
   await expect(
     page.locator('#standalone').getByRole('button', { name: '5.00s–10.00s · 5 ticks', exact: true })
   ).toHaveAttribute('aria-expanded', 'true');
@@ -194,7 +210,7 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
 
   await page.locator('#standalone').getByRole('button', { name: '5.51s · 5 hits', exact: true }).click();
   await page.locator('#standalone').screenshot({ path: testInfo.outputPath('hit-burst.png') });
-  await page.setViewportSize({ width: 390, height: 844 });
+  await resizeToMobile(page);
   await expect(page.locator('#standalone [data-role="hit-detail"]')).toBeVisible();
   const width = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.content).toBeLessThanOrEqual(width.viewport);
