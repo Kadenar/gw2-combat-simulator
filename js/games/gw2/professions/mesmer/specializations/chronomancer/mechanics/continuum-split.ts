@@ -68,7 +68,9 @@ export function createContinuumController({
         id,
         {
           ...ammo,
-          nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining
+          nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining,
+          // Rewind the cast lockout independently of the next charge's recharge.
+          lockoutReadyAt: at + ammo.lockoutRemaining
         }
       ])
     );
@@ -111,7 +113,8 @@ export function createContinuumController({
           charges: value.charges,
           maximum: value.maximum,
           rechargeDuration: value.rechargeDuration,
-          nextRechargeRemaining: value.nextRechargeAt == null ? null : Math.max(0, value.nextRechargeAt - at)
+          nextRechargeRemaining: value.nextRechargeAt == null ? null : Math.max(0, value.nextRechargeAt - at),
+          lockoutRemaining: Math.max(0, (value.lockoutReadyAt ?? 0) - at)
         }
       ])
     );

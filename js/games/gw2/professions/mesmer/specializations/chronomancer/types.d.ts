@@ -9,6 +9,7 @@ export interface MesmerContinuumAmmo {
   maximum: number;
   rechargeDuration: number;
   nextRechargeRemaining: number | null;
+  lockoutRemaining: number;
 }
 
 export interface MesmerContinuumSnapshot {

@@ -112,25 +112,9 @@ function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, coun
   const restored = Math.min(missing, Math.max(0, count));
   if (!restored) return 0;
 
-  const mirroredRecharge = ammo.nextRechargeAt;
-  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  const lastAction = [...context.events]
-    .reverse()
-    .find((event) => event.type === 'action' && event.skillId === skill.id);
-  const lastActionEnd = Number(lastAction?.endsAt || 0);
-  const lockoutReadyAt =
-    lastActionEnd +
-    context.rechargeDurationFor(skill, lastActionEnd, {
-      ammoCastLockout: true
-    });
-  if (ammo.charges === 0 && mirroredRecharge != null && readyAt <= mirroredRecharge + context.epsilon) {
-    context.state.cooldowns.delete(skill.id);
-  }
-
   ammo.charges += restored;
   if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
   context.cooldownController.refreshAmmo(skill, at);
-  if (lockoutReadyAt > at + context.epsilon) context.state.cooldowns.set(skill.id, lockoutReadyAt);
   return restored;
 }
 

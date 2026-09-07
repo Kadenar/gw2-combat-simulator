@@ -55,6 +55,65 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
   });
 });
 
+// Returning charges must preserve cast lockouts shorter than, equal to, or longer than count recharge.
+test('ammo recharge reduction preserves independent cast lockouts', () => {
+  for (const lockout of [0, 5, 10, 15]) {
+    const skill = { id: 980000, ammo: 2 };
+    const state = { time: 0, ammo: new Map(), cooldowns: new Map() };
+    const controller = createCooldownController({ state, rechargeDuration: () => 10 });
+    controller.spendAmmo(skill, 0);
+    controller.spendAmmo(skill, 0);
+    if (lockout) controller.setAmmoLockout(skill, lockout, 0);
+
+    controller.reduceAmmoRecharge(skill, 2, 1);
+    assert.equal(state.ammo.get(skill.id).charges, 0);
+    assert.equal(state.cooldowns.get(skill.id), Math.max(lockout, 8));
+
+    controller.reduceSkillRecharge(skill, 8, 1);
+    assert.equal(state.ammo.get(skill.id).charges, 1);
+    assert.equal(state.cooldowns.get(skill.id) ?? 0, lockout);
+    controller.refreshAmmo(skill, Math.max(1, lockout));
+    assert.equal(state.cooldowns.has(skill.id), false);
+  }
+});
+
+test('a recovered ammo charge cannot cast before its lockout expires', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      { id: 980000, name: 'Ammo Cast', ammo: 2, ammoRecharge: 10, ammoCastLockout: 5, castTimeMs: 0, effects: [] }
+    ]
+  });
+  let recoveredCharges;
+  const profession = defineProfession({
+    id: 'ammo-lockout',
+    name: 'Ammo Lockout',
+    catalog,
+    schedulerHooks: {
+      initialize(context) {
+        const skill = catalog.skillsById.get(980000);
+        context.cooldownController.spendAmmo(skill, 0);
+        context.cooldownController.spendAmmo(skill, 0);
+        context.cooldownController.setAmmoLockout(skill, 5, 0);
+        context.tasks.schedule({ type: 'recover-ammo', at: 1, payload: {} });
+      },
+      taskHandlers: {
+        'recover-ammo': (context, task) => {
+          const skill = catalog.skillsById.get(980000);
+          recoveredCharges = context.cooldownController.reduceAmmoRecharge(skill, 10, task.at).ammo.charges;
+        }
+      }
+    }
+  });
+  const result = createScheduler({ profession }).run(['Ammo Cast', { type: 'cooldown-reset' }, 'Ammo Cast']);
+
+  assert.equal(recoveredCharges, 1);
+  assert.deepEqual(
+    result.steps.filter((step) => step.skill === 'Ammo Cast').map((step) => step.start),
+    [5000, 5000]
+  );
+  assert.deepEqual(result.warnings, []);
+});
+
 test('skill recharge reduction routes ordinary and ammo skills through one capped contract', () => {
   const ordinary = { id: 980010 };
   const ammo = { id: 980011, ammo: 2, ammoRecharge: 12 };

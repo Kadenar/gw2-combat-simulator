@@ -5,6 +5,44 @@ import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
+import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
+
+// A rewind preserves the remaining cast lockout even when recharge reduction subsequently returns a charge.
+test('Continuum Split restores ammo recharge and cast lockout deadlines independently', () => {
+  const skill = { id: 980000, ammo: 2 };
+  const state = {
+    time: 0,
+    ammo: new Map(),
+    cooldowns: new Map(),
+    profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
+  };
+  const cooldown = createCooldownController({ state, rechargeDuration: () => 10 });
+  const continuum = createContinuumController({
+    state,
+    unaffectedCooldownIds: new Set(),
+    epsilon: 1e-9,
+    skillsById: new Map([[skill.id, skill]]),
+    refreshAmmo: cooldown.refreshAmmo,
+    consumeResources: () => 0,
+    triggerShatterTraits: () => {},
+    addEvent: () => {},
+    durationPerSource: 3
+  });
+  cooldown.spendAmmo(skill, 0);
+  cooldown.spendAmmo(skill, 0);
+  cooldown.setAmmoLockout(skill, 5, 0);
+  continuum.beginContinuumSplit({ id: 980001 }, 1);
+  cooldown.reduceAmmoRecharge(skill, 20, 2);
+  continuum.restoreContinuum(4, 'test');
+
+  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 13);
+  cooldown.reduceAmmoRecharge(skill, 10, 4);
+  assert.equal(state.ammo.get(skill.id).charges, 1);
+  assert.equal(state.cooldowns.get(skill.id), 8);
+  cooldown.refreshAmmo(skill, 8);
+  assert.equal(state.cooldowns.has(skill.id), false);
+});
 
 // Chronomancer clone refunds, phantasm repeats, and Continuum snapshots retain their timing contracts.
 test('Illusionary Reversion refunds one clone only after shattering three', () => {

@@ -37,7 +37,8 @@ export function createCooldownController<TProfessionState extends object>({
   const ammoMaximum = (skill: Skill): number => Math.max(0, Number(maximumAmmo(skill) || 0));
 
   const syncAmmoCooldown = (skill: Skill, ammo: AmmoState, at: number): void => {
-    const activeLockout = Number(state.cooldowns.get(skill.id) || 0);
+    // Derive availability from independent deadlines so returning a charge cannot erase a cast lockout.
+    const activeLockout = Number(ammo.lockoutReadyAt || 0);
     const readyAt = Math.max(
       activeLockout > at + epsilon ? activeLockout : 0,
       ammo.charges === 0 ? Number(ammo.nextRechargeAt || 0) : 0
@@ -119,18 +120,6 @@ export function createCooldownController<TProfessionState extends object>({
     const remainingUntilFull = Math.max(0, previous - at) + Math.max(0, missingCharges - 1) * ammo.rechargeDuration;
     const reducedBy = Math.min(requested, remainingUntilFull);
 
-    // A depleted ammo skill mirrors its next count recharge into the shared
-    // cooldown map. Remove that mirrored value before refreshing so it is not
-    // mistaken for an independent between-cast lockout.
-    if (ammo.charges === 0) {
-      const readyAt = Number(state.cooldowns.get(skill.id) || 0);
-      if (readyAt > previous + epsilon) {
-        state.cooldowns.set(skill.id, readyAt);
-      } else {
-        state.cooldowns.delete(skill.id);
-      }
-    }
-
     ammo.nextRechargeAt = previous - reducedBy;
     refreshAmmo(skill, at);
     return { ammo, reducedBy };
@@ -157,7 +146,7 @@ export function createCooldownController<TProfessionState extends object>({
   const setAmmoLockout = (skill: Skill, readyAt: number, at = state.time): AmmoState | null => {
     const ammo = ensureAmmo(skill, at);
     if (!ammo) return null;
-    state.cooldowns.set(skill.id, Math.max(Number(state.cooldowns.get(skill.id) || 0), Number(readyAt || 0)));
+    ammo.lockoutReadyAt = Math.max(Number(ammo.lockoutReadyAt || 0), Number(readyAt || 0));
     syncAmmoCooldown(skill, ammo, at);
     return ammo;
   };

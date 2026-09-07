@@ -7,6 +7,18 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 
 // Shared Mesmer skills and traits retain their behavior across specializations.
+// Mimic's cooldown reset must also clear an ammo utility's independently tracked cast lockout.
+test('Mimic clears the cast lockout on an ammo utility', () => {
+  const result = simulateMesmer(
+    ['Mimic', 'Tale of the Honorable Rogue', 'Tale of the Honorable Rogue'],
+    defaultSimulationConfig({ specialization: 'Troubadour', selectedTraitIds: [] })
+  );
+  const casts = result.steps.filter((step) => step.skill === 'Tale of the Honorable Rogue');
+  assert.equal(casts.length, 2);
+  assert.equal(casts[1].start, casts[0].start);
+  assert.deepEqual(result.warnings, []);
+});
+
 test('Signet of the Ether resets every phantasm skill cooldown', () => {
   const result = simulateMesmer(
     ['Phantasmal Duelist', 'Phantasmal Warlock', 'Signet of the Ether', 'Phantasmal Duelist', 'Phantasmal Warlock'],

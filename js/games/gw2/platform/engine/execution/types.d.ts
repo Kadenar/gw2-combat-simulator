@@ -58,6 +58,8 @@ export interface AmmoState {
   maximum: number;
   rechargeDuration: number;
   nextRechargeAt: number | null;
+  /** Independent cast lockout; charge recovery must not shorten this deadline. */
+  lockoutReadyAt?: number;
 }
 
 export interface SchedulerState<TProfessionState = SchedulerRecord> {
