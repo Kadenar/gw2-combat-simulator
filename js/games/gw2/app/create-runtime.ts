@@ -215,11 +215,16 @@ export function createProfessionRuntime({
   function rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'] {
     const rotation = app.build.rotation;
     const index = Math.max(0, Math.min(Math.floor(Number(insertionIndex) || 0), rotation.length));
-    if (index === rotation.length && app.results?.endState) {
+    // A tail-resolved result cannot supply availability at the insertion boundary.
+    if (
+      index === rotation.length &&
+      app.results &&
+      app.results.endState.time === Math.round(app.results.duration * 1000)
+    ) {
       return app.results.endState;
     }
 
-    return simulateBuild(rotation.slice(0, index), baselineSimulationConfig(app)).endState;
+    return simulateBuild(rotation.slice(0, index), baselineSimulationConfig(app), { kind: 'rotation' }).endState;
   }
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */

@@ -38,8 +38,9 @@ function endState(
   resolved: Gw2ResolverResult
 ): Gw2SimulationEndState {
   // Scheduler state owns clocks/cooldowns/ammo; resolver state owns profession
-  // effects. The public end state deliberately joins both halves.
-  const endTime = scheduled.stream.rotationEndTime;
+  // effects. Use the final scheduler clock so tail-recovered resources and
+  // remaining cooldowns describe the same observation instant.
+  const endTime = scheduled.state.time;
   const skillName = (id: SkillId): string => profession.catalog?.skillsById?.get(id)?.name || String(id);
   const cooldowns = Object.fromEntries(
     [...scheduled.state.cooldowns].map(([id, readyAt]) => [

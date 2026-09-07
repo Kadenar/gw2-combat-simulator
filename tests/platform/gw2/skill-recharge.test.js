@@ -59,8 +59,58 @@ test('declarative ammo consumes and recharges shared charges', () => {
     charges: 1,
     maximum: 2,
     rechargeDuration: 5,
-    nextRechargeAt: 10
+    nextRechargeAt: 10,
+    lockoutReadyAt: 0.5
   });
+});
+
+// End-state resources and cooldowns must use the same clock while tail damage remains observable.
+test('end state projects ammo and cooldowns at the resolution boundary', () => {
+  const skill = {
+    id: 930003,
+    name: 'Tail Ammo',
+    type: 'Utility',
+    castTimeMs: 0,
+    cooldown: 30,
+    ammoCastLockout: 30,
+    ammo: 2,
+    ammoRecharge: 20,
+    effects: [0, 2000].map((atMs) => ({
+      type: 'strike',
+      coefficient: 0,
+      flatDamage: 100,
+      atMs,
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    }))
+  };
+  const profession = defineProfession({
+    id: 'tail-ammo-fixture',
+    name: 'Tail Ammo Fixture',
+    catalog: createCanonicalCatalog({ generated: [skill] })
+  });
+  let rotationDamage;
+  for (const [observationPolicy, time, charges] of [
+    [undefined, 1000, 1],
+    [{ kind: 'tail', durationMs: 0 }, 1000, 1],
+    [{ kind: 'tail', durationMs: 10000 }, 11000, 1],
+    [{ kind: 'tail', durationMs: 20000 }, 21000, 2],
+    [{ kind: 'absolute', endTimeMs: 21000 }, 21000, 2]
+  ]) {
+    const result = simulateGw2({
+      profession,
+      rotation: ['Tail Ammo', { type: 'wait', durationMs: 1000 }],
+      observationPolicy
+    });
+    assert.equal(result.duration, 1);
+    assert.equal(result.endState.time, time);
+    assert.equal(result.endState.ammo[skill.name].charges, charges);
+    assert.equal(result.endState.ammoBySkillId[skill.id].charges, charges);
+    assert.deepEqual(result.endState.cooldowns[skill.name], { readyAt: 30000, remaining: 30000 - time });
+    rotationDamage ??= result.totalDamage;
+    assert.ok(rotationDamage > 0);
+    assert.equal(result.totalDamage, rotationDamage * (time > 1000 ? 2 : 1));
+  }
 });
 
 test("shared scheduler waits until a skill's exact cooldown expiry", () => {

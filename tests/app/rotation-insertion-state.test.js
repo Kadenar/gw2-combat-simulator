@@ -108,4 +108,16 @@ test('native insertion previews project weapon set and cooldown state', async ()
   assert.equal(afterFirstSwap.activeWeaponSet, 2);
   assert.ok(afterFirstSwap.cooldowns['Phantasmal Berserker'].remaining > 0);
   assert.equal(adapter.rotationEndStateAt(app, 3), result.endState);
+
+  // Reusing a tailed result would make recovered cooldowns available too early when appending.
+  app.results = adapter.simulateBuild(build.rotation, adapter.simulationConfig(app), {
+    kind: 'tail',
+    durationMs: 20000
+  });
+  assert.ok(app.results.endState.time > result.endState.time);
+  assert.deepEqual(adapter.rotationEndStateAt(app, 3), result.endState);
+  for (const insertionIndex of [null, build.rotation.length]) {
+    app.rotationInsertionIndex = insertionIndex;
+    assert.deepEqual(paletteEndState(app), result.endState);
+  }
 });

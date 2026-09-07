@@ -58,6 +58,7 @@ export type Gw2ProfessionSource<TProfessionState extends object = any> = Profess
   ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>>;
 
 export interface Gw2SimulationEndState {
+  /** Resolution-end clock in milliseconds, including any observation tail. */
   readonly time: number;
   readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
   readonly ammo: Readonly<Record<string, unknown>>;

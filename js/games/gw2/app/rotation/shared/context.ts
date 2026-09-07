@@ -24,12 +24,11 @@ export function paletteEndState(app: ProfessionAppState): RotationEndState | nul
   const result = app.results;
   if (!result) return null;
   const rotation = Array.isArray(app.build?.rotation) ? app.build.rotation : [];
-  const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, rotation.length);
-  if (
-    insertionIndex === null ||
-    insertionIndex === rotation.length ||
-    typeof app.adapter?.rotationEndStateAt !== 'function'
-  ) {
+  const insertionIndex =
+    normalizeRotationInsertionIndex(app.rotationInsertionIndex, rotation.length) ?? rotation.length;
+  // Appending still needs rotation-end availability when the displayed result includes a tail.
+  const hasTail = (result.endState?.time ?? 0) > Math.round(result.duration * 1000);
+  if ((insertionIndex === rotation.length && !hasTail) || typeof app.adapter?.rotationEndStateAt !== 'function') {
     return result.endState;
   }
 
