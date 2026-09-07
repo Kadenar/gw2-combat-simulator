@@ -36,6 +36,7 @@ interface EditorState {
   search: string;
   changedOnly: boolean;
   dirty: boolean;
+  pending: boolean;
   status: string;
   statusKind: AuthoringStatusKind;
 }
@@ -54,6 +55,7 @@ export const editorState: EditorState = {
   search: '',
   changedOnly: false,
   dirty: false,
+  pending: false,
   status: 'Loading live authoring metadata…',
   statusKind: 'neutral'
 };

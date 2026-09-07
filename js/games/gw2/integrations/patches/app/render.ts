@@ -834,6 +834,13 @@ export function renderPatchAuthoring(): void {
       <details class="patch-generated-preview"><summary>Preview object to be written</summary><pre>${jsonHtml(compactPatchPreview(editorState.draft))}</pre></details>
     </main>
   </div>`;
+
+  // Freeze every authoring control while persistence owns the draft, preserving existing disabled states.
+  if (editorState.pending) {
+    for (const control of app.querySelectorAll('button, input, select, textarea')) {
+      control.setAttribute('disabled', '');
+    }
+  }
 }
 
 export interface PatchAuthoringViewActions {
@@ -845,6 +852,7 @@ export interface PatchAuthoringViewActions {
 export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthoringViewActions): void {
   app = root;
   app.addEventListener('click', (event) => {
+    if (editorState.pending) return;
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
     if (!button) return;
     if (button.dataset.selectProfession) {
@@ -900,6 +908,7 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
   });
 
   app.addEventListener('change', (event) => {
+    if (editorState.pending) return;
     const target = event.target;
     if (target instanceof HTMLSelectElement && target.hasAttribute('data-new-effect-type')) return;
 

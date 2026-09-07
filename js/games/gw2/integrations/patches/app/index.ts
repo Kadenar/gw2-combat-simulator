@@ -12,11 +12,13 @@ import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/integrations/
 const app = document.querySelector<HTMLElement>('[data-patch-authoring-app]');
 if (!app) throw new Error('Patch preview authoring root is missing.');
 
-/** Refreshes the editor from disk while preserving the existing session if loading fails. */
+/** Locks the session during loading so reset cannot race edits or a pending save. */
 async function loadAuthoring(): Promise<void> {
-  setEditorStatus('Loading live authoring metadata…', 'neutral');
-  renderPatchAuthoring();
+  if (editorState.pending) return;
+  editorState.pending = true;
   try {
+    setEditorStatus('Loading live authoring metadata…', 'neutral');
+    renderPatchAuthoring();
     const result = await loadPatchAuthoring();
     loadEditorPayload(result);
     setEditorStatus(
@@ -25,26 +27,30 @@ async function loadAuthoring(): Promise<void> {
     );
   } catch (error) {
     setEditorStatus(error instanceof Error ? error.message : 'Unable to load patch authoring metadata.', 'error');
+  } finally {
+    editorState.pending = false;
+    renderPatchAuthoring();
   }
-
-  renderPatchAuthoring();
 }
 
-/** Saves the compact generated draft and adopts the server-validated result as clean state. */
+/** Locks edits and overlapping requests until the saved draft is accepted or the save fails. */
 async function saveAuthoring(): Promise<void> {
-  prepareEditorStateForRender();
-  const candidate = compactPatchPreview(editorState.draft);
-  setEditorStatus('Validating and writing active-preview.ts…', 'neutral');
-  renderPatchAuthoring();
+  if (editorState.pending) return;
+  editorState.pending = true;
   try {
+    prepareEditorStateForRender();
+    const candidate = compactPatchPreview(editorState.draft);
+    setEditorStatus('Validating and writing active-preview.ts…', 'neutral');
+    renderPatchAuthoring();
     const result = await savePatchAuthoring(candidate);
     acceptSavedDraft(result.preview);
     setEditorStatus(`Saved ${result.sourceFile}. Rebuild or restart the simulator to load it.`, 'success');
   } catch (error) {
     setEditorStatus(error instanceof Error ? error.message : 'Patch preview save failed.', 'error');
+  } finally {
+    editorState.pending = false;
+    renderPatchAuthoring();
   }
-
-  renderPatchAuthoring();
 }
 
 bindPatchAuthoringView(app, {
