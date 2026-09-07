@@ -32,7 +32,10 @@ test('chart projection preserves activation ownership across burst grouping and 
   const hits = series.skillDamage.skill;
   assert.deepEqual(
     groupSkillHits(hits).map((group) => group.map((hit) => hit.v)),
-    [[10, 20, 30, 40, 50, 5, 5]]
+    [
+      [10, 20, 30, 40, 50],
+      [5, 5]
+    ]
   );
   assert.equal(hits[0].activationId, hits[2].activationId);
   assert.notEqual(hits[0].activationId, hits[1].activationId);
@@ -53,6 +56,58 @@ test('chart projection preserves activation ownership across burst grouping and 
     ]).map((group) => group.length),
     [2]
   );
+});
+
+// Continuous ticks must split at fixed boundaries, retain damage, and never join separate strike bursts.
+test('condition windows preserve damage kind and stay aligned through phase filtering', () => {
+  const series = buildChartSeries(
+    {
+      dpsStartTime: 0,
+      deathTime: 12,
+      resolvedEvents: [
+        { type: 'damage', at: 0.1, damage: 10, activationId: 'cast:1' },
+        { type: 'damage', at: 9.1, damage: 20, activationId: 'cast:2' },
+        {
+          type: 'condition',
+          at: 0,
+          activationId: 'cast:1',
+          damageTicks: Array.from({ length: 12 }, (_, at) => ({ at, damage: 5 }))
+        },
+        { type: 'condition', at: 11.5, damage: 7, didCrit: false }
+      ]
+    },
+    250,
+    { skillKey: () => 'skill' }
+  );
+  const hits = series.skillDamage.skill;
+  const groups = groupSkillHits(hits);
+  assert.deepEqual(
+    groups.map((group) => group.map((hit) => hit.t)),
+    [[100], [9100], [0, 1000, 2000, 3000, 4000], [5000, 6000, 7000, 8000, 9000], [10_000, 11_000, 11_500]]
+  );
+  assert.equal(
+    groups.flat().reduce((sum, hit) => sum + hit.v, 0),
+    97
+  );
+  assert.ok(
+    groups
+      .slice(0, 2)
+      .flat()
+      .every((hit) => hit.damageType === 'strike')
+  );
+  assert.ok(
+    groups
+      .slice(2)
+      .flat()
+      .every((hit) => hit.damageType === 'condition' && hit.crit === null)
+  );
+  const phase = filterHitsToPhase(hits, 2300, 10_800);
+  const conditionGroups = groupSkillHits(phase, 2300).filter((group) => group[0].damageType === 'condition');
+  assert.deepEqual(
+    conditionGroups.map((group) => group.map((hit) => hit.t + 2300)),
+    [[3000, 4000], [5000, 6000, 7000, 8000, 9000], [10_000]]
+  );
+  assert.deepEqual(groupSkillHits([{ t: 0, v: 0, damageType: 'condition' }]), []);
 });
 
 // Nearby activations form one burst; a larger gap starts another without splitting a cast's packets.

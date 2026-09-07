@@ -7,13 +7,25 @@ export interface SkillHit {
   readonly v: number;
   readonly crit?: boolean | null;
   readonly activationId?: string;
+  readonly damageType?: 'strike' | 'condition';
 }
 
-/** Keeps activation packets together, then merges nearby uses within this skill's timeline into readable bursts. */
-export function groupSkillHits(hits: readonly SkillHit[]): SkillHit[][] {
+const CONDITION_WINDOW_MS = 5000;
+
+/** Keeps strike bursts intact while bounding condition groups to fixed fight-time windows. */
+export function groupSkillHits(hits: readonly SkillHit[], timeOffsetMs = 0): SkillHit[][] {
   const groups = new Map<string | SkillHit, SkillHit[]>();
+  const conditions = new Map<number, SkillHit[]>();
   for (const hit of [...hits].sort((left, right) => left.t - right.t)) {
     if (!(hit.v > 0)) continue;
+    if (hit.damageType === 'condition') {
+      const window = Math.floor((hit.t + timeOffsetMs) / CONDITION_WINDOW_MS);
+      const ticks = conditions.get(window) || [];
+      ticks.push(hit);
+      conditions.set(window, ticks);
+      continue;
+    }
+
     const key = hit.activationId || hit;
     const group = groups.get(key) || [];
     group.push(hit);
@@ -29,12 +41,25 @@ export function groupSkillHits(hits: readonly SkillHit[]): SkillHit[][] {
     burstEnd = Math.max(burstEnd, group.at(-1)!.t);
   }
 
-  return bursts.map((burst) => burst.sort((left, right) => left.t - right.t));
+  return [...bursts.map((burst) => burst.sort((left, right) => left.t - right.t)), ...conditions.values()];
 }
 
 const hitTime = (timeMs: number): string => `${(timeMs / 1000).toFixed(2)}s`;
-const hitGroupLabel = (hits: readonly SkillHit[], offsetMs: number): string =>
-  `${hitTime(hits[0]!.t + offsetMs)} · ${hits.length} ${hits.length === 1 ? 'hit' : 'hits'}`;
+// Clip the displayed window at phase boundaries without moving its fight-time bucket.
+const conditionWindow = (hits: readonly SkillHit[], offsetMs: number, durationMs: number): [number, number] => {
+  const start = Math.floor((hits[0]!.t + offsetMs) / CONDITION_WINDOW_MS) * CONDITION_WINDOW_MS - offsetMs;
+  return [Math.max(0, start), Math.min(durationMs, start + CONDITION_WINDOW_MS)];
+};
+
+const hitGroupLabel = (hits: readonly SkillHit[], offsetMs: number, durationMs: number): string => {
+  if (hits[0]!.damageType === 'condition') {
+    const [start, end] = conditionWindow(hits, offsetMs, durationMs);
+    const range = start === end ? hitTime(start + offsetMs) : `${hitTime(start + offsetMs)}–${hitTime(end + offsetMs)}`;
+    return `${range} · ${hits.length} ${hits.length === 1 ? 'tick' : 'ticks'}`;
+  }
+
+  return `${hitTime(hits[0]!.t + offsetMs)} · ${hits.length} ${hits.length === 1 ? 'hit' : 'hits'}`;
+};
 
 export interface HitTimelineLayout {
   readonly groups: readonly (readonly SkillHit[])[];
@@ -153,18 +178,37 @@ export function drawHitTimeline(
     context.textBaseline = 'middle';
   }
 
-  const maxValue = Math.max(1, ...hits.map((hit) => Number(hit.v || 0)));
+  const groups = groupHits ? groupSkillHits(hits, timeOffsetMs) : hits.filter((hit) => hit.v > 0).map((hit) => [hit]);
+  const conditionOverview = groupHits && hits.some((hit) => hit.damageType === 'condition');
+  const markers = conditionOverview
+    ? groups.flatMap((group) =>
+        group[0]!.damageType === 'condition' ? [{ ...group[0]!, v: group.reduce((sum, hit) => sum + hit.v, 0) }] : group
+      )
+    : hits;
+  const maxValue = Math.max(1, ...markers.map((hit) => Number(hit.v || 0)));
   const minMarker = Math.min(plotHeight, 8);
   context.strokeStyle = color;
   context.lineWidth = 2;
   context.fillStyle = color;
   context.textAlign = 'left';
   context.textBaseline = 'top';
-  for (const hit of hits) {
+  for (const hit of markers) {
     const value = Number(hit.v || 0);
     if (!(value > 0)) continue;
     const x = pad.left + (Number(hit.t || 0) / durationMs) * plotWidth;
     const markerHeight = minMarker + (plotHeight - minMarker) * (value / maxValue);
+    // Condition bars summarize window damage; the detail view retains every original tick.
+    if (conditionOverview && hit.damageType === 'condition') {
+      const [start, end] = conditionWindow([hit], timeOffsetMs, durationMs);
+      context.fillRect(
+        pad.left + (start / durationMs) * plotWidth,
+        baseY - markerHeight,
+        Math.max(1, ((end - start) / durationMs) * plotWidth - 2),
+        markerHeight
+      );
+      continue;
+    }
+
     context.beginPath();
     context.moveTo(x, baseY);
     context.lineTo(x, baseY - markerHeight);
@@ -172,11 +216,16 @@ export function drawHitTimeline(
   }
 
   // One label per burst makes rapid repeated casts readable while preserving every damage marker.
-  const groups = groupHits ? groupSkillHits(hits) : hits.filter((hit) => hit.v > 0).map((hit) => [hit]);
   const labelEnds = [-Infinity, -Infinity];
   for (const group of groups) {
-    const x = pad.left + (group[0]!.t / durationMs) * plotWidth;
-    const timestamp = groupHits ? hitGroupLabel(group, timeOffsetMs) : hitTime(group[0]!.t + timeOffsetMs);
+    // Dense tick timestamps belong in the detail table; keep its chart axis readable.
+    if (!groupHits && group[0]!.damageType === 'condition') continue;
+    const [start, end] =
+      conditionOverview && group[0]!.damageType === 'condition'
+        ? conditionWindow(group, timeOffsetMs, durationMs)
+        : [group[0]!.t, group[0]!.t];
+    const x = pad.left + ((start + end) / 2 / durationMs) * plotWidth;
+    const timestamp = groupHits ? hitGroupLabel(group, timeOffsetMs, durationMs) : hitTime(group[0]!.t + timeOffsetMs);
     const labelWidth = context.measureText(timestamp).width;
     const labelX = Math.max(0, Math.min(cssWidth - labelWidth, x - labelWidth / 2));
     // Crowded labels remain available through focus/hover and the expanded hit list.
@@ -203,8 +252,40 @@ export function filterHitsToPhase(hits: readonly SkillHit[], startMs: number, en
   return hits.filter((hit) => hit.t >= startMs && hit.t < endMs).map((hit) => ({ ...hit, t: hit.t - startMs }));
 }
 
-/** Mounts cast groups with native keyboard controls and an expandable, precise hit breakdown. */
+/** Separates lingering condition damage from strike bursts on aligned, independently inspectable lanes. */
 export function mountHitTimeline(
+  container: HTMLElement | null | undefined,
+  hits: readonly SkillHit[],
+  options: HitTimelineMountOptions
+): { redraw: () => void } | null {
+  if (!container) return null;
+  for (const previous of [container, ...container.querySelectorAll<HTMLElement>('[data-role="hit-lane"]')]) {
+    ACTIVE_HIT_TIMELINE_MOUNTS.get(previous)?.resizeObserver?.disconnect();
+    ACTIVE_HIT_TIMELINE_MOUNTS.delete(previous);
+  }
+
+  const strikes = hits.filter((hit) => hit.damageType !== 'condition');
+  const conditions = hits.filter((hit) => hit.damageType === 'condition');
+  if (!strikes.length || !conditions.length) {
+    return mountHitTimelineLane(container, hits, {
+      ...options,
+      label: conditions.length ? [options.label, 'Conditions'].filter(Boolean).join(' · ') : options.label
+    });
+  }
+
+  container.innerHTML = `<div data-role="hit-lane" role="group" aria-label="Strike damage"></div>
+    <div data-role="hit-lane" role="group" aria-label="Condition damage"></div>`;
+  const lanes = [...container.querySelectorAll<HTMLElement>('[data-role="hit-lane"]')].map((lane, index) =>
+    mountHitTimelineLane(lane, index === 0 ? strikes : conditions, {
+      ...options,
+      label: [options.label, index === 0 ? 'Strikes' : 'Conditions'].filter(Boolean).join(' · ')
+    })
+  );
+  return { redraw: () => lanes.forEach((lane) => lane?.redraw()) };
+}
+
+/** Mounts native keyboard controls and an expandable, precise hit or tick breakdown for one lane. */
+function mountHitTimelineLane(
   container: HTMLElement | null | undefined,
   hits: readonly SkillHit[],
   { durationMs, color, label, height = 100, emptyText, showAxis = true, timeOffsetMs = 0 }: HitTimelineMountOptions
@@ -225,6 +306,9 @@ export function mountHitTimeline(
   const controls = container.querySelector<HTMLElement>('[data-role="hit-groups"]');
   const detail = container.querySelector<HTMLElement>('[data-role="hit-detail"]');
   const resolvedDuration = Math.max(1, Number(durationMs) || 0);
+  const isCondition = hits[0]?.damageType === 'condition';
+  const noun = isCondition ? 'tick' : 'hit';
+  const detailLabel = `Individual ${noun}s · fight time`;
   let layout: HitTimelineLayout | null = null;
   let selectedGroup: number | null = null;
 
@@ -239,7 +323,7 @@ export function mountHitTimeline(
       duration,
       {
         color,
-        label: 'Individual hits · fight time',
+        label: detailLabel,
         timeOffsetMs: timeOffsetMs + start,
         groupHits: false
       }
@@ -263,12 +347,12 @@ export function mountHitTimeline(
 
     // Expected-crit runs have no per-hit verdict, so omit the otherwise empty critical column.
     const showCritical = group.some((hit) => hit.crit != null);
-    detail.innerHTML = `<div class="hit-detail-header"><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs))}</b>
-      <button type="button" class="hit-detail-close" data-role="close-hit-detail" aria-label="Close hit details">Close</button></div>
+    detail.innerHTML = `<div class="hit-detail-header"><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b>
+      <button type="button" class="hit-detail-close" data-role="close-hit-detail" aria-label="Close ${noun} details">Close</button></div>
       <div><canvas class="chart-canvas" aria-hidden="true"></canvas></div>
       <div class="hit-detail-table"><table>
-        <caption>Individual hits · fight time</caption>
-        <thead><tr><th scope="col">Hit</th><th scope="col">Time</th><th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}</tr></thead>
+        <caption>${detailLabel}</caption>
+        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th><th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}</tr></thead>
         <tbody>${group
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>
@@ -307,7 +391,7 @@ export function mountHitTimeline(
         .map(
           (group, index) =>
             `<button type="button" class="hit-group" data-group="${index}" aria-expanded="false"
-          aria-label="${escapeHtml(hitGroupLabel(group, timeOffsetMs))}"></button>`
+          aria-label="${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}"></button>`
         )
         .join('');
     }
@@ -317,8 +401,11 @@ export function mountHitTimeline(
       const group = layout.groups[index]!;
       const first = group[0]!;
       const last = group.at(-1)!;
-      const left = layout.pad.left + (first.t / resolvedDuration) * layout.plotWidth - 7;
-      const width = Math.max(14, ((last.t - first.t) / resolvedDuration) * layout.plotWidth + 14);
+      const [start, end] = isCondition ? conditionWindow(group, timeOffsetMs, resolvedDuration) : [first.t, last.t];
+      const left = layout.pad.left + (start / resolvedDuration) * layout.plotWidth - (isCondition ? 0 : 7);
+      const width = isCondition
+        ? Math.max(1, ((end - start) / resolvedDuration) * layout.plotWidth)
+        : Math.max(14, ((end - start) / resolvedDuration) * layout.plotWidth + 14);
       button.style.left = `${left}px`;
       button.style.top = `${layout.pad.top}px`;
       button.style.width = `${width}px`;
@@ -329,9 +416,9 @@ export function mountHitTimeline(
 
       const showTooltip = (): void => {
         if (!tooltip || !layout) return;
-        tooltip.innerHTML = `<div><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs))}</b></div>
-          <div>First hit: ${hitTime(first.t + timeOffsetMs)}</div>
-          <div>Last hit: ${hitTime(last.t + timeOffsetMs)}</div>
+        tooltip.innerHTML = `<div><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b></div>
+          <div>First ${noun}: ${hitTime(first.t + timeOffsetMs)}</div>
+          <div>Last ${noun}: ${hitTime(last.t + timeOffsetMs)}</div>
           <div>Total damage: ${Math.round(group.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()}</div>`;
         tooltip.style.display = 'block';
         tooltip.style.left = `${Math.max(0, Math.min(left, layout.cssWidth - tooltip.offsetWidth))}px`;
