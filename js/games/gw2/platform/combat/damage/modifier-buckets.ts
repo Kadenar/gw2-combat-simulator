@@ -1,4 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
+import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 
 interface AdditiveDamageBucketOptions {
   readonly damageType?: 'strike' | 'condition';
@@ -14,7 +15,12 @@ function additiveSigil(
   readonly sigilBonus: number;
   readonly equipmentBonus: number;
 } {
-  const sigils = context.timeline?.activeSigilSetAt(context.time) || {};
+  // Match the base multiplier's live weapon set so later same-time swaps cannot change the bucket.
+  const runtimeSet = Number(context.runtime?.activeWeaponSet);
+  const sigils =
+    runtimeSet === 1 || runtimeSet === 2
+      ? gw2SigilSet(context.config || {}, runtimeSet)
+      : context.timeline?.activeSigilSetAt(context.time) || {};
   const factorValue = damageType === 'condition' ? sigils.condition : sigils.strike;
   const bonusValue = damageType === 'condition' ? sigils.conditionAdd : sigils.strikeAdd;
   const equipmentBonus = Number(context.damageAdditiveBonus || 0);

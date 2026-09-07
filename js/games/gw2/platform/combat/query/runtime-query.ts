@@ -1,4 +1,10 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
+import {
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  isDurationStackingBoon,
+  remainingDurationStackSeconds
+} from '#gw2/platform/combat/state/boons.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
@@ -55,15 +61,23 @@ export function playerHealthFraction(context: Gw2ModifierContext): number {
   return clamp(Number(context.config?.playerHealthFraction ?? 1), 0, 1);
 }
 
-/** Checks permanent, scheduled, and live player boon sources in runtime-precedence order. */
+/** Keeps permanent player boons while using live state to hide later same-time applications. */
 export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
-  if (context.timeline?.timedActive(boon, context.time)) return true;
-  return (context.runtime?.boons?.get(boon) || []).some(
+  if (!context.runtime) return Boolean(context.timeline?.timedActive(boon, context.time));
+  const applications = context.runtime.boons?.get(boon) || [];
+  if (isDurationStackingBoon(boon)) {
+    return (
+      remainingDurationStackSeconds(applications, context.time, {
+        includes: (application) => buffMatchesAudience(application, 'all'),
+        maximum: durationStackingBoonCapSeconds(boon)
+      }) > 0
+    );
+  }
+
+  return applications.some(
     (application) =>
-      application.resolvedAudience.includesSelf &&
-      application.at <= context.time &&
-      application.expiresAt > context.time
+      buffMatchesAudience(application, 'all') && application.at <= context.time && application.expiresAt > context.time
   );
 }
 

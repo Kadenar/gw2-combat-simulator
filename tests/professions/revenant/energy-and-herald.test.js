@@ -654,12 +654,13 @@ test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
     secondaryWeapon: 'Sword'
   });
 
-  destructiveWithForce.timeline = {
-    activeSigilSetAt: () => ({
+  // Live weapon-set queries resolve Force from the configured equipment.
+  destructiveWithForce.config.sigilSets = [
+    {
       strike: 1.05,
       strikeAdd: 0.05
-    })
-  };
+    }
+  ];
   assert.equal(revenantAttributeRules.modifyStrikeDamage(destructiveWithForce, 1.05), 1.125);
 
   const scars = simulate('Core', ['Enchanted Daggers', 'Phase Traversal'], {

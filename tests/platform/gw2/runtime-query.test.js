@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import {
   activeBoonStacks,
   boonActive,
@@ -21,6 +23,107 @@ function context(overrides = {}) {
     ...overrides
   };
 }
+
+test('additive damage uses the live weapon set before and after a same-time swap', () => {
+  const hit = { type: 'strike', at: 5 };
+  const swap = { type: 'weapon_set', at: 5, weaponSet: 2 };
+  const query = createGw2CombatQuery({
+    profession: {
+      id: 'test',
+      ...createModifierHooks({
+        rules: [
+          {
+            id: 'test.additive',
+            target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+            operation: 'damage-additive',
+            amount: 0.2
+          }
+        ]
+      })
+    },
+    config: {
+      sigilSets: [
+        { strike: 1.05, condition: 1.1 },
+        { strike: 1, condition: 1 }
+      ]
+    },
+    events: [hit, swap]
+  });
+  const runtime = { activeWeaponSet: 1 };
+
+  // The hit must remove the same sigil factor that the base multiplier used.
+  assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1.25);
+  assert.equal(query.conditionMultiplier('Burning', hit.at, hit, runtime), 1.3);
+  runtime.activeWeaponSet = swap.weaponSet;
+  assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1.2);
+  assert.equal(query.conditionMultiplier('Burning', hit.at, hit, runtime), 1.2);
+  assert.equal(query.strikeMultiplier(hit, hit.at), 1.2);
+  assert.equal(query.conditionMultiplier('Burning', hit.at, hit), 1.2);
+});
+
+test('boon-dependent damage sees same-time buffs only after their live application', () => {
+  const hit = { type: 'strike', at: 5 };
+  const buff = {
+    type: 'buff',
+    kind: 'fury',
+    at: 5,
+    duration: 5,
+    resolvedAudience: { includesSelf: true }
+  };
+  const query = createGw2CombatQuery({
+    profession: {
+      id: 'test',
+      ...createModifierHooks({
+        rules: [
+          {
+            id: 'test.fury',
+            target: MODIFIER_TARGET.STRIKE_DAMAGE,
+            operation: 'multiply',
+            factor: 1.1,
+            when: (current) => boonActive(current, 'fury')
+          }
+        ]
+      })
+    },
+    events: [hit, buff]
+  });
+  const runtime = { boons: new Map() };
+
+  // A completed timeline contains the buff even while the live hit precedes it.
+  assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1);
+  assert.equal(query.strikeMultiplier(hit, hit.at, {}), 1);
+  assert.equal(query.strikeMultiplier(hit, hit.at), 1.1);
+  assert.equal(boonActive(context({ runtime, config: { boons: { fury: true } } }), 'fury'), true);
+  runtime.boons.set('fury', [{ ...buff, expiresAt: 10 }]);
+  assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1.1);
+  assert.equal(query.strikeMultiplier(hit, 10, runtime), 1);
+});
+
+test('live boon presence respects duration pools, audience, and application windows', () => {
+  const applications = [0, 1].map((at) => ({
+    at,
+    duration: 3,
+    expiresAt: at + 3,
+    resolvedAudience: { includesSelf: true }
+  }));
+  const modifierContext = context({
+    runtime: {
+      boons: new Map([
+        ['fury', applications],
+        ['might', applications]
+      ])
+    }
+  });
+
+  // Duration stacks remain active after individual expiry times; intensity stacks do not.
+  assert.equal(boonActive(modifierContext, 'fury'), true);
+  assert.equal(boonActive({ ...modifierContext, time: 6 }, 'fury'), false);
+  assert.equal(boonActive(modifierContext, 'might'), false);
+  assert.equal(boonActive({ ...modifierContext, time: -1 }, 'might'), false);
+  assert.equal(boonActive({ ...modifierContext, time: 0 }, 'might'), true);
+  applications[1].resolvedAudience.includesSelf = false;
+  assert.equal(boonActive(modifierContext, 'fury'), false);
+});
 
 test('runtime skill lookup preserves event, application, and context fallback precedence', () => {
   const skillsById = new Map([
