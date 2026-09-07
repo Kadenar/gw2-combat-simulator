@@ -703,7 +703,6 @@
 
 .res-row-selected {
   background: rgba(181, 124, 224, 0.16);
-  box-shadow: inset 2px 0 0 #b57ce0;
 }
 
 .res-row-selected:hover {
@@ -1157,8 +1156,9 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   overflow: auto;
 }
 
+/* Keep proc sources and individual hit/tick columns together at the left edge. */
 .hit-detail-table table {
-  width: 100%;
+  width: auto;
   border-collapse: collapse;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
@@ -1167,7 +1167,7 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 .hit-detail-table th,
 .hit-detail-table td {
   padding: 4px 8px;
-  text-align: right;
+  text-align: left;
 }
 
 .hit-detail-table caption {
@@ -1175,20 +1175,9 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   color: var(--text-dim);
 }
 
-/* Keep proc timestamps and their triggering skills together at the left edge. */
-[data-role='skill-procs'] table {
-  width: auto;
-}
-
-[data-role='skill-procs'] th,
-[data-role='skill-procs'] td {
-  text-align: left;
-}
-
 .res-skill-timeline {
   margin: 2px 0 6px;
   padding: 6px 4px 2px;
-  border-left: 2px solid var(--accent, #b57ce0);
   background: rgba(181, 124, 224, 0.08);
   border-radius: 0 4px 4px 0;
 }
