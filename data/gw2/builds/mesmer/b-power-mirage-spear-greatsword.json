@@ -17,28 +17,13 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
-  "alternateWeaponPrefixes": [
-    "Berserker's",
-    "Berserker's"
-  ],
-  "weapons": [
-    "Spear",
-    ""
-  ],
-  "alternateWeapons": [
-    "Greatsword",
-    ""
-  ],
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Spear", ""],
+  "alternateWeapons": ["Greatsword", ""],
   "rune": "Deadeye",
   "weaponSigils": [
-    [
-      "Force",
-      "Accuracy"
-    ],
-    [
-      "Force",
-      "Accuracy"
-    ]
+    ["Force", "Accuracy"],
+    ["Force", "Accuracy"]
   ],
   "relic": "Peitha",
   "food": "Cilantro Lime Sous-Vide Steak",

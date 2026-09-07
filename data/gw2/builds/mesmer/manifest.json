@@ -28,6 +28,12 @@
     "section": "Mirage",
     "presets": [
       {
+        "label": "Power (Spear / Greatsword)",
+        "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
+        "benchmarkDps": 43469
+      },
+      {
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
