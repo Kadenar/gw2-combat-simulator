@@ -12,15 +12,16 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Heal',
     weapon: '',
     specialization: 'Mirage',
-    castTimeMs: 1440,
+    // Use the observed Quickness cast as the timing reference.
+    quicknessCastTimeMs: 960,
     cooldown: 25,
-    // False Oasis leaves its mirror three seconds after the cast finishes.
+    // The oasis starts pulsing during the cast; its mirror appears three seconds after that first pulse.
     mechanicTriggers: [
       {
         type: 'mesmer.mirage.create-mirror',
         count: 1,
-        atMs: 3000,
-        timingAnchor: 'castEnd',
+        atMs: 3240,
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
@@ -32,12 +33,13 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     specialization: 'Mirage',
     quicknessCastTimeMs: 371,
     cooldown: 20,
+    // The ground mirror appears when the sand projectiles converge, after their damage packets.
     mechanicTriggers: [
       {
         type: 'mesmer.mirage.create-mirror',
         count: 1,
-        atMs: 320,
-        timingAnchor: 'castEnd',
+        atMs: 1160,
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
@@ -149,6 +151,8 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
     effects: []
   },
   [ID.SPLIT_SURGE]: {
+    // Each beam and its statuses survive only if they land before the channel is interrupted.
+    interruptMode: 'per-packet',
     quicknessCastTimeMs: 960,
     cooldown: 0.5,
     ambush: true,
@@ -197,10 +201,9 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Action',
     specialization: 'Mirage',
     castTimeMs: 0,
-    rechargeAnchor: 'castStart',
-    cooldown: 10,
-    ammo: 2,
-    // Mirage dodge grants cloak and resolves dodge-triggered Mirage traits at completion.
+    cooldown: 0,
+    resourceCost: 50,
+    // Mirage dodge spends endurance, grants cloak, and resolves dodge-triggered traits at completion.
     mechanicTriggers: [
       {
         type: 'mesmer.mirage.dodge',

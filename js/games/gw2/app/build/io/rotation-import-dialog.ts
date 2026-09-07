@@ -176,12 +176,12 @@ function ensureStyles(document: Document): void {
     .rotation-import-warnings { margin:10px 0 0; color:var(--text-dim); font-size:11px; }
     .rotation-import-warning-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
     .rotation-import-warning-list li { padding:8px 10px; border:1px solid var(--border);
-      border-left:3px solid #a67c22; border-radius:5px; background:rgba(166,124,34,.06); line-height:1.45; }
+      border-radius:5px; background:rgba(166,124,34,.06); line-height:1.45; }
     .rotation-import-warning-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
     .rotation-import-observations { margin:10px 0 0; font-size:11px; }
     .rotation-import-observation-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
     .rotation-import-observation-list li { padding:9px 10px; border:1px solid var(--border);
-      border-left:3px solid var(--accent); border-radius:5px; background:rgba(102,170,255,.06); line-height:1.45; }
+      border-radius:5px; background:rgba(102,170,255,.06); line-height:1.45; }
     .rotation-import-observation-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
     .rotation-import-observation-summary { color:var(--text); }
     .rotation-import-observation-detail { display:block; margin-top:4px; color:var(--text-dim); }

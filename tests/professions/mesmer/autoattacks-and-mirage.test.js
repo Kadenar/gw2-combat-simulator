@@ -609,7 +609,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
   assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
 });
 
-test('dodge uses two endurance charges and recharges one charge every ten seconds', () => {
+test('Mirage dodge spends 50 endurance and waits for continuous regeneration', () => {
   const result = simulateMesmer(
     ['Dodge / Mirage Cloak', 'Dodge / Mirage Cloak', 'Dodge / Mirage Cloak'],
     defaultSimulationConfig({
@@ -626,16 +626,46 @@ test('dodge uses two endurance charges and recharges one charge every ten second
     result.steps.map((step) => step.start),
     [0, 0, 10000]
   );
-  assert.deepEqual(
-    {
-      charges: result.endState.ammo['Dodge / Mirage Cloak'].charges,
-      maximum: result.endState.ammo['Dodge / Mirage Cloak'].maximum
-    },
-    { charges: 0, maximum: 2 }
-  );
+  assert.ok(result.endState.profession.endurance < 0.01);
+  assert.equal(result.endState.profession.maximumEndurance, 100);
+  assert.equal(result.endState.ammo['Dodge / Mirage Cloak'], undefined);
 });
 
-// Vigor contributes only while active, and serial charge recovery returns to base speed after expiry.
+// Endurance grants preserve fractional regeneration and cap the total, independent of skill cooldown modifiers.
+test('Mirage endurance preserves partial regeneration through Energy sigil grants and feeds its palette bar', () => {
+  const config = {
+    specialization: 'Mirage',
+    initialResource: 0,
+    boons: { vigor: false },
+    sigilSets: [{ names: ['Energy'] }, { names: ['Energy'] }]
+  };
+  for (const [dodges, expected] of [
+    [1, 100],
+    [2, 55]
+  ]) {
+    const result = simulateMesmer(
+      [
+        '__combat_start',
+        ...Array(dodges).fill('Dodge / Mirage Cloak'),
+        { name: '__wait', waitMs: 1000 },
+        'Swap Weapons'
+      ],
+      config
+    );
+    assert.ok(Math.abs(result.endState.profession.endurance - expected) < 0.01);
+    assert.equal(result.endState.ammo['Dodge / Mirage Cloak'], undefined);
+    const view = mesmerProfession.ui
+      .resourceViews({ specialization: 'Mirage', professionState: result.endState.profession })
+      .find((resource) => resource.id === 'endurance');
+    assert.equal(view.value, result.endState.profession.endurance);
+    assert.equal(view.maximum, 100);
+    assert.equal(view.displayMode, 'bar');
+    assert.equal(view.paletteSkillId, ID.DODGE_MIRAGE_CLOAK);
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
+// Vigor contributes only while active, and continuous regeneration returns to base speed after expiry.
 test("Nomad's Endurance accelerates dodge recovery across application and expiry", () => {
   const dodge = { type: 'cast', skillId: ID.DODGE_MIRAGE_CLOAK };
   const wait = (durationMs) => ({ type: 'wait', durationMs });
@@ -795,6 +825,47 @@ test('a weapon swap after Fractured Glass packets keeps the spear ambush', () =>
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Fractured Glass').length,
     7
   );
+});
+
+// A partial channel keeps its landed beam prefix and only the statuses belonging to those hits.
+test('interrupting Split Surge preserves landed beams without committing the rest of the channel', () => {
+  for (const [interruptMs, expectedTimes] of [
+    [320, []],
+    [480, [360]],
+    [640, [360, 520]],
+    [720, [360, 520, 680]]
+  ]) {
+    const result = simulateMesmer(['Dodge / Mirage Cloak', { name: 'Split Surge', interruptMs }], {
+      specialization: 'Mirage',
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: '',
+      initialResource: 0
+    });
+    const cast = result.steps.find((step) => step.skill === 'Split Surge');
+    const relativeTimes = (events) => events.map((event) => Math.round(event.at * 1000 - cast.start));
+    assert.deepEqual(
+      relativeTimes(result.events.filter((event) => event.type === 'damage' && event.skillName === 'Split Surge')),
+      expectedTimes
+    );
+    assert.deepEqual(
+      relativeTimes(
+        result.events.filter(
+          (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'might'
+        )
+      ),
+      expectedTimes
+    );
+    assert.deepEqual(
+      relativeTimes(
+        result.events.filter(
+          (event) =>
+            event.type === 'condition' && event.skillName === 'Split Surge' && event.condition === 'Vulnerability'
+        )
+      ),
+      expectedTimes
+    );
+    assert.deepEqual(result.warnings, []);
+  }
 });
 
 test('Split Surge resolves its three beam packets with per-hit Might and Vulnerability', () => {
@@ -1249,6 +1320,35 @@ test("Nomad's Endurance and Phantom Pain add together while excluding phantasm s
   assert.ok(Math.abs(conditionDamage(modified) / conditionDamage(baseline) - 1.25) < 1e-12);
 });
 
+// Queueing through a cast lockout preserves a selected ambush; explicitly waiting afterward lets it expire.
+test('Mirage can queue an ambush before its window closes without extending the idle window', () => {
+  for (const waitMs of [0, 40]) {
+    const result = simulateMesmer(
+      [
+        'Dodge / Mirage Cloak',
+        { name: '__wait', waitMs: 1000 },
+        'Mind the Gap',
+        ...(waitMs ? [{ name: '__wait', waitMs }] : []),
+        'Fractured Glass'
+      ],
+      defaultSimulationConfig({
+        specialization: 'Mirage',
+        primaryWeapon: 'Spear',
+        secondaryWeapon: '',
+        selectedTraitIds: []
+      })
+    );
+    const ambush = result.steps.find((step) => step.skill === 'Fractured Glass');
+    assert.equal(Boolean(ambush.invalid), waitMs > 0);
+    if (!waitMs) {
+      assert.equal(ambush.start, 1600);
+      assert.deepEqual(result.warnings, []);
+    } else {
+      assert.deepEqual(result.warnings, ['Fractured Glass has no active Mirage Cloak ambush window.']);
+    }
+  }
+});
+
 test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', () => {
   const result = simulateMesmer(
     ['Crystal Sands', 'Pick Up Mirage Mirror'],
@@ -1270,7 +1370,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
 
   assert.deepEqual(result.warnings, []);
   assert.ok(Math.abs(crystal.at - 0.691) < 0.00001);
-  assert.ok(Math.abs(mirror.at - 0.691) < 0.00001);
+  assert.ok(Math.abs(mirror.at - 1.16) < 0.00001);
   assert.equal(confusion.at, crystal.at);
   assert.equal(confusion.stacks, 6);
   assert.equal(confusion.duration, 4);
@@ -1283,7 +1383,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   );
 });
 
-test('False Oasis creates its Mirage Mirror three seconds after cast completion', () => {
+test('False Oasis creates its Mirage Mirror three seconds after the first pulse', () => {
   const result = simulateMesmer(
     ['False Oasis', 'Pick Up Mirage Mirror'],
     defaultSimulationConfig({
@@ -1299,9 +1399,11 @@ test('False Oasis creates its Mirage Mirror three seconds after cast completion'
 
   assert.deepEqual(result.warnings, []);
   assert.ok(falseOasis);
+  assert.equal(falseOasis.end - falseOasis.start, 960);
   assert.ok(mirror);
-  assert.ok(Math.abs(mirror.at - (falseOasis.end / 1000 + 3)) < 0.00001);
+  assert.ok(Math.abs(mirror.at - (falseOasis.start / 1000 + 3.24)) < 0.00001);
   assert.equal(result.endState.profession.availableMirrors, 0);
+  assert.equal(result.endState.profession.endurance, 100, 'Picking up a mirror must not spend endurance');
 });
 
 test('Mirage Mirror palette availability follows active ground mirrors', () => {

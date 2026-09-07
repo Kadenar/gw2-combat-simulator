@@ -16,6 +16,7 @@ const GUIDS = Object.freeze({
   diversion: '916D8385083F144EBAA5BEEDE21FD47A',
   distortionOrMindWrack: '3D29ABD39CB5BD458C4D50A22FCC0E4B',
   mirageMirror: '1370CDF5F2061445A656A1D77C37A55C',
+  mirageTeleport: 'D7A05478BA0E164396EB90C037DCCF42',
   mesmerTeleport: 'C34E250B01FF534292EE6AB36D768337',
   bladeturnRequiem: '87B761200637AC48B71469F553BA6F60',
   thousandCuts: 'E4002B7AD7DF024394D0184B47A316E7'
@@ -374,15 +375,28 @@ test('preserves an interrupted Mesmer autoattack so replay can apply its chain s
         stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
         activation: EVTC_ACTIVATION.CANCEL_CANCEL
       }),
-      direct(10212, 12_000)
+      direct(10212, 12_000),
+      event({ time: 13_000, value: 900, skillId: 73066, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 13_200,
+        value: 200,
+        skillId: 73066,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      })
     ]
   );
 
   const result = reconstructEvtcRotation(fixture, { skills: [psystrike, powerSpike] });
 
-  assert.equal(names(result, 'Psystrike').length, 1);
-  assert.equal(names(result, 'Psystrike')[0].status, 'interrupted');
-  assert.equal(result.rotation.find((command) => command.name === 'Psystrike')?.interruptMs, 200);
+  assert.deepEqual(
+    names(result, 'Psystrike').map((action) => action.status),
+    ['interrupted', 'interrupted']
+  );
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === 'Psystrike').map((command) => command.interruptMs),
+    [200, 200]
+  );
 });
 
 test('matches partial Mesmer handler packets while snapping an unrelated autoattack cancellation to action ticks', () => {
@@ -826,7 +840,8 @@ test('reconstructs Mirage cloak sources and shatters without packet spam', () =>
       skillId: 40408,
       buff: 1
     }),
-    effect(202, 12_000),
+    event({ time: 11_500, skillId: 202, stateChange: 60, pad: 1 }),
+    event({ time: 12_000, source: 0n, stateChange: 61, pad: 1 }),
     event({
       time: 12_000,
       target: PLAYER,
@@ -875,6 +890,86 @@ test('reconstructs Mirage cloak sources and shatters without packet spam', () =>
   assert.equal(names(result, 'Cry of Frustration').length, 1);
   assert.equal(names(result, 'Diversion').length, 1);
   assert.equal(names(result, 'Distortion').length, 1);
+});
+
+// Mirror creation is not a pickup: only owned removal or direct damage can classify a nearby cloak gain.
+test('classifies Mirage cloak using owned mirror removal and tolerates delayed pickup damage', () => {
+  const skills = [
+    skill(-1, 'Dodge / Mirage Cloak', { type: 'Action', slot: 'Action' }),
+    skill(-2, 'Pick Up Mirage Mirror', { type: 'Action', slot: 'Action' })
+  ];
+  for (const stateChange of [EVTC_STATE_CHANGE.NONE, EVTC_STATE_CHANGE.BUFF_APPLY]) {
+    const cloak = (time) => event({ time, target: PLAYER, value: 800, skillId: 40408, buff: 1, stateChange });
+    const fixture = mesmerLog(59, skills, [
+      guidMapping(GUIDS.mirageMirror, 202),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ time: 11_000, skillId: 202, stateChange: 60, pad: 3 }),
+      cloak(11_000),
+      event({ time: 12_000, source: 0n, stateChange: 61, pad: 3 }),
+      cloak(12_000),
+      // A reused ID for another effect must not remain associated with the old mirror.
+      event({ time: 13_000, skillId: 999, stateChange: 60, pad: 3 }),
+      event({ time: 14_000, source: 0n, stateChange: 61, pad: 3 }),
+      cloak(14_000),
+      event({ time: 15_000, source: TARGET, skillId: 202, stateChange: 60, pad: 7 }),
+      event({ time: 16_000, source: 0n, stateChange: 61, pad: 7 }),
+      cloak(16_000),
+      cloak(17_000),
+      direct(44677, 17_050),
+      direct(44677, 17_050),
+      cloak(18_000),
+      direct(44677, 18_051)
+    ]);
+    const result = reconstructEvtcRotation(fixture, { skills });
+    assert.deepEqual(
+      names(result, 'Pick Up Mirage Mirror').map((action) => action.timestampMs),
+      [2000, 7000]
+    );
+    assert.deepEqual(
+      names(result, 'Dodge / Mirage Cloak').map((action) => action.timestampMs),
+      [1000, 4000, 6000, 8000]
+    );
+  }
+});
+
+// Shared teleport effects identify Illusionary Ambush only when another recorded teleport cannot explain them.
+test('distinguishes Illusionary Ambush cloak from dodges and overlapping Jaunt or Axes of Symmetry', () => {
+  const skills = [
+    skill(-1, 'Dodge / Mirage Cloak', { type: 'Action', slot: 'Action' }),
+    skill(45046, 'Illusionary Ambush', { type: 'Utility', slot: 'Utility_1' }),
+    skill(45449, 'Jaunt', { type: 'Elite', slot: 'Elite' }),
+    skill(43761, 'Axes of Symmetry', { type: 'Weapon', slot: 'Weapon_3', quicknessCastTimeMs: 500 })
+  ];
+  const cloak = (time) => event({ time, target: PLAYER, value: 800, skillId: 40408, buff: 1 });
+  const fixture = mesmerLog(59, skills, [
+    guidMapping(GUIDS.mirageTeleport, 202),
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    cloak(11_000),
+    effect(202, 11_001),
+    cloak(12_000),
+    cloak(13_000),
+    effect(202, 13_001),
+    direct(45449, 13_000),
+    event({ time: 14_000, value: 500, skillId: 43761, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+    cloak(14_300),
+    effect(202, 14_301),
+    event({
+      time: 14_500,
+      value: 500,
+      skillId: 43761,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE
+    })
+  ]);
+  const result = reconstructEvtcRotation(fixture, { skills });
+  assert.deepEqual(
+    names(result, 'Illusionary Ambush').map((action) => action.timestampMs),
+    [1000]
+  );
+  assert.deepEqual(
+    names(result, 'Dodge / Mirage Cloak').map((action) => action.timestampMs),
+    [2000, 3000, 4300]
+  );
 });
 
 test('ignores Blurred Inscriptions distortion buffs without a shatter effect', () => {

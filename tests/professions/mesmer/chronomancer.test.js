@@ -234,7 +234,7 @@ test('Mind the Gap grants its clone before a concurrent two-clone Continuum Spli
   );
   const clone = result.events.find((event) => event.type === 'resource' && event.reason === 'Mind the Gap');
 
-  assert.equal(Math.round(clone.at * 1000 - result.steps[0].start), 480);
+  assert.equal(Math.round(clone.at * 1000 - result.steps[0].start), 485);
   assert.deepEqual(shatterResourceSpends(result).get(1), {
     count: 2,
     resource: 'clones',

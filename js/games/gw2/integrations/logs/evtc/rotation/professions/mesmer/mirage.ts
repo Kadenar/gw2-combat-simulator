@@ -11,6 +11,7 @@ import {
   directSkillSignals,
   effectSignals,
   hasNearbyAction,
+  selectedSkill,
   type MesmerActionIdentity,
   type MesmerSignal
 } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/shared.js';
@@ -30,6 +31,9 @@ const DIVERSION = Object.freeze({ name: 'Diversion', skillId: 10287 });
 const MIRAGE_CLOAK_BUFF = 40408;
 const DISTORTION_BUFF = 10243;
 const MIRAGE_MIRROR_DAMAGE = 44677;
+const ILLUSIONARY_AMBUSH = Object.freeze({ name: 'Illusionary Ambush', skillId: 45046 });
+const AXES_OF_SYMMETRY = Object.freeze({ name: 'Axes of Symmetry', skillId: 43761 });
+const JAUNT = Object.freeze({ name: 'Jaunt', skillId: 45449 });
 
 /**
  * Selects and clusters the primary evidence for one Mirage shatter, preferring direct player damage over the effect
@@ -79,19 +83,47 @@ function shatterActions(
 }
 
 /**
- * Converts Mirage Cloak gains into either Dodge or Pick Up Mirage Mirror actions by correlating each gain with nearby
- * mirror effect or damage evidence, preserving initial cloak state as a precast.
+ * Matches ground-mirror removal to its owned creation so a nearby cloak gain identifies a pickup, not a dodge at
+ * spawn time. Clear tracking IDs on every creation/removal because the log can reuse them for unrelated effects.
+ */
+function mirrorRemovalSignals(context: EvtcProfessionReconstructionContext): MesmerSignal[] {
+  const creations = new Set(effectSignals(context, MESMER_EFFECT_GUIDS.mirageMirror).map(({ event }) => event));
+  const active = new Set<number>();
+  const signals: MesmerSignal[] = [];
+  for (const [eventIndex, event] of context.log.events.entries()) {
+    if (event.stateChange !== 60 && event.stateChange !== 61) continue;
+    if (event.pad === 0) continue;
+    if (event.stateChange === 60) {
+      if (creations.has(event)) active.add(event.pad);
+      else active.delete(event.pad);
+    } else if (active.delete(event.pad)) {
+      signals.push({ event, eventIndex });
+    }
+  }
+
+  return signals;
+}
+
+/**
+ * Separates dodges, mirror pickups, and Illusionary Ambush using removal, damage, and teleport evidence; preserves
+ * initial cloak as a precast and leaves the longer Dune Cloak gain to its recorded shatter.
  */
 function mirageCloakActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  // Modern logs can mix mirror-creation effects with direct pickup damage, so merge both channels before deciding
-  // whether a cloak gain spent endurance or consumed a mirror.
+  // Removal covers pickups outside damage range; direct damage also supports logs without tracked ground effects.
   const mirrorSignals = [
-    ...effectSignals(context, MESMER_EFFECT_GUIDS.mirageMirror),
+    ...mirrorRemovalSignals(context),
     ...directSkillSignals(context, new Set([MIRAGE_MIRROR_DAMAGE]))
   ];
+  // Illusionary Ambush grants cloak without an animation. Its teleport effect is shared with Jaunt and Axes of
+  // Symmetry, so reject those recorded inputs before attributing an otherwise unmatched cloak to the utility.
+  const teleportSignals =
+    selectedSkill(context, ILLUSIONARY_AMBUSH) === false
+      ? []
+      : effectSignals(context, MESMER_EFFECT_GUIDS.mirageTeleport);
+  const jauntSignals = directSkillSignals(context, new Set([JAUNT.skillId]));
 
   return buffGainSignals(context, MIRAGE_CLOAK_BUFF, true)
     .filter(
@@ -101,7 +133,17 @@ function mirageCloakActions(
     )
     .flatMap((signal) => {
       const mirror = mirrorSignals.some((candidate) => Math.abs(candidate.event.time - signal.event.time) <= 50);
-      const identity = mirror ? PICK_UP_MIRAGE_MIRROR : DODGE;
+      const teleport = teleportSignals.some((candidate) => Math.abs(candidate.event.time - signal.event.time) <= 50);
+      const otherTeleport =
+        jauntSignals.some((candidate) => Math.abs(candidate.event.time - signal.event.time) <= 100) ||
+        hasNearbyAction(actions, JAUNT, signal.event.time, 100) ||
+        actions.some(
+          (action) =>
+            (action.canonicalSkillId ?? action.rawSkillId) === AXES_OF_SYMMETRY.skillId &&
+            signal.event.time >= action.start - 100 &&
+            signal.event.time <= action.end + 100
+        );
+      const identity = mirror ? PICK_UP_MIRAGE_MIRROR : teleport && !otherTeleport ? ILLUSIONARY_AMBUSH : DODGE;
       if (hasNearbyAction(actions, identity, signal.event.time, 100)) return [];
       return [
         canonicalAction(

@@ -181,6 +181,88 @@ test('Mental Collapse resets Mind the Gap cooldown', () => {
   assert.equal(resetOnly.endState.cooldowns['Mind the Gap'], undefined);
 });
 
+// A shatter on the impact frame consumes existing clones before the attack's deferred clone arrives.
+test('Mind the Gap preserves its deferred clone when shattering on its impact frame', () => {
+  const result = simulateMesmer(
+    ['Mind the Gap', { name: 'Mind Wrack', offset: 480 }],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      initialResource: 3,
+      selectedTraitIds: [TRAIT.DUNE_CLOAK]
+    })
+  );
+  assert.equal(result.endState.profession.resource, 1);
+  assert.deepEqual(result.warnings, []);
+});
+
+// Verify the commit boundary independently of any saved rotation, including Mind the Gap's retained casting lane.
+test('Mind the Gap and Phantasmal Berserker commit at 520 ms', () => {
+  for (const [name, weapon, next, lockout] of [
+    ['Mind the Gap', 'Spear', 'Psycut', 600],
+    ['Phantasmal Berserker', 'Greatsword', 'Mind Stab', 520]
+  ]) {
+    for (const interruptMs of [480, 520]) {
+      const result = simulateMesmer([{ name, interruptMs }, next, { name: '__wait', waitMs: 2000 }], {
+        specialization: 'Mirage',
+        primaryWeapon: weapon,
+        secondaryWeapon: '',
+        initialResource: 0
+      });
+      const committed = interruptMs === 520;
+      assert.equal(
+        result.events.some((event) => event.type === 'damage' && event.skillName === name),
+        committed,
+        name
+      );
+      assert.equal(
+        result.steps.find((step) => step.skill === next).start,
+        name === 'Mind the Gap' ? lockout : interruptMs
+      );
+      if (name === 'Phantasmal Berserker') {
+        assert.equal(
+          result.events.some((event) => event.type === 'mesmer.phantasm-summoned' && event.name === name),
+          committed
+        );
+      }
+
+      assert.deepEqual(result.warnings, []);
+    }
+  }
+});
+
+// Both ordinary and trait-added bounces survive only after the projectile and its clone have committed.
+test('Mirror Blade commits its clone and persistent bounces at 560 ms', () => {
+  for (const interruptMs of [520, 560]) {
+    const result = simulateMesmer(
+      [
+        { name: 'Mirror Blade', interruptMs },
+        { name: '__wait', waitMs: 2000 }
+      ],
+      {
+        specialization: 'Mirage',
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: '',
+        initialResource: 0,
+        selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES]
+      }
+    );
+    const committed = interruptMs === 560;
+    assert.equal(result.endState.profession.resource, committed ? 1 : 0);
+    const damage = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Mirror Blade');
+    assert.equal(
+      damage.some((event) => event.at * 1000 > interruptMs && event.sourceId === ID.MIRROR_BLADE),
+      committed
+    );
+    assert.equal(
+      damage.some((event) => event.at * 1000 > interruptMs && event.sourceId === TRAIT.BOUNTIFUL_BLADES),
+      committed
+    );
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
 test('Mind the Gap grants 15 seconds of Clarity and displays it as a skill proc', () => {
   const result = simulateMesmer(
     ['Mind the Gap'],

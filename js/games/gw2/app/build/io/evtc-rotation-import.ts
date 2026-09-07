@@ -89,13 +89,13 @@ function serratedSteelImportObservation(result: EngineerSerratedSteelObservation
   );
 }
 
-/** Explains how clone-owned criticals pair with player-attributed Sharper Images applications. */
+/** Reports observed Sharper Images procs because clone critical hits always trigger Bleeding. */
 function sharperImagesImportObservation(result: MesmerSharperImagesObservation | null): RotationImportObservation[] {
   if (!result) return [];
   return [
     {
       title: 'Sharper Images',
-      summary: `${result.matchedApplications} of ${result.cloneCriticalHits} owned-clone critical hits were observed to apply Bleeding.`,
+      summary: `Observed ${result.matchedApplications} Sharper Images procs from clone critical hits.`,
       detail: `ArcDPS records the strike on the clone but attributes the corresponding Bleeding application to the player. Applications were paired within 50 ms and matched the active build's ${durationList(result.matchedDurationsMs)} duration. Phantasm hits are excluded.`
     }
   ];

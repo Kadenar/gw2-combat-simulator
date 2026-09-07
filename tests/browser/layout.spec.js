@@ -8,6 +8,30 @@ async function openSimulator(page, viewport = { width: 1280, height: 900 }) {
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 }
 
+// The real palette must show projected endurance under Mirage Dodge without exposing an ammo counter.
+test('Mirage dodge displays its continuously regenerated endurance', async ({ page }) => {
+  await openSimulator(page);
+  await page.evaluate(async () => {
+    const app = window.professionApp;
+    const saved = await (await fetch('/data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json')).json();
+    app.build = app.adapter.toApplicationBuild({
+      ...saved,
+      rotation: [
+        { type: 'cast', skillId: -1 },
+        { type: 'cast', skillId: -1 },
+        { type: 'wait', durationMs: 1000 }
+      ]
+    });
+    app.changed();
+  });
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  const dodge = page.locator('.pal-skill[data-skill="Dodge / Mirage Cloak"]');
+  await expect(dodge.locator('.pal-skill-resource')).toHaveAttribute('data-resource-id', 'endurance');
+  await expect(dodge.locator('.pal-skill-resource')).toHaveAttribute('aria-valuenow', '7.5');
+  await expect(dodge.locator('.pal-ammo-pip')).toHaveCount(0);
+  await expect(dodge).not.toHaveAttribute('title', /ammo|Count recharge/);
+});
+
 // Injected dialogs and numeric controls must resolve the shared theme instead of falling back to transparent surfaces.
 test('import and hotkey controls use the shared surface and numeric font', async ({ page }) => {
   await openSimulator(page);

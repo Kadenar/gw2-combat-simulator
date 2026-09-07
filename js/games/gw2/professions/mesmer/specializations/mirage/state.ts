@@ -4,6 +4,10 @@ import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/
 
 export function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageState {
   return {
+    // Mirage starts with two dodges' worth of continuously regenerating endurance.
+    endurance: 100,
+    maximumEndurance: 100,
+    enduranceUpdatedAt: 0,
     ambushUntil: 0,
     ambushSource: '',
     cloneAmbushUntil: 0,

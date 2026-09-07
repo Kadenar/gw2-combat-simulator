@@ -1,6 +1,7 @@
 /** Owns imperative Core Mesmer Domination trait effects. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -9,6 +10,12 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 export function scheduleBountifulBlades(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = context.mesmerRuntime;
   if (skill.id !== ID.MIRROR_BLADE || !runtime?.traits.has(TRAIT.BOUNTIFUL_BLADES)) return;
+  // Trait bounces belong to the launched projectile and use the same commit boundary as its base packets.
+  if (
+    context.effectiveEnd < context.fullEnd - EPSILON &&
+    (context.effectiveEnd - context.start) * 1000 + EPSILON * 1000 < Number(skill.interruptCommitMs)
+  )
+    return;
   const effect = balanceProfileEffectFromContext(context, TRAIT.BOUNTIFUL_BLADES, 'strike');
   if (effect?.type !== 'strike') return;
   runtime.addDamage(
@@ -16,6 +23,7 @@ export function scheduleBountifulBlades(context: MesmerCastContext, skill: Mesme
     context.start,
     {
       ticks: effect.ticks,
+      persistsAfterInterrupt: true,
       name: 'Additional target hits from Bountiful Blades'
     },
     { sourceId: TRAIT.BOUNTIFUL_BLADES }

@@ -565,7 +565,7 @@ test('replays a completed cast only through its committed aftercast boundary', (
   assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 440 }]);
 });
 
-test('right-aligns damage-inferred ammo flips within an active cast', () => {
+test('preserves damage-inferred ammo flip timing despite idle time after the containing cast', () => {
   const fixture = log({
     skills: [...log().skills, { id: 4_000, name: 'Ammo Flip' }],
     events: [
@@ -610,7 +610,7 @@ test('right-aligns damage-inferred ammo flips within an active cast', () => {
   });
   const ammoFlip = result.actions.find((action) => action.name === 'Ammo Flip');
 
-  assert.equal(ammoFlip.timestampMs, 700);
+  assert.equal(ammoFlip.timestampMs, 300);
 });
 
 test('pairs a stop before the next same-millisecond animation start', () => {

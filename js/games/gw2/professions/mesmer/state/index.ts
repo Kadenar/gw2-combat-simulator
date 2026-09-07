@@ -55,6 +55,9 @@ export function snapshotMesmerState(stateInput: unknown): MesmerStateSnapshot {
     ineptitudeReadyAt: Number(state.ineptitudeReadyAt || 0),
     clarityUntil: Number(state.clarityUntil || 0),
     ambushUntil: Number(state.ambushUntil || 0),
+    ...(state.endurance == null
+      ? {}
+      : { endurance: Number(state.endurance), maximumEndurance: Number(state.maximumEndurance) }),
     mirrors: Array.isArray(state.mirrors) ? [...state.mirrors] : [],
     riddleOfSandReady: Boolean(state.riddleOfSandReady),
     timeBombUntil: Number(state.timeBombUntil || 0)
@@ -111,6 +114,9 @@ export function projectMesmerEndState({
         : null,
     ...(config.specialization === 'Mirage'
       ? {
+          // Publish real endurance for the palette bar and projected availability.
+          endurance: publicState.endurance,
+          maximumEndurance: publicState.maximumEndurance,
           availableMirrors: (publicState.mirrors || []).filter(
             (mirror) => mirror.availableAt <= endTime + EPSILON && mirror.expiresAt > endTime + EPSILON
           ).length

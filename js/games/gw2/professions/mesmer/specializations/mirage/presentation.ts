@@ -3,7 +3,8 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import {
   mesmerMechanicPaletteGroups,
   mesmerMechanicSkillBarGroups,
-  mesmerResourceViews
+  mesmerResourceViews,
+  mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
 import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
 import type {
@@ -52,12 +53,28 @@ export const mirageUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
   effectPresentations: mirageEffectPresentations,
   paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, MIRAGE_MECHANIC_SKILLS, 'clones'),
   skillBarGroups: () => mesmerMechanicSkillBarGroups('Shatters', MIRAGE_MECHANIC_SKILLS),
-  resourceViews: (context: MesmerUiContext) =>
-    mesmerResourceViews(context, {
+  resourceViews: (context: MesmerUiContext) => [
+    ...mesmerResourceViews(context, {
       id: 'clones',
       singular: 'clone',
       plural: 'clones',
       maximum: 3
     }),
+    // Reuse the shared endurance bar under Dodge while keeping clone pips above the shatters.
+    {
+      id: 'endurance',
+      singular: 'endurance',
+      plural: 'endurance',
+      maximum: Number(mesmerUiState(context).maximumEndurance ?? 100),
+      value: Number(mesmerUiState(context).endurance ?? 100),
+      canStart: false,
+      step: 1,
+      displayMode: 'bar',
+      pipStyle: 'endurance',
+      shortLabel: 'End',
+      statusLabel: 'Current',
+      paletteSkillId: ID.DODGE_MIRAGE_CLOAK
+    }
+  ],
   paletteSkillAvailability: miragePaletteSkillAvailability
 });

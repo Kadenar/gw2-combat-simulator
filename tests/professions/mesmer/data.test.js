@@ -993,13 +993,13 @@ test('supplied shatter and instrument coefficient tables are preserved', () => {
   );
 });
 
-test('dodge models two endurance charges with a ten-second base recharge', () => {
+test('Mirage dodge spends endurance without ammo or cooldown', () => {
   const dodge = PSEUDO_SKILLS.find((skill) => skill.name === 'Dodge / Mirage Cloak');
 
-  assert.equal(dodge.cooldown, 10);
-  assert.equal(dodge.ammo, 2);
+  assert.equal(dodge.cooldown, 0);
+  assert.equal(dodge.ammo, undefined);
+  assert.equal(dodge.resourceCost, 50);
   assert.equal(dodge.castTimeMs, 0);
-  assert.equal(dodge.rechargeAnchor, 'castStart');
 });
 
 test('Mesmer supplemental identities and dynamic handler profiles are explicit', () => {

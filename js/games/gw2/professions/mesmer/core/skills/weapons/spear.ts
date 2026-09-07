@@ -93,13 +93,16 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Spear',
     specialization: '',
     quicknessCastTimeMs: 600,
+    // Committed interrupts preserve the attack while its full cast still occupies the casting lane.
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 5,
-    // Mind the Gap creates its clone with the observed impact packet, before the cast-end cooldown is applied.
+    // Keep the observed 485 ms impact after the 480 ms input tick so a just-prior shatter cannot consume this clone.
     resource: {
       mode: 'add',
       count: 1,
       timingAnchor: 'castStart',
-      atMs: 480
+      atMs: 485
     },
     effects: [
       {
@@ -108,7 +111,11 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         hits: 1,
         name: 'Outer-edge damage',
         actorType: 'player',
-        weapon: 'spear'
+        weapon: 'spear',
+        // The impact lands before the retained aftercast, alongside the clone gain.
+        atMs: 485,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

@@ -1,7 +1,9 @@
 import {
   committedActionsFromStrikePackets,
-  isRecordedAutoattack
+  isRecordedAutoattack,
+  skillForAction
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { quicknessRuntimeDurationMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -77,6 +79,10 @@ export function removeUncommittedMesmerAutoattacks(
     // Preserve a recorded interrupted chain attempt: the simulator cancels its
     // effects and resets the chain instead of treating idle time as the input.
     if (action.status === 'interrupted') return true;
+
+    // CANCEL_FIRE can also stop an animation before its first packet; retain that short input for replay cancellation.
+    const duration = action.end - action.start;
+    if (duration > 0 && duration < quicknessRuntimeDurationMs(skillForAction(context, action))) return true;
 
     // Clone packets reuse the player's autoattack IDs. Only player-source damage
     // proves that a recorded player animation committed and should advance the replay chain.

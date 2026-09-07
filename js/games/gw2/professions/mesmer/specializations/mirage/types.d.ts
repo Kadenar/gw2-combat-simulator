@@ -9,6 +9,9 @@ export interface MesmerMirageMirror {
 }
 
 export interface MesmerMirageState {
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
   ambushUntil: number;
   ambushSource: string;
   cloneAmbushUntil: number;

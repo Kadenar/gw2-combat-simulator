@@ -67,6 +67,8 @@ export interface MesmerResolverState {
 }
 
 export interface MesmerStateSnapshot {
+  endurance?: number;
+  maximumEndurance?: number;
   cloneCount: number;
   numericResource: number;
   instruments: [string, number][];
@@ -96,6 +98,8 @@ export interface MesmerProjectedFlip {
 }
 
 export interface MesmerEndState extends SchedulerRecord {
+  readonly endurance?: number;
+  readonly maximumEndurance?: number;
   readonly resource: number;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly clarityRemaining: number;
