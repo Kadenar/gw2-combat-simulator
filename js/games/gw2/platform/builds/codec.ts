@@ -234,7 +234,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 
   function toApplicationBuild(build: unknown): Gw2ApplicationBuild {
     const migrated = migrateBuild(build);
-    // Application state now shares the canonical command model produced by migration.
+    // Application timings assume permanent Quickness, including when restoring older builds.
+    migrated.assumptions.quickness = true;
     return migrated;
   }
 

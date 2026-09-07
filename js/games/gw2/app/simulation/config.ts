@@ -159,7 +159,8 @@ export function createGw2SimulationConfig({
     boons: {
       might: disabled?.type === 'Boon' && disabled.name === 'Might' ? 0 : Number(assumptions.might || 0),
       fury: disabled?.type === 'Boon' && disabled.name === 'Fury' ? false : Boolean(assumptions.fury),
-      quickness: Boolean(assumptions.quickness),
+      // Keep every application simulation on the calibrated permanent-Quickness timeline.
+      quickness: true,
       alacrity: Boolean(assumptions.alacrity),
       protection: Boolean(assumptions.protection),
       resolution: disabled?.type === 'Boon' && disabled.name === 'Resolution' ? false : Boolean(assumptions.resolution),

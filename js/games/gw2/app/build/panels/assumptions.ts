@@ -19,7 +19,6 @@ import type {
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   ['fury', 'Fury'],
-  ['quickness', 'Quickness'],
   ['alacrity', 'Alacrity'],
   ['protection', 'Protection'],
   ['resolution', 'Resolution'],
@@ -83,7 +82,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
         type: 'boon',
         key
       })
-    )
+    ),
+    // Explain the fixed timing assumption without exposing an editable boon control.
+    `<span class="boon-control" title="Skill timings are calibrated with permanent quickness.">
+      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Quickness)}" alt="">
+      Quickness — always active
+    </span>`
   ].join('');
   const conditionGroups = TARGET_CONDITION_GROUPS.map((group) => {
     const conditionItems = group.conditions
