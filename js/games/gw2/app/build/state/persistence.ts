@@ -51,23 +51,6 @@ export function loadBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild {
 }
 
 /**
- * Migrates and persists a build in browser storage.
- *
- * @throws {TypeError} When the adapter is invalid.
- */
-export function saveBuild(build: Gw2ApplicationBuild, adapter: Gw2AppAdapter): void {
-  const resolved = resolveAdapter(adapter);
-  const persisted = resolved.profession.migrateBuild(build);
-  const serialized = JSON.stringify(persisted);
-  try {
-    // Persistence is optional; an inaccessible or full browser store must not abort an in-memory edit.
-    localStorage.setItem(resolved.storageKey, serialized);
-  } catch {
-    // Keep the normalized in-memory build usable when storage is unavailable.
-  }
-}
-
-/**
  * Converts imported or saved build data into application state.
  *
  * Converted application build.

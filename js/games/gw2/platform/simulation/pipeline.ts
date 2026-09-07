@@ -27,10 +27,6 @@ import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/type
 
 export const MAX_SCHEDULER_REFINEMENT_PASSES = 5;
 
-function conditionName(value: unknown): string {
-  return canonicalTargetConditionName(value);
-}
-
 function endState(
   profession: Gw2ProfessionContract,
   config: Gw2Config,
@@ -161,7 +157,8 @@ function simulateDeclarativeGw2Pass({
     traits,
     query,
     helpers: {
-      conditionName,
+      // Keep resolver condition names consistent with the shared target-state queries.
+      conditionName: canonicalTargetConditionName,
       skillsById: runtimeProfession.catalog?.skillsById || new Map(),
       skillsByName: runtimeProfession.catalog?.skillsByName || new Map(),
       balanceProfilesById: runtimeProfession.catalog?.balanceProfilesById || new Map()

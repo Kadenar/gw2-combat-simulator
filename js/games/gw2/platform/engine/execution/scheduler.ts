@@ -203,10 +203,6 @@ function unavailable(reason: string, code = 'platform.unavailable', retryAt: num
   return retryAt == null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
 }
 
-function combineAvailability(results: readonly AvailabilityResult[]): AvailabilityResult {
-  return foldAvailability(results);
-}
-
 /**
  * Creates the profession-neutral chronological scheduler.
  */
@@ -797,7 +793,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       }
     }
 
-    return { ammo, result: combineAvailability(result) };
+    return { ammo, result: foldAvailability(result) };
   }
 
   function castAvailability(
@@ -833,7 +829,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ammo: shared.ammo
     };
     const policyAvailability = schedulerPolicy.availability?.(castContext, skill) ?? CAST_READY;
-    const result = combineAvailability([shared.result, policyAvailability, professionAvailability]);
+    // Apply the shared denial and retry rules across every availability source.
+    const result = foldAvailability([shared.result, policyAvailability, professionAvailability]);
     return { result, castContext };
   }
 

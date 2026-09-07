@@ -1,25 +1,14 @@
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
-// Structural shapes matching the app-layer break-even model. Declared locally so
-// this platform-layer chart does not depend on the app layer; any object with
-// these fields (e.g. RelicComparisonModel) can be passed in.
-export interface RelicComparisonPoint {
-  readonly tMs: number;
-  readonly opponentDps: number;
-  readonly targetDps: number;
-}
-
-export interface RelicComparisonModel {
-  readonly opponentRelic: string;
-  readonly targetRelic: string;
-  readonly durationMs: number;
-  readonly points: readonly RelicComparisonPoint[];
-  readonly crossoverMs: number | null;
-  readonly targetAlwaysAhead: boolean;
-  readonly evaluationStartMs: number;
-  readonly opponentFinalDps: number;
-  readonly targetFinalDps: number;
-}
+// Share the comparison model without loading simulation code into the chart.
+import type {
+  RelicComparisonModel,
+  RelicComparisonPoint
+} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+export type {
+  RelicComparisonModel,
+  RelicComparisonPoint
+} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 
 export interface RelicComparisonChartOptions {
   /** Colour for the equipped (opponent) relic curve. */

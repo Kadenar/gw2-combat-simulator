@@ -6,5 +6,5 @@ export { renderGear } from '#gw2/app/build/panels/gear.js';
 export { initBuildTemplates, updateTemplateSelection } from '#gw2/app/build/panels/presets.js';
 export { renderSkills } from '#gw2/app/build/panels/skills.js';
 export { renderTraits } from '#gw2/app/build/panels/traits.js';
-export { createDefaultBuild, loadBuild, saveBuild } from '#gw2/app/build/state/persistence.js';
+export { createDefaultBuild, loadBuild } from '#gw2/app/build/state/persistence.js';
 export { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
