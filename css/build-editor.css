@@ -1710,10 +1710,6 @@
   border-color: var(--text-dim);
 }
 
-.skill-bar-slot.heal-border .sbar-icon {
-  border-color: var(--health);
-}
-
 .skill-bar-slot.elite-border .sbar-icon {
   border-color: var(--accent);
 }

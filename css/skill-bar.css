@@ -28,10 +28,6 @@
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-slot.heal-border .sbar-icon {
-  border-color: #53a540;
-}
-
 :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon-arrow {
   position: absolute;
   right: 2px;
@@ -391,10 +387,6 @@
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
   filter: none;
   transform: none;
-}
-
-.skills-section .fixed-loadout-bar .fixed-loadout-skill.heal-border:hover .sbar-icon {
-  border-color: #53a540;
 }
 
 .skills-section .fixed-loadout-bar .fixed-loadout-skill.elite-border:hover .sbar-icon {

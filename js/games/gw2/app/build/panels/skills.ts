@@ -258,12 +258,12 @@ export function renderSkills(app: ProfessionAppState): void {
     ['Elite', 'Elite']
   ];
 
-  // Keep selectable slots icon-only; heal and elite borders provide the useful distinction without captions.
+  // Keep selectable slots icon-only
   const selectedSkillBarHtml = slots
     .map(([key, type]) => {
       const current = app.skillByName.get(app.build.selectedSkills[key]);
       const display = skillBarDisplaySkill(app, current);
-      return `<div class="skill-bar-slot ${type === 'Heal' ? 'heal-border' : type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
+      return `<div class="skill-bar-slot ${type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
                 <div class="sbar-icon" title="${esc(display?.displayName || display?.name || 'Choose skill')}"><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></div>
                 <div class="sbar-arrow">▼</div>
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
@@ -422,11 +422,11 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const view = loadout.view(context);
   const skillBar = requiredElement('skill-bar');
 
-  // Keep Revenant slots icon-only; borders still distinguish heal and elite skills without redundant captions.
+  // Keep Revenant slots icon-only
   const slotHtml = (skill: Skill, index: number, child = false): string => {
     return `<div class="skill-bar-slot fixed-loadout-skill${
       child ? ' child-skill' : ''
-    }${!child && index === 0 ? ' heal-border' : ''}${!child && index === 4 ? ' elite-border' : ''}">
+    }${!child && index === 4 ? ' elite-border' : ''}">
         <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}"><img src="${esc(skill.icon || '')}" alt=""></div>
     </div>`;
   };
