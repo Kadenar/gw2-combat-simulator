@@ -21,6 +21,7 @@ import { makeScenario, createEvaluator, commandsFrom, splitRotation, validateBod
 import { trainModel, validateModel } from './model.mjs';
 import { actionVocabulary, propose } from './mutations.mjs';
 import { SimulationPool } from './pool.mjs';
+import { GENERATOR, generationContext, createRotationGenerator } from './generation.mjs';
 import { initializeBank, contributeRun, trainingCorpus, compatibleContext } from './profession-models.mjs';
 
 const HELP = `Local rotation AI — CPU neural surrogate + simulator-verified evolutionary search
@@ -29,6 +30,7 @@ Run from the repository root. npm run rotation:ai builds the simulation modules 
 
   npm run rotation:ai -- init --example --run .rotation-ai/demo --seconds 30
   npm run rotation:ai -- init --build build.json --rotation rotation.json --run .rotation-ai/my-build --seconds 120
+  npm run rotation:ai -- init --build build.json --from-scratch --run .rotation-ai/luminary --seconds 96 --population 32 --workers 2
   npm run rotation:ai -- ingest --run DIR --rotation another.json
   npm run rotation:ai -- ingest --run DIR --rotations DIRECTORY
   npm run rotation:ai -- ingest --run DIR --actions allowed-actions.json
@@ -44,6 +46,10 @@ Ctrl+C saves the completed batch and exits. A second Ctrl+C exits immediately.
 Search retrains every --retrain-every 200 new records and reserves --exploration 0.3 for random proposals.
 Use search --unguided for an ablation with identical search operators and no model guidance.
 Other options: --seed 42 (new search RNG), --batch 16, --timeout 30 (seconds per worker job).
+From-scratch initialization supports Luminary, starts combat at time zero with no precast,
+and generates --population 32 starting rotations (default). No rotation file is read.
+Its collect/search commands reserve --restart-fraction 0.1 for fresh generated rotations;
+use 1 for pure generation or 0 for mutation-only search. Generation costs more per candidate.
 init defaults to 120 seconds and --example uses the repository's Core Engineer hammer preset.
 init/ingest trim demonstration suffixes that exceed the window; precasts remain locked.
 
@@ -55,11 +61,22 @@ Read docs/LOCAL-ROTATION-AI.md for the full workflow, constraints, and troublesh
 `;
 
 const ALLOWED = {
-  init: ['run', 'build', 'rotation', 'seconds', 'example'],
+  init: ['run', 'build', 'rotation', 'seconds', 'example', 'from-scratch', 'population', 'workers', 'seed', 'timeout'],
   ingest: ['run', 'rotation', 'rotations', 'actions'],
-  collect: ['run', 'evaluations', 'workers', 'seed', 'batch', 'timeout'],
+  collect: ['run', 'evaluations', 'workers', 'seed', 'batch', 'timeout', 'restart-fraction'],
   train: ['run', 'epochs', 'seed', 'training-run'],
-  search: ['run', 'evaluations', 'workers', 'seed', 'batch', 'timeout', 'retrain-every', 'exploration', 'unguided'],
+  search: [
+    'run',
+    'evaluations',
+    'workers',
+    'seed',
+    'batch',
+    'timeout',
+    'retrain-every',
+    'exploration',
+    'unguided',
+    'restart-fraction'
+  ],
   verify: ['run', 'seeds', 'seed', 'workers', 'timeout'],
   status: ['run'],
   catalog: ['run', 'out']
@@ -115,8 +132,13 @@ async function exportWinner(directory, scenario, winner, baseline, evaluator) {
     description: 'Best simulated rotation found; no global-optimality guarantee.',
     seconds: scenario.seconds,
     targetHealth: 0,
+    baselineSource: baseline.source || 'initial-seed',
     baseline: baseline.metrics,
     best: checked.metrics,
+    appendedWaitSeconds:
+      checked.exportedRotation.length > scenario.prefix.length + winner.rotation.length
+        ? checked.exportedRotation.at(-1).durationMs / 1000
+        : 0,
     damageGain: checked.score - baseline.score,
     percentGain: (checked.score / baseline.score - 1) * 100,
     detailedReplayVerified: true
@@ -126,6 +148,9 @@ async function exportWinner(directory, scenario, winner, baseline, evaluator) {
 async function initialize(directory, values) {
   if (await optionalJson(path.join(directory, 'scenario.json')))
     throw new Error('Run already exists. Choose a new --run directory.');
+  if (values['from-scratch']) return initializeGenerated(directory, values);
+  for (const option of ['population', 'workers', 'seed', 'timeout'])
+    if (values[option] != null) throw new Error(`init --${option} requires --from-scratch.`);
   if (values.example && (values.build || values.rotation))
     throw new Error('Use --example or your own --build/--rotation files.');
   if (!values.example && (!values.build || values.rotation?.length !== 1))
@@ -151,6 +176,68 @@ async function initialize(directory, values) {
     `Seed retained ${baseline.rotation.length}/${originalCommands} combat commands. Baseline: ${format(baseline.metrics.fixedWindowDps)} damage/s over the fixed window.`
   );
   console.log(`Run: ${directory}\nNext: collect, train, search, then verify. See docs/LOCAL-ROTATION-AI.md.`);
+}
+
+async function initializeGenerated(directory, values) {
+  if (!values.build || values.rotation || values.example)
+    throw new Error('Use --from-scratch with --build and without --rotation or --example.');
+  const seconds = numberOption(values, 'seconds', 120, 1, 600, false);
+  const population = numberOption(values, 'population', 32, 1, 256);
+  const workers = numberOption(values, 'workers', 2, 1, 32);
+  const timeout = numberOption(values, 'timeout', 120, 1, 3600, false) * 1000;
+  const seed = numberOption(values, 'seed', 42, 0, 4294967295);
+  const [build, engine] = await Promise.all([readJson(values.build), engineFingerprint()]);
+  const context = await generationContext(build, seconds);
+  const generator = await createRotationGenerator(context);
+  const pool = new SimulationPool(context, workers, timeout);
+  const rng = random(seed);
+  const records = new Map();
+  console.log(
+    `Generating ${population} Luminary rotations from the build only; ${workers} workers, ${seconds}s, no precast.`
+  );
+  try {
+    for (let count = 0; count < population;) {
+      const size = Math.min(workers, population - count);
+      const generated = await Promise.all(
+        Array.from({ length: size }, () => pool.generate(Math.floor(rng() * 4294967296)))
+      );
+      generated.forEach((record) => records.set(record.id, record));
+      count += size;
+      console.log(
+        `Generated ${count}/${population}; ${[...records.values()].filter((record) => record.valid).length} unique valid rotations.`
+      );
+    }
+  } finally {
+    await pool.close();
+  }
+
+  const best = top([...records.values()]);
+  if (!best || best.score <= 0)
+    throw new Error('Generation found no damaging valid rotation. Check the build and increase --seconds.');
+  const { scenario, evaluator, baseline: replay } = await makeScenario(build, best.rotation, seconds, engine);
+  if (replay.id !== best.id || replay.score !== best.score)
+    throw new Error('Generated rotation did not reproduce under the saved scenario.');
+  const baseline = { ...best, source: 'generated-population-best' };
+  await writeJson(path.join(directory, 'scenario.json'), scenario);
+  await writeJson(path.join(directory, 'baseline.json'), baseline);
+  await writeJson(path.join(directory, 'actions.json'), generator.actions);
+  await writeJson(path.join(directory, 'generation.json'), {
+    schema: 1,
+    generator: GENERATOR,
+    scenario: scenario.id,
+    seed,
+    population,
+    unique: records.size,
+    valid: [...records.values()].filter((record) => record.valid).length
+  });
+  await appendRecords(directory, scenario, [...records.values()]);
+  await exportWinner(directory, scenario, baseline, baseline, evaluator);
+  console.log(
+    `Generated starting reference: ${format(best.metrics.fixedWindowDps)} damage/s. Improvement is measured against this generated population, not a benchmark.`
+  );
+  console.log(
+    `Run: ${directory}\nNext: collect, train, search, then verify. The shared Guardian model uses these generated examples.`
+  );
 }
 
 async function ingest(directory, scenario, values) {
@@ -233,10 +320,19 @@ async function saveModel(directory, scenario, records, values) {
 }
 
 async function search(directory, scenario, values, guided, bank) {
+  const generation = await optionalJson(path.join(directory, 'generation.json'));
+  if (
+    generation &&
+    (generation.schema !== 1 || generation.generator !== GENERATOR || generation.scenario !== scenario.id)
+  )
+    throw new Error('Generation settings are incompatible or corrupt.');
+  if (!generation && values['restart-fraction'] != null)
+    throw new Error('--restart-fraction requires a run initialized with --from-scratch.');
+  const restartFraction = numberOption(values, 'restart-fraction', generation ? 0.1 : 0, 0, 1, false);
   const budget = numberOption(values, 'evaluations', 1000, 1, 10000000);
   const workers = numberOption(values, 'workers', Math.min(2, availableParallelism()), 1, 32);
   const batchSize = numberOption(values, 'batch', 16, 1, 256);
-  const timeoutMs = numberOption(values, 'timeout', 30, 1, 3600) * 1000;
+  const timeoutMs = numberOption(values, 'timeout', generation ? 120 : 30, 1, 3600) * 1000;
   const exploration = numberOption(values, 'exploration', 0.3, 0.1, 1, false);
   const retrainEvery = numberOption(values, 'retrain-every', 200, 20, 1000000);
   const seed = numberOption(values, 'seed', 42, 0, 4294967295);
@@ -251,7 +347,8 @@ async function search(directory, scenario, values, guided, bank) {
     throw new Error('Checkpoint is incompatible or corrupt.');
   if (checkpoint && values.seed != null && seed !== checkpoint.seed)
     throw new Error('This run already has a search seed. Omit --seed to resume, or initialize a new run.');
-  const rng = random(checkpoint?.rngState ?? seed);
+  // Give ongoing generation a separate stream so the default seed does not regenerate the initial population.
+  const rng = random(checkpoint?.rngState ?? (generation ? (seed ^ 0x9e3779b9) >>> 0 : seed));
   const seen = new Set(records.map((record) => record.id));
   const actions = actionVocabulary(
     records.filter((record) => record.valid),
@@ -261,6 +358,7 @@ async function search(directory, scenario, values, guided, bank) {
   if (model) validateModel(model, scenario);
   let lastTraining = records.length;
   let completed = 0;
+  let emptyBatches = 0;
   let stopped = false;
   let signals = 0;
   const onSignal = () => {
@@ -299,24 +397,44 @@ async function search(directory, scenario, values, guided, bank) {
     console.log(
       `Starting ${guided ? 'AI-assisted' : 'unguided'} search; ${workers} workers, ${budget} additional evaluations. Existing best: ${format(best.metrics.fixedWindowDps)} damage/s.`
     );
-    while (completed < budget && !stopped) {
-      const candidates = propose(
-        records,
-        actions,
-        seen,
-        rng,
-        Math.min(batchSize, budget - completed),
-        model,
-        exploration,
-        scenario
+    if (generation)
+      console.log(
+        `From-scratch run: ${restartFraction * 100}% fresh-generation allocation; reference is the best initial generated rotation.`
       );
-      if (!candidates.length) {
+    while (completed < budget && !stopped) {
+      const count = Math.min(batchSize, budget - completed);
+      const fresh =
+        restartFraction === 0
+          ? 0
+          : Math.floor(count * restartFraction) + (rng() < (count * restartFraction) % 1 ? 1 : 0);
+      const candidates = propose(records, actions, seen, rng, count - fresh, model, exploration, scenario);
+      if (!candidates.length && !fresh) {
         console.log('No new candidates found. Add demonstrations or actions to expand the search.');
         break;
       }
 
       // Commit a completed batch before generating the next one; worker completion order never changes selection.
-      const results = await Promise.all(candidates.map((rotation) => pool.evaluate(rotation)));
+      const freshSeeds = Array.from({ length: fresh }, () => Math.floor(rng() * 4294967296));
+      const evaluated = await Promise.all([
+        ...candidates.map((rotation) => pool.evaluate(rotation)),
+        ...freshSeeds.map((seed) => pool.generate(seed))
+      ]);
+      const batchSeen = new Set(seen);
+      const results = evaluated.filter((record) => {
+        if (batchSeen.has(record.id)) return false;
+        batchSeen.add(record.id);
+        return true;
+      });
+      if (!results.length) {
+        if (++emptyBatches >= 5) {
+          console.log('No unique candidates in five batches. Stopping with existing results.');
+          break;
+        }
+
+        continue;
+      }
+
+      emptyBatches = 0;
       await appendRecords(directory, scenario, results);
       records.push(...results);
       results.forEach((record) => seen.add(record.id));
@@ -433,6 +551,8 @@ async function status(directory, scenario, bank) {
         validCandidates: valid.length,
         bestFixedWindowDps: top(records)?.metrics.fixedWindowDps,
         exportedGainPercent: report.percentGain,
+        baselineSource: report.baselineSource || 'initial-seed',
+        generation: await optionalJson(path.join(directory, 'generation.json')),
         commonRejections: [...reasons].sort((a, b) => b[1] - a[1]).slice(0, 5),
         model: (await optionalJson(path.join(bank, 'model.json')))?.metrics || null
       },
@@ -460,7 +580,9 @@ export async function main(args = process.argv.slice(2)) {
       'exploration',
       'seeds',
       'out',
-      'models'
+      'models',
+      'population',
+      'restart-fraction'
     ].map((key) => [key, { type: 'string' }])
   );
   const { values, positionals } = parseArgs({
@@ -471,6 +593,7 @@ export async function main(args = process.argv.slice(2)) {
       rotation: { type: 'string', multiple: true },
       'training-run': { type: 'string', multiple: true },
       example: { type: 'boolean' },
+      'from-scratch': { type: 'boolean' },
       unguided: { type: 'boolean' },
       help: { type: 'boolean', short: 'h' }
     }

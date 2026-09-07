@@ -35,6 +35,10 @@ export class SimulationPool {
     });
   }
 
+  generate(seed) {
+    return this.evaluate(null, { generationSeed: seed });
+  }
+
   dispatch() {
     for (const slot of this.workers) {
       if (slot.job || !this.queue.length) continue;

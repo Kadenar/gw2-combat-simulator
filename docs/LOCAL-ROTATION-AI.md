@@ -1,8 +1,9 @@
 # Local rotation AI
 
 Train a small neural model on rotations evaluated by this simulator, then use it to guide a local evolutionary search.
-Supply a build and example rotations; the tool generates variations, simulates them, learns which candidates look
-promising, and exports the best **actually simulated** rotation.
+Supply a build and example rotations, or generate Luminary rotations from the build alone; the tool generates
+variations, simulates them, learns which candidates look promising, and exports the best **actually simulated**
+rotation.
 
 Everything runs on your computer in Node.js. No hosted model, API key, Python installation, GPU, or additional runtime
 dependency is needed. Training data stays local; each profession has one shared model across its builds and
@@ -75,6 +76,62 @@ invalid ones. Training requires at least 16 training and four validation example
 before drawing conclusions about model quality.
 
 ## 3. Initialize your own build
+
+### Luminary: start without a benchmark or rotation file
+
+The first from-scratch generator supports **Guardian / Luminary**. It derives an action vocabulary from the equipped
+weapons, selected utility skills, profession palette, and catalog links for Forge transitions, flips, and autoattack
+chains. The existing scheduler checks each proposed extension for legality and timing. Full rotations are then scored by
+the normal simulator. No benchmark rotation is read, including any rotation embedded in the build export.
+
+From the repository root:
+
+```sh
+npm run rotation:ai -- init --build data/gw2/builds/guardian/b-power-luminary.json --from-scratch --run .rotation-ai/luminary-scratch --seconds 96 --population 32 --workers 2
+npm run rotation:ai -- collect --run .rotation-ai/luminary-scratch --evaluations 1000 --workers 2
+npm run rotation:ai -- train --run .rotation-ai/luminary-scratch --epochs 60
+npm run rotation:ai -- search --run .rotation-ai/luminary-scratch --evaluations 5000 --workers 2 --retrain-every 200
+npm run rotation:ai -- verify --run .rotation-ai/luminary-scratch --seeds 30
+```
+
+`--seconds` is your desired combat window. The generator constructs actions throughout that window; it does not stretch
+a shorter demonstration with a long final wait. It favors casts that can start immediately, then the earliest legal
+delayed cast. When none fits, it advances in small waits and checks again. Choices among ready actions are randomized,
+so this is a legal starting-population generator, not a trained next-action policy or a claim of optimality.
+
+`--population` counts generation attempts during initialization (default 32). Progress reports show unique valid
+rotations. The best initial generated rotation becomes the saved reference for improvement and paired verification.
+**Its percentage improvement is relative to that generated reference, not to a human benchmark.** `report.json`
+identifies `baselineSource: "generated-population-best"` and reports any wait appended by scoring separately.
+
+These runs start at Combat Start at time zero, with the build's initial state and **no precast**. The generator does not
+optimize precasts, create deliberate cast overlaps/interrupts, change traits/equipment, or enforce support boon uptime.
+Compare runs under the same assumptions; a precast benchmark against a finite-health target is a different experiment.
+
+Collection and search retain the existing mutation/model-ranking workflow, and allocate 10% of attempts on average to
+freshly generated rotations. Set `--restart-fraction 1` to collect only independent generated rotations, or `0` to use
+only mutation proposals. The option applies only to runs initialized with `--from-scratch`. Full generation is more
+expensive than scoring an existing sequence: scheduler prefix probes are additional internal work, not separate training
+examples or evaluations. Default worker timeout is 120 seconds for generated runs; increase `--timeout` for long windows
+or a slower machine. Start with the printed throughput when choosing larger budgets.
+
+For example, add another 100 independent rotations and refit the same Guardian model:
+
+```sh
+npm run rotation:ai -- collect --run .rotation-ai/luminary-scratch --evaluations 100 --restart-fraction 1 --workers 2
+npm run rotation:ai -- train --run .rotation-ai/luminary-scratch --epochs 60
+```
+
+Use `init --seed NUMBER` to reproduce the initial population. Search/collection have their own resumable RNG checkpoint;
+set their `--seed` only on the first call, then omit it. Initialization saves the run after the population completes; if
+interrupted before then, retry initialization after confirming its process stopped and removing its stale lock. Once
+initialized, collection/search use the normal batch checkpoint and graceful Ctrl+C behavior.
+
+Generated data trains `.rotation-ai/models/guardian/model.json` alongside compatible existing Guardian data. The scoring
+adapter and model input format are unchanged by this feature, so existing runs and weights remain compatible. Changing
+traits still means another run directory with the same shared profession model.
+
+### Start from an exported rotation
 
 Configure equipment, traits, skills, initial resources, and combat assumptions in the simulator. Use **Export Build**
 and **Export Rotation**, then initialize an experiment:
@@ -297,19 +354,20 @@ re-evaluate that separately. The tool does not automate game inputs.
 
 ## Files
 
-| File in the run directory               | Purpose                                                                                  |
-| --------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `scenario.json`                         | Frozen build, resolved config, prefix, objective, engine fingerprint, and experiment ID. |
-| `baseline.json`                         | Original fitted demonstration and deterministic score.                                   |
-| `actions.json`                          | Explicit additional proposal actions.                                                    |
-| `dataset.jsonl`                         | Evaluated candidates and rejection reasons; only valid rows train the damage predictor.  |
-| `model-source.json`                     | Relative path to the shared models root; there are no new per-run weights.               |
-| `checkpoint.json`                       | Search seed, RNG state, attempted count, and winner ID at the last checkpoint.           |
-| `winner.json`                           | Best unpadded combat sequence and measured score.                                        |
-| `best.build.json`, `best.rotation.json` | Ordinary UI imports; rotation includes precasts and the final wait.                      |
-| `report.json`                           | Baseline/best metrics, both DPS definitions, gain, and detailed replay status.           |
-| `verification.json`                     | Paired stochastic samples, winner ID, mean gain, and standard error.                     |
-| `run.lock`                              | Exclusive lock while a command uses the experiment.                                      |
+| File in the run directory               | Purpose                                                                                   |
+| --------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `scenario.json`                         | Frozen build, resolved config, prefix, objective, engine fingerprint, and experiment ID.  |
+| `baseline.json`                         | Original fitted demonstration or best initial generated rotation, with its score.         |
+| `actions.json`                          | Explicit additional proposal actions, or the generated build action vocabulary.           |
+| `generation.json`                       | From-scratch generator version, scenario ID, seed, and initial population counts.         |
+| `dataset.jsonl`                         | Evaluated candidates and rejection reasons; only valid rows train the damage predictor.   |
+| `model-source.json`                     | Relative path to the shared models root; there are no new per-run weights.                |
+| `checkpoint.json`                       | Search seed, RNG state, attempted count, and winner ID at the last checkpoint.            |
+| `winner.json`                           | Best unpadded combat sequence and measured score.                                         |
+| `best.build.json`, `best.rotation.json` | Ordinary UI imports; rotation includes precasts and the final wait.                       |
+| `report.json`                           | Reference source, baseline/best metrics, appended wait, gain, and detailed replay status. |
+| `verification.json`                     | Paired stochastic samples, winner ID, mean gain, and standard error.                      |
+| `run.lock`                              | Exclusive lock while a command uses the experiment.                                       |
 
 The models root contains a directory per profession:
 
@@ -331,21 +389,21 @@ example, 20,000 candidates at 40/s is roughly 8.3 minutes before training/verifi
 a performance claim for your PC. More workers use more CPU/memory and may not scale linearly. A GPU does not accelerate
 this implementation.
 
-| Symptom                          | Action                                                                                                                 |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Missing modules/stale build      | Run `npm ci` and `npm run build:modules`; use the npm entry point afterward.                                           |
-| Run already exists               | Resume it or choose another directory. Initialization never overwrites an experiment.                                  |
-| Simulator code changed           | Initialize a new run and ingest your source/exported rotations again to regenerate scores.                             |
-| Too few training examples        | Collect more; inspect the valid count with `status`. Rejected attempts are not damage-training examples.               |
-| Most proposals invalid           | Inspect common rejection reasons; supply legal demonstrations and required transition skills.                          |
-| Most proposals exceed the window | Add demonstrations with different cast counts/timings. The final cast must finish before the cutoff.                   |
-| Model inactive                   | Collect more diverse valid examples and retrain. The validation check is keeping a weak predictor out of selection.    |
-| No improvement                   | Add legal action choices or demonstrations, review the objective, and compare unguided search. Gain is not guaranteed. |
-| Run locked                       | Wait for its command. After a crash, ensure no process is using the run, then remove only `run.lock`.                  |
-| Incomplete dataset line          | Back up the file, inspect the stated line, and remove only the incomplete record, preserving prior valid rows.         |
-| Worker timeout                   | Default is 30 seconds per candidate; reduce commands or increase `--timeout`. Completed batches remain saved.          |
-| Stochastic verification fails    | Inspect the reported seed/reason and profession mechanics before claiming an average improvement.                      |
-| Different UI DPS                 | Preserve exported settings/wait and compare total damage; UI DPS uses a first-hit denominator.                         |
+| Symptom                          | Action                                                                                                                                   |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Missing modules/stale build      | Run `npm ci` and `npm run build:modules`; use the npm entry point afterward.                                                             |
+| Run already exists               | Resume it or choose another directory. Initialization never overwrites an experiment.                                                    |
+| Simulator code changed           | Initialize a new run and ingest your source/exported rotations again to regenerate scores.                                               |
+| Too few training examples        | Collect more; inspect the valid count with `status`. Rejected attempts are not damage-training examples.                                 |
+| Most proposals invalid           | Inspect common rejection reasons; supply legal demonstrations and required transition skills.                                            |
+| Most proposals exceed the window | Add demonstrations with different cast counts/timings. The final cast must finish before the cutoff.                                     |
+| Model inactive                   | Collect more diverse valid examples and retrain. The validation check is keeping a weak predictor out of selection.                      |
+| No improvement                   | Add legal action choices or demonstrations, review the objective, and compare unguided search. Gain is not guaranteed.                   |
+| Run locked                       | Wait for its command. After a crash, ensure no process is using the run, then remove only `run.lock`.                                    |
+| Incomplete dataset line          | Back up the file, inspect the stated line, and remove only the incomplete record, preserving prior valid rows.                           |
+| Worker timeout                   | Default is 30 seconds per candidate, or 120 for generated runs; reduce commands or increase `--timeout`. Completed batches remain saved. |
+| Stochastic verification fails    | Inspect the reported seed/reason and profession mechanics before claiming an average improvement.                                        |
+| Different UI DPS                 | Preserve exported settings/wait and compare total damage; UI DPS uses a first-hit denominator.                                           |
 
 Limits are 2,000 total commands and windows up to 600 seconds. Datasets are loaded into memory; this version targets
 personal experiments with thousands to tens of thousands of candidates. Streaming storage/training can follow if
@@ -368,13 +426,16 @@ optimizer. Inspect unusually large gains in the detailed event/timing view.
 
 Code lives in `scripts/analysis/rotation-ai/`: `engine.mjs` adapts simulation, `model.mjs` owns neural
 features/training, `mutations.mjs` proposes candidates, `pool.mjs`/`worker.mjs` run evaluations, and
-`storage.mjs`/`cli.mjs` manage experiments. `profession-models.mjs` manages compatible pooled datasets.
+`storage.mjs`/`cli.mjs` manage experiments. `profession-models.mjs` manages compatible pooled datasets, and
+`generation.mjs` constructs Luminary rotations using the existing scheduler and catalog.
 
 `npm run test:rotation-ai` checks gradients against finite differences, held-out synthetic learning, real-preset
 scoring, detailed replay, worker failures, ingestion/deduplication, training, resume, compatibility/corruption
 rejection, stochastic validation, and ordinary exports. Tests also train one model on two real Core Engineer trait
 setups plus Holosmith, reuse identical weights across searches, reject cross-profession data, and check whole-build
-split isolation and duration normalization. Run lint and format checks on changed files.
+split isolation and duration normalization. Generation tests cover build-derived actions, Forge transitions, full-window
+replay, deterministic worker results, and initialization/training/resume/export without a seed rotation. Run lint and
+format checks on changed files.
 
 Fingerprints cover compiled modules and the scoring adapter. Bump the model feature schema when feature meanings change,
 and experiment schemas when serialized contracts change incompatibly. Never mix scores from engine versions.
