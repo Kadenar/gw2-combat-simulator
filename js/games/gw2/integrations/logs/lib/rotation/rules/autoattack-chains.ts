@@ -36,8 +36,10 @@ export function normalizeAutoattackChains<Action extends ChainAction>(
       String(skill?.slot || '')
         .trim()
         .toLowerCase() === 'weapon_1';
-    if (autoattack && action.status === 'interrupted') continue;
-    const chainRoot = Number(skill?.chainRoot);
+    // Cancelled inputs still occupy the cast lane; discard only same-frame animation artifacts.
+    if (autoattack && action.status === 'interrupted' && action.end <= action.start) continue;
+    // Standalone autoattacks have no chain; preserve their ID instead of converting null to skill 0.
+    const chainRoot = Number(skill?.chainRoot ?? Number.NaN);
     if (autoattack && Number.isFinite(chainRoot)) {
       const rawSkillId = Number(skill?.id);
       const continuesChain = activeChainRoot === chainRoot && expectedSkillId != null;

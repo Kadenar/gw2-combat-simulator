@@ -206,7 +206,7 @@ export interface Skill extends CatalogSkill {
   /** Controls whether interruption preserves committed effects or only packets that have already occurred. */
   readonly interruptMode?: SkillInterruptMode;
   readonly interruptCommitMs?: number;
-  /** Keep the serial cast lane blocked through the original cast end. */
+  /** Keep the serial cast lane blocked through the original cast end after the skill commits. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
   readonly mechanicTriggers?: readonly SkillMechanicTrigger[];

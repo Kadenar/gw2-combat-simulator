@@ -508,8 +508,9 @@ test('dead time includes entire attempted casts below declared commit cutoffs an
   );
   const retainedMarkers = timelineDeadTimeMarkers(retainedFailedCommit.steps, retainedFailedCommit.resolvedEvents);
 
-  // Count the entire failed attempt, while the retained aftercast remains forced busy time rather than additional idle time.
-  assert.equal(retainedFailedCommit.steps[0].castLockoutEnd, 1000);
+  // A failed attempt counts as dead time and releases its aftercast so the follow-up starts at cancellation.
+  assert.equal(retainedFailedCommit.steps[0].castLockoutEnd, undefined);
+  assert.equal(retainedFailedCommit.steps[1].start, 200);
   assert.deepEqual(
     retainedMarkers.map((marker) => marker.durationMs),
     [200]

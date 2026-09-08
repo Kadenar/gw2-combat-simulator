@@ -15,7 +15,7 @@ const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActio
   ['willbender', reconstructWillbenderDpsReportActions]
 ]);
 
-/** Applies Guardian specialization recovery and removes uncommitted autoattack animations. */
+/** Applies Guardian specialization recovery and normalizes chains while preserving cancelled inputs. */
 export function reconstructGuardianDpsReportActions(
   context: DpsReportProfessionReconstructionContext
 ): readonly DpsReportRecordedAction[] {

@@ -30,13 +30,13 @@ test('Channeled Vigor grants endurance only after its 440 ms interrupt commit', 
   }
 });
 
-test('Thief dodge commits at 760 ms and retains its 800 ms lockout', () => {
+test('Thief dodge retains its 800 ms lockout only after the 760 ms commit', () => {
   for (const interruptMs of [759, 760]) {
     const result = simulate('Daredevil', [{ name: 'Dodge', interruptMs }, 'Double Strike']);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < 760);
-    assert.equal(result.steps[0].castLockoutEnd, 800);
-    assert.equal(result.steps[1].start, 800);
+    assert.equal(result.steps[0].castLockoutEnd, interruptMs < 760 ? undefined : 800);
+    assert.equal(result.steps[1].start, interruptMs < 760 ? interruptMs : 800);
     assert.equal(
       result.events.some((event) => event.type === 'damage' && event.skillName === 'Impaling Lotus'),
       interruptMs >= 760

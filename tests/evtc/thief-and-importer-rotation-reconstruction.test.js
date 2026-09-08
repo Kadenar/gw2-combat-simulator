@@ -269,7 +269,7 @@ test('reconstructs Thief Antiquary buff, precast, and animation-only mechanics',
 
   assert.deepEqual(result.warnings, []);
   assert.equal(names.includes('Movement Follow-up'), false);
-  assert.equal(names.includes('Slice'), false);
+  assert.equal(result.rotation.find((command) => command.name === 'Slice')?.interruptMs, 40);
   assert.equal(result.actions.find((action) => action.name === 'Metal Legion Guitar')?.durationMs, 300);
   for (const name of [
     'Prepare Thousand Needles',

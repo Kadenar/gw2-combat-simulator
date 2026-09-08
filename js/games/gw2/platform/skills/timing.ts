@@ -5,6 +5,11 @@ export const GW2_QUICKNESS_ACTION_RATE = 1.5;
 /** GW2 completes calculated cast durations on 40 ms action-tick boundaries. */
 export const GW2_ACTION_TICK_MS = 40;
 
+/** Cancelled attempts release the cast lane; only committed skills retain their aftercast. */
+export function retainsInterruptedCastLockout(skill: Skill | null, cancelledBeforeCommit: boolean): boolean {
+  return skill?.retainsCastLockoutAfterInterrupt === true && !cancelledBeforeCommit;
+}
+
 /** Snaps observed timing to the nearest GW2 action tick so imported replay values do not retain false precision. */
 export function quantizeGw2ActionTimingMs(value: number): number {
   return Math.max(0, Math.round(value / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS);

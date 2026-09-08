@@ -13,6 +13,7 @@ import { EVTC_FIXTURE_PLAYER as PLAYER, event, expandedEvtcFixture, log } from '
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { catalogDuration } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 
 const catalog = {
   skills: [
@@ -50,6 +51,11 @@ const catalog = {
     }
   ]
 };
+
+test('inferred setup uses the same Quickness fallback as replay', () => {
+  const context = { catalog, profile: ROTATION_PROFILES.find((profile) => profile.professionId === 'mesmer') };
+  assert.equal(catalogDuration(context, { skillId: 3000, name: 'Blink' }), 360);
+});
 
 test('modern and legacy EVTC casts obey cancellation contracts across every profession', () => {
   // Keep the same two-input scenario across professions so packet evidence cannot bypass the shared timing contract.
@@ -1058,7 +1064,7 @@ test('places Plague Signet after the observed Blood Is Power interruption', () =
   );
   assert.deepEqual(result.rotation, [
     { name: 'Blood Is Power', skillId: 10_544, interruptMs: 600 },
-    { name: 'Plague Signet', skillId: 10_562, offset: 600 }
+    { name: 'Plague Signet', skillId: 10_562 }
   ]);
   assert.deepEqual(result.warnings, []);
 });

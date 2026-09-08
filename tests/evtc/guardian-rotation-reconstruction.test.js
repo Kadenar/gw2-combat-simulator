@@ -254,6 +254,8 @@ test('reconstructs the evidenced Luminary Forge precast instead of synthetic ope
   assert.equal(result.rotation.find((command) => command.name === 'Luminous Staff')?.offTarget, true);
   assert.equal(result.rotation.find((command) => command.name === 'Dazzling Hammer')?.offTarget, true);
   assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 359);
+  // Omitted setup uses Quickness runtime, including skills with no explicit Quickness duration.
+  assert.equal(result.actions.find((action) => action.name === 'Radiant Bulwark')?.durationMs, 1360);
   assert.equal(
     result.actions.some((action) => action.name.startsWith('Initial ')),
     false

@@ -1,5 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { actionKind } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type { ReconstructedCommand, ReconstructedRotationCommand } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
@@ -246,7 +247,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       const interruptMs = command.interruptMs ?? action.skill?.defaultInterruptMs;
       const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
       const retainedRuntimeMs =
-        effectiveRuntimeMs < runtimeMs && action.skill?.retainsCastLockoutAfterInterrupt === true
+        effectiveRuntimeMs < runtimeMs && retainsReplayCastLockout(action.skill, effectiveRuntimeMs)
           ? runtimeMs
           : effectiveRuntimeMs;
       const projectedStart: number =
@@ -289,7 +290,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       if (!instant && actionReplayEnd >= activeCastEnd) activeCast = action;
       activeCastEnd = Math.max(activeCastEnd, instant ? at : actionReplayEnd);
       // Only an interrupted command uses the retained lane; idle after a completed cast remains explicit.
-      if (action.skill?.retainsCastLockoutAfterInterrupt === true && command.interruptMs != null) {
+      if (command.interruptMs != null && retainsReplayCastLockout(action.skill, command.interruptMs)) {
         retainedCastEnd = Math.max(retainedCastEnd, actionReplayEnd);
       }
     }

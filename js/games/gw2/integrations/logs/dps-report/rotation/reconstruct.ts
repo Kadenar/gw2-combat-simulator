@@ -13,13 +13,9 @@ import type {
 } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { firstStrikePacketOffsetMs, retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import {
-  GW2_ACTION_TICK_MS,
-  quantizeGw2ActionTimingMs,
-  quicknessReferenceCastTimeMs
-} from '#gw2/platform/skills/timing.js';
+import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import type {
   DpsReportCast,
@@ -221,7 +217,7 @@ function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCo
 
 /** Replaces shortened report timing when a skill's aftercast cannot release the simulator cast lane early. */
 function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportResolvedAction {
-  if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action;
+  if (!retainsReplayCastLockout(action.skill, action.end - action.start)) return action;
   // Observed durations are replayed as interruptions; the scheduler then
   // retains the ordinary cast lane while still allowing instant actions.
   if (observedInterruptMs(action) != null) return action;
@@ -244,7 +240,7 @@ function replayActionEnd(action: DpsReportResolvedAction, completeReportedAfterc
     if (runtimeDuration > 0) return Math.max(action.end, action.start + runtimeDuration);
   }
 
-  if (action.skill?.retainsCastLockoutAfterInterrupt === true) {
+  if (retainsReplayCastLockout(action.skill, observedInterruptMs(action) ?? action.end - action.start)) {
     const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
     return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
   }
@@ -329,10 +325,8 @@ function buildRotation(
   completeReportedAftercast: boolean
 ): ReconstructedCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
-    // EI's cast/aftercast split leaves up to two action ticks of residue between otherwise continuous inputs.
-    minimumWaitMs: completeReportedAftercast ? 2 * GW2_ACTION_TICK_MS : 0,
-    // Imported idle gaps share the same action-tick precision as observed cast durations.
-    quantizeWaitMs: quantizeGw2ActionTimingMs,
+    // Idle gaps and concurrent offsets, including legend swaps, share observed casts' 40 ms precision.
+    quantizeMs: quantizeGw2ActionTimingMs,
     // EI source durations can be shorter than simulator casts, so later waits absorb that accumulated difference.
     alignWaitsToSimulatorTiming: true,
     commandFor: actionCommand,

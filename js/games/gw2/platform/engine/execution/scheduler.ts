@@ -6,6 +6,7 @@
  * policy rather than forking this state machine.
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
+import { retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
 import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { createEvent } from '#gw2/platform/engine/events/events.js';
 import { effectFirstAt, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -951,8 +952,9 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // the remainder of their ordinary cast as aftercast. Keep completion and
     // recharge anchored to effectiveEnd while reserving the cast lane through
     // fullEnd for those skills.
-    const castLockoutEnd = interrupted && skill.retainsCastLockoutAfterInterrupt === true ? fullEnd : effectiveEnd;
     const cancelledBeforeCommit = cancelledBeforeInterruptCommit(context, skill, start, fullEnd, effectiveEnd);
+    const castLockoutEnd =
+      interrupted && retainsInterruptedCastLockout(skill, cancelledBeforeCommit) ? fullEnd : effectiveEnd;
     // Preserve missing metadata separately from a known cutoff miss so dead-time
     // reporting can require zero damage only for the ambiguous case.
     const missingInterruptCommit =

@@ -37,7 +37,7 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import type { ReconstructedCommand, RotationReconstructionBase } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { isUncommittedCast } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { isUncommittedCast, retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 
 const TIMING_TOLERANCE_MS = 50;
@@ -85,7 +85,7 @@ function applyRetainedCastLockouts(
 ): RecordedAction[] {
   return actions.map((action) => {
     const skill = recordedActionSkill(action, { catalog, profile });
-    if (skill?.retainsCastLockoutAfterInterrupt !== true) return action;
+    if (!retainsReplayCastLockout(skill, action.end - action.start)) return action;
     // An observed interrupt remains explicit; the engine retains the serial
     // cast lane itself while allowing instant actions and weapon swaps through.
     if (observedInterruptMs(action, skill) != null) return action;
@@ -448,7 +448,8 @@ function replayActionEnd(action: ResolvedAction): number {
         ? Math.max(action.end, action.start + runtimeDuration)
         : action.end);
   // The command retains the observed interrupt, while timeline spacing remains anchored to the full aftercast.
-  return action.skill?.retainsCastLockoutAfterInterrupt === true && runtimeDuration > 0
+  return retainsReplayCastLockout(action.skill, action.replayInterruptMs ?? action.end - action.start) &&
+    runtimeDuration > 0
     ? Math.max(observedReplayEnd, action.start + runtimeDuration)
     : observedReplayEnd;
 }

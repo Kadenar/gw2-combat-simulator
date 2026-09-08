@@ -42,15 +42,9 @@ function recoverHarbingerOpening(
   return [inferred, ...sorted];
 }
 
-/** Recovers an omitted opening shroud entry and drops canceled weapon-1 probes that would replay as real attacks. */
+/** Recovers an omitted opening shroud entry while preserving cancelled inputs for timed replay. */
 export function reconstructNecromancerDpsReportActions(
   context: DpsReportProfessionReconstructionContext
 ): readonly DpsReportRecordedAction[] {
-  const committed = context.recordedActions.filter((action) => {
-    const skill = recordedActionSkill(action, context);
-    const autoattack =
-      normalized(skill?.slot) === 'weapon_1' || context.report.skillMap[`s${action.rawSkillId}`]?.autoAttack === true;
-    return !(autoattack && action.status === 'interrupted');
-  });
-  return recoverHarbingerOpening(context, committed);
+  return recoverHarbingerOpening(context, context.recordedActions);
 }

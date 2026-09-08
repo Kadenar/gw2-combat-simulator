@@ -3,7 +3,7 @@ import {
   isRecordedAutoattack,
   skillForAction
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { quicknessRuntimeDurationMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { isUncommittedCast, quicknessRuntimeDurationMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -27,6 +27,8 @@ function addMissingWindsOfChaosActions(
     packets.slice(index * 2, index * 2 + 2)
   );
   const recorded = actions
+    // Cancelled wind-ups cannot account for the bounce packets of a missing completed cast.
+    .filter((action) => !isUncommittedCast(skillForAction(context, action), action.end - action.start))
     .filter(
       (action) =>
         Number(action.canonicalSkillId ?? action.rawSkillId) === WINDS_OF_CHAOS.skillId ||
@@ -69,13 +71,6 @@ export function removeUncommittedMesmerAutoattacks(
   });
   const filtered = actions.filter((action) => {
     if (!isRecordedAutoattack(context, action)) return true;
-    if (
-      action.status === 'interrupted' &&
-      String(action.canonicalName || action.rawName).toLowerCase() === 'winds of chaos'
-    ) {
-      return false;
-    }
-
     // Preserve a recorded interrupted chain attempt: the simulator cancels its
     // effects and resets the chain instead of treating idle time as the input.
     if (action.status === 'interrupted') return true;

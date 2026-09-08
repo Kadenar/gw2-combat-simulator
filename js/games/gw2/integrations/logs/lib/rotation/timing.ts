@@ -1,6 +1,7 @@
 import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import {
   castRelativeEffectTimingScale,
+  retainsInterruptedCastLockout,
   quicknessReferenceCastTimeMs,
   quantizeGw2ActionTimingMs
 } from '#gw2/platform/skills/timing.js';
@@ -12,6 +13,11 @@ export function isUncommittedCast(skill: Skill | null, durationMs: number): bool
   if (elapsedMs >= quicknessReferenceCastTimeMs(skill)) return false;
   const cutoffs = [skill?.interruptCommitMs, ...(skill?.effects || []).map((effect) => effect.interruptCommitMs)];
   return !cutoffs.some((cutoff) => cutoff != null && Number.isFinite(cutoff) && elapsedMs >= cutoff);
+}
+
+/** Keeps imported occupancy consistent with the scheduler's commitment-dependent aftercast. */
+export function retainsReplayCastLockout(skill: Skill | null, durationMs: number): boolean {
+  return retainsInterruptedCastLockout(skill, isUncommittedCast(skill, durationMs));
 }
 
 export function quicknessRuntimeDurationMs(skill: Skill | null): number {

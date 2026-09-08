@@ -478,7 +478,7 @@ test('skill mechanic triggers execute through the scheduler at their resolved ti
   assert.deepEqual(cancelled.state.profession.invocations, []);
 });
 
-test('interrupted casts retain their original lane lockout only for cast-time skills', () => {
+test('committed interrupted casts retain their lane while cancelled attempts release it', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -486,6 +486,7 @@ test('interrupted casts retain their original lane lockout only for cast-time sk
         name: 'Retained Aftercast',
         castTimeMs: 1000,
         cooldown: 10,
+        interruptCommitMs: 400,
         retainsCastLockoutAfterInterrupt: true,
         effects: []
       },
@@ -522,6 +523,14 @@ test('interrupted casts retain their original lane lockout only for cast-time sk
     'Following Cast'
   ]);
   const uninterrupted = createScheduler({ profession }).run(['Retained Aftercast']);
+  // Below commitment, the next cast starts at the cancellation instead of the full aftercast boundary.
+  const cancelled = createScheduler({ profession }).run([
+    { name: 'Retained Aftercast', interruptMs: 200 },
+    'Following Cast'
+  ]);
+  assert.equal(cancelled.steps[0].cancelledBeforeCommit, true);
+  assert.equal(cancelled.steps[0].castLockoutEnd, undefined);
+  assert.equal(cancelled.steps[1].start, 200);
   const interruptedAction = scheduled.events.find(
     (event) => event.type === 'action' && event.skillName === 'Retained Aftercast'
   );

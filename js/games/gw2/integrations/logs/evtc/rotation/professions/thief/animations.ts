@@ -1,7 +1,4 @@
-import {
-  committedActionsFromStrikePackets,
-  isRecordedAutoattack
-} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { isRecordedAutoattack } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -23,18 +20,12 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );
   const normalized: EvtcRecordedRotationAction[] = [];
-  const autoattacks = sorted.filter((action) => isRecordedAutoattack(context, action));
-  const committed = committedActionsFromStrikePackets(context, autoattacks, {
-    maxFallbackImpactMs: 2_000
-  });
   for (const action of sorted) {
     if (action.rawSkillId === MOVEMENT_ARTIFACT_FOLLOW_UP_ANIMATION) continue;
     if (action.rawSkillId === DAREDEVIL_DODGE_ANIMATION) continue;
     if (action.status === 'interrupted' && isRecordedAutoattack(context, action)) {
-      if (committed.has(action)) {
-        normalized.push(action);
-      }
-
+      // Preserve cancellation timing without requiring a strike or promoting the input to a full cast.
+      normalized.push(action);
       continue;
     }
 

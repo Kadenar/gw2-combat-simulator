@@ -67,8 +67,10 @@ export function normalizeNecromancerAutoattackChains(
       const position = positions.get(action.rawSkillId);
       const skill = recordedActionSkill(action, context);
       const endedBeforeCompletion = action.end - action.start + 75 < quicknessRuntimeDurationMs(skill);
+      // Explicit cancellations retain their elapsed time and pending chain step even without a strike.
       if (
-        (action.status === 'interrupted' || endedBeforeCompletion) &&
+        action.status !== 'interrupted' &&
+        endedBeforeCompletion &&
         (position != null || isWeaponAutoattack(context, action)) &&
         !committed.has(action)
       ) {

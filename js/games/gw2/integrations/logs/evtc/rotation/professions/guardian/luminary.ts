@@ -7,11 +7,11 @@ import type {
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   isPhysicalWeaponSwap,
-  recordedDuration,
   skillFor,
   SWAP_WEAPONS
 } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 import { EPSILON } from '#kernel/core/clock.js';
+import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 const ENTER_RADIANT_FORGE = Object.freeze({
   name: 'Enter Radiant Forge',
@@ -115,7 +115,8 @@ function inferOpeningForgePrecast(
   const reversed: EvtcRecordedRotationAction[] = [];
   for (let index = identities.length - 1; index >= 0; index -= 1) {
     const identity = identities[index];
-    const duration = recordedDuration(context, identity);
+    // Inferred setup must occupy the same time as replay, or later wait correction introduces artificial drift.
+    const duration = quicknessReferenceCastTimeMs(skillFor(context, identity));
     cursor -= duration;
     reversed.push({
       start: cursor,

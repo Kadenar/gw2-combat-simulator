@@ -501,7 +501,7 @@ test('does not commit a Mesmer autoattack from a clone packet with the same skil
   assert.equal(names(result, 'Mind Pierce').length, 0);
 });
 
-test('recovers a Winds of Chaos cast from an unmatched player bounce pair', () => {
+test('recovers a Winds of Chaos bounce pair without attributing it to a cancelled wind-up', () => {
   const winds = skill(10273, 'Winds of Chaos', {
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -525,6 +525,14 @@ test('recovers a Winds of Chaos cast from an unmatched player bounce pair', () =
     40,
     [winds, powerSpike],
     [
+      event({ time: 9000, skillId: 10273, stateChange: EVTC_STATE_CHANGE.ANIMATION_START, value: 760 }),
+      event({
+        time: 9040,
+        skillId: 10273,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_CANCEL,
+        value: 40
+      }),
       event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
       direct(10273, 10_533),
       direct(10273, 10_623),
@@ -534,8 +542,10 @@ test('recovers a Winds of Chaos cast from an unmatched player bounce pair', () =
 
   const result = reconstructEvtcRotation(fixture, { skills: [winds, powerSpike] });
 
-  assert.equal(names(result, 'Winds of Chaos').length, 1);
-  assert.equal(names(result, 'Winds of Chaos')[0].timestampMs, 0);
+  const windsActions = names(result, 'Winds of Chaos');
+  assert.equal(windsActions.length, 2);
+  assert.equal(windsActions.find((action) => action.evidence === 'effect')?.timestampMs, result.combatStartTimestampMs);
+  assert.equal(result.rotation.find((command) => command.name === 'Winds of Chaos')?.interruptMs, 40);
 });
 
 test('recovers a Mesmer phantasm precast whose animation start predates combat', () => {

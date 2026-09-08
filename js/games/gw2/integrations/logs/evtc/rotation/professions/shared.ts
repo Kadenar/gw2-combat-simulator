@@ -1,5 +1,6 @@
 import { EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill, normalizedName } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -80,7 +81,7 @@ export function rawSkillName(context: EvtcProfessionReconstructionContext, skill
 /** Uses the active catalog's nonnegative Quickness-adjusted duration for inferred casts. */
 export function catalogDuration(context: EvtcProfessionReconstructionContext, identity: EvtcActionIdentity): number {
   const skill = findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
-  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
+  return quicknessReferenceCastTimeMs(skill);
 }
 
 /** Builds the common zero-duration shape used when EVTC evidence proves an instantaneous action. */

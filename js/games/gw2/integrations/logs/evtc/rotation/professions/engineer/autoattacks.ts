@@ -20,7 +20,13 @@ export function removeUncommittedEngineerAutoattacks(
   const committed = committedActionsFromStrikePackets(context, autoattacks, {
     maxFallbackImpactMs: MAX_AUTOATTACK_IMPACT_MS
   });
-  const retained = actions.filter((action) => !isRecordedAutoattack(context, action) || committed.has(action));
+  // An interrupted input occupies time even when it never produces a strike.
+  const retained = actions.filter(
+    (action) =>
+      !isRecordedAutoattack(context, action) ||
+      (action.status === 'interrupted' && action.end > action.start) ||
+      committed.has(action)
+  );
 
   return retained.map((action) => {
     if (!isRecordedAutoattack(context, action) || !committed.has(action)) return action;

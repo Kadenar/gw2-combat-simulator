@@ -35,6 +35,27 @@ const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(g
 
 const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
 
+test('Guardian greatsword autos retain aftercast only after commitment', () => {
+  // Early cancelled attempts release the lane; committed cancels keep the remainder of the same autoattack.
+  for (const [name, preceding, commitMs, fullMs] of [
+    ['Vengeful Strike', ['Strike'], 400, 600],
+    ['Wrathful Strike', ['Strike', 'Vengeful Strike'], 520, 680]
+  ]) {
+    for (const interruptMs of [80, commitMs]) {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: [...preceding, { name, interruptMs }, 'Leap of Faith'],
+        config: { ...config, primaryWeapon: 'Greatsword', boons: { quickness: true } }
+      });
+      assert.deepEqual(result.warnings, []);
+      const attempted = result.steps[preceding.length];
+      const next = result.steps[preceding.length + 1];
+      assert.equal(attempted.cancelledBeforeCommit === true, interruptMs < commitMs);
+      assert.equal(next.start - attempted.start, interruptMs < commitMs ? interruptMs : fullMs);
+    }
+  }
+});
+
 test('Guardian slot skills require selection before casts can produce effects', () => {
   // A single cast checks loadout rejection, including Effulgent's delayed detonation.
   for (const name of ['Effulgent Stance', 'Shelter', 'Renewed Focus']) {

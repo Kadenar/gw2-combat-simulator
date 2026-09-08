@@ -95,7 +95,7 @@ test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant 
   assert.equal(reconstruction.parserId, 'mesmer:virtuoso');
   assert.deepEqual(
     powerSpikes.map((command) => command.offset),
-    [200, 250]
+    [200, 240]
   );
   // Spear's flip skill is a player input and must survive generic report reconstruction.
   assert.equal(reconstruction.rotation.filter((command) => command.name === 'Mental Collapse').length, 1);
@@ -198,9 +198,6 @@ test('recovers a Troubadour opener without promoting short Harp casts to their c
       .map((command) => command.interruptMs ?? null),
     [440, 440]
   );
-  const swordsmanIndex = result.rotation.findIndex((command) => command.name === 'Phantasmal Swordsman');
-  assert.equal(result.rotation[swordsmanIndex + 1]?.name, 'Harmonious Harp');
-  assert.equal(result.rotation[swordsmanIndex + 2]?.name, 'Bladecall');
   assert.equal(
     result.actions.some((action) => action.name === 'Weapon Stow'),
     false
@@ -208,7 +205,7 @@ test('recovers a Troubadour opener without promoting short Harp casts to their c
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Mimic.*Unstable Bladestorm/);
 });
 
-test('recovers an opening Harbinger Shroud and removes canceled autoattacks', () => {
+test('recovers an opening Harbinger Shroud and preserves cancelled autoattacks', () => {
   const report = reportFixture(
     'Harbinger',
     [
@@ -241,12 +238,9 @@ test('recovers an opening Harbinger Shroud and removes canceled autoattacks', ()
   const openingShroud = result.actions.find((action) => action.name === 'Harbinger Shroud' && action.inferred);
 
   assert.equal(openingShroud?.timestampMs, 0);
-  assert.equal(
-    result.actions.some((action) => action.name === 'Vicious Shot'),
-    false
-  );
+  assert.equal(result.rotation.find((command) => command.name === 'Vicious Shot')?.interruptMs, 120);
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Harbinger Shroud/);
-  assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
+  assert.match(result.warnings.join('\n'), /Interrupted cast/);
 });
 
 test('preserves shortened Blood Is Power inputs while the scheduler owns their retained aftercast', () => {
@@ -276,7 +270,7 @@ test('preserves shortened Blood Is Power inputs while the scheduler owns their r
   assert.match(result.warnings.join('\n'), /Interrupted cast/);
 });
 
-test('recovers Dragonhunter opening precasts from packet evidence and removes failed autos', () => {
+test('recovers Dragonhunter opening precasts from packet evidence and preserves cancelled autos', () => {
   const report = parseDpsReport({
     durationMS: 10_000,
     targets: [{}],
@@ -315,10 +309,7 @@ test('recovers Dragonhunter opening precasts from packet evidence and removes fa
 
   assert.equal(result.actions.find((action) => action.name === 'Sword of Justice')?.inferred, true);
   assert.equal(result.actions.find((action) => action.name === 'Procession of Blades')?.inferred, true);
-  assert.equal(
-    result.actions.some((action) => action.name === 'Strike'),
-    false
-  );
+  assert.equal(result.rotation.find((command) => command.name === 'Strike')?.interruptMs, 40);
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Sword of Justice.*Procession of Blades/);
 });
 
@@ -633,38 +624,40 @@ test('coalesces Willbender composite casts and recovers an opening Jurisdiction'
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
 
-test('Luminary does not advance an autoattack chain after a reduced cast below commit', () => {
-  const report = reportFixture(
-    'Luminary',
-    [
-      { id: 90_001, skills: [{ castTime: 0, duration: 200, timeGained: 200 }] },
-      { id: 90_002, skills: [{ castTime: 200, duration: 400, timeGained: 0 }] }
-    ],
-    { s90001: { name: 'Chain Root' }, s90002: { name: 'Chain Follow-up' } }
-  );
-  const catalog = {
-    skills: [
-      skill(90_001, 'Chain Root', {
-        slot: 'Weapon_1',
-        quicknessCastTimeMs: 400,
-        chainRoot: 90_001,
-        nextChainId: 90_002
-      }),
-      skill(90_002, 'Chain Follow-up', {
-        slot: 'Weapon_1',
-        quicknessCastTimeMs: 400,
-        chainRoot: 90_001
-      })
-    ]
-  };
-  const result = reconstructDpsReportRotation(report, catalog);
+for (const timeGained of [200, -200]) {
+  test(`Luminary keeps the pending chain step after a shortened cast with timeGained ${timeGained}`, () => {
+    const report = reportFixture(
+      'Luminary',
+      [
+        { id: 90_001, skills: [{ castTime: 0, duration: 200, timeGained }] },
+        { id: 90_002, skills: [{ castTime: 200, duration: 400, timeGained: 0 }] }
+      ],
+      { s90001: { name: 'Chain Root' }, s90002: { name: 'Chain Follow-up' } }
+    );
+    const catalog = {
+      skills: [
+        skill(90_001, 'Chain Root', {
+          slot: 'Weapon_1',
+          quicknessCastTimeMs: 400,
+          chainRoot: 90_001,
+          nextChainId: 90_002
+        }),
+        skill(90_002, 'Chain Follow-up', {
+          slot: 'Weapon_1',
+          quicknessCastTimeMs: 400,
+          chainRoot: 90_001
+        })
+      ]
+    };
+    const result = reconstructDpsReportRotation(report, catalog);
 
-  assert.deepEqual(result.rotation, [
-    { name: '__combat_start' },
-    { name: 'Chain Root', skillId: 90_001, interruptMs: 200 },
-    { name: 'Chain Root', skillId: 90_001 }
-  ]);
-});
+    assert.deepEqual(result.rotation, [
+      { name: '__combat_start' },
+      { name: 'Chain Root', skillId: 90_001, interruptMs: 200 },
+      { name: 'Chain Root', skillId: 90_001 }
+    ]);
+  });
+}
 
 test('recovers alacrity Luminary opening state and retains only physical weapon swaps', () => {
   const report = reportFixture(

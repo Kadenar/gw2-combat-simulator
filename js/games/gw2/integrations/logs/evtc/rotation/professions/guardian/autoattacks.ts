@@ -105,7 +105,10 @@ function removeUncommittedAutoattacks(
   const committed = committedActionsFromStrikePackets(context, autoattacks, {
     maxFallbackImpactMs: MAX_AUTOATTACK_IMPACT_MS
   });
-  return actions.filter((action) => !isRecordedAutoattack(context, action) || committed.has(action));
+  // An interrupted input occupies time even when it never produces a strike.
+  return actions.filter(
+    (action) => !isRecordedAutoattack(context, action) || action.status === 'interrupted' || committed.has(action)
+  );
 }
 
 export function normalizeGuardianAutoattacks(
