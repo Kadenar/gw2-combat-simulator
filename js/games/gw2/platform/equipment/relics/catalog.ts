@@ -36,7 +36,9 @@ export const RELIC_DATA = {
   },
   Mistburn: {
     trigger: 'Grant yourself Might; +10% critical chance at 10+ Might',
-    cooldown: 1
+    cooldown: 1,
+    // Supply the relic artwork for optimizer results and equipment previews.
+    icon: 'https://render.guildwars2.com/file/FFCB62CF19806066D21C0EA1BA43986C0DA2B6F3/3629399.png'
   },
   Mirage: {
     trigger: 'Successfully evade an attack (2 Torment for 6s)',
