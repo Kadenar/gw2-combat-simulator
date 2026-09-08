@@ -8,6 +8,7 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
@@ -276,12 +277,12 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
   emitEngineerStateSnapshot(context, at, 'amalgam-morph');
 }
 
-/** Activates Plasmatic State at its observed mid-cast packet timestamp. */
-export function activatePlasmaticState(context: EngineerCastContext, _skill: EngineerSkill): void {
-  const castDuration = Math.max(0, context.fullEnd - context.start);
-  // Plasmatic State is a two-phase cast. Its buff and first damage packet land
-  // 640 ms into the 1,440 ms base timeline.
-  const at = context.start + castDuration * (640 / 1440);
+/** Activates Plasmatic State with its first strike. */
+export function activatePlasmaticState(context: EngineerCastContext, skill: EngineerSkill): void {
+  const strike = skill.effects?.find((effect) => effect.type === 'strike');
+  if (!strike) return;
+  const timing = context.schedulerPolicy.effectTiming?.(context, skill, strike) ?? strike;
+  const at = effectFirstAt(context.start, context.fullEnd, timing);
   amalgamState.from(context).plasmaticStateUntil = Math.max(
     amalgamState.from(context).plasmaticStateUntil,
     at + balanceProfileValueFromContext(context, PROFILE.plasmaticState, 'durationMultiplier', 6)

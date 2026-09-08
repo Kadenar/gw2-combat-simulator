@@ -71,7 +71,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 180 + index * 180, coefficient: 0.8 / 2 })),
+        ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 0.8 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Twin Strike (Mech)',

@@ -61,6 +61,28 @@ const applyEngineerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(e
 
 const authoringEngineerProfession = withActivePatchPreview(engineerProfession);
 
+// Check evaluated offsets so generated timelines and direct status effects are covered too.
+test('Engineer authored effect offsets use ordered 40 ms action ticks', () => {
+  for (const kind of ['skills', 'balanceProfiles']) {
+    for (const entry of engineerCatalog[kind]) {
+      for (const [effectIndex, effect] of (entry.effects ?? []).entries()) {
+        const label = `${kind} ${entry.name} (${entry.id}), effect ${effectIndex}`;
+        const ticks = effect.ticks ?? [];
+        for (const ms of [effect.atMs, effect.intervalMs, ...ticks.map((tick) => tick.atMs)]) {
+          if (ms == null) continue;
+          assert.ok(Number.isFinite(ms) && ms >= 0, `${label}: invalid offset ${ms}`);
+          assert.ok(Math.abs(ms - Math.round(ms / 40) * 40) <= 1e-6, `${label}: off-grid offset ${ms}`);
+        }
+
+        assert.ok(
+          ticks.every((tick, index) => index === 0 || tick.atMs >= ticks[index - 1].atMs),
+          `${label}: unordered packets`
+        );
+      }
+    }
+  }
+});
+
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {
   assert.equal(mechanic('Poison Dart Volley').comboFinishers, undefined);
   assert.equal(mechanic('Static Shot').comboFinishers, undefined);
@@ -211,10 +233,10 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
 
 test('Engineer sword impacts use measured cast-start packet timing', () => {
   const expectedOffsets = new Map([
-    [ID.SUN_EDGE, 350],
-    [ID.SUN_EDGE_ID_70514, 350],
-    [ID.SUN_RIPPER, 450],
-    [ID.SUN_RIPPER_ID_69906, 450],
+    [ID.SUN_EDGE, 360],
+    [ID.SUN_EDGE_ID_70514, 360],
+    [ID.SUN_RIPPER, 440],
+    [ID.SUN_RIPPER_ID_69906, 440],
     [ID.GLEAM_SABER, 600],
     [ID.GLEAM_SABER_ID_70771, 600]
   ]);

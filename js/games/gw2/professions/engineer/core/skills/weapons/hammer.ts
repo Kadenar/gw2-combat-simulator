@@ -60,7 +60,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 340 + index * 340, coefficient: 3 / 2 })),
+        ticks: [360, 680].map((atMs) => ({ atMs, coefficient: 3 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Electro-whirl',
@@ -177,7 +177,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        atMs: 750,
+        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         controlKind: 'stun',

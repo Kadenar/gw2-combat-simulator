@@ -43,7 +43,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 450, coefficient: 1.02 }],
+        ticks: [{ atMs: 440, coefficient: 1.02 }],
         name: 'Sun Ripper (non-holosmith)',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -51,7 +51,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 450, condition: 'Vulnerability', stacks: 1, duration: 10 }],
+        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -64,7 +64,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 350, coefficient: 0.96 }],
+        ticks: [{ atMs: 360, coefficient: 0.96 }],
         name: 'Sun Edge (non-holosmith)',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -72,7 +72,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 350, condition: 'Vulnerability', stacks: 1, duration: 10 }],
+        ticks: [{ atMs: 360, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -108,7 +108,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 34 + index * 51, coefficient: 0.8 / 2 })),
+        ticks: [40, 80].map((atMs) => ({ atMs, coefficient: 0.8 / 2 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Refraction Cutter Blade',
@@ -125,12 +125,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 34 + index * 51,
-          condition: 'Bleeding',
-          stacks: 1,
-          duration: 4
-        })),
+        ticks: [40, 80].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 4 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'

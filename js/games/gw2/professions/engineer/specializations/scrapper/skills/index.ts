@@ -75,7 +75,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 90 + index * 90, coefficient: 4.8 / 4 })),
+        ticks: [80, 200, 280, 360].map((atMs) => ({ atMs, coefficient: 4.8 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Spare Capacitor',
@@ -90,7 +90,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 50.4 + index * 50.4, coefficient: 11 / 4 })),
+        ticks: [40, 120, 160, 200].map((atMs) => ({ atMs, coefficient: 11 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Blast Gyro',

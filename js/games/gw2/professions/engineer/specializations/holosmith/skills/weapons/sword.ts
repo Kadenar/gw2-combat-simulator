@@ -49,7 +49,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 350, coefficient: 0.88 }],
+        ticks: [{ atMs: 360, coefficient: 0.88 }],
         name: 'Sun Edge',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -57,7 +57,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 350, condition: 'Vulnerability', stacks: 1, duration: 10 }],
+        ticks: [{ atMs: 360, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -148,7 +148,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 450, coefficient: 0.93 }],
+        ticks: [{ atMs: 440, coefficient: 0.93 }],
         name: 'Sun Ripper',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -156,7 +156,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 450, condition: 'Vulnerability', stacks: 1, duration: 10 }],
+        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'

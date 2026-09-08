@@ -52,7 +52,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 250 + index * 250, coefficient: 3.2 / 4 })),
+        ticks: [240, 520, 760, 1000].map((atMs) => ({ atMs, coefficient: 3.2 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Liquid State',
@@ -165,8 +165,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'strike',
         ticks: [
-          { atMs: 426.666666666667, coefficient: 2.25 },
-          { atMs: 786.666666666667, coefficient: 2.25 }
+          { atMs: 440, coefficient: 2.25 },
+          { atMs: 800, coefficient: 2.25 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -177,8 +177,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'condition',
         ticks: [
-          { atMs: 426.666666666667, condition: 'Burning', stacks: 2, duration: 5 },
-          { atMs: 786.666666666667, condition: 'Burning', stacks: 2, duration: 5 }
+          { atMs: 440, condition: 'Burning', stacks: 2, duration: 5 },
+          { atMs: 800, condition: 'Burning', stacks: 2, duration: 5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',

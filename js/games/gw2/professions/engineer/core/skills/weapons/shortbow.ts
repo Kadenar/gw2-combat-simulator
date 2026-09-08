@@ -68,12 +68,9 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 645 }, (_, index) => ({
-          atMs: 0.693333333333 + index * 0.693333333333,
-          coefficient: 1.0
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        // Only the initial detonation deals damage; subsequent pulses heal allies.
+        coefficient: 1,
+        hits: 1,
         name: 'Essence of Living Shadows',
         actorType: 'player'
       }

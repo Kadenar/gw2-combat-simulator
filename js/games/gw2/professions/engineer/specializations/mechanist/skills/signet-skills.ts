@@ -30,10 +30,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 6 }, (_, index) => ({
-          atMs: 86.666666666667 + index * 86.666666666667,
-          coefficient: 14.399999999999999 / 6
-        })),
+        ticks: [80, 160, 280, 360, 440, 520].map((atMs) => ({ atMs, coefficient: 14.399999999999999 / 6 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Superconducting Signet',

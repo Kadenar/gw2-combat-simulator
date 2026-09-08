@@ -2,6 +2,8 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480];
+
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Flamethrower. */
 export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.FLAMETHROWER]: {
@@ -18,7 +20,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 10 }, (_, index) => ({ atMs: 172 + index * 172, coefficient: 2.5 / 10 })),
+        ticks: [160, 360, 520, 680, 880, 1040, 1200, 1360, 1560, 1720].map((atMs) => ({ atMs, coefficient: 2.5 / 10 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flame Jet',
@@ -44,18 +46,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
         type: 'strike',
         // The EVTC records five visual volleys as ten damage packets. Each
         // packet has a 0.5 coefficient and a matching Burning application.
-        ticks: [
-          { atMs: 280, coefficient: 0.5 },
-          { atMs: 441, coefficient: 0.5 },
-          { atMs: 560, coefficient: 0.5 },
-          { atMs: 679, coefficient: 0.5 },
-          { atMs: 842, coefficient: 0.5 },
-          { atMs: 955, coefficient: 0.5 },
-          { atMs: 1077, coefficient: 0.5 },
-          { atMs: 1240, coefficient: 0.5 },
-          { atMs: 1361, coefficient: 0.5 },
-          { atMs: 1482, coefficient: 0.5 }
-        ],
+        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Napalm',
@@ -63,18 +54,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 280, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 441, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 560, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 679, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 842, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 955, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1077, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1240, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1361, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1482, condition: 'Burning', stacks: 1, duration: 3.25 }
-        ],
+        ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 3.25 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'

@@ -660,7 +660,7 @@ test('Plasmatic State models both phases as one cast', () => {
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.name === 'Plasmatic State')
       .map((event) => Math.round((event.at - step.start / 1000) * 1000)),
-    [427, 787]
+    [440, 800]
   );
   const firstPacket = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.name === 'Plasmatic State'

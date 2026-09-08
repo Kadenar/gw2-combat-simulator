@@ -47,7 +47,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 168 + index * 168, coefficient: 2 / 5 })),
+        ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Poison Dart Volley',
@@ -57,10 +57,10 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'condition',
         ticks: [
-          { atMs: 168, condition: 'Poisoned', stacks: 1, duration: 7 },
-          { atMs: 336, condition: 'Poisoned', stacks: 1, duration: 7 },
-          { atMs: 504, condition: 'Poisoned', stacks: 1, duration: 7 },
-          { atMs: 672, condition: 'Poisoned', stacks: 1, duration: 7 },
+          { atMs: 160, condition: 'Poisoned', stacks: 1, duration: 7 },
+          { atMs: 320, condition: 'Poisoned', stacks: 1, duration: 7 },
+          { atMs: 520, condition: 'Poisoned', stacks: 1, duration: 7 },
+          { atMs: 680, condition: 'Poisoned', stacks: 1, duration: 7 },
           { atMs: 840, condition: 'Poisoned', stacks: 1, duration: 7 }
         ],
         timingAnchor: 'castStart',

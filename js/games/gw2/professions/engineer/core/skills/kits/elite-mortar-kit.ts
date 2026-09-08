@@ -86,7 +86,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
       {
         type: 'strike',
         // EVTC samples land about 1.7 seconds after the cast completes, independent of cast-speed scaling.
-        ticks: [{ atMs: 1700, coefficient: 1.33 }],
+        ticks: [{ atMs: 1720, coefficient: 1.33 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Orbital Strike',

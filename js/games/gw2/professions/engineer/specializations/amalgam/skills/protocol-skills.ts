@@ -34,9 +34,9 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
       {
         type: 'strike',
         ticks: [
-          { atMs: 638.4, coefficient: 0.96 },
-          { atMs: 684, coefficient: 0.96 },
-          { atMs: 729.6, coefficient: 0.96 }
+          { atMs: 640, coefficient: 0.96 },
+          { atMs: 680, coefficient: 0.96 },
+          { atMs: 720, coefficient: 0.96 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -230,9 +230,9 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
       {
         type: 'strike',
         ticks: [
-          { atMs: 638.4, coefficient: 0.96 },
-          { atMs: 684, coefficient: 0.96 },
-          { atMs: 729.6, coefficient: 0.96 }
+          { atMs: 640, coefficient: 0.96 },
+          { atMs: 680, coefficient: 0.96 },
+          { atMs: 720, coefficient: 0.96 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -433,9 +433,9 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
       {
         type: 'strike',
         ticks: [
-          { atMs: 638.4, coefficient: 0.96 },
-          { atMs: 684, coefficient: 0.96 },
-          { atMs: 729.6, coefficient: 0.96 }
+          { atMs: 640, coefficient: 0.96 },
+          { atMs: 680, coefficient: 0.96 },
+          { atMs: 720, coefficient: 0.96 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',

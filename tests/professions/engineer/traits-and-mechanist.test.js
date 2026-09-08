@@ -931,7 +931,7 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
   assert.equal(orbitalStrike.cooldown, 40);
   assert.equal(orbitalStrike.quicknessCastTimeMs, 880);
   assert.equal(strikeEffectCoefficient(orbitalStrike.effects[0]), 1.33);
-  assert.equal(effectFirstAtMs(orbitalStrike.effects[0]), 1700);
+  assert.equal(effectFirstAtMs(orbitalStrike.effects[0]), 1720);
   assert.equal(orbitalStrike.effects[0].timingAnchor, 'castEnd');
   assert.equal(orbitalStrike.comboFinishers[0].finisherType, 'Blast');
 
@@ -943,7 +943,7 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
   const orbitalHit = orbital.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Orbital Strike');
 
   assert.equal(orbitalCast.end - orbitalCast.start, 880);
-  assert.equal(orbitalHit.at * 1000 - orbitalCast.end, 1700);
+  assert.equal(orbitalHit.at * 1000 - orbitalCast.end, 1720);
 
   const grenadeBarrage = mechanic('Grenade Barrage');
 

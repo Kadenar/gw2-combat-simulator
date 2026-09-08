@@ -36,10 +36,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 186.666666666667 + index * 186.666666666667,
-          coefficient: 1.6 / 2
-        })),
+        ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flash Cutter—Storm',
@@ -410,7 +407,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 260 + index * 260, coefficient: 1.6 / 2 })),
+        ticks: [280, 520].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flash Cutter',

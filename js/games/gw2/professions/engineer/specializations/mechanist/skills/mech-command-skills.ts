@@ -68,7 +68,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 601, coefficient: 2.2 }],
+        ticks: [{ atMs: 600, coefficient: 2.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Jade Mortar',
@@ -77,7 +77,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 601, condition: 'Burning', stacks: 3, duration: 6 }],
+        ticks: [{ atMs: 600, condition: 'Burning', stacks: 3, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'summon',
@@ -85,7 +85,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       },
       {
         type: 'control',
-        atMs: 601,
+        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -124,18 +124,18 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       {
         type: 'strike',
         ticks: [
-          { atMs: 717, coefficient: 0.176 },
-          { atMs: 717, coefficient: 0.176 },
-          { atMs: 834, coefficient: 0.176 },
-          { atMs: 834, coefficient: 0.176 },
-          { atMs: 1001, coefficient: 0.176 },
-          { atMs: 1001, coefficient: 0.176 },
-          { atMs: 1151, coefficient: 0.176 },
-          { atMs: 1151, coefficient: 0.176 },
-          { atMs: 1318, coefficient: 0.176 },
-          { atMs: 1318, coefficient: 0.176 },
-          { atMs: 1484, coefficient: 0.176 },
-          { atMs: 1484, coefficient: 0.176 }
+          { atMs: 720, coefficient: 0.176 },
+          { atMs: 720, coefficient: 0.176 },
+          { atMs: 840, coefficient: 0.176 },
+          { atMs: 840, coefficient: 0.176 },
+          { atMs: 1000, coefficient: 0.176 },
+          { atMs: 1000, coefficient: 0.176 },
+          { atMs: 1160, coefficient: 0.176 },
+          { atMs: 1160, coefficient: 0.176 },
+          { atMs: 1320, coefficient: 0.176 },
+          { atMs: 1320, coefficient: 0.176 },
+          { atMs: 1480, coefficient: 0.176 },
+          { atMs: 1480, coefficient: 0.176 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -249,7 +249,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 684, coefficient: 2.5 }],
+        ticks: [{ atMs: 680, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Core Reactor Shot',
@@ -258,7 +258,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       },
       {
         type: 'control',
-        atMs: 684,
+        atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,

@@ -46,7 +46,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 518, coefficient: 1.25 }],
+        ticks: [{ atMs: 520, coefficient: 1.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Net Shot',
@@ -55,14 +55,14 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 518, condition: 'Vulnerability', stacks: 8, duration: 8 }],
+        ticks: [{ atMs: 520, condition: 'Vulnerability', stacks: 8, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 518, condition: 'Immobilized', stacks: 1, duration: 4 }],
+        ticks: [{ atMs: 520, condition: 'Immobilized', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -76,7 +76,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 117, coefficient: 0.3 }],
+        ticks: [{ atMs: 120, coefficient: 0.3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Leap Damage',
@@ -105,7 +105,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 368, coefficient: 2.2 }],
+        ticks: [{ atMs: 360, coefficient: 2.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Maximum Damage',
@@ -113,7 +113,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 368, condition: 'Bleeding', stacks: 3, duration: 9 }],
+        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 3, duration: 9 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -123,7 +123,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         boon: 'might',
         duration: 8,
         stacks: 5,
-        atMs: 368,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -135,7 +135,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 451, coefficient: 1 }],
+        ticks: [{ atMs: 440, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Overcharged Shot',

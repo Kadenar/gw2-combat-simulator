@@ -31,6 +31,18 @@ const baseConfig = Object.freeze({
 
 const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
+// Healing pulses must not generate additional damage or on-hit procs.
+test('Essence of Living Shadows damages only on its initial detonation', () => {
+  const result = simulate('Core', ['Essence of Living Shadows', { type: 'wait', durationMs: 5000 }]);
+  const hits = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.ESSENCE_OF_LIVING_SHADOWS
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].coefficient, 1);
+});
+
 test('Mechanist commands are selected by traits and mech attacks persist', () => {
   const result = simulate('Mechanist', ['Spark Revolver', { type: 'wait', durationMs: 2000 }], {
     selectedTraitIds: [
@@ -182,7 +194,7 @@ describe('Engineer packet profiles', () => {
     assert.equal(mechanic('Napalm').interruptMode, 'per-packet');
     assert.deepEqual(
       mechanic('Napalm').effects[0].ticks.map((packet) => packet.atMs),
-      [280, 441, 560, 679, 842, 955, 1077, 1240, 1361, 1482]
+      [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480]
     );
     assert.deepEqual(
       mechanic('Napalm').effects[1].ticks.map((packet) => packet.atMs),
@@ -306,7 +318,7 @@ describe('Engineer packet profiles', () => {
     );
     assert.deepEqual(
       shred.ticks.map((packet) => packet.atMs),
-      [638.4, 684, 729.6]
+      [640, 680, 720]
     );
     assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].condition, 'Immobilized');
     assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].duration, 3);
@@ -745,7 +757,7 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
   assert.ok(thunderDamage.every((event) => event.coefficient === 0.8));
   assert.equal(thunderVulnerability.length, 5);
   assert.ok(thunderVulnerability.every((event) => event.stacks === 1 && event.duration === 8));
-  assert.equal(thunderControl.at, 0.75);
+  assert.equal(thunderControl.at, 0.76);
   assert.equal(thunderControl.controlKind, 'stun');
   assert.equal(skill('Thunderclap').comboFields[0].fieldType, 'Lightning');
 
