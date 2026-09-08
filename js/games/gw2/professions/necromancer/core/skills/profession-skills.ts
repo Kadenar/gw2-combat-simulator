@@ -59,64 +59,65 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.LIFE_TRANSFER]: {
     quicknessCastTimeMs: 2920,
+    // Snap each original 222 ms pulse independently to 40 ms, keeping strikes and bleeding synchronized.
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 222 + index * 222, coefficient: 3.825 / 9 })),
+        ticks: [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({ atMs, coefficient: 3.825 / 9 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 222, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 240, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 444, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 666, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 680, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 888, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1110, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 1120, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1332, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 1320, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1554, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 1560, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1776, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 1760, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1998, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 2000, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -160,6 +161,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.GRIM_SPECTER]: {
     castTimeMs: 750,
+    // Align delayed siphons to 40 ms while preserving their one-second cadence.
     effects: [
       {
         type: 'strike',
@@ -174,7 +176,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 1750, coefficient: 0 }],
+        ticks: [{ atMs: 1760, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         flatStrikeBase: 778,
         flatStrikePowerCoeff: 0.2,
@@ -185,7 +187,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 2750, coefficient: 0 }],
+        ticks: [{ atMs: 2760, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         flatStrikeBase: 778,
         flatStrikePowerCoeff: 0.2,
@@ -196,7 +198,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 3750, coefficient: 0 }],
+        ticks: [{ atMs: 3760, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         flatStrikeBase: 778,
         flatStrikePowerCoeff: 0.2,
@@ -207,7 +209,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 4750, coefficient: 0 }],
+        ticks: [{ atMs: 4760, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         flatStrikeBase: 778,
         flatStrikePowerCoeff: 0.2,
@@ -320,6 +322,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.TAINTED_SHACKLES]: {
     castTimeMs: 250,
+    // Align the delayed torment and final strike to 40 ms without shifting the cast-scaled opening pulse.
     effects: [
       {
         type: 'condition',
@@ -329,25 +332,25 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1250, condition: 'Torment', stacks: 2, duration: 12 }],
+        ticks: [{ atMs: 1240, condition: 'Torment', stacks: 2, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2250, condition: 'Torment', stacks: 2, duration: 12 }],
+        ticks: [{ atMs: 2240, condition: 'Torment', stacks: 2, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 3250, condition: 'Torment', stacks: 2, duration: 12 }],
+        ticks: [{ atMs: 3240, condition: 'Torment', stacks: 2, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 4250, coefficient: 1.25 }],
+        ticks: [{ atMs: 4240, coefficient: 1.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

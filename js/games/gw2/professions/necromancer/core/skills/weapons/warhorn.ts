@@ -14,6 +14,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.LOCUST_SWARM]: {
     quicknessCastTimeMs: 440,
+    // Round each original half-second pulse to 40 ms; keep whole-second pulses in place to avoid cumulative drift.
     effects: [
       {
         type: 'strike',
@@ -28,7 +29,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 500, coefficient: 0 }],
+        ticks: [{ atMs: 520, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         flatStrikeBase: 37,
         flatStrikePowerCoeff: 0.012,
@@ -50,7 +51,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 1500, coefficient: 0 }],
+        ticks: [{ atMs: 1520, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         flatStrikeBase: 37,
         flatStrikePowerCoeff: 0.012,
@@ -72,7 +73,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 2500, coefficient: 0 }],
+        ticks: [{ atMs: 2520, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         flatStrikeBase: 37,
         flatStrikePowerCoeff: 0.012,
@@ -94,7 +95,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 3500, coefficient: 0 }],
+        ticks: [{ atMs: 3520, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         flatStrikeBase: 37,
         flatStrikePowerCoeff: 0.012,
@@ -116,7 +117,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 4500, coefficient: 0 }],
+        ticks: [{ atMs: 4520, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         flatStrikeBase: 37,
         flatStrikePowerCoeff: 0.012,

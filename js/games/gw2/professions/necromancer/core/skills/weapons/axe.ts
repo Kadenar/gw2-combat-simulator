@@ -9,7 +9,8 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 180 + index * 180, coefficient: 4.6 / 8 })),
+        // Round each original 180 ms pulse independently to 40 ms so spacing error does not accumulate.
+        ticks: [200, 360, 560, 720, 920, 1080, 1280, 1440].map((atMs) => ({ atMs, coefficient: 4.6 / 8 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
