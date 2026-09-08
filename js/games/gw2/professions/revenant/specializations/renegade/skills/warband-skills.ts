@@ -58,6 +58,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
     castTimeMs: 520,
+    interruptCommitMs: 480,
     unaffectedByQuickness: true,
     cooldown: 10,
     energyCost: 20,
@@ -72,7 +73,8 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           { atMs: 822, coefficient: 2 }
         ],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -99,7 +101,8 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           }
         ],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ],
     legendId: 'LegendaryRenegade'
