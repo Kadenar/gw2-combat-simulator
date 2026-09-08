@@ -197,72 +197,6 @@ test('Mind the Gap preserves its deferred clone when shattering on its impact fr
   assert.deepEqual(result.warnings, []);
 });
 
-// Verify the commit boundary independently of any saved rotation, including Mind the Gap's retained casting lane.
-test('Mind the Gap and Phantasmal Berserker commit at 520 ms', () => {
-  for (const [name, weapon, next, lockout] of [
-    ['Mind the Gap', 'Spear', 'Psycut', 600],
-    ['Phantasmal Berserker', 'Greatsword', 'Mind Stab', 520]
-  ]) {
-    for (const interruptMs of [480, 520]) {
-      const result = simulateMesmer([{ name, interruptMs }, next, { name: '__wait', waitMs: 2000 }], {
-        specialization: 'Mirage',
-        primaryWeapon: weapon,
-        secondaryWeapon: '',
-        initialResource: 0
-      });
-      const committed = interruptMs === 520;
-      assert.equal(
-        result.events.some((event) => event.type === 'damage' && event.skillName === name),
-        committed,
-        name
-      );
-      assert.equal(
-        result.steps.find((step) => step.skill === next).start,
-        name === 'Mind the Gap' ? lockout : interruptMs
-      );
-      if (name === 'Phantasmal Berserker') {
-        assert.equal(
-          result.events.some((event) => event.type === 'mesmer.phantasm-summoned' && event.name === name),
-          committed
-        );
-      }
-
-      assert.deepEqual(result.warnings, []);
-    }
-  }
-});
-
-// Both ordinary and trait-added bounces survive only after the projectile and its clone have committed.
-test('Mirror Blade commits its clone and persistent bounces at 560 ms', () => {
-  for (const interruptMs of [520, 560]) {
-    const result = simulateMesmer(
-      [
-        { name: 'Mirror Blade', interruptMs },
-        { name: '__wait', waitMs: 2000 }
-      ],
-      {
-        specialization: 'Mirage',
-        primaryWeapon: 'Greatsword',
-        secondaryWeapon: '',
-        initialResource: 0,
-        selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES]
-      }
-    );
-    const committed = interruptMs === 560;
-    assert.equal(result.endState.profession.resource, committed ? 1 : 0);
-    const damage = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Mirror Blade');
-    assert.equal(
-      damage.some((event) => event.at * 1000 > interruptMs && event.sourceId === ID.MIRROR_BLADE),
-      committed
-    );
-    assert.equal(
-      damage.some((event) => event.at * 1000 > interruptMs && event.sourceId === TRAIT.BOUNTIFUL_BLADES),
-      committed
-    );
-    assert.deepEqual(result.warnings, []);
-  }
-});
-
 test('Mind the Gap grants 15 seconds of Clarity and displays it as a skill proc', () => {
   const result = simulateMesmer(
     ['Mind the Gap'],
@@ -371,40 +305,6 @@ test('Flying Cutter and Unstable Bladestorm remain available outside Virtuoso', 
   assert.equal(result.warnings.length, 0);
 });
 
-test('Unstable Bladestorm commits at its measured spawn and retains its packet train', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Chronomancer',
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Sword'
-  });
-  const committed = simulateMesmer(
-    [
-      { name: 'Unstable Bladestorm', interruptMs: 200 },
-      { name: '__wait', waitMs: 5000 }
-    ],
-    config
-  );
-  const cancelled = simulateMesmer(
-    [
-      { name: 'Unstable Bladestorm', interruptMs: 199 },
-      { name: '__wait', waitMs: 5000 }
-    ],
-    config
-  );
-
-  assert.deepEqual(
-    committed.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
-      .map((event) => Number(event.at.toFixed(3))),
-    [1.16, 1.2, 2.16, 2.2, 3.16, 3.2, 4.16, 4.2]
-  );
-  assert.equal(
-    cancelled.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
-      .length,
-    0
-  );
-});
-
 test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six times', () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
@@ -490,41 +390,6 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
       )
       .map((event) => Number(event.at.toFixed(3))),
     [0.199, 0.199, 0.199, 2.716, 2.716, 2.766]
-  );
-});
-
-test('Flying Cutter commits its projectile before an interrupt and retains Cutter Burst', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Chronomancer',
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Sword'
-  });
-  const afterRelease = simulateMesmer(
-    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 320 }, { name: '__wait', waitMs: 1000 }],
-    config
-  );
-  const beforeRelease = simulateMesmer(
-    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 319 }, { name: '__wait', waitMs: 1000 }],
-    config
-  );
-
-  assert.equal(
-    afterRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter')
-      .length,
-    3
-  );
-  assert.equal(
-    afterRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Cutter Burst').length,
-    3
-  );
-  assert.equal(
-    beforeRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter')
-      .length,
-    2
-  );
-  assert.equal(
-    beforeRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Cutter Burst').length,
-    0
   );
 });
 

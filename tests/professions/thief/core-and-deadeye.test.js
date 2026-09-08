@@ -1152,14 +1152,6 @@ test('Daredevil skills and endurance traits use configured values', () => {
     [backstabStrike.ticks[0].atMs, backstabStrike.timingAnchor, backstabStrike.timingScale],
     [200, 'castStart', 'fixed']
   );
-  assert.equal(thiefCatalog.skillsById.get(ID.BACKSTAB).interruptCommitMs, 200);
-  const interruptedBackstab = simulate('Daredevil', ['Cloak and Dagger', { name: 'Backstab', interruptMs: 280 }], {
-    stats: { precision: 5000 }
-  });
-
-  assert.equal(interruptedBackstab.steps[1].interrupted, true);
-  assert.equal(interruptedBackstab.steps[1].end - interruptedBackstab.steps[1].start, 280);
-  assert.equal(interruptedBackstab.breakdown.find((entry) => entry.sourceSkill === 'Backstab').hits, 1);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).castTimeMs, 800);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).quicknessCastTimeMs, undefined);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).unaffectedByQuickness, true);

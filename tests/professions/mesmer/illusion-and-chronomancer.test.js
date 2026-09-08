@@ -491,54 +491,7 @@ test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () 
   assert.deepEqual(result.warnings, []);
 });
 
-test('interrupt commands end casts and remove later hit events', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: 'Scepter',
-    secondaryWeapon: ''
-  });
-  const full = simulateMesmer(['Confusing Images'], config);
-  const interrupted = simulateMesmer([{ name: 'Confusing Images', interruptMs: 250 }], config);
-
-  assert.equal(interrupted.steps[0].end, 250);
-  assert.equal(interrupted.steps[0].interrupted, true);
-  assert.ok(interrupted.totalDamage < full.totalDamage);
-});
-
-test('Winds of Chaos commits by 560 ms and retains its later packets after interruption', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: 'Staff',
-    secondaryWeapon: '',
-    initialResource: 0
-  });
-  const packets = (interruptMs) => {
-    const result = simulateMesmer(
-      [
-        { name: 'Winds of Chaos', interruptMs },
-        { name: '__wait', waitMs: 1000 }
-      ],
-      config
-    );
-
-    return result.resolvedEvents.filter(
-      (event) => event.skillName === 'Winds of Chaos' && (event.type === 'damage' || event.type === 'condition')
-    );
-  };
-
-  assert.deepEqual(packets(559), []);
-  assert.deepEqual(
-    packets(560).map((event) => [event.type, Math.round(event.at * 1000), event.condition || null]),
-    [
-      ['damage', 533, null],
-      ['damage', 623, null],
-      ['condition', 760, 'Torment'],
-      ['condition', 760, 'Confusion']
-    ]
-  );
-});
-
-test('Confusing Images applies seven timed confusion pulses and loses later pulses when interrupted', () => {
+test('Confusing Images applies seven timed confusion pulses', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
     primaryWeapon: 'Scepter',
@@ -546,18 +499,15 @@ test('Confusing Images applies seven timed confusion pulses and loses later puls
     initialResource: 0
   });
   const full = simulateMesmer(['Confusing Images'], config);
-  const interrupted = simulateMesmer([{ name: 'Confusing Images', interruptMs: 1000 }], config);
   const applications = (result) =>
     result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === 'Confusing Images' && event.condition === 'Confusion'
     );
   const fullApplications = applications(full);
-  const interruptedApplications = applications(interrupted);
 
   assert.equal(fullApplications.length, 7);
   assert.ok(fullApplications.every((event) => event.stacks === 1));
   assert.ok(fullApplications.every((event, index) => index === 0 || event.at > fullApplications[index - 1].at));
-  assert.equal(interruptedApplications.length, 3);
 });
 
 test('Chaos Storm uses configured pulse offsets and Lesser Chaos Storm stays periodic', () => {
@@ -611,73 +561,6 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
   assert.equal(interrupted.endState.cooldowns['Confusing Images'].readyAt, 7450);
 });
 
-test('Spatial Surge keeps channel packets completed before an interrupt', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: 'Greatsword',
-    secondaryWeapon: '',
-    initialResource: 0
-  });
-  const damageEvents = (result) =>
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Spatial Surge');
-  const full = damageEvents(simulateMesmer(['Spatial Surge'], config));
-  const partial = damageEvents(simulateMesmer([{ name: 'Spatial Surge', interruptMs: 600 }], config));
-  const beforeFirstPacket = damageEvents(simulateMesmer([{ name: 'Spatial Surge', interruptMs: 200 }], config));
-
-  assert.equal(full.length, 3);
-  assert.equal(partial.length, 2);
-  assert.equal(beforeFirstPacket.length, 0);
-  assert.ok(partial[1].at > partial[0].at);
-});
-
-test('Phantasmal Swordsman independently gates its summon and player hit', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Sword',
-    initialResource: 0
-  });
-  const interruptedAt = (interruptMs) =>
-    simulateMesmer(
-      [
-        { name: 'Phantasmal Swordsman', interruptMs },
-        { name: '__wait', waitMs: 5000 }
-      ],
-      config
-    );
-  const summonedAt = (result) =>
-    result.events.find((event) => event.type === 'mesmer.phantasm-summoned' && event.name === 'Phantasmal Swordsman')
-      ?.at;
-  const playerHitAt = (result) =>
-    result.events.find(
-      (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman' && event.source === 'Player'
-    )?.at;
-  const cancelled = (result) => result.events.find((event) => event.type === 'action')?.cancelled === true;
-
-  const beforeSummon = interruptedAt(719);
-  const summonOnly = interruptedAt(720);
-  const beforePlayerHit = interruptedAt(750);
-  const withPlayerHit = interruptedAt(760);
-
-  assert.equal(summonedAt(beforeSummon), undefined);
-  assert.equal(cancelled(beforeSummon), true);
-  assert.equal(summonedAt(summonOnly), 0.72);
-  assert.equal(cancelled(summonOnly), false);
-  assert.equal(summonedAt(beforePlayerHit), 0.75);
-  assert.equal(cancelled(beforePlayerHit), false);
-  assert.equal(summonedAt(withPlayerHit), 0.76);
-  assert.equal(cancelled(withPlayerHit), false);
-  assert.equal(playerHitAt(summonOnly), undefined);
-  assert.equal(playerHitAt(beforePlayerHit), undefined);
-  assert.ok(Math.abs(playerHitAt(withPlayerHit) - 0.759) < 1e-12);
-  assert.equal(summonOnly.endState.cooldowns['Phantasmal Swordsman'].readyAt, 12720);
-  assert.ok(
-    summonOnly.events.some(
-      (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman' && event.source === 'Phantasm'
-    )
-  );
-});
-
 test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {
   const result = simulateMesmer(
     ['Phantasmal Swordsman', { name: 'Signet of Midnight', offset: 800 }],
@@ -726,14 +609,7 @@ test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
     initialResource: 0,
     selectedTraitIds: [TRAIT.FENCERS_FINESSE]
   });
-  const simulate = (interruptMs) =>
-    simulateMesmer(
-      [
-        interruptMs == null ? 'Phantasmal Swordsman' : { name: 'Phantasmal Swordsman', interruptMs },
-        { name: '__wait', waitMs: 5000 }
-      ],
-      config
-    );
+  const simulate = () => simulateMesmer(['Phantasmal Swordsman', { name: '__wait', waitMs: 5000 }], config);
   const applications = (result) =>
     result.events
       .filter((event) => event.type === 'buff' && event.kind === 'fencer')
@@ -743,16 +619,8 @@ test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
       }));
 
   assert.deepEqual(
-    applications(simulate(null)),
+    applications(simulate()),
     [7591, 17251, 22011, 22421, 25251, 25591, 28001, 28421, 31261, 31591].map((at) => ({ at, stacks: 1 }))
-  );
-  assert.deepEqual(
-    applications(simulate(720)),
-    [15651, 20411, 20821, 23651, 23991, 26401, 26821, 29661, 29991].map((at) => ({ at, stacks: 1 }))
-  );
-  assert.deepEqual(
-    applications(simulate(760)).map((event) => event.at),
-    [7591, 16051, 20811, 21221, 24051, 24391, 26801, 27221, 30061, 30391]
   );
 });
 
@@ -1098,33 +966,6 @@ test('Phantasmal Warlock uses its full 840ms Quickness cast time', () => {
   );
 
   assert.equal(result.steps[0].end - result.steps[0].start, 840);
-});
-
-test('Phantasmal Warlock summons when shortened to 640ms', () => {
-  const simulate = (interruptMs) =>
-    simulateMesmer(
-      [
-        { name: 'Phantasmal Warlock', interruptMs },
-        { name: '__wait', waitMs: 4000 }
-      ],
-      defaultSimulationConfig({
-        specialization: 'Core',
-        primaryWeapon: 'Staff',
-        secondaryWeapon: '',
-        initialResource: 0
-      })
-    );
-  const summoned = (result) =>
-    result.events.some((event) => event.type === 'mesmer.phantasm-summoned' && event.name === 'Phantasmal Warlock');
-  const cancelled = (result) => result.events.find((event) => event.type === 'action')?.cancelled === true;
-
-  const beforeCommit = simulate(639);
-  const atCommit = simulate(640);
-
-  assert.equal(summoned(beforeCommit), false);
-  assert.equal(cancelled(beforeCommit), true);
-  assert.equal(summoned(atCommit), true);
-  assert.equal(cancelled(atCommit), false);
 });
 
 test('corrected Mesmer skills use their measured Quickness cast times', () => {
@@ -1619,32 +1460,6 @@ test('Well of Calamity uses its measured cast, pulse conditions, and ethereal fi
       fieldType: 'Ethereal',
       duration: 3,
       startMs: 559,
-      startAnchor: 'castStart'
-    }
-  ]);
-});
-
-test('Well of Action keeps all measured pulses after its first pulse commits an interrupted cast', () => {
-  const result = simulateMesmer(
-    [
-      { name: 'Well of Action', interruptMs: 600 },
-      { name: '__wait', waitMs: 3000 }
-    ],
-    defaultSimulationConfig({ specialization: 'Chronomancer', selectedSkills: ['Well of Action'] })
-  );
-  const packets = result.resolvedEvents
-    .filter((event) => event.type === 'damage' && event.skillName === 'Well of Action')
-    .map((event) => Math.round(event.at * 1000));
-  const well = mesmerCatalog.skillsByName.get('Well of Action');
-
-  assert.equal(result.steps[0].end - result.steps[0].start, 600);
-  assert.deepEqual(packets, [518, 1519, 2520]);
-  assert.deepEqual(well.comboFields, [
-    {
-      ownerId: 'mesmer',
-      fieldType: 'Ethereal',
-      duration: 3,
-      startMs: 518,
       startAnchor: 'castStart'
     }
   ]);

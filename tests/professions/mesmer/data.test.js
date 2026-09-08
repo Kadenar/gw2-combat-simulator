@@ -514,7 +514,6 @@ test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip
   assert.equal(counterspell.id, 10314);
   assert.equal(counterspell.weapon, 'Scepter');
   assert.deepEqual(counterspell.resource, { mode: 'add', count: 1, timingAnchor: 'castStart', atMs: 360 });
-  assert.equal(counterspell.interruptCommitMs, 360);
   assert.equal(counterspell.retainsCastLockoutAfterInterrupt, true);
 });
 

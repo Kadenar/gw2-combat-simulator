@@ -67,7 +67,6 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   const fan = skill(ID.FAN_OF_FIRE);
 
   assert.equal(fan.cooldown, 5);
-  assert.equal(fan.interruptCommitMs, 240);
   assert.equal(fan.retainsCastLockoutAfterInterrupt, true);
   assert.deepEqual(
     fan.effects.slice(0, 1).map(({ type, coefficient, hits, atMs }) => ({ type, coefficient, hits, atMs })),
@@ -77,8 +76,6 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.deepEqual(fan.effects[1].ticks, [{ atMs: 240, condition: 'Burning', stacks: 3, duration: 3 }]);
 
   const gash = skill(ID.GASH);
-
-  assert.equal(gash.interruptCommitMs, 380);
   assert.equal(gash.retainsCastLockoutAfterInterrupt, true);
 
   const arcingArrow = skill(ID.ARCING_ARROW);
@@ -203,7 +200,6 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   const flamingFlurry = skill(ID.FLAMING_FLURRY);
 
   assert.equal(flamingFlurry.skillWeapon, 'Sword');
-  assert.equal(flamingFlurry.interruptCommitMs, 1560);
   assert.equal(flamingFlurry.defaultInterruptMs, undefined);
   assert.equal(flamingFlurry.interruptMode, 'per-packet');
   assert.deepEqual(

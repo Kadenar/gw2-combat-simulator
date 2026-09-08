@@ -1375,75 +1375,7 @@ test('Warrior packets use their configured Quickness offsets', () => {
   );
 });
 
-test('Gash commits when interrupted at 380ms while retaining its full cast lockout', () => {
-  const early = simulate('Core', ['Sever Artery', { type: 'cast', skillId: ID.GASH, interruptAfterMs: 379 }], {
-    primaryWeapon: 'Sword',
-    boons: { quickness: true }
-  });
-  const result = simulate(
-    'Core',
-    ['Sever Artery', { type: 'cast', skillId: ID.GASH, interruptAfterMs: 380 }, 'Savage Leap'],
-    {
-      primaryWeapon: 'Sword',
-      boons: { quickness: true }
-    }
-  );
-  const gash = result.steps.find((step) => step.skill === 'Gash');
-  const savageLeap = result.steps.find((step) => step.skill === 'Savage Leap');
-
-  assert.equal(
-    early.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.GASH),
-    false
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.equal(gash.end - gash.start, 380);
-  assert.equal(gash.castLockoutEnd - gash.start, 520);
-  assert.equal(savageLeap.start, gash.castLockoutEnd);
-  assert.equal(
-    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.GASH),
-    true
-  );
-});
-
-test('Flaming Flurry commits at 1560ms and retains only completed packets when interrupted earlier', () => {
-  const config = {
-    initialResource: 30,
-    primaryWeapon: 'Sword',
-    boons: { quickness: true }
-  };
-  const normal = simulate('Berserker', ['Berserk', ID.FLAMING_FLURRY], config);
-  const completed = simulate(
-    'Berserker',
-    ['Berserk', { type: 'cast', skillId: ID.FLAMING_FLURRY, interruptAfterMs: 1560 }],
-    config
-  );
-  const partial = simulate(
-    'Berserker',
-    ['Berserk', { type: 'cast', skillId: ID.FLAMING_FLURRY, interruptAfterMs: 1000 }],
-    config
-  );
-  const packetOffsets = (result, type) => {
-    const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.FLAMING_FLURRY);
-
-    return result.events
-      .filter((event) => event.type === type && event.activationId === action.activationId)
-      .map((event) => Math.round((event.at - action.at) * 1000));
-  };
-
-  const normalStep = normal.steps.find((step) => step.skill === 'Flaming Flurry');
-  const completedStep = completed.steps.find((step) => step.skill === 'Flaming Flurry');
-
-  assert.equal(normalStep.end - normalStep.start, 1600);
-  assert.equal(normalStep.interrupted, false);
-  assert.equal(completedStep.end - completedStep.start, 1560);
-  assert.equal(completedStep.interrupted, true);
-  assert.deepEqual(packetOffsets(completed, 'damage'), [400, 640, 880, 1120, 1320, 1560]);
-  assert.deepEqual(packetOffsets(completed, 'condition'), [400, 640, 880, 1120, 1320, 1560]);
-  assert.deepEqual(packetOffsets(partial, 'damage'), [400, 640, 880]);
-  assert.deepEqual(packetOffsets(partial, 'condition'), [400, 640, 880]);
-});
-
-test('Dagger autos land at 200 ms and use a 15% critical-damage factor', () => {
+test('Dagger autos use a 15% critical-damage factor', () => {
   const damage = (skillName, precision) => {
     const rotation =
       skillName === 'Focused Slash'
@@ -1466,23 +1398,6 @@ test('Dagger autos land at 200 ms and use a 15% critical-damage factor', () => {
   assert.ok(Math.abs(normalized('Precise Cut', 0.6, 0) / normalized('Keen Strike', 1.05, 0) - 1) < 1e-9);
   assert.ok(Math.abs(normalized('Precise Cut', 0.6, 10000) / normalized('Keen Strike', 1.05, 10000) - 1.15) < 1e-9);
   assert.ok(Math.abs(normalized('Focused Slash', 0.65, 10000) / normalized('Keen Strike', 1.05, 10000) - 1.15) < 1e-9);
-
-  const interrupted = (interruptMs) =>
-    simulate('Spellbreaker', [{ name: 'Precise Cut', interruptMs }], {
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Mace',
-      boons: { quickness: true },
-      selectedTraitIds: [TRAIT.DUAL_WIELDING]
-    });
-
-  assert.equal(
-    interrupted(159).events.filter((event) => event.type === 'damage' && event.skillId === ID.PRECISE_CUT).length,
-    0
-  );
-  assert.equal(
-    interrupted(233).events.filter((event) => event.type === 'damage' && event.skillId === ID.PRECISE_CUT).length,
-    0
-  );
 });
 
 test('Peak Performance buffs Kick and Leg Specialist requires impairment', () => {

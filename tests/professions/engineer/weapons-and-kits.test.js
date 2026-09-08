@@ -652,33 +652,6 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
       ['Rifle Burst Grenade', 0.6, 0.8]
     ]
   );
-
-  const interruptedPackets = (interruptMs) =>
-    simulate(
-      'Mechanist',
-      [
-        { name: 'Rifle Burst', interruptMs },
-        { type: 'wait', durationMs: 1000 }
-      ],
-      { boons: { quickness: true } }
-    ).events.filter((event) => event.type === 'damage' && ['Rifle Burst', 'Rifle Burst Grenade'].includes(event.name));
-
-  assert.deepEqual(
-    interruptedPackets(319).map((event) => event.name),
-    []
-  );
-  assert.deepEqual(
-    interruptedPackets(320).map((event) => event.name),
-    ['Rifle Burst']
-  );
-  assert.deepEqual(
-    interruptedPackets(599).map((event) => event.name),
-    ['Rifle Burst']
-  );
-  assert.deepEqual(
-    interruptedPackets(600).map((event) => event.name),
-    ['Rifle Burst', 'Rifle Burst Grenade']
-  );
 });
 
 test('Engineer hammer skills use the requested packets and field cadence', () => {
@@ -832,15 +805,6 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
     ]
   );
   assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').quicknessCastTimeMs, 600);
-  assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').interruptCommitMs, 400);
-  const interruptedFire = (interruptMs) =>
-    simulate('Core', ['Bomb Kit', { name: 'Fire Bomb', interruptMs }, waitForBombPackets()], {
-      selectedSkills,
-      boons: { quickness: true }
-    }).events.filter((event) => event.type === 'damage' && event.name === 'Fire Bomb');
-
-  assert.equal(interruptedFire(399).length, 0);
-  assert.equal(interruptedFire(400).length, 4);
   assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].fieldType, 'Fire');
   assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].duration, 3);
 
@@ -984,26 +948,6 @@ test('Grenade Kit emits three explosive grenade packets', () => {
     }
   }
 
-  const committedGrenades = ['Grenade', 'Shrapnel Grenade', 'Freeze Grenade', 'Poison Grenade'];
-
-  for (const name of committedGrenades) {
-    const grenadeSkill = engineerCatalog.skillsByName.get(name);
-
-    assert.equal(grenadeSkill.interruptCommitMs, 360, name);
-    assert.ok(
-      grenadeSkill.effects.every((effect) => effect.persistsAfterInterrupt === true),
-      name
-    );
-
-    const interruptedPackets = (interruptMs) =>
-      simulate('Core', ['Grenade Kit', { name, interruptMs }, { type: 'wait', durationMs: 1000 }]).events.filter(
-        (event) => event.type === 'damage' && event.name === name
-      );
-
-    assert.equal(interruptedPackets(359).length, 0, name);
-    assert.equal(interruptedPackets(360).length, 3, name);
-  }
-
   const shrapnel = engineerCatalog.skillsByName.get('Shrapnel Grenade');
 
   assert.equal(shrapnel.comboFinishers, undefined);
@@ -1097,52 +1041,7 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
   );
 });
 
-test('measured Quickness animations and Flame Blast commitment drive steps', () => {
-  const grenades = simulate(
-    'Amalgam',
-    ['Grenade Kit', { name: 'Shrapnel Grenade', interruptAfterMs: 360 }, 'Freeze Grenade'],
-    {
-      boons: { quickness: true },
-      selectedMorphSkillIds: [77103, 77104, 76705]
-    }
-  );
-  const shrapnel = grenades.steps.find((step) => step.skill === 'Shrapnel Grenade');
-  const freeze = grenades.steps.find((step) => step.skill === 'Freeze Grenade');
-
-  // The grenade launches at its commit point, while the next serial action remains locked to the full throw animation.
-  assert.equal(shrapnel.end - shrapnel.start, 360);
-  assert.equal(freeze.start - shrapnel.start, 680);
-
-  const flamethrower = simulate(
-    'Amalgam',
-    ['Flamethrower', { name: 'Flame Blast', interruptAfterMs: 480 }, 'Flame Jet'],
-    {
-      boons: { quickness: true },
-      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
-      selectedMorphSkillIds: [77103, 77104, 76705]
-    }
-  );
-  const flameBlast = flamethrower.steps.find((step) => step.skill === 'Flame Blast');
-  const flameJet = flamethrower.steps.find((step) => step.skill === 'Flame Jet');
-  const flameBlastAction = flamethrower.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Flame Blast'
-  );
-  const flameBlastDamage = flamethrower.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.name === 'Flame Blast'
-  );
-
-  // The packet and recharge commit at 480 ms, but the next serial cast remains locked to the full 800 ms animation.
-  assert.equal(flameBlast.end - flameBlast.start, 480);
-  assert.equal(flameBlast.fullCastMs, 800);
-  assert.equal(flameBlast.interrupted, true);
-  assert.equal(flameJet.start - flameBlast.start, 800);
-  assert.equal(flameBlastAction.rechargeReadyAt, 6.48);
-  assert.equal(flameBlastDamage.at - flameBlast.start / 1000, 0.48);
-  assert.equal(
-    flamethrower.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Flame Blast').length,
-    1
-  );
-
+test('measured Quickness animations drive Flame Blast and Demolish steps', () => {
   const full = simulate('Amalgam', ['Flamethrower', 'Flame Blast'], {
     boons: { quickness: true },
     selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],

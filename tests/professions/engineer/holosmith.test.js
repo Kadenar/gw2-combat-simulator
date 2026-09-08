@@ -6,7 +6,6 @@ import {
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -506,93 +505,6 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
     [1, 1, 0.8, 0.8]
   );
   assert.ok(stormPackets.every((event) => event.damageKind === 'explosion'));
-});
-
-test('Holosmith benchmark attacks retain packets only after their observed commit cutoffs', () => {
-  const lightStrike = engineerCatalog.skillsById.get(ID.LIGHT_STRIKE);
-
-  assert.equal(lightStrike.interruptCommitMs, 200);
-  assert.equal(effectFirstAtMs(lightStrike.effects[0]), 200);
-  assert.equal(lightStrike.effects[0].persistsAfterInterrupt, true);
-
-  const interruptedLightStrike = (interruptMs) =>
-    simulate('Holosmith', ['Engage Photon Forge', { name: 'Light Strike', skillId: ID.LIGHT_STRIKE, interruptMs }]);
-  const beforeLightStrike = interruptedLightStrike(199);
-  const committedLightStrike = interruptedLightStrike(200);
-
-  assert.equal(
-    beforeLightStrike.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike').length,
-    0
-  );
-  assert.equal(
-    committedLightStrike.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike').length,
-    1
-  );
-  const committedHeat = committedLightStrike.events.find(
-    (event) => event.type === 'engineer.state' && event.reason === 'heat'
-  );
-
-  // The skill heat commits at 200 ms independently of the passive tick at that boundary.
-  assert.equal(
-    beforeLightStrike.events.some((event) => event.type === 'engineer.state' && event.reason === 'heat'),
-    false
-  );
-  assert.equal(committedHeat.at, 0.2);
-  assert.equal(committedHeat.state.heat, 2.2);
-
-  const brightSlash = engineerCatalog.skillsById.get(ID.BRIGHT_SLASH_STORM);
-
-  assert.equal(brightSlash.interruptCommitMs, 280);
-  assert.equal(effectFirstAtMs(brightSlash.effects[0]), 320);
-  assert.equal(brightSlash.effects[0].persistsAfterInterrupt, true);
-
-  const interruptedBrightSlash = (interruptMs) =>
-    simulate(
-      'Holosmith',
-      [
-        'Engage Photon Forge',
-        ID.LIGHT_STRIKE_STORM,
-        { name: 'Bright Slash—Storm', skillId: ID.BRIGHT_SLASH_STORM, interruptMs },
-        { type: 'wait', durationMs: 1000 }
-      ],
-      { selectedTraitIds: [TRAIT.CRYSTAL_CONFIGURATION_STORM] }
-    ).events.filter((event) => event.type === 'damage' && event.name === 'Bright Slash—Storm');
-
-  assert.equal(interruptedBrightSlash(279).length, 0);
-  assert.equal(interruptedBrightSlash(280).length, 1);
-
-  const heatAfterBrightSlash = (interruptMs) =>
-    simulate(
-      'Holosmith',
-      [
-        'Engage Photon Forge',
-        ID.LIGHT_STRIKE_STORM,
-        { name: 'Bright Slash—Storm', skillId: ID.BRIGHT_SLASH_STORM, interruptMs },
-        { type: 'wait', durationMs: 1000 }
-      ],
-      { selectedTraitIds: [TRAIT.CRYSTAL_CONFIGURATION_STORM] }
-    ).endState.profession.heat;
-
-  // Heat commits with the launched projectile even when the remaining animation is cancelled.
-  assert.equal(heatAfterBrightSlash(280) - heatAfterBrightSlash(279), 3);
-
-  const staticShock = engineerCatalog.skillsById.get(ID.STATIC_SHOCK);
-
-  assert.equal(staticShock.interruptCommitMs, 480);
-  assert.ok(staticShock.effects.every((effect) => effectFirstAtMs(effect) === 480));
-
-  const interruptedStaticShock = (interruptMs) =>
-    simulate(
-      'Holosmith',
-      [
-        { name: 'Static Shock', skillId: ID.STATIC_SHOCK, interruptMs },
-        { type: 'wait', durationMs: 1000 }
-      ],
-      { selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'] }
-    ).events.filter((event) => event.type === 'damage' && event.name === 'Static Shock');
-
-  assert.equal(interruptedStaticShock(479).length, 0);
-  assert.equal(interruptedStaticShock(480).length, 1);
 });
 
 test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () => {

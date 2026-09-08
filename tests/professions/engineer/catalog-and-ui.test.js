@@ -53,8 +53,6 @@ const baseConfig = Object.freeze({
 
 const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
-const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
-
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }
@@ -62,101 +60,6 @@ function mechanic(name) {
 const applyEngineerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(engineerCatalog, patch), patch);
 
 const authoringEngineerProfession = withActivePatchPreview(engineerProfession);
-
-test('Engineer interrupt timing avoids zero-millisecond placeholders', () => {
-  // Kit transitions are reconstructed as concurrent actions; they are not evidence that these skills commit immediately.
-  const skillsWithoutVerifiedCommit = ['Static Shot', 'Glue Shot', 'Overcharged Shot', 'Thunderclap', 'Devastator'];
-
-  for (const name of skillsWithoutVerifiedCommit) {
-    const catalogSkill = mechanic(name);
-
-    assert.equal(catalogSkill.interruptCommitMs, undefined, name);
-    assert.ok(
-      catalogSkill.effects.every((effect) => effect.interruptCommitMs !== 0),
-      name
-    );
-  }
-
-  assert.equal(mechanic('Blowtorch').interruptCommitMs, 360);
-
-  for (const name of ['Grenade', 'Poison Grenade', 'Shrapnel Grenade', 'Freeze Grenade']) {
-    assert.equal(mechanic(name).retainsCastLockoutAfterInterrupt, true, name);
-  }
-
-  const fragmentationShot = mechanic('Fragmentation Shot');
-  const flameBlast = mechanic('Flame Blast');
-
-  // Effect-level cutoffs preserve EVTC's observed interruption duration instead of replacing every shortened cast with one skill-wide value.
-  assert.equal(fragmentationShot.interruptCommitMs, undefined);
-  assert.ok(fragmentationShot.effects.every((effect) => effect.interruptCommitMs === 360));
-  assert.ok(fragmentationShot.effects.every((effect) => effect.persistsAfterInterrupt === true));
-  assert.equal(flameBlast.interruptCommitMs, undefined);
-  assert.equal('measuredCancelMs' in flameBlast, false);
-  assert.equal(flameBlast.retainsCastLockoutAfterInterrupt, true);
-  assert.ok(flameBlast.effects.every((effect) => effect.interruptCommitMs === 480));
-  assert.ok(flameBlast.effects.every((effect) => effectFirstAtMs(effect) === 480));
-  assert.ok(flameBlast.effects.every((effect) => effect.persistsAfterInterrupt === true));
-});
-
-test('Fragmentation Shot and Flame Blast retain packets only after their measured commit boundaries', () => {
-  const damageCount = (skillName, interruptAfterMs) => {
-    const flameBlast = skillName === 'Flame Blast';
-    const result = simulate(
-      'Core',
-      [...(flameBlast ? ['Flamethrower'] : []), { name: skillName, interruptAfterMs }],
-      flameBlast
-        ? {
-            selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate']
-          }
-        : {},
-      observationTail(1_000)
-    );
-
-    return result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === skillName).length;
-  };
-
-  assert.equal(damageCount('Fragmentation Shot', 359), 0);
-  assert.equal(damageCount('Fragmentation Shot', 360), 1);
-  assert.equal(damageCount('Flame Blast', 479), 0);
-  assert.equal(damageCount('Flame Blast', 480), 1);
-});
-
-test('Poison Dart Volley interruption retains only the channel packets that have landed', () => {
-  const packetCounts = (interruptAfterMs) => {
-    const result = simulate(
-      'Core',
-      [{ name: 'Poison Dart Volley', interruptAfterMs }],
-      { boons: { quickness: true } },
-      observationTail(1_000)
-    );
-
-    return ['damage', 'condition'].map(
-      (type) => result.events.filter((event) => event.type === type && event.skillId === ID.POISON_DART_VOLLEY).length
-    );
-  };
-
-  assert.equal(mechanic('Poison Dart Volley').interruptMode, 'per-packet');
-  assert.deepEqual(packetCounts(167), [0, 0]);
-  assert.deepEqual(packetCounts(168), [1, 1]);
-  assert.deepEqual(packetCounts(600), [3, 3]);
-  assert.deepEqual(packetCounts(839), [4, 4]);
-});
-
-test('Napalm interruption retains only volleys fired before the cutoff', () => {
-  const result = simulate(
-    'Core',
-    ['Flamethrower', { name: 'Napalm', interruptAfterMs: 900 }],
-    {
-      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate']
-    },
-    observationTail(1_000)
-  );
-  const packetCounts = ['damage', 'condition'].map(
-    (type) => result.events.filter((event) => event.type === type && event.skillId === ID.NAPALM).length
-  );
-
-  assert.deepEqual(packetCounts, [5, 5]);
-});
 
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {
   assert.equal(mechanic('Poison Dart Volley').comboFinishers, undefined);

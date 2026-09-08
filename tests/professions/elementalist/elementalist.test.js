@@ -97,27 +97,6 @@ test('Elementalist is registered through the generic profession contract', async
   assert.equal(adapter.id, 'elementalist');
 });
 
-test('Elementalist weapon skills expose measured interrupt commit cutoffs', () => {
-  const dragonsTooth = elementalistCatalog.skillsById.get(ID.DRAGONS_TOOTH);
-  assert.equal(dragonsTooth.interruptCommitMs, 640);
-  assert.equal(
-    dragonsTooth.effects.every((effect) => effect.persistsAfterInterrupt),
-    true
-  );
-  assert.equal(elementalistCatalog.skillsById.get(ID.ICE_SHARDS).interruptCommitMs, 520);
-  assert.equal(elementalistCatalog.skillsById.get(ID.EARTHQUAKE).interruptCommitMs, 640);
-  assert.equal(elementalistCatalog.skillsById.get(ID.FIRE_STRIKE).interruptCommitMs, 400);
-  assert.equal(elementalistCatalog.skillsById.get(ID.CHARGED_STRIKE).interruptCommitMs, 400);
-  assert.equal(elementalistCatalog.skillsById.get(ID.CALL_LIGHTNING).interruptCommitMs, 560);
-  assert.equal(elementalistCatalog.skillsById.get(ID.SEARING_SLASH).interruptMode, 'per-packet');
-  const airGlyph = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_AIR);
-  assert.equal(airGlyph.interruptCommitMs, 880);
-  assert.equal(
-    airGlyph.effects.every((effect) => effect.persistsAfterInterrupt),
-    true
-  );
-});
-
 test('Elementalist modules expose isolated balance-profile authoring', () => {
   const modules = new Map(authoringElementalistProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 

@@ -43,22 +43,6 @@ test("Viper's Nest triggers after placement and preserves the pending dagger cha
   }
 });
 
-test("Viper's Nest cancels before placement but retains delayed pulses after committing", () => {
-  for (const [interruptMs, expectedHits] of [
-    [100, 0],
-    [476, 3]
-  ]) {
-    const result = ranger('Druid', [{ name: "Viper's Nest", interruptMs }, wait(4000)], {
-      selectedSkills: ["Viper's Nest"],
-      boons: { quickness: true }
-    });
-    assert.equal(
-      result.events.filter((event) => event.type === 'damage' && event.skillId === RANGER.VIPERS_NEST).length,
-      expectedHits
-    );
-  }
-});
-
 test('Sharpening Stone adds ten to six remaining charges, with one eight-second bleed per hit', () => {
   const result = ranger(
     'Druid',

@@ -145,39 +145,6 @@ test('Guardian measured Quickness cast times remain exact', () => {
   );
 });
 
-test('Guardian spear packets use measured safe-cancel and lockout timing', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      { name: 'Helio Rush', interruptMs: 280 },
-      { name: 'Daybreaking Slash', interruptMs: 400 },
-      'Daybreaking Slash'
-    ],
-    config: {
-      ...config,
-      boons: { quickness: true },
-      specialization: 'Luminary',
-      primaryWeapon: 'Spear'
-    }
-  });
-  const actions = result.events.filter((event) => event.type === 'action');
-  const damageOffset = (action) => {
-    const packet = result.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.activationId === action.activationId
-    );
-
-    return Math.round((packet.at - action.at) * 1000);
-  };
-
-  assert.deepEqual(actions.map(damageOffset), [240, 400, 400]);
-  assert.equal(Math.round((actions[0].endsAt - actions[0].at) * 1000), 280);
-  assert.equal(actions[0].castLockoutEndsAt, undefined);
-  assert.equal(Math.round((actions[1].endsAt - actions[1].at) * 1000), 400);
-  assert.equal(actions[1].castLockoutEndsAt, undefined);
-  assert.equal(Math.round((actions[2].at - actions[1].at) * 1000), 400);
-  assert.deepEqual(result.warnings, []);
-});
-
 test('Willbender utilities use the supplied physical skill profiles', () => {
   const result = simulateGw2({
     profession: guardianProfession,

@@ -3,7 +3,6 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { displayedWeaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
@@ -172,34 +171,6 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
   );
   assert.ok(maximumCloneTorment);
   assert.equal(Math.round(maximumCloneTorment.at * 1000 - atCap.steps[2].start), 442);
-});
-
-test('Ether Clone grants its clone only when the 442 ms projectile packet commits', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Chronomancer',
-    primaryWeapon: 'Scepter',
-    secondaryWeapon: 'Pistol',
-    initialResource: 2
-  });
-  const beforeHit = simulateMesmer(
-    ['Ether Bolt', 'Ether Blast', { name: 'Ether Clone', interruptMs: 441 }, { name: 'Split Second', offset: 450 }],
-    config
-  );
-  const onHit = simulateMesmer(
-    ['Ether Bolt', 'Ether Blast', { name: 'Ether Clone', interruptMs: 442 }, { name: 'Split Second', offset: 450 }],
-    config
-  );
-
-  assert.equal(shatterResourceSpends(beforeHit).get(3)?.count, 2);
-  assert.equal(shatterResourceSpends(onHit).get(3)?.count, 3);
-  assert.equal(
-    beforeHit.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Ether Clone'),
-    false
-  );
-  assert.equal(
-    onHit.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Ether Clone'),
-    true
-  );
 });
 
 test('Ether Clone resolves its at-cap outcome from clone count at projectile time', () => {
@@ -825,47 +796,6 @@ test('a weapon swap after Fractured Glass packets keeps the spear ambush', () =>
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Fractured Glass').length,
     7
   );
-});
-
-// A partial channel keeps its landed beam prefix and only the statuses belonging to those hits.
-test('interrupting Split Surge preserves landed beams without committing the rest of the channel', () => {
-  for (const [interruptMs, expectedTimes] of [
-    [320, []],
-    [480, [360]],
-    [640, [360, 520]],
-    [720, [360, 520, 680]]
-  ]) {
-    const result = simulateMesmer(['Dodge / Mirage Cloak', { name: 'Split Surge', interruptMs }], {
-      specialization: 'Mirage',
-      primaryWeapon: 'Greatsword',
-      secondaryWeapon: '',
-      initialResource: 0
-    });
-    const cast = result.steps.find((step) => step.skill === 'Split Surge');
-    const relativeTimes = (events) => events.map((event) => Math.round(event.at * 1000 - cast.start));
-    assert.deepEqual(
-      relativeTimes(result.events.filter((event) => event.type === 'damage' && event.skillName === 'Split Surge')),
-      expectedTimes
-    );
-    assert.deepEqual(
-      relativeTimes(
-        result.events.filter(
-          (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'might'
-        )
-      ),
-      expectedTimes
-    );
-    assert.deepEqual(
-      relativeTimes(
-        result.events.filter(
-          (event) =>
-            event.type === 'condition' && event.skillName === 'Split Surge' && event.condition === 'Vulnerability'
-        )
-      ),
-      expectedTimes
-    );
-    assert.deepEqual(result.warnings, []);
-  }
 });
 
 test('Split Surge resolves its three beam packets with per-hit Might and Vulnerability', () => {

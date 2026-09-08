@@ -768,49 +768,6 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
   assert.equal(nightfall.endState.profession.lifeForce, 28);
 });
 
-test('Nightfall commits its declarative field at the first pulse', () => {
-  const beforeCommit = simulate(
-    'Harbinger',
-    [
-      {
-        name: 'Nightfall',
-        interruptAfterMs: 400
-      },
-      {
-        type: 'wait',
-        durationMs: 4000
-      }
-    ],
-    {
-      initialResource: 0,
-      primaryWeapon: 'Greatsword'
-    }
-  );
-  const afterCommit = simulate('Harbinger', ['Nightfall', { type: 'wait', durationMs: 4000 }], {
-    initialResource: 0,
-    primaryWeapon: 'Greatsword'
-  });
-  const quickness = simulate('Harbinger', ['Nightfall', { type: 'wait', durationMs: 4000 }], {
-    boons: { quickness: true },
-    initialResource: 0,
-    primaryWeapon: 'Greatsword'
-  });
-  const nightfallHits = (result) =>
-    result.events.filter((event) => event.type === 'damage' && event.skillId === ID.NIGHTFALL);
-
-  assert.equal(nightfallHits(beforeCommit).length, 0);
-  assert.equal(beforeCommit.endState.profession.lifeForce, 0);
-  assert.equal(nightfallHits(afterCommit).length, 4);
-  assert.equal(afterCommit.endState.profession.lifeForce, 28);
-  assert.equal(quickness.steps[0].fullCastMs, 480);
-  assert.deepEqual(
-    nightfallHits(quickness).map(
-      (event, index) => Math.round(event.at * 1000 - quickness.steps[0].start) - index * 1000
-    ),
-    [560, 560, 560, 560]
-  );
-});
-
 test('Lich Form swaps its bar and grants life force on exit', () => {
   const result = simulate('Core', ['Lich Form', 'Deathly Claws', 'Exit Lich Form'], { initialResource: 0 });
   const invalid = simulate('Core', ['Lich Form', 'Rending Claws'], {

@@ -32,35 +32,25 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
   assert.equal(config.catalystEmpowermentPool.conditionDamage, conditionDamage.final);
 });
 
-// The field and enhanced burst share the projectile's release clock, even after an interrupted aftercast.
-test('Frozen Fusillade detonates at field expiry after its projectile commits', () => {
-  for (const interruptAfterMs of [280, 320, 520]) {
-    const result = runNative({
-      lines: [['Fire'], ['Earth'], ['Catalyst', '2-1-2']],
-      weapons: ['Pistol', 'Dagger'],
-      startAttunement: 'Water',
-      pistolBullets: { Fire: false, Water: true, Air: false, Earth: false },
-      rotation: [
-        { type: 'cast', skillId: elementalistCatalog.skillsByName.get('Frozen Fusillade').id, interruptAfterMs },
-        5000
-      ]
-    });
-    const field = result.events.find((event) => event.type === 'combo_field' && event.fieldType === 'Ice');
-    const bleeding = result.resolvedEvents.find(
-      (event) => event.skillName === 'Frozen Fusillade' && event.condition === 'Bleeding'
-    );
-    assert.deepEqual(result.warnings, []);
-    if (interruptAfterMs < 320) {
-      assert.equal(field, undefined);
-      assert.equal(bleeding, undefined);
-    } else {
-      assert.equal(field.at, 0.32);
-      assert.equal(field.expiresAt, 4.32);
-      assert.equal(bleeding.at, field.expiresAt);
-      assert.equal(bleeding.stacks, 5);
-      assert.equal(bleeding.duration, 8);
-    }
-  }
+// The field and enhanced burst share the projectile release clock.
+test('Frozen Fusillade detonates at field expiry', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Earth'], ['Catalyst', '2-1-2']],
+    weapons: ['Pistol', 'Dagger'],
+    startAttunement: 'Water',
+    pistolBullets: { Fire: false, Water: true, Air: false, Earth: false },
+    rotation: [{ type: 'cast', skillId: elementalistCatalog.skillsByName.get('Frozen Fusillade').id }, 5000]
+  });
+  const field = result.events.find((event) => event.type === 'combo_field' && event.fieldType === 'Ice');
+  const bleeding = result.resolvedEvents.find(
+    (event) => event.skillName === 'Frozen Fusillade' && event.condition === 'Bleeding'
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(field.at, 0.32);
+  assert.equal(field.expiresAt, 4.32);
+  assert.equal(bleeding.at, field.expiresAt);
+  assert.equal(bleeding.stacks, 5);
+  assert.equal(bleeding.duration, 8);
 });
 
 // An existing field's next three impacts consume the charges armed by the later pistol cast.

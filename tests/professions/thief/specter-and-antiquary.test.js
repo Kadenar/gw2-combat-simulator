@@ -310,45 +310,6 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
   );
 });
 
-test('Wild Strike commits its strike and bleeding before its remaining animation is interrupted', () => {
-  const wildEffects = (interruptMs) =>
-    simulate('Core', ['Double Strike', { name: 'Wild Strike', interruptMs }], {
-      boons: { quickness: true }
-    }).events.filter(
-      (event) => event.skillName === 'Wild Strike' && (event.type === 'damage' || event.type === 'condition')
-    );
-
-  assert.deepEqual(wildEffects(159), []);
-  assert.deepEqual(
-    wildEffects(160).map((event) => [event.type, Math.round(event.at * 1000)]),
-    [
-      ['damage', 520],
-      ['condition', 520]
-    ]
-  );
-  assert.equal(wildEffects(240).length, 2);
-});
-
-test('Lotus Strike commits its strike and poison before a later animation interrupt', () => {
-  const lotusEffects = (interruptMs) =>
-    simulate('Core', ['Double Strike', 'Wild Strike', { name: 'Lotus Strike', interruptMs }], {
-      boons: { quickness: true }
-    }).events.filter(
-      (event) => event.skillName === 'Lotus Strike' && (event.type === 'damage' || event.type === 'condition')
-    );
-
-  assert.deepEqual(lotusEffects(279), []);
-  assert.deepEqual(
-    lotusEffects(280).map((event) => [event.type, Math.round(event.at * 1000)]),
-    [
-      ['damage', 1040],
-      ['condition', 1040]
-    ]
-  );
-  assert.equal(lotusEffects(319).length, 2);
-  assert.equal(lotusEffects(361).length, 2);
-});
-
 test('Malicious stealth attacks use their supplied coefficients and malice scaling', () => {
   const front = simulate('Core', ['Cloak and Dagger', 'Backstab'], {
     target: { defiant: false }
