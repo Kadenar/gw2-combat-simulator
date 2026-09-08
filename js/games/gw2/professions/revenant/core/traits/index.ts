@@ -6,6 +6,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
 import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
 import {
@@ -52,9 +53,14 @@ function canTriggerImpossibleOdds(event: RevenantSimulationEvent): boolean {
     event.type === 'damage' &&
     Number(event.coefficient || 0) > 0 &&
     event.skillId !== ID.IMPOSSIBLE_ODDS &&
-    // Both Deathstrike hits are eligible; only Assassin's final shockwave triggers a follow-up.
+    // Form attacks inherit player modifiers but must not recursively trigger on-hit attacks.
+    event.skillId !== ID.LESSER_ENCHANTED_DAGGERS &&
+    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK &&
+    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK_ELITE &&
+    // Only Assassin's final shockwave triggers a follow-up.
     (event.skillId !== ID.RELEASE_POTENTIAL_ASSASSIN || event.hitIndex === event.totalHits) &&
-    (event.actorType === 'player' || event.source === 'Sigil')
+    // Player-owned strikes include equipment effects; display source labels do not gate the proc.
+    (event.actorType === 'player' || (event.actorType === 'effect' && isGw2PlayerModifierOwnedEvent(event)))
   );
 }
 

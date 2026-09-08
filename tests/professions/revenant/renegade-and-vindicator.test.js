@@ -313,6 +313,75 @@ test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
   assert.equal(hammers.endState.profession.activeUpkeeps.length, 0);
 });
 
+// Use isolated strike times to distinguish the 250 ms ICD from the independent strike delay.
+test('Impossible Odds uses a 250 ms interval and delay for player-owned strikes', () => {
+  const profession = {
+    ...revenantProfession,
+    resolveRuntime(config) {
+      const runtime = revenantProfession.resolveRuntime(config);
+      return {
+        ...runtime,
+        initialize(context) {
+          runtime.initialize(context);
+          for (const [at, source, actorType] of [
+            [1, 'Unlabelled equipment', 'effect'],
+            [1.249, 'Relic', 'effect'],
+            [1.25, 'Sigil', 'effect'],
+            [1.5, 'Player', 'player'],
+            [2, 'Summon', 'summon']
+          ]) {
+            context.emit({
+              type: 'damage',
+              at,
+              coefficient: 1,
+              weaponStrength: 1000,
+              skillName: source,
+              source,
+              sourceId: source,
+              actorType,
+              ownerActorType: 'player'
+            });
+          }
+        }
+      };
+    }
+  };
+  const run = createProfessionSimulator(profession, baseConfig);
+  const result = run('Core', ['Impossible Odds', { type: 'wait', durationMs: 3000 }], { initialEnergy: 100 });
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
+      .map((event) => [event.at, event.triggeredBy]),
+    [
+      [1.25, 'Unlabelled equipment'],
+      [1.5, 'Sigil'],
+      [1.75, 'Player']
+    ]
+  );
+});
+
+// A delayed player-owned Shackles strike remains eligible after swapping into Shiro.
+test('Impossible Odds follows Shackles damage while its upkeep is active', () => {
+  const result = simulate(
+    'Renegade',
+    ["Icerazor's Ire", 'Swap Legends', 'Impossible Odds', { type: 'wait', durationMs: 7000 }],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+      relic: 'Shackles'
+    }
+  );
+  const shackles = result.events.find((event) => event.type === 'damage' && event.sourceId === 'relic.shackles');
+  const followups = result.events.filter(
+    (event) =>
+      event.type === 'damage' && event.skillName === 'Impossible Odds' && event.triggeredBy === shackles?.skillName
+  );
+  assert.ok(shackles);
+  assert.equal(followups.length, 1);
+  assert.ok(Math.abs(followups[0].at - shackles.at - 0.25) < 1e-12);
+});
+
 test('Icerazor packets use player ownership and trigger player equipment', () => {
   const result = simulate('Renegade', ["Icerazor's Ire", { type: 'wait', durationMs: 6000 }], {
     selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],

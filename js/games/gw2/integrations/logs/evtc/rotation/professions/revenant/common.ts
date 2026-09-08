@@ -1,5 +1,6 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { catalogSkillById } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -66,19 +67,52 @@ export function legendSwapActions(context: EvtcProfessionReconstructionContext):
 }
 
 function upkeepActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const parent = skillFor(context, IMPOSSIBLE_ODDS);
+  const release = parent?.flipSkillId == null ? null : catalogSkillById(context.catalog, Number(parent.flipSkillId));
+  const swaps = legendSwapActions(context);
   return context.log.events.flatMap((event, eventIndex) => {
     // Keep upkeep recovery compatible with both normal and explicit buff-apply packets.
     const buffApplication =
       event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY;
+    const buffRemoval =
+      (event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.BUFF_REMOVE_ALL) &&
+      event.buffRemove === 1;
     if (
       event.source !== context.playerAddress ||
       event.target !== context.playerAddress ||
       event.skillId !== IMPOSSIBLE_ODDS_BUFF ||
       event.buff === 0 ||
-      event.buffRemove !== 0 ||
-      !buffApplication
+      !((buffApplication && event.buffRemove === 0) || buffRemoval)
     ) {
       return [];
+    }
+
+    if (buffRemoval) {
+      // A restart before starvation's cooldown proves a manual release; stance swaps clear upkeep themselves.
+      if (!release || swaps.some((swap) => Math.abs(swap.start - event.time) <= SIGNAL_DEDUPLICATION_WINDOW_MS))
+        return [];
+      const restart = context.log.events.find(
+        (next) =>
+          next.time > event.time &&
+          next.source === context.playerAddress &&
+          next.target === context.playerAddress &&
+          next.skillId === IMPOSSIBLE_ODDS_BUFF &&
+          next.buff !== 0 &&
+          next.buffRemove === 0 &&
+          (next.stateChange === EVTC_STATE_CHANGE.NONE || next.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY)
+      );
+      if (
+        !restart ||
+        restart.time - event.time >= Number(parent?.starvationCooldown || 0) * 1000 ||
+        hasRecordedAction(context.recordedActions, { name: release.name, skillId: Number(release.id) }, event.time)
+      )
+        return [];
+      return [
+        directAction(eventIndex, event.time, event.skillId, release.name, {
+          name: release.name,
+          skillId: Number(release.id)
+        })
+      ];
     }
 
     return [directAction(eventIndex, event.time, event.skillId, rawSkillName(context, event.skillId), IMPOSSIBLE_ODDS)];

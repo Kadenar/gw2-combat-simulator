@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { event, log } from '../helpers/evtc-fixture.js';
+import { EVTC_FIXTURE_PLAYER as PLAYER, event, log } from '../helpers/evtc-fixture.js';
 
 // Keep these fixtures limited to missing precast and upkeep transitions, independently of any saved rotation.
 function renegadeLog(events) {
@@ -45,6 +45,37 @@ test('recovers a delayed opening hammer once, using the catalog impact offset', 
       ),
     { code: 'NO_ROTATION_ACTIONS' }
   );
+});
+
+test('infers manual upkeep release only when restart timing rules out starvation and legend swap', () => {
+  for (const stateChange of [0, 69]) {
+    for (const [restartAt, swap, expected] of [
+      [4500, false, true],
+      [7000, false, false],
+      [4500, true, false]
+    ]) {
+      const fixture = renegadeLog([
+        event({ time: 1000, stateChange: 1 }),
+        event({ time: 1500, target: PLAYER, skillId: 27581, buff: 1, value: 10000, stateChange }),
+        event({
+          time: 3000,
+          target: PLAYER,
+          skillId: 27581,
+          buff: 1,
+          buffRemove: 1,
+          stateChange: stateChange === 0 ? 0 : 72
+        }),
+        ...(swap ? [event({ time: 3000, target: PLAYER, skillId: 44272, buff: 1, value: 10000, stateChange })] : []),
+        event({ time: restartAt, target: PLAYER, skillId: 27581, buff: 1, value: 10000, stateChange })
+      ]);
+      // Array-only catalogs are supported by import callers as well as the indexed application catalog.
+      const result = reconstructEvtcRotation(fixture, { skills: revenantCatalog.skills });
+      assert.equal(
+        result.rotation.some((command) => command.skillId === 28382),
+        expected
+      );
+    }
+  }
 });
 
 test('warband effect GUIDs recover enhanced inputs and suppress normal-cast and actor duplicates', () => {
