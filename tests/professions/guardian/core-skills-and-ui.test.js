@@ -35,6 +35,43 @@ const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(g
 
 const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
 
+// Check evaluated offsets so generated timelines and direct status effects are covered too.
+test('Guardian authored effect offsets use ordered action ticks with explicit reference exceptions', () => {
+  for (const kind of ['skills', 'balanceProfiles']) {
+    for (const entry of guardianCatalog[kind]) {
+      for (const [effectIndex, effect] of (entry.effects ?? []).entries()) {
+        const label = `${kind} ${entry.name} (${entry.id}), effect ${effectIndex}`;
+        const ticks = effect.ticks ?? [];
+        for (const ms of [effect.atMs, effect.intervalMs, ...ticks.map((tick) => tick.atMs)]) {
+          if (ms == null) continue;
+          assert.ok(Number.isFinite(ms) && ms >= 0, `${label}: invalid offset ${ms}`);
+          // Preserve Hail's supplied intermediate hit timings instead of rounding them to 40 ms.
+          if (kind === 'skills' && entry.id === GUARDIAN_SKILL_IDS.HAIL_OF_JUSTICE && [420, 860].includes(ms)) continue;
+          assert.ok(Math.abs(ms - Math.round(ms / 40) * 40) <= 1e-6, `${label}: off-grid offset ${ms}`);
+        }
+
+        assert.ok(
+          ticks.every((tick, index) => index === 0 || tick.atMs >= ticks[index - 1].atMs),
+          `${label}: unordered packets`
+        );
+      }
+    }
+  }
+});
+
+// These fields span the symbol's pulses, including when the opening offset changes.
+test('Symbol of Blades and Symbol of Faith fields follow their pulse windows', () => {
+  for (const id of [GUARDIAN_SKILL_IDS.SYMBOL_OF_BLADES, GUARDIAN_SKILL_IDS.SYMBOL_OF_FAITH]) {
+    const skill = guardianCatalog.skillsById.get(id);
+    const strike = skill.effects.find((effect) => effect.type === 'strike');
+    const field = skill.comboFields[0];
+
+    assert.equal(field.startAnchor, strike.timingAnchor);
+    assert.equal(field.startMs, strike.ticks[0].atMs);
+    assert.equal(field.startMs + field.duration * 1000, strike.ticks.at(-1).atMs);
+  }
+});
+
 test('Guardian greatsword autos retain aftercast only after commitment', () => {
   // Early cancelled attempts release the lane; committed cancels keep the remainder of the same autoattack.
   for (const [name, preceding, commitMs, fullMs] of [
@@ -413,7 +450,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   );
   assert.deepEqual(profile(quick, 'Whirling Wrath'), {
     cast: 1480,
-    ticks: [106, 211, 317, 422, 528, 634, 739, 846, 951, 1057, 1162, 1268, 1374, 1480],
+    ticks: [120, 200, 320, 440, 520, 640, 720, 840, 960, 1040, 1160, 1280, 1360, 1480],
     coefficient: 4.375
   });
   assert.deepEqual(profile(quick, 'Leap of Faith'), {
@@ -563,7 +600,7 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
   );
   assert.deepEqual(quick['Sword of Justice'], {
     cast: 600,
-    ticks: [650, 1050, 1450, 1850],
+    ticks: [640, 1040, 1440, 1840],
     coefficient: 3.2
   });
   assert.deepEqual(
@@ -574,10 +611,10 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
       )
       .map((event) => [Math.round((event.at - swordAction.at) * 1000), event.stacks, event.duration]),
     [
-      [650, 3, 8],
-      [1050, 3, 8],
-      [1450, 3, 8],
-      [1850, 3, 8]
+      [640, 3, 8],
+      [1040, 3, 8],
+      [1440, 3, 8],
+      [1840, 3, 8]
     ]
   );
   const swordRecharge = simulateGw2({
@@ -602,12 +639,12 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
   });
   assert.deepEqual(quick["Dragon's Maw"], {
     cast: 440,
-    ticks: [500],
+    ticks: [520],
     coefficient: 3.6
   });
   assert.deepEqual(quick.Purification, {
     cast: 600,
-    ticks: [500],
+    ticks: [520],
     coefficient: 0.1875
   });
 });

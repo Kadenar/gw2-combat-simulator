@@ -58,7 +58,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        atMs: 750,
+        atMs: 760,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -67,7 +67,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         condition: 'Vulnerability',
         stacks: 8,
         duration: 8,
-        atMs: 750,
+        atMs: 760,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }

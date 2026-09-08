@@ -46,11 +46,11 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.SYMBOL_OF_FAITH]: {
     castTimeMs: 750,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 750, startAnchor: 'castStart' }],
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 760, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 750 + index * 1000, coefficient: 3.25 / 5 })),
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 760 + index * 1000, coefficient: 3.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

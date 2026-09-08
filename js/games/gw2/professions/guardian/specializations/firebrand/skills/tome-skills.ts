@@ -127,7 +127,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'resistance',
         duration: 1,
-        atMs: 1250,
+        atMs: 1240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -135,7 +135,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'resistance',
         duration: 1,
-        atMs: 2250,
+        atMs: 2240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -143,7 +143,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'resistance',
         duration: 1,
-        atMs: 3250,
+        atMs: 3240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -228,7 +228,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'swiftness',
         duration: 5,
-        atMs: 1250,
+        atMs: 1240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -236,7 +236,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'swiftness',
         duration: 5,
-        atMs: 2250,
+        atMs: 2240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -244,7 +244,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'swiftness',
         duration: 5,
-        atMs: 3250,
+        atMs: 3240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -252,7 +252,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'swiftness',
         duration: 5,
-        atMs: 4250,
+        atMs: 4240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

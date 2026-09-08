@@ -19,7 +19,7 @@ export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 750 + index * 500, coefficient: 4.05 / 6 })),
+        ticks: [760, 1240, 1760, 2240, 2760, 3240].map((atMs) => ({ atMs, coefficient: 4.05 / 6 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

@@ -7,16 +7,17 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptMode: 'per-packet',
     // The catalog derives the unquickened cast from this measured Quickness duration.
     quicknessCastTimeMs: 2600,
+    // Match the reference hit offsets, with Burning applied on the final strike.
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 10 }, (_, index) => ({ atMs: 260 + index * 260, coefficient: 4 / 10 })),
+        ticks: [280, 520, 760, 1000, 1240, 1480, 1720, 1960, 2200, 2520].map((atMs) => ({ atMs, coefficient: 4 / 10 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2600, condition: 'Burning', stacks: 2, duration: 4 }],
+        ticks: [{ atMs: 2520, condition: 'Burning', stacks: 2, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

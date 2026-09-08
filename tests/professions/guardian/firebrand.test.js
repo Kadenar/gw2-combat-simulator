@@ -530,11 +530,11 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
   });
   assert.deepEqual(profile(pistol, 'Hail of Justice'), {
     cast: 1120,
-    packets: [280, 440, 640, 800, 960]
+    packets: [200, 420, 640, 860, 1120]
   });
   assert.deepEqual(profile(pistol, 'Peacekeeper'), {
     cast: 1040,
-    packets: [280, 480, 640, 800, 960]
+    packets: [240, 440, 640, 840, 1040]
   });
   assert.deepEqual(profile(pistol, 'Symbol of Ignition'), {
     cast: 360,
@@ -554,7 +554,7 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
   });
   assert.deepEqual(profile(cleansing, 'Cleansing Flame'), {
     cast: 2600,
-    packets: [260, 520, 780, 1040, 1300, 1560, 1820, 2080, 2340, 2600]
+    packets: [280, 520, 760, 1000, 1240, 1480, 1720, 1960, 2200, 2520]
   });
   assert.equal(
     cleansing.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Cleansing Flame').length,
@@ -577,9 +577,9 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
         event.duration === 4 &&
         Math.abs(
           event.at -
-            cleansing.events.find(
-              (candidate) => candidate.type === 'action' && candidate.skillName === 'Cleansing Flame'
-            ).endsAt
+            cleansing.resolvedEvents.findLast(
+              (candidate) => candidate.type === 'damage' && candidate.skillName === 'Cleansing Flame'
+            ).at
         ) < 1e-9
     ),
     true

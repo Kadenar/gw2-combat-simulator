@@ -206,7 +206,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
     const profile = balanceProfileFromContext(context, PROFILE.radiantJusticeImpact);
     const strike = balanceProfileEffect(profile, 'strike');
     const vulnerability = balanceProfileEffect(profile, 'condition');
-    const delay = Number(strike?.atMs ?? 750) / 1000;
+    const delay = Number(strike?.atMs ?? 760) / 1000;
     const impactAt = radiantWeaponImpactAt(context, skill) + delay;
     luminaryState.from(context).radiantJusticeArmed = false;
     context.emit(

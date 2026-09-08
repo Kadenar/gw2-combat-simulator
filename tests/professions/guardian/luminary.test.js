@@ -868,7 +868,7 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
     hammerPackets.map((event) => event.coefficient),
     [1.2, 1.5]
   );
-  assert.ok(Math.abs(hammerPackets[1].at - hammerPackets[0].at - 0.75) < 1e-9);
+  assert.ok(Math.abs(hammerPackets[1].at - hammerPackets[0].at - 0.76) < 1e-9);
 
   const gleaming = (selectedTraitIds) =>
     simulateGw2({

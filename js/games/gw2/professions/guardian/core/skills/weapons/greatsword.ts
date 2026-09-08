@@ -37,20 +37,19 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       strikeTimeline(
         [
-          // Packet offsets use nearest-millisecond timing instead of retaining fractional interpolation artifacts.
-          { atMs: 106, coefficient: 0.35 },
-          { atMs: 211, coefficient: 0.275 },
-          { atMs: 317, coefficient: 0.35 },
-          { atMs: 422, coefficient: 0.275 },
-          { atMs: 528, coefficient: 0.35 },
-          { atMs: 634, coefficient: 0.275 },
-          { atMs: 739, coefficient: 0.35 },
-          { atMs: 846, coefficient: 0.275 },
-          { atMs: 951, coefficient: 0.35 },
-          { atMs: 1057, coefficient: 0.275 },
-          { atMs: 1162, coefficient: 0.35 },
-          { atMs: 1268, coefficient: 0.275 },
-          { atMs: 1374, coefficient: 0.35 },
+          { atMs: 120, coefficient: 0.35 },
+          { atMs: 200, coefficient: 0.275 },
+          { atMs: 320, coefficient: 0.35 },
+          { atMs: 440, coefficient: 0.275 },
+          { atMs: 520, coefficient: 0.35 },
+          { atMs: 640, coefficient: 0.275 },
+          { atMs: 720, coefficient: 0.35 },
+          { atMs: 840, coefficient: 0.275 },
+          { atMs: 960, coefficient: 0.35 },
+          { atMs: 1040, coefficient: 0.275 },
+          { atMs: 1160, coefficient: 0.35 },
+          { atMs: 1280, coefficient: 0.275 },
+          { atMs: 1360, coefficient: 0.35 },
           { atMs: 1480, coefficient: 0.275 }
         ],
         {

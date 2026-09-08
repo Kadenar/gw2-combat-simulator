@@ -29,6 +29,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAIL_OF_JUSTICE]: {
+    // Use the reference simulator's hit offsets for both strikes and their conditions.
     quicknessCastTimeMs: 1120,
     cooldown: 10,
     ammo: 2,
@@ -37,7 +38,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
+        ticks: [200, 420, 640, 860, 1120].map((atMs) => ({
           atMs,
           coefficient: 0.3,
           projectile: true
@@ -47,7 +48,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
+        ticks: [200, 420, 640, 860, 1120].map((atMs) => ({
           atMs,
           condition: 'Bleeding',
           stacks: 1,
@@ -59,7 +60,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
+        ticks: [200, 420, 640, 860, 1120].map((atMs) => ({
           atMs,
           condition: 'Crippled',
           stacks: 1,
@@ -72,13 +73,14 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.PEACEKEEPER]: {
+    // Keep Burning aligned with each strike on the reference simulator's timeline.
     quicknessCastTimeMs: 1040,
     cooldown: 6,
     rechargeAnchor: 'castStart',
     effects: [
       {
         type: 'strike',
-        ticks: [280, 480, 640, 800, 960].map((atMs) => ({
+        ticks: [240, 440, 640, 840, 1040].map((atMs) => ({
           atMs,
           coefficient: 0.25
         })),
@@ -87,13 +89,13 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Burning', stacks: 1, duration: 1.5 }],
+        ticks: [{ atMs: 240, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 480, condition: 'Burning', stacks: 1, duration: 1.5 }],
+        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -105,13 +107,13 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 800, condition: 'Burning', stacks: 1, duration: 1.5 }],
+        ticks: [{ atMs: 840, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 960, condition: 'Burning', stacks: 1, duration: 1.5 }],
+        ticks: [{ atMs: 1040, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

@@ -6,11 +6,11 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SYMBOL_OF_BLADES]: {
     castTimeMs: 250,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 250, startAnchor: 'castStart' }],
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 240, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 250 + index * 1000, coefficient: 3.25 / 5 })),
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 240 + index * 1000, coefficient: 3.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -50,7 +50,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 250 + index * 250, coefficient: 4.8 / 8 })),
+        ticks: [240, 520, 760, 1000, 1240, 1520, 1760, 2000].map((atMs) => ({ atMs, coefficient: 4.8 / 8 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
