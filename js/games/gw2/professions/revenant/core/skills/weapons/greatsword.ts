@@ -5,6 +5,8 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIST_SLASH]: {
     castTimeMs: 600,
+    // The strike survives a committed aftercast cancel without shortening the normal auto chain.
+    interruptCommitMs: 520,
     unaffectedByQuickness: true,
     cooldown: 0,
     energyCost: 0,
@@ -28,6 +30,9 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.MIST_UNLEASHED]: {
     quicknessCastTimeMs: 520,
+    // Commit the attack at 480 ms while reserving the remaining skill lockout.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 3,
     energyCost: 5,
     effects: [
@@ -50,6 +55,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.ARCING_MISTS]: {
     castTimeMs: 680,
+    // A committed cancel retains the strike and conditions during the remaining aftercast.
+    interruptCommitMs: 480,
     unaffectedByQuickness: true,
     cooldown: 0,
     energyCost: 0,
@@ -124,6 +131,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.MIST_SWING]: {
+    // Recorded 365 ms casts land their strike and advance to Mist Slash on the 360 ms action frame.
+    interruptCommitMs: 360,
     castTimeMs: 400,
     unaffectedByQuickness: true,
     cooldown: 0,
@@ -134,7 +143,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         coefficient: 0.7,
         hits: 1,
         name: 'Mist Swing',
-        actorType: 'player'
+        actorType: 'player',
+        persistsAfterInterrupt: true
       }
     ]
   },

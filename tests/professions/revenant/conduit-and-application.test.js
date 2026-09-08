@@ -121,7 +121,7 @@ describe('Power Conduit skill profiles', () => {
     assert.equal(skill('Chilling Isolation').quicknessCastTimeMs, undefined);
     assert.equal(skill('Chilling Isolation').unaffectedByQuickness, true);
     assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
-    assert.equal(defaultPaletteInterruptMs(skill('Chilling Isolation')), 420);
+    assert.equal(defaultPaletteInterruptMs(skill('Chilling Isolation')), 360);
     assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
     assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
     assert.equal(skill("Phantom's Onslaught").dashTimeMs, 38);
@@ -213,14 +213,14 @@ describe('Power Conduit skill profiles', () => {
       observationTail(1000)
     );
 
-    assert.equal(paletteChilling.steps[0].end, 420);
+    assert.equal(paletteChilling.steps[0].end, 360);
     assert.equal(paletteChilling.steps[0].interrupted, true);
     assert.deepEqual(damageTimeline(paletteChilling, 'Chilling Isolation'), [
       [280, 'Chilling Isolation — Packet 1', 0.8],
       [480, 'Isolated Damage', 1.6]
     ]);
 
-    const earlyChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 419 }], config);
+    const earlyChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 359 }], config);
 
     assert.deepEqual(damageTimeline(earlyChilling, 'Chilling Isolation'), []);
   });

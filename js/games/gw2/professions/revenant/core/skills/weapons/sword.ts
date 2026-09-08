@@ -60,6 +60,8 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SHACKLING_WAVE]: {
     quicknessCastTimeMs: 800,
+    // The follow-up wave keeps landing after a 720 ms aftercast cancellation.
+    interruptCommitMs: 720,
     cooldown: 15,
     energyCost: 10,
     effects: [
@@ -75,6 +77,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'strike',
         name: 'Additional Strikes',
         actorType: 'player',
+        persistsAfterInterrupt: true,
         ticks: [
           { atMs: 720, coefficient: 0.4 },
           { atMs: 800, coefficient: 0.4 },
@@ -142,6 +145,8 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.PREPARATION_THRUST]: {
     quicknessCastTimeMs: 360,
+    // A shortened opening thrust can land and advance the chain before its full animation ends.
+    interruptCommitMs: 320,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -165,7 +170,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.CHILLING_ISOLATION]: {
     castTimeMs: 680,
     unaffectedByQuickness: true,
-    interruptCommitMs: 420,
+    interruptCommitMs: 360,
     cooldown: 5,
     energyCost: 5,
     effects: [
@@ -198,6 +203,8 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.BRUTAL_BLADE]: {
     quicknessCastTimeMs: 560,
+    // The measured 518 ms cancellation retains the strike on the 520 ms action frame.
+    interruptCommitMs: 520,
     cooldown: 0,
     energyCost: 0,
     effects: [

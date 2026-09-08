@@ -210,6 +210,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.SPEAR_OF_ARCHEMORUS]: {
     quicknessCastTimeMs: 480,
+    interruptCommitMs: 400,
     cooldown: 12,
     energyCost: 20,
     effects: [
@@ -219,14 +220,16 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         name: 'Spear of Archemorus',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 2960, condition: 'Torment', stacks: 5, duration: 8 }],
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ],
     legendId: 'LegendaryAlliance',
