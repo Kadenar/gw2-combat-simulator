@@ -22,6 +22,7 @@ export interface EvtcRecordedRotationAction {
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly replayCastEnd?: number;
   readonly replayInterruptMs?: number;
+  readonly replayDurationMs?: number;
   /** Remaining duration reported for a hidden initial-state replay action. */
   readonly initialStateDurationMs?: number;
   readonly forceCompleteReplay?: boolean;

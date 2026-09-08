@@ -25,6 +25,7 @@ export interface DpsReportRecordedAction {
   readonly expectedDurationMs?: number;
   /** Replays a report-proven generated activation without occupying its modeled cast lane. */
   readonly replayInterruptMs?: number;
+  readonly replayDurationMs?: number;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly control?: 'cooldown-reset';
   readonly followingWaitMs?: number;

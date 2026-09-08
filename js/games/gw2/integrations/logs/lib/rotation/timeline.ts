@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { actionKind } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type { ReconstructedCommand, ReconstructedRotationCommand } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
@@ -16,6 +17,8 @@ export interface ReplayTimelineAction {
   /** Replays observed overlap while retaining this action as the scheduler's next relative-offset anchor. */
   readonly concurrentTimeline?: boolean;
   readonly followingWaitMs?: number;
+  /** Runtime occupancy of a profession-resolved skill variant, including its built-in wind-up. */
+  readonly replayDurationMs?: number;
   /** Opening-hit evidence may place combat before a source phase/EVTC boundary so its damage remains observable. */
   readonly combatStartOverride?: number;
 }
@@ -45,7 +48,7 @@ function identityMilliseconds(value: number): number {
 /** Preserves overlong explicit casts while leaving autoattack chains to model their own cadence. */
 function observedAftercastWaitMs(action: ReplayTimelineAction, replayEnd: number): number {
   if (!action.skill || String(action.skill.slot || '').toLowerCase() === 'weapon_1') return 0;
-  const excessMs = replayEnd - action.start - quicknessReferenceCastTimeMs(action.skill);
+  const excessMs = replayEnd - action.start - (action.replayDurationMs ?? quicknessReferenceCastTimeMs(action.skill));
   return excessMs > OBSERVED_CAST_TOLERANCE_MS ? excessMs : 0;
 }
 
@@ -104,6 +107,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
   const rotation: ReconstructedCommand[] = [];
   let activeCastEnd = origin;
+  let activeCast: Action | null = null;
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
   let pendingAftercast: { until: number; progressedTo: number } | null = null;
@@ -208,9 +212,10 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const command = { ...policy.commandFor(action) };
     const instant = actionReplayEnd <= at;
     const independent = action.skill?.independentCast === true || action.independentTimeline === true;
-    // Weapon swaps cancel an active cast in game, so log imports must always replay them serially.
+    // Swaps can overlap dodge without cancelling it; delaying them also delays the next swap's cooldown.
+    const swapDuringDodge = activeCast != null && actionKind(activeCast.skill, activeCast.name) === 'dodge';
     const concurrent =
-      action.name !== 'Swap Weapons' &&
+      (action.name !== 'Swap Weapons' || swapDuringDodge) &&
       (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
     if (independent && previousCastStart != null && at >= previousCastStart) {
@@ -223,7 +228,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     // Concurrent actions advance the replay clock through an observed excess-cast interval, so only its remainder waits.
     if (pendingAftercast && concurrent) {
-      const runtimeEnd = at + quicknessReferenceCastTimeMs(action.skill);
+      const runtimeEnd = at + (action.replayDurationMs ?? quicknessReferenceCastTimeMs(action.skill));
       pendingAftercast.progressedTo = Math.min(
         pendingAftercast.until,
         Math.max(pendingAftercast.progressedTo, runtimeEnd)
@@ -234,9 +239,10 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     if (alignWaitsToSimulatorTiming) {
       // Inferred setup and mechanic-owned charge intervals already define their replay occupancy.
       const runtimeMs =
-        action.skill && policy.hasObservedCastTime?.(action) !== false
+        action.replayDurationMs ??
+        (action.skill && policy.hasObservedCastTime?.(action) !== false
           ? quicknessReferenceCastTimeMs(action.skill)
-          : actionReplayEnd - at;
+          : actionReplayEnd - at);
       const interruptMs = command.interruptMs ?? action.skill?.defaultInterruptMs;
       const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
       const retainedRuntimeMs =
@@ -280,6 +286,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       activeCastEnd = Math.max(activeCastEnd, at);
     } else {
       previousCastStart = at;
+      if (!instant && actionReplayEnd >= activeCastEnd) activeCast = action;
       activeCastEnd = Math.max(activeCastEnd, instant ? at : actionReplayEnd);
       // Only an interrupted command uses the retained lane; idle after a completed cast remains explicit.
       if (action.skill?.retainsCastLockoutAfterInterrupt === true && command.interruptMs != null) {

@@ -274,6 +274,8 @@ function applyCastInterrupts(actions: readonly DpsReportResolvedAction[]): DpsRe
       const cast = replay[castIndex];
       if (instantReplayAction(cast)) continue;
       if (cast.end <= boundary.start) break;
+      // Weapon swaps are allowed during dodge and do not cancel its movement or trait effects.
+      if (weaponSwap && actionKind(cast.skill, cast.name) === 'dodge') break;
       if (forgeEntry && normalized(cast.skill?.type) !== 'weapon') break;
       const interruptMs = observedInterruptMs({ ...cast, end: boundary.start });
       if (interruptMs != null) replay[castIndex] = { ...cast, replayInterruptMs: interruptMs };

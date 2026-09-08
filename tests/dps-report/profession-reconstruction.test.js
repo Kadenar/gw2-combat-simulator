@@ -32,6 +32,23 @@ function reportFixture(profession, rotation, skillMap, end = 40_000) {
   });
 }
 
+test('a weapon swap during Daredevil dodge does not fabricate an interrupted dodge', () => {
+  const report = reportFixture(
+    'Daredevil',
+    [
+      { id: 23275, skills: [{ castTime: 0, duration: 800, timeGained: 0 }] },
+      { id: -2, skills: [{ castTime: 40, duration: 0, timeGained: 0 }] }
+    ],
+    { s23275: { name: 'Dodge' }, 's-2': { name: 'Weapon Swap', isSwap: true } },
+    1000
+  );
+  // A swap inside the movement animation must preserve the completed dodge's commit.
+  const result = reconstructDpsReportRotation(report, thiefCatalog);
+  const dodge = result.rotation.find((command) => command.name === 'Dodge');
+  assert.ok(dodge);
+  assert.equal(dodge.interruptMs, undefined);
+});
+
 test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant casts', () => {
   const report = reportFixture(
     'Virtuoso',

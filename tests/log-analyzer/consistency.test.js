@@ -126,6 +126,28 @@ test('the shared timeline preserves controls, unsupported durations, idle gaps, 
   ]);
 });
 
+test('weapon swaps retain their observed overlap with dodge through an intervening instant', () => {
+  const instant = { id: 2_000, name: 'Instant', castTimeMs: 0 };
+  const swap = { id: -3, name: 'Swap Weapons', castTimeMs: 0 };
+  // A non-dodge cast still serializes swaps; dodge keeps the swap cooldown anchored to its actual input.
+  for (const name of ['Dodge', 'Channel']) {
+    const skill = { id: -5, name, castTimeMs: 800, unaffectedByQuickness: true };
+    const actions = [
+      { start: 0, end: 800, skill },
+      { start: 100, end: 100, skill: instant },
+      { start: 200, end: 200, skill: swap }
+    ].map((action, eventIndex) => ({ ...action, eventIndex, name: action.skill.name, skillId: action.skill.id }));
+    const rotation = buildReplayTimeline(actions, 0, null, {
+      alignWaitsToSimulatorTiming: true,
+      commandFor: ({ name, skillId }) => ({ name, skillId })
+    });
+    assert.equal(
+      rotation.find((command) => command.name === 'Swap Weapons').offset,
+      name === 'Dodge' ? 100 : undefined
+    );
+  }
+});
+
 test('the shared timeline rounds combat offsets relative to the skill, including the cast-end jitter window', () => {
   // A non-tick-aligned cast start proves we round elapsed time, not the absolute combat timestamp.
   const start = 137;
@@ -239,6 +261,29 @@ test('runtime alignment preserves inferred or mechanic-owned occupied intervals 
     { name: 'Mind Stab', skillId: 1_000 },
     { name: 'Mind Stab', skillId: 1_000 }
   ]);
+});
+
+test('runtime alignment budgets resolved cast variants instead of counting their wind-up as idle', () => {
+  // Two variants of one catalog skill occupy different lanes; only the gaps between their full inputs are waits.
+  const actions = [
+    { start: 0, end: 800, replayDurationMs: 800 },
+    { start: 1000, end: 1200, replayDurationMs: 200 },
+    { start: 1400, end: 1800 }
+  ].map((action, eventIndex) => ({
+    ...action,
+    eventIndex,
+    skill: fixtureSkill,
+    name: fixtureSkill.name,
+    skillId: fixtureSkill.id
+  }));
+  const rotation = buildReplayTimeline(actions, 0, null, {
+    alignWaitsToSimulatorTiming: true,
+    commandFor: ({ name, skillId }) => ({ name, skillId })
+  });
+  assert.deepEqual(
+    rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    [200, 200]
+  );
 });
 
 test('the shared timeline subtracts concurrent progress from an observed instant-skill channel', () => {
