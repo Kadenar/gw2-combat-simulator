@@ -253,7 +253,7 @@ test('reconstructs the evidenced Luminary Forge precast instead of synthetic ope
 
   assert.equal(result.rotation.find((command) => command.name === 'Luminous Staff')?.offTarget, true);
   assert.equal(result.rotation.find((command) => command.name === 'Dazzling Hammer')?.offTarget, true);
-  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 359);
+  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 360);
   // Omitted setup uses Quickness runtime, including skills with no explicit Quickness duration.
   assert.equal(result.actions.find((action) => action.name === 'Radiant Bulwark')?.durationMs, 1360);
   assert.equal(
@@ -262,7 +262,7 @@ test('reconstructs the evidenced Luminary Forge precast instead of synthetic ope
   );
 });
 
-test('places Luminary combat start before both opening Symbol packets', () => {
+test('places Luminary combat start on the opening Symbol action tick', () => {
   const opening = animation(73_132, 'Symbol of Luminance', 1_000, 432);
   const symbol = skill(73_132, 'Symbol of Luminance', {
     type: 'Weapon',
@@ -289,7 +289,7 @@ test('places Luminary combat start before both opening Symbol packets', () => {
 
   assert.deepEqual(result.rotation, [
     { name: 'Symbol of Luminance', skillId: 73_132 },
-    { name: '__combat_start', offset: 359 }
+    { name: '__combat_start', offset: 360 }
   ]);
 });
 

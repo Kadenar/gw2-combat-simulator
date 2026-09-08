@@ -56,6 +56,23 @@ test('Guardian greatsword autos retain aftercast only after commitment', () => {
   }
 });
 
+test('Symbol of Luminance retains both strikes on the exact combat boundary', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Luminance', { name: '__combat_start', offset: 360 }],
+    config: { ...config, primaryWeapon: 'Spear', boons: { quickness: true } }
+  });
+  // Same-time damage is observable without moving combat one millisecond before the action tick.
+  const openingHits = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'damage' &&
+      event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_LUMINANCE &&
+      Math.abs(event.at - 0.36) < 1e-9
+  );
+  assert.equal(openingHits.length, 2);
+  assert.ok(openingHits.every((event) => event.damage > 0));
+});
+
 test('Guardian slot skills require selection before casts can produce effects', () => {
   // A single cast checks loadout rejection, including Effulgent's delayed detonation.
   for (const name of ['Effulgent Stance', 'Shelter', 'Renewed Focus']) {

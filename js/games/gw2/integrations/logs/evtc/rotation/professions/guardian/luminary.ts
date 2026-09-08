@@ -10,7 +10,6 @@ import {
   skillFor,
   SWAP_WEAPONS
 } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 const ENTER_RADIANT_FORGE = Object.freeze({
@@ -160,9 +159,8 @@ function alignOpeningSymbolCombatStart(
   if (!opening) return [...actions];
   const firstStrikeAt = opening.start + strikeOffset;
   if (firstStrikeAt >= sourceCombatStart) return [...actions];
-  // EVTC millisecond timestamps may place ENTER_COMBAT just after the modeled opening packet;
-  // retain the preceding source millisecond so both same-time Symbol strikes remain observable.
-  const combatStartOverride = Math.max(opening.start, firstStrikeAt - Math.ceil(EPSILON * 1_000));
+  // The scheduler publishes combat before resolving its boundary packets, so both Symbol strikes use the action tick.
+  const combatStartOverride = firstStrikeAt;
   return actions.map((action) => (action === opening ? { ...action, combatStartOverride } : action));
 }
 

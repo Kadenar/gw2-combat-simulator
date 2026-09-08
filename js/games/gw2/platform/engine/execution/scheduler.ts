@@ -1190,8 +1190,10 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           : Math.max(state.time, serialReadyAt, latestReservedEnd);
         // Like a concurrent cast, an explicitly offset combat marker is
         // anchored to the previous cast start.
-        advanceTo(combatStartTime);
+        // Publish the boundary before draining tasks so opening hits can trigger
+        // combat procs while hits strictly before the marker remain excluded.
         context.combatStartTime = combatStartTime;
+        advanceTo(combatStartTime);
         context.emit({
           type: 'combat_start',
           at: combatStartTime,

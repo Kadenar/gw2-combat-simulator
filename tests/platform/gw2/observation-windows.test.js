@@ -7,6 +7,49 @@ import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '../../fixtures/test-profession.js';
 
+// Opening hits must start the same sigil cooldown in both simulation phases.
+test('scheduler sigil predictions include the combat boundary and exclude earlier hits', () => {
+  for (const offset of [1000, 1100]) {
+    let predictions = [];
+    const profession = {
+      ...testProfession,
+      resolveRuntime() {
+        const runtime = testProfession;
+        return {
+          ...runtime,
+          initialize(context) {
+            predictions = [];
+            runtime.initialize(context);
+          },
+          onEventScheduled(context, event) {
+            runtime.onEventScheduled(context, event);
+            if (event.type === 'damage' && event.schedulerPrediction === 'critical-sigil') {
+              predictions.push(event.at);
+            }
+          }
+        };
+      }
+    };
+    const result = simulateGw2({
+      profession,
+      rotation: ['Fixture Slash', { name: '__combat_start', offset }, { type: 'wait', durationMs: 1000 }],
+      config: {
+        stats: { power: 1000, precision: 4000 },
+        target: { armor: 2597 },
+        sigilSets: [{ names: ['Air'] }]
+      }
+    });
+    const expected = offset === 1000 ? [1] : [];
+    assert.deepEqual(predictions, expected);
+    assert.deepEqual(
+      result.resolvedEvents
+        .filter((event) => event.type === 'damage' && event.source === 'Sigil')
+        .map((event) => event.at),
+      expected
+    );
+  }
+});
+
 // Combat starts and target death bound the events and elapsed time used for DPS.
 test('DPS excludes elapsed time before the first hit', () => {
   const result = simulateMesmer(
