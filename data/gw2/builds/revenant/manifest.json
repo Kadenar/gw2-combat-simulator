@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-greatsword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
-        "benchmarkDps": 43308,
+        "benchmarkDps": 43745,
         "referenceDps": 43752,
         "dpsReportUrl": "https://dps.report/IcMt-20260716-164954_golem",
         "upToDate": true
