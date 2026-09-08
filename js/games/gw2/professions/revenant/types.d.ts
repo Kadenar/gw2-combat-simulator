@@ -117,6 +117,8 @@ export interface RevenantCoreState {
   energy: number;
   maximumEnergy: number;
   energyUpdatedAt: number;
+  // Preserve the elapsed-time baseline across scheduler reads until Energy, upkeep, or its cap changes.
+  energyAccrual?: { at: number; energy: number; rate: number; maximum: number };
   activeLegendId: string;
   activeLoadoutId: string;
   selectedLegendIds: string[];
