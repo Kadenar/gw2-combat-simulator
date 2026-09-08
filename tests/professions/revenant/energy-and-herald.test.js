@@ -195,7 +195,7 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   }
 });
 
-test('energy regenerates every 100 ms and every skill pays its explicit cost', () => {
+test('energy accumulates fractionally with elapsed time and skills pay their explicit costs', () => {
   const result = simulate('Core', ['Phase Traversal', { type: 'wait', durationMs: 1000 }]);
 
   // 50 - 30 + 2.5 during the half-second cast + 5 during the wait.
@@ -217,26 +217,52 @@ test('energy regenerates every 100 ms and every skill pays its explicit cost', (
 
   assert.match(weaponDenied.warnings[0], /requires 5 energy/);
 
-  const ticked = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 150 }], { initialEnergy: 0 });
-
-  assert.equal(ticked.endState.profession.energy, 0.5);
-  assert.deepEqual(
-    ticked.events
-      .filter((event) => event.type === 'revenant.state' && event.reason === 'energy')
-      .map((event) => [event.at, event.state.energy]),
-    [[0.1, 0.5]]
-  );
+  // Store fractional accumulation even between action ticks; availability owns when it can be spent.
+  for (const [durationMs, energy] of [
+    [40, 0.2],
+    [100, 0.5],
+    [499, 2.495],
+    [500, 2.5],
+    [999, 4.995],
+    [1000, 5]
+  ]) {
+    const ticked = simulate('Core', ['__combat_start', { type: 'wait', durationMs }], { initialEnergy: 0 });
+    assert.equal(ticked.endState.profession.energy, energy, `${durationMs} ms`);
+  }
 });
 
-test('an in-combat Revenant skill waits for the 100 ms Energy tick that makes it affordable', () => {
-  const result = simulate('Renegade', ['__combat_start', "Razorclaw's Rage"], {
-    initialEnergy: 24.5,
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE
-  });
+test('Energy affordability rounds up to the absolute action tick regardless of intermediate reads', () => {
+  // The cost is reached at 100 ms; both early requests and off-grid reads must wait until 120 ms.
+  for (const waits of [[], [50], [100], [50, 50, 10], [120], [130]]) {
+    const result = simulate(
+      'Renegade',
+      ['__combat_start', ...waits.map((durationMs) => ({ type: 'wait', durationMs })), "Razorclaw's Rage"],
+      {
+        initialEnergy: 24.5,
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.steps.at(-1).start,
+      Math.max(
+        120,
+        waits.reduce((sum, wait) => sum + wait, 0)
+      )
+    );
+  }
+});
 
-  assert.equal(result.warnings.length, 0);
-  assert.equal(result.steps.at(-1).start, 100);
+test('legend swaps preserve the absolute Energy affordability grid', () => {
+  // Swapping at 15 ms resets the pool, but a cost reached at 3015 ms still becomes spendable at 3040 ms.
+  const result = simulate(
+    'Core',
+    ['__combat_start', { type: 'wait', durationMs: 15 }, 'Swap Legends', 'Phase Traversal', 'Jade Winds'],
+    { startingLegend: LEGEND.DEMON }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.steps.find((step) => step.skill === 'Jade Winds').start, 3040);
 });
 
 test('a cooldown-queued Revenant skill recovers Energy before its next cast', () => {
@@ -253,10 +279,10 @@ test('a cooldown-queued Revenant skill recovers Energy before its next cast', ()
 });
 
 test('Revenant energy regenerates up to 50 out of combat and up to 100 in combat', () => {
-  // Precombat recovery uses the same 100 ms ticks as combat instead of filling instantly.
-  const ticked = simulate('Core', [{ type: 'wait', durationMs: 150 }, '__combat_start'], { initialEnergy: 0 });
+  // Precombat uses the same elapsed-time regeneration, capped at 50.
+  const ticked = simulate('Core', [{ type: 'wait', durationMs: 550 }, '__combat_start'], { initialEnergy: 0 });
 
-  assert.equal(ticked.endState.profession.energy, 0.5);
+  assert.equal(ticked.endState.profession.energy, 2.75);
 
   for (const specialization of ['Core', 'Renegade', 'Conduit']) {
     const legends =
@@ -410,6 +436,13 @@ test('Charged Mists uses the low-energy legend reset', () => {
   });
 
   assert.equal(charged.endState.profession.energy, 75);
+  // The threshold is inclusive; a swap at exactly 10 must receive the bonus.
+  const chargedAtThreshold = simulate('Core', ['Swap Legends'], {
+    initialEnergy: 10,
+    selectedTraitIds: [TRAIT.CHARGED_MISTS]
+  });
+
+  assert.equal(chargedAtThreshold.endState.profession.energy, 75);
   const chargedFractional = simulate('Core', ['Swap Legends'], {
     initialEnergy: 10.7,
     selectedTraitIds: [TRAIT.CHARGED_MISTS]
@@ -641,6 +674,38 @@ test('Retribution and Invocation traits use live combat state', () => {
         event.duration === 5
     )
   );
+});
+
+test('Forceful Persistence counts active upkeeps additively with Ferocious Aggression', () => {
+  const context = {
+    config: {
+      specialization: 'Herald',
+      selectedTraitIds: [TRAIT.FORCEFUL_PERSISTENCE, TRAIT.FEROCIOUS_AGGRESSION],
+      boons: { fury: true }
+    },
+    time: 1,
+    event: { actorType: 'player' },
+    runtime: { profession: { activeUpkeeps: [] } }
+  };
+  // Count skills rather than upkeep pips, including Nature alongside another legend's upkeep.
+  for (const [skills, expected] of [
+    [[], 1.1],
+    [[SKILL.IMPOSSIBLE_ODDS], 1.35],
+    [[SKILL.VENGEFUL_HAMMERS], 1.35],
+    [[SKILL.EMBRACE_THE_DARKNESS], 1.35],
+    [[SKILL.PROTECTIVE_SOLACE], 1.35],
+    [[SKILL.FACET_OF_STRENGTH, SKILL.FACET_OF_NATURE], 1.3],
+    [[SKILL.IMPOSSIBLE_ODDS, SKILL.FACET_OF_NATURE], 1.45]
+  ]) {
+    context.runtime.profession.activeUpkeeps = skills.map((skillId) => ({ skillId }));
+    assert.ok(Math.abs(revenantAttributeRules.modifyStrikeDamage(context, 1) - expected) < 1e-9);
+    assert.equal(revenantAttributeRules.modifyConditionDamage(context, 1), 1.1);
+  }
+
+  context.config.boons.fury = false;
+  assert.equal(revenantAttributeRules.modifyStrikeDamage(context, 1), 1.35);
+  context.config.selectedTraitIds = [];
+  assert.equal(revenantAttributeRules.modifyStrikeDamage(context, 1), 1);
 });
 
 test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
@@ -905,14 +970,48 @@ test('upkeep Energy drain begins when its cast completes', () => {
 
   const completion = result.steps.find((step) => step.skill === 'Embrace the Darkness').end / 1000;
 
-  // The activation spends 5 Energy immediately, then receives normal regeneration until the upkeep completes.
-  assert.deepEqual(
-    result.events
-      .filter((event) => event.type === 'revenant.state' && event.reason === 'energy' && event.at < completion)
-      .map((event) => event.state.energy),
-    [45.5, 46, 46.5, 47, 47.5, 48]
-  );
+  // Activation spends 5 Energy; the full windup regenerates before sustained drain starts.
+  assert.ok(Math.abs(result.endState.profession.energy - (45 + 5 * completion)) < 1e-9);
   assert.equal(result.endState.profession.activeUpkeeps[0].startsAt, completion);
+});
+
+test('upkeep release settles the old drain rate before resuming regeneration', () => {
+  // 1.1 after activation, minus 0.15 drain, then plus 0.5 regeneration after release.
+  const result = simulate(
+    'Core',
+    [
+      '__combat_start',
+      'Impossible Odds',
+      { type: 'wait', durationMs: 150 },
+      'Relinquish Power',
+      { type: 'wait', durationMs: 100 }
+    ],
+    { initialEnergy: 6.1 }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(Math.abs(result.endState.profession.energy - 1.45) < 1e-9);
+});
+
+test('starvation waits for the absolute action tick and preserves its boundary across reads', () => {
+  // A 0.1-Energy remainder reaches zero at 100 ms; shutdown and its cooldown begin at 120 ms.
+  for (const waits of [[110], [120], [110, 10], [110, 90]]) {
+    const result = simulate(
+      'Core',
+      ['__combat_start', 'Impossible Odds', ...waits.map((durationMs) => ({ type: 'wait', durationMs }))],
+      { initialEnergy: 5.1 }
+    );
+    const elapsedMs = waits.reduce((sum, wait) => sum + wait, 0);
+    const starved = result.events.find((event) => event.type === 'revenant.state' && event.reason === 'upkeep-starved');
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.endState.profession.activeUpkeeps.length, elapsedMs < 120 ? 1 : 0);
+    if (elapsedMs < 120) {
+      assert.equal(starved, undefined);
+    } else {
+      assert.equal(starved.at, 0.12);
+      assert.equal(result.schedulerState.cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 4.12);
+      assert.ok(Math.abs(result.endState.profession.energy - 5 * (elapsedMs / 1000 - 0.12)) < 1e-9);
+    }
+  }
 });
 
 test('Revenant palette exposes upkeep releases and enforces Energy costs', () => {

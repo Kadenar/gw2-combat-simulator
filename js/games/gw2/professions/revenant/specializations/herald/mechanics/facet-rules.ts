@@ -9,7 +9,12 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/professions/revenant/core/traits/index.js';
-import { revenantActiveBoonCount, revenantTimedBuff } from '#gw2/professions/revenant/core/traits/modifiers.js';
+import {
+  revenantActiveBoonCount,
+  revenantRuntimeCoreState,
+  revenantTimedBuff
+} from '#gw2/professions/revenant/core/traits/modifiers.js';
+import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/facet-skills.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -36,6 +41,18 @@ import { denySkillCast as denyRevenantSkill } from '#gw2/professions/lib/availab
 import type { RevenantCastContext, RevenantPrecastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'revenant.forceful-persistence',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    // Each active facet contributes 10%, other upkeeps 25%; share Ferocious Aggression's additive bucket.
+    amount: (context) =>
+      (revenantRuntimeCoreState(context).activeUpkeeps || []).reduce(
+        (bonus, upkeep) => bonus + (HERALD_BASE_SKILL_MECHANICS[Number(upkeep.skillId)]?.facet ? 0.1 : 0.25),
+        0
+      ),
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.FORCEFUL_PERSISTENCE)
+  },
   {
     id: 'revenant.burst-of-strength-strike',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
