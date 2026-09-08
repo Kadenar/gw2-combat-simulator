@@ -59,6 +59,8 @@ function targetsHit(context: RevenantCastContext, maximum = 5): number {
 
 /** Resolves the active Release Potential variant from affinity and legends. */
 export function castReleasePotential(context: RevenantCastContext, skill: RevenantSkill): void {
+  // Procedural releases obey the same commit boundary as declarative skills instead of emitting cancelled damage.
+  if (context.action.cancelled === true) return;
   const affinity = effectiveAffinity(context);
   // At affinity ≥ 3 the skill gains effects from all equipped legends even if they are not currently active.
   const affinityProfile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
@@ -86,6 +88,8 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
         at: impactAt,
         coefficient: strikeCoefficient(strike),
         skillWeapon: conduitSkillWeapon(context, skill),
+        // The conjured scythe uses sword-strength damage on either equipped weapon set.
+        weaponStrengthProfileId: 'weapon.sword',
         canCrit: null
       });
       const bleeding = conditions.find((effect) => effect.metadata?.legendId === LEGEND.DEMON);
@@ -168,6 +172,8 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           hitIndex: index + 1,
           totalHits: ticks.length,
           skillWeapon: conduitSkillWeapon(context, skill),
+          // Assassin shockwaves use profession-mechanic strength independently of the equipped weapon.
+          weaponStrengthProfileId: 'nonweapon.profession-mechanic',
           canCrit: null
         });
       }

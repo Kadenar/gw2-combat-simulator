@@ -680,7 +680,8 @@ const records: readonly Skill[] = [
     name: 'Form of the Dervish (Attack)',
     description:
       'When you use a Legendary Entity skill, a magical scythe appears and spins around you, dealing damage to enemies.',
-    icon: 'https://render.guildwars2.com/file/5DA12A719EBDBFA95C7F416BAC7101D035DEBC22/3680202.png',
+    // Both scythe attacks use the Dervish form icon, distinct from Cosmic Wisdom.
+    icon: 'https://render.guildwars2.com/file/0CB866CA45E05F72B3B9CEDED5CAA1563FBD6B4A/3680046.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',
@@ -708,7 +709,7 @@ const records: readonly Skill[] = [
     name: 'Form of the Dervish (Attack - Elite)',
     description:
       'When you use a Legendary Entity skill, a magical scythe appears and spins around you, dealing damage to enemies.',
-    icon: 'https://render.guildwars2.com/file/5DA12A719EBDBFA95C7F416BAC7101D035DEBC22/3680202.png',
+    icon: 'https://render.guildwars2.com/file/0CB866CA45E05F72B3B9CEDED5CAA1563FBD6B4A/3680046.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',

@@ -112,7 +112,7 @@ describe('Power Conduit skill profiles', () => {
       ["Eternity's Requiem", 840],
       ["Phantom's Onslaught", 438],
       ['Mist Unleashed', 520],
-      ['Release Potential: Assassin', 740]
+      ['Release Potential: Assassin', 720]
     ]) {
       assert.equal(skill(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
     }
@@ -622,6 +622,105 @@ test('Form of the Dervish follows every Entity skill and doubles Twin Moon', () 
   assert.ok(scythes.every((event) => event.coefficient === 0.8));
 });
 
+test('Dervish casts retain their scythes through form expiry and concurrent legend swaps', () => {
+  // Eligibility belongs to cast start, so a finishing animation cannot lose an already-triggered scythe.
+  for (const swap of [[], [{ type: 'cast', skillId: SKILL.SWAP_LEGENDS, concurrentOffsetMs: 640 }]]) {
+    const result = simulate(
+      'Conduit',
+      ['Cosmic Wisdom', { type: 'wait', durationMs: 6500 }, 'Twin Moon Sweep', ...swap],
+      {
+        selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.ENTITY,
+        initialEnergy: 100,
+        boons: { quickness: true }
+      },
+      observationTail(500)
+    );
+    const scythes = result.events.filter(
+      (event) => event.type === 'damage' && event.skillName === 'Form of the Dervish'
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(scythes.length, 2);
+    assert.ok(scythes.every((event) => Math.round(event.at * 1000) === 7420));
+  }
+
+  const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, 'Twin Moon Sweep'], {
+    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.ENTITY,
+    initialEnergy: 100
+  });
+  assert.equal(
+    expired.events.some((event) => event.skillName === 'Form of the Dervish'),
+    false
+  );
+});
+
+test('Impossible Odds only follows eligible Deathstrike and Assassin release packets', () => {
+  // Preserve each skill's damage packets while excluding the packets that cannot trigger a follow-up.
+  for (const [name, expectedAt] of [
+    ['Deathstrike', 570],
+    ['Release Potential: Assassin', 1050]
+  ]) {
+    const result = simulate(
+      'Conduit',
+      ['Impossible Odds', name],
+      {
+        selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+        startingLegend: LEGEND.ASSASSIN,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
+        initialEnergy: 100,
+        boons: { quickness: true }
+      },
+      observationTail(500)
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      result.events
+        .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
+        .map((event) => Math.round(event.at * 1000)),
+      [expectedAt]
+    );
+  }
+
+  const procs = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', { type: 'wait', durationMs: 2100 }], {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: 100
+  });
+  assert.ok(procs.events.some((event) => event.skillName === 'Lesser Enchanted Daggers'));
+  assert.equal(
+    procs.events.some((event) => event.type === 'damage' && event.skillName === 'Impossible Odds'),
+    false
+  );
+});
+
+test('Release Potential strength is independent of the equipped weapon set', () => {
+  // The conjured scythe and Assassin shockwaves retain their own strength profiles when weapon sets change.
+  for (const [legend, name, strength] of [
+    [LEGEND.ENTITY, 'Release Potential: Dervish', 1000],
+    [LEGEND.ASSASSIN, 'Release Potential: Assassin', 1100]
+  ]) {
+    for (const primaryWeapon of ['Sword', 'Greatsword']) {
+      const result = simulate(
+        'Conduit',
+        [name],
+        {
+          selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+          startingLegend: legend,
+          primaryWeapon,
+          initialEnergy: 100,
+          boons: { quickness: true }
+        },
+        observationTail(500)
+      );
+      const strikes = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === name);
+      assert.ok(strikes.length > 0);
+      assert.ok(strikes.every((event) => event.resolvedWeaponStrength === strength));
+    }
+  }
+});
+
 test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   const beguiling = simulate('Conduit', ['Beguiling Haze', 'Beguiling Haze', 'Beguiling Haze'], {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
@@ -678,7 +777,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     selectedTraitIds: [TRAIT.SHARED_WISDOM]
   });
 
-  assert.equal(defense.steps[0].fullCastMs, 40);
+  assert.equal(defense.steps[0].fullCastMs, 320);
   assert.deepEqual(
     defense.events
       .filter((event) => event.type === 'buff')
@@ -878,6 +977,8 @@ test('Conduit form attacks carry usable icons into skill breakdowns', () => {
   const row = skillBreakdownRows(dervish).find((entry) => entry.name === 'Form of the Dervish');
 
   assert.match(expectedIcon, /^https:\/\/render\.guildwars2\.com\//);
+  assert.equal(expectedIcon, 'https://render.guildwars2.com/file/0CB866CA45E05F72B3B9CEDED5CAA1563FBD6B4A/3680046.png');
+  assert.equal(revenantCatalog.skillsById.get(SKILL.FORM_OF_THE_DERVISH_ATTACK_ELITE).icon, expectedIcon);
   assert.equal(attack.icon, expectedIcon);
   assert.equal(row.icon, expectedIcon);
 

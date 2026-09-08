@@ -950,7 +950,7 @@ test('Bloodstone Fervor follows modifier ownership', () => {
   );
 });
 
-test('Claw follows modifier ownership while Peitha remains limited to player actor strikes', () => {
+test('Claw and Peitha follow player modifier ownership for direct and triggered strikes', () => {
   const player = { type: 'damage', at: 1, actorType: 'player', skillName: 'Player Strike' };
   const ownedEffect = {
     type: 'damage',
@@ -972,7 +972,9 @@ test('Claw follows modifier ownership while Peitha remains limited to player act
   peitha.state.buffFrom = 0;
   peitha.state.buffUntil = 8;
   assert.equal(relicStrikeMultiplier({ relic: peitha }, player), 1.1);
-  assert.equal(relicStrikeMultiplier({ relic: peitha }, ownedEffect), 1);
+  // Player follow-ups inherit the buff, while independently owned summons do not.
+  assert.equal(relicStrikeMultiplier({ relic: peitha }, ownedEffect), 1.1);
+  assert.equal(relicStrikeMultiplier({ relic: peitha }, { ...ownedEffect, ownerActorType: 'summon' }), 1);
 });
 
 test('Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD', () => {

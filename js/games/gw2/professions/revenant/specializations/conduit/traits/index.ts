@@ -1,4 +1,5 @@
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { beguilingHazeCastDuration } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -35,15 +36,13 @@ export function modifyConduitCastDuration(context: RevenantPrecastContext, durat
     throw new Error('Missing Beguiling Haze cast-duration profiles.');
   }
 
-  // Follow-up charges use a near-instant fixed cast time (0.25 s / 0.24 s with quickness).
-  // The main cast appends an extra 0.4 s wind-up on top of the base skill duration.
-  if (Number(conduitState.from(context).beguilingHazeCharges || 0) > 0) {
-    const followUpDuration = Number(followUpProfile.castTimeMs || 0) / 1000;
-    return followUpDuration * (quickness ? Number(followUpProfile.quicknessCastMultiplier ?? 1) : 1);
-  }
-
-  const mainExtension = Number(mainExtensionProfile.castTimeMs || 0) / 1000;
-  return duration + mainExtension * (quickness ? Number(mainExtensionProfile.quicknessCastMultiplier ?? 1) : 1);
+  return beguilingHazeCastDuration(
+    duration,
+    Number(conduitState.from(context).beguilingHazeCharges || 0) > 0,
+    Boolean(quickness),
+    followUpProfile,
+    mainExtensionProfile
+  );
 }
 
 export function modifyConduitRechargeDuration(context: RevenantRechargeContext, duration: number): number {

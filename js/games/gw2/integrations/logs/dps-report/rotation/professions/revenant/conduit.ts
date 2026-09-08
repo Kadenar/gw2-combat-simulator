@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { normalizeConduitHazeActions } from '#gw2/integrations/logs/lib/rotation/rules/conduit.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
@@ -7,7 +8,7 @@ import type {
 } from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const RELINQUISH_POWER_ID = 28382;
-const GENERATED_SIGNAL_IDS = new Set([76818, 77116, 77141]);
+const GENERATED_SIGNAL_IDS = new Set([76818, 77116]);
 const ASSASSIN_LEGEND_ID = 'LegendaryAssassin';
 const DEFAULT_LEGEND_SWAP_COOLDOWN_MS = 10_000;
 
@@ -79,7 +80,10 @@ function legendSwapCooldownMs(context: DpsReportProfessionReconstructionContext)
 export function reconstructConduitDpsReportActions(
   context: DpsReportProfessionReconstructionContext
 ): readonly DpsReportRecordedAction[] {
-  const actionable = context.recordedActions.filter((action) => !GENERATED_SIGNAL_IDS.has(action.rawSkillId));
+  const actionable = normalizeConduitHazeActions(
+    context.recordedActions.filter((action) => !GENERATED_SIGNAL_IDS.has(action.rawSkillId)),
+    context.catalog
+  );
   const sorted = [...actionable].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const anchor = sorted[0];
   const evidence = openingAssassinEvidence(context.recordedActions);

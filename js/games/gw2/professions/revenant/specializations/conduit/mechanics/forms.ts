@@ -28,8 +28,11 @@ export function emitDervishFormAttack(
     context.catalog.skillsById.get(skillId) ||
     ({ id: skillId, name: 'Form of the Dervish', type: 'Profession' } as RevenantSkill);
   emitSkillDamage(context, attack, {
-    at: context.effectiveEnd,
+    // Defense triggers its scythe with the instant stunbreak; other Entity skills trigger on completion.
+    at: skill.handlerId === 'revenant.gladiators-defense' ? context.start : context.effectiveEnd,
     source: 'revenant',
+    actorType: 'effect',
+    ownerActorType: 'player',
     skillName: 'Form of the Dervish',
     name: elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)',
     coefficient: strikeCoefficient(balanceProfileEffect(attack, 'strike')),
@@ -52,6 +55,9 @@ export function emitLesserEnchantedDaggers(
   emitSkillDamage(context, skill, {
     at,
     source: 'revenant',
+    // Form procs inherit player damage bonuses without recursively triggering on-hit attacks.
+    actorType: 'effect',
+    ownerActorType: 'player',
     name: 'Lesser Enchanted Daggers',
     coefficient: strikeCoefficient(balanceProfileEffect(skill, 'strike')),
     skillWeapon: 'Unequipped',
@@ -68,7 +74,11 @@ export function applyCosmicWisdomAfterCast(context: RevenantCastContext, skill: 
     emitLesserEnchantedDaggers(context, skill, at);
   }
 
-  if (skill.legendId !== LEGEND.ENTITY || !revenantConduitFormIsActive(conduitState.from(context), 'Dervish', at))
+  // An Entity cast started in Dervish form retains its scythe through form expiry or a concurrent legend swap.
+  if (
+    skill.legendId !== LEGEND.ENTITY ||
+    !revenantConduitFormIsActive(conduitState.from(context), 'Dervish', context.start)
+  )
     return;
   emitDervishFormAttack(context, skill);
   if (([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001] as readonly number[]).includes(Number(skill.id))) {

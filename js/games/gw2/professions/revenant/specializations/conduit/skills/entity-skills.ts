@@ -212,7 +212,9 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.GLADIATORS_DEFENSE]: {
     // Custom: Materializes affinity-dependent packets and defense state; see `execution/entities.ts`.
     handlerId: 'revenant.gladiators-defense',
-    castTimeMs: 40,
+    // The stunbreak commits before the remaining animation, which the default input cancels.
+    castTimeMs: 320,
+    interruptCommitMs: 40,
     defaultInterruptMs: 40,
     cooldown: 5,
     energyCost: 10,

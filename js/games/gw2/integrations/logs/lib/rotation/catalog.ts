@@ -4,7 +4,7 @@ import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotat
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 export type RotationCatalog = Pick<CanonicalCatalog, 'skills'> &
-  Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName'>>;
+  Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName' | 'balanceProfilesById'>>;
 
 interface RecordedActionIdentity {
   readonly rawSkillId: number;

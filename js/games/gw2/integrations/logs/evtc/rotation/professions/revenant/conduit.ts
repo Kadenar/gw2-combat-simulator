@@ -1,4 +1,5 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { normalizeConduitHazeActions } from '#gw2/integrations/logs/lib/rotation/rules/conduit.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -8,7 +9,8 @@ import {
   directAction,
   hasRecordedAction,
   runtimeDuration,
-  SIGNAL_DEDUPLICATION_WINDOW_MS
+  SIGNAL_DEDUPLICATION_WINDOW_MS,
+  SWAP_LEGENDS
 } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/shared.js';
 
 const COSMIC_WISDOM_BUFF_ID = 76559;
@@ -25,6 +27,35 @@ const TEMPORAL_RIFT = Object.freeze({
   skillId: 28409
 });
 const TEMPORAL_RIFT_IMPACT_DELAY_MS = 640;
+
+/** Restores the Assassin upkeep proven by initial buffs before replaying the first recorded legend change. */
+function openingAssassinActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const impossibleOdds = { name: 'Impossible Odds', skillId: 27107 };
+  const initialOdds = context.log.events.find(
+    (event) =>
+      event.target === context.playerAddress &&
+      event.skillId === 27581 &&
+      event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
+  );
+  if (!initialOdds) return [];
+  const anchor = Math.min(initialOdds.time, ...context.recordedActions.map((action) => action.start));
+  const configuredLegend = context.professionConfig?.startingLegend;
+  const actions: EvtcRecordedRotationAction[] = [];
+  if (configuredLegend && configuredLegend !== 'LegendaryAssassin') {
+    // Put the recovered invocation before the recorded opening so its cooldown is ready for the real swap.
+    const cooldown = Number(context.catalog?.skills.find((skill) => skill.name === SWAP_LEGENDS.name)?.cooldown || 10);
+    actions.push({
+      ...directAction(-6004, anchor - cooldown * 1000, 0, SWAP_LEGENDS.name, SWAP_LEGENDS, 'initial-state'),
+      precast: true
+    });
+  }
+
+  if (!hasRecordedAction(context.recordedActions, impossibleOdds, anchor, SIGNAL_DEDUPLICATION_WINDOW_MS)) {
+    actions.push(directAction(-6003, anchor, 27581, impossibleOdds.name, impossibleOdds, 'initial-state'));
+  }
+
+  return actions;
+}
 
 function initialStateTime(context: EvtcProfessionReconstructionContext): number | null {
   return (
@@ -158,6 +189,7 @@ function cosmicWisdomActions(context: EvtcProfessionReconstructionContext): Evtc
   // Arc records the player input as a seven-second buff application (76559),
   // while legend swaps extend that buff from source 0 and must not create casts.
   return context.log.events.flatMap((event, eventIndex) => {
+    // A pre-existing buff snapshot is state evidence, not a recorded input to insert into the opener.
     if (
       event.source !== context.playerAddress ||
       event.target !== context.playerAddress ||
@@ -178,10 +210,31 @@ export function reconstructConduitActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   const observationEnd = primaryTargetObservationEnd(context);
-  return [
-    ...reconstructCommonRevenantActions(context),
+  const opening = openingAssassinActions(context);
+  const actions = [
+    ...opening,
+    ...reconstructCommonRevenantActions(
+      opening.length
+        ? {
+            ...context,
+            professionConfig: { ...context.professionConfig, startingLegend: 'LegendaryAssassin' }
+          }
+        : context
+    ),
     ...temporalRiftPrecastActions(context),
     ...truncatedHexEaterVortexActions(context),
     ...cosmicWisdomActions(context)
-  ].filter((action) => observationEnd == null || action.start < observationEnd);
+  ]
+    .filter((action) => observationEnd == null || action.start < observationEnd)
+    .map((action) =>
+      action.rawSkillId === 76718
+        ? {
+            // Arc uses an animation-only ID for Gladiator's Defense, including interrupted attempts.
+            ...action,
+            canonicalSkillId: 77291,
+            canonicalName: "Gladiator's Defense"
+          }
+        : action
+    );
+  return normalizeConduitHazeActions(actions, context.catalog);
 }

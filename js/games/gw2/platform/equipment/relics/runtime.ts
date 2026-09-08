@@ -661,8 +661,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         ownerActorType: 'player'
       });
     },
-    // Peitha's established multiplier covers direct player packets, not effect-owned follow-ups.
-    strikeMultiplier: timedStrikeBuff(1.1, isGw2PlayerActorEvent)
+    // Follow-up strikes inherit their owner's Peitha bonus; summoned actors remain excluded.
+    strikeMultiplier: timedStrikeBuff(1.1, isGw2PlayerModifierOwnedEvent)
   }),
 
   Shackles: defineRelic({
