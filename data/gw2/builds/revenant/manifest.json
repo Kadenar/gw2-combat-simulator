@@ -73,13 +73,14 @@
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-vindicator-greatsword-sword-sword",
-        "benchmarkDps": 44960,
+        "benchmarkDps": 43726,
         "upToDate": true
       },
       {
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
-        "benchmarkDps": 43700
+        "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
+        "benchmarkDps": 42646
       }
     ]
   },
@@ -91,8 +92,9 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 42522,
-        "upToDate": true
+        "benchmarkDps": 42343,
+        "upToDate": true,
+        "referenceDps": 42999
       },
       {
         "label": "Condition (Spear - Mace/Axe)",

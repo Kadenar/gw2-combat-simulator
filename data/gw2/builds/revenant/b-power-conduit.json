@@ -17,6 +17,7 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
   "weapons": ["Sword", "Sword"],
   "alternateWeapons": ["Greatsword", ""],
   "rune": "Dragonhunter",
@@ -58,10 +59,11 @@
   ],
   "selectedSkills": {},
   "selectedLegends": ["LegendaryAssassin", "LegendaryEntity"],
-  "startingLegend": "LegendaryEntity",
+  "startingLegend": "LegendaryAssassin",
   "selectedDodge": "Death Drop",
   "allianceSide": "luxon",
   "assumptions": {
+    "simulationMode": "deterministic",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -81,11 +83,13 @@
       "Vulnerability": 25,
       "Weakness": true
     },
+    "hitboxSize": "small",
     "targetSkillActivationsPerSecond": 0
   },
-  "initialEnergy": 50,
-  "startingWeaponSet": 1,
+  "startingWeaponSet": 2,
   "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
   "targetArmor": 2597,
+  "initialEnergy": 50,
   "initialResource": 0
 }

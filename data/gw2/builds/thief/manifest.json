@@ -78,7 +78,7 @@
         "build": "data/gw2/builds/thief/b-condi-daredevil-dagger-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-daredevil-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-daredevil-dagger-only",
-        "benchmarkDps": 37714,
+        "benchmarkDps": 37952,
         "upToDate": true
       }
     ]

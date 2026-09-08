@@ -1,381 +1,915 @@
 {
-  "metadata": {
-    "log": "condi dd daggers.zevtc",
-    "benchmarkDurationSeconds": 103.362,
-    "benchmarkDamage": 3949694,
-    "benchmarkDps": 38212.244345117164
-  },
   "rotation": [
-    "Prepare Thousand Needles",
     {
-      "name": "__wait",
-      "waitMs": 30000
-    },
-    "Caltrops",
-    "__combat_start",
-    "Thousand Needles",
-    "Prepare Thousand Needles",
-    {
-      "name": "Spider Venom",
-      "offset": 360
-    },
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 41
-    },
-    "Death Blossom",
-    "Death Blossom",
-    {
-      "name": "Steal",
-      "offset": 0
+      "type": "cast",
+      "skillId": 13026
     },
     {
-      "name": "Thousand Needles",
-      "offset": 723
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Channeled Vigor",
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 160
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 318
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 320
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    {
-      "name": "Steal",
-      "offset": 403
-    },
-    "Caltrops",
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 604
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 361
-    },
-    "Dodge",
-    "Channeled Vigor",
-    "Dodge",
-    {
-      "name": "Spider Venom",
-      "offset": 243
-    },
-    "Death Blossom",
-    "Prepare Thousand Needles",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Death Blossom",
-    {
-      "name": "Thousand Needles",
-      "offset": 806
-    },
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 360
-    },
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 160
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 327
+      "type": "wait",
+      "durationMs": 29080
     },
     {
-      "name": "Steal",
-      "offset": 84
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Caltrops",
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 639
-    },
-    "Channeled Vigor",
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 355
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Death Blossom",
-    {
-      "name": "Spider Venom",
-      "offset": 319
-    },
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Prepare Thousand Needles",
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 125
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Steal",
-      "offset": 84
+      "type": "cast",
+      "skillId": 13028
     },
     {
-      "name": "Lotus Strike",
-      "interruptMs": 361
-    },
-    "Dodge",
-    {
-      "name": "Thousand Needles",
-      "offset": 437
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 326
-    },
-    "Dodge",
-    "Channeled Vigor",
-    "Dodge",
-    "Death Blossom",
-    "Caltrops",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 361
-    },
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 160
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 320
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 361
+      "type": "combat-start",
+      "concurrentOffsetMs": 720
     },
     {
-      "name": "Steal",
-      "offset": 0
-    },
-    "Dodge",
-    "Death Blossom",
-    {
-      "name": "Double Strike",
-      "interruptMs": 319
+      "type": "cast",
+      "skillId": 56898
     },
     {
-      "name": "Swap Weapons",
-      "offset": 83
+      "type": "cast",
+      "skillId": 13026,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Spider Venom",
-      "offset": 118
-    },
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 354
-    },
-    "Dodge",
-    "Channeled Vigor",
-    "Dodge",
-    "Death Blossom",
-    "Prepare Thousand Needles",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Death Blossom",
-    {
-      "name": "Thousand Needles",
-      "offset": 722
-    },
-    "Caltrops",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 319
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 361
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    {
-      "name": "Steal",
-      "offset": 209
-    },
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Channeled Vigor",
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 438
-    },
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 327
-    },
-    "Dodge",
-    "Death Blossom",
-    {
-      "name": "Spider Venom",
-      "offset": 604
-    },
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 319
-    },
-    "Dodge",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    {
-      "name": "Lotus Strike",
-      "interruptMs": 285
-    },
-    "Dodge",
-    {
-      "name": "Swap Weapons",
-      "offset": 639
+      "type": "cast",
+      "skillId": 13037
     },
     {
-      "name": "Death Blossom",
-      "interruptMs": 0
+      "type": "cast",
+      "skillId": -5
     },
-    "Prepare Thousand Needles"
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13014
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 13004,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 30400
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13014
+    },
+    {
+      "type": "cast",
+      "skillId": 13028,
+      "interruptAfterMs": 800
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 30400,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13037,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 13014,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 13028,
+      "interruptAfterMs": 800
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 30400
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13037,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 13026,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13014,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 30400
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13014
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 30400,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13014,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 30400
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13037,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    }
   ]
 }
