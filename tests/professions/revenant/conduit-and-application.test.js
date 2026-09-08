@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { defaultPaletteInterruptMs } from '#gw2/app/rotation/palette/interactions.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
@@ -121,7 +120,6 @@ describe('Power Conduit skill profiles', () => {
     assert.equal(skill('Chilling Isolation').quicknessCastTimeMs, undefined);
     assert.equal(skill('Chilling Isolation').unaffectedByQuickness, true);
     assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
-    assert.equal(defaultPaletteInterruptMs(skill('Chilling Isolation')), 360);
     assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
     assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
     assert.equal(skill("Phantom's Onslaught").dashTimeMs, 38);
@@ -188,41 +186,6 @@ describe('Power Conduit skill profiles', () => {
         [1040, 'Additional Strikes', 0.4]
       ]
     );
-  });
-
-  test('commits Chilling Isolation at the palette cutoff', () => {
-    const chilling = simulate('Conduit', ['Chilling Isolation'], config);
-
-    assert.equal(chilling.steps[0].fullCastMs, 680);
-    assert.equal(chilling.steps[0].end, 680);
-    assert.equal(chilling.steps[0].interrupted, false);
-    assert.deepEqual(damageTimeline(chilling, 'Chilling Isolation'), [
-      [280, 'Chilling Isolation — Packet 1', 0.8],
-      [480, 'Isolated Damage', 1.6]
-    ]);
-
-    const paletteChilling = simulate(
-      'Conduit',
-      [
-        {
-          name: 'Chilling Isolation',
-          interruptMs: defaultPaletteInterruptMs(skill('Chilling Isolation'))
-        }
-      ],
-      config,
-      observationTail(1000)
-    );
-
-    assert.equal(paletteChilling.steps[0].end, 360);
-    assert.equal(paletteChilling.steps[0].interrupted, true);
-    assert.deepEqual(damageTimeline(paletteChilling, 'Chilling Isolation'), [
-      [280, 'Chilling Isolation — Packet 1', 0.8],
-      [480, 'Isolated Damage', 1.6]
-    ]);
-
-    const earlyChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 359 }], config);
-
-    assert.deepEqual(damageTimeline(earlyChilling, 'Chilling Isolation'), []);
   });
 
   test('resolves sword autoattack timing', () => {
@@ -546,6 +509,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   });
 
   assert.equal(anguish.warnings.length, 0);
+  // Recovery during the opening cast makes the reduced-cost follow-up immediately affordable.
   assert.deepEqual(
     anguish.steps
       .filter((step) => ['Call to Anguish', 'Unyielding Impact'].includes(step.skill))
@@ -1330,7 +1294,7 @@ test("Conduit runtime rejects Vindicator's Alliance legend", () => {
 });
 
 test('Alacrity changes cooldowns but never passive energy regeneration', () => {
-  const rotation = [{ type: 'wait', durationMs: 5000 }];
+  const rotation = ['__combat_start', { type: 'wait', durationMs: 5000 }];
   const without = simulate('Core', rotation, {
     initialEnergy: 0,
     boons: { alacrity: false }

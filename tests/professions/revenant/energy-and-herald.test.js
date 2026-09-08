@@ -252,7 +252,12 @@ test('a cooldown-queued Revenant skill recovers Energy before its next cast', ()
   );
 });
 
-test('Revenant energy regeneration stops at 50 while out of combat', () => {
+test('Revenant energy regenerates up to 50 out of combat and up to 100 in combat', () => {
+  // Precombat recovery uses the same 100 ms ticks as combat instead of filling instantly.
+  const ticked = simulate('Core', [{ type: 'wait', durationMs: 150 }, '__combat_start'], { initialEnergy: 0 });
+
+  assert.equal(ticked.endState.profession.energy, 0.5);
+
   for (const specialization of ['Core', 'Renegade', 'Conduit']) {
     const legends =
       specialization === 'Core'
@@ -275,6 +280,13 @@ test('Revenant energy regeneration stops at 50 while out of combat', () => {
     );
 
     assert.equal(inCombat.endState.profession.energy, 55, specialization);
+
+    const capped = simulate(specialization, ['__combat_start', { type: 'wait', durationMs: 30000 }], {
+      ...legends,
+      initialEnergy: 0
+    });
+
+    assert.equal(capped.endState.profession.energy, 100, specialization);
   }
 });
 
@@ -869,24 +881,29 @@ test('Core Revenant after-cast traits run before Embrace empowerment', () => {
 });
 
 test('upkeep drains net energy and cancels exactly on starvation', () => {
-  const draining = simulate('Core', ['Impossible Odds', { type: 'wait', durationMs: 20000 }]);
+  const draining = simulate('Core', ['__combat_start', 'Impossible Odds', { type: 'wait', durationMs: 20000 }]);
 
   assert.equal(draining.endState.profession.energy, 25);
   assert.equal(draining.endState.profession.activeUpkeeps.length, 1);
 
-  const starved = simulate('Core', ['Impossible Odds', { type: 'wait', durationMs: 50000 }]);
+  const starved = simulate('Core', ['__combat_start', 'Impossible Odds', { type: 'wait', durationMs: 50000 }]);
 
   assert.equal(starved.endState.profession.activeUpkeeps.length, 0);
   assert.equal(starved.endState.profession.energy, 25);
+
+  const precombat = simulate('Core', ['Impossible Odds', { type: 'wait', durationMs: 60000 }, '__combat_start']);
+
+  assert.equal(precombat.endState.profession.activeUpkeeps.length, 0);
+  assert.equal(precombat.endState.profession.energy, 50);
 });
 
 test('upkeep Energy drain begins when its cast completes', () => {
-  const result = simulate('Core', ['Embrace the Darkness'], {
+  const result = simulate('Core', ['__combat_start', 'Embrace the Darkness'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
     startingLegend: LEGEND.DEMON
   });
 
-  const completion = result.steps[0].end / 1000;
+  const completion = result.steps.find((step) => step.skill === 'Embrace the Darkness').end / 1000;
 
   // The activation spends 5 Energy immediately, then receives normal regeneration until the upkeep completes.
   assert.deepEqual(

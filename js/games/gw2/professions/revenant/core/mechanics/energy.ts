@@ -45,8 +45,7 @@ function regenerateRevenantEnergy(
 ): number {
   const combatActive = context.schedulerPolicy.isCombatActive?.() ?? state.combatBeganAt != null;
   const maximum = combatActive ? state.maximumEnergy : Math.max(50, state.energy);
-  // Out-of-combat regeneration stops at 50 without removing energy that was
-  // already above 50.
+  // Precasts recover Energy up to 50 without removing Energy already above the regeneration cap.
   return roundedResourceValue(Math.min(maximum, state.energy + (target - from) * rate));
 }
 
