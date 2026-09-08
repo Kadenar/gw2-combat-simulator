@@ -121,6 +121,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.RIFT_SLASH]: {
     quicknessCastTimeMs: 480,
+    interruptCommitMs: 440,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -139,6 +140,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]

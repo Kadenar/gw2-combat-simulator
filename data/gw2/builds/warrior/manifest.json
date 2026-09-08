@@ -26,7 +26,7 @@
         "build": "data/gw2/builds/warrior/b-power-berserker-hammer-axe-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-berserker-hammer-axe-mace-bench.json",
         "dpsReportUrl": "https://dps.report/HQq4-20260716-224707_golem",
-        "benchmarkDps": 42798,
+        "benchmarkDps": 42807,
         "upToDate": true
       },
       {

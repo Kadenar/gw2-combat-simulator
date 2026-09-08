@@ -34,7 +34,7 @@
         "label": "Condition (Fields - Pistol / Torch + Greatsword)",
         "build": "data/gw2/builds/necromancer/b-condi-fields-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-fields-reaper-bench.json",
-        "benchmarkDps": 52130,
+        "benchmarkDps": 52129,
         "upToDate": true
       }
     ]

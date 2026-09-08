@@ -52,9 +52,7 @@ function canTriggerImpossibleOdds(event: RevenantSimulationEvent): boolean {
     event.type === 'damage' &&
     Number(event.coefficient || 0) > 0 &&
     event.skillId !== ID.IMPOSSIBLE_ODDS &&
-    // Deathstrike's final strike and Assassin's first two shockwaves do not trigger follow-up attacks.
-    !(event.skillId === ID.DEATHSTRIKE && event.name === 'Final Damage') &&
-    event.skillId !== ID.DEATHSTRIKE_ID_28625 &&
+    // Both Deathstrike hits are eligible; only Assassin's final shockwave triggers a follow-up.
     (event.skillId !== ID.RELEASE_POTENTIAL_ASSASSIN || event.hitIndex === event.totalHits) &&
     (event.actorType === 'player' || event.source === 'Sigil')
   );
