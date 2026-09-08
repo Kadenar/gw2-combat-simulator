@@ -72,7 +72,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     return { ready: true };
   }
 
-  if (skill.id === -5) {
+  if (skill.handlerId === 'revenant.dodge' || skill.handlerId === 'revenant.vindicator-jump') {
     const cost = Math.max(0, Number(skill.resourceCost || 0));
     return state.endurance + Number(context.epsilon || 0.0001) >= cost
       ? { ready: true }

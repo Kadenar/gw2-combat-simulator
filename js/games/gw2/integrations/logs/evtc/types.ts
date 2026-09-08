@@ -102,6 +102,8 @@ export interface EvtcRotationAction extends RotationActionSummary {
   readonly evidence: EvtcRotationEvidence;
   readonly weaponSet?: number | null;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
+  /** Identifies an autoattack observed during Vindicator's pre-landing dodge window. */
+  readonly vindicatorDodgeAuto?: boolean;
 }
 
 export interface EvtcRotationPlayer extends RotationPlayerIdentity {

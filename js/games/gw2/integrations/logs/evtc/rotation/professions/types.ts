@@ -28,6 +28,8 @@ export interface EvtcRecordedRotationAction {
   readonly forceCompleteReplay?: boolean;
   readonly independentTimeline?: boolean;
   readonly concurrentTimeline?: boolean;
+  /** Direct damage proves this autoattack executed during Vindicator's leap before landing. */
+  readonly vindicatorDodgeAuto?: boolean;
   /** Keeps the observed action boundary for offsets without replaying its duration as a separate wait. */
   readonly suppressFollowingWait?: boolean;
   /** Earlier combat boundary inferred from profession-specific opening-hit evidence. */

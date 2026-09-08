@@ -18,8 +18,9 @@ export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: []
   },
   [ID.ENERGY_MELD]: {
-    // Custom: Restores endurance and applies Vindicator trait adjustments; see `vindicator/mechanics/dodge.ts`.
-    handlerId: 'revenant.energy-meld',
+    // Energy Meld has its own F tile; the API's Alliance Tactics flip link must not replace it.
+    paletteFlip: false,
+    // The completion hook restores endurance and applies Vindicator traits after cast-time regeneration.
     quicknessCastTimeMs: 440,
     cooldown: 20,
     energyCost: 10,
@@ -27,8 +28,7 @@ export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: []
   },
   [ID.ENERGY_MELD_ID_72058]: {
-    // Custom: Restores endurance and applies Vindicator trait adjustments; see `vindicator/mechanics/dodge.ts`.
-    handlerId: 'revenant.energy-meld',
+    // The completion hook restores endurance and applies Vindicator traits after cast-time regeneration.
     quicknessCastTimeMs: 440,
     cooldown: 20,
     energyCost: 10,

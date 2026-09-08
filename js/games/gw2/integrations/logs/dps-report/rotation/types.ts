@@ -26,6 +26,8 @@ export interface DpsReportRecordedAction {
   /** Replays a report-proven generated activation without occupying its modeled cast lane. */
   readonly replayInterruptMs?: number;
   readonly replayDurationMs?: number;
+  /** Preserve an observed action inside another cast, such as an airborne Vindicator autoattack. */
+  readonly concurrentTimeline?: boolean;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly control?: 'cooldown-reset';
   readonly followingWaitMs?: number;

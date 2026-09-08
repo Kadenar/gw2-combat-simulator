@@ -1,5 +1,6 @@
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import type {
   ProfessionPaletteActionIdentity,
   ProfessionUiContract,
@@ -30,12 +31,12 @@ export function vindicatorDodgeAutoPaletteSkill(context: SchedulerRecord): Skill
     id: VINDICATOR_DODGE_AUTO_ACTION,
     name: VINDICATOR_DODGE_AUTO_ACTION,
     displayName: 'Dodge + Auto',
-    description: 'Cast the current auto-chain step and one Dodge at the same time.',
+    description: 'Start the 600 ms dodge + 200 ms landing and the current autoattack together.',
     icon: VINDICATOR_DODGE_AUTO_ICON,
     type: 'Action',
     slot: 'Action',
-    // castTimeMs: 0 so the palette does not show a cast-time ring around this synthetic entry.
-    castTimeMs: 0
+    // The combined palette action occupies the same non-instant jump as a normal dodge.
+    castTimeMs: VINDICATOR_JUMP_SKILL.castTimeMs
   };
 }
 
@@ -45,12 +46,12 @@ export function vindicatorDodgeAutoRotationEntries(context: SchedulerRecord, off
   return [
     {
       type: 'cast',
-      skillId: autoattack.id
+      skillId: VINDICATOR_JUMP_SKILL.id
     },
     {
       type: 'cast',
-      skillId: SKILL.DODGE,
-      // offsetMs positions the dodge relative to the auto; clamped to 0 so a negative offset is ignored.
+      skillId: autoattack.id,
+      // Pay endurance at takeoff, then place the auto inside the jump using its relative offset.
       concurrentOffsetMs: Math.max(0, Math.round(Number(offsetMs) || 0))
     }
   ];
@@ -58,10 +59,13 @@ export function vindicatorDodgeAutoRotationEntries(context: SchedulerRecord, off
 
 function vindicatorPaletteActionSkills(context: SchedulerRecord, skills: readonly Skill[]): Skill[] {
   // Strip any stale synthetic entry first so it cannot appear twice if called repeatedly.
-  const ordinarySkills = skills.filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION);
+  const ordinarySkills = skills
+    .filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
+    // Manual reconstruction uses the full jump; legacy landing-only commands remain loadable by ID.
+    .map((skill) => (skill.id === SKILL.DODGE ? VINDICATOR_JUMP_SKILL : skill));
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);
   if (!dodgeAuto) return ordinarySkills;
-  const dodgeIndex = ordinarySkills.findIndex((skill) => skill.name === 'Dodge');
+  const dodgeIndex = ordinarySkills.findIndex((skill) => skill.id === VINDICATOR_JUMP_SKILL.id);
   // Insert immediately after Dodge in the palette; if Dodge is absent, prepend at index 0.
   ordinarySkills.splice(dodgeIndex < 0 ? 0 : dodgeIndex + 1, 0, dodgeAuto);
   return ordinarySkills;
@@ -99,7 +103,8 @@ export const vindicatorUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
       {
         id: 'revenant-profession-specialization',
         label: 'F',
-        skillIds: [SKILL.ALLIANCE_TACTICS, SKILL.ENERGY_MELD],
+        // Expose the relevant endurance action while keeping Alliance Tactics out of the simulator palette.
+        skillIds: [SKILL.ENERGY_MELD],
         color: '#a84f54',
         resourceAnchor: true
       },
@@ -139,7 +144,7 @@ export const vindicatorUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
         statusLabel: 'Current',
         // Render the endurance meter beneath the Dodge button (which the
         // Vindicator dodge spends in one leap) instead of as a standalone bar.
-        paletteSkillId: SKILL.DODGE
+        paletteSkillId: VINDICATOR_JUMP_SKILL.id
       }
     ];
   },

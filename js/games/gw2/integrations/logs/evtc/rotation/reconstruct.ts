@@ -390,7 +390,7 @@ function resolveAction(
     };
   }
 
-  if (isDodgeName(action.rawName)) {
+  if (isDodgeName(action.rawName) && action.canonicalSkillId == null) {
     const skill = findNamedRotationSkill(profile.dodge.name, catalog, profile);
     return {
       ...action,
@@ -640,6 +640,7 @@ export function reconstructWithProfile(
     status: action.status,
     ...(action.weaponSet === undefined ? {} : { weaponSet: action.weaponSet }),
     ...(action.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: action.doubleEdgeOutcome }),
+    ...(action.vindicatorDodgeAuto ? { vindicatorDodgeAuto: true } : {}),
     supportedByCatalog: action.skill != null
   }));
   return {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import {
   createRevenantBuildDefaults,
@@ -170,6 +170,18 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   const vindicatorIds = professionSkillIds('Vindicator', [LEGEND.ALLIANCE, LEGEND.ASSASSIN], LEGEND.ALLIANCE);
 
   assert.equal(vindicatorIds.filter((id) => revenantCatalog.skillsById.get(id)?.name === 'Energy Meld').length, 1);
+  assert.equal(vindicatorIds.includes(SKILL.ALLIANCE_TACTICS), false);
+  // Verify the rendered tile, since catalog flip-family expansion can replace an explicitly listed skill.
+  const vindicatorTiles = displayedSkillTiles(
+    { profession: revenantProfession, skills: revenantCatalog.skills },
+    vindicatorIds.map((id) => revenantCatalog.skillsById.get(id)),
+    { specialization: 'Vindicator', build: { ...baseConfig, startingLegend: LEGEND.ALLIANCE } }
+  );
+  assert.equal(vindicatorTiles.filter((skill) => skill.name === 'Energy Meld').length, 1);
+  assert.equal(
+    vindicatorTiles.some((skill) => skill.id === SKILL.ALLIANCE_TACTICS),
+    false
+  );
 
   for (const activeLegendId of [...REVENANT_CORE_LEGEND_IDS, LEGEND.ENTITY]) {
     const selectedLegends =

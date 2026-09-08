@@ -34,17 +34,11 @@ test('Beguiling Haze follow-up charges waive only Beguiling Haze energy costs', 
 test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {
   const context = { config: { selectedTraitIds: [TRAIT.ANGSIYANS_TRUST] } };
 
-  assert.equal(
-    applyVindicatorEnergyCostRules(context, { id: SKILL.ENERGY_MELD, handlerId: 'revenant.energy-meld' }, 10),
-    0
-  );
+  // Both catalog variants keep the trait discount without a phase-handler registration.
+  for (const id of [SKILL.ENERGY_MELD, SKILL.ENERGY_MELD_ID_72058]) {
+    assert.equal(applyVindicatorEnergyCostRules(context, { id }, 10), 0);
+    assert.equal(applyVindicatorEnergyCostRules({ config: { selectedTraitIds: [] } }, { id }, 10), 10);
+  }
+
   assert.equal(applyVindicatorEnergyCostRules(context, { id: SKILL.CALL_OF_THE_ALLIANCE }, 10), 10);
-  assert.equal(
-    applyVindicatorEnergyCostRules(
-      { config: { selectedTraitIds: [] } },
-      { id: SKILL.ENERGY_MELD, handlerId: 'revenant.energy-meld' },
-      10
-    ),
-    10
-  );
 });

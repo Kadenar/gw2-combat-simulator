@@ -61,7 +61,8 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   [ID.SELFISH_SPIRIT]: {
     castTimeMs: 1500,
     cooldown: 10,
-    ammo: 4,
+    // Override the imported ammo fact: Selfish Spirit is one channel with a normal cooldown.
+    ammo: 0,
     energyCost: 10,
     effects: [
       {

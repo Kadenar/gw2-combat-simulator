@@ -18,7 +18,7 @@ const report = parseDpsReport({
         { id: 62_730, skills: [{ castTime: 100, duration: 200, timeGained: 0 }] },
         { id: 28_382, skills: [{ castTime: 400, duration: 0, timeGained: 0 }] },
         { id: 62_749, skills: [{ castTime: 401, duration: 0, timeGained: 0 }] },
-        { id: 62_730, skills: [{ castTime: 500, duration: 200, timeGained: 0 }] }
+        { id: 62_730, skills: [{ castTime: 1300, duration: 200, timeGained: 0 }] }
       ]
     }
   ],
@@ -47,13 +47,16 @@ function simulate(rotation, sigil) {
   });
 }
 
-test('dps.report Vindicator reconstruction maps Death Drop to Dodge and recognizes Energy sigil', () => {
+test('dps.report Vindicator reconstruction includes takeoff and recognizes Energy sigil', () => {
   const reconstruction = reconstructDpsReportRotation(report, revenantCatalog);
   const actionNames = reconstruction.actions.map((action) => action.name);
   const energy = simulate(reconstruction.rotation, 'Energy');
   const other = simulate(reconstruction.rotation, 'Air');
 
-  assert.deepEqual(actionNames, ['Dodge', 'Swap Legends', 'Dodge']);
+  assert.deepEqual(actionNames, ['Dodge Jump', 'Swap Legends', 'Dodge Jump']);
+  // The source landing at 100 ms belongs to the jump beginning 600 ms earlier.
+  assert.equal(reconstruction.timelineOriginMs, -500);
+  assert.equal(energy.steps.find((step) => step.skill === 'Dodge Jump').fullCastMs, 800);
   assert.equal(
     energy.events.filter((event) => event.type === 'resource' && event.sourceId === 'sigil.energy').length,
     1

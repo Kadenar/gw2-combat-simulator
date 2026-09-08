@@ -6,6 +6,7 @@ import {
 } from '#gw2/professions/revenant/build/build.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 
 export const revenantProfession = defineNativeProfession({
   id: 'revenant',
@@ -22,6 +23,11 @@ export const revenantProfession = defineNativeProfession({
         id: 'revenant.dodge-resets',
         interruptingSkillIds: [ID.DODGE],
         decision: 'reset'
+      },
+      {
+        id: 'revenant.jump-preserves-airborne-chain',
+        interruptingSkillIds: [VINDICATOR_JUMP_SKILL.id],
+        decision: 'preserve'
       },
       {
         id: 'revenant.beguiling-haze-resets',

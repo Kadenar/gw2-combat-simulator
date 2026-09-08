@@ -9,10 +9,10 @@ import { swapRevenantLegend } from '#gw2/professions/revenant/core/mechanics/leg
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Pays the profession-wide endurance cost for a dodge. */
-export function performRevenantDodge(context: RevenantCastContext, skill: RevenantSkill): void {
+export function performRevenantDodge(context: RevenantCastContext, skill: RevenantSkill, reason = 'dodge'): void {
   const state = professionCoreState(context);
   Object.assign(state, spendEndurance(state, Number(skill.resourceCost || 0), context.start, state.maximumEndurance));
-  emitRevenantStateSnapshot(context, context.start, 'dodge');
+  emitRevenantStateSnapshot(context, context.start, reason);
 }
 
 /** Raw profession-wide callbacks consumed by the central handler registry. */

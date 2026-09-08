@@ -1402,6 +1402,25 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   );
 });
 
+test('both Energy Meld variants grant resources only on completed casts', () => {
+  // Completion must preserve cast-time regeneration; cancellation must never grant the trait refund.
+  for (const skillId of [SKILL.ENERGY_MELD, SKILL.ENERGY_MELD_ID_72058]) {
+    for (const interruptAfterMs of [undefined, 200]) {
+      const result = simulate('Vindicator', ['__combat_start', { skillId, interruptAfterMs }], {
+        initialEnergy: 0,
+        selectedTraitIds: [TRAIT.ANGSIYANS_TRUST],
+        boons: { quickness: true }
+      });
+      const meld = result.events.filter((event) => event.type === 'revenant.state' && event.reason === 'energy-meld');
+
+      assert.deepEqual(result.warnings, []);
+      assert.equal(meld.length, interruptAfterMs == null ? 1 : 0);
+      assert.equal(result.endState.profession.energy, interruptAfterMs == null ? 27 : 1);
+      if (meld.length) assert.equal(meld[0].at, result.steps.at(-1).end / 1000);
+    }
+  }
+});
+
 test('Vindicator Dodge waits for the exact endurance recharge time', () => {
   const withoutVigor = simulate('Vindicator', ['Dodge', 'Dodge', 'Dodge'], {
     selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
@@ -1481,7 +1500,7 @@ test('Vindicator resource display includes live endurance', () => {
       step: 1,
       displayMode: 'bar',
       pipStyle: 'endurance',
-      paletteSkillId: -5,
+      paletteSkillId: 23275,
       shortLabel: 'End',
       statusLabel: 'Current'
     }
@@ -1537,6 +1556,50 @@ test('Call of the Alliance grants five endurance plus three per hit', () => {
   assert.equal(swapState.state.endurance, 59);
 });
 
+test('Vindicator jumps pay endurance before midair Energy refunds and reset autos at landing', () => {
+  // Three immediate jumps are affordable only when the first spends endurance before the swap refund.
+  const result = simulate(
+    'Vindicator',
+    [
+      '__combat_start',
+      'Dodge Jump',
+      { name: 'Mist Swing', offset: 40 },
+      { name: 'Swap Legends', offset: 400 },
+      'Dodge Jump',
+      'Dodge Jump',
+      'Mist Swing'
+    ],
+    {
+      selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ALLIANCE,
+      sigilSets: [{ names: ['Energy'] }, { names: [] }],
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: ''
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.filter((step) => step.skill === 'Dodge Jump').map((step) => step.start),
+    [0, 800, 1600]
+  );
+  assert.equal(result.steps.at(-1).start, 2400);
+  assert.equal(
+    result.events.find((entry) => entry.type === 'revenant.state' && entry.reason === 'dodge-jump').state.endurance,
+    50
+  );
+});
+
+test('Selfish Spirit uses its cooldown rather than ammo charges', () => {
+  // Repeated channels must wait for recharge instead of consuming the erroneous imported ammo fact.
+  assert.equal(revenantCatalog.skillsById.get(SKILL.SELFISH_SPIRIT).ammo, 0);
+  const result = simulate('Vindicator', ['Selfish Spirit', 'Selfish Spirit'], {
+    selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.ALLIANCE
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.steps[1].start - result.steps[0].end, 10000);
+});
+
 test('Vindicator Dodge + Auto palette action uses the current chain step', () => {
   let changeCount = 0;
   const app = {
@@ -1570,6 +1633,11 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     (skill) => skill.name === VINDICATOR_DODGE_AUTO_ACTION
   );
 
+  // Manual dodges occupy the full jump and advertise both animation phases.
+  const jump = paletteActionSkills(app, 'Vindicator').find((skill) => skill.id === 23275);
+  assert.equal(paletteSkillIsInstant(app, { specialization: 'Vindicator' }, jump), false);
+  assert.equal(jump.castTimeMs, 800);
+  assert.match(paletteSkillView(app, jump).title, /600 ms.*200 ms/);
   assert.equal(paletteSkill.name, VINDICATOR_DODGE_AUTO_ACTION);
   assert.equal(paletteSkillView(app, paletteSkill).draggable, true);
   assert.deepEqual(
@@ -1580,11 +1648,11 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     [
       {
         type: 'cast',
-        skillId: SKILL.PREPARATION_THRUST
+        skillId: 23275
       },
       {
         type: 'cast',
-        skillId: -5,
+        skillId: SKILL.PREPARATION_THRUST,
         concurrentOffsetMs: 0
       }
     ]
@@ -1594,11 +1662,11 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.deepEqual(firstInsertion, [
     {
       type: 'cast',
-      skillId: SKILL.PREPARATION_THRUST
+      skillId: 23275
     },
     {
       type: 'cast',
-      skillId: -5,
+      skillId: SKILL.PREPARATION_THRUST,
       concurrentOffsetMs: 0
     }
   ]);
@@ -1606,11 +1674,11 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',
-      skillId: SKILL.PREPARATION_THRUST
+      skillId: 23275
     },
     {
       type: 'cast',
-      skillId: -5,
+      skillId: SKILL.PREPARATION_THRUST,
       concurrentOffsetMs: 0
     }
   ]);
@@ -1624,11 +1692,11 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',
-      skillId: SKILL.PREPARATION_THRUST
+      skillId: 23275
     },
     {
       type: 'cast',
-      skillId: -5,
+      skillId: SKILL.PREPARATION_THRUST,
       concurrentOffsetMs: 0
     },
     { type: 'cast', skillId: 'Tail' }
@@ -1641,10 +1709,11 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
 
   const combined = simulate(
     'Vindicator',
-    ['Preparation Thrust', 'Brutal Blade', { name: 'Dodge', skillId: -5, offset: 0 }],
+    ['Preparation Thrust', ...vindicatorDodgeAutoRotationEntries({ activeAutoattack: currentAutoattackSkill(app) })],
     {
       selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ASSASSIN,
+      boons: { quickness: true },
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword'
     }
@@ -1652,6 +1721,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
 
   assert.deepEqual(combined.warnings, []);
   assert.equal(combined.steps[1].start, combined.steps[2].start);
+  assert.equal(combined.steps[1].fullCastMs, 800);
 });
 
 test('Vindicator legend skills preserve the Greatsword autoattack chain', () => {

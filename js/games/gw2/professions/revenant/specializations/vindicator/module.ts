@@ -1,10 +1,17 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
-import type { RevenantCastContext } from '#gw2/professions/revenant/types.js';
+import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
+import { performRevenantDodge } from '#gw2/professions/revenant/core/execution/actions.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import {
+  VINDICATOR_AIRBORNE_MS,
+  VINDICATOR_JUMP_SKILL
+} from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
+import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
 import {
   performEnergyMeld,
+  completeVindicatorDodge,
   switchAllianceTactics
 } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 import {
@@ -21,8 +28,11 @@ import { VINDICATOR_BALANCE_PROFILES } from '#gw2/professions/revenant/specializ
 const vindicatorSkillHandlers = new Map(
   Object.entries(
     Object.freeze({
-      'revenant.energy-meld': augmentSkill<RevenantCastContext>({
-        afterEffects: performEnergyMeld as SkillHandlerPhase<RevenantCastContext>
+      // Spend endurance at takeoff; resolve the selected attack only when the full jump reaches its landing.
+      'revenant.vindicator-jump': replaceSkill<RevenantCastContext>({
+        beforeEffects: (context, skill) => performRevenantDodge(context, skill, 'dodge-jump'),
+        afterEffects: (context, skill) =>
+          completeVindicatorDodge(context, skill, context.start + VINDICATOR_AIRBORNE_MS / 1000)
       }),
       'revenant.alliance-tactics': augmentSkill<RevenantCastContext>({
         afterEffects: switchAllianceTactics
@@ -35,6 +45,7 @@ export const vindicatorModule = defineNativeModule({
   id: 'Vindicator',
   data: createRevenantModuleData('Vindicator', {
     skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
+    extraSkills: [VINDICATOR_JUMP_SKILL],
     balanceProfiles: VINDICATOR_BALANCE_PROFILES
   }),
   state: {
@@ -47,8 +58,21 @@ export const vindicatorModule = defineNativeModule({
     execution: {
       skillHandlers: vindicatorSkillHandlers,
       castRules: vindicatorCastRules,
-      // Dodge strike emission is a scheduler hook, not a cast handler, because the strike fires in response to the dodge state event rather than directly inside the dodge cast.
-      hooks: vindicatorSchedulerHooks
+      // Legacy landing-only Dodge inputs emit their strike through the state-event hook.
+      hooks: {
+        ...vindicatorSchedulerHooks,
+        // Airborne autos may advance the chain; landing resets it before the next serial input.
+        onCastComplete: (context: RevenantCastContext, skill: RevenantSkill) => {
+          if (skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(context);
+          // Both Meld variants grant resources only after regeneration advances through a completed cast.
+          if (
+            (skill.id === ID.ENERGY_MELD || skill.id === ID.ENERGY_MELD_ID_72058) &&
+            context.action.cancelled !== true
+          ) {
+            performEnergyMeld(context, skill);
+          }
+        }
+      }
     }
   },
   presentation: vindicatorUi
