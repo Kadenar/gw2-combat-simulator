@@ -228,7 +228,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         type: 'strike',
         ticks: [
           {
-            atMs: 2060,
+            atMs: 2080,
             coefficient: 0.504
           }
         ],

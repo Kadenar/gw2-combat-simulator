@@ -165,9 +165,9 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Weaver'
   },
   // Air+Water. Two crowd-control applications far apart on the timeline: the
-  // opening 0.1 packet at 234 ms carries the Blast finisher, Chilled,
+  // opening 0.1 packet at 240 ms carries the Blast finisher, Chilled,
   // Regeneration and the first control, while the 1.25 payoff hit and second
-  // control land at 1514 ms - long after the 280 ms cast has ended.
+  // control land at 1520 ms - long after the 280 ms cast has ended.
   [ID.KATABATIC_WIND]: {
     name: 'Katabatic Wind',
     type: 'Weapon',
@@ -183,7 +183,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         type: 'strike',
         ticks: [
           {
-            atMs: 234,
+            atMs: 240,
             coefficient: 0.1,
             comboFinishers: [
               {
@@ -203,7 +203,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         type: 'condition',
         ticks: [
           {
-            atMs: 234,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 3
@@ -218,14 +218,14 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         boon: 'Regeneration',
         stacks: 1,
         duration: 4,
-        atMs: 234,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
       },
       {
         type: 'control',
-        atMs: 234,
+        atMs: 240,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -235,7 +235,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         type: 'strike',
         ticks: [
           {
-            atMs: 1514,
+            atMs: 1520,
             coefficient: 1.25
           }
         ],
@@ -245,7 +245,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
       },
       {
         type: 'control',
-        atMs: 1514,
+        atMs: 1520,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',

@@ -29,11 +29,11 @@ const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
     { atMs: 4000, coefficient: 0.05 },
     { atMs: 4400, coefficient: 0.05 },
     { atMs: 4800, coefficient: 0.05 },
-    { atMs: 5060, coefficient: 0.05 },
-    { atMs: 5390, coefficient: 0.05 },
-    { atMs: 5790, coefficient: 0.05 },
-    { atMs: 6220, coefficient: 0.05 },
-    { atMs: 6620, coefficient: 0.05 }
+    { atMs: 5080, coefficient: 0.05 },
+    { atMs: 5400, coefficient: 0.05 },
+    { atMs: 5800, coefficient: 0.05 },
+    { atMs: 6240, coefficient: 0.05 },
+    { atMs: 6640, coefficient: 0.05 }
   ],
   [{ atMs: 4800, coefficient: 0.05 }]
 ] as const;

@@ -12,7 +12,7 @@ import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // One Hurl input releases five rocks at fixed 200ms intervals.
-const HURL_PACKET_TIMES = [300, 500, 700, 900, 1100] as const;
+const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;
 
 /**
  * Skill-id keyed fragments the catalog layers over the raw scepter skill records so the
@@ -198,7 +198,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: [
           {
-            atMs: 380,
+            atMs: 400,
             coefficient: 0.75
           }
         ],
@@ -210,7 +210,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         boon: 'Vigor',
         stacks: 1,
         duration: 5,
-        atMs: 380,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}

@@ -43,10 +43,10 @@ function boon(atMs: number, name: string, stacks: number, duration: number): Ski
 }
 
 // Overload packets are stored on their Quickness timelines and expand for unquickened casts.
-const OVERLOAD_FIRE_TICKS = Object.freeze([280, 760, 1250, 1730, 3200, 4200, 5200, 6200, 7200, 8200]);
+const OVERLOAD_FIRE_TICKS = Object.freeze([280, 760, 1240, 1720, 3200, 4200, 5200, 6200, 7200, 8200]);
 
 const OVERLOAD_AIR_TICKS = Object.freeze([
-  720, 1120, 1520, 1920, 2320, 2720, 3120, 3640, 4160, 4680, 5210, 5720, 6240, 6760
+  720, 1120, 1520, 1920, 2320, 2720, 3120, 3640, 4160, 4680, 5200, 5720, 6240, 6760
 ]);
 
 const OVERLOAD_EARTH_TICKS = Object.freeze([80, 800, 1520, 2240, 2760, 3760, 4760, 5760, 6760]);

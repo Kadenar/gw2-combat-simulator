@@ -589,7 +589,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'control',
-        atMs: 180,
+        atMs: 200,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -630,7 +630,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
-  // Two crowd-control pulses (the field's edges) at 180ms and 680ms, each with its own strike.
+  // Two crowd-control pulses (the field's edges) at 200ms and 680ms, each with its own strike.
   [ID.STATIC_FIELD]: {
     name: 'Static Field',
     type: 'Weapon',
@@ -654,7 +654,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
         type: 'strike',
         ticks: [
           {
-            atMs: 180,
+            atMs: 200,
             coefficient: 0.5
           }
         ],
@@ -664,7 +664,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'control',
-        atMs: 180,
+        atMs: 200,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',

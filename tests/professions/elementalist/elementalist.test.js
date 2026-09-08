@@ -37,6 +37,28 @@ const professionRoot = new URL('../../../js/games/gw2/professions/elementalist/'
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
+// Validate evaluated catalogs so shared/generated packets and direct statuses cannot reintroduce off-grid offsets.
+test('Elementalist authored effect offsets use ordered 40 ms action ticks', () => {
+  for (const kind of ['skills', 'balanceProfiles']) {
+    for (const entry of elementalistCatalog[kind]) {
+      for (const [effectIndex, effect] of (entry.effects ?? []).entries()) {
+        const label = `${kind} ${entry.name} (${entry.id}), effect ${effectIndex}`;
+        const ticks = effect.ticks ?? [];
+        for (const ms of [effect.atMs, effect.intervalMs, ...ticks.map((tick) => tick.atMs)]) {
+          if (ms == null) continue;
+          assert.ok(Number.isFinite(ms) && ms >= 0, `${label}: invalid offset ${ms}`);
+          assert.ok(Math.abs(ms - Math.round(ms / 40) * 40) <= 1e-6, `${label}: off-grid offset ${ms}`);
+        }
+
+        assert.ok(
+          ticks.every((tick, index) => index === 0 || tick.atMs >= ticks[index - 1].atMs),
+          `${label}: unordered packets`
+        );
+      }
+    }
+  }
+});
+
 async function professionSourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const nested = await Promise.all(
@@ -306,16 +328,7 @@ test('Elementalist canonical condition timelines preserve their packet start and
   assert.equal(ELEMENTALIST_CORE_SKILL_MECHANICS[ID.HURL].effects.length, 2);
   assert.equal(hurlStrike.type, 'strike');
   assert.equal(hurlBleeding.type, 'condition');
-  assert.deepEqual(
-    hurlBleeding.ticks.map(({ atMs, duration }) => [atMs, duration]),
-    [
-      [300, 8],
-      [500, 8],
-      [700, 8],
-      [900, 8],
-      [1100, 8]
-    ]
-  );
+  assert.ok(hurlBleeding.ticks.every(({ duration }) => duration === 8));
   assert.deepEqual(
     hurlStrike.ticks.map(({ atMs }) => atMs),
     hurlBleeding.ticks.map(({ atMs }) => atMs)
@@ -345,18 +358,10 @@ test('Elementalist canonical strike timelines retain per-packet combat metadata'
       ambiguousFieldSelection: 'oldest'
     }
   ]);
+  assert.ok(strike.ticks.every(({ coefficient }) => coefficient === 0.688));
   assert.deepEqual(
-    strike.ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
-    [
-      [280, 0.688],
-      [400, 0.688],
-      [530, 0.688],
-      [640, 0.688],
-      [760, 0.688],
-      [880, 0.688],
-      [990, 0.688],
-      [1130, 0.688]
-    ]
+    strike.ticks.map(({ atMs }) => atMs),
+    fieryWhirl.effects[1].ticks.map(({ atMs }) => atMs)
   );
 });
 

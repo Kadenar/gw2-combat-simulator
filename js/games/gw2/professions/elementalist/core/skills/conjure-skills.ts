@@ -494,7 +494,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         ticks: [
           {
-            atMs: 180,
+            atMs: 200,
             coefficient: 0.5
           }
         ],
@@ -504,7 +504,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'control',
-        atMs: 180,
+        atMs: 200,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -663,12 +663,12 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
           [
             { atMs: 280, coefficient: 0.688 },
             { atMs: 400, coefficient: 0.688 },
-            { atMs: 530, coefficient: 0.688 },
+            { atMs: 520, coefficient: 0.688 },
             { atMs: 640, coefficient: 0.688 },
             { atMs: 760, coefficient: 0.688 },
             { atMs: 880, coefficient: 0.688 },
-            { atMs: 990, coefficient: 0.688 },
-            { atMs: 1130, coefficient: 0.688 }
+            { atMs: 1000, coefficient: 0.688 },
+            { atMs: 1120, coefficient: 0.688 }
           ],
           {
             timingAnchor: 'castStart',
@@ -683,7 +683,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
           }
         ),
         conditionTimeline(
-          [280, 400, 530, 640, 760, 880, 990, 1130].map((atMs) => ({
+          [280, 400, 520, 640, 760, 880, 1000, 1120].map((atMs) => ({
             atMs,
             condition: 'Cripple',
             stacks: 1,
