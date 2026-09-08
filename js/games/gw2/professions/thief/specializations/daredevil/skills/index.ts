@@ -101,6 +101,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.CHANNELED_VIGOR]: {
     quicknessCastTimeMs: 480,
+    // The endurance grant commits at 440 ms, allowing the remaining cast to be interrupted.
+    interruptCommitMs: 440,
     cooldown: 20,
     initiativeCost: 0,
     resourceGain: 125,

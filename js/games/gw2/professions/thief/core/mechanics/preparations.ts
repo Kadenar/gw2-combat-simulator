@@ -23,7 +23,7 @@ interface TrapDefinition {
   readonly armedAtField: TrapArmedAtField;
 }
 
-const TRAPS: readonly TrapDefinition[] = Object.freeze([
+export const THIEF_PREPARATIONS: readonly TrapDefinition[] = Object.freeze([
   {
     prepareId: ID.PREPARE_THOUSAND_NEEDLES,
     triggerId: ID.THOUSAND_NEEDLES,
@@ -44,22 +44,28 @@ const TRAPS: readonly TrapDefinition[] = Object.freeze([
 
 /** Arms a preparation after its placement cast while its parent cooldown continues independently. */
 export function prepareTrap(context: ThiefCastContext, skill: ThiefSkill): void {
-  const trap = TRAPS.find((candidate) => candidate.prepareId === skill.id);
+  // A placement cancelled before its commit point must not expose an armed trap.
+  if (context.action?.cancelled === true) return;
+  const trap = THIEF_PREPARATIONS.find((candidate) => candidate.prepareId === skill.id);
   if (!trap) return;
   const state = professionCoreState(context) as ThiefCoreState;
   const at = context.effectiveEnd;
   state[trap.preparedField] = true;
-  state[trap.armedAtField] = at + Number(skill.durationMultiplier ?? 3);
+  // Arming is a recharge interval, so Alacrity shortens it; the flipped tile is visible while it arms.
+  state[trap.armedAtField] =
+    at + context.rechargeDurationFor({ ...skill, cooldown: Number(skill.durationMultiplier ?? 3) }, at);
+  state.availableFlips[trap.triggerId] = Number.POSITIVE_INFINITY;
   emitThiefStateSnapshot(context, at, `prepare-${trap.reason}`);
 }
 
 /** Consumes an armed trap and mirrors the trigger's short rearm onto an already-recharged placement skill. */
 export function activateTrap(context: ThiefCastContext, skill: ThiefSkill): void {
-  const trap = TRAPS.find((candidate) => candidate.triggerId === skill.id);
+  const trap = THIEF_PREPARATIONS.find((candidate) => candidate.triggerId === skill.id);
   if (!trap) return;
   const state = professionCoreState(context) as ThiefCoreState;
   state[trap.preparedField] = false;
   state[trap.armedAtField] = 0;
+  delete state.availableFlips[trap.triggerId];
   if (context.rechargeReadyAt != null) {
     context.state.cooldowns.set(
       trap.prepareId,
@@ -72,7 +78,9 @@ export function activateTrap(context: ThiefCastContext, skill: ThiefSkill): void
 
 /** Keeps each preparation flipped until triggered and blocks its trigger during the three-second arm window. */
 export function thiefTrapCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult | null {
-  const trap = TRAPS.find((candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id);
+  const trap = THIEF_PREPARATIONS.find(
+    (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
+  );
   if (!trap) return null;
   const state = professionCoreState(context) as ThiefCoreState;
   if (skill.id === trap.prepareId && state[trap.preparedField]) {

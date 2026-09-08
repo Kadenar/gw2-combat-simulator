@@ -4,8 +4,9 @@ import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/cor
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
+import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { PaletteSkillAvailability, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
@@ -35,11 +36,25 @@ export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {
   ];
 }
 
-function corePaletteSkillAvailability(
-  context: ThiefUiContext = {},
-  skill: ThiefSkill
-): { available: boolean; message: string } {
+function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: ThiefSkill): PaletteSkillAvailability {
   const state = thiefUiState(context);
+  // Show a placed preparation's trigger and let the palette wait until its shared arming deadline.
+  const trap = THIEF_PREPARATIONS.find(
+    (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
+  );
+  if (trap) {
+    const prepared = state[trap.preparedField] === true;
+    if (skill.id === trap.prepareId) {
+      return { available: !prepared, message: prepared ? `Activate ${trap.name} before preparing it again` : '' };
+    }
+
+    if (!prepared) return { available: false, message: `Prepare ${trap.name} first` };
+    const retryAt = Number(state[trap.armedAtField] || 0);
+    return retryAt > Number(context.time || 0)
+      ? { available: false, message: 'The preparation is still arming', retryAt }
+      : { available: true, message: '' };
+  }
+
   const stealthed =
     Number(state.stealthStartedAt || 0) <= Number(context.time || 0) &&
     Number(state.stealthUntil || 0) > Number(context.time || 0) &&

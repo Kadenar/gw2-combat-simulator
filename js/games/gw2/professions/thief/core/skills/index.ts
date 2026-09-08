@@ -54,6 +54,9 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
     type: 'Action',
     slot: 'Action',
     castTimeMs: 800,
+    // Dodge commits at 760 ms while keeping the full movement lockout.
+    interruptCommitMs: 760,
+    retainsCastLockoutAfterInterrupt: true,
     unaffectedByQuickness: true,
     cooldown: 0,
     effects: []

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
 import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
@@ -978,6 +979,12 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     selectedDodge: 'Lotus Training',
     selectedTraitIds: [TRAIT.LOTUS_TRAINING]
   });
+
+  // The damage row must use the triggered skill's icon rather than the Lotus Training trait icon.
+  assert.equal(
+    skillBreakdownRows(impalingLotus).find((row) => row.name === 'Impaling Lotus')?.icon,
+    thiefCatalog.skillsById.get(ID.IMPALING_LOTUS).icon
+  );
 
   assert.deepEqual(
     impalingLotus.events

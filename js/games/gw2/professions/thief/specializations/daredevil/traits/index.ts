@@ -121,6 +121,8 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
     actorType: 'player',
     skillId: skill.id,
     skillName: dodgeSkillName,
+    // Dodge damage uses the triggered skill's art while retaining its trait attribution.
+    icon: context.catalog.skillsByName.get(dodgeSkillName)?.icon,
     name: dodgeSkillName
   } as const;
   if (effect.type === 'strike') {
@@ -173,6 +175,8 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
 
 export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill): void {
   if (skill.id !== ID.DODGE) return;
+  // Cancelled dodges spend endurance but do not grant the committed trait effects.
+  if (context.action?.cancelled === true) return;
   const state = daredevilState.from(context);
   if (state.selectedDodge === 'Bounding Dodger') {
     // +6 s pads the 5 s in-game bonus window to absorb quickness-compressed cast times

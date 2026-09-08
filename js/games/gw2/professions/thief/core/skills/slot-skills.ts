@@ -18,6 +18,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     // Custom: Stores the prepared trap and exposes its activation skill; see `core/mechanics/preparations.ts`.
     handlerId: 'thief.prepare-trap',
     quicknessCastTimeMs: 600,
+    // Placement survives cancellation once the preparation commits.
+    interruptCommitMs: 400,
     cooldown: 30,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
@@ -45,6 +47,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.CALTROPS]: {
     quicknessCastTimeMs: 920,
+    // Once placed, the field keeps pulsing after the cast is interrupted.
+    interruptCommitMs: 800,
     cooldown: 24,
     initiativeCost: 0,
     durationMultiplier: 3,
@@ -58,7 +62,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           duration: 10
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -69,7 +74,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           duration: 2
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },

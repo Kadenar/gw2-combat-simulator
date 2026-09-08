@@ -107,7 +107,8 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
     grantThiefStealth(context, skill, at);
   }
 
-  if (completed && Number(skill.resourceGain || 0) > 0) {
+  // Committed interrupts keep the endurance grant even when the remaining cast is cancelled.
+  if (context.action?.cancelled !== true && Number(skill.resourceGain || 0) > 0) {
     gainThiefEndurance(context, Number(skill.resourceGain), at, skill.name);
   }
 
