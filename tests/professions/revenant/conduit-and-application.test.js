@@ -85,7 +85,7 @@ describe('Power Conduit skill profiles', () => {
       ['Mist Slash', 600, 0.8],
       ['Arcing Mists', 680, 1.2],
       ['Mist Unleashed', 780, 1.6],
-      ["Phantom's Onslaught", 657, 1.6]
+      ["Phantom's Onslaught", 640, 1.6]
     ]) {
       assert.equal(skill(name).castTimeMs, castTimeMs, name);
       assert.equal(
@@ -109,7 +109,7 @@ describe('Power Conduit skill profiles', () => {
       ['Brutal Blade', 560],
       ['Rift Slash', 480],
       ["Eternity's Requiem", 840],
-      ["Phantom's Onslaught", 438],
+      ["Phantom's Onslaught", 440],
       ['Mist Unleashed', 520],
       ['Release Potential: Assassin', 720]
     ]) {
@@ -122,10 +122,14 @@ describe('Power Conduit skill profiles', () => {
     assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
     assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
     assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
-    assert.equal(skill("Phantom's Onslaught").dashTimeMs, 38);
+    assert.equal(skill("Phantom's Onslaught").dashTimeMs, 40);
     assert.equal(skill("Phantom's Onslaught").hitDelayMs, 400);
     assert.equal(skill("Phantom's Onslaught").rechargeAnchor, 'castStart');
-    assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 420);
+    assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 40);
+    const alternateOnslaught = revenantCatalog.skillsById.get(SKILL.PHANTOMS_ONSLAUGHT_ID_62713);
+    assert.equal(alternateOnslaught.rechargeOffsetMs, 40);
+    assert.equal(alternateOnslaught.castTimeMs, 640);
+    assert.equal(alternateOnslaught.quicknessCastTimeMs, 440);
     assert.equal(
       revenantCatalog.balanceProfilesById
         .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)
@@ -224,7 +228,7 @@ describe('Power Conduit skill profiles', () => {
     }
   });
 
-  test('resolves Phantom Onslaught timing and cooldown from cast start', () => {
+  test('resolves Phantom Onslaught timing and cooldown from dash completion', () => {
     const onslaught = simulate('Vindicator', ["Phantom's Onslaught"], {
       ...config,
       specialization: 'Vindicator',
@@ -234,17 +238,31 @@ describe('Power Conduit skill profiles', () => {
       secondaryWeapon: ''
     });
 
-    assert.equal(onslaught.steps[0].fullCastMs, 438);
+    assert.equal(onslaught.steps[0].fullCastMs, 440);
     assert.equal(
       Math.round(
         onslaught.events.find((event) => event.type === 'damage' && event.skillName === "Phantom's Onslaught").at * 1000
       ),
-      438
+      440
     );
     assert.deepEqual(onslaught.endState.cooldowns["Phantom's Onslaught"], {
-      readyAt: 6820,
-      remaining: 6382
+      readyAt: 6440,
+      remaining: 6000
     });
+  });
+
+  test('Phantom Onslaught can repeat after its dash cooldown without delaying the rotation', () => {
+    // The follow-up strike occupies the cast lane but must not postpone the next dash's recharge.
+    const result = simulate('Renegade', ["Phantom's Onslaught", "Phantom's Onslaught"], {
+      ...config,
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: ''
+    });
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.steps[1].start, 6440);
   });
 
   test('resolves Rift Slash follow-up timing and upkeep triggers', () => {
@@ -619,11 +637,11 @@ test('Dervish casts retain their scythes through form expiry and concurrent lege
   );
 });
 
-test('Impossible Odds only follows eligible Deathstrike and Assassin release packets', () => {
-  // Preserve each skill's damage packets while excluding the packets that cannot trigger a follow-up.
+test('Impossible Odds follows both Deathstrike hits and only the final Assassin release packet', () => {
+  // Deathstrike hits clear the 250 ms ICD; Assassin's earlier shockwaves cannot trigger a follow-up.
   for (const [name, expectedAt] of [
-    ['Deathstrike', 570],
-    ['Release Potential: Assassin', 1050]
+    ['Deathstrike', [570, 850]],
+    ['Release Potential: Assassin', [1050]]
   ]) {
     const result = simulate(
       'Conduit',
@@ -643,7 +661,8 @@ test('Impossible Odds only follows eligible Deathstrike and Assassin release pac
       result.events
         .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
         .map((event) => Math.round(event.at * 1000)),
-      [expectedAt]
+      expectedAt,
+      name
     );
   }
 

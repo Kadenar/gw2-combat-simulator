@@ -100,12 +100,15 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
-    quicknessCastTimeMs: 438,
-    dashTimeMs: 38,
+    // Keep the 40 ms dash and the 600/400 ms follow-up on 40 ms action frames.
+    castTimeMs: 640,
+    quicknessCastTimeMs: 440,
+    dashTimeMs: 40,
     hitDelayMs: 400,
     cooldown: 8,
     rechargeAnchor: 'castStart',
-    rechargeOffsetMs: 420,
+    // Recharge begins when the dash completes, while the follow-up strike is still casting.
+    rechargeOffsetMs: 40,
     energyCost: 8,
     effects: [
       {

@@ -1,5 +1,6 @@
 /** Owns Core Revenant supplemental skill identities that have no narrower catalog family. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -277,37 +278,8 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ]
   },
-  [ID.PHANTOMS_ONSLAUGHT_ID_62713]: {
-    quicknessCastTimeMs: 438,
-    dashTimeMs: 38,
-    hitDelayMs: 400,
-    cooldown: 8,
-    rechargeAnchor: 'castStart',
-    rechargeOffsetMs: 420,
-    energyCost: 8,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
-        name: "Phantom's Onslaught",
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 3,
-        stacks: 1
-      }
-    ]
-  },
+  // Preserve the follow-up ID while keeping the combined cast's mechanics owned by Greatsword.
+  [ID.PHANTOMS_ONSLAUGHT_ID_62713]: REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS[ID.PHANTOMS_ONSLAUGHT],
   [ID.OTHERWORLDLY_ATTRACTION_ALLY]: {
     castTimeMs: 0,
     cooldown: 5,
