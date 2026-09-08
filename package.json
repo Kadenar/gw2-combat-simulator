@@ -55,7 +55,10 @@
     "update:elementalist-data": "node scripts/data/update-elementalist-api-data.mjs",
     "update:warrior-data": "node scripts/data/update-warrior-data.mjs",
     "update:ranger-data": "node scripts/data/update-ranger-data.mjs",
-    "generate:revenant-ids": "npm run build:modules && node scripts/data/generate-revenant-ids.mjs"
+    "generate:revenant-ids": "npm run build:modules && node scripts/data/generate-revenant-ids.mjs",
+    "prerotation:ai": "npm run build:modules",
+    "rotation:ai": "node scripts/analysis/rotation-ai/cli.mjs",
+    "test:rotation-ai": "npm run build:modules && node --test tests/rotation-ai/engine.test.mjs tests/rotation-ai/model.test.mjs tests/rotation-ai/workflow.test.mjs tests/rotation-ai/generation.test.mjs"
   },
   "engines": {
     "node": ">=20.19"

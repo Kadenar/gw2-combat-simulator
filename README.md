@@ -285,6 +285,7 @@ Useful starting points:
 - [Architecture](docs/architecture/ARCHITECTURE.md)
 - [Module responsibilities](docs/architecture/MODULES.md)
 - [Programmatic simulation](docs/architecture/PROGRAMMATIC-SIMULATION.md)
+- [Local rotation AI: profession models, training, and Luminary generation from scratch](docs/LOCAL-ROTATION-AI.md)
 - [Patch preview](docs/architecture/PATCH-PREVIEW.md)
 - [EVTC rotation reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md)
 - [Community build submissions](docs/BUILD-SUBMISSIONS.md)

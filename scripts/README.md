@@ -39,6 +39,9 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
 
 ## Analysis tools
 
+- `npm run rotation:ai -- --help` runs the local trainable rotation optimizer. See
+  [Local rotation AI](../docs/LOCAL-ROTATION-AI.md) for a runnable example, build/rotation ingestion, CPU training,
+  resumable search, and stochastic validation.
 - `npm run benchmarks:compare` simulates every rotation-backed manifest preset and reports DPS values more than 1% away
   from `benchmarkDps`. Pass `-- --absolute-dps` for a fixed 100 DPS tolerance or `-- --commit` to update every rounded
   manifest value.
