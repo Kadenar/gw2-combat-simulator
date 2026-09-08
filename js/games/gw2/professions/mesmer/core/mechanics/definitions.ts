@@ -64,7 +64,7 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
   Greatsword: {
     firstAttackDelay: 1.14,
     ticks: [
-      { atMs: 518, coefficient: 0.8 / 3 },
+      { atMs: 520, coefficient: 0.8 / 3 },
       { atMs: 760, coefficient: 0.8 / 3 },
       { atMs: 1000, coefficient: 0.8 / 3 }
     ],
@@ -164,14 +164,14 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
   Object.freeze({
     [ID.PHANTASMAL_SWORDSMAN]: {
       castTimeMs: 880,
-      damageAtMs: 2279,
+      damageAtMs: 2280,
       // The supplied power-Chrono lifecycle converts Swordsman at a 3.41s median after its cast completes.
       spawnAtMs: 3410,
       phantasmalBladeDelayAfterSpawnMs: 83
     },
     [ID.PHANTASMAL_DUELIST]: {
       castTimeMs: 560,
-      damageAtMs: 2230,
+      damageAtMs: 2240,
       // Measured packet and conversion offsets stay anchored to the observed cast end.
       spawnAtMs: 2800,
       phantasmalBladeDelayAfterSpawnMs: 175
@@ -183,8 +183,8 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
     },
     [ID.PHANTASMAL_WARLOCK]: {
       castTimeMs: 780,
-      damageAtMs: 2900,
-      damageAtMsByEntity: [2800, 2900],
+      damageAtMs: 2920,
+      damageAtMsByEntity: [2800, 2920],
       // Both Warlocks retain their observed attack and clone-conversion stagger.
       spawnAtMs: 4120,
       spawnAtMsByEntity: [4080, 4180],
@@ -193,14 +193,14 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
           'One warlock': [{ atMs: 1200 }, { atMs: 2000 }, { atMs: 2800 }]
         },
         {
-          'One warlock': [{ atMs: 1300 }, { atMs: 2100 }, { atMs: 2900 }]
+          'One warlock': [{ atMs: 1320 }, { atMs: 2120 }, { atMs: 2920 }]
         }
       ]
     },
     [ID.PHANTASMAL_BERSERKER]: {
       castTimeMs: 560,
-      damageAtMs: 1340,
-      damageAtMsByEntity: [1080, 1340],
+      damageAtMs: 1360,
+      damageAtMsByEntity: [1080, 1360],
       spawnAtMs: 2620,
       spawnAtMsByEntity: [2360, 2620],
       damageTicksByEntity: [
@@ -208,7 +208,7 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
           'One berserker': [{ atMs: 720 }, { atMs: 840 }, { atMs: 960 }, { atMs: 1080 }]
         },
         {
-          'One berserker': [{ atMs: 980 }, { atMs: 1100 }, { atMs: 1220 }, { atMs: 1340 }]
+          'One berserker': [{ atMs: 1000 }, { atMs: 1120 }, { atMs: 1240 }, { atMs: 1360 }]
         }
       ]
     },
@@ -235,7 +235,7 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
     },
     [ID.PHANTASMAL_SHARPSHOOTER]: {
       castTimeMs: 520,
-      damageAtMs: 1550,
+      damageAtMs: 1560,
       spawnAtMs: 1560,
       estimated: true
     },

@@ -255,8 +255,8 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
       {
         type: 'strike',
         ticks: [
-          { atMs: 1250, coefficient: 0.0000064 },
-          { atMs: 1416, coefficient: 0.000000256 }
+          { atMs: 1240, coefficient: 0.0000064 },
+          { atMs: 1400, coefficient: 0.000000256 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'

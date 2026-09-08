@@ -20,11 +20,11 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         ticks: [
-          { atMs: 281, coefficient: 0.33 },
-          { atMs: 1279, coefficient: 0.33 },
+          { atMs: 280, coefficient: 0.33 },
+          { atMs: 1280, coefficient: 0.33 },
           { atMs: 2280, coefficient: 0.33 },
-          { atMs: 3282, coefficient: 0.33 },
-          { atMs: 4279, coefficient: 0.33 },
+          { atMs: 3280, coefficient: 0.33 },
+          { atMs: 4280, coefficient: 0.33 },
           { atMs: 5280, coefficient: 0.33 }
         ],
         name: 'Six pulses',
@@ -88,8 +88,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         ticks: [
-          { atMs: 533, coefficient: 0.3 },
-          { atMs: 623, coefficient: 0.3 }
+          { atMs: 520, coefficient: 0.3 },
+          { atMs: 640, coefficient: 0.3 }
         ],
         name: 'Damage',
         actorType: 'player',

@@ -13,13 +13,13 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         ticks: [
-          { atMs: 921, coefficient: 0.76 },
-          { atMs: 1081, coefficient: 0.76 },
-          { atMs: 1199, coefficient: 0.76 },
-          { atMs: 1441, coefficient: 0.76 },
+          { atMs: 920, coefficient: 0.76 },
+          { atMs: 1080, coefficient: 0.76 },
+          { atMs: 1200, coefficient: 0.76 },
+          { atMs: 1440, coefficient: 0.76 },
           { atMs: 1560, coefficient: 0.76 },
-          { atMs: 1679, coefficient: 0.76 },
-          { atMs: 1841, coefficient: 0.76 }
+          { atMs: 1680, coefficient: 0.76 },
+          { atMs: 1840, coefficient: 0.76 }
         ],
         name: 'Damage',
         actorType: 'player',
@@ -29,9 +29,9 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: Array.from({ length: 7 }, (_, index) => ({
-          // Confusion applies once per channel pulse, independently of the strike packet cadence.
-          atMs: (1920 * (index + 1)) / 7,
+        // Confusion applies once per channel pulse, independently of the strike packet cadence.
+        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
+          atMs,
           condition: 'confusion',
           duration: 7,
           stacks: 1
@@ -87,7 +87,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 481, coefficient: 0.5 }],
+        ticks: [{ atMs: 480, coefficient: 0.5 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'scepter',
@@ -114,7 +114,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
       mode: 'add',
       count: 1,
       timingAnchor: 'castStart',
-      atMs: 442
+      atMs: 440
     },
     maxCloneEffects: [
       {
@@ -128,7 +128,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 442, coefficient: 0.75 }],
+        ticks: [{ atMs: 440, coefficient: 0.75 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'scepter',

@@ -45,7 +45,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 322, coefficient: 0.1 }],
+        ticks: [{ atMs: 320, coefficient: 0.1 }],
         name: 'Projectile',
         actorType: 'player',
         weapon: 'scepter',
@@ -55,7 +55,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       {
         type: 'condition',
         // Confusion lands with the committed projectile so a weapon-swap cancellation does not discard it.
-        ticks: [{ atMs: 322, condition: 'Confusion', stacks: 5, duration: 7 }],
+        ticks: [{ atMs: 320, condition: 'Confusion', stacks: 5, duration: 7 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -77,7 +77,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 484, coefficient: 0.1 }],
+        ticks: [{ atMs: 480, coefficient: 0.1 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword',

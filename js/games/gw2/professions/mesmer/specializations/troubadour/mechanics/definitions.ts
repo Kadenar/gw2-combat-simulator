@@ -24,7 +24,7 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
   [ID.LIVELY_LUTE]: {
     slot: 1,
     instrument: 'Lute',
-    damageAtMs: 435,
+    damageAtMs: 440,
     // Lute notes land as three separate packets after the initial impact delay.
     ticks: [
       { atMs: 0, coefficient: 1 },
@@ -37,7 +37,7 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
     instrument: 'Flute',
     coefficient: 1,
     hits: 1,
-    damageAtMs: 367,
+    damageAtMs: 360,
     conditions: [
       {
         name: 'Confusion',
@@ -63,12 +63,12 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
     instrument: 'Drum',
     coefficient: 2,
     hits: 1,
-    damageAtMs: 518
+    damageAtMs: 520
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
     slot: 1,
     instrument: 'Lute',
-    damageAtMs: 435,
+    damageAtMs: 440,
     ticks: [
       { atMs: 0, coefficient: 1 },
       { atMs: 200, coefficient: 1 },

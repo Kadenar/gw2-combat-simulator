@@ -22,19 +22,19 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
             coefficient: 0.5
           },
           {
-            atMs: 517,
+            atMs: 520,
             coefficient: 0.5
           },
           {
-            atMs: 1033,
+            atMs: 1040,
             coefficient: 0.5
           },
           {
-            atMs: 1550,
+            atMs: 1560,
             coefficient: 0.5
           },
           {
-            atMs: 2067,
+            atMs: 2080,
             coefficient: 0.5
           },
           {
@@ -42,19 +42,19 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
             coefficient: 0.5
           },
           {
-            atMs: 3117,
+            atMs: 3120,
             coefficient: 0.5
           },
           {
-            atMs: 3633,
+            atMs: 3640,
             coefficient: 0.5
           },
           {
-            atMs: 4150,
+            atMs: 4160,
             coefficient: 0.5
           },
           {
-            atMs: 4667,
+            atMs: 4680,
             coefficient: 0.5
           }
         ],

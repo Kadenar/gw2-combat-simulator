@@ -106,7 +106,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        atMs: 845,
+        atMs: 840,
         name: 'Phantasm leap',
         actorType: 'summon',
         summonKind: 'phantasm',
@@ -115,14 +115,14 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         ticks: [
-          { atMs: 1321, coefficient: 0.2 },
-          { atMs: 1362, coefficient: 0.2 },
-          { atMs: 1645, coefficient: 0.2 },
-          { atMs: 1679, coefficient: 0.2 },
+          { atMs: 1320, coefficient: 0.2 },
+          { atMs: 1360, coefficient: 0.2 },
+          { atMs: 1640, coefficient: 0.2 },
+          { atMs: 1680, coefficient: 0.2 },
           { atMs: 1920, coefficient: 0.2 },
-          { atMs: 1962, coefficient: 0.2 },
-          { atMs: 2246, coefficient: 0.2 },
-          { atMs: 2279, coefficient: 0.2 }
+          { atMs: 1960, coefficient: 0.2 },
+          { atMs: 2240, coefficient: 0.2 },
+          { atMs: 2280, coefficient: 0.2 }
         ],
         name: 'Phantasm Blurred Frenzy',
         actorType: 'summon',

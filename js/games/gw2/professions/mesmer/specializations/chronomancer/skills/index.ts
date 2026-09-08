@@ -119,13 +119,13 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     quicknessCastTimeMs: 800,
     cooldown: 20,
     // The well is created on its first observed pulse, so later pulses survive an interrupted cast after that point.
-    interruptCommitMs: 559,
+    interruptCommitMs: 560,
     comboFields: [
       {
         ownerId: 'mesmer',
         fieldType: 'Ethereal',
         duration: 3,
-        startMs: 559,
+        startMs: 560,
         startAnchor: 'castStart'
       }
     ],
@@ -133,9 +133,9 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       {
         type: 'strike',
         ticks: [
-          { atMs: 559, coefficient: 1.3 },
-          { atMs: 1559, coefficient: 1.3 },
-          { atMs: 2561, coefficient: 1.3 }
+          { atMs: 560, coefficient: 1.3 },
+          { atMs: 1560, coefficient: 1.3 },
+          { atMs: 2560, coefficient: 1.3 }
         ],
         name: 'Pulse damage',
         actorType: 'player',
@@ -146,7 +146,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 3554, coefficient: 2.1 }],
+        ticks: [{ atMs: 3560, coefficient: 2.1 }],
         name: 'Final damage',
         actorType: 'player',
         weapon: 'utility',
@@ -156,7 +156,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       },
       {
         type: 'condition',
-        ticks: [559, 1559, 2561, 3554].map((atMs) => ({
+        ticks: [560, 1560, 2560, 3560].map((atMs) => ({
           atMs,
           condition: 'Crippled',
           stacks: 1,
@@ -168,7 +168,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       },
       {
         type: 'condition',
-        ticks: [559, 1559, 2561, 3554].map((atMs) => ({
+        ticks: [560, 1560, 2560, 3560].map((atMs) => ({
           atMs,
           condition: 'Weakness',
           stacks: 1,
@@ -188,13 +188,13 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     quicknessCastTimeMs: 800,
     cooldown: 20,
     // The first pulse commits the well before its animation can be shortened by a shatter or another instant action.
-    interruptCommitMs: 518,
+    interruptCommitMs: 520,
     comboFields: [
       {
         ownerId: 'mesmer',
         fieldType: 'Ethereal',
         duration: 3,
-        startMs: 518,
+        startMs: 520,
         startAnchor: 'castStart'
       }
     ],
@@ -202,8 +202,8 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       {
         type: 'strike',
         ticks: [
-          { atMs: 518, coefficient: 1.5 },
-          { atMs: 1519, coefficient: 1.5 },
+          { atMs: 520, coefficient: 1.5 },
+          { atMs: 1520, coefficient: 1.5 },
           { atMs: 2520, coefficient: 1.5 }
         ],
         name: 'Pulse damage',

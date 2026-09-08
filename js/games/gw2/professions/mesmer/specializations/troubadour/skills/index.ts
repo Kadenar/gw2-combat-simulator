@@ -30,15 +30,15 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
         type: 'strike',
         ticks: [
           {
-            atMs: 199,
+            atMs: 200,
             coefficient: 0.25
           },
           {
-            atMs: 199,
+            atMs: 200,
             coefficient: 0.25
           },
           {
-            atMs: 199,
+            atMs: 200,
             coefficient: 0.25
           }
         ],
@@ -52,15 +52,15 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
         type: 'strike',
         ticks: [
           {
-            atMs: 2716,
+            atMs: 2720,
             coefficient: 0.25
           },
           {
-            atMs: 2716,
+            atMs: 2720,
             coefficient: 0.25
           },
           {
-            atMs: 2766,
+            atMs: 2760,
             coefficient: 0.25
           }
         ],
@@ -127,7 +127,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     specialization: 'Troubadour',
     quicknessCastTimeMs: 1000,
     cooldown: 35,
-    damageAtMs: 850,
+    damageAtMs: 840,
     effects: []
   },
   [ID.HARMONIOUS_HARP]: {
@@ -160,10 +160,10 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
       {
         type: 'strike',
         ticks: [
-          { atMs: 350, coefficient: 1 },
-          { atMs: 1350, coefficient: 1 },
-          { atMs: 2350, coefficient: 1 },
-          { atMs: 3350, coefficient: 1 }
+          { atMs: 360, coefficient: 1 },
+          { atMs: 1360, coefficient: 1 },
+          { atMs: 2360, coefficient: 1 },
+          { atMs: 3360, coefficient: 1 }
         ],
         name: 'Damage',
         actorType: 'player',
@@ -174,29 +174,29 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
       {
         type: 'condition',
         ticks: [
-          { atMs: 350, condition: 'Torment', duration: 8, stacks: 1 },
-          { atMs: 1350, condition: 'Torment', duration: 8, stacks: 1 },
-          { atMs: 2350, condition: 'Torment', duration: 8, stacks: 1 },
-          { atMs: 3350, condition: 'Torment', duration: 8, stacks: 1 }
+          { atMs: 360, condition: 'Torment', duration: 8, stacks: 1 },
+          { atMs: 1360, condition: 'Torment', duration: 8, stacks: 1 },
+          { atMs: 2360, condition: 'Torment', duration: 8, stacks: 1 },
+          { atMs: 3360, condition: 'Torment', duration: 8, stacks: 1 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 350, condition: 'Weakness', stacks: 1, duration: 5 }],
+        ticks: [{ atMs: 360, condition: 'Weakness', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1350, condition: 'Vulnerability', stacks: 10, duration: 4 }],
+        ticks: [{ atMs: 1360, condition: 'Vulnerability', stacks: 10, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'control',
-        atMs: 3350,
+        atMs: 3360,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

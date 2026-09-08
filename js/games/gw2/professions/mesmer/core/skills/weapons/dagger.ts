@@ -35,15 +35,15 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
       persistsAfterInterrupt: true,
       ticks: [
         {
-          atMs: 217,
+          atMs: 200,
           coefficient: 0.2
         },
         {
-          atMs: 250,
+          atMs: 240,
           coefficient: 0.2
         },
         {
-          atMs: 384,
+          atMs: 400,
           coefficient: 0.2
         }
       ]
@@ -98,7 +98,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
       mode: 'add',
       count: 1,
       timingAnchor: 'castStart',
-      atMs: 199
+      atMs: 200
     },
     blade: true,
     effects: [
@@ -106,15 +106,15 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [
           {
-            atMs: 199,
+            atMs: 200,
             coefficient: 0.25
           },
           {
-            atMs: 199,
+            atMs: 200,
             coefficient: 0.25
           },
           {
-            atMs: 199,
+            atMs: 200,
             coefficient: 0.25
           }
         ],
@@ -128,15 +128,15 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [
           {
-            atMs: 2716,
+            atMs: 2720,
             coefficient: 0.25
           },
           {
-            atMs: 2716,
+            atMs: 2720,
             coefficient: 0.25
           },
           {
-            atMs: 2766,
+            atMs: 2760,
             coefficient: 0.25
           }
         ],

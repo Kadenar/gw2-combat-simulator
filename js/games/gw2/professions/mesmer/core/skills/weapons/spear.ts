@@ -97,12 +97,12 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
     cooldown: 5,
-    // Keep the observed 485 ms impact after the 480 ms input tick so a just-prior shatter cannot consume this clone.
+    // The impact uses the next action tick after 480 ms so a just-prior shatter cannot consume this clone.
     resource: {
       mode: 'add',
       count: 1,
       timingAnchor: 'castStart',
-      atMs: 485
+      atMs: 520
     },
     effects: [
       {
@@ -113,7 +113,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         actorType: 'player',
         weapon: 'spear',
         // The impact lands before the retained aftercast, alongside the clone gain.
-        atMs: 485,
+        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

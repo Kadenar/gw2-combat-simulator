@@ -65,7 +65,7 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
     coefficients: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
     minimumResource: 1,
     resourceSpendProgress: 1,
-    ticks: bladePacketTiers([0, 0.42, 0.84, 1.25, 1.67, 2.09], [442, 517, 601, 675, 675])
+    ticks: bladePacketTiers([0, 0.42, 0.84, 1.25, 1.67, 2.09], [440, 520, 600, 680, 680])
   },
   [ID.BLADESONG_HARMONY]: {
     slot: 1,
@@ -74,7 +74,7 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
     coefficients: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
     minimumResource: 1,
     resourceSpendProgress: 1,
-    ticks: bladePacketTiers([0, 0.7, 1.4, 2.1, 2.8, 3.5], [50, 208, 367, 534, 684])
+    ticks: bladePacketTiers([0, 0.7, 1.4, 2.1, 2.8, 3.5], [40, 200, 360, 520, 680])
   },
   [ID.BLADESONG_DISTORTION]: {
     slot: 4,

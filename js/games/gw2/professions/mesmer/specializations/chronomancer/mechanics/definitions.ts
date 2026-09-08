@@ -30,18 +30,18 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     }
   },
   [ID.PHANTASMAL_DUELIST]: {
-    repeatDamageAtMs: 5260,
+    repeatDamageAtMs: 5280,
     repeatSpawnAtMs: 5800,
     repeatDamageTicks: {
       'Illusion Damage': [
-        { atMs: 3860 },
-        { atMs: 4060 },
-        { atMs: 4260 },
-        { atMs: 4460 },
-        { atMs: 4660 },
-        { atMs: 4860 },
-        { atMs: 5060 },
-        { atMs: 5260 }
+        { atMs: 3880 },
+        { atMs: 4080 },
+        { atMs: 4280 },
+        { atMs: 4480 },
+        { atMs: 4680 },
+        { atMs: 4880 },
+        { atMs: 5080 },
+        { atMs: 5280 }
       ]
     }
   },
@@ -80,27 +80,27 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     ]
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
-    repeatDamageAtMs: 3230,
+    repeatDamageAtMs: 3240,
     // Keep the repeated phantasm alive through the observed second Continuum Split boundary.
     repeatSpawnAtMs: 4080
   },
   [ID.PHANTASMAL_WARDEN]: {
-    repeatDamageAtMs: 12020,
+    repeatDamageAtMs: 12040,
     repeatSpawnAtMs: 14180,
     repeatDamageTicks: {
       Damage: [
-        { atMs: 8020 },
-        { atMs: 8380 },
-        { atMs: 8740 },
-        { atMs: 9100 },
-        { atMs: 9460 },
-        { atMs: 9820 },
-        { atMs: 10220 },
-        { atMs: 10580 },
-        { atMs: 10940 },
-        { atMs: 11300 },
-        { atMs: 11670 },
-        { atMs: 12020 }
+        { atMs: 8040 },
+        { atMs: 8400 },
+        { atMs: 8760 },
+        { atMs: 9120 },
+        { atMs: 9480 },
+        { atMs: 9840 },
+        { atMs: 10240 },
+        { atMs: 10600 },
+        { atMs: 10960 },
+        { atMs: 11320 },
+        { atMs: 11680 },
+        { atMs: 12040 }
       ]
     }
   },
@@ -109,7 +109,7 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     repeatSpawnAtMs: 9270
   },
   [ID.ECHO_OF_MEMORY]: {
-    repeatDamageAtMs: 2950,
+    repeatDamageAtMs: 2960,
     repeatSpawnAtMs: 3710
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
@@ -120,7 +120,7 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     // Clarity Chronophantasma agents can stagger despite spawning together; representative
     // per-entity offsets were repeat damage [3120, 3320] and final conversion [4000, 4160].
     // These are Clarity-only observations and must not replace the single-Lancer profile globally.
-    repeatDamageAtMs: 3300,
+    repeatDamageAtMs: 3320,
     repeatSpawnAtMs: 4140
   }
 });

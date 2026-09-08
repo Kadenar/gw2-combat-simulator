@@ -20,11 +20,11 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [
           {
-            atMs: 350,
+            atMs: 360,
             coefficient: 0.33
           },
           {
-            atMs: 350,
+            atMs: 360,
             coefficient: 0.33
           },
           {
@@ -41,14 +41,14 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'strike',
         ticks: [
-          { atMs: 830, coefficient: 0.115 },
-          { atMs: 1030, coefficient: 0.115 },
-          { atMs: 1230, coefficient: 0.115 },
-          { atMs: 1430, coefficient: 0.115 },
-          { atMs: 1630, coefficient: 0.115 },
-          { atMs: 1830, coefficient: 0.115 },
-          { atMs: 2030, coefficient: 0.115 },
-          { atMs: 2230, coefficient: 0.115 }
+          { atMs: 840, coefficient: 0.115 },
+          { atMs: 1040, coefficient: 0.115 },
+          { atMs: 1240, coefficient: 0.115 },
+          { atMs: 1440, coefficient: 0.115 },
+          { atMs: 1640, coefficient: 0.115 },
+          { atMs: 1840, coefficient: 0.115 },
+          { atMs: 2040, coefficient: 0.115 },
+          { atMs: 2240, coefficient: 0.115 }
         ],
         name: 'Illusion Damage',
         actorType: 'summon',
@@ -75,7 +75,7 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 362, coefficient: 0.2 }],
+        ticks: [{ atMs: 360, coefficient: 0.2 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'pistol',
