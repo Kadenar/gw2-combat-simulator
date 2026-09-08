@@ -24,8 +24,6 @@ export interface MesmerSignal {
   readonly eventIndex: number;
 }
 
-const EFFECT_CREATE_STATE_CHANGES = new Set([45, 51, 60, 62, 79]);
-
 export const MESMER_EFFECT_GUIDS = Object.freeze({
   chaosStorm: '921F3521FB79F240B1A8F7EC855F8DF9',
   chronomancerRewinder: 'DC1C8A043ADCD24B9458688A792B04BA',
@@ -45,6 +43,7 @@ export const MESMER_EFFECT_GUIDS = Object.freeze({
 /** Normalizes a skill or action name for case-insensitive comparisons across EVTC and simulator metadata. */
 export { normalized };
 export { canonicalAction, castDuration, combatStartTime, hasNearbyAction, playerInstance, rawSkillName };
+export { effectSignals } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 
 /**
  * Creates a completed canonical cast whose start is derived from its catalog duration and observed end, marking casts
@@ -65,41 +64,6 @@ export function canonicalCast(
     status: 'completed',
     precast: combatStart != null && end <= combatStart
   });
-}
-
-/** Encodes a 64-bit EVTC field as eight uppercase little-endian hexadecimal bytes for effect GUID reconstruction. */
-function littleEndianHex(value: bigint): string {
-  let current = value;
-  let result = '';
-  for (let index = 0; index < 8; index += 1) {
-    result += Number(current & 0xffn)
-      .toString(16)
-      .padStart(2, '0');
-    current >>= 8n;
-  }
-
-  return result.toUpperCase();
-}
-
-/**
- * Resolves encounter-local effect content IDs to GUIDs and returns player-sourced effect-create events matching the
- * requested Mesmer effect GUID.
- */
-export function effectSignals(context: EvtcProfessionReconstructionContext, guid: string): MesmerSignal[] {
-  const guidByContentId = new Map(
-    context.log.events
-      .filter((event) => event.stateChange === 46)
-      .map((event) => [event.skillId, littleEndianHex(event.source) + littleEndianHex(event.target)])
-  );
-  const normalizedGuid = guid.toUpperCase();
-  return context.log.events.flatMap((event, eventIndex) =>
-    event.source === context.playerAddress &&
-    event.skillId !== 0 &&
-    EFFECT_CREATE_STATE_CHANGES.has(event.stateChange) &&
-    guidByContentId.get(event.skillId) === normalizedGuid
-      ? [{ event, eventIndex }]
-      : []
-  );
 }
 
 /**

@@ -683,6 +683,87 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
   assert.equal(result.rotation.find((action) => action.name === "Razorclaw's Rage")?.offset, 120);
 });
 
+test('reconstructs Orders from Above from its normal and Righteous Rebel effects, never alacrity pulses', () => {
+  const orders = {
+    id: 45_537,
+    name: 'Orders from Above',
+    type: 'Profession',
+    slot: 'Profession_4',
+    castTimeMs: 0,
+    effects: []
+  };
+  const rotationCatalog = {
+    skills: [orders, { ...orders, id: -4, name: 'Swap Legends', slot: 'Profession_1' }]
+  };
+  const alacrity = (time, overrides = {}) =>
+    event({ time, target: PLAYER, skillId: 30_328, value: 2_000, buff: 1, stateChange: 69, ...overrides });
+  const fixture = log({
+    agents: [{ ...log().agents[0], profession: 9, elite: 63 }],
+    skills: [{ id: 27_890, name: 'Legendary Assassin Stance' }, { id: 30_328, name: 'Alacrity' }, orders],
+    events: [
+      alacrity(1_000, { buff: 18, stateChange: 18 }),
+      event({ time: 1_000, stateChange: 1 }),
+      event({ time: 1_050, target: PLAYER, skillId: 27_890, buff: 1, stateChange: 69 }),
+      // Neither the opening tail nor later alacrity applications establish an Orders cast time.
+      ...[1_100, 2_100, 3_100, 40_000].map((time) => alacrity(time))
+    ]
+  });
+
+  assert.equal(
+    reconstructEvtcRotation(fixture, rotationCatalog).actions.some((action) => action.skillId === orders.id),
+    false
+  );
+
+  for (const [guid, stateChange] of [
+    ['B63D192DED78B1489DDB6E742D603CE5', 62],
+    ['F53F05F041957A47AD62B522FE030408', 60]
+  ]) {
+    const bytes = Buffer.from(guid, 'hex');
+    const observed = {
+      ...fixture,
+      events: [
+        ...fixture.events,
+        event({
+          time: 0,
+          source: bytes.readBigUInt64LE(0),
+          target: bytes.readBigUInt64LE(8),
+          skillId: 123,
+          stateChange: 46
+        }),
+        event({ time: 1_100, source: 0x2000n, skillId: 123, stateChange }),
+        event({ time: 2_000, skillId: 124, stateChange }),
+        event({ time: 3_000, skillId: 123, stateChange: 61 }),
+        event({ time: 21_000, skillId: 123, stateChange }),
+        event({ time: 21_020, skillId: 123, stateChange })
+      ].sort((left, right) => left.time - right.time)
+    };
+    const inferred = reconstructEvtcRotation(observed, rotationCatalog);
+    assert.deepEqual(
+      inferred.actions
+        .filter((action) => action.skillId === orders.id)
+        .map(({ timestampMs, evidence }) => ({ timestampMs, evidence })),
+      [{ timestampMs: 20_000, evidence: 'effect' }]
+    );
+
+    // An animation and its matching visual effect represent the same input.
+    const recorded = reconstructEvtcRotation(
+      {
+        ...observed,
+        events: [
+          ...observed.events,
+          event({ time: 21_000, skillId: orders.id, stateChange: 67 }),
+          event({ time: 21_000, skillId: orders.id, activation: 3, stateChange: 68 })
+        ].sort((left, right) => left.time - right.time)
+      },
+      rotationCatalog
+    );
+    assert.deepEqual(
+      recorded.actions.filter((action) => action.skillId === orders.id).map((action) => action.evidence),
+      ['animation']
+    );
+  }
+});
+
 test('packs initial Renegade summons against the first cast and chains later concurrent offsets', () => {
   const icerazor = 0x3000n;
   const razorclaw = 0x3001n;

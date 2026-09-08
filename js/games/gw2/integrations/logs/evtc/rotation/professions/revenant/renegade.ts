@@ -1,4 +1,5 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { effectSignals } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -12,6 +13,7 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
 import {
   directAction,
+  hasRecordedAction,
   playerInstance,
   rawSkillName,
   runtimeDuration,
@@ -23,7 +25,8 @@ const ORDERS_FROM_ABOVE = Object.freeze({
   name: 'Orders from Above',
   skillId: 45537
 });
-const ALACRITY_BUFF = 30328;
+// Elite Insights RenegadeHelper: normal Orders from Above and its Righteous Rebel variant.
+const ORDERS_FROM_ABOVE_EFFECT_GUIDS = ['B63D192DED78B1489DDB6E742D603CE5', 'F53F05F041957A47AD62B522FE030408'];
 const TERMINAL_RAZORCLAW_INPUT_DELAY_MS = 100;
 
 const WARBAND_SPECIES_ACTIONS = new Map<number, RevenantActionIdentity>([
@@ -42,28 +45,16 @@ const WARBAND_ANIMATION_ACTIONS = new Map<number, RevenantActionIdentity>([
 ]);
 
 function ordersFromAboveActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
-  const actions: EvtcRecordedRotationAction[] = [];
-  let previousPulse: number | null = null;
-  context.log.events.forEach((event, eventIndex) => {
-    if (
-      event.source !== context.playerAddress ||
-      event.target !== context.playerAddress ||
-      event.skillId !== ALACRITY_BUFF ||
-      event.buff === 0 ||
-      event.buffRemove !== 0 ||
-      event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY
-    ) {
-      return;
-    }
-
-    const beginsActivation = previousPulse == null || event.time - previousPulse > 1500;
-    previousPulse = event.time;
-    if (!beginsActivation) return;
-    actions.push(
-      directAction(eventIndex, event.time, event.skillId, rawSkillName(context, event.skillId), ORDERS_FROM_ABOVE)
-    );
+  // Match EI's effect timestamp and 50 ms duplicate window; alacrity snapshots/pulses never establish a cast time.
+  return ORDERS_FROM_ABOVE_EFFECT_GUIDS.flatMap((guid) => {
+    let previousTime = Number.NEGATIVE_INFINITY;
+    return effectSignals(context, guid).flatMap(({ event, eventIndex }) => {
+      const duplicate = event.time - previousTime < 50;
+      previousTime = event.time;
+      if (duplicate || hasRecordedAction(context.recordedActions, ORDERS_FROM_ABOVE, event.time)) return [];
+      return [directAction(eventIndex, event.time, event.skillId, ORDERS_FROM_ABOVE.name, ORDERS_FROM_ABOVE, 'effect')];
+    });
   });
-  return actions;
 }
 
 function initialWarbandActions(

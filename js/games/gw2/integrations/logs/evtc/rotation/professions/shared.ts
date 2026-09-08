@@ -1,4 +1,4 @@
-import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill, normalizedName } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -8,6 +8,43 @@ import type {
 export interface EvtcActionIdentity {
   readonly name: string;
   readonly skillId: number;
+}
+
+const EFFECT_CREATE_STATE_CHANGES = new Set([45, 51, 60, 62, 79]);
+
+/** Encodes a 64-bit EVTC field as eight uppercase little-endian hexadecimal bytes for effect GUID reconstruction. */
+function littleEndianHex(value: bigint): string {
+  let current = value;
+  let result = '';
+  for (let index = 0; index < 8; index += 1) {
+    result += Number(current & 0xffn)
+      .toString(16)
+      .padStart(2, '0');
+    current >>= 8n;
+  }
+
+  return result.toUpperCase();
+}
+
+/** Resolves encounter-local content IDs and returns player-sourced effect creations for the requested GUID. */
+export function effectSignals(
+  context: EvtcProfessionReconstructionContext,
+  guid: string
+): { event: ParsedEvtcEvent; eventIndex: number }[] {
+  const guidByContentId = new Map(
+    context.log.events
+      .filter((event) => event.stateChange === 46)
+      .map((event) => [event.skillId, littleEndianHex(event.source) + littleEndianHex(event.target)])
+  );
+  const normalizedGuid = guid.toUpperCase();
+  return context.log.events.flatMap((event, eventIndex) =>
+    event.source === context.playerAddress &&
+    event.skillId !== 0 &&
+    EFFECT_CREATE_STATE_CHANGES.has(event.stateChange) &&
+    guidByContentId.get(event.skillId) === normalizedGuid
+      ? [{ event, eventIndex }]
+      : []
+  );
 }
 
 /** Keeps profession reconstruction on one definition of common EVTC identity and timing operations. */
