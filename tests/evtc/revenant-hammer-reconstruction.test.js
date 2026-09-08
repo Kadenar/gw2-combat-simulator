@@ -51,6 +51,8 @@ test('infers manual upkeep release only when restart timing rules out starvation
   for (const stateChange of [0, 69]) {
     for (const [restartAt, swap, expected] of [
       [4500, false, true],
+      // Removal at 3000 permits a starvation restart at 7000; an earlier restart proves manual release.
+      [6999, false, true],
       [7000, false, false],
       [4500, true, false]
     ]) {

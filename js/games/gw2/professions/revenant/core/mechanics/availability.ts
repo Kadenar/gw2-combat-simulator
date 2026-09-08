@@ -101,9 +101,13 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
   }
 
   const cost = effectiveRevenantEnergyCost(context, skill);
-  if (state.energy + context.epsilon < cost) {
+  const energyReadyAt = revenantEnergyReadyAt(context, cost);
+  // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
+  if (
+    state.energy + context.epsilon < cost ||
+    (energyReadyAt != null && energyReadyAt > context.start + context.epsilon)
+  ) {
     const cooldownReadyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-    const energyReadyAt = revenantEnergyReadyAt(context, cost);
     return denyRevenantSkill(
       skill,
       'revenant.insufficient-energy',

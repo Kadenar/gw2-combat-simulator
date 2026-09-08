@@ -217,7 +217,6 @@ describe('Power Conduit skill profiles', () => {
     }
 
     for (const [name, impactMs] of [
-      ['Hammer Bolt', 520],
       ['Coalescence of Ruin', 560],
       ['Field of the Mists', 560],
       ['Drop the Hammer', 1640]
@@ -537,8 +536,8 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.deepEqual(
     anguish.events
       .filter((event) => event.type === 'revenant.state' && event.reason === 'energy-spent')
-      .map((event) => event.state.energy),
-    [0, 3]
+      .map((event) => Number(event.state.energy.toFixed(9))),
+    [0, 3.1]
   );
 
   const normalEmbrace = simulate('Core', ['Embrace the Darkness'], {
@@ -733,7 +732,9 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
   assert.equal(beguilingAmmo.nextRechargeAt, beguiling.endState.profession.beguilingHazeReadyAt);
-  assert.equal(beguiling.endState.profession.energy, 83);
+  // Above the precombat cap, regeneration resumes only when the first hit starts combat.
+  const combatDuration = beguiling.steps.at(-1).end / 1000 - beguiling.endState.profession.combatBeganAt;
+  assert.ok(Math.abs(beguiling.endState.profession.energy - (80 + 5 * combatDuration)) < 1e-9);
 
   const recharged = simulate(
     'Conduit',

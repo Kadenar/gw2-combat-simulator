@@ -80,7 +80,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 500,
     quicknessCastTimeMs: 480,
     cooldown: 15,
-    energyCost: 10,
+    energyCost: 15,
     effects: [
       {
         type: 'strike',

@@ -13,10 +13,11 @@
         "upToDate": true
       },
       {
-        "label": "Power Renegade (Hammer - Sword/Sword)",
+        "label": "Power Renegade (Hammer)",
         "build": "data/gw2/builds/revenant/b-power-renegade-hammer.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-renegade-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-hammer-sword-sword",
-        "benchmarkDps": 42678
+        "benchmarkDps": 48728
       },
       {
         "label": "Power Alacrity (Sword/Sword)",

@@ -1,11 +1,12 @@
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 /**
  * Revenant Energy and endurance lifecycle.
  *
  * The scheduler calls advanceRevenantEnergy whenever its clock advances. This
- * module applies passive regeneration, aggregate upkeep drain, exact starvation
+ * module applies passive regeneration, aggregate upkeep drain, tick-aligned starvation
  * timing, out-of-combat Energy capping and endurance regeneration.
  */
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
@@ -16,8 +17,6 @@ import type {
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
-
-const REVENANT_ENERGY_TICK_INTERVAL = 0.1;
 
 function roundedResourceValue(value: number): number {
   return Math.round(value * 1e9) / 1e9;
@@ -36,17 +35,16 @@ function syncRevenantCombatState(context: RevenantSchedulerContext, state: Reven
   if (Number.isFinite(at)) state.combatBeganAt = at;
 }
 
-function regenerateRevenantEnergy(
-  context: RevenantSchedulerContext,
-  state: RevenantCoreState,
-  from: number,
-  target: number,
-  rate: number
-): number {
-  const combatActive = context.schedulerPolicy.isCombatActive?.() ?? state.combatBeganAt != null;
-  const maximum = combatActive ? state.maximumEnergy : Math.max(50, state.energy);
-  // Precasts recover Energy up to 50 without removing Energy already above the regeneration cap.
-  return roundedResourceValue(Math.min(maximum, state.energy + (target - from) * rate));
+function accruedEnergy(accrual: NonNullable<RevenantCoreState['energyAccrual']>, at: number): number {
+  return roundedResourceValue(
+    Math.max(0, Math.min(accrual.maximum, accrual.energy + (at - accrual.at) * accrual.rate))
+  );
+}
+
+function activeUpkeepCost(state: RevenantCoreState, at: number): number {
+  return state.activeUpkeeps
+    .filter((active) => Number(active.startsAt || 0) <= at)
+    .reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
 }
 
 export function revenantEnduranceRegenerationRate(
@@ -68,37 +66,48 @@ export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: 
   return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
 }
 
-/** Returns the first 100 ms Energy tick that can make an in-combat cast affordable. */
+/** Keeps regeneration-funded casts on the absolute 40 ms grid without rounding the stored Energy. */
 export function revenantEnergyReadyAt(context: RevenantPrecastContext, cost: number): number | null {
   const state = professionCoreState(context);
   const regeneration = Number(resourceProfile(context).energyRegenerationPerSecond || 0);
-  const upkeep = state.activeUpkeeps
-    .filter((active) => Number(active.startsAt || 0) <= context.start + context.epsilon)
-    .reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
-  const gainPerTick = (regeneration - upkeep) * REVENANT_ENERGY_TICK_INTERVAL;
-  if (state.combatBeganAt == null || gainPerTick <= 0 || cost > state.maximumEnergy + context.epsilon) return null;
-
-  const missing = cost - state.energy;
-  const ticks = Math.max(1, Math.ceil((missing - context.epsilon) / gainPerTick));
-  return roundedResourceValue(state.energyUpdatedAt + ticks * REVENANT_ENERGY_TICK_INTERVAL);
+  const rate = regeneration - activeUpkeepCost(state, context.start);
+  const accrual = state.energyAccrual;
+  const enough = state.energy + context.epsilon >= cost;
+  // Immediate refunds and an already sufficient pool do not introduce an Energy wait.
+  if (enough && (!accrual || accrual.rate <= 0 || accrual.energy + context.epsilon >= cost)) return context.start;
+  if (rate <= 0 || cost > state.maximumEnergy + context.epsilon || (!enough && state.combatBeganAt == null))
+    return null;
+  const threshold = accrual
+    ? accrual.at + (cost - accrual.energy) / rate
+    : context.start + (cost - state.energy) / rate;
+  return quantizeGw2ActionDurationUp(threshold * 1000) / 1000;
 }
 
-function advanceRevenantEnergyTick(
+function advanceRevenantEnergyInterval(
   context: RevenantSchedulerContext,
   state: RevenantCoreState,
   from: number,
   target: number,
   regeneration: number
 ): void {
-  // A cast-time upkeep affects the first resource tick on or after its completion, never its activation windup.
-  const upkeep = state.activeUpkeeps
-    .filter((active) => Number(active.startsAt || 0) <= target + context.epsilon)
-    .reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
-  const rate = regeneration - upkeep;
-  const elapsed = target - from;
+  const rate = regeneration - activeUpkeepCost(state, from);
+  const combatActive = state.combatBeganAt != null && from >= state.combatBeganAt;
+  const maximum = combatActive ? state.maximumEnergy : Math.max(50, state.energy);
   const previousEnergy = state.energy;
-  if (rate < 0 && state.energy + rate * elapsed < 0) {
-    const starvedAt = from + state.energy / -rate;
+  let accrual = state.energyAccrual;
+  // Spending, refunds, and rate changes start a new segment; ordinary reads retain the original threshold times.
+  if (
+    !accrual ||
+    accruedEnergy(accrual, from) !== state.energy ||
+    accrual.rate !== rate ||
+    accrual.maximum !== maximum
+  ) {
+    accrual = state.energyAccrual = { at: from, energy: state.energy, rate, maximum };
+  }
+
+  const starvedAt =
+    rate < 0 ? quantizeGw2ActionDurationUp((accrual.at + accrual.energy / -rate) * 1000) / 1000 : Infinity;
+  if (starvedAt <= target) {
     state.energy = 0;
     for (const active of state.activeUpkeeps) {
       const skill = context.catalog.skillsById.get(active.skillId);
@@ -114,16 +123,14 @@ function advanceRevenantEnergyTick(
     state.availableFlips = {};
     state.energyUpdatedAt = starvedAt;
     emitRevenantStateSnapshot(context, starvedAt, 'upkeep-starved');
-    state.energy = regenerateRevenantEnergy(context, state, starvedAt, target, regeneration);
+    state.energyAccrual = { at: starvedAt, energy: 0, rate: regeneration, maximum };
+    state.energy = accruedEnergy(state.energyAccrual, target);
     state.energyUpdatedAt = target;
     emitRevenantStateSnapshot(context, target, 'energy');
     return;
   }
 
-  state.energy =
-    rate > 0
-      ? regenerateRevenantEnergy(context, state, from, target, rate)
-      : roundedResourceValue(Math.max(0, Math.min(state.maximumEnergy, state.energy + elapsed * rate)));
+  state.energy = accruedEnergy(accrual, target);
   state.energyUpdatedAt = target;
   if (state.energy !== previousEnergy) {
     emitRevenantStateSnapshot(context, target, 'energy');
@@ -145,14 +152,17 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
     Object.assign(state, advanceEndurance(state, target, enduranceRate, state.maximumEndurance));
   }
 
-  // Apply completed 100 ms resource ticks while leaving Energy flat between
-  // them, matching the smoother cadence used by other discrete resources.
-  let tickFrom = from;
-  let tickAt = roundedResourceValue(tickFrom + REVENANT_ENERGY_TICK_INTERVAL);
-  while (tickAt <= target) {
-    advanceRevenantEnergyTick(context, state, tickFrom, tickAt, regeneration);
-    tickFrom = tickAt;
-    tickAt = roundedResourceValue(tickFrom + REVENANT_ENERGY_TICK_INTERVAL);
+  // Integrate once per rate/cap change, including upkeeps reserved for a future cast completion.
+  const boundaries = [
+    ...new Set([...state.activeUpkeeps.map((active) => Number(active.startsAt || 0)), state.combatBeganAt ?? from])
+  ]
+    .filter((at) => at > from && at < target)
+    .sort((left, right) => left - right);
+  let intervalStart = from;
+  for (const at of [...boundaries, target]) {
+    if (at < intervalStart) continue;
+    advanceRevenantEnergyInterval(context, state, intervalStart, at, regeneration);
+    intervalStart = at;
   }
 }
 

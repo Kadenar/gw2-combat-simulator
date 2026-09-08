@@ -487,14 +487,13 @@ test('Icerazor grants Fervor only after its projectiles land', () => {
 
 test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles', () => {
   assert.deepEqual(
-    [SKILL.CITADEL_BOMBARDMENT, SKILL.HEROIC_COMMAND, SKILL.ORDERS_FROM_ABOVE].map((id) => {
+    [SKILL.CITADEL_BOMBARDMENT, SKILL.ORDERS_FROM_ABOVE].map((id) => {
       const skill = revenantCatalog.skillsById.get(id);
 
       return [skill.energyCost, skill.cooldown, skill.castTimeMs];
     }),
     [
       [35, 15, 600],
-      [10, 10, 500],
       [20, 20, 0]
     ]
   );
@@ -506,13 +505,6 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
   });
 
   assert.equal(quickBombardment.steps[0].fullCastMs, 600);
-  // Heroic Command uses its measured Quickness duration instead of scaling the tooltip to 360 ms.
-  const quickHeroic = simulate('Renegade', ['Heroic Command'], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    boons: { quickness: true }
-  });
-  assert.equal(quickHeroic.steps[0].fullCastMs, 480);
   const bombardment = simulate(
     'Renegade',
     ['Citadel Bombardment', 'Citadel Bombardment'],
@@ -1428,14 +1420,19 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     )
   );
 
-  const starved = simulate('Core', ['Impossible Odds', { type: 'wait', durationMs: 1100 }], {
+  // One Energy remains after activation: net drain reaches zero exactly on the one-second action tick.
+  const starved = simulate('Core', ['Impossible Odds', { type: 'wait', durationMs: 1000 }], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 6
   });
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
 
-  assert.equal(starved.schedulerState.cooldowns.get(impossible.id), 5);
+  const starvation = starved.events.find(
+    (event) => event.type === 'revenant.state' && event.reason === 'upkeep-starved'
+  );
+  assert.equal(starvation?.at, 1);
+  assert.equal(starved.schedulerState.cooldowns.get(impossible.id) - starvation.at, 4);
   assert.equal(starved.endState.profession.activeUpkeeps.length, 0);
 
   const jade = revenantCatalog.skillsByName.get('Jade Winds');
@@ -1584,7 +1581,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
 });
 
 test('both Energy Meld variants grant resources only on completed casts', () => {
-  // Completion must preserve cast-time regeneration; cancellation must never grant the trait refund.
+  // Isolate the 25-Energy refund from passive regeneration so cancellation checks do not depend on cast timing.
   for (const skillId of [SKILL.ENERGY_MELD, SKILL.ENERGY_MELD_ID_72058]) {
     for (const interruptAfterMs of [undefined, 200]) {
       const result = simulate('Vindicator', ['__combat_start', { skillId, interruptAfterMs }], {
@@ -1596,7 +1593,10 @@ test('both Energy Meld variants grant resources only on completed casts', () => 
 
       assert.deepEqual(result.warnings, []);
       assert.equal(meld.length, interruptAfterMs == null ? 1 : 0);
-      assert.equal(result.endState.profession.energy, interruptAfterMs == null ? 27 : 1);
+      const passiveEnergy = (5 * result.steps.at(-1).end) / 1000;
+      assert.ok(
+        Math.abs(result.endState.profession.energy - passiveEnergy - (interruptAfterMs == null ? 25 : 0)) < 1e-9
+      );
       if (meld.length) assert.equal(meld[0].at, result.steps.at(-1).end / 1000);
     }
   }

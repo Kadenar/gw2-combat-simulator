@@ -151,7 +151,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   const dropTheHammer = revenantCatalog.skillsById.get(SKILL.DROP_THE_HAMMER);
 
   assert.equal(dropTheHammer.cooldown, 15);
-  assert.equal(dropTheHammer.energyCost, 10);
+  assert.equal(dropTheHammer.energyCost, 15);
   assert.equal(strikeCoefficient(dropTheHammer.effects[0]), 3.2);
   assert.equal(dropTheHammer.effects[0].comboFinishers[0].finisherType, 'Blast');
   assert.equal(dropTheHammer.effects[1].duration, 3);

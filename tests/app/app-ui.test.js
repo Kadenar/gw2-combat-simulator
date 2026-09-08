@@ -906,7 +906,7 @@ test('Revenant Power Renegade Hammer default build resolves', async () => {
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
-  const preset = renegade.presets.find((candidate) => candidate.label === 'Power Renegade (Hammer - Sword/Sword)');
+  const preset = renegade.presets.find((candidate) => candidate.label === 'Power Renegade (Hammer)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
@@ -915,8 +915,8 @@ test('Revenant Power Renegade Hammer default build resolves', async () => {
   assert.equal(build.profession, 'revenant');
   assert.equal(build.specializations[2].name, 'Renegade');
   assert.deepEqual(build.weapons, ['Hammer', '']);
-  assert.deepEqual(build.alternateWeapons, ['Sword', 'Sword']);
-  assert.equal(build.relic, 'Brawler');
+  assert.deepEqual(build.alternateWeapons, ['', '']);
+  assert.equal(build.relic, 'Thief');
   assert.deepEqual(build.selectedLegends, ['LegendaryAssassin', 'LegendaryRenegade']);
   assert.equal(build.startingLegend, 'LegendaryAssassin');
 });

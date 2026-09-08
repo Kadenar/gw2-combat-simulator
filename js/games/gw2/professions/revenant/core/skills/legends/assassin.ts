@@ -40,6 +40,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     energyCost: 5,
     upkeepCost: 6,
     manualReleaseCooldown: 1,
+    // Exhausting Energy locks the upkeep for four seconds from starvation.
     starvationCooldown: 4,
     pulseInterval: 1,
     // Triggered strikes use a separate quarter-second ICD from the upkeep pulse.

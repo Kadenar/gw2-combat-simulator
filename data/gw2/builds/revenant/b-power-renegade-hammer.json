@@ -17,14 +17,15 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
   "weapons": ["Hammer", ""],
-  "alternateWeapons": ["Sword", "Sword"],
+  "alternateWeapons": ["", ""],
   "rune": "Dragonhunter",
   "weaponSigils": [
-    ["Force", "Hydromancy"],
+    ["Force", "Air"],
     ["Force", "Air"]
   ],
-  "relic": "Brawler",
+  "relic": "Thief",
   "food": "Cilantro Lime Sous-Vide Steak",
   "utility": "Superior Sharpening Stone",
   "jadeBotCore": true,
@@ -62,6 +63,7 @@
   "selectedDodge": "Death Drop",
   "allianceSide": "luxon",
   "assumptions": {
+    "simulationMode": "deterministic",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -81,11 +83,14 @@
       "Vulnerability": 25,
       "Weakness": true
     },
+    "hitboxSize": "large",
     "targetSkillActivationsPerSecond": 0
   },
-  "initialEnergy": 50,
-  "startingWeaponSet": 2,
+  "startingWeaponSet": 1,
   "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
   "targetArmor": 2597,
-  "initialResource": 0
+  "initialEnergy": 50,
+  "initialResource": 0,
+  "precastRelics": []
 }
