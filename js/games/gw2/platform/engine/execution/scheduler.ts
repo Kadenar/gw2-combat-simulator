@@ -1032,6 +1032,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       fullEndsAt: fullEnd,
       rechargeReadyAt,
       interrupted,
+      // Carry skill evade metadata into the action timeline for shared evade-triggered effects.
+      ...(skill.evades ? { evades: true } : {}),
       ...(castLockoutEnd > effectiveEnd + epsilon ? { castLockoutEndsAt: castLockoutEnd } : {}),
       ...(cancelledBeforeCommit ? { cancelled: true } : {})
     });

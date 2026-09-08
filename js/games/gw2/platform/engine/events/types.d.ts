@@ -91,6 +91,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly sourceSkill?: string;
   readonly detail?: string;
   readonly triggeredBy?: string;
+  /** The action's skill grants an evade window, independently of ordinary dodge actions. */
+  readonly evades?: boolean;
   readonly activationId?: string;
   /** Monotone identity assigned when the scheduler emits the event. */
   readonly eventOrder?: number;

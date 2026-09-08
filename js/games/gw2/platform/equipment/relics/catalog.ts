@@ -27,6 +27,11 @@ export const RELIC_DATA = {
     trigger: 'Grant yourself Might; +10% critical chance at 10+ Might',
     cooldown: 1
   },
+  Mirage: {
+    trigger: 'Successfully evade an attack (2 Torment for 6s)',
+    cooldown: 1,
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_the_Mirage.png'
+  },
   'Mist Stranger': { trigger: 'Extra flat damage on every hit', cooldown: 0 },
   Nourys: {
     trigger: 'Gain 1 stack every 3s in combat (10 stacks → 5s damage buff)',
@@ -128,7 +133,7 @@ export const RELIC_GROUPS = [
   },
   {
     label: 'Condition',
-    items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Steamshrieker', 'Thorns']
+    items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Mirage', 'Steamshrieker', 'Thorns']
   },
   {
     label: 'Hybrid',

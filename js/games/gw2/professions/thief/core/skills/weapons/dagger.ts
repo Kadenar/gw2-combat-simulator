@@ -42,6 +42,8 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     stealthAttack: true
   },
   [ID.DEATH_BLOSSOM]: {
+    // Its evasive attack can activate successful-evade effects such as Relic of the Mirage.
+    evades: true,
     movementSkill: true,
     quicknessCastTimeMs: 1040,
     cooldown: 0,
