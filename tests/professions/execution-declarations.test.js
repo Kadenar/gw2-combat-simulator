@@ -69,9 +69,12 @@ test('native professions share one skill timing contract', async () => {
       assert.equal('activation' in skill, false, skill.name);
       assert.equal('castTime' in skill, false, skill.name);
       assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
+      assert.ok(skill.castTimeMs >= 0, skill.name);
 
       if (skill.quicknessCastTimeMs != null) {
-        assert.equal(skill.castTimeMs, skill.quicknessCastTimeMs * 1.5, skill.name);
+        // Explicit durations can include fixed movement time, so only derived base casts must scale by 1.5.
+        assert.ok(Number.isFinite(skill.quicknessCastTimeMs), skill.name);
+        assert.ok(skill.quicknessCastTimeMs >= 0, skill.name);
       }
 
       if (skill.unaffectedByQuickness) {

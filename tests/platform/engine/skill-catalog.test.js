@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/engine/skills/autoattack-chains.js';
 
 // Canonical catalogs normalize cast metadata and autoattack chains before execution.
-test('canonical skills derive base casts and can opt out of Quickness', () => {
+test('canonical skills derive missing base casts, preserve explicit durations, and can opt out of Quickness', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -23,6 +23,13 @@ test('canonical skills derive base casts and can opt out of Quickness', () => {
         castTimeMs: 700,
         unaffectedByQuickness: true,
         effects: []
+      },
+      {
+        id: 930003,
+        name: 'Explicit Base Cast',
+        castTimeMs: 640,
+        quicknessCastTimeMs: 440,
+        effects: []
       }
     ]
   });
@@ -34,6 +41,11 @@ test('canonical skills derive base casts and can opt out of Quickness', () => {
   assert.deepEqual(
     [catalog.skillsById.get(930001).castTimeMs, catalog.skillsById.get(930001).unaffectedByQuickness],
     [700, true]
+  );
+  // A fixed movement segment prevents the full cast from following the standard Quickness ratio.
+  assert.deepEqual(
+    [catalog.skillsById.get(930003).castTimeMs, catalog.skillsById.get(930003).quicknessCastTimeMs],
+    [640, 440]
   );
   assert.throws(
     () =>
