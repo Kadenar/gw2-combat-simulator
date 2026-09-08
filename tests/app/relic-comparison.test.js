@@ -10,7 +10,8 @@ import {
 import {
   CROSSOVER_EVALUATION_START_MS,
   buildRelicComparisonModel,
-  relicComparisonAvailable
+  relicComparisonAvailable,
+  relicDamageSummary
 } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 
 test('break-even chart hover shows the time and both relic DPS values', () => {
@@ -246,7 +247,7 @@ test('break-even model reports no crossover when Thorns never catches up', () =>
   assert.equal(model.targetAlwaysAhead, false);
 });
 
-test('relic comparison passes the selected relic and shows stacks only for Thorns', () => {
+test('relic comparison passes assumptions and shows the selected relic controls', () => {
   const runButton = {};
   const targetInput = { value: 'Thorns' };
   const stackInput = { value: '4' };
@@ -273,7 +274,7 @@ test('relic comparison passes the selected relic and shows stacks only for Thorn
       relicComparisonAvailable: true,
       relicComparisonOpponent: 'Fractal',
       relicComparisonTarget: 'Thorns',
-      relicComparisonTargets: ['Akeem', 'Thorns'],
+      relicComparisonTargets: ['Akeem', 'Mirage', 'Thorns'],
       relicComparisonInitialStacks: 4
     },
     (relic, stacks) => {
@@ -296,6 +297,43 @@ test('relic comparison passes the selected relic and shows stacks only for Thorn
   runButton.onclick();
   assert.equal(targetRelic, 'Akeem');
   assert.equal(startingStacks, 4);
+  assert.doesNotMatch(container.innerHTML, /relic-comparison-evades/);
+  targetInput.value = 'Mirage';
+  targetInput.onchange();
+  assert.equal(stackControl.hidden, true);
+  runButton.onclick();
+  assert.equal(targetRelic, 'Mirage');
+});
+
+// Attribution includes direct relic conditions/strikes and counterfactual modifier effects.
+test('relic damage summaries separate direct damage from net DPS contribution', () => {
+  const opponentDamage = relicDamageSummary(
+    {
+      dps: 1200,
+      breakdown: [
+        { name: 'Weapon', damage: 9000 },
+        { name: 'Relic of the Fractal — Burning', damage: 1200 },
+        { name: 'Relic of the Fractal — Torment', damage: 800 }
+      ]
+    },
+    1000
+  );
+  const targetDamage = relicDamageSummary({ dps: 1300, breakdown: [{ name: 'Weapon', damage: 13000 }] }, 1000);
+  assert.deepEqual(opponentDamage, { buildDps: 1200, directDamage: 2000, contributedDps: 200 });
+  assert.deepEqual(targetDamage, { buildDps: 1300, directDamage: 0, contributedDps: 300 });
+  const model = buildRelicComparisonModel({
+    opponentRelic: 'Fractal',
+    targetRelic: 'Thorns',
+    durationMs: 10000,
+    opponentDps: [{ t: 10000, v: 1200 }],
+    targetDps: [{ t: 10000, v: 1300 }]
+  });
+  const markup = relicComparisonChartSvg({ ...model, opponentDamage, targetDamage });
+  assert.match(markup, /Fractal \(standard\)/);
+  assert.match(markup, /Direct relic damage/);
+  assert.match(markup, /Relic DPS contribution/);
+  assert.match(markup, /Build DPS/);
+  assert.ok(markup.includes((2000).toLocaleString()));
 });
 
 // Comparison choices keep the gear categories and selection even when targets arrive alphabetically.

@@ -786,6 +786,7 @@ function minimalResult(damageAt1s) {
   // buildChartSeries only needs the DPS window, resolved damage events, and
   // (optionally) breakdown/events — keep it minimal but non-empty.
   return {
+    dps: damageAt1s / 4,
     dpsStartTime: 0,
     dpsWindow: 4,
     duration: 4,
@@ -830,14 +831,14 @@ test('relic comparison scheduling publishes availability without simulating', ()
   assert.equal(simulated, 0, 'scheduling must not run the second simulation');
 });
 
-test('relic comparison run simulates each selected relic and gives opening stacks only to Thorns', (t) => {
+test('relic comparison scopes assumptions and attributes damage against a no-relic simulation', (t) => {
   runTimersImmediately(t);
   let renderCount = 0;
   const simulatedConfigs = [];
   const results = minimalResult(4000);
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
-    relicNames: ['Akeem', 'Fractal', 'Thorns'],
+    relicNames: ['Akeem', 'Fractal', 'Mirage', 'Thorns'],
     results,
     adapter: {
       relicComparisonRequest(_app, comparisonRelic) {
@@ -853,7 +854,7 @@ test('relic comparison run simulates each selected relic and gives opening stack
       simulateBuild(_rotation, config) {
         simulatedConfigs.push(config);
 
-        return minimalResult(4200);
+        return minimalResult(config.relic ? 4200 : 3600);
       },
       presentation: testPresentation(() => assert.fail('Relic updates must not render Analysis'))
     }
@@ -864,12 +865,20 @@ test('relic comparison run simulates each selected relic and gives opening stack
 
   runner.run('Akeem');
   runner.run('Thorns', 4);
+  runner.run('Mirage', 4);
 
   assert.deepEqual(
-    simulatedConfigs.map(({ relic, initialThornsStacks }) => ({ relic, initialThornsStacks })),
+    simulatedConfigs.map(({ relic, initialThornsStacks }) => ({
+      relic,
+      initialThornsStacks
+    })),
     [
       { relic: 'Akeem', initialThornsStacks: undefined },
-      { relic: 'Thorns', initialThornsStacks: 4 }
+      { relic: '', initialThornsStacks: undefined },
+      { relic: 'Thorns', initialThornsStacks: 4 },
+      { relic: '', initialThornsStacks: undefined },
+      { relic: 'Mirage', initialThornsStacks: undefined },
+      { relic: '', initialThornsStacks: undefined }
     ]
   );
   assert.equal(results.relicComparisonInitialStacks, 4);
@@ -877,7 +886,9 @@ test('relic comparison run simulates each selected relic and gives opening stack
   assert.equal(results.relicComparisonError, '');
   assert.ok(results.relicComparison, 'break-even model is stored');
   assert.equal(results.relicComparison.opponentRelic, 'Fractal');
-  assert.equal(results.relicComparison.targetRelic, 'Thorns');
+  assert.equal(results.relicComparison.targetRelic, 'Mirage');
+  assert.deepEqual(results.relicComparison.opponentDamage, { buildDps: 1000, directDamage: 0, contributedDps: 100 });
+  assert.deepEqual(results.relicComparison.targetDamage, { buildDps: 1050, directDamage: 0, contributedDps: 150 });
   assert.ok(renderCount >= 1);
 });
 

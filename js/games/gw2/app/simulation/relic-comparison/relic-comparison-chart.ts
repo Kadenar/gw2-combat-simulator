@@ -153,8 +153,28 @@ export function relicComparisonChartSvg(
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
+  // Keep numerical attribution available even when the rotation cannot produce a chart.
+  const damageSummary =
+    model.opponentDamage && model.targetDamage
+      ? `<table class="relic-cmp-damage">
+    <caption>Damage contribution in each simulation</caption>
+    <thead><tr><th scope="col">Build</th><th scope="col">Build DPS</th><th scope="col">Direct relic damage</th><th scope="col">Relic DPS contribution</th></tr></thead>
+    <tbody>${(
+      [
+        [`${opponentLabel} (standard)`, model.opponentDamage],
+        [targetLabel, model.targetDamage]
+      ] as const
+    )
+      .map(
+        ([label, damage]) =>
+          `<tr><th scope="row">${escapeHtml(label)}</th><td>${formatDps(damage.buildDps)}</td><td>${formatDps(damage.directDamage)}</td><td>${formatDps(damage.contributedDps)}</td></tr>`
+      )
+      .join('')}</tbody>
+  </table><p>Direct damage includes relic strikes and conditions. DPS contribution is the full build DPS minus the same build with no relic, including buffs and interactions.</p>`
+      : '';
+
   if (model.points.length < 2) {
-    return `<p class="relic-cmp-empty">Not enough damage in this rotation to compare relics.</p>`;
+    return `${damageSummary}<p class="relic-cmp-empty">Not enough damage in this rotation to compare relics.</p>`;
   }
 
   // Clamp the view to the post-opener window so the volatile first-few-seconds
@@ -185,6 +205,7 @@ export function relicComparisonChartSvg(
       <div class="chart-tooltip" data-role="relic-comparison-tooltip"></div>
     </div>
     <figcaption class="relic-cmp-caption">
+      ${damageSummary}
       <div class="relic-cmp-legend">
         <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${opponentColor}"></span>${escapeHtml(opponentLabel)} <b>${formatDps(model.opponentFinalDps)}</b></span>
         <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${targetColor}"></span>${escapeHtml(targetLabel)} <b>${formatDps(model.targetFinalDps)}</b></span>

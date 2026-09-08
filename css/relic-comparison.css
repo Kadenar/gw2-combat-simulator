@@ -53,6 +53,24 @@
   font-weight: 400;
 }
 
+/* Keep each simulation's damage and DPS attribution readable alongside the chart. */
+.relic-cmp-damage {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.relic-cmp-damage th,
+.relic-cmp-damage td {
+  padding: 6px;
+  text-align: right;
+}
+
+.relic-cmp-damage th:first-child,
+.relic-cmp-damage caption {
+  text-align: left;
+}
+
 .relic-cmp-status {
   padding: 10px;
   color: var(--text-dim);

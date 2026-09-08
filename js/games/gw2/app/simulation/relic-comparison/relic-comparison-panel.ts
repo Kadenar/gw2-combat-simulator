@@ -91,10 +91,11 @@ export function mountRelicComparison(
     '[data-role="relic-comparison-stacks-control"]'
   );
 
-  if (relicComparisonTargetInput && relicComparisonStacksControl) {
-    // Thorns alone needs opening stack configuration; other relics keep the control out of the way.
+  if (relicComparisonTargetInput) {
+    // Show only the selected relic's assumption controls.
     relicComparisonTargetInput.onchange = () => {
-      relicComparisonStacksControl.hidden = relicComparisonTargetInput.value !== 'Thorns';
+      if (relicComparisonStacksControl)
+        relicComparisonStacksControl.hidden = relicComparisonTargetInput.value !== 'Thorns';
     };
   }
 

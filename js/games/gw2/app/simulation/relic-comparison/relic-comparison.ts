@@ -1,4 +1,22 @@
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+
+export interface RelicDamageSummary {
+  readonly buildDps: number;
+  readonly directDamage: number;
+  readonly contributedDps: number;
+}
+
+/** Direct relic packets come from the breakdown; removing the relic also captures its buffs and interactions. */
+export function relicDamageSummary(result: Gw2SimulationResult, withoutRelicDps: number): RelicDamageSummary {
+  return {
+    buildDps: result.dps,
+    directDamage: result.breakdown
+      .filter((entry) => entry.source === 'Relic' || entry.name.startsWith('Relic of '))
+      .reduce((sum, entry) => sum + entry.damage, 0),
+    contributedDps: result.dps - withoutRelicDps
+  };
+}
 
 /** Ignore volatile opener crossovers that do not represent a useful fight-duration decision. */
 export const CROSSOVER_EVALUATION_START_MS = 8000;
@@ -21,6 +39,8 @@ export interface RelicComparisonPoint {
 }
 
 export interface RelicComparisonModel {
+  readonly opponentDamage?: RelicDamageSummary;
+  readonly targetDamage?: RelicDamageSummary;
   readonly opponentRelic: string;
   readonly targetRelic: string;
   readonly durationMs: number;

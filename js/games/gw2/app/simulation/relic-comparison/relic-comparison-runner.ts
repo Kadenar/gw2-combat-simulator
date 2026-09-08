@@ -1,5 +1,8 @@
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { buildRelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+import {
+  buildRelicComparisonModel,
+  relicDamageSummary
+} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Runs one user-selected relic simulation against the equipped relic already on screen. */
@@ -78,7 +81,7 @@ export class RelicComparisonRunner {
     results.relicComparisonTarget = request.comparisonRelic;
   }
 
-  /** Runs the selected comparison and applies opening stacks only when its target is Thorns. */
+  /** Applies each relic's configured assumptions to its comparison simulation. */
   run(comparisonRelic: string = this.comparisonRelic, initialStacks: number = this.initialStacks): void {
     const app = this.app;
     const requestId = ++this.requestId;
@@ -116,6 +119,8 @@ export class RelicComparisonRunner {
         });
         const opponentSeries = buildChartSeries(opponentResult);
         const targetSeries = buildChartSeries(targetResult);
+        // One shared no-relic run attributes both direct damage and modifier effects.
+        const withoutRelic = app.adapter.simulateBuild(request.rotation, { ...request.baseConfig, relic: '' });
         const model = buildRelicComparisonModel({
           opponentRelic: request.opponentRelic,
           targetRelic: request.comparisonRelic,
@@ -124,7 +129,11 @@ export class RelicComparisonRunner {
           targetDps: targetSeries.dps
         });
         if (requestId !== this.requestId || !app.results) return;
-        app.results.relicComparison = model;
+        app.results.relicComparison = {
+          ...model,
+          opponentDamage: relicDamageSummary(opponentResult, withoutRelic.dps),
+          targetDamage: relicDamageSummary(targetResult, withoutRelic.dps)
+        };
         app.results.relicComparisonStale = false;
         app.results.relicComparisonError = '';
         this.onUpdate();
