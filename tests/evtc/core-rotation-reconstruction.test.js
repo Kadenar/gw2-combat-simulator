@@ -57,6 +57,39 @@ test('inferred setup uses the same Quickness fallback as replay', () => {
   assert.equal(catalogDuration(context, { skillId: 3000, name: 'Blink' }), 360);
 });
 
+test('Revenant observation ends at encounter target death while retaining an in-flight cast', () => {
+  // Allied buff traffic and an earlier secondary target death must not determine the replay boundary.
+  for (const elite of [0, 52, 63, 69]) {
+    const result = reconstructEvtcRotation(
+      log({
+        agents: [
+          { ...log().agents[0], profession: 9, elite },
+          { ...log().agents[0], address: 0x2000n, profession: log().header.encounterId, elite: 0xffffffff }
+        ],
+        events: [
+          event({ time: 1000, skillId: 1000, stateChange: 67, value: 560 }),
+          event({ time: 1100, target: 0x2000n, skillId: 1000, value: 100 }),
+          event({ time: 1120, target: 0x2000n, skillId: 1000, value: 100 }),
+          event({ time: 1140, target: 0x3000n, skillId: 1000, value: 100 }),
+          ...Array.from({ length: 3 }, (_, index) =>
+            event({ time: 1150 + index, target: 0x4000n, skillId: 9999, value: 1000, buff: 1 })
+          ),
+          event({ time: 1160, source: 0x4000n, stateChange: 2 }),
+          event({ time: 1180, source: 0x3000n, stateChange: 4 }),
+          event({ time: 1400, source: 0x2000n, stateChange: 4 }),
+          event({ time: 1560, skillId: 1000, stateChange: 68, activation: 3, value: 560 }),
+          event({ time: 1560, skillId: 1000, stateChange: 67, value: 560 }),
+          event({ time: 2120, skillId: 1000, stateChange: 68, activation: 3, value: 560 })
+        ]
+      }),
+      catalog,
+      { includeCombatStart: false }
+    );
+    assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1000 }]);
+    assert.equal(result.actions[0].durationMs, 560);
+  }
+});
+
 test('modern and legacy EVTC casts obey cancellation contracts across every profession', () => {
   // Keep the same two-input scenario across professions so packet evidence cannot bypass the shared timing contract.
   for (const professionCode of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
