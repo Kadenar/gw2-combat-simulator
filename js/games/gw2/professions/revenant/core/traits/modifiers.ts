@@ -139,7 +139,13 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
-import type { RevenantConfig, RevenantCoreState, RevenantState } from '#gw2/professions/revenant/types.js';
+import type {
+  RevenantConfig,
+  RevenantCoreState,
+  RevenantState,
+  RevenantResolverContext,
+  RevenantResolverEvent
+} from '#gw2/professions/revenant/types.js';
 
 export { snapshotRevenantState } from '#gw2/professions/revenant/state.js';
 
@@ -170,6 +176,24 @@ export function revenantTimedBuff(context: RevenantModifierContext, kind: string
   return (context.runtime?.boons?.get(kind) || []).some(
     (application) => application.at <= context.time && application.expiresAt > context.time
   );
+}
+
+/** Life steal bypasses ordinary strike modifiers; expose its Core bonus for specialization composition. */
+export function revenantLifeSiphonBonus(context: RevenantResolverContext, event: RevenantResolverEvent): number | null {
+  const flatStrike = [event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(Number.isFinite);
+  if (!flatStrike || (!event.lifeSiphon && !/siphon/i.test(`${event.name || ''} ${event.skillName || ''}`)))
+    return null;
+  return hasTrait(context.config, TRAIT.FEROCIOUS_AGGRESSION) &&
+    boonActive({ config: context.config, runtime: context, time: event.at, event }, 'fury')
+    ? 0.1
+    : 0;
+}
+
+/** Applies Fury's life-steal bonus to Core and elite specializations without using ordinary strike scaling. */
+export function modifyRevenantLifeSiphon(context: RevenantResolverContext, event: RevenantResolverEvent) {
+  const bonus = revenantLifeSiphonBonus(context, event);
+  if (bonus == null) return;
+  return { flatStrikeMultiplier: Number(event.flatStrikeMultiplier ?? 1) * (1 + bonus) };
 }
 
 function activeOffhand(context: RevenantModifierContext): boolean {

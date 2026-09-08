@@ -68,7 +68,6 @@ export type ComboOutcome =
       readonly name: string;
       readonly flatStrikeBase: number;
       readonly flatStrikePowerCoeff: number;
-      readonly ownsDamageAttribution?: boolean;
     }
   | {
       readonly kind: 'cleanse';
@@ -114,13 +113,12 @@ const healing = (name: string, flatHealing: number, healingPowerCoefficient: num
     flatHealing,
     healingPowerCoefficient
   });
-const lifeSteal = (name: string, flatStrikeBase: number, ownsDamageAttribution = false): ComboOutcome =>
+const lifeSteal = (name: string, flatStrikeBase: number): ComboOutcome =>
   Object.freeze({
     kind: 'life-steal',
     name,
     flatStrikeBase,
-    flatStrikePowerCoeff: 0.03,
-    ownsDamageAttribution
+    flatStrikePowerCoeff: 0.03
   });
 
 const definitions: readonly ComboDefinition[] = [
@@ -129,12 +127,13 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: 'Dark',
     finisherType: 'Projectile',
-    outcome: lifeSteal('Life Stealing Projectile', 202)
+    // Projectile siphons have their own damage identity; Leeching Bolts belongs to whirls.
+    outcome: lifeSteal('Life Siphon Damage', 202)
   },
   {
     fieldType: 'Dark',
     finisherType: 'Whirl',
-    outcome: lifeSteal('Leeching Bolts', 170, true)
+    outcome: lifeSteal('Leeching Bolts', 170)
   },
   {
     fieldType: 'Ethereal',
@@ -437,12 +436,9 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           ...base,
           type: 'damage',
           name: outcome.name,
-          ...(outcome.ownsDamageAttribution
-            ? {
-                skillName: outcome.name,
-                parentSkillName: combo.skillName || combo.parentSkillName
-              }
-            : {}),
+          // Siphon packets own their hits; keep the triggering finisher only as their parent.
+          skillName: outcome.name,
+          parentSkillName: combo.skillName || combo.parentSkillName,
           coefficient: 0,
           flatStrikeBase: outcome.flatStrikeBase,
           flatStrikePowerCoeff: outcome.flatStrikePowerCoeff,

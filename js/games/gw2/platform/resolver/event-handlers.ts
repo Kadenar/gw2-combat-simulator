@@ -107,6 +107,9 @@ export function createGw2ResolverEventHandlers({
     },
 
     damage(ctx, event) {
+      // Apply impact-time adjustments to both scheduled hits and resolver-created procs before calculating damage.
+      const updates = reactions.dispatch('damage.resolving', ctx, event);
+      if (updates) event = { ...event, ...updates };
       const hitContext = buildHitResolutionContext(ctx, event);
       // Ordering matters: apply the base hit first, then profession reactions,
       // expected food procs, and finally relic after-hit rules.

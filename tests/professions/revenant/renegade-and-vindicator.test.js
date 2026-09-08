@@ -23,6 +23,12 @@ import {
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { handleRevenantState } from '#gw2/professions/revenant/state.js';
+import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import {
+  activeKallasFervorStacks,
+  castHeroicCommand,
+  grantKallasFervor
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
@@ -176,6 +182,27 @@ test('Demon skills use their current projectile and condition packets', () => {
       ['Poisoned', 1, 3]
     ]
   );
+});
+
+test('Ferocious Aggression increases food life steal only while Fury is active', () => {
+  // Food is resolver-created flat damage and must receive the same life-steal bonus as skill siphons.
+  for (const fury of [false, true]) {
+    const result = simulate(
+      'Core',
+      ['Hammer Bolt', 'Hammer Bolt'],
+      {
+        primaryWeapon: 'Hammer',
+        food: 'Cilantro Lime Sous-Vide Steak',
+        stats: { precision: 3100 },
+        selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION],
+        boons: { fury }
+      },
+      observationTail(1000)
+    );
+    const food = result.resolvedEvents.find((event) => event.skillName === 'Nourishment');
+    assert.ok(food);
+    assert.ok(Math.abs(food.damage - (fury ? 357.5 : 325)) < 1e-9);
+  }
 });
 
 test('Embrace the Darkness empowers only the next pulse and releases', () => {
@@ -444,6 +471,20 @@ test('enhanced Icerazor hit traits use its replaced packet timestamps', () => {
   assert.deepEqual(fervorTimes, hitTimes);
 });
 
+test('Icerazor grants Fervor only after its projectiles land', () => {
+  const config = {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE,
+    selectedTraitIds: [TRAIT.AMBUSH_COMMANDER],
+    target: { defiant: true }
+  };
+  // Summoning reserves future impacts; it must not grant their stacks during the cast.
+  const pending = simulate('Renegade', ["Icerazor's Ire"], config);
+  const landed = simulate('Renegade', ["Icerazor's Ire", { type: 'wait', durationMs: 1000 }], config);
+  assert.equal(pending.endState.profession.kallasFervor.length, 0);
+  assert.equal(landed.endState.profession.kallasFervor.length, 3);
+});
+
 test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles', () => {
   assert.deepEqual(
     [SKILL.CITADEL_BOMBARDMENT, SKILL.HEROIC_COMMAND, SKILL.ORDERS_FROM_ABOVE].map((id) => {
@@ -621,6 +662,71 @@ test("Kalla's Fervor chart uses the Renegade stack cap", () => {
   assert.equal(Math.max(...series.effects["Kalla's Fervor"].map((point) => point.v)), 5);
 });
 
+test("Kalla's Fervor replaces the soonest-expiring stack at its cap", () => {
+  for (const improved of [false, true]) {
+    const state = createRenegadeState();
+    const events = [];
+    const context = {
+      config: { selectedTraitIds: improved ? [TRAIT.LASTING_LEGACY] : [] },
+      catalog: revenantCatalog,
+      start: 6,
+      effectiveEnd: 6,
+      fullEnd: 6,
+      epsilon: 1e-9,
+      state: { profession: { core: {}, specialization: { kind: 'Renegade', state } } },
+      events,
+      emit: (event) => events.push(event),
+      emitDerived: (_cause, event) => events.push(event)
+    };
+    const duration = improved ? 12 : 8;
+    // A sixth application keeps five stacks alive past the original stack's expiry without refreshing all five.
+    for (const at of [0, 1, 2, 3, 4, 5]) {
+      assert.equal(grantKallasFervor(context, { at, sourceId: TRAIT.AMBUSH_COMMANDER }), true);
+    }
+
+    assert.deepEqual(
+      state.kallasFervor.map((application) => application.expiresAt),
+      [1, 2, 3, 4, 5].map((at) => at + duration)
+    );
+    assert.equal(activeKallasFervorStacks(state, duration), 5);
+    assert.equal(activeKallasFervorStacks(state, duration + 1), 4);
+    // Heroic Command explicitly refreshes every stack, unlike an ordinary capped application.
+    castHeroicCommand(context, revenantCatalog.skillsById.get(SKILL.HEROIC_COMMAND));
+    assert.deepEqual(
+      state.kallasFervor.map((application) => application.expiresAt),
+      Array(5).fill(6 + duration)
+    );
+  }
+});
+
+test('Dark projectile life steal receives the live Kalla bonus exactly once', () => {
+  // Combo damage is recreated by the resolver; scheduler-only multipliers must not disappear or apply twice.
+  for (const [traits, multiplier] of [
+    [[TRAIT.AMBUSH_COMMANDER], 1.1],
+    [[TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY], 1.15],
+    [[TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY, TRAIT.FEROCIOUS_AGGRESSION], 1.25]
+  ]) {
+    const result = simulate(
+      'Renegade',
+      ['Citadel Bombardment', { type: 'wait', durationMs: 2100 }, 'Field of the Mists', 'Hammer Bolt'],
+      {
+        selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.RENEGADE,
+        primaryWeapon: 'Hammer',
+        boons: { fury: true },
+        selectedTraitIds: traits,
+        target: { defiant: true },
+        initialEnergy: 100
+      },
+      observationTail(1000)
+    );
+    const siphon = result.resolvedEvents.find((event) => event.lifeSiphon && event.parentSkillName === 'Hammer Bolt');
+    assert.ok(siphon);
+    assert.equal(siphon.flatStrikeMultiplier, multiplier);
+    assert.ok(Math.abs(siphon.damage - (202 + 0.03 * 2000) * multiplier) < 1e-9);
+  }
+});
+
 test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () => {
   const config = {
     selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
@@ -629,40 +735,34 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     target: { defiant: true },
     initialEnergy: 100
   };
-  const base = simulate('Renegade', ['Citadel Bombardment', 'Heroic Command'], config);
+  // Let the projectiles land before testing Heroic Command's full-stack refresh and Might conversion.
+  const rotation = ['Citadel Bombardment', { type: 'wait', durationMs: 2000 }, 'Heroic Command'];
+  const base = simulate('Renegade', rotation, config);
 
   assert.equal(base.endState.profession.kallasFervor.length, 5);
-  assert.deepEqual(
-    base.endState.profession.kallasFervor.map((application) => Math.round(application.expiresAt * 1000)),
-    [9100, 9100, 9100, 9159, 9245]
-  );
   assert.ok(
     base.events.some(
       (event) =>
         event.type === 'buff' &&
         event.skillId === SKILL.HEROIC_COMMAND &&
         event.kind === 'might' &&
-        event.stacks === 6 &&
+        event.stacks === 10 &&
         event.duration === 8
     )
   );
 
-  const improved = simulate('Renegade', ['Citadel Bombardment', 'Heroic Command'], {
+  const improved = simulate('Renegade', rotation, {
     ...config,
     selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY]
   });
 
-  assert.deepEqual(
-    improved.endState.profession.kallasFervor.map((application) => Math.round(application.expiresAt * 1000)),
-    [13100, 13100, 13100, 13159, 13245]
-  );
   assert.ok(
     improved.events.some(
       (event) =>
         event.type === 'buff' &&
         event.skillId === SKILL.HEROIC_COMMAND &&
         event.kind === 'might' &&
-        event.stacks === 9 &&
+        event.stacks === 15 &&
         event.duration === 8
     )
   );
@@ -688,10 +788,10 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     .at(-1);
 
   // The deterministic food proc occurs on Citadel Bombardment's second hit,
-  // while two Kalla's Fervor stacks are active. The direct modifier checks
+  // before that hit grants the second Kalla's Fervor stack. The direct modifier checks
   // below cover the fully stacked Lasting Legacy multiplier.
-  assert.equal(nourishment.flatStrikeMultiplier, 1.06);
-  assert.ok(Math.abs(nourishment.damage - 344.5) < 1e-9);
+  assert.equal(nourishment.flatStrikeMultiplier, 1.03);
+  assert.ok(Math.abs(nourishment.damage - 334.75) < 1e-9);
 
   const modifierContext = (selectedTraitIds, condition = null) => ({
     config: { specialization: 'Renegade', selectedTraitIds, boons: {} },

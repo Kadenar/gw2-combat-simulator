@@ -14,6 +14,7 @@ export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
   'aura.applied',
   'combo.resolved',
   'buff.applied',
+  'damage.resolving',
   'damage.resolved',
   'condition.applied',
   'condition-tick.resolved',

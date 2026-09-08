@@ -133,7 +133,8 @@ export function grantKallasFervor(
   state.kallasFervorMaximumStacks = maximumStacks;
   pruneKallasFervor(state, at);
   if (activeKallasFervorStacks(state, at, maximumStacks) >= maximumStacks) {
-    return false;
+    // At the cap, a new application replaces the soonest-expiring stack so continued hits sustain Fervor.
+    state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
   }
 
   const duration = Math.max(0, Number(effect.duration || 0));

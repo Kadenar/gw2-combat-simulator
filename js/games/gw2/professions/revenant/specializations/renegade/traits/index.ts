@@ -4,7 +4,6 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  activeKallasFervorStacks,
   grantKallasFervor,
   isBandTogetherReady
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
@@ -114,27 +113,6 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
   });
 }
 
-function applyKallasFervorLifeSiphon(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  // Only flat-strike events carry the life-siphon formula; coefficient-only hits are not siphons
-  if (!Number.isFinite(Number(event.flatStrikeBase)) && !Number.isFinite(Number(event.flatStrikePowerCoeff))) {
-    return;
-  }
-
-  // Name-based guard distinguishes Soulcleave's life-siphon packet from other flat-strike effects
-  if (!/siphon/i.test(`${event.name || ''} ${event.skillName || ''}`)) return;
-  const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
-  if (!stacks) return;
-  const profile = context.catalog.balanceProfilesById.get(
-    hasTrait(context.config, TRAIT.LASTING_LEGACY)
-      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
-      : RENEGADE_PROFILE_IDS.kallasFervor
-  );
-  const perStack = Number(profile?.lifeSiphonDamagePerStack || 0);
-  context.replaceEvent(event, {
-    flatStrikeMultiplier: Number(event.flatStrikeMultiplier ?? 1) * (1 + stacks * perStack)
-  });
-}
-
 export function initializeRenegadeTraits(context: RevenantSchedulerContext): void {
   const fervorProfile = context.catalog.balanceProfilesById.get(
     hasTrait(context.config, TRAIT.LASTING_LEGACY)
@@ -241,7 +219,6 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
 
   if (event.type === 'damage') {
     applyVindication(context, event);
-    applyKallasFervorLifeSiphon(context, event);
   }
 
   if (event.type !== 'damage' || event.actorType !== 'player' || Number(event.coefficient || 0) <= 0) {
@@ -251,19 +228,14 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
   const tracksCriticalTraits =
     hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (tracksCriticalTraits) {
-    if (context.config.randomness?.mode === 'stochastic') {
-      // Shared critical materialization runs at priority -60. Resolve
-      // Renegade's scheduler effects afterwards using that same hit fact.
-      context.tasks.schedule({
-        type: RENEGADE_CRITICAL_TRAITS_TASK,
-        at: Math.max(context.state.time, event.at),
-        // Priority -40 fires after priority -60 (lower = later), ensuring didCrit is populated first
-        priority: -40,
-        payload: { eventOrder: Number(event.eventOrder) }
-      });
-    } else {
-      applyCriticalTraits(context, event);
-    }
+    // Resolve at impact in both modes so future projectiles cannot replace Fervor stacks before they land.
+    context.tasks.schedule({
+      type: RENEGADE_CRITICAL_TRAITS_TASK,
+      at: Math.max(context.state.time, event.at),
+      // Shared stochastic critical materialization runs first at priority -60.
+      priority: -40,
+      payload: { eventOrder: Number(event.eventOrder) }
+    });
   }
 
   if (event.skillId !== ID.RAZORCLAWS_RAGE) {

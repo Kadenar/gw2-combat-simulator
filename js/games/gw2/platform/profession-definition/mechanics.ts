@@ -51,6 +51,21 @@ function resolvedReaction<
   });
 }
 
+/** Adjusts a damage packet using live resolver state before its damage is calculated. */
+export function onResolvingDamage<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
+  }>
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction('damage.resolving', declaration);
+}
+
 /** Creates an ordered resolver reaction for resolved damage. */
 export function onResolvedDamage<
   TContext extends Gw2ResolverRuntime,

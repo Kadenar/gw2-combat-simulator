@@ -1,4 +1,5 @@
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/modifiers.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -66,11 +67,6 @@ function reactToDamage(context: RevenantResolverContext, event: RevenantResolver
       for (const application of applications) {
         enqueueOrdered(context.queue, {
           ...application.event,
-          ...(Number(application.event.flatStrikeBase) || Number(application.event.flatStrikePowerCoeff)
-            ? {
-                flatStrikeMultiplier: kallasFervorLifeSiphonMultiplier(context, event.at)
-              }
-            : {}),
           triggeredBy: event.skillName
         } as RevenantResolverEvent);
       }
@@ -78,17 +74,19 @@ function reactToDamage(context: RevenantResolverContext, event: RevenantResolver
   }
 }
 
-function reactToFoodProc(context: RevenantResolverContext, event: RevenantResolverEvent): SchedulerRecord | undefined {
-  // Food procs that are life siphons also benefit from Kalla's Fervor; returning a partial record merges flatStrikeMultiplier into the proc before resolution
-  if (!event.lifeSiphon) return;
+function modifyLifeSiphon(context: RevenantResolverContext, event: RevenantResolverEvent): SchedulerRecord | undefined {
+  // Replace the Core-only result with the combined additive life-steal bonus, preserving any independent multiplier.
+  const coreBonus = revenantLifeSiphonBonus(context, event);
+  if (coreBonus == null) return;
   return {
-    flatStrikeMultiplier: kallasFervorLifeSiphonMultiplier(context, event.at)
+    flatStrikeMultiplier:
+      Number(event.flatStrikeMultiplier ?? 1) * (coreBonus + kallasFervorLifeSiphonMultiplier(context, event.at))
   };
 }
 
 export const revenantRenegadeEventReactions = Object.freeze({
   damage: reactToDamage,
-  food_proc: reactToFoodProc
+  life_siphon: modifyLifeSiphon
 });
 
 export const renegadeEventHandlers = Object.freeze({});

@@ -1,8 +1,10 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { onResolvingDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
 import { revenantCoreEventHandlers } from '#gw2/professions/revenant/core/mechanics/state-events.js';
 import {
   revenantCoreAttributeRules,
+  modifyRevenantLifeSiphon,
   revenantCastRules,
   revenantSchedulerHooks,
   snapshotRevenantState
@@ -41,6 +43,7 @@ export const revenantCoreModule = defineNativeModule({
       }
     },
     resolution: {
+      reactions: [onResolvingDamage({ id: 'revenant.life-siphon', handler: modifyRevenantLifeSiphon })],
       hooks: {
         eventHandlers: revenantCoreEventHandlers
       }

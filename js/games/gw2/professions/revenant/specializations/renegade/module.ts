@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onFoodProcCreated, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import { onResolvingDamage, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
 import { renegadeSkillHandlers } from '#gw2/professions/revenant/specializations/renegade/execution/index.js';
 import {
@@ -40,10 +40,11 @@ export const renegadeModule = defineNativeModule({
           id: 'revenant.renegade.damage',
           handler: revenantRenegadeEventReactions.damage
         }),
-        // onFoodProcCreated lets Kalla's Fervor augment food life-siphon procs before they are emitted
-        onFoodProcCreated({
-          id: 'revenant.renegade.food-proc',
-          handler: revenantRenegadeEventReactions.food_proc
+        // All siphons, including resolver-created combo packets, use the live Fervor stacks at impact.
+        onResolvingDamage({
+          id: 'revenant.renegade.life-siphon',
+          order: 10,
+          handler: revenantRenegadeEventReactions.life_siphon
         })
       ],
       hooks: {

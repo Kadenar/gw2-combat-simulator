@@ -5,6 +5,7 @@ import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createGw2ComboRuntimeState, registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 
 const query = {
   statsAt: () => ({
@@ -79,6 +80,40 @@ function resolve(events, config = {}) {
     helpers
   });
 }
+
+test('Dark projectile and whirl siphons own their hits without inflating the finisher', () => {
+  for (const [finisherType, flatStrikeBase, siphonName] of [
+    ['Projectile', 202, 'Life Siphon Damage'],
+    ['Whirl', 170, 'Leeching Bolts']
+  ]) {
+    // One weapon hit plus one combo proc must remain two distinct damage identities.
+    const result = resolve([
+      field('dark:1', 'Dark'),
+      {
+        type: 'damage',
+        at: 1,
+        source: 'Fixture Finisher',
+        sourceId: 'fixture.finisher',
+        skillName: 'Fixture Finisher',
+        name: 'Fixture Finisher',
+        actorType: 'player',
+        coefficient: 1,
+        weaponStrength: 1000
+      },
+      finisher('dark-finisher', { kind: 'field-id', fieldId: 'dark:1' }, { finisherType })
+    ]);
+    const siphon = result.resolvedEvents.find((event) => event.type === 'damage' && event.lifeSiphon);
+    assert.equal(siphon.name, siphonName);
+    assert.equal(siphon.skillName, siphonName);
+    assert.equal(siphon.parentSkillName, 'Fixture Finisher');
+    assert.equal(siphon.flatStrikeBase, flatStrikeBase);
+    assert.equal(siphon.noCrit, true);
+    const rows = skillBreakdownRows(result);
+    assert.equal(rows.find((row) => row.name === 'Fixture Finisher').hits, 1);
+    assert.equal(rows.find((row) => row.name === siphonName).hits, 1);
+    assert.equal(rows.find((row) => row.name === siphonName).casts, 0);
+  }
+});
 
 test('explicit bindings resolve one authoritative combo at effectAt', () => {
   const result = resolve([

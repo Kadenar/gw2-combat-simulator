@@ -301,6 +301,7 @@ export type Gw2ResolverStage =
   | 'aura.applied'
   | 'combo.resolved'
   | 'buff.applied'
+  | 'damage.resolving'
   | 'damage.resolved'
   | 'condition.applied'
   | 'condition-tick.resolved'
