@@ -6,6 +6,7 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -31,6 +32,99 @@ function reportFixture(profession, rotation, skillMap, end = 40_000) {
     skillMap
   });
 }
+
+test('preserves standalone autoattack identity and shortened timing with localized report names', () => {
+  // Hammer Bolt has no chain; its numeric identity must survive without an English name fallback.
+  for (const duration of [560, 480]) {
+    const report = reportFixture(
+      'Renegade',
+      [{ id: 28549, skills: [{ castTime: 1000, duration, timeGained: 560 - duration }] }],
+      { s28549: { name: '巨锤飞矢', autoAttack: true } },
+      2000
+    );
+    const result = reconstructDpsReportRotation(report, revenantCatalog);
+    const action = result.actions.find((entry) => entry.rawSkillId === 28549);
+    assert.ok(action?.supportedByCatalog);
+    assert.equal(action.skillId, 28549);
+    const command = result.rotation.find((entry) => entry.skillId === 28549);
+    assert.ok(command);
+    assert.equal(command.name, 'Hammer Bolt');
+    assert.equal(command.interruptMs, duration < 560 ? duration : undefined);
+  }
+});
+
+test('rounds imported legend swap offsets to the nearest 40 ms relative to the preceding cast', () => {
+  // Legend swaps can overlap a weapon cast; replay offsets use action ticks while evidence keeps its timestamp.
+  for (const [offset, expected] of [
+    [219, 200],
+    [220, 240],
+    [221, 240]
+  ]) {
+    const report = reportFixture(
+      'Renegade',
+      [
+        { id: 28549, skills: [{ castTime: 101, duration: 560, timeGained: 0 }] },
+        { id: 28134, skills: [{ castTime: 101 + offset, duration: 0, timeGained: 0 }] }
+      ],
+      { s28549: { name: 'Hammer Bolt' }, s28134: { name: 'Legendary Assassin Stance', isInstantCast: true } },
+      1000
+    );
+    const result = reconstructDpsReportRotation(report, revenantCatalog);
+    assert.equal(result.rotation.find((command) => command.name === 'Swap Legends')?.offset, expected);
+    assert.equal(result.actions.find((action) => action.name === 'Swap Legends')?.timestampMs, 101 + offset);
+  }
+});
+
+test('preserves cancelled Hammer Bolt inputs and a following 40 ms idle gap', () => {
+  // A cancelled attack occupies the cast lane; its separate idle gap must not be lost or counted twice.
+  const report = reportFixture(
+    'Renegade',
+    [
+      {
+        id: 28549,
+        skills: [
+          { castTime: 0, duration: 560, timeGained: 0 },
+          { castTime: 560, duration: 43, timeGained: -43 },
+          { castTime: 643, duration: 560, timeGained: 0 }
+        ]
+      }
+    ],
+    { s28549: { name: '巨锤飞矢', autoAttack: true } },
+    1500
+  );
+  const result = reconstructDpsReportRotation(report, revenantCatalog);
+  assert.deepEqual(result.rotation, [
+    { name: '__combat_start' },
+    { name: 'Hammer Bolt', skillId: 28549 },
+    { name: 'Hammer Bolt', skillId: 28549, interruptMs: 40 },
+    { name: '__wait', waitMs: 40 },
+    { name: 'Hammer Bolt', skillId: 28549 }
+  ]);
+});
+
+test('enhanced Icerazor leaves the overlapping cast lane and following idle gap intact', () => {
+  // The enhanced ID proves a zero-duration summon even when the report uses a localized name.
+  for (const name of ["Icerazor's Ire", '凛刃怒气']) {
+    const report = reportFixture(
+      'Renegade',
+      [
+        { id: 27665, skills: [{ castTime: 0, duration: 600, timeGained: 0 }] },
+        { id: 72359, skills: [{ castTime: 520, duration: 0, timeGained: 0 }] },
+        { id: 28549, skills: [{ castTime: 640, duration: 560, timeGained: 0 }] }
+      ],
+      { s27665: { name: 'Field of the Mists' }, s72359: { name }, s28549: { name: 'Hammer Bolt' } },
+      1500
+    );
+    const result = reconstructDpsReportRotation(report, revenantCatalog);
+    assert.deepEqual(result.rotation, [
+      { name: '__combat_start' },
+      { name: 'Field of the Mists', skillId: 27665 },
+      { name: "Icerazor's Ire", skillId: 40485, offset: 520 },
+      { name: '__wait', waitMs: 40 },
+      { name: 'Hammer Bolt', skillId: 28549 }
+    ]);
+  }
+});
 
 test('a weapon swap during Daredevil dodge does not fabricate an interrupted dodge', () => {
   const report = reportFixture(

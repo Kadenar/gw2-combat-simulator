@@ -343,7 +343,7 @@ test('Icerazor packets use player ownership and trigger player equipment', () =>
 
   assert.deepEqual(
     hits.map((event) => Math.round((event.at - actionStart) * 1000)),
-    [1020, 1181, 1342]
+    [1000, 1160, 1320]
   );
   assert.equal(
     result.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Torment').at,
@@ -396,6 +396,13 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
   });
 
   assert.equal(quickBombardment.steps[0].fullCastMs, 600);
+  // Heroic Command uses its measured Quickness duration instead of scaling the tooltip to 360 ms.
+  const quickHeroic = simulate('Renegade', ['Heroic Command'], {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE,
+    boons: { quickness: true }
+  });
+  assert.equal(quickHeroic.steps[0].fullCastMs, 480);
   const bombardment = simulate(
     'Renegade',
     ['Citadel Bombardment', 'Citadel Bombardment'],
@@ -416,20 +423,20 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
     ]
   );
   const firstBombardmentHits = bombardment.events.filter(
-    (event) => event.type === 'damage' && event.skillId === SKILL.CITADEL_BOMBARDMENT && event.at < 2
+    (event) => event.type === 'damage' && event.skillId === SKILL.CITADEL_BOMBARDMENT && event.at < 3
   );
 
   assert.equal(firstBombardmentHits.length, 10);
   assert.ok(firstBombardmentHits.every((event) => event.coefficient === 0.6));
   assert.deepEqual(
     firstBombardmentHits.map((event) => Math.round(event.at * 1000)),
-    [845, 959, 1073, 1159, 1245, 1360, 1447, 1559, 1675, 1796]
+    [1240, 1400, 1520, 1600, 1640, 1760, 1840, 2000, 2080, 2320]
   );
   const firstBurns = bombardment.events.filter(
     (event) =>
       event.type === 'condition' &&
       event.skillId === SKILL.CITADEL_BOMBARDMENT &&
-      event.at < 2 &&
+      event.at < 3 &&
       event.condition === 'Burning' &&
       event.stacks === 1 &&
       event.duration === 1
@@ -460,12 +467,17 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
     }
   );
 
-  assert.equal(
-    impossibleBombardment.resolvedEvents.filter(
-      (event) =>
-        event.type === 'damage' && event.skillName === 'Impossible Odds' && event.triggeredBy === 'Citadel Bombardment'
-    ).length,
-    4
+  // Impact spacing permits four procs through the 250 ms cooldown, each landing 250 ms after its trigger.
+  assert.deepEqual(
+    impossibleBombardment.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'damage' &&
+          event.skillName === 'Impossible Odds' &&
+          event.triggeredBy === 'Citadel Bombardment'
+      )
+      .map((event) => Math.round(event.at * 1000)),
+    [1490, 1770, 2090, 2570]
   );
 
   const orders = simulate(
@@ -865,7 +877,7 @@ describe('Band Together summon enhancement', () => {
       boons: { quickness: true }
     });
 
-    assert.equal(darkrazor.steps[0].fullCastMs, 500);
+    assert.equal(darkrazor.steps[0].fullCastMs, 520);
     assert.deepEqual(
       darkrazor.events
         .filter(
@@ -927,7 +939,7 @@ describe('Band Together summon enhancement', () => {
 
     assert.deepEqual(
       enhanced.steps.slice(0, 3).map((step) => step.fullCastMs),
-      [500, 0, 500]
+      [500, 0, 520]
     );
     assert.ok(
       enhanced.events.some(
@@ -954,7 +966,7 @@ describe('Band Together summon enhancement', () => {
 
     assert.deepEqual(
       quickIcerazorHits.map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
-      [1200, 1361, 1522]
+      [640, 800, 960]
     );
     assert.ok(
       quickEnhanced.events
@@ -974,7 +986,7 @@ describe('Band Together summon enhancement', () => {
       quickEnhanced.events
         .filter((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled')
         .map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
-      [1200, 1361, 1522]
+      [640, 800, 960]
     );
   });
 
@@ -1046,7 +1058,7 @@ describe('Band Together summon enhancement', () => {
             !event.triggeredByAlly
         )
         .map((event) => Math.round(event.at * 1000)),
-      [1020, 1181, 1342]
+      [1000, 1160, 1320]
     );
   });
 
@@ -1104,7 +1116,7 @@ test('Band Together expires four seconds after the priming summon', () => {
   );
 
   assert.equal(withinWindow.steps[2].fullCastMs, 0);
-  assert.equal(atExpiry.steps[2].fullCastMs, 500);
+  assert.equal(atExpiry.steps[2].fullCastMs, 520);
 });
 
 test('All for One refunds Energy and halves enhanced-skill recharge', () => {

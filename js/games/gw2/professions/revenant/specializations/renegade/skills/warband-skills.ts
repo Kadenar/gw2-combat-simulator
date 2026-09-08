@@ -53,6 +53,7 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
   }
 ] as const);
 
+// Quantize Icerazor impacts and their conditions together so each volley retains its 160 ms cadence.
 export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ICERAZORS_IRE]: {
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
@@ -68,9 +69,9 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         name: "Icerazor's Ire",
         actorType: 'player',
         ticks: [
-          { atMs: 500, coefficient: 2 },
-          { atMs: 661, coefficient: 2 },
-          { atMs: 822, coefficient: 2 }
+          { atMs: 480, coefficient: 2 },
+          { atMs: 640, coefficient: 2 },
+          { atMs: 800, coefficient: 2 }
         ],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
@@ -81,20 +82,20 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         actorType: 'player',
         ticks: [
           {
-            atMs: 500,
+            atMs: 480,
             condition: 'Vulnerability',
             stacks: 10,
             duration: 8
           },
-          { atMs: 500, condition: 'Torment', stacks: 3, duration: 6 },
+          { atMs: 480, condition: 'Torment', stacks: 3, duration: 6 },
           {
-            atMs: 500,
+            atMs: 480,
             condition: 'Vulnerability',
             stacks: 5,
             duration: 8
           },
           {
-            atMs: 822,
+            atMs: 800,
             condition: 'Immobilized',
             stacks: 1,
             duration: 2
@@ -110,7 +111,8 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.DARKRAZORS_DARING]: {
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
-    castTimeMs: 500,
+    // The normal summon occupies 520 ms; Quickness does not shorten its animation.
+    castTimeMs: 520,
     unaffectedByQuickness: true,
     cooldown: 12,
     energyCost: 25,
@@ -201,9 +203,9 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         name: "Icerazor's Ire",
         actorType: 'player',
         ticks: [
-          { atMs: 1200, coefficient: 2 },
-          { atMs: 1361, coefficient: 2 },
-          { atMs: 1522, coefficient: 2 }
+          { atMs: 640, coefficient: 2 },
+          { atMs: 800, coefficient: 2 },
+          { atMs: 960, coefficient: 2 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -213,27 +215,27 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         actorType: 'player',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 640,
             condition: 'Vulnerability',
             stacks: 10,
             duration: 8
           },
-          { atMs: 1200, condition: 'Torment', stacks: 3, duration: 6 },
+          { atMs: 640, condition: 'Torment', stacks: 3, duration: 6 },
           {
-            atMs: 1200,
+            atMs: 640,
             condition: 'Vulnerability',
             stacks: 5,
             duration: 8
           },
-          { atMs: 1200, condition: 'Chilled', stacks: 1, duration: 1.5 },
-          { atMs: 1361, condition: 'Chilled', stacks: 1, duration: 1.5 },
+          { atMs: 640, condition: 'Chilled', stacks: 1, duration: 1.5 },
+          { atMs: 800, condition: 'Chilled', stacks: 1, duration: 1.5 },
           {
-            atMs: 1522,
+            atMs: 960,
             condition: 'Immobilized',
             stacks: 1,
             duration: 2
           },
-          { atMs: 1522, condition: 'Chilled', stacks: 1, duration: 1.5 }
+          { atMs: 960, condition: 'Chilled', stacks: 1, duration: 1.5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'

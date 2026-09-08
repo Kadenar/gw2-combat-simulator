@@ -1,4 +1,5 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -9,6 +10,7 @@ import {
   hasRecordedAction,
   rawSkillName,
   runtimeDuration,
+  skillFor,
   SIGNAL_DEDUPLICATION_WINDOW_MS,
   SWAP_LEGENDS,
   type RevenantActionIdentity
@@ -23,6 +25,7 @@ const IMPOSSIBLE_ODDS = Object.freeze({
   skillId: 27107
 });
 const SPIRITCRUSH = Object.freeze({ name: 'Spiritcrush', skillId: 43993 });
+const DROP_THE_HAMMER = Object.freeze({ name: 'Drop the Hammer', skillId: 28110 });
 const LEGEND_STANCE_NAME = /^Legendary .+ Stance$/;
 const ENCHANTED_DAGGERS_BUFF = 28557;
 const IMPOSSIBLE_ODDS_BUFF = 27581;
@@ -170,7 +173,46 @@ export function recoverRevenantPrecastActions(
   context: EvtcProfessionReconstructionContext
 ): EvtcRecordedRotationAction[] {
   const truncated = truncatedPrecastActions(context);
-  return [...truncated, ...truncatedSpiritcrushActions(context, [...context.recordedActions, ...truncated])];
+  const actions = [...context.recordedActions, ...truncated];
+  return [...truncated, ...truncatedSpiritcrushActions(context, actions), ...truncatedHammerActions(context, actions)];
+}
+
+/** Recover the opening delayed hammer strike so its Coalescence reset survives a missing precast animation. */
+function truncatedHammerActions(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const atCombat = combatStart(context);
+  const impactMs = firstStrikePacketOffsetMs(skillFor(context, DROP_THE_HAMMER));
+  if (atCombat == null || impactMs == null) return [];
+  const signal = context.log.events.findIndex(
+    (event) =>
+      event.source === context.playerAddress &&
+      event.skillId === DROP_THE_HAMMER.skillId &&
+      event.stateChange === EVTC_STATE_CHANGE.NONE &&
+      event.activation === EVTC_ACTIVATION.NONE &&
+      event.buff === 0 &&
+      event.value > 0 &&
+      event.time >= atCombat &&
+      event.time < atCombat + impactMs
+  );
+  if (signal < 0) return [];
+  const start = context.log.events[signal]!.time - impactMs;
+  if (hasRecordedAction(actions, DROP_THE_HAMMER, start, SIGNAL_DEDUPLICATION_WINDOW_MS)) return [];
+  return [
+    {
+      ...directAction(
+        signal,
+        start,
+        DROP_THE_HAMMER.skillId,
+        DROP_THE_HAMMER.name,
+        DROP_THE_HAMMER,
+        'initial-state',
+        runtimeDuration(context, DROP_THE_HAMMER)
+      ),
+      precast: true
+    }
+  ];
 }
 
 export function firstActionAnchor(

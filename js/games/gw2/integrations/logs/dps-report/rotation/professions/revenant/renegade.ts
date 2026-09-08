@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { createInferredAction } from '#gw2/integrations/logs/dps-report/rotation/create-inferred-action.js';
 import type {
@@ -95,7 +96,7 @@ function recurringOpeningWarband(actions: readonly DpsReportRecordedAction[]): R
   );
 }
 
-/** Recovers omitted opening warband summons and maps EI's enhanced Razorclaw signal to the castable skill. */
+/** Recovers opening summons and maps enhanced warband IDs to base inputs with their instant replay duration. */
 export function reconstructRenegadeDpsReportActions(
   context: DpsReportProfessionReconstructionContext
 ): readonly DpsReportRecordedAction[] {
@@ -103,8 +104,21 @@ export function reconstructRenegadeDpsReportActions(
     // Band Together reports the enhanced summon signal, but rotations must
     // cast the base warband skill so the simulator can apply the active trait.
     .map((action) => {
-      const warband = WARBAND_ACTIONS.find((identity) => normalized(action.rawName) === normalized(identity.name));
-      return warband ? { ...action, canonicalSkillId: warband.skillId, canonicalName: warband.name } : action;
+      const warband = WARBAND_ACTIONS.find(
+        (identity) =>
+          action.rawSkillId === identity.skillId ||
+          action.rawSkillId === RENEGADE_ENHANCED_SKILL_BY_ID[identity.skillId] ||
+          normalized(action.rawName) === normalized(identity.name)
+      );
+      if (!warband) return action;
+      // Keep the base player input, but never charge its normal cast duration against an enhanced summon’s idle gaps.
+      const enhanced = action.rawSkillId === RENEGADE_ENHANCED_SKILL_BY_ID[warband.skillId];
+      return {
+        ...action,
+        canonicalSkillId: warband.skillId,
+        canonicalName: warband.name,
+        ...(enhanced ? { replayDurationMs: 0 } : {})
+      };
     })
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   // EI's terminal enhanced Razorclaw signal can land inside the preceding

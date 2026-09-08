@@ -127,7 +127,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
 
   assert.equal(coalescence.cooldown, 4);
   assert.equal(coalescence.energyCost, 5);
-  assert.equal(strikeCoefficient(coalescence.effects[0]), 3.5);
+  assert.deepEqual(coalescence.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient), [2.3, 2.3]);
   const phaseSmash = revenantCatalog.skillsById.get(SKILL.PHASE_SMASH);
 
   assert.equal(phaseSmash.cooldown, 8);
@@ -509,7 +509,7 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
   );
   assert.deepEqual(
     revenantCatalog.skillsById.get(SKILL.ICERAZORS_IRE).effects[0].ticks.map((tick) => tick.atMs),
-    [500, 661, 822]
+    [480, 640, 800]
   );
   assert.equal(enhancedIcerazor.skill.simulatorExcluded, true);
   assert.deepEqual(
@@ -518,7 +518,7 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
   );
   assert.deepEqual(
     revenantCatalog.skillsById.get(SKILL.ICERAZORS_IRE_ID_72359).effects[0].ticks.map((tick) => tick.atMs),
-    [1200, 1361, 1522]
+    [640, 800, 960]
   );
   assert.deepEqual(
     razorclaw.skill.effects.find((effect) => effect.kind === 'razorclaws-rage'),

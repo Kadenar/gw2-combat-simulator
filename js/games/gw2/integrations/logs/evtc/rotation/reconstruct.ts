@@ -71,7 +71,7 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
 
   const sourceObservedMs = Math.max(0, action.replayInterruptMs ?? action.end - action.start);
   if (sourceObservedMs === 0 && (action.status === 'instant' || action.status === 'unknown')) return null;
-  const runtimeMs = quicknessRuntimeDurationMs(skill);
+  const runtimeMs = action.replayDurationMs ?? quicknessRuntimeDurationMs(skill);
   // Replay every observed cancellation on the game's action tick so imports share the same timing contract.
   const observedMs = quantizeGw2ActionTimingMs(sourceObservedMs);
   return observedMs < runtimeMs ? observedMs : null;
@@ -89,7 +89,7 @@ function applyRetainedCastLockouts(
     // An observed interrupt remains explicit; the engine retains the serial
     // cast lane itself while allowing instant actions and weapon swaps through.
     if (observedInterruptMs(action, skill) != null) return action;
-    const runtimeDuration = quicknessRuntimeDurationMs(skill);
+    const runtimeDuration = action.replayDurationMs ?? quicknessRuntimeDurationMs(skill);
     if (!(runtimeDuration > 0) || action.end - action.start >= runtimeDuration) return action;
     return {
       ...action,
@@ -115,7 +115,8 @@ function applyObservedInterruptTiming(
       return { ...action, status: cancelled ? 'interrupted' : action.status, replayInterruptMs: interruptMs };
     }
 
-    const runtimeDuration = quicknessRuntimeDurationMs(skill);
+    // Profession-resolved variants can be instant even when the base catalog skill has a cast time.
+    const runtimeDuration = action.replayDurationMs ?? quicknessRuntimeDurationMs(skill);
     const observedDuration = Math.max(0, action.end - action.start);
     const needsDefaultRuntime =
       runtimeDuration > 0 &&
@@ -439,7 +440,7 @@ function actionCommand(action: ResolvedAction): ReconstructedCommand {
 
 /** Uses normalized replay timing while preserving EVTC boundaries needed to position overlapping actions. */
 function replayActionEnd(action: ResolvedAction): number {
-  const runtimeDuration = quicknessRuntimeDurationMs(action.skill);
+  const runtimeDuration = action.replayDurationMs ?? quicknessRuntimeDurationMs(action.skill);
   const observedReplayEnd =
     action.replayCastEnd ??
     (action.replayInterruptMs != null

@@ -217,10 +217,10 @@ describe('Power Conduit skill profiles', () => {
     }
 
     for (const [name, impactMs] of [
-      ['Hammer Bolt', 481],
-      ['Coalescence of Ruin', 561],
+      ['Hammer Bolt', 520],
+      ['Coalescence of Ruin', 560],
       ['Field of the Mists', 560],
-      ['Drop the Hammer', 1639]
+      ['Drop the Hammer', 1640]
     ]) {
       const strike = skill(name).effects.find((effect) => effect.type === 'strike');
 
@@ -383,7 +383,7 @@ test('large Revenant hitboxes add the second Coalescence cascade and all Requiem
     largeHammer.events
       .filter((event) => event.type === 'damage' && event.skillName === 'Coalescence of Ruin')
       .map((event) => Math.round(event.at * 1000)),
-    [561, 1521]
+    [560, 1520]
   );
 
   const largeRequiem = simulate(

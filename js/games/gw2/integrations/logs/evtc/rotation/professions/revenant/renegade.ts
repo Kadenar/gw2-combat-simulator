@@ -41,8 +41,47 @@ const WARBAND_ANIMATION_ACTIONS = new Map<number, RevenantActionIdentity>([
   [72353, { name: "Icerazor's Ire", skillId: 40485 }],
   [72370, { name: "Razorclaw's Rage", skillId: 42949 }],
   [72360, { name: "Darkrazor's Daring", skillId: 41220 }],
+  [72365, { name: "Breakrazor's Bastion", skillId: 45686 }],
   [42614, { name: "Soulcleave's Summit", skillId: 45773 }]
 ]);
+
+const WARBAND_EFFECT_ACTIONS = new Map<string, RevenantActionIdentity>([
+  ['72FC15613B4B2C44A1906617998859F9', { name: "Breakrazor's Bastion", skillId: 45686 }],
+  ['71B04F91F9B3DF4A8954059FCFAD630E', { name: "Razorclaw's Rage", skillId: 42949 }],
+  ['C8FDB04E59C1034CABEFBECE470AA1BC', { name: "Darkrazor's Daring", skillId: 41220 }],
+  ['E725FC2FD486A84EBEAC403DB4DA30DE', { name: "Icerazor's Ire", skillId: 40485 }]
+]);
+
+/** Match EI's BandTogetherCastFinder: the player's summon effect proves an instant input unless the base cast is active. */
+function enhancedWarbandActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  return [...WARBAND_EFFECT_ACTIONS].flatMap(([guid, identity]) => {
+    let previousTime = Number.NEGATIVE_INFINITY;
+    return effectSignals(context, guid).flatMap(({ event, eventIndex }) => {
+      const duplicate = event.time - previousTime < 50;
+      previousTime = event.time;
+      if (
+        duplicate ||
+        context.recordedActions.some(
+          (action) =>
+            (action.rawSkillId === identity.skillId ||
+              action.canonicalSkillId === identity.skillId ||
+              action.rawName === identity.name) &&
+            action.start <= event.time &&
+            event.time <= action.end
+        )
+      )
+        return [];
+      return [
+        {
+          ...directAction(eventIndex, event.time, identity.skillId, identity.name, identity, 'effect'),
+          // Enhanced inputs are instant; the base cast time must not consume later idle gaps.
+          replayDurationMs: 0,
+          concurrentTimeline: true
+        }
+      ];
+    });
+  });
+}
 
 function ordersFromAboveActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   // Match EI's effect timestamp and 50 ms duplicate window; alacrity snapshots/pulses never establish a cast time.
@@ -153,6 +192,7 @@ function warbandActorActions(
           'animation'
         ),
         // Band Together's enhanced summon overlaps the active cast, then anchors the next scheduler offset.
+        replayDurationMs: 0,
         concurrentTimeline: true
       }
     ];
@@ -169,7 +209,7 @@ export function reconstructRenegadeActions(
   const actions = assembleRevenantActions(context, {
     initialActions: [...initialEnchantedDaggersActions(context, warbandAnchor), ...initialWarband],
     recoveredPrecasts,
-    afterUpkeepActions: ordersFromAboveActions(context)
+    afterUpkeepActions: [...ordersFromAboveActions(context), ...enhancedWarbandActions(context)]
   });
   return [...actions, ...warbandActorActions(context, actions)];
 }
