@@ -1,13 +1,18 @@
 /** Exposes pure timestamped relic contributions to combat queries. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2RelicContext, Gw2RelicRuntimeContext } from '#gw2/platform/equipment/relics/types.js';
-import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
+import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
+import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 
 /**
  * Calculates the strike multiplier supplied by the selected relic.
  */
 export function relicStrikeMultiplier(ctx: Gw2RelicContext, event: SimulationEvent): number {
-  return Number(invokeRelicHook(ctx, 'strikeMultiplier', event) ?? 1);
+  // Expiring preparation buffs multiply with the combat relic, without duplicating an equipped relic's buff.
+  return (ctx.precastRelics || []).reduce(
+    (multiplier, relic) => multiplier * Number(relic.rules.strikeMultiplier?.(ctx, relic.state, event) ?? 1),
+    Number(invokeRelicHook(ctx, 'strikeMultiplier', event) ?? 1)
+  );
 }
 
 /** Returns the selected relic's contribution to the additive damage bucket. */
@@ -53,4 +58,10 @@ export function recordPassiveRelicTimeline(
   rotationEndTime: number
 ): void {
   invokeRelicHook(ctx, 'timeline', events, rotationEndTime);
+  ctx.precastRelics = normalizePrecastRelics(ctx.config?.precastRelics)
+    .filter((name) => name !== ctx.relic?.name)
+    .map(createRelicRuntime);
+  for (const relic of ctx.precastRelics) {
+    relic.rules.timeline?.(ctx, relic.state, events, rotationEndTime);
+  }
 }

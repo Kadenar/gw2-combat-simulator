@@ -6,6 +6,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Minimal configuration surface consumed by relic rules. */
 export interface Gw2RelicConfig extends SchedulerRecord {
+  readonly relic?: string;
+  readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;
   readonly target?: {
     readonly health?: number;
@@ -29,6 +31,7 @@ export interface Gw2RelicMaterializerContext {
 }
 
 export interface Gw2RelicContext extends SchedulerRecord {
+  precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
   readonly totals: { strike: number; condition: number };
   readonly resolved: SchedulerRecord[];

@@ -27,11 +27,13 @@ test('shared relics are grouped by their damage effect', () => {
         'Bloodstone',
         'Claw',
         'Deadeye',
+        'Director',
         'Dragonhunter',
         'Eagle',
         'Fireworks',
         'Mist Stranger',
         'Mistburn',
+        'Mount Balrior',
         'Shackles',
         'Thief'
       ]

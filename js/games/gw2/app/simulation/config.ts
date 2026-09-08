@@ -154,6 +154,8 @@ export function createGw2SimulationConfig({
     weaponSetStats,
     sigilSets,
     relic: disabled?.type === 'Relic' ? '' : app.build.relic,
+    // Temporary relic selections travel with every simulation of this build, including optimizer candidates.
+    precastRelics: [...(app.build.precastRelics || [])],
     food: disabled?.type === 'Food' ? '' : app.build.food,
     timeOfDay: assumptions.timeOfDay === 'night' ? 'night' : 'day',
     boons: {

@@ -373,9 +373,11 @@ test('every Mesmer catalog skill exposes normalized effects', () => {
 });
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
-  const excluded = ['Krait', 'Weaver', 'Fire', 'Mount Balrior'];
+  const excluded = ['Krait', 'Weaver', 'Fire'];
 
   assert.equal(mesmerAppAdapter.relicNames.includes('Claw'), true);
+  assert.equal(mesmerAppAdapter.relicNames.includes('Director'), true);
+  assert.equal(mesmerAppAdapter.relicNames.includes('Mount Balrior'), true);
   assert.equal(mesmerAppAdapter.relicNames.includes('Nourys'), true);
   assert.equal(mesmerAppAdapter.relicNames.includes('Steamshrieker'), true);
   assert.deepEqual(

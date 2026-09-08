@@ -2,7 +2,7 @@ import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS, GEAR_STATS, INFUSION_STATS } from '#gw2/platform/equipment/gear/stats.js';
-import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_NAMES, PRECAST_RELIC_NAMES, normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -139,6 +139,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
         defaults.weaponSigils
       ),
       rune: optionalEquipmentName(RUNE_NAMES, saved.rune) ? saved.rune : defaults.rune,
+      // Older builds opt out of relic preparation until the user explicitly selects it.
+      precastRelics: normalizePrecastRelics(saved.precastRelics),
       food: optionalEquipmentName(FOOD_NAMES, saved.food) ? saved.food : defaults.food,
       utility: optionalEquipmentName(UTILITY_NAMES, saved.utility) ? saved.utility : defaults.utility,
       jadeBotCore: typeof saved.jadeBotCore === 'boolean' ? saved.jadeBotCore : Boolean(defaults.jadeBotCore),
@@ -856,6 +858,15 @@ function validateCommonBuild(
 
   if (!optionalEquipmentName(RELIC_NAMES, candidate.relic)) {
     errors.push('relic must be a known relic.');
+  }
+
+  if (
+    candidate.precastRelics !== undefined &&
+    (!Array.isArray(candidate.precastRelics) ||
+      candidate.precastRelics.some((name) => !PRECAST_RELIC_NAMES.includes(name)) ||
+      new Set(candidate.precastRelics).size !== candidate.precastRelics.length)
+  ) {
+    errors.push('precastRelics must contain unique supported precast relics.');
   }
 
   if (!optionalEquipmentName(RUNE_NAMES, candidate.rune)) {

@@ -3,6 +3,17 @@
 // ─── Relic Data ───────────────────────────────────────────────────────────────
 // Runtime owns behavior; trigger text summarizes both activation and payoff for equipment UI.
 export const RELIC_DATA = {
+  // Both slot-skill relics can carry their remaining buff duration through a Combat Start marker.
+  Director: {
+    trigger: 'Use a healing skill (8 Vulnerability for 8s; +10% strike damage to vulnerable foes for 6s)',
+    cooldown: 15,
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_the_Director.png'
+  },
+  'Mount Balrior': {
+    trigger: 'Use an elite skill (+15% strike damage for 6s after a 1s delay; assumes standing in the area)',
+    cooldown: 30,
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_Mount_Balrior.png'
+  },
   Akeem: {
     trigger: 'CC a foe with 5+ Torment or Confusion (2 Confusion for 10s, 2 Torment for 10s)',
     cooldown: 10,
@@ -114,6 +125,13 @@ export function relicWeaponSwapRechargeMultiplier(relicName: string | undefined)
 
 export const RELIC_NAMES = [...Object.keys(RELIC_DATA)].sort((a, b) => a.localeCompare(b));
 
+/** Only these relics currently support temporary equipment during authored precombat actions. */
+export const PRECAST_RELIC_NAMES: readonly string[] = ['Director', 'Mount Balrior'];
+
+export function normalizePrecastRelics(value: unknown): string[] {
+  return Array.isArray(value) ? PRECAST_RELIC_NAMES.filter((name) => value.includes(name)) : [];
+}
+
 export const RELIC_GROUPS = [
   {
     label: 'Power',
@@ -122,11 +140,13 @@ export const RELIC_GROUPS = [
       'Bloodstone',
       'Claw',
       'Deadeye',
+      'Director',
       'Dragonhunter',
       'Eagle',
       'Fireworks',
       'Mist Stranger',
       'Mistburn',
+      'Mount Balrior',
       'Shackles',
       'Thief'
     ]

@@ -21,6 +21,7 @@ export interface Gw2Config extends SchedulerRecord {
   readonly selectedTraitIds?: readonly (string | number)[];
   readonly selectedSkills?: Gw2SelectedSkillLoadout;
   readonly relic?: string;
+  readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;
   readonly food?: string;
   readonly timeOfDay?: 'day' | 'night';

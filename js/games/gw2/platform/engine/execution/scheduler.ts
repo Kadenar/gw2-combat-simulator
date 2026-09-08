@@ -1028,6 +1028,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       skillId: skill.id,
       skillName: skill.name,
       name: skill.name,
+      // Preserve the slot type so shared equipment can react to completed heal and elite casts.
+      skillType: skill.type,
       endsAt: effectiveEnd,
       fullEndsAt: fullEnd,
       rechargeReadyAt,

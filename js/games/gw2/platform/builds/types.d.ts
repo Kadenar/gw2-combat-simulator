@@ -147,6 +147,7 @@ export interface Gw2BuildInfusion {
 }
 
 export interface Gw2CanonicalBuild extends SchedulerRecord {
+  precastRelics?: string[];
   schemaVersion: number;
   profession: string;
   gear: Record<string, string>;
@@ -239,6 +240,7 @@ export interface Gw2BuildCodecOptions<TBuild extends Gw2CanonicalBuild = Gw2Cano
 }
 
 export interface Gw2ApplicationBuild extends SchedulerRecord {
+  precastRelics?: string[];
   schemaVersion: number;
   profession: string;
   gear: Record<string, string>;

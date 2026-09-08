@@ -1,6 +1,7 @@
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS, INFUSION_BONUS, INFUSION_STATS, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
-import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_GROUPS, PRECAST_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { candidatePicker, updatePicker, bindCandidatePickers } from '#gw2/app/build/equipment-picker.js';
 import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -338,6 +339,9 @@ export function renderGear(app: ProfessionAppState): void {
             ${sectionHeading('Upgrades')}
             ${selectRow('Rune', 'sel-rune', b.rune, groupedOptions(RUNE_GROUPS, b.rune, runeOptionLabel))}
             ${selectRow('Relic', 'sel-relic', b.relic, groupedOptions(RELIC_GROUPS, b.relic, relicOptionLabel))}
+            <div id="precast-relics">
+              ${candidatePicker('precastRelics', 'Precast relics', PRECAST_RELIC_NAMES, b.precastRelics || [], 0, relicOptionLabel, 'No precast relics')}
+            </div>
             ${selectRow('Food', 'sel-food', b.food, groupedOptions(FOOD_GROUPS, b.food, foodOptionLabel))}
             ${selectRow('Utility', 'sel-utility', b.utility, groupedOptions(UTILITY_GROUPS, b.utility, utilityOptionLabel))}
             <div class="gear-row"><span class="gear-label">Jade Bot</span>
@@ -372,6 +376,16 @@ export function renderGear(app: ProfessionAppState): void {
 
   bindValue('sel-rune', (value) => (b.rune = value));
   bindValue('sel-relic', (value) => (b.relic = value));
+  // Keep add/remove chips in place while persisting and simulating the explicitly selected preparation relics.
+  const precastPicker = requiredElement('precast-relics');
+  precastPicker.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
+  bindCandidatePickers(precastPicker);
+  precastPicker.addEventListener('change', () => {
+    b.precastRelics = [...precastPicker.querySelectorAll<HTMLInputElement>('input[name="precastRelics"]')].map(
+      (input) => input.value
+    );
+    app.changed(true, false);
+  });
   bindValue('sel-food', (value) => (b.food = value));
   bindValue('sel-utility', (value) => (b.utility = value));
   const jadeBot = requiredInput('chk-jbc');

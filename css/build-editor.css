@@ -956,6 +956,17 @@
   border-radius: 0;
 }
 
+/* Preparation uses the optimizer's removable choices within the equipment column. */
+#precast-relics {
+  margin: 10px 0;
+}
+#precast-relics .optimizer-picker-empty {
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
 .gear-panel :is(.gear-select, .gear-select-trigger):focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;

@@ -65,6 +65,13 @@ The simulator models execution state including:
 
 Keyboard hotkeys can also be used to add weapon, utility, and profession skills while constructing a rotation.
 
+Select **Precast relics** in the gear panel to enable during preparation. The selector
+starts empty and uses the same add/remove choices as the gear optimizer. Their buffs keep their original expiry after combat
+starts, but only the combat relic can trigger again. Add **Wait** entries to model preparation time; skill cooldowns
+carry into combat. Mount Balrior activates one second after the elite finishes and assumes you remain inside its area.
+Enable **Overlay relics** to see activation
+and expiry markers. These selections require a Combat Start marker.
+
 ### Deterministic simulation
 
 The default simulation mode produces a reproducible expected result for the same build and rotation.
