@@ -138,15 +138,11 @@
 
 /* Keep tab renaming inside the app, with native modal focus and room on small screens. */
 .build-rename-dialog {
-  inset: 0;
-  width: min(400px, calc(var(--embed-viewport-width, 100vw) - 24px));
-  max-height: calc(var(--embed-viewport-height, 100vh) - 24px);
-  margin: auto;
+  --dialog-width: 400px;
+  --dialog-gap: 24px;
   padding: 20px;
-  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  background: var(--bg-panel);
-  color: var(--text);
+  box-shadow: none;
 }
 
 .build-rename-dialog::backdrop {
@@ -177,8 +173,6 @@
 }
 
 .build-rename-actions {
-  display: flex;
-  justify-content: flex-end;
   gap: 8px;
   margin-top: 20px;
 }
@@ -684,16 +678,11 @@
 }
 
 .build-templates-dialog {
-  inset: 0;
-  width: min(760px, calc(var(--embed-viewport-width, 100vw) - 24px));
+  --dialog-width: 760px;
+  --dialog-gap: 24px;
   max-height: min(720px, calc(var(--embed-viewport-height, 100vh) - 24px));
-  margin: auto;
-  padding: 0;
-  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  background: var(--bg-panel);
-  color: var(--text);
-  overscroll-behavior: contain;
+  box-shadow: none;
 }
 
 .build-templates-dialog::backdrop {
