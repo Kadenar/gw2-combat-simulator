@@ -1,19 +1,18 @@
 # Log analyzers
 
-`js/games/gw2/integrations/logs/` owns rotation reconstruction from recorded combat. It separates source parsing from
-rules that must be identical for EVTC and dps.report imports.
+The adapters convert available cast evidence into simulator commands. Missing setup remains editable after import.
 
-```text
-js/games/gw2/integrations/logs/
-├── lib/          Source-neutral contracts, catalog/profile lookup, scheduling, and reusable rules
-├── evtc/         Raw ArcDPS parsing and EVTC-only evidence inference
-└── dps-report/   Elite Insights validation and report-only inference
-```
+- `evtc/` parses raw ArcDPS records and applies explicit Elite Insights cast finders.
+- `dps-report/` validates EI JSON and imports the selected player's supplied rotation intersecting the selected phase.
+- `lib/rotation/` owns source-independent identities, represented composites, proc filtering and replay scheduling.
 
-Code belongs in `lib/` when its inputs no longer require an EVTC event or Elite Insights field. In particular, command
-construction, idle/overlap scheduling, player tie-breaking, profession identities, composite casts, and generic
-autoattack chains are shared. Packet reconciliation, buff/effect inference, report URL handling, and lossy-source
-recovery stay in their adapters.
+Both return source actions separately from normalized actions, commands, time origins and warnings. Source durations are
+retained; simulator conversion can quantize interruptions, encode overlaps and add ordinary waits using catalog timing.
+It does not modify resource defaults, cooldowns or saved rotations to repair missing inputs.
 
-Both adapters return the same base result contract: `timelineOriginMs`, a nullable combat-start offset, normalized
-action summaries, executable commands, and warnings. Adapter results may add evidence that only their source exposes.
+Every successful log import returns this notice once:
+
+> The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.
+
+Native saved-rotation imports do not receive the notice. See the adapter READMEs and
+[EI alignment](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) for evidence rules and coverage limits.
