@@ -357,6 +357,39 @@ for (const timeGained of [200, -200]) {
   });
 }
 
+test('Guardian import resets a pending chain only when the intervening cast lands damage by cast end', () => {
+  // A cancelled follow-up leaves the chain pending across a trap or cancelled leap; a landed leap resets it.
+  for (const [interruptingId, duration, nextId] of [
+    [30364, 440, 9138],
+    [9080, 80, 9138],
+    [9080, 720, 9137]
+  ]) {
+    const report = reportFixture(
+      'Dragonhunter',
+      [
+        { id: 9137, skills: [{ castTime: 0, duration: 400, timeGained: 0 }] },
+        { id: 9138, skills: [{ castTime: 400, duration: 80, timeGained: -520 }] },
+        { id: interruptingId, skills: [{ castTime: 480, duration, timeGained: 0 }] },
+        { id: nextId, skills: [{ castTime: 480 + duration, duration: 600, timeGained: 0 }] }
+      ],
+      Object.fromEntries(
+        [9137, 9138, interruptingId].map((id) => [`s${id}`, { name: guardianCatalog.skillsById.get(id).name }])
+      )
+    );
+    const imported = reconstructDpsReportRotation(report, guardianCatalog);
+    const simulation = simulateGw2({
+      profession: guardianProfession,
+      rotation: imported.rotation,
+      config: defaultSimulationConfig({ specialization: 'Dragonhunter', primaryWeapon: 'Greatsword' })
+    });
+
+    assert.equal(imported.actions.at(-1).skillId, nextId);
+    assert.deepEqual(simulation.warnings, []);
+    assert.equal(simulation.steps.at(-1).skillId, nextId);
+    assert.equal(simulation.steps.at(-1).cancelledBeforeCommit, undefined);
+  }
+});
+
 test('aligns dps.report combat start with an opening Symbol of Luminance packet', () => {
   const report = reportFixture(
     'Luminary',

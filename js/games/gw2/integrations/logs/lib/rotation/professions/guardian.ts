@@ -1,5 +1,11 @@
 import { catalogSkillById, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
+import {
+  firstStrikePacketOffsetMs,
+  isUncommittedCast,
+  quicknessRuntimeDurationMs,
+  replayInterruptDurationMs
+} from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { reconstructLuminaryDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/guardian/luminary.js';
 import { reconstructWillbenderDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/guardian/willbender.js';
 import type {
@@ -23,9 +29,19 @@ export function reconstructGuardianDpsReportActions(
   return normalizeAutoattackChains(specialized, {
     skillFor: (action) => recordedActionSkill(action, context),
     skillById: (skillId) => catalogSkillById(context.catalog, skillId),
-    resetsChain: (action, skill) =>
-      action.isSwap ||
-      Number(skill?.castTimeMs || skill?.quicknessCastTimeMs || 0) > 0 ||
-      skill?.handlerId === 'guardian.radiant-forge'
+    resetsChain: (action, skill) => {
+      if (action.isSwap || skill?.handlerId === 'guardian.radiant-forge') return true;
+      const duration = action.end - action.start;
+      const runtime = quicknessRuntimeDurationMs(skill);
+      const firstStrike = firstStrikePacketOffsetMs(skill);
+      // Match runtime chain resets: cancelled, non-damaging, and delayed-damage casts preserve the pending step.
+      return (
+        runtime > 0 &&
+        skill?.independentCast !== true &&
+        !isUncommittedCast(skill, duration) &&
+        firstStrike != null &&
+        firstStrike <= Math.min(runtime, replayInterruptDurationMs(skill, duration))
+      );
+    }
   });
 }

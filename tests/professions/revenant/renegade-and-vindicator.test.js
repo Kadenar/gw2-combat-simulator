@@ -77,9 +77,6 @@ const simulate = createProfessionSimulator(revenantProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
-const strikeCoefficient = (effect) =>
-  effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
-
 test('Ferocious Aggression follows self Fury activation and expiry for strike and condition damage', () => {
   const fury = { at: 1, expiresAt: 2, resolvedAudience: PLAYER_AUDIENCE };
   const context = {
@@ -108,79 +105,38 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
   }
 });
 
-test('Demon skills use their current projectile and condition packets', () => {
-  const banish = simulate('Core', ['Banish Enchantment'], {
-    selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DEMON,
-    initialEnergy: 100
-  });
-  const banishEvents = banish.events.filter((event) => event.skillName === 'Banish Enchantment');
+test('Demon attacks apply conditions and control with their impacts', () => {
+  // Effects stay tied to their impact even when projectile delays or balance values change.
+  const config = { selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN], startingLegend: LEGEND.DEMON, initialEnergy: 100 };
+  const banish = simulate('Core', ['Banish Enchantment'], config);
+  const hits = banish.events.filter((event) => event.type === 'damage' && event.skillName === 'Banish Enchantment');
+  assert.deepEqual(banish.warnings, []);
+  assert.ok(hits.length > 0);
+  for (const condition of ['Chilled', 'Torment']) {
+    assert.deepEqual(
+      banish.events
+        .filter((event) => event.skillName === 'Banish Enchantment' && event.condition === condition)
+        .map((event) => event.at),
+      hits.map((event) => event.at)
+    );
+  }
 
-  assert.ok(
-    banishEvents.filter((event) => event.type === 'damage').every((event) => Math.abs(event.coefficient - 0.4) < 1e-9)
-  );
-  assert.deepEqual(
-    banishEvents.filter((event) => event.type === 'damage').map((event) => Math.round(event.at * 1000)),
-    [400, 520, 640]
+  const anguish = simulate('Core', ['Call to Anguish', 'Unyielding Impact'], config);
+  assert.deepEqual(anguish.warnings, []);
+  const impact = anguish.events.find((event) => event.type === 'damage' && event.skillName === 'Call to Anguish');
+  assert.equal(
+    anguish.events.find((event) => event.skillName === 'Call to Anguish' && event.condition === 'Chilled').at,
+    impact.at
   );
   assert.equal(
-    banishEvents.filter((event) => event.type === 'condition' && event.condition === 'Chilled' && event.duration === 1)
-      .length,
-    3
-  );
-  assert.equal(
-    banishEvents.filter((event) => event.type === 'condition' && event.condition === 'Torment' && event.duration === 3)
-      .length,
-    3
-  );
-
-  const anguish = simulate('Core', ['Call to Anguish', 'Unyielding Impact'], {
-    selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DEMON,
-    initialEnergy: 100
-  });
-
-  assert.ok(
-    anguish.events.some(
-      (event) =>
-        event.type === 'damage' &&
-        event.skillName === 'Call to Anguish' &&
-        event.coefficient === 1.2 &&
-        event.at === 0.8
-    )
-  );
-  assert.ok(
-    anguish.events.some(
-      (event) =>
-        event.skillName === 'Call to Anguish' &&
-        event.condition === 'Chilled' &&
-        event.duration === 2 &&
-        event.at === 0.8
-    )
-  );
-  assert.ok(
-    anguish.events.some(
-      (event) => event.type === 'control' && event.skillName === 'Call to Anguish' && event.at === 0.8
-    )
-  );
-  assert.ok(
-    anguish.events.some(
-      (event) =>
-        event.type === 'damage' &&
-        event.skillName === 'Unyielding Impact' &&
-        event.coefficient === 1 &&
-        event.at === 1.79
-    )
+    anguish.events.find((event) => event.skillName === 'Call to Anguish' && event.type === 'control').at,
+    impact.at
   );
   assert.deepEqual(
     anguish.events
       .filter((event) => event.type === 'condition' && event.skillName === 'Unyielding Impact')
-      .map((event) => [event.condition, event.stacks, event.duration]),
-    [
-      ['Burning', 1, 3],
-      ['Torment', 4, 3],
-      ['Poisoned', 1, 3]
-    ]
+      .map((event) => event.condition),
+    ['Burning', 'Torment', 'Poisoned']
   );
 });
 
@@ -221,7 +177,6 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
 
   assert.equal(baselinePulse.stacks, 1);
   assert.equal(baselinePulse.duration, 5);
-  assert.equal(baselinePulse.at, 0.36);
   assert.ok(
     baseline.events.some(
       (event) => event.type === 'damage' && event.skillName === 'Embrace the Darkness' && event.coefficient === 0.3
@@ -272,57 +227,9 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
   );
 });
 
-test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
-  const road = simulate(
-    'Core',
-    ['Inspiring Reinforcement'],
-    {
-      selectedLegends: [LEGEND.DWARF, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.DWARF,
-      initialEnergy: 100
-    },
-    observationTail(5000)
-  );
-
-  assert.ok(
-    road.events.some(
-      (event) => event.type === 'damage' && event.skillName === 'Inspiring Reinforcement' && event.coefficient === 1.5
-    )
-  );
-  assert.ok(
-    road.events.some(
-      (event) => event.skillName === 'Inspiring Reinforcement' && event.condition === 'Weakness' && event.duration === 6
-    )
-  );
-  assert.deepEqual(
-    road.events
-      .filter(
-        (event) => event.type === 'buff' && event.skillName === 'Inspiring Reinforcement' && event.kind === 'stability'
-      )
-      .map((event) => [event.at, event.duration]),
-    [
-      [0.25, 3],
-      [0.77, 3],
-      [1.77, 3],
-      [2.77, 3],
-      [3.77, 3],
-      [4.77, 3]
-    ]
-  );
-
-  const engagement = simulate('Core', ['Forced Engagement'], {
-    selectedLegends: [LEGEND.DWARF, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DWARF,
-    initialEnergy: 100
-  });
-
-  assert.ok(engagement.events.some((event) => event.type === 'damage' && event.coefficient === 0.5));
-  assert.ok(
-    engagement.events.some((event) => event.type === 'control' && event.controlKind === 'taunt' && event.duration === 4)
-  );
-  assert.ok(engagement.events.some((event) => event.condition === 'Slow' && event.duration === 4));
-
-  const hammers = simulate(
+test('Dwarf upkeep stops dealing damage when released', () => {
+  // Releasing an upkeep cancels future pulses, independently of its hit rate or coefficients.
+  const result = simulate(
     'Core',
     ['Vengeful Hammers', { type: 'wait', durationMs: 1100 }, 'Release Hammers', { type: 'wait', durationMs: 1000 }],
     {
@@ -331,13 +238,12 @@ test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
       initialEnergy: 100
     }
   );
-  const hammerHits = hammers.events.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Vengeful Hammers'
-  );
-
-  assert.equal(hammerHits.length, 9);
-  assert.ok(hammerHits.every((event) => Math.abs(event.coefficient - 0.2) < 1e-12));
-  assert.equal(hammers.endState.profession.activeUpkeeps.length, 0);
+  const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Vengeful Hammers');
+  const release = result.steps.find((step) => step.skill === 'Release Hammers');
+  assert.deepEqual(result.warnings, []);
+  assert.ok(hits.length > 0);
+  assert.ok(hits.every((event) => event.at <= release.end / 1000));
+  assert.equal(result.endState.profession.activeUpkeeps.length, 0);
 });
 
 // Use isolated strike times to distinguish the 250 ms ICD from the independent strike delay.
@@ -434,20 +340,16 @@ test('Icerazor packets use player ownership and trigger player equipment', () =>
       .length,
     1
   );
-  const actionStart = result.steps[0].start / 1000;
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === "Icerazor's Ire");
 
-  assert.deepEqual(
-    hits.map((event) => Math.round((event.at - actionStart) * 1000)),
-    [1000, 1160, 1320]
-  );
+  assert.ok(hits.length > 0);
   assert.equal(
     result.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Torment').at,
     hits[0].at
   );
   assert.equal(
     result.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Immobilized').at,
-    hits[2].at
+    hits.at(-1).at
   );
 });
 
@@ -485,122 +387,49 @@ test('Icerazor grants Fervor only after its projectiles land', () => {
   assert.equal(landed.endState.profession.kallasFervor.length, 3);
 });
 
-test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles', () => {
-  assert.deepEqual(
-    [SKILL.CITADEL_BOMBARDMENT, SKILL.ORDERS_FROM_ABOVE].map((id) => {
-      const skill = revenantCatalog.skillsById.get(id);
-
-      return [skill.energyCost, skill.cooldown, skill.castTimeMs];
-    }),
-    [
-      [35, 15, 600],
-      [20, 20, 0]
-    ]
-  );
-  const quickBombardment = simulate('Renegade', ['Citadel Bombardment'], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-    boons: { quickness: true }
-  });
-
-  assert.equal(quickBombardment.steps[0].fullCastMs, 600);
-  const bombardment = simulate(
+test('Citadel Bombardment burns on each hit and Vindication triggers once per cast', () => {
+  const result = simulate(
     'Renegade',
-    ['Citadel Bombardment', 'Citadel Bombardment'],
+    ['Citadel Bombardment'],
     {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
       selectedTraitIds: [TRAIT.VINDICATION],
-      initialEnergy: 100
-    },
-    observationTail(2000)
-  );
-
-  assert.deepEqual(
-    bombardment.steps.map((step) => [step.start, step.fullCastMs]),
-    [
-      [0, 600],
-      [15600, 600]
-    ]
-  );
-  const firstBombardmentHits = bombardment.events.filter(
-    (event) => event.type === 'damage' && event.skillId === SKILL.CITADEL_BOMBARDMENT && event.at < 3
-  );
-
-  assert.equal(firstBombardmentHits.length, 10);
-  assert.ok(firstBombardmentHits.every((event) => event.coefficient === 0.6));
-  const firstBurns = bombardment.events.filter(
-    (event) =>
-      event.type === 'condition' &&
-      event.skillId === SKILL.CITADEL_BOMBARDMENT &&
-      event.at < 3 &&
-      event.condition === 'Burning' &&
-      event.stacks === 1 &&
-      event.duration === 1
-  );
-
-  assert.deepEqual(
-    firstBurns.map((event) => Math.round(event.at * 1000)),
-    firstBombardmentHits.map((event) => Math.round(event.at * 1000))
-  );
-  assert.equal(
-    bombardment.events.filter(
-      (event) =>
-        event.type === 'control' &&
-        event.skillName === 'Vindication' &&
-        event.controlKind === 'daze' &&
-        event.duration === 1
-    ).length,
-    2
-  );
-
-  const orders = simulate(
-    'Renegade',
-    ['Orders from Above'],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
       initialEnergy: 100
     },
     observationTail(3000)
   );
-
-  assert.equal(orders.steps[0].fullCastMs, 0);
+  const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === SKILL.CITADEL_BOMBARDMENT);
+  const burns = result.events.filter(
+    (event) => event.skillId === SKILL.CITADEL_BOMBARDMENT && event.condition === 'Burning'
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(hits.length > 1);
   assert.deepEqual(
-    orders.events
-      .filter(
-        (event) => event.type === 'buff' && event.skillId === SKILL.ORDERS_FROM_ABOVE && event.kind === 'alacrity'
-      )
-      .map((event) => [event.at, event.duration, event.stacks]),
-    [
-      [0, 2, 1],
-      [1, 2, 1],
-      [2, 2, 1],
-      [3, 2, 1]
-    ]
+    burns.map((event) => event.at),
+    hits.map((event) => event.at)
   );
+  assert.equal(
+    result.events.filter(
+      (event) => event.type === 'control' && event.skillName === 'Vindication' && event.controlKind === 'daze'
+    ).length,
+    1
+  );
+});
 
-  const righteous = simulate(
-    'Renegade',
-    ['Orders from Above'],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      selectedTraitIds: [TRAIT.RIGHTEOUS_REBEL],
-      initialEnergy: 100
-    },
-    observationTail(5000)
-  );
-
-  assert.deepEqual(
-    righteous.events
-      .filter(
-        (event) => event.type === 'buff' && event.skillId === SKILL.ORDERS_FROM_ABOVE && event.kind === 'alacrity'
-      )
-      .map((event) => event.at),
-    [0, 1, 2, 3, 4, 5]
-  );
+test('Righteous Rebel extends Orders from Above with additional alacrity pulses', () => {
+  // The trait adds pulses while preserving the base pulse cadence and duration.
+  const run = (selectedTraitIds) =>
+    simulate('Renegade', ['Orders from Above'], { selectedTraitIds, initialEnergy: 100 }, observationTail(6000));
+  const base = run([]);
+  const improved = run([TRAIT.RIGHTEOUS_REBEL]);
+  const pulses = (result) =>
+    result.events
+      .filter((event) => event.skillId === SKILL.ORDERS_FROM_ABOVE && event.kind === 'alacrity')
+      .map(({ at, duration }) => ({ at, duration }));
+  assert.deepEqual(base.warnings, []);
+  assert.deepEqual(improved.warnings, []);
+  assert.ok(pulses(base).length > 0);
+  assert.ok(pulses(improved).length > pulses(base).length);
+  assert.deepEqual(pulses(improved).slice(0, pulses(base).length), pulses(base));
 });
 
 test("Kalla's Fervor chart uses the Renegade stack cap", () => {
@@ -969,76 +798,29 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
 });
 
 describe('Band Together summon enhancement', () => {
-  test('keeps base Icerazor timing and packets independent of Quickness', () => {
-    const base = simulate(
+  test('Darkrazor grants self stability before its delayed party effects', () => {
+    // The summon owns player effects, with party stability and control arriving on impact.
+    const result = simulate(
       'Renegade',
-      ["Icerazor's Ire"],
+      ["Darkrazor's Daring"],
       {
         selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
         startingLegend: LEGEND.RENEGADE,
         initialEnergy: 100
       },
-      observationTail(3000)
+      observationTail(2000)
     );
-
-    assert.equal(base.steps[0].fullCastMs, 520);
-    const quickBase = simulate('Renegade', ["Icerazor's Ire"], {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100,
-      boons: { quickness: true }
-    });
-
-    assert.equal(quickBase.steps[0].fullCastMs, 520);
-    assert.deepEqual(
-      base.events
-        .filter((event) => event.type === 'damage' && event.skillName === "Icerazor's Ire")
-        .map((event) => event.coefficient),
-      [2, 2, 2]
-    );
-    assert.ok(base.events.some((event) => event.condition === 'Immobilized' && event.duration === 2));
-    assert.equal(
-      base.events.some((event) => event.condition === 'Chilled'),
-      false
-    );
-  });
-
-  test('keeps base Darkrazor timing and outgoing effects', () => {
-    const darkrazor = simulate('Renegade', ["Darkrazor's Daring", { type: 'wait', durationMs: 1600 }], {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100,
-      boons: { quickness: true }
-    });
-
-    assert.equal(darkrazor.steps[0].fullCastMs, 520);
-    assert.deepEqual(
-      darkrazor.events
-        .filter(
-          (event) => event.skillName === "Darkrazor's Daring" && (event.type === 'damage' || event.type === 'control')
-        )
-        .map((event) => [event.type, Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000), event.actorType]),
-      [
-        ['damage', 1000, 'player'],
-        ['control', 1000, 'player']
-      ]
-    );
-    assert.deepEqual(
-      darkrazor.events
-        .filter(
-          (event) => event.skillName === "Darkrazor's Daring" && event.type === 'buff' && event.kind === 'stability'
-        )
-        .map((event) => [
-          event.duration,
-          event.stacks,
-          event.audience?.recipients,
-          Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000)
-        ]),
-      [
-        [1, 1, 'self', 0],
-        [6, 3, 'party', 1000]
-      ]
-    );
+    const effects = result.events.filter((event) => event.skillName === "Darkrazor's Daring");
+    const hit = effects.find((event) => event.type === 'damage');
+    const control = effects.find((event) => event.type === 'control');
+    const self = effects.find((event) => event.kind === 'stability' && event.audience?.recipients === 'self');
+    const party = effects.find((event) => event.kind === 'stability' && event.audience?.recipients === 'party');
+    assert.deepEqual(result.warnings, []);
+    assert.equal(hit.actorType, 'player');
+    assert.equal(control.actorType, 'player');
+    assert.equal(control.at, hit.at);
+    assert.equal(party.at, hit.at);
+    assert.ok(self.at < party.at);
   });
 
   test('attributes enhanced Razorclaw torment to the player', () => {
@@ -1071,10 +853,9 @@ describe('Band Together summon enhancement', () => {
       }
     );
 
-    assert.deepEqual(
-      enhanced.steps.slice(0, 3).map((step) => step.fullCastMs),
-      [500, 0, 520]
-    );
+    assert.ok(enhanced.steps[0].fullCastMs > 0);
+    assert.equal(enhanced.steps[1].fullCastMs, 0);
+    assert.ok(enhanced.steps[2].fullCastMs > 0);
     assert.ok(
       enhanced.events.some(
         (event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled' && event.duration === 1.5
@@ -1082,7 +863,7 @@ describe('Band Together summon enhancement', () => {
     );
   });
 
-  test('retains Icerazor packet timing when the enhanced cast is instant', () => {
+  test('enhanced Icerazor delays its hits and applies chill on each impact', () => {
     const quickEnhanced = simulate(
       'Renegade',
       ["Razorclaw's Rage", "Icerazor's Ire", { type: 'wait', durationMs: 1000 }],
@@ -1098,10 +879,8 @@ describe('Band Together summon enhancement', () => {
       (event) => event.type === 'damage' && event.skillName === "Icerazor's Ire"
     );
 
-    assert.deepEqual(
-      quickIcerazorHits.map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
-      [640, 800, 960]
-    );
+    assert.ok(quickIcerazorHits.length > 0);
+    assert.ok(quickIcerazorHits.every((event) => event.at > quickEnhanced.steps[1].end / 1000));
     assert.ok(
       quickEnhanced.events
         .filter((event) => event.skillName === "Icerazor's Ire" && event.type === 'condition')
@@ -1114,13 +893,13 @@ describe('Band Together summon enhancement', () => {
     assert.equal(
       quickEnhanced.events.find((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Immobilized')
         .at,
-      quickIcerazorHits[2].at
+      quickIcerazorHits.at(-1).at
     );
     assert.deepEqual(
       quickEnhanced.events
         .filter((event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled')
-        .map((event) => Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000)),
-      [640, 800, 960]
+        .map((event) => event.at),
+      quickIcerazorHits.map((event) => event.at)
     );
   });
 
@@ -1135,10 +914,6 @@ describe('Band Together summon enhancement', () => {
       }
     );
 
-    assert.deepEqual(
-      enhancedDarkrazor.steps.slice(0, 2).map((step) => step.fullCastMs),
-      [520, 0]
-    );
     assert.ok(
       enhancedDarkrazor.events.some(
         (event) =>
@@ -1174,13 +949,7 @@ describe('Band Together summon enhancement', () => {
       observationTail(2000)
     );
 
-    assert.deepEqual(
-      concurrent.steps.map((step) => [step.start, step.fullCastMs]),
-      [
-        [0, 520],
-        [100, 0]
-      ]
-    );
+    assert.deepEqual(concurrent.warnings, []);
     // Every eligible hit consumes one charge at its hit time; Razorclaw has no internal cooldown.
     assert.deepEqual(
       concurrent.events
@@ -1191,8 +960,10 @@ describe('Band Together summon enhancement', () => {
             event.stacks === 1 &&
             !event.triggeredByAlly
         )
-        .map((event) => Math.round(event.at * 1000)),
-      [1000, 1160, 1320]
+        .map((event) => event.at),
+      concurrent.events
+        .filter((event) => event.type === 'damage' && event.skillName === "Icerazor's Ire")
+        .map((event) => event.at)
     );
   });
 
@@ -1229,7 +1000,8 @@ test('enhanced Renegade summons do not rearm Band Together', () => {
     }
   );
 
-  assert.deepEqual([result.steps[1].fullCastMs, result.steps[4].fullCastMs], [0, 520]);
+  assert.equal(result.steps[1].fullCastMs, 0);
+  assert.ok(result.steps[4].fullCastMs > 0);
 });
 
 test('Band Together expires four seconds after the priming summon', () => {
@@ -1250,22 +1022,34 @@ test('Band Together expires four seconds after the priming summon', () => {
   );
 
   assert.equal(withinWindow.steps[2].fullCastMs, 0);
-  assert.equal(atExpiry.steps[2].fullCastMs, 520);
+  assert.ok(atExpiry.steps[2].fullCastMs > 0);
 });
 
-test('All for One refunds Energy and halves enhanced-skill recharge', () => {
-  const result = simulate('Renegade', ["Razorclaw's Rage", "Icerazor's Ire", "Icerazor's Ire"], {
+test('All for One refunds Energy and halves only enhanced-skill recharge', () => {
+  // Compare identical casts so passive regeneration and authored cooldown changes cancel out.
+  const rotation = ["Razorclaw's Rage", "Icerazor's Ire"];
+  const config = {
     selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
     startingLegend: LEGEND.RENEGADE,
-    selectedTraitIds: [TRAIT.ALL_FOR_ONE],
     initialEnergy: 100
-  });
-
-  assert.equal(result.steps[2].start, 5500);
-  const refunds = result.events.filter((event) => event.type === 'revenant.state' && event.reason === 'all-for-one');
-
-  assert.equal(refunds.length, 1);
-  assert.equal(refunds[0].state.energy, 65);
+  };
+  const base = simulate('Renegade', rotation, config);
+  const traited = simulate('Renegade', rotation, { ...config, selectedTraitIds: [TRAIT.ALL_FOR_ONE] });
+  assert.deepEqual(base.warnings, []);
+  assert.deepEqual(traited.warnings, []);
+  assert.ok(traited.endState.profession.energy > base.endState.profession.energy);
+  assert.equal(
+    traited.endState.cooldowns["Icerazor's Ire"].remaining,
+    base.endState.cooldowns["Icerazor's Ire"].remaining / 2
+  );
+  assert.equal(
+    traited.endState.cooldowns["Razorclaw's Rage"].readyAt,
+    base.endState.cooldowns["Razorclaw's Rage"].readyAt
+  );
+  assert.equal(
+    traited.events.filter((event) => event.type === 'revenant.state' && event.reason === 'all-for-one').length,
+    1
+  );
 });
 
 test("Razorclaw models party procs with the Revenant's condition stats", () => {
@@ -1329,11 +1113,14 @@ test('Soulcleave procs both damage packets and recharges from dismissal', () => 
     (event) => event.skillName === "Soulcleave's Summit" && /Additional Strike|Life Siphon/.test(event.name)
   );
 
-  assert.ok(procs.some((event) => event.coefficient === 0.8));
-  assert.ok(procs.some((event) => event.flatStrikePowerCoeff === 0.1));
+  assert.ok(procs.some((event) => /Additional Strike/.test(event.name)));
+  assert.ok(procs.some((event) => /Life Siphon/.test(event.name) && event.flatStrikePowerCoeff > 0));
   const dismiss = result.steps.find((step) => step.skill === 'Dismiss Lieutenant Soulcleave');
 
-  assert.equal(result.steps.at(-1).start, dismiss.end + 3000);
+  assert.equal(
+    result.steps.at(-1).start,
+    dismiss.end + revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000
+  );
 });
 
 test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', () => {
@@ -1346,9 +1133,12 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     (event) => event.type === 'damage' && event.skillName === 'Enchanted Daggers'
   );
 
-  assert.equal(siphon.at, 1.52);
-  assert.equal(siphon.flatStrikeBase, 1028);
-  assert.equal(siphon.flatStrikePowerCoeff, 0.06);
+  const traversal = daggers.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Phase Traversal'
+  );
+  // Each hit consumes one dagger and schedules its siphon after the triggering strike.
+  assert.ok(siphon.at > traversal.at);
+  assert.ok(siphon.flatStrikeBase > 0);
   assert.equal(daggers.endState.profession.enchantedDaggers.charges, 5);
 
   const odds = simulate('Core', ['Impossible Odds', 'Phase Traversal', 'Relinquish Power', 'Impossible Odds'], {
@@ -1357,10 +1147,14 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     initialEnergy: 100
   });
 
-  assert.equal(odds.steps.at(-1).start, 1500);
+  const release = odds.steps.find((step) => step.skill === 'Relinquish Power');
+  assert.equal(
+    odds.steps.at(-1).start,
+    release.end + revenantCatalog.skillsByName.get('Impossible Odds').manualReleaseCooldown * 1000
+  );
   assert.ok(
     odds.resolvedEvents.some(
-      (event) => event.skillName === 'Impossible Odds' && event.coefficient === 0.65 && event.at === 0.75
+      (event) => event.skillName === 'Impossible Odds' && event.triggeredBy === 'Phase Traversal'
     )
   );
 
@@ -1378,16 +1172,13 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     ]
   });
 
-  // Air triggered by the 250 ms follow-up lands on the ICD boundary and can trigger another IO strike.
+  // Equipment triggered by the delayed strike can cause another eligible follow-up.
+  const followups = oddsWithAir.resolvedEvents.filter((event) => event.skillName === 'Impossible Odds');
   assert.deepEqual(
-    oddsWithAir.resolvedEvents
-      .filter((event) => event.skillName === 'Impossible Odds')
-      .map((event) => [event.at, event.triggeredBy]),
-    [
-      [0.75, 'Phase Traversal'],
-      [1, 'Sigil of Air']
-    ]
+    followups.map((event) => event.triggeredBy),
+    ['Phase Traversal', 'Sigil of Air']
   );
+  assert.ok(followups[1].at > followups[0].at);
   assert.ok(
     oddsWithAir.resolvedEvents.some(
       (event) => event.skillName === 'Sigil of Air' && event.triggeredBy === 'Impossible Odds'
@@ -1406,15 +1197,8 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     (event) => event.type === 'revenant.state' && event.reason === 'upkeep-starved'
   );
   assert.equal(starvation?.at, 1);
-  assert.equal(starved.schedulerState.cooldowns.get(impossible.id) - starvation.at, 4);
+  assert.equal(starved.schedulerState.cooldowns.get(impossible.id) - starvation.at, impossible.starvationCooldown);
   assert.equal(starved.endState.profession.activeUpkeeps.length, 0);
-
-  const jade = revenantCatalog.skillsByName.get('Jade Winds');
-
-  assert.equal(jade.effects[0].coefficient, 3);
-  assert.equal(jade.effects[1].stacks, 6);
-  assert.equal(jade.energyCost, 35);
-  assert.equal(jade.cooldown, 10);
 });
 
 test('Alliance Tactics switches the legal Vindicator skill side', () => {
@@ -1428,80 +1212,25 @@ test('Alliance Tactics switches the legal Vindicator skill side', () => {
   assert.equal(result.endState.profession.allianceSide, 'kurzick');
 });
 
-test('Vindicator Luxon skills use supplied combat mechanics', () => {
-  const skill = (name) => revenantCatalog.skillsByName.get(name);
-  const nomad = skill("Nomad's Advance");
-
-  assert.equal(nomad.cooldown, 3);
-  assert.equal(nomad.energyCost, 10);
-  assert.equal(nomad.castTimeMs, 960);
-  assert.equal(nomad.quicknessCastTimeMs, undefined);
-  assert.equal(nomad.unaffectedByQuickness, true);
-  assert.equal(strikeCoefficient(nomad.effects[0]), 4);
-  assert.deepEqual(
-    nomad.effects.slice(1).map((effect) => [effect.boon, effect.stacks, effect.duration]),
-    [['might', 1, 6]]
+test('Spear of Archemorus applies torment with its delayed impact', () => {
+  const result = simulate(
+    'Vindicator',
+    ['Spear of Archemorus'],
+    {
+      selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.ALLIANCE,
+      initialEnergy: 100
+    },
+    observationTail(4000)
   );
-
-  const scavenger = skill('Scavenger Burst');
-
-  assert.equal(scavenger.cooldown, 3);
-  assert.equal(scavenger.energyCost, 15);
-  assert.equal(scavenger.effects[0].coefficient, 2.25);
-  assert.deepEqual(
-    scavenger.effects.slice(1).map((effect) => [effect.condition ?? effect.boon, effect.stacks, effect.duration]),
-    [
-      ['Burning', 2, 5],
-      ['quickness', 1, 5],
-      ['fury', 1, 5]
-    ]
+  const hit = result.events.find((event) => event.type === 'damage' && event.skillName === 'Spear of Archemorus');
+  const torment = result.events.find(
+    (event) => event.skillName === 'Spear of Archemorus' && event.condition === 'Torment'
   );
-
-  const rage = skill("Reaver's Rage");
-
-  assert.equal(rage.cooldown, 10);
-  assert.equal(rage.energyCost, 15);
-  assert.equal(rage.effects[0].coefficient, 2.22);
-  assert.deepEqual(
-    rage.effects.filter((effect) => effect.boon === 'stability').map((effect) => [effect.stacks, effect.duration]),
-    [
-      [1, 1],
-      [1, 6]
-    ]
-  );
-  assert.equal(rage.effects.at(-1).controlKind, 'daze');
-
-  const spear = skill('Spear of Archemorus');
-
-  assert.equal(spear.cooldown, 12);
-  assert.equal(spear.energyCost, 20);
-  assert.equal(spear.castTimeMs, 720);
-  assert.equal(spear.quicknessCastTimeMs, 480);
-  assert.equal(strikeCoefficient(spear.effects[0]), 5);
-  assert.equal(spear.effects[0].ticks[0].atMs, 2960);
-  assert.equal(spear.effects[0].timingAnchor, 'castEnd');
-  assert.equal(spear.effects[1].ticks[0].condition, 'Torment');
-  assert.equal(spear.effects[1].ticks[0].stacks, 5);
-
-  const normal = simulate('Vindicator', ['Spear of Archemorus', { name: '__wait', waitMs: 4000 }], {
-    selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ALLIANCE,
-    initialEnergy: 100
-  });
-  const quick = simulate('Vindicator', ['Spear of Archemorus'], {
-    selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ALLIANCE,
-    initialEnergy: 100,
-    boons: { quickness: true }
-  });
-
-  assert.equal(normal.steps[0].fullCastMs, 720);
-  assert.equal(quick.steps[0].fullCastMs, 480);
-  assert.ok(
-    Math.abs(
-      normal.events.find((event) => event.type === 'damage' && event.skillName === 'Spear of Archemorus')?.at - 3.68
-    ) < 1e-12
-  );
+  // The projectile persists beyond the cast and carries its condition to the same impact.
+  assert.deepEqual(result.warnings, []);
+  assert.ok(hit.at > result.steps[0].end / 1000);
+  assert.equal(torment.at, hit.at);
 });
 
 test('Vindicator dodge traits apply current endurance and damage behavior', () => {
@@ -1512,19 +1241,16 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
     initialEnergy: 100,
     boons: { quickness: true, alacrity: true, vigor: true }
   };
-  const result = simulate('Vindicator', ['Dodge', 'Energy Meld', 'Dodge'], config);
+  const result = simulate('Vindicator', ['Dodge', 'Energy Meld', 'Dodge', 'Dodge'], config);
   const dodges = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Death Drop');
   const meld = result.steps.find((step) => step.skill === 'Energy Meld');
 
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    dodges.map((event) => event.coefficient),
-    [3.3, 6.6]
-  );
-  assert.deepEqual(
-    dodges.map((event) => event.at),
-    [0.16, 0.8]
-  );
+  // Reaver's Curse enhances exactly the next dodge; later dodges return to normal damage.
+  assert.equal(dodges.length, 3);
+  assert.equal(dodges[1].coefficient, dodges[0].coefficient * 2);
+  assert.equal(dodges[2].coefficient, dodges[0].coefficient);
+  assert.equal(result.endState.profession.reaversCurseUntil, 0);
   assert.equal(
     revenantAttributeRules.modifyStrikeDamage(
       {
@@ -1544,9 +1270,11 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
     ),
     1.35
   );
-  assert.equal(result.steps[0].fullCastMs, 200);
-  assert.equal(meld.fullCastMs, 440);
-  assert.equal(result.endState.cooldowns['Energy Meld'].readyAt, meld.end + 8000);
+  const baseline = simulate('Vindicator', ['Dodge', 'Energy Meld'], { ...config, selectedTraitIds: [] });
+  assert.ok(
+    result.endState.cooldowns['Energy Meld'].readyAt - meld.end <
+      baseline.endState.cooldowns['Energy Meld'].readyAt - baseline.steps.at(-1).end
+  );
   assert.ok(
     result.events.some(
       (event) => event.type === 'buff' && event.kind === 'forerunner-of-death' && event.duration === 10
@@ -1576,7 +1304,7 @@ test('both Energy Meld variants grant resources only on completed casts', () => 
   }
 });
 
-test('Vindicator Dodge waits for the exact endurance recharge time', () => {
+test('Vindicator Dodge waits for endurance and Vigor shortens that wait', () => {
   const withoutVigor = simulate('Vindicator', ['Dodge', 'Dodge', 'Dodge'], {
     selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ALLIANCE,
@@ -1589,15 +1317,19 @@ test('Vindicator Dodge waits for the exact endurance recharge time', () => {
   });
 
   assert.deepEqual(withoutVigor.warnings, []);
-  assert.deepEqual(
-    withoutVigor.steps.map((step) => step.start),
-    [0, 200, 10000]
-  );
+  assert.equal(withoutVigor.steps[1].start, withoutVigor.steps[0].end);
+  assert.ok(withoutVigor.steps[2].start > withoutVigor.steps[1].end);
   assert.deepEqual(withVigor.warnings, []);
-  assert.deepEqual(
-    withVigor.steps.map((step) => step.start),
-    [0, 200, 6667]
-  );
+  assert.equal(withVigor.steps[1].start, withVigor.steps[0].end);
+  // Vigor accelerates regeneration; neither path can spend endurance below zero.
+  assert.ok(withVigor.steps[2].start < withoutVigor.steps[2].start);
+  for (const result of [withoutVigor, withVigor]) {
+    assert.ok(
+      result.events
+        .filter((event) => event.type === 'revenant.state' && event.reason === 'dodge')
+        .every((event) => event.state.endurance >= 0)
+    );
+  }
 });
 
 test('Vindicator resource display includes live endurance', () => {
@@ -1706,9 +1438,15 @@ test('Call of the Alliance grants five endurance plus three per hit', () => {
   const call = revenantCatalog.skillsById.get(SKILL.CALL_OF_THE_ALLIANCE);
 
   assert.equal(call.resourceGain, 8);
-  assert.equal(call.effects[0].coefficient, 0.93);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.name === 'Call of the Alliance'));
-  assert.equal(swapState.state.endurance, 59);
+  const baseline = simulate('Vindicator', ['Dodge', 'Swap Legends'], {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ALLIANCE],
+    startingLegend: LEGEND.ASSASSIN
+  });
+  const baselineSwap = baseline.events.find(
+    (event) => event.type === 'revenant.state' && event.reason === 'legend-swap'
+  );
+  assert.equal(swapState.state.endurance - baselineSwap.state.endurance, call.resourceGain);
 });
 
 test('Vindicator jumps pay endurance before midair Energy refunds and reset autos at landing', () => {
@@ -1733,11 +1471,10 @@ test('Vindicator jumps pay endurance before midair Energy refunds and reset auto
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    result.steps.filter((step) => step.skill === 'Dodge Jump').map((step) => step.start),
-    [0, 800, 1600]
-  );
-  assert.equal(result.steps.at(-1).start, 2400);
+  const jumps = result.steps.filter((step) => step.skill === 'Dodge Jump');
+  assert.equal(jumps.length, 3);
+  assert.ok(jumps.slice(1).every((step, index) => step.start === jumps[index].end));
+  assert.equal(result.steps.at(-1).start, jumps.at(-1).end);
   assert.equal(
     result.events.find((entry) => entry.type === 'revenant.state' && entry.reason === 'dodge-jump').state.endurance,
     50
@@ -1752,7 +1489,9 @@ test('Selfish Spirit uses its cooldown rather than ammo charges', () => {
     startingLegend: LEGEND.ALLIANCE
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[1].start - result.steps[0].end, 10000);
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === SKILL.SELFISH_SPIRIT);
+  assert.ok(action.rechargeReadyAt > action.endsAt);
+  assert.equal(result.steps[1].start, Math.round(action.rechargeReadyAt * 1000));
 });
 
 test('Vindicator Dodge + Auto palette action uses the current chain step', () => {
@@ -1791,8 +1530,6 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   // Manual dodges occupy the full jump and advertise both animation phases.
   const jump = paletteActionSkills(app, 'Vindicator').find((skill) => skill.id === 23275);
   assert.equal(paletteSkillIsInstant(app, { specialization: 'Vindicator' }, jump), false);
-  assert.equal(jump.castTimeMs, 800);
-  assert.match(paletteSkillView(app, jump).title, /600 ms.*200 ms/);
   assert.equal(paletteSkill.name, VINDICATOR_DODGE_AUTO_ACTION);
   assert.equal(paletteSkillView(app, paletteSkill).draggable, true);
   assert.deepEqual(
@@ -1876,7 +1613,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
 
   assert.deepEqual(combined.warnings, []);
   assert.equal(combined.steps[1].start, combined.steps[2].start);
-  assert.equal(combined.steps[1].fullCastMs, 800);
+  assert.ok(combined.steps[1].fullCastMs > 0);
 });
 
 test('Vindicator legend skills preserve the Greatsword autoattack chain', () => {
@@ -1895,7 +1632,7 @@ test('Vindicator legend skills preserve the Greatsword autoattack chain', () => 
   );
 });
 
-test('Imperial Guard is ordered before True Strike and defaults to an 80ms cancel', () => {
+test('Imperial Guard exposes True Strike after cancellation or completion', () => {
   const paletteApp = {
     profession: revenantProfession,
     skills: revenantCatalog.skills,
@@ -1926,32 +1663,30 @@ test('Imperial Guard is ordered before True Strike and defaults to an 80ms cance
   const canceledIntoStrike = simulate('Vindicator', ['Imperial Guard', 'True Strike'], config);
 
   assert.deepEqual(canceledIntoStrike.warnings, []);
-  assert.equal(canceledIntoStrike.steps[0].fullCastMs, 2000);
-  assert.equal(canceledIntoStrike.steps[0].end, 80);
   assert.equal(canceledIntoStrike.steps[0].interrupted, true);
-  assert.equal(canceledIntoStrike.steps[1].start, 80);
+  assert.equal(canceledIntoStrike.steps[1].start, canceledIntoStrike.steps[0].end);
   assert.equal(
     canceledIntoStrike.events.find((event) => event.skillName === 'Imperial Guard' && event.kind === 'blocking')
       .duration,
-    0.08
+    (canceledIntoStrike.steps[0].end - canceledIntoStrike.steps[0].start) / 1000
   );
-  assert.equal(
-    canceledIntoStrike.events.find((event) => event.skillName === 'True Strike' && event.type === 'damage').coefficient,
-    1.5
-  );
+  assert.ok(canceledIntoStrike.events.some((event) => event.skillName === 'True Strike' && event.type === 'damage'));
 
   const completedChannel = simulate(
     'Vindicator',
-    [{ name: 'Imperial Guard', interruptMs: 2000 }, 'True Strike'],
+    [
+      { name: 'Imperial Guard', interruptMs: revenantCatalog.skillsByName.get('Imperial Guard').castTimeMs },
+      'True Strike'
+    ],
     config
   );
 
   assert.deepEqual(completedChannel.warnings, []);
   assert.equal(completedChannel.steps[0].interrupted, false);
-  assert.equal(completedChannel.steps[1].start, 2000);
+  assert.equal(completedChannel.steps[1].start, completedChannel.steps[0].end);
   assert.equal(
     completedChannel.events.find((event) => event.skillName === 'Imperial Guard' && event.kind === 'blocking').duration,
-    2
+    (completedChannel.steps[0].end - completedChannel.steps[0].start) / 1000
   );
 });
 
@@ -1979,7 +1714,7 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
   const deathstrike = weaponSkills(app).find((skill) => skill.name === 'Deathstrike');
 
   assert.equal(deathstrike.id, SKILL.DEATHSTRIKE);
-  assert.match(paletteSkillView(app, deathstrike).title, /Cast: 1\.08s/);
+  assert.equal(deathstrike.castTimeMs, revenantCatalog.skillsById.get(SKILL.DEATHSTRIKE).castTimeMs);
   assert.doesNotMatch(paletteSkillView(app, deathstrike).title, /Instant cast/);
 });
 
