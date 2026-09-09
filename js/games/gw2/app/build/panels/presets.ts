@@ -360,6 +360,32 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       </div>`;
     app.templateContainer = container;
     mountBuildTemplateLayout(container);
+    if (document.documentElement.classList.contains('embed')) {
+      // Keep the embedded editor in view; browse the existing catalog in a native modal and leave Undo outside it.
+      const dialog = document.createElement('dialog');
+      dialog.className = 'build-templates-dialog';
+      dialog.id = 'build-templates-dialog';
+      dialog.setAttribute('aria-labelledby', 'build-templates-title');
+      const browse = document.createElement('button');
+      browse.type = 'button';
+      browse.className = 'btn';
+      browse.textContent = 'Browse templates';
+      browse.setAttribute('aria-haspopup', 'dialog');
+      browse.setAttribute('aria-controls', dialog.id);
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'btn';
+      close.textContent = 'Close';
+      close.setAttribute('aria-label', 'Close build templates');
+      close.autofocus = true;
+      container.querySelector('.build-templates-header')!.append(close);
+      dialog.append(container.querySelector('.build-templates-panel')!);
+      container.append(browse, dialog, dialog.querySelector('.template-toast')!);
+      browse.addEventListener('click', () => dialog.showModal());
+      close.addEventListener('click', () => dialog.close());
+      dialog.addEventListener('close', () => closeTemplateMenus(container));
+    }
+
     let templateFilter: TemplateFilter = 'all';
     let boonFilter: TemplateBoonFilter = 'all';
     let specializationFilter: string | null = null;
@@ -495,6 +521,7 @@ export async function loadTemplateAction(
     if (action !== 'new-tab') showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
     saveBuildWorkspace(app);
     renderBuildTabs(app);
+    app.templateContainer?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     alert(`Failed to load ${actionLabel(action)}: ${message}`);

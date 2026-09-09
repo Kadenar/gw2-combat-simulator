@@ -125,6 +125,59 @@ test('simulation config controls and result-dependent palette state work in the 
   await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
 });
 
+// Embedded settings must trap focus, preserve edits, and remain usable inside a short, narrow frame.
+test('embedded simulation config uses a dismissible native modal', async ({ page }) => {
+  await page.goto('/');
+  await page.setContent(
+    '<iframe title="Simulator" src="/mesmer.html?embed=1" style="width: 800px; height: 600px"></iframe>'
+  );
+  const frame = page.frameLocator('iframe');
+  await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const trigger = frame.getByRole('button', { name: 'Open simulation config' });
+  const config = frame.getByRole('dialog', { name: 'Simulation config' });
+  const close = config.getByRole('button', { name: 'Close simulation config' });
+
+  await trigger.click();
+  await expect(config).toBeVisible();
+  expect(await config.evaluate((dialog) => dialog.matches(':modal'))).toBe(true);
+  await expect(close).toBeFocused();
+  await frame.locator('.simulation-config-open-button').evaluate((button) => button.focus());
+  await expect(close).toBeFocused();
+  await close.press('Tab');
+  expect(await config.evaluate((dialog) => dialog.contains(document.activeElement))).toBe(true);
+  await config.getByLabel('Display idle time').check();
+  await page.keyboard.press('Escape');
+  await expect(config).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await page.locator('iframe').evaluate((iframe) => {
+    iframe.style.width = '320px';
+    iframe.style.height = '400px';
+  });
+  await trigger.click();
+  await expect(config.getByLabel('Display idle time')).toBeChecked();
+  const bounds = await config.evaluate((dialog) => {
+    const rect = dialog.getBoundingClientRect();
+    const controls = dialog.querySelector('#perma-boons');
+    return {
+      fits: rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight,
+      centered: Math.abs(rect.left + rect.width / 2 - innerWidth / 2) < 1,
+      scrolls: controls.scrollHeight > controls.clientHeight
+    };
+  });
+  expect(bounds).toEqual({ fits: true, centered: true, scrolls: true });
+  await config.getByLabel('Overlay relics').check();
+  await expect(close).toBeInViewport();
+  await close.click();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  const iframeBox = await page.locator('iframe').boundingBox();
+  await page.mouse.click(iframeBox.x + 4, iframeBox.y + 4);
+  await expect(config).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
 // The settings drawer stays pinned outside editor containers and retains both viewport margins.
 test('simulation config stays inside the viewport after scrolling and hides in Analysis', async ({ page }) => {
   await openSimulator(page);
