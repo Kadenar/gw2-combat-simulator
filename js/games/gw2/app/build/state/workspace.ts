@@ -20,7 +20,6 @@ export function emptyBuildTabSession() {
     procFilterOpen: false,
     procHighlightKey: null,
     rotationSkillHighlightKey: null,
-    _skillBreakdownState: undefined,
     _skillSortCol: null,
     _skillSortDir: null
   } satisfies Partial<ProfessionAppState>;

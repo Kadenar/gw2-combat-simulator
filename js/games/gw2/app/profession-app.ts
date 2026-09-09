@@ -1,4 +1,4 @@
-import { bindPageControls, createDefaultBuild, normalizeSelectedSkills } from '#gw2/app/build/index.js';
+import { bindPageControls, normalizeSelectedSkills } from '#gw2/app/build/index.js';
 import {
   captureActiveBuildTab,
   loadBuildWorkspace,
@@ -454,24 +454,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     if (typeof document !== 'undefined') this.adapter.renderRotationBuilder(this);
   }
 
-  renderGear(): void {
-    this.renderBuildSection('gear');
-  }
-
-  renderTraits(): void {
-    this.renderBuildSection('traits');
-  }
-
   renderAttributes(): void {
     this.renderBuildSection('attributes');
-  }
-
-  renderSkills(): void {
-    this.renderBuildSection('skills');
-  }
-
-  renderAssumptions(): void {
-    this.renderBuildSection('assumptions');
   }
 
   runRandomDistribution(): void {
@@ -497,11 +481,6 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.skills = [...catalog.skills];
     this.skillByName = catalog.skillsByName;
     this.skillById = catalog.skillsById;
-    this.changed();
-  }
-
-  resetBuild(): void {
-    this.build = createDefaultBuild(this.adapter);
     this.changed();
   }
 

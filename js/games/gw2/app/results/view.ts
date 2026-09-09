@@ -130,7 +130,6 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     undefined,
     app.build.targetStartingHealthPercent
   );
-  app._skillBreakdownState = { skillRows };
 
   return {
     summary: gw2ResultView({ metrics, breakpoints }),

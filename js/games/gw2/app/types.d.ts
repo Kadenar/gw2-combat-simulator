@@ -102,9 +102,6 @@ export interface ProfessionAppState {
   overlayRelicProcs?: boolean;
   overlaySovereignOfLightProcs?: boolean;
   rotationSkillHighlightKey?: string | null;
-  _skillBreakdownState?: {
-    readonly skillRows: readonly SchedulerRecord[];
-  };
   _skillSortCol?: string | null;
   _skillSortDir?: 'asc' | 'desc' | null;
   _rotationHistory?: {
@@ -131,15 +128,10 @@ export interface ProfessionAppState {
   clearRotationReference(): void;
   swapRotationComparison(): void;
   exitRotationComparison(): void;
-  renderGear(): void;
-  renderTraits(): void;
   renderAttributes(): void;
-  renderSkills(): void;
-  renderAssumptions(): void;
   addRotation(name: string, options?: RotationActionOptions): void;
   runRandomDistribution(): void;
   runRelicComparison(comparisonRelic?: string, initialStacks?: number): void;
-  resetBuild(): void;
   selectPatch(patchId: string): void;
 }
 
