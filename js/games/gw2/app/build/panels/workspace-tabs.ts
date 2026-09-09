@@ -2,6 +2,49 @@ import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/s
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
+/** Edits the chosen tab in a modal without changing the active build or saving cancelled input. */
+function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
+  const tab = app.workspace?.tabs.find((entry) => entry.id === id);
+  if (!tab) return;
+  const dialog = document.createElement('dialog');
+  dialog.className = 'build-rename-dialog';
+  dialog.setAttribute('aria-labelledby', 'build-rename-title');
+  dialog.innerHTML = `<form>
+    <h2 id="build-rename-title">Rename build</h2>
+    <label for="build-rename-name">Build name</label>
+    <input id="build-rename-name" name="name" type="text" maxlength="80" required autocomplete="off" autofocus>
+    <div class="build-rename-actions">
+      <button type="button" class="btn btn-io" data-cancel>Cancel</button>
+      <button type="submit" class="btn btn-io">Save</button>
+    </div>
+  </form>`;
+  const input = dialog.querySelector('input')!;
+  const save = dialog.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+  input.value = tab.name;
+  input.addEventListener('input', () => {
+    save.disabled = !input.value.trim();
+  });
+  dialog.querySelector('form')!.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = input.value.trim();
+    if (!name) return;
+    tab.name = name.slice(0, 80);
+    saveBuildWorkspace(app);
+    dialog.close();
+  });
+  dialog.querySelector('[data-cancel]')!.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => {
+    dialog.remove();
+    renderBuildTabs(app);
+    document
+      .querySelector<HTMLButtonElement>(`[data-build-tab-action="rename"][data-build-tab-id="${CSS.escape(id)}"]`)
+      ?.focus({ preventScroll: true });
+  });
+  document.body.append(dialog);
+  dialog.showModal();
+  input.select();
+}
+
 /** Keeps one editor mounted while ordinary buttons select independent build sessions. */
 export function mountBuildTabs(app: ProfessionAppState): void {
   if (!app.workspace || document.getElementById('build-workspace-tabs')) return;
@@ -25,12 +68,8 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     }
 
     if (action === 'rename' && id) {
-      const tab = app.workspace.tabs.find((entry) => entry.id === id)!;
-      const name = window.prompt('Build tab name', tab.name)?.trim();
-      if (name) {
-        tab.name = name.slice(0, 80);
-        saveBuildWorkspace(app);
-      }
+      openBuildRenameDialog(app, id);
+      return;
     }
 
     if (action === 'close' && id) closeBuildTab(app, id);

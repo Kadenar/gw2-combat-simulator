@@ -15,9 +15,7 @@ async function settled(page) {
 }
 
 // Exercise the user-facing actions against the real editor, then restore the saved workspace on refresh.
-test('build tabs isolate edits and results and support duplication, inline rename, close, and refresh', async ({
-  page
-}) => {
+test('build tabs isolate edits and results and support duplication, rename, close, and refresh', async ({ page }) => {
   await openWorkspace(page);
   const strip = page.locator('#build-workspace-tabs');
   await expect(strip.locator('.build-tab-close')).toHaveCount(0);
@@ -31,8 +29,11 @@ test('build tabs isolate edits and results and support duplication, inline renam
   await strip.locator('.build-tab.is-active').hover();
   const rename = strip.getByRole('button', { name: 'Rename Build 1 copy', exact: true });
   await expect(strip.locator('.build-tab.is-active .build-tab-controls')).toHaveCSS('opacity', '1');
-  page.once('dialog', (dialog) => dialog.accept('Alternative'));
   await rename.click();
+  const renameDialog = page.getByRole('dialog', { name: 'Rename build', exact: true });
+  await renameDialog.getByRole('textbox', { name: 'Build name' }).fill('Alternative');
+  await renameDialog.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(renameDialog).toHaveCount(0);
   await page.locator('#btn-sim-clear').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
@@ -67,6 +68,53 @@ test('build tabs isolate edits and results and support duplication, inline renam
   await strip.getByRole('button', { name: 'New build', exact: true }).click();
   await expect(strip.locator('.build-tab')).toHaveCount(2);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
+});
+
+// Validate cancellation, keyboard submission, and the target tab independently of the active editor.
+test('rename dialog validates names and restores focus without switching builds', async ({ page }) => {
+  await openWorkspace(page, { width: 390, height: 844 });
+  const strip = page.locator('#build-workspace-tabs');
+  await strip.getByRole('button', { name: 'New build', exact: true }).click();
+  const rename = strip.getByRole('button', { name: 'Rename Build 1', exact: true });
+  const dialog = page.getByRole('dialog', { name: 'Rename build', exact: true });
+  const input = dialog.getByRole('textbox', { name: 'Build name' });
+  const save = dialog.getByRole('button', { name: 'Save', exact: true });
+  await rename.focus();
+  await rename.click();
+  await expect(dialog).toBeInViewport();
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue('Build 1');
+  expect(await input.evaluate((element) => element.value.slice(element.selectionStart, element.selectionEnd))).toBe(
+    'Build 1'
+  );
+  await expect(input).toHaveAttribute('maxlength', '80');
+  await input.fill('   ');
+  await expect(save).toBeDisabled();
+  await input.press('Enter');
+  await expect(dialog).toBeVisible();
+  await input.fill('Discard this');
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(rename).toBeFocused();
+  await rename.click();
+  await expect(input).toHaveValue('Build 1');
+  await input.fill('Discard this too');
+  await input.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(rename).toBeFocused();
+  await rename.click();
+  await input.fill('  Alternative <build>  ');
+  await input.press('Enter');
+  await expect(dialog).toHaveCount(0);
+  await expect(strip.getByRole('button', { name: 'Rename Alternative <build>', exact: true })).toBeFocused();
+  await expect(strip.getByRole('button', { name: 'Alternative <build>', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'false'
+  );
+  await expect(strip.getByRole('button', { name: 'New build', exact: true }).first()).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
 });
 
 test('template menu opens a complete build in a new tab', async ({ page }) => {
