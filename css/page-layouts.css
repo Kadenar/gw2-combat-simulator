@@ -496,9 +496,9 @@
   display: none;
 }
 
-/* Profession pages: drop the standalone hero title and the long "About" box;
-   keep the profession selector, snapshot note, and the simulator itself. */
-.embed header h1 {
+/* Keep standalone titles and the floating DPS badge out of embedded simulator pages. */
+.embed header h1,
+.embed .floating-dps {
   display: none;
 }
 
