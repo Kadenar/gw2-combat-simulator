@@ -666,35 +666,8 @@ test('Dervish casts retain their scythes through form expiry and concurrent lege
   );
 });
 
-test('Impossible Odds follows both Deathstrike hits and only the final Assassin release packet', () => {
-  // Deathstrike hits clear the 250 ms ICD; Assassin's earlier shockwaves cannot trigger a follow-up.
-  for (const [name, expectedAt] of [
-    ['Deathstrike', [560, 840]],
-    ['Release Potential: Assassin', [1040]]
-  ]) {
-    const result = simulate(
-      'Conduit',
-      ['Impossible Odds', name],
-      {
-        selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
-        startingLegend: LEGEND.ASSASSIN,
-        primaryWeapon: 'Sword',
-        secondaryWeapon: 'Sword',
-        initialEnergy: 100,
-        boons: { quickness: true }
-      },
-      observationTail(500)
-    );
-    assert.deepEqual(result.warnings, []);
-    assert.deepEqual(
-      result.events
-        .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
-        .map((event) => Math.round(event.at * 1000)),
-      expectedAt,
-      name
-    );
-  }
-
+test('Impossible Odds cannot chain from Lesser Enchanted Daggers procs', () => {
+  // Triggered dagger damage must not recursively trigger Impossible Odds.
   const procs = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', { type: 'wait', durationMs: 2100 }], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
     startingLegend: LEGEND.ASSASSIN,

@@ -88,7 +88,7 @@ test('patch authoring omits unused skills but retains indirect runtime skills', 
   assert.equal(bandTogetherVariants.length, 4);
 });
 
-test('patch authoring omits unreachable Thief skills but keeps live stolen and artifact skills', () => {
+test('patch authoring omits unreachable and retired Thief skills but keeps artifact skills', () => {
   const skills = thiefProfession.patchAuthoring.modules.flatMap((module) => module.skills);
   const ids = new Set(skills.map((entry) => entry.id));
   const names = new Set(skills.map((entry) => entry.name));
@@ -103,9 +103,12 @@ test('patch authoring omits unreachable Thief skills but keeps live stolen and a
     assert.equal(names.has(unusedName), false, unusedName);
   }
 
-  for (const usedId of [1110, 1123, 1162, 76702]) {
-    assert.equal(ids.has(usedId), true, String(usedId));
+  // Retired base steals stay excluded from authoring while supported artifacts remain editable.
+  for (const retiredId of [1110, 1123, 1162]) {
+    assert.equal(ids.has(retiredId), false, String(retiredId));
   }
+
+  assert.equal(ids.has(76702), true, 'Exalted Hammer');
 });
 
 test('patch authoring omits unreachable skills for the remaining professions', () => {

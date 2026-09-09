@@ -196,9 +196,10 @@ test('shared attribute provenance applies profession static rules once', () => {
     assert.equal(browserDuration, directDuration);
   }
 
+  // Zealous Blade reads the equipped weapon at impact time when applying its Greatsword bonus.
   const guardianDirect = guardianCoreRules.modifyAttributes(
     {
-      config: { selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
+      config: { primaryWeapon: 'Greatsword', selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
       event: { skillWeapon: 'Greatsword' }
     },
     { power: 1000, precision: 1000, ferocity: 0, vitality: 1000 }
@@ -207,6 +208,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     {
       config: {
         ...applied,
+        primaryWeapon: 'Greatsword',
         selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]
       },
       event: { skillWeapon: 'Greatsword' }

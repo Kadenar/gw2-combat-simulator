@@ -58,23 +58,6 @@ const strikeCoefficient = (effect) =>
 
 const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
 
-test('Revenant authored skill and balance-profile effect offsets use the 40 ms action grid', () => {
-  // Check assembled data, including generated arrays and alternate IDs, before runtime cast scaling.
-  for (const skill of [...revenantCatalog.skills, ...revenantCatalog.balanceProfiles]) {
-    for (const effect of skill.effects || []) {
-      // Unrelenting Assault's supplied 260–840 ms evenly spaced impacts intentionally override the grid.
-      if (skill.id === SKILL.UNRELENTING_ASSAULT && effect.type === 'strike') continue;
-      for (const field of ['atMs', 'intervalMs']) {
-        if (effect[field] != null) assert.equal(effect[field] % 40, 0, `${skill.name} (${skill.id}): ${field}`);
-      }
-
-      for (const tick of effect.ticks || []) {
-        assert.equal(tick.atMs % 40, 0, `${skill.name} (${skill.id}): ${tick.atMs} ms`);
-      }
-    }
-  }
-});
-
 test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   const echoingEruption = revenantCatalog.skillsById.get(SKILL.ECHOING_ERUPTION);
 

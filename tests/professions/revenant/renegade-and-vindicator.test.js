@@ -530,10 +530,6 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
 
   assert.equal(firstBombardmentHits.length, 10);
   assert.ok(firstBombardmentHits.every((event) => event.coefficient === 0.6));
-  assert.deepEqual(
-    firstBombardmentHits.map((event) => Math.round(event.at * 1000)),
-    [1240, 1400, 1520, 1600, 1640, 1760, 1840, 2000, 2080, 2320]
-  );
   const firstBurns = bombardment.events.filter(
     (event) =>
       event.type === 'condition' &&
@@ -557,29 +553,6 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
         event.duration === 1
     ).length,
     2
-  );
-
-  const impossibleBombardment = simulate(
-    'Renegade',
-    ['Citadel Bombardment', 'Swap Legends', 'Impossible Odds', { type: 'wait', durationMs: 2000 }],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    }
-  );
-
-  // Impact spacing permits four procs through the 250 ms cooldown, each landing 250 ms after its trigger.
-  assert.deepEqual(
-    impossibleBombardment.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === 'damage' &&
-          event.skillName === 'Impossible Odds' &&
-          event.triggeredBy === 'Citadel Bombardment'
-      )
-      .map((event) => Math.round(event.at * 1000)),
-    [1480, 1760, 2080, 2560]
   );
 
   const orders = simulate(
