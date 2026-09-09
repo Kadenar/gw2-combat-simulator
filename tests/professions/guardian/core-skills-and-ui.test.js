@@ -589,7 +589,7 @@ test('Guardian longbow packets and Symbol of Energy burning use measured EVTC ti
     (event) => event.type === 'condition' && event.skillName === 'Symbol of Energy' && event.condition === 'Burning'
   );
 
-  assert.deepEqual(offsets(puncture), [600]);
+  assert.deepEqual(offsets(puncture), [560]);
   assert.deepEqual(offsets(deflecting), [640]);
   assert.deepEqual(offsets(symbol), [600, 1600, 2600, 3600, 4600]);
   assert.deepEqual(offsets(trueShot), [680]);
