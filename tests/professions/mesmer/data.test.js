@@ -801,19 +801,13 @@ test('Lingering Thoughts models the supplied clone, packets, conditions, and fin
   assert.equal(skill.cooldown, 0.25);
   assert.equal(skill.ammo, 2);
   assert.equal(skill.ammoRecharge, 6);
-  assert.deepEqual(skill.comboFinishers, [
-    {
-      ownerId: 'mesmer',
-      finisherType: 'Whirl',
-      applications: 2,
-      ambiguousFieldSelection: 'oldest',
-      attemptGroup: 'skill',
-      chance: 1,
-      attempts: 1,
-      effectDelay: 0,
-      successfulCombos: 1
-    }
-  ]);
+  // Check skill-authored finisher behavior; shared combo contracts cover normalization defaults.
+  assert.equal(skill.comboFinishers.length, 1);
+  const [finisher] = skill.comboFinishers;
+  assert.equal(finisher.ownerId, 'mesmer');
+  assert.equal(finisher.finisherType, 'Whirl');
+  assert.equal(finisher.applications, 2);
+  assert.equal(finisher.ambiguousFieldSelection, 'oldest');
   assert.deepEqual(skill.resource, {
     mode: 'add',
     count: 1,
