@@ -9,7 +9,6 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionSkillBarGroup,
   ProfessionUiContract
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
@@ -57,19 +56,10 @@ export function necromancerUiSpecialization(context: NecromancerUiContext = {}):
   return context.specialization || context.config?.specialization || 'Core';
 }
 
-// Build a stable shroud bar from available skills, ordering slots before flip
-// children and optionally collapsing chains to their castable roots.
-function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
+// Order the live shroud palette by slot, keeping each flip skill after its parent.
+function shroudSkillIds(shroud: string): SkillId[] {
   return necromancerCatalog.skills
-    .filter((skill) => {
-      const chain = necromancerCatalog.autoattackChainPositions.get(Number(skill.id));
-      return (
-        skill.shroud === shroud &&
-        !skill.simulatorExcluded &&
-        (includeFlips || skill.flipParentId == null) &&
-        (includeFlips || !chain || chain.root === skill.id)
-      );
-    })
+    .filter((skill) => skill.shroud === shroud && !skill.simulatorExcluded)
     .sort((left, right) => {
       const slotOrder = Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0);
       if (slotOrder) return slotOrder;
@@ -78,50 +68,6 @@ function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
       return Number(left.id) - Number(right.id);
     })
     .map((skill) => skill.id);
-}
-
-/** Builds F-key and active-shroud skill-bar groups for one transform definition. */
-export function necromancerTransformSkillBarGroups(
-  _context: NecromancerUiContext,
-  {
-    entryId,
-    exitId,
-    shroud,
-    professionSkillIds = []
-  }: {
-    readonly entryId?: SkillId;
-    readonly exitId?: SkillId;
-    readonly shroud?: string;
-    readonly professionSkillIds?: readonly SkillId[];
-  }
-): ProfessionSkillBarGroup[] {
-  const groups: ProfessionSkillBarGroup[] = [
-    {
-      id: 'necromancer-f-keys',
-      label: 'F Keys',
-      skillIds: [
-        ...new Set([...(entryId == null ? [] : [entryId]), ...(exitId == null ? [] : [exitId]), ...professionSkillIds])
-      ],
-      color: '#57a86b',
-      className: 'necromancer-shroud-f-keys',
-      layout: 'necromancer-shroud'
-    }
-  ];
-  // Add the read-only shroud bar only when the catalog exposes implemented root skills for this form.
-  const shroudName = String(shroud || '');
-  const shroudSkills = shroudName ? shroudSkillIds(shroudName, false) : [];
-  if (shroudSkills.length) {
-    groups.push({
-      id: `necromancer-${shroudName}-shroud`,
-      label: String((entryId == null ? undefined : necromancerCatalog.skillsById.get(entryId)?.name) || 'Shroud'),
-      skillIds: [...shroudSkills],
-      color: '#4d9560',
-      className: 'necromancer-shroud-skills',
-      layout: 'necromancer-shroud'
-    });
-  }
-
-  return groups;
 }
 
 /** Builds profession, shroud, Lich, and shared-action palette groups for a Necromancer transform. */
@@ -405,14 +351,6 @@ export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord 
           exitId: ID.END_DEATH_SHROUD,
           shroud: 'death',
           stackId: 'core-profession'
-        })
-      : [],
-  skillBarGroups: (context: NecromancerUiContext) =>
-    necromancerUiSpecialization(context) === 'Core'
-      ? necromancerTransformSkillBarGroups(context, {
-          entryId: ID.DEATH_SHROUD,
-          exitId: ID.END_DEATH_SHROUD,
-          shroud: 'death'
         })
       : [],
   resourceViews: necromancerCoreResourceViews,

@@ -15,7 +15,6 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionSkillBarGroup,
   ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
@@ -165,26 +164,6 @@ export function professionSkillSlots(context: EngineerUiContext): (SkillId | nul
   return engineerToolbeltSkillIds(context);
 }
 
-// Shared Engineer bars contain only fixed F-skills; configurable protocols are Amalgam-owned.
-/** Builds the shared F-skill bar group, omitting it when no profession skills are populated. */
-export function engineerFSkillBarGroups(skillIds: readonly (SkillId | null)[]): ProfessionSkillBarGroup[] {
-  const populated = skillIds.filter((skillId): skillId is SkillId => skillId != null);
-  if (!populated.length) return [];
-  return [
-    {
-      id: 'engineer-skill-bar-f-skills',
-      label: 'F Skills',
-      skillIds: populated,
-      color: '#b88a35'
-    }
-  ];
-}
-
-/** Builds Core Engineer's skill bar groups from the selected toolbelt parents. */
-export function engineerSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGroup[] {
-  return engineerFSkillBarGroups(engineerToolbeltSkillIds(context));
-}
-
 /** Returns populated Core profession-skill IDs for palette and bar consumers. */
 export function professionSkills(context: EngineerUiContext): SkillId[] {
   return professionSkillSlots(context).filter((id) => id != null);
@@ -285,8 +264,6 @@ export function engineerEventLogRow(
 
 export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  skillBarGroups: (context: EngineerUiContext) =>
-    engineerUiSpecialization(context) === 'Core' ? engineerSkillBarGroups(context) : [],
   // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
   paletteGroups: (context: EngineerUiContext) => {
     const groups: ProfessionPaletteGroup[] = [];

@@ -12,7 +12,6 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionSkillBarGroup,
   ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
@@ -108,23 +107,6 @@ export function warriorPaletteGroups(
       label: 'Act',
       skillIds: [ID.DODGE, ID.SWAP_WEAPONS],
       color: '#e0ad70'
-    }
-  ];
-}
-
-export function warriorSkillBarGroups(
-  context: WarriorUiContext,
-  professionSkillIds: readonly number[] = [],
-  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
-): ProfessionSkillBarGroup[] {
-  return [
-    {
-      id: 'warrior-f-keys',
-      label: 'F Keys',
-      skillIds: warriorProfessionSkillIds(context, professionSkillIds, burstsByWeapon),
-      color: '#d79b55',
-      className: 'warrior-burst-f-keys',
-      layout: 'warrior-burst'
     }
   ];
 }
@@ -265,7 +247,6 @@ export const warriorCoreUi: Partial<ProfessionUiContract> = Object.freeze({
   eventLogRow: warriorEventLogRow,
   rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),
-  skillBarGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorSkillBarGroups(context) : []),
   resourceViews: (context) =>
     warriorUiSpecialization(context) === 'Core' ? warriorAdrenalineResourceViews(context) : [],
   paletteSkillAvailability: (context, skill) =>

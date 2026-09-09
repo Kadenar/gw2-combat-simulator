@@ -1,7 +1,6 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
-  mesmerMechanicSkillBarGroups,
   mesmerResourceViews,
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
@@ -87,7 +86,6 @@ export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord = O
       ...group,
       includeActionSkills: true
     })),
-  skillBarGroups: () => mesmerMechanicSkillBarGroups('Shatters', CHRONOMANCER_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) =>
     mesmerResourceViews(context, {
       id: 'clones',

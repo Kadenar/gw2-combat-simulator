@@ -145,17 +145,6 @@ export const guardianCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
   eventLogRow: guardianEventLogRow,
   rotationStateSnapshot: guardianCoreStateSnapshot,
   paletteWeaponSkills: guardianPaletteWeaponSkills,
-  skillBarGroups: (context: GuardianUiContext) =>
-    guardianUiSpecialization(context) === 'Core'
-      ? [
-          {
-            id: 'guardian-f-keys',
-            label: 'F Keys',
-            skillIds: guardianUiSkillIdsByName(CORE_VIRTUE_NAMES, context),
-            color: '#2f7eb8'
-          }
-        ]
-      : [],
   paletteGroups: (context: GuardianUiContext) =>
     guardianUiSpecialization(context) === 'Core'
       ? [

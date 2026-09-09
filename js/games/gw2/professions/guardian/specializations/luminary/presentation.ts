@@ -1,6 +1,5 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
@@ -50,15 +49,6 @@ function luminaryEventLogRow(
 }
 
 const VIRTUE_NAMES = Object.freeze(['Radiant Justice', 'Radiant Resolve', 'Radiant Courage', 'Enter Radiant Forge']);
-
-// Radiant Forge flip skills occupy their primary skill's slot, so the compact
-// preview renders each replacement beneath its primary instead of as a sixth row item.
-const RADIANT_FORGE_INSPECTION_CHAIN_ROOTS = Object.freeze({
-  [ID.SHINING_SPIN]: ID.DAZZLING_HAMMER,
-  [ID.RESTORATIVE_GLOW]: ID.LUMINOUS_STAFF,
-  [ID.LUCENT_THRUST]: ID.GLEAMING_BLADE,
-  [ID.BRILLIANT_SLAM]: ID.RADIANT_BULWARK
-});
 const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = Object.freeze({
   hammer: 'Hammer',
   staff: 'Staff',
@@ -161,21 +151,6 @@ export const luminaryUi = Object.freeze({
   effectPresentations: luminaryEffectPresentations,
   eventLogRow: luminaryEventLogRow,
   rotationStateSnapshot: luminaryStateSnapshot,
-  skillBarGroups: (context: GuardianUiContext) => [
-    {
-      id: 'guardian-f-keys',
-      label: 'F Keys',
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
-      color: '#2f7eb8'
-    },
-    {
-      id: 'guardian-radiant-forge',
-      label: 'Radiant Forge',
-      skillIds: guardianUiSkillsByMode('radiantForgeSkill'),
-      color: '#d6b85c',
-      inspectionChainRoots: RADIANT_FORGE_INSPECTION_CHAIN_ROOTS
-    }
-  ],
   paletteGroups: (context: GuardianUiContext) => [
     {
       id: 'profession',

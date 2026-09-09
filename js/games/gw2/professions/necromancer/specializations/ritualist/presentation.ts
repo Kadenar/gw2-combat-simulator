@@ -1,7 +1,6 @@
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   necromancerTransformPaletteGroups,
-  necromancerTransformSkillBarGroups,
   necromancerSoulShardResourceViews,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
@@ -64,13 +63,6 @@ export const ritualistUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
       shroud: 'ritualist',
       professionSkillIds: Object.values(INNERVATE_BY_SPIRIT),
       stackId: 'ritualist-profession'
-    }),
-  skillBarGroups: (context: NecromancerUiContext) =>
-    necromancerTransformSkillBarGroups(context, {
-      entryId: ID.RITUALISTS_SHROUD,
-      exitId: ID.EXIT_RITUALISTS_SHROUD,
-      shroud: 'ritualist',
-      professionSkillIds: Object.values(INNERVATE_BY_SPIRIT)
     }),
   resourceViews: (context: NecromancerUiContext) => necromancerSoulShardResourceViews(context),
   paletteSkillAvailability: ritualistPaletteAvailability

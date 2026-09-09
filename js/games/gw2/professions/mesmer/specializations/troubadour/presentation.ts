@@ -1,9 +1,5 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  mesmerMechanicPaletteGroups,
-  mesmerMechanicSkillBarGroups,
-  mesmerResourceViews
-} from '#gw2/professions/mesmer/core/presentation.js';
+import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
@@ -57,7 +53,6 @@ export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
   eventLogRow: troubadourEventLogRow,
   paletteGroups: (context: MesmerUiContext) =>
     mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS, 'notes'),
-  skillBarGroups: () => mesmerMechanicSkillBarGroups('Instruments', TROUBADOUR_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) => {
     const activeInstruments = (context.professionState as TroubadourUiState | undefined)?.activeInstruments || [];
     const notes = mesmerResourceViews(context, {

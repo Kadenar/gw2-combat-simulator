@@ -426,18 +426,6 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
 
 /** The Weaver half of the Elementalist UI contract, registered by the module. */
 export const weaverUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  skillBarGroups: (context: SchedulerRecord) =>
-    hasElementsOfRage(context)
-      ? [
-          {
-            id: 'elementalist-weaver-unravel',
-            label: 'Unravel',
-            skillIds: [ELEMENTALIST_WEAVER_SKILL_IDS.Unravel],
-            color: '#9b65c7',
-            className: 'elementalist-weaver-unravel'
-          }
-        ]
-      : [],
   paletteGroups: (context: SchedulerRecord) =>
     hasElementsOfRage(context)
       ? [

@@ -3,27 +3,10 @@ import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
 import type { ProfessionSkillBarGroup } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '#gw2/app/build/types.js';
 import { requiredElement } from '#ui/shared/dom.js';
-
-const BUILD_SELECTION_GROUP_IDS = new Set([
-  'engineer:engineer-amalgam-protocol-2-selection',
-  'engineer:engineer-amalgam-protocol-3-selection',
-  'engineer:engineer-amalgam-protocol-4-selection',
-  'ranger:ranger-pet-1-selection',
-  'ranger:ranger-pet-2-selection',
-  'ranger:ranger-hammer-selection'
-]);
-
-/** Retains only profession groups that change build state, including Amalgam protocols and Ranger loadout choices. */
-export function selectableSkillBarGroups(
-  professionId: string,
-  groups: readonly ProfessionSkillBarGroup[]
-): ProfessionSkillBarGroup[] {
-  return groups.filter((group) => BUILD_SELECTION_GROUP_IDS.has(`${professionId}:${String(group.id)}`));
-}
 
 /** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
 export function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
@@ -73,75 +56,6 @@ export function skillBarDisplaySkill(
   return display;
 }
 
-export interface SkillBarInspectionStack {
-  readonly root: Skill;
-  readonly children: readonly Skill[];
-}
-
-/** Groups inspection skills into a root skill followed by its chain children. */
-export function skillBarInspectionStacks(
-  skills: readonly Skill[],
-  inspectionChainRoots: Readonly<Record<string, SkillId>> = {}
-): SkillBarInspectionStack[] {
-  const visibleSkillIds = new Set(skills.map((skill) => Number(skill.id)));
-  const childrenByRoot = new Map<number, Skill[]>();
-  const childSkillIds = new Set<number>();
-
-  for (const skill of skills) {
-    const rootId = Number(inspectionChainRoots[String(skill.id)] ?? skill.chainRoot);
-    if (!Number.isFinite(rootId) || rootId === Number(skill.id) || !visibleSkillIds.has(rootId)) {
-      continue;
-    }
-
-    if (!childrenByRoot.has(rootId)) childrenByRoot.set(rootId, []);
-    childrenByRoot.get(rootId)?.push(skill);
-    childSkillIds.add(Number(skill.id));
-  }
-
-  return skills
-    .filter((skill) => !childSkillIds.has(Number(skill.id)))
-    .map((root) => ({
-      root,
-      children: (childrenByRoot.get(Number(root.id)) || []).sort(
-        (left, right) =>
-          Number(left.chainStep ?? Number.MAX_SAFE_INTEGER) - Number(right.chainStep ?? Number.MAX_SAFE_INTEGER)
-      )
-    }));
-}
-
-/** Renders one read-only skill icon inside a profession inspection group. */
-function inspectionSkillSlotHtml(skill: Skill, child = false): string {
-  return `<div class="skill-bar-inspection-slot${child ? ' child-skill' : ''}">
-      <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
-          <img src="${esc(skill.icon || '')}" alt="">
-      </div>
-  </div>`;
-}
-
-/** Renders root skills with any chained follow-up skills nested beneath them. */
-function inspectionSkillStacksHtml(
-  skills: readonly Skill[],
-  inspectionChainRoots?: Readonly<Record<string, SkillId>>
-): string {
-  return skillBarInspectionStacks(skills, inspectionChainRoots)
-    .map(
-      ({ root, children }) =>
-        `<div class="skill-bar-inspection-skill-stack">
-          ${inspectionSkillSlotHtml(root)}
-          ${children
-            .map(
-              (child) =>
-                `<div class="skill-bar-inspection-chain-step">
-                  <span class="weapon-chain-arrow" aria-hidden="true">&#8627;</span>
-                  ${inspectionSkillSlotHtml(child, true)}
-                </div>`
-            )
-            .join('')}
-        </div>`
-    )
-    .join('');
-}
-
 /** Renders a profession group containing multiple independently selectable slots. */
 function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: ProfessionSkillBarGroup): string {
   const selectionSlots = (group.selections || [])
@@ -162,12 +76,6 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
         (entry) => String(entry.value) === String(selection.selectionValue)
       );
       const selectedSkill = app.skillById.get(Number(selection.skillId));
-      const leadingSkills = (selection.leadingSkillIds || [])
-        .map((id) => app.skillById.get(Number(id)))
-        .filter((skill): skill is Skill => skill != null);
-      const associatedSkills = (selection.skillIds || [])
-        .map((id) => app.skillById.get(Number(id)))
-        .filter((skill): skill is Skill => skill != null);
       const display = selectedEntry
         ? {
             name: selectedEntry.label,
@@ -176,16 +84,12 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
           }
         : selectedSkill;
       if (!display || !options.length) return '';
-      const labeled = Boolean(selection.keyLabel || selection.typeLabel);
-      const selectionSlot = `<div class="skill-bar-inspection-slot selectable${labeled ? ' labeled-skill-bar-slot' : ''}"
+      return `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
           <div class="sbar-icon" title="${esc(`${display.name}\n${gw2ApiText(display.description)}`)}">
               <img src="${esc(display.icon || '')}" alt="">
-              ${labeled ? '<span class="sbar-icon-arrow" aria-hidden="true">&#9660;</span>' : ''}
           </div>
-          ${selection.keyLabel ? `<span class="skill-bar-key">${esc(selection.keyLabel)}</span>` : ''}
-          ${selection.typeLabel ? `<span class="skill-bar-type">${esc(selection.typeLabel)}</span>` : ''}
           <div class="sbar-arrow">&#9660;</div>
           <div class="sbar-dropdown">${
             selection.filterPlaceholder
@@ -207,21 +111,13 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
               : ''
           }</div>
       </div>`;
-      return leadingSkills.length || associatedSkills.length
-        ? `<div class="skill-bar-inspection-selection">
-            ${inspectionSkillStacksHtml(leadingSkills)}${selectionSlot}${inspectionSkillStacksHtml(associatedSkills)}
-          </div>`
-        : selectionSlot;
     })
     .join('');
-  const skillSlots = group.skillIds
-    .map((id) => app.skillById.get(Number(id)))
-    .filter((skill): skill is Skill => skill != null);
   return `<div class="skill-bar-inspection-group${
     group.className ? ` ${esc(group.className)}` : ''
   }" style="--inspection-color:${esc(group.color || 'var(--accent)')}">
       <span class="skill-bar-inspection-label">${esc(group.label)}</span>
-      <div class="skill-bar-inspection-skills">${selectionSlots}${inspectionSkillStacksHtml(skillSlots, group.inspectionChainRoots)}</div>
+      <div class="skill-bar-inspection-skills">${selectionSlots}</div>
   </div>`;
 }
 
@@ -244,10 +140,8 @@ export function renderSkills(app: ProfessionAppState): void {
     professionState: app.results?.endState?.profession,
     traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
   };
-  const inspectionGroups = selectableSkillBarGroups(
-    app.profession.id,
-    app.profession.ui.skillBarGroups?.(context) || []
-  );
+  // Profession contracts now expose only editable build selectors here.
+  const inspectionGroups = app.profession.ui.skillBarGroups?.(context) || [];
   skillBar.classList.toggle('has-inspection', inspectionGroups.length > 0);
 
   const slots: readonly (readonly [string, string])[] = [

@@ -1,9 +1,5 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  mesmerMechanicPaletteGroups,
-  mesmerMechanicSkillBarGroups,
-  mesmerResourceViews
-} from '#gw2/professions/mesmer/core/presentation.js';
+import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
@@ -49,7 +45,6 @@ export const virtuosoUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
   // Deadly Blades is binary even when repeated critical hits overlap its duration.
   effectPresentations: () => [...VIRTUOSO_EFFECT_PRESENTATIONS],
   paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, VIRTUOSO_MECHANIC_SKILLS, 'blades'),
-  skillBarGroups: () => mesmerMechanicSkillBarGroups('Bladesongs', VIRTUOSO_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) =>
     mesmerResourceViews(context, {
       id: 'blades',

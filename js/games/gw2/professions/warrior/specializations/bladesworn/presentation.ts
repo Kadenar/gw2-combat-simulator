@@ -3,7 +3,6 @@ import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
   warriorPaletteGroups,
-  warriorSkillBarGroups,
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
@@ -117,28 +116,6 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
       color: '#c97645',
       className: 'bladesworn-gunsaber',
       placement: 'weapon-set-1' as const
-    }
-  ],
-  skillBarGroups: (context: WarriorUiContext) => [
-    ...warriorSkillBarGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS),
-    {
-      id: 'warrior-dragon-slash',
-      label: 'Dragon Slash',
-      skillIds: DRAGON_SLASH_SKILLS,
-      color: '#d56f55'
-    },
-    {
-      id: 'warrior-dragon-trigger',
-      label: 'Dragon Trigger',
-      skillIds: DRAGON_TRIGGER_SKILLS,
-      color: '#ba5f5f'
-    },
-    {
-      id: 'warrior-gunsaber',
-      label: 'Gunsaber',
-      skillIds: GUNSABER_SKILLS,
-      color: '#c97645',
-      placement: 'weapon-bar' as const
     }
   ],
   timelineWeaponLineTransition: (context: WarriorUiContext) => {

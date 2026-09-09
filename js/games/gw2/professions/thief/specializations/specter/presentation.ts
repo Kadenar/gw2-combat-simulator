@@ -30,22 +30,6 @@ export const specterUi = Object.freeze({
       stackId: 'specter-profession'
     }
   ],
-  skillBarGroups: () => [
-    {
-      id: 'specter-f-keys',
-      label: 'F Keys',
-      skillIds: [ID.SIPHON, ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD],
-      color: '#9a535c',
-      layout: 'thief-shadow-shroud'
-    },
-    {
-      id: 'specter-shadow-shroud',
-      label: 'Shadow Shroud',
-      skillIds: SHADOW_SHROUD_SKILL_IDS,
-      color: '#6b9988',
-      layout: 'thief-shadow-shroud'
-    }
-  ],
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
     return [

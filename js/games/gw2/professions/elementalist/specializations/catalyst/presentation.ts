@@ -128,16 +128,6 @@ function catalystEffectPresentations(context: SchedulerRecord): ProfessionEffect
  */
 export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   effectPresentations: catalystEffectPresentations,
-  skillBarGroups: () => [
-    {
-      id: 'elementalist-catalyst-spheres',
-      label: 'Jade Sphere',
-      skillIds: CATALYST_SPHERE_SKILL_IDS,
-      color: '#44ddaa',
-      className: 'elementalist-catalyst-spheres',
-      order: -10
-    }
-  ],
   paletteGroups: () => [
     {
       id: 'elementalist-catalyst-spheres',

@@ -3,7 +3,6 @@ import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.j
 import {
   necromancerTransformPaletteGroups,
   necromancerSoulShardResourceViews,
-  necromancerTransformSkillBarGroups,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type {
@@ -61,12 +60,6 @@ export const harbingerUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
       exitId: ID.EXIT_HARBINGER_SHROUD,
       shroud: 'harbinger',
       stackId: 'harbinger-profession'
-    }),
-  skillBarGroups: (context: NecromancerUiContext) =>
-    necromancerTransformSkillBarGroups(context, {
-      entryId: ID.HARBINGER_SHROUD,
-      exitId: ID.EXIT_HARBINGER_SHROUD,
-      shroud: 'harbinger'
     }),
   rotationStateSnapshot: harbingerStateSnapshot,
   resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] => [

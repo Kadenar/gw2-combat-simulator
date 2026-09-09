@@ -115,11 +115,6 @@
   justify-self: stretch;
 }
 
-.profession-loadout-theme .skill-bar-inspection-chain-step .skill-bar-inspection-slot.child-skill .sbar-icon {
-  width: 29px;
-  height: 29px;
-}
-
 /* Keep build-selectable skills beside the fixed-width traits column. */
 .skill-selection-section {
   grid-template-columns: 647px minmax(0, 1fr);

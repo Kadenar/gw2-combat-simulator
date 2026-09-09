@@ -1702,27 +1702,6 @@
   border-top: 1px solid var(--border);
 }
 
-.skill-bar-inspection-skill-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.skill-bar-inspection-chain-step {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.weapon-chain-arrow {
-  width: 11px;
-  color: var(--text-dim);
-  font-size: 14px;
-  line-height: 1;
-  text-align: center;
-}
-
 /* Skill Bar */
 .skill-bar {
   display: flex;
@@ -1755,39 +1734,6 @@
   width: 100%;
 }
 
-.skill-bar-inspection.guardian-tomes {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, max-content);
-  justify-content: center;
-  align-items: start;
-  gap: 8px 12px;
-}
-
-.guardian-tomes .guardian-tome-f-keys {
-  grid-column: 1 / -1;
-  justify-self: center;
-}
-
-.guardian-tomes .guardian-tome-chapters .sbar-icon {
-  width: 38px;
-  height: 38px;
-}
-
-.skill-bar-inspection.necromancer-shroud {
-  display: grid;
-  justify-content: center;
-  align-items: start;
-  gap: 8px;
-}
-
-.skill-bar-inspection.thief-shadow-shroud {
-  display: grid;
-  justify-content: center;
-  align-items: start;
-  gap: 8px;
-}
-
 .skill-bar-inspection.ranger-mechanics {
   display: grid;
   grid-template-columns: repeat(4, max-content);
@@ -1814,10 +1760,6 @@
   align-items: center;
 }
 
-.ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
-  align-items: flex-start;
-}
-
 .ranger-mechanics .ranger-hammer {
   grid-column: 1 / -1;
   grid-row: 3;
@@ -1838,17 +1780,6 @@
   justify-self: stretch;
 }
 
-.ranger-soulbeast-mechanics .ranger-soulbeast-beastmode,
-.ranger-untamed-mechanics .ranger-untamed-unleash {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.ranger-untamed-mechanics .ranger-untamed-pet-skills {
-  grid-column: 3;
-  grid-row: 1;
-}
-
 .ranger-mechanics .ranger-pet .skill-bar-inspection-slot.selectable .sbar-icon img {
   transform: scale(1.4);
 }
@@ -1858,27 +1789,10 @@
   height: 40px;
 }
 
-/* Every specialization's pet card gets an enlarged portrait (the icon keeps the
-   shared zoom so it fills the selector), its individual pet skills sized to match,
-   and the picked pet's name captioned beneath the portrait. */
+/* Enlarge the selected pet portrait without changing the shared icon zoom. */
 .ranger-mechanics .ranger-pet .skill-bar-inspection-slot .sbar-icon {
   width: 64px;
   height: 64px;
-}
-
-.ranger-mechanics .ranger-pet .skill-bar-type {
-  display: block;
-  width: 100%;
-  text-align: center;
-  font-size: 11px;
-  line-height: 1.15;
-  color: var(--text-dim);
-  margin-top: 3px;
-}
-
-.necromancer-shroud .necromancer-shroud-f-keys,
-.necromancer-shroud .necromancer-shroud-skills {
-  justify-self: center;
 }
 
 .skill-bar-inspection-group {
@@ -1903,27 +1817,10 @@
   flex-wrap: wrap;
 }
 
-.skill-bar-inspection-selection {
-  display: flex;
-  align-items: flex-start;
-  gap: 5px;
-}
-
 .skill-bar-inspection-slot .sbar-icon {
   width: 44px;
   height: 44px;
   border-color: var(--inspection-color);
-}
-
-.skill-bar-inspection-chain-step .skill-bar-inspection-slot.child-skill .sbar-icon {
-  width: 30px;
-  height: 30px;
-  border-width: 1px;
-  opacity: 0.7;
-}
-
-.skill-bar-inspection-chain-step .skill-bar-inspection-slot.child-skill .sbar-icon:hover {
-  opacity: 1;
 }
 
 .skill-bar-inspection-slot.selectable {
@@ -1937,8 +1834,6 @@
   flex: 0 0 auto;
 }
 
-.skill-bar-key,
-.skill-bar-type,
 .sbar-icon-arrow {
   display: none;
 }

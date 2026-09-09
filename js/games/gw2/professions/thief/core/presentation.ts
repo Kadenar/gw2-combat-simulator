@@ -174,17 +174,6 @@ export const thiefCoreUi = Object.freeze({
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
   paletteGroups: (context: ThiefUiContext) =>
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
-  skillBarGroups: (context: ThiefUiContext) =>
-    (context.specialization || context.config?.specialization || 'Core') === 'Core'
-      ? [
-          {
-            id: 'thief-stolen-skills',
-            label: 'Stolen Skills',
-            skillIds: [...THIEF_STOLEN_SKILL_IDS],
-            color: '#9a535c'
-          }
-        ]
-      : [],
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
     const enduranceCapacity = Math.max(

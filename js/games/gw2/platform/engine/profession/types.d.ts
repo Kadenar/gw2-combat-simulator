@@ -139,12 +139,8 @@ export interface ProfessionPaletteActionIdentity {
 export interface ProfessionSkillBarGroup extends SchedulerRecord {
   readonly label: string;
   readonly skillIds: readonly SkillId[];
-  /** Lower values render before other profession mechanic groups. */
+  /** Lower values render before other build-selection groups. */
   readonly order?: number;
-  /** Presentation-only child-to-root links rendered like autoattack chains. */
-  readonly inspectionChainRoots?: Readonly<Record<string, SkillId>>;
-  /** Places a read-only mechanic group with the weapon previews. */
-  readonly placement?: 'skill-bar' | 'weapon-bar';
   readonly selections?: readonly ProfessionSkillBarSelection[];
   readonly optionSkillIds?: readonly SkillId[];
   readonly optionEntries?: readonly ProfessionSkillBarSelectionOption[];
@@ -158,16 +154,8 @@ export interface ProfessionSkillBarGroup extends SchedulerRecord {
 
 export interface ProfessionSkillBarSelection {
   readonly skillId?: SkillId;
-  /** Optional slot key rendered beneath a selectable mechanic skill. */
-  readonly keyLabel?: string;
-  /** Optional slot type rendered beneath a selectable mechanic skill. */
-  readonly typeLabel?: string;
   /** When set, render an option filter using this placeholder. */
   readonly filterPlaceholder?: string;
-  /** Read-only skills previewed before this selection. */
-  readonly leadingSkillIds?: readonly SkillId[];
-  /** Read-only skills previewed beside this selection. */
-  readonly skillIds?: readonly SkillId[];
   readonly optionSkillIds?: readonly SkillId[];
   readonly optionEntries?: readonly ProfessionSkillBarSelectionOption[];
   readonly selectionValue?: string;

@@ -88,19 +88,6 @@ test('Catalyst exposes every Jade Sphere beside its energy in the rotation palet
   );
 });
 
-test('Catalyst exposes Jade Spheres through the native profession skill bar', () => {
-  const group = elementalistProfession.ui
-    .skillBarGroups({
-      specialization: 'Catalyst',
-      catalog: elementalistProfession.catalog
-    })
-    .find((candidate) => candidate.id === 'elementalist-catalyst-spheres');
-
-  assert.ok(group);
-  assert.equal(group.id, 'elementalist-catalyst-spheres');
-  assert.deepEqual(group.skillIds, sphereIds);
-});
-
 test('Catalyst energy exposes its native compact-bar styling hook', () => {
   const [energy] = elementalistProfession.ui.resourceViews({
     specialization: 'Catalyst',

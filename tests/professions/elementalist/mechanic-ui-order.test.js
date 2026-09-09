@@ -5,16 +5,13 @@ import { elementalistProfession } from '#gw2/professions/elementalist/definition
 
 const SPECIALIZATION_MECHANICS = Object.freeze({
   Catalyst: {
-    palette: 'elementalist-catalyst-spheres',
-    skillBar: 'elementalist-catalyst-spheres'
+    palette: 'elementalist-catalyst-spheres'
   },
   Tempest: {
-    palette: 'elementalist-tempest-overloads',
-    skillBar: 'elementalist-tempest-overloads'
+    palette: 'elementalist-tempest-overloads'
   },
   Evoker: {
-    palette: 'elementalist-evoker-familiars',
-    skillBar: 'elementalist-evoker-familiar'
+    palette: 'elementalist-evoker-familiars'
   }
 });
 
@@ -27,9 +24,7 @@ test('Elementalist elite mechanics render above attunements', () => {
       catalog: elementalistProfession.catalog
     };
     const paletteIds = elementalistProfession.ui.paletteGroups(context).map((group) => group.id);
-    const skillBarIds = elementalistProfession.ui.skillBarGroups(context).map((group) => group.id);
 
     assert.ok(paletteIds.indexOf(mechanic.palette) < paletteIds.indexOf('elementalist-attunements'), specialization);
-    assert.ok(skillBarIds.indexOf(mechanic.skillBar) < skillBarIds.indexOf('elementalist-attunements'), specialization);
   }
 });

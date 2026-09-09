@@ -445,19 +445,6 @@ test('each profession variant has a complete mechanic bar', () => {
   assert.equal(MECHANIC_SKILLS.Troubadour.length, 5);
 });
 
-test('Mesmer skill bar labels shatters, bladesongs, and instruments', () => {
-  const group = (specialization) => mesmerProfession.ui.skillBarGroups({ specialization })[0];
-
-  assert.equal(group('Core').label, 'Shatters');
-  assert.deepEqual(group('Core').skillIds, MECHANIC_SKILLS.Core);
-  assert.equal(group('Chronomancer').label, 'Shatters');
-  assert.deepEqual(group('Chronomancer').skillIds, MECHANIC_SKILLS.Chronomancer);
-  assert.equal(group('Virtuoso').label, 'Bladesongs');
-  assert.deepEqual(group('Virtuoso').skillIds, MECHANIC_SKILLS.Virtuoso);
-  assert.equal(group('Troubadour').label, 'Instruments');
-  assert.deepEqual(group('Troubadour').skillIds, MECHANIC_SKILLS.Troubadour);
-});
-
 test('Chronomancer owns its Continuum Shift palette projection', () => {
   const group = mesmerProfession.ui.paletteGroups({
     specialization: 'Chronomancer',

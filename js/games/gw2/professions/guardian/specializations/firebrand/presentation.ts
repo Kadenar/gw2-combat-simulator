@@ -3,8 +3,7 @@ import { guardianUiSkillIdsByName, guardianUiSkillsByMode } from '#gw2/professio
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
-  ProfessionPaletteGroup,
-  ProfessionSkillBarGroup
+  ProfessionPaletteGroup
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
@@ -66,33 +65,6 @@ function dormantTomeClasses(context: GuardianUiContext): string {
     .join(' ');
 }
 
-function tomeGroups(context: GuardianUiContext): ProfessionSkillBarGroup[] {
-  return [
-    {
-      id: 'guardian-f-keys',
-      label: 'F Keys',
-      // Stow Tome remains a rotation action but is not a separate F-key slot
-      // in the read-only skill-bar preview.
-      skillIds: guardianUiSkillIdsByName(TOME_F_KEY_NAMES, context),
-      color: '#2f7eb8',
-      className: 'guardian-tome-f-keys',
-      layout: 'guardian-tomes'
-    },
-    ...[
-      ['justice', 'Tome of Justice', '#d26b46'],
-      ['resolve', 'Tome of Resolve', '#5dad7d'],
-      ['courage', 'Tome of Courage', '#6d96ce']
-    ].map(([tome, label, color]) => ({
-      id: `guardian-tome-${tome}`,
-      label,
-      skillIds: guardianUiSkillsByMode('tome', tome),
-      color,
-      className: 'guardian-tome-chapters',
-      layout: 'guardian-tomes'
-    }))
-  ];
-}
-
 export const firebrandUi = Object.freeze({
   eventLogRow: firebrandEventLogRow,
   timelineWeaponLineTransition: (context: GuardianUiContext) => {
@@ -111,7 +83,6 @@ export const firebrandUi = Object.freeze({
 
     return undefined;
   },
-  skillBarGroups: tomeGroups,
   paletteGroups: (context: GuardianUiContext): ProfessionPaletteGroup[] => [
     {
       id: 'profession',

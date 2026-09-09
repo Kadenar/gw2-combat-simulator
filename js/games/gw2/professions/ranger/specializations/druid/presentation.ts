@@ -53,21 +53,6 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
 }
 
 export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  skillBarGroups: (context: RangerUiContext) => [
-    {
-      id: 'ranger-druid-f5',
-      label: 'Celestial Avatar',
-      // F5 toggles between enter and release depending on CA state, matching in-game behavior
-      skillIds: [rangerUiState(context).celestialAvatarActive ? ID.RELEASE_CELESTIAL_AVATAR : ID.CELESTIAL_AVATAR],
-      color: '#75c5c5'
-    },
-    {
-      id: 'ranger-celestial-avatar',
-      label: 'Avatar',
-      skillIds: AVATAR_SKILLS,
-      color: '#75c5c5'
-    }
-  ],
   paletteGroups: (context: RangerUiContext) => [
     rangerPetPaletteGroup(context),
     {

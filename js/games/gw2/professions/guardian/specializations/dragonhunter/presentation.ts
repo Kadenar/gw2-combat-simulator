@@ -37,14 +37,6 @@ function dragonhunterStateSnapshot(context: GuardianUiContext): RotationStateSna
 export const dragonhunterUi = Object.freeze({
   eventLogRow: dragonhunterEventLogRow,
   rotationStateSnapshot: dragonhunterStateSnapshot,
-  skillBarGroups: (context: GuardianUiContext) => [
-    {
-      id: 'guardian-f-keys',
-      label: 'F Keys',
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
-      color: '#2f7eb8'
-    }
-  ],
   paletteGroups: (context: GuardianUiContext) => [
     {
       id: 'profession',

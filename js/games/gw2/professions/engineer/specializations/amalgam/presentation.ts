@@ -60,7 +60,7 @@ function amalgamProfessionSkills(context: EngineerUiContext): (SkillId | null)[]
   return [engineerToolbeltSkillIds(context)[0], ...selectedMorphIds(context).slice(0, 3), namedSkillId('Evolve')];
 }
 
-/** Builds one named selector per configurable protocol while leaving F1 and F5 fixed. */
+/** Builds only editable protocol selectors; fixed F1 and F5 skills stay in the palette. */
 function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(context);
   // Match pet selectors with concise selected-name headers while dropdowns retain the full protocol names.
@@ -89,23 +89,7 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
       }
     ];
   });
-  // Project fixed F1/F5 skills separately so the UI can render them apart from protocol selectors.
-  const fixedSkillIds = skillIds.filter(
-    (skillId, index): skillId is SkillId => skillId != null && ![1, 2, 3].includes(index)
-  );
-  return [
-    ...(fixedSkillIds.length
-      ? [
-          {
-            id: 'engineer-skill-bar-f-skills',
-            label: 'F Skills',
-            skillIds: fixedSkillIds,
-            color: '#b88a35'
-          }
-        ]
-      : []),
-    ...protocolGroups
-  ];
+  return protocolGroups;
 }
 
 /** Validates a protocol selection and swaps duplicate protocol names across mechanic slots. */

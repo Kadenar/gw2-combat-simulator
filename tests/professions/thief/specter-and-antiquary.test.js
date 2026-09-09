@@ -1092,73 +1092,12 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
   assert.ok(sunCrystal.conditionDamage > artifact('Zephyrite Sun Crystal').conditionDamage * 1.8);
 });
 
-test('Antiquary skill bar previews wiki-categorized artifacts', () => {
-  const groups = thiefProfession.ui.skillBarGroups({
-    specialization: 'Antiquary'
-  });
-
-  assert.deepEqual(
-    groups.map((group) => ({
-      label: group.label,
-      names: group.skillIds.map((id) => thiefCatalog.skillsById.get(id)?.name)
-    })),
-    [
-      {
-        label: 'Offensive Artifacts',
-        names: ['Forged Surfer Dash', 'Metal Legion Guitar', 'Mistburn Mortar', 'Summon Kryptis Turret']
-      },
-      {
-        label: 'Defensive Artifacts',
-        names: ['Chak Shield', 'Exalted Hammer', 'Holo-Dancer Decoy', 'Zephyrite Sun Crystal']
-      }
-    ]
-  );
-  const specter = thiefProfession.ui.skillBarGroups({
-    specialization: 'Specter'
-  });
-
-  assert.deepEqual(
-    specter.map((group) => group.label),
-    ['F Keys', 'Shadow Shroud']
-  );
-  assert.deepEqual(
-    specter[1].skillIds.map((id) => thiefCatalog.skillsById.get(id)?.name),
-    ['Haunt Shot', 'Grasping Shadows', "Dawn's Repose", 'Eternal Night', 'Mind Shock']
-  );
-});
-
-test('Thief skill bar previews specialization-specific stolen skills', () => {
-  const namesFor = (specialization, config = {}) =>
-    thiefProfession.ui
-      .skillBarGroups({ specialization, config: { specialization, ...config } })
-      .flatMap((group) => group.skillIds)
-      .map((id) => thiefCatalog.skillsById.get(id)?.name);
-
-  assert.deepEqual(namesFor('Core'), ['Detonate Plasma', 'Throw Magnetic Bomb', 'Soul Stone Venom']);
-  assert.deepEqual(namesFor('Daredevil'), namesFor('Core'));
-  assert.deepEqual(namesFor('Deadeye'), [
-    'Steal Time',
-    'Steal Warmth',
-    'Steal Resistance',
-    'Steal Precision',
-    'Steal Health',
-    'Steal Strength',
-    'Steal Durability',
-    'Steal Defenses',
-    'Steal Mobility'
-  ]);
-  assert.deepEqual(namesFor('Deadeye', { selectedTraitIds: [TRAIT.FIRE_FOR_EFFECT] }), ['Steal Time']);
+test('Fire for Effect limits the Deadeye stolen-skill palette', () => {
   assert.deepEqual(
     thiefProfession.ui
       .paletteGroups({ specialization: 'Deadeye', traits: new Set([TRAIT.FIRE_FOR_EFFECT]) })
       .find((group) => group.id === 'deadeye-stolen-skills').skillIds,
     [ID.STEAL_TIME]
-  );
-  assert.equal(
-    thiefProfession.ui
-      .skillBarGroups({ specialization: 'Deadeye', config: { specialization: 'Deadeye' } })
-      .find((group) => group.id === 'deadeye-stolen-skills').className,
-    'deadeye-stolen-skills-grid'
   );
 });
 

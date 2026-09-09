@@ -96,20 +96,6 @@ export const antiquaryUi = Object.freeze({
       }))
     ];
   },
-  skillBarGroups: () => [
-    {
-      id: 'thief-artifacts-offensive',
-      label: 'Offensive Artifacts',
-      skillIds: [...THIEF_ARTIFACT_IDS.OFFENSIVE],
-      color: '#c65d68'
-    },
-    {
-      id: 'thief-artifacts-defensive',
-      label: 'Defensive Artifacts',
-      skillIds: [...THIEF_ARTIFACT_IDS.DEFENSIVE],
-      color: '#6f9cb8'
-    }
-  ],
   // Available artifact uses are a backend gate (state.artifactUsesRemaining),
   // not a palette meter, so Antiquary contributes no artifact resource view.
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {

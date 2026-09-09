@@ -100,23 +100,6 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
 }
 
 export const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  skillBarGroups: (context: RangerUiContext) => [
-    {
-      id: 'ranger-untamed-f5',
-      label: 'Unleash',
-      // Show whichever Unleash skill is currently usable; the two skills share the same F5 slot.
-      skillIds: [rangerUiState(context).rangerUnleashed ? ID.UNLEASH_PET : ID.UNLEASH_RANGER],
-      color: '#3f9b64',
-      className: 'ranger-untamed-unleash'
-    },
-    {
-      id: 'ranger-untamed-pet',
-      label: 'Unleashed Pet',
-      skillIds: petSkillIds,
-      color: '#3f9b64',
-      className: 'ranger-untamed-pet-skills'
-    }
-  ],
   startControls: (context: RangerUiContext) => [
     {
       id: 'ranger-untamed-start-state',

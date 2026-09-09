@@ -1,7 +1,7 @@
 /**
- * Evoker build-editor and rotation-palette presentation.
+ * Evoker rotation-palette presentation.
  *
- * Renders the F5 familiar selector, mirrors charge/empowered state into palette
+ * Renders the active F5 familiar, mirrors charge/empowered state into palette
  * availability and resource dials, and surfaces the Elemental Balance window in
  * the rotation snapshot. Reads a projected UI-side state record rather than live
  * simulation state, falling back to build defaults before a run exists.
@@ -45,29 +45,13 @@ const FAMILIAR_SKILL_NAMES = Object.freeze({
 } as const);
 
 // returns the empowered form when 3 stacks are ready so the UI shows which familiar is currently usable
-function familiarSkillId(context: SchedulerRecord, element = selectedElement(context)): number {
+function familiarSkillId(context: SchedulerRecord): number {
+  const element = selectedElement(context);
   const state = uiState(context);
   const build = context.build as SchedulerRecord | undefined;
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= 3 ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
-}
-
-// returns boolean to signal whether the platform should treat the update as consumed
-function updateFamiliarSelection(context: SchedulerRecord, selection: SchedulerRecord): boolean {
-  const value = String(selection.value || '');
-  if (
-    selection.key !== 'evokerElement' ||
-    Number(selection.index) !== 0 ||
-    !ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement) ||
-    !context.build ||
-    typeof context.build !== 'object'
-  ) {
-    return false;
-  }
-
-  (context.build as SchedulerRecord).evokerElement = value;
-  return true;
 }
 
 // Keeps the F5 palette state aligned with scheduler validation so a familiar
@@ -119,51 +103,8 @@ function evokerStateSnapshot(context: SchedulerRecord): RotationStateSnapshotIte
     : [];
 }
 
-/**
- * The Evoker slice of the profession UI contract: the familiar skill-bar group
- * and its element selector, the F5 palette group and its availability, the
- * rotation snapshot, and the charge/empowered resource dials.
- */
+/** Projects the active familiar, its availability, resources, and rotation snapshot. */
 export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  skillBarGroups: (context: SchedulerRecord) => {
-    const element = selectedElement(context);
-    return [
-      {
-        id: 'elementalist-evoker-familiar',
-        label: 'Familiar',
-        skillIds: [],
-        selections: [
-          {
-            skillId: familiarSkillId(context),
-            optionEntries: ELEMENTALIST_ATTUNEMENTS.map((option) => {
-              const skillId = familiarSkillId(context, option);
-              const skill = (
-                context.catalog as
-                  | {
-                      skillsById?: ReadonlyMap<number, { icon?: string; description?: string }>;
-                    }
-                  | undefined
-              )?.skillsById?.get(skillId);
-              return {
-                value: option,
-                label: `${option} Familiar`,
-                icon: skill?.icon,
-                description: skill?.description || `${option} familiar`,
-                skillId
-              };
-            }),
-            selectionValue: element,
-            selectionKey: 'evokerElement',
-            selectionIndex: 0
-          }
-        ],
-        color: '#c85142',
-        className: 'elementalist-familiar',
-        order: -10
-      }
-    ];
-  },
-  updateSkillBarSelection: updateFamiliarSelection,
   paletteSkillAvailability: familiarPaletteAvailability,
   rotationStateSnapshot: evokerStateSnapshot,
   paletteGroups: (context: SchedulerRecord) => {

@@ -1,7 +1,6 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -961,75 +960,6 @@ test('weapon swap ignores Alacrity and Relic of the Warrior reduces its recharge
 
   assert.deepEqual(swapStarts({ boons: { alacrity: true } }), [0, 10000]);
   assert.deepEqual(swapStarts({ boons: { alacrity: true }, relic: 'Warrior' }), [0, 7500]);
-});
-
-test('Guardian skill bar exposes F keys and Luminary Radiant Forge skills', () => {
-  const coreGroups = guardianProfession.ui.skillBarGroups({
-    specialization: 'Core'
-  });
-
-  assert.deepEqual(
-    coreGroups.map((group) => group.label),
-    ['F Keys']
-  );
-  assert.deepEqual(coreGroups[0].skillIds, [
-    GUARDIAN_SKILL_IDS.JUSTICE,
-    GUARDIAN_SKILL_IDS.RESOLVE,
-    GUARDIAN_SKILL_IDS.COURAGE
-  ]);
-
-  const luminaryGroups = guardianProfession.ui.skillBarGroups({
-    specialization: 'Luminary',
-    professionState: { radiantForge: false }
-  });
-
-  assert.deepEqual(
-    luminaryGroups.map((group) => group.label),
-    ['F Keys', 'Radiant Forge']
-  );
-  assert.equal(luminaryGroups[0].skillIds.includes(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE), true);
-  assert.equal(luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.GLARING_BURST), true);
-  assert.equal(luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER), true);
-  assert.equal(luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.BRILLIANT_SLAM), true);
-  assert.deepEqual(
-    skillBarInspectionStacks(
-      luminaryGroups[1].skillIds.map((skillId) => guardianCatalog.skillsById.get(skillId)),
-      luminaryGroups[1].inspectionChainRoots
-    ).map(({ root, children }) => [root.id, children.map((skill) => skill.id)]),
-    [
-      [GUARDIAN_SKILL_IDS.GLARING_BURST, []],
-      [GUARDIAN_SKILL_IDS.DAZZLING_HAMMER, [GUARDIAN_SKILL_IDS.SHINING_SPIN]],
-      [GUARDIAN_SKILL_IDS.LUMINOUS_STAFF, [GUARDIAN_SKILL_IDS.RESTORATIVE_GLOW]],
-      [GUARDIAN_SKILL_IDS.GLEAMING_BLADE, [GUARDIAN_SKILL_IDS.LUCENT_THRUST]],
-      [GUARDIAN_SKILL_IDS.RADIANT_BULWARK, [GUARDIAN_SKILL_IDS.BRILLIANT_SLAM]]
-    ]
-  );
-
-  const firebrandGroups = guardianProfession.ui.skillBarGroups({
-    specialization: 'Firebrand',
-    professionState: { activeTome: '', tomePages: 5 }
-  });
-
-  assert.deepEqual(
-    firebrandGroups.map((group) => group.label),
-    ['F Keys', 'Tome of Justice', 'Tome of Resolve', 'Tome of Courage']
-  );
-  assert.deepEqual(
-    firebrandGroups.slice(1).map((group) => group.skillIds.length),
-    [5, 5, 5]
-  );
-  assert.deepEqual(firebrandGroups[0].skillIds, [
-    GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
-    GUARDIAN_SKILL_IDS.TOME_OF_RESOLVE,
-    GUARDIAN_SKILL_IDS.TOME_OF_COURAGE
-  ]);
-  assert.deepEqual(
-    firebrandGroups.map((group) => group.layout),
-    ['guardian-tomes', 'guardian-tomes', 'guardian-tomes', 'guardian-tomes']
-  );
-  assert.equal(firebrandGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL), true);
-  assert.equal(firebrandGroups[2].skillIds.includes(GUARDIAN_SKILL_IDS.AZURE_SUN), true);
-  assert.equal(firebrandGroups[3].skillIds.includes(GUARDIAN_SKILL_IDS.UNBROKEN_LINES), true);
 });
 
 test('Guardian palettes keep inactive tome and forge skills visible', () => {

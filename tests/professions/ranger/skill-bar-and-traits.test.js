@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
-import { selectableSkillBarGroups, skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
@@ -86,19 +85,12 @@ describe('Ranger skill-bar selections', () => {
     );
     assert.equal(pet1Group.layout, 'ranger-mechanics ranger-soulbeast-mechanics');
     assert.equal(pet2Group.layout, 'ranger-mechanics ranger-soulbeast-mechanics');
-    assert.equal(
-      rangerProfession.ui.skillBarGroups(soulbeastContext).find((group) => group.id === 'ranger-soulbeast-f5')
-        .className,
-      'ranger-soulbeast-beastmode'
-    );
     assert.equal(pet1Group.selections[0].selectionValue, 'Pig');
     assert.equal(pet2Group.selections[0].selectionValue, 'Lynx');
     assert.deepEqual(
       petGroups.map((group) => group.selections[0].filterPlaceholder),
       ['Filter pets...', 'Filter pets...']
     );
-    assert.equal(pet1Group.selections[0].skillIds, undefined);
-    assert.equal(pet2Group.selections[0].skillIds, undefined);
     assert.equal(pet1Group.selections[0].optionEntries.length, RANGER_PETS.length);
     assert.equal(
       rangerProfession.ui.updateSkillBarSelection(soulbeastContext, {
@@ -117,11 +109,9 @@ describe('Ranger skill-bar selections', () => {
       true
     );
     assert.equal(build.selectedPet2, 'Fanged Iboga');
-    const smokescale = RANGER_PETS.find((pet) => pet.name === 'Smokescale');
     const mergedPetGroups = rangerProfession.ui
       .skillBarGroups(soulbeastContext)
       .filter((group) => group.id.startsWith('ranger-pet-'));
-    const fangedIboga = RANGER_PETS.find((pet) => pet.name === 'Fanged Iboga');
 
     assert.deepEqual(
       mergedPetGroups.map((group) => group.skillIds),
@@ -131,27 +121,6 @@ describe('Ranger skill-bar selections', () => {
     assert.deepEqual(
       mergedPetGroups.map((group) => group.label),
       ['Smokescale', 'Fanged Iboga']
-    );
-    assert.equal(mergedPetGroups[0].selections[0].leadingSkillIds, undefined);
-    assert.equal(mergedPetGroups[1].selections[0].leadingSkillIds, undefined);
-    assert.equal(mergedPetGroups[0].selections[0].typeLabel, undefined);
-    assert.equal(mergedPetGroups[1].selections[0].typeLabel, undefined);
-    assert.equal(mergedPetGroups[0].selections[0].skillIds, undefined);
-    assert.equal(mergedPetGroups[1].selections[0].skillIds, undefined);
-    const soulbeastGroups = rangerProfession.ui.skillBarGroups(soulbeastContext);
-    // Both pets' merged Beast skills now live inside the Beastmode section beside the
-    // toggle rather than in their own labeled rows.
-    const beastmodeGroupSkillIds = soulbeastGroups.find((group) => group.id === 'ranger-soulbeast-f5').skillIds;
-
-    assert.ok(smokescale.beastmodeSkillIds.every((id) => beastmodeGroupSkillIds.includes(id)));
-    assert.ok(fangedIboga.beastmodeSkillIds.every((id) => beastmodeGroupSkillIds.includes(id)));
-    assert.equal(
-      soulbeastGroups.some((group) => String(group.id).startsWith('ranger-soulbeast-merged')),
-      false
-    );
-    assert.equal(
-      rangerProfession.ui.skillBarGroups(soulbeastContext).some((group) => group.id === 'ranger-beast-skills'),
-      false
     );
     assert.equal(
       rangerProfession.ui
@@ -185,17 +154,12 @@ describe('Ranger skill-bar selections', () => {
     const untamedGroups = rangerProfession.ui.skillBarGroups(untamedContext);
 
     assert.deepEqual(
-      selectableSkillBarGroups('ranger', untamedGroups).map((group) => group.id),
+      untamedGroups.map((group) => group.id),
       ['ranger-pet-1-selection', 'ranger-pet-2-selection', 'ranger-hammer-selection']
     );
-    assert.deepEqual(selectableSkillBarGroups('warrior', untamedGroups), []);
     assert.equal(
       untamedGroups.find((group) => group.id === 'ranger-pet-1-selection').layout,
       'ranger-mechanics ranger-untamed-mechanics'
-    );
-    assert.deepEqual(
-      untamedGroups.filter((group) => group.id.startsWith('ranger-untamed-')).map((group) => group.className),
-      ['ranger-untamed-unleash', 'ranger-untamed-pet-skills']
     );
     const untamedStartControl = rangerProfession.ui.startControls(untamedContext)[0];
 
@@ -354,36 +318,6 @@ describe('Galeshot Cyclone Bow', () => {
         .resolveRuntime({ specialization: 'Galeshot' })
         .createProfessionState({ specialization: 'Galeshot' })
     };
-    const untraitedBowGroup = rangerProfession.ui
-      .skillBarGroups(inactiveContext)
-      .find((group) => group.id === 'ranger-cyclone-bow');
-    const traitedBowGroup = rangerProfession.ui
-      .skillBarGroups({
-        ...inactiveContext,
-        traits: new Set([TRAIT.PERILOUS_SKIES])
-      })
-      .find((group) => group.id === 'ranger-cyclone-bow');
-
-    // Perilous Skies owns the preview replacement just as it owns the runtime
-    // replacement, so Pelt is never displayed beside Quarry's Peril.
-    assert.equal(untraitedBowGroup.className, 'ranger-cyclone-bow-skills');
-    assert.equal(untraitedBowGroup.skillIds.includes(ID.QUARRYS_PERIL), true);
-    assert.equal(untraitedBowGroup.skillIds.includes(ID.PELT), false);
-    assert.equal(traitedBowGroup.skillIds.includes(ID.QUARRYS_PERIL), false);
-    assert.equal(traitedBowGroup.skillIds.includes(ID.PELT), true);
-    assert.deepEqual(
-      skillBarInspectionStacks(
-        untraitedBowGroup.skillIds.map((skillId) => rangerCatalog.skillsById.get(skillId)),
-        untraitedBowGroup.inspectionChainRoots
-      ).map(({ root, children }) => [root.id, children.map((skill) => skill.id)]),
-      [
-        [ID.KEEN_SHOT, [ID.HAWKEYE]],
-        [ID.BLUSTER, []],
-        [ID.FLEETING_ZEPHYR, []],
-        [ID.QUARRYS_PERIL, []],
-        [ID.SUPERSONIC_ARROW, []]
-      ]
-    );
     const galeshotPaletteGroups = rangerProfession.ui.paletteGroups(inactiveContext);
 
     assert.deepEqual(

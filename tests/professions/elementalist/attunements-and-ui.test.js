@@ -709,7 +709,7 @@ test('rotation palette exposes each attunement as an action', () => {
   );
 });
 
-test('Evoker selects its familiar in the skill bar and derives F5', () => {
+test('Evoker derives F5 from the selected familiar', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
     evokerElement: 'Air',
@@ -726,23 +726,6 @@ test('Evoker selects its familiar in the skill bar and derives F5', () => {
     professionState: { element: 'Air', empowered: 0 },
     catalog: elementalistCatalog
   };
-  const familiar = elementalistProfession.ui
-    .skillBarGroups(context)
-    .find((group) => group.id === 'elementalist-evoker-familiar');
-  const selection = familiar.selections[0];
-
-  assert.deepEqual(familiar.skillIds, []);
-  assert.equal(selection.selectionKey, 'evokerElement');
-  assert.equal(selection.selectionValue, 'Air');
-  assert.deepEqual(
-    selection.optionEntries.map((option) => option.value),
-    ['Fire', 'Water', 'Air', 'Earth']
-  );
-  assert.equal(
-    selection.optionEntries.every((option) => option.icon),
-    true
-  );
-
   const f5 = (professionState) =>
     elementalistProfession.ui
       .paletteGroups({ ...context, professionState })
@@ -753,15 +736,8 @@ test('Evoker selects its familiar in the skill bar and derives F5', () => {
     elementalistCatalog.skillsByName.get('Lightning Blitz').id
   ]);
 
-  assert.equal(
-    elementalistProfession.ui.updateSkillBarSelection(context, {
-      key: 'evokerElement',
-      index: 0,
-      value: 'Earth'
-    }),
-    true
-  );
-  assert.equal(build.evokerElement, 'Earth');
+  // Before a result exists, the F5 palette follows the build's configured familiar.
+  build.evokerElement = 'Earth';
   assert.deepEqual(f5({}).skillIds, [elementalistCatalog.skillsByName.get('Calcify').id]);
   assert.equal(
     elementalistProfession.ui.startControls(context).some((control) => control.label === 'Familiar'),

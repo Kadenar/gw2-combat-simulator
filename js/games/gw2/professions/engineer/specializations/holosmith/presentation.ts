@@ -1,6 +1,5 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import {
-  engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
   engineerUiSpecialization,
   engineerUiState,
@@ -38,28 +37,6 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
 
 // Populated by bindHolosmithUi at module init time; safe to read thereafter.
 let engineerSkills: readonly HolosmithSkill[] = [];
-let engineerSkillsById: ReadonlyMap<SkillId, HolosmithSkill> = new Map();
-
-/** Returns the available Photon Forge bar, selecting the Storm autoattack variant when traited. */
-function holosmithForgeSkillIds(context: EngineerUiContext): number[] {
-  const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
-  return [
-    storm ? ID.LIGHT_STRIKE_STORM : ID.LIGHT_STRIKE,
-    ID.HOLO_LEAP,
-    ID.CORONA_BURST,
-    ID.PHOTON_BLITZ,
-    ID.HOLOGRAPHIC_SHOCKWAVE
-  ].filter((skillId) => engineerSkillsById.has(skillId));
-}
-
-/** Projects the tool-belt and current Photon Forge toggle onto Holosmith's profession bar. */
-function holosmithProfessionSkills(context: EngineerUiContext) {
-  const state = engineerUiState(context);
-  return [
-    ...engineerToolbeltSkillIds(context).slice(0, 4),
-    namedSkillId(state.photonForgeActive ? 'Deactivate Photon Forge' : 'Engage Photon Forge')
-  ];
-}
 
 /** Projects Forge replacement rules and the kit lockout into palette availability. */
 function holosmithPaletteAvailability(context: EngineerUiContext, skill: HolosmithSkill): PaletteSkillAvailability {
@@ -131,15 +108,6 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
     if (context.skill?.handlerId === 'engineer.photon-forge-exit') return null;
     return undefined;
   },
-  skillBarGroups: (context: EngineerUiContext) => [
-    ...engineerFSkillBarGroups(holosmithProfessionSkills(context)),
-    {
-      id: 'engineer-photon-forge',
-      label: 'Photon Forge',
-      skillIds: holosmithForgeSkillIds(context),
-      color: '#e5a72d'
-    }
-  ],
   paletteGroups: (context: EngineerUiContext) => {
     const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
     // Keep profession toggles and Forge weapon skills in separate stacked palette groups.
@@ -204,6 +172,5 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
 /** Binds canonical skills used by Holosmith UI projections and returns the shared UI contract. */
 export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): typeof holosmithUi {
   engineerSkills = catalog.skills;
-  engineerSkillsById = catalog.skillsById;
   return holosmithUi;
 }

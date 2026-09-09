@@ -1077,7 +1077,6 @@ test('Mesmer runtime UI exposes only the active specialization resources', () =>
       ],
       active
     );
-    assert.equal(runtime.ui.skillBarGroups({ config }).length, 1, active);
   }
 });
 
@@ -1415,11 +1414,6 @@ test('Engineer runtime UI and public projection preserve their contracts', () =>
     };
 
     assert.equal(resourceIds.includes('heat'), active === 'Holosmith', active);
-    assert.equal(
-      runtime.ui.skillBarGroups(uiContext).some((group) => group.label === 'Photon Forge'),
-      active === 'Holosmith',
-      active
-    );
     assert.equal(
       runtime.ui.paletteGroups(uiContext).some((group) => group.id === 'engineer-forge'),
       active === 'Holosmith',

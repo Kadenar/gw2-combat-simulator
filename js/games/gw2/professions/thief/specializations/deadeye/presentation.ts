@@ -42,15 +42,6 @@ export const deadeyeUi = Object.freeze({
       }
     ];
   },
-  skillBarGroups: (context: ThiefUiContext) => [
-    {
-      id: 'deadeye-stolen-skills',
-      label: 'Deadeye Stolen Skills',
-      skillIds: deadeyeStolenSkillIds(context),
-      color: '#9a535c',
-      className: 'deadeye-stolen-skills-grid'
-    }
-  ],
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
     return [

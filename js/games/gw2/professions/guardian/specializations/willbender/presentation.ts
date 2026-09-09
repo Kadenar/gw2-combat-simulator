@@ -70,14 +70,6 @@ export const willbenderUi = Object.freeze({
   effectPresentations: willbenderEffectPresentations,
   eventLogRow: willbenderEventLogRow,
   rotationStateSnapshot: willbenderStateSnapshot,
-  skillBarGroups: (context: GuardianUiContext) => [
-    {
-      id: 'guardian-f-keys',
-      label: 'F Keys',
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
-      color: '#2f7eb8'
-    }
-  ],
   paletteGroups: (context: GuardianUiContext) => [
     {
       id: 'profession',

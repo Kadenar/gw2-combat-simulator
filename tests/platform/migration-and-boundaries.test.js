@@ -159,10 +159,12 @@ test('Mesmer conforms to native handler and state contracts', () => {
     assert.ok(strategy, `${skill.name} has an unresolved handler`);
   }
 
+  // Validate the live palette now that read-only build previews no longer project mechanic IDs.
   const mechanicSkillIds = ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'].flatMap((specialization) =>
-    mesmerProfession.ui.skillBarGroups({ specialization }).flatMap((group) => group.skillIds)
+    mesmerProfession.ui.paletteGroups({ specialization, catalog: mesmerCatalog }).flatMap((group) => group.skillIds)
   );
 
+  assert.ok(mechanicSkillIds.length > 0);
   assert.ok(mechanicSkillIds.every((skillId) => mesmerCatalog.skillsById.has(skillId)));
   assert.ok(
     Object.keys(mesmerProfession.resolveRuntime({ specialization: 'Chronomancer' }).taskHandlers).every((type) =>

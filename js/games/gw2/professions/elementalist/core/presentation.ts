@@ -429,15 +429,6 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
  */
 export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: ELEMENTALIST_ASSUMPTION_CONTROLS,
-  skillBarGroups: () => [
-    {
-      id: 'elementalist-attunements',
-      label: 'Attunements',
-      skillIds: Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS),
-      color: '#c85142',
-      className: 'elementalist-attunements'
-    }
-  ],
   paletteGroups: elementalistPaletteGroups,
   paletteWeaponSkills,
   updatePaletteControl,

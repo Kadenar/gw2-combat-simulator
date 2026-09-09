@@ -2,8 +2,7 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import {
   necromancerCoreTargetHealthThresholds,
   necromancerSoulShardResourceViews,
-  necromancerTransformPaletteGroups,
-  necromancerTransformSkillBarGroups
+  necromancerTransformPaletteGroups
 } from '#gw2/professions/necromancer/core/presentation.js';
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import type { ProfessionResourceView, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
@@ -28,12 +27,6 @@ export const reaperUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
       exitId: ID.EXIT_REAPERS_SHROUD,
       shroud: 'reaper',
       stackId: 'reaper-profession'
-    }),
-  skillBarGroups: (context: NecromancerUiContext) =>
-    necromancerTransformSkillBarGroups(context, {
-      entryId: ID.REAPERS_SHROUD,
-      exitId: ID.EXIT_REAPERS_SHROUD,
-      shroud: 'reaper'
     }),
   resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] =>
     necromancerSoulShardResourceViews(context),

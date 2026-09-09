@@ -94,26 +94,6 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
   // State-sync events are internal bookkeeping and should not appear in the log.
   eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
     event.type === 'ranger.galeshot-state' ? null : undefined,
-  skillBarGroups: (context: RangerUiContext) => [
-    {
-      id: 'ranger-galeshot-f5',
-      label: 'Cyclone Bow',
-      // Only one of the two toggle skills is shown at a time to mirror the
-      // in-game F5 button that flips between Summon and Dismiss.
-      skillIds: [rangerUiState(context).cycloneBowActive ? ID.DISMISS_CYCLONE_BOW : ID.SUMMON_CYCLONE_BOW],
-      color: '#67b4c4'
-    },
-    {
-      id: 'ranger-cyclone-bow',
-      label: 'Bow',
-      skillIds: visibleBowSkills(context),
-      color: '#67b4c4',
-      className: 'ranger-cyclone-bow-skills',
-      // Hawkeye replaces Keen Shot at full Wind Force, so preview the pair
-      // as one slot using the same follow-up treatment as autoattack chains.
-      inspectionChainRoots: { [ID.HAWKEYE]: ID.KEEN_SHOT }
-    }
-  ],
   paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
     rangerPetPaletteGroup(context, { stackId: GALESHOT_PALETTE_STACK }),
     {

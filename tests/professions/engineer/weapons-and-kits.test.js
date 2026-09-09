@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { selectableSkillBarGroups } from '#gw2/app/build/panels/skills.js';
 import {
   conditionEffectTicks,
   effectFirstAtMs,
@@ -119,13 +118,9 @@ test('Amalgam exposes only persisted F2-F4 morph choices', () => {
 
   assert.deepEqual(
     groups.map((group) => group.label),
-    ['F Skills', 'Shred', 'Protect', 'Demolish']
+    ['Shred', 'Protect', 'Demolish']
   );
-  assert.deepEqual(
-    groups[0].skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
-    ['Regenerating Mist', 'Evolve']
-  );
-  const protocolGroups = groups.slice(1);
+  const protocolGroups = groups;
   const protocolSelections = protocolGroups.flatMap((group) => group.selections);
 
   assert.deepEqual(
@@ -133,14 +128,13 @@ test('Amalgam exposes only persisted F2-F4 morph choices', () => {
     ['Offensive Protocol: Shred', 'Defensive Protocol: Protect', 'Offensive Protocol: Demolish']
   );
   assert.ok(protocolGroups.every((group) => group.layout === 'engineer-amalgam-protocols'));
-  assert.ok(protocolSelections.every((selection) => !selection.keyLabel && !selection.typeLabel));
   assert.ok(
     protocolSelections.every(
       (selection) => selection.selectionKey === 'selectedMorphSkillIds' && selection.optionSkillIds.length === 7
     )
   );
   assert.deepEqual(
-    selectableSkillBarGroups('engineer', groups).map((group) => group.id),
+    groups.map((group) => group.id),
     [
       'engineer-amalgam-protocol-2-selection',
       'engineer-amalgam-protocol-3-selection',

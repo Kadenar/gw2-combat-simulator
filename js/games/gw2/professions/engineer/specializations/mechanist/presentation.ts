@@ -1,9 +1,4 @@
-import {
-  engineerFSkillBarGroups,
-  engineerUiState,
-  namedSkillId,
-  uniqueIdsBySkillName
-} from '#gw2/professions/engineer/core/presentation.js';
+import { engineerUiState, namedSkillId, uniqueIdsBySkillName } from '#gw2/professions/engineer/core/presentation.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { selectedMechCommands } from '#gw2/professions/engineer/specializations/mechanist/state.js';
@@ -19,13 +14,6 @@ function mechanistCommandSkills(context: EngineerUiContext): SkillId[] {
   return activeTraits.length
     ? selectedMechCommands(new Set(activeTraits.flatMap((trait) => [trait.id, trait.name])))
     : [...(engineerUiState(context).mech?.commandSkillIds || [])];
-}
-
-/** Builds the profession bar from the selected commands and the current mech toggle action. */
-function mechanistProfessionSkills(context: EngineerUiContext) {
-  const commands = mechanistCommandSkills(context);
-  const mechActive = engineerUiState(context).mech?.active !== false;
-  return [...commands, namedSkillId(mechActive ? 'Recall Mech' : 'Crash Down')];
 }
 
 // Only the live side of the summon/recall toggle is actionable; both remain in
@@ -49,7 +37,6 @@ function mechanistPaletteAvailability(
 export const mechanistUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
     event?.type === 'engineer.state' ? null : undefined,
-  skillBarGroups: (context: EngineerUiContext) => engineerFSkillBarGroups(mechanistProfessionSkills(context)),
   paletteGroups: (context: EngineerUiContext) => [
     {
       id: 'engineer-profession',

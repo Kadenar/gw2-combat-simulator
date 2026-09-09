@@ -1,7 +1,6 @@
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   necromancerTransformPaletteGroups,
-  necromancerTransformSkillBarGroups,
   necromancerSoulShardResourceViews,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
@@ -22,19 +21,6 @@ const SCOURGE_SKILLS = Object.freeze([
   ID.DESERT_SHROUD,
   ID.SANDSTORM_SHROUD
 ]);
-
-// Select the mutually exclusive F5 variant supplied by the current trait build.
-function scourgeSkillBarIds(context: NecromancerUiContext): readonly (string | number)[] {
-  const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
-  return [
-    ID.MANIFEST_SAND_SHADE,
-    ID.NEFARIOUS_FAVOR,
-    ID.SAND_CASCADE,
-    ID.GARISH_PILLAR,
-    // Herald of Sorrow replaces Desert Shroud (F4) with Sandstorm Shroud (F5) in the skill bar
-    activeTraitNames.has('Herald of Sorrow') ? ID.SANDSTORM_SHROUD : ID.DESERT_SHROUD
-  ];
-}
 
 // Prevent the palette from offering the inactive side of Herald of Sorrow's F5 replacement.
 function scourgePaletteAvailability(context: NecromancerUiContext, skill: NecromancerSkill): PaletteSkillAvailability {
@@ -57,10 +43,6 @@ export const scourgeUi: Partial<ProfessionUiContract> & SchedulerRecord = Object
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       professionSkillIds: SCOURGE_SKILLS
-    }),
-  skillBarGroups: (context: NecromancerUiContext) =>
-    necromancerTransformSkillBarGroups(context, {
-      professionSkillIds: scourgeSkillBarIds(context)
     }),
   resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] => [
     ...necromancerSoulShardResourceViews(context),

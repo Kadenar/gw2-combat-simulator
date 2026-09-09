@@ -30,40 +30,6 @@
   border-color: #bb561f;
 }
 
-.elementalist-theme .skill-bar-inspection {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 14px;
-}
-
-.elementalist-theme .elementalist-attunements .skill-bar-inspection-skill-stack:nth-child(1) .sbar-icon,
-.elementalist-theme .elementalist-overloads .skill-bar-inspection-skill-stack:nth-child(1) .sbar-icon {
-  border-color: #e85d24;
-}
-
-.elementalist-theme .elementalist-attunements .skill-bar-inspection-skill-stack:nth-child(2) .sbar-icon,
-.elementalist-theme .elementalist-overloads .skill-bar-inspection-skill-stack:nth-child(2) .sbar-icon {
-  border-color: #3a9ed0;
-}
-
-.elementalist-theme .elementalist-attunements .skill-bar-inspection-skill-stack:nth-child(3) .sbar-icon,
-.elementalist-theme .elementalist-overloads .skill-bar-inspection-skill-stack:nth-child(3) .sbar-icon {
-  border-color: #a568ca;
-}
-
-.elementalist-theme .elementalist-attunements .skill-bar-inspection-skill-stack:nth-child(4) .sbar-icon,
-.elementalist-theme .elementalist-overloads .skill-bar-inspection-skill-stack:nth-child(4) .sbar-icon {
-  border-color: #bd842f;
-}
-
-.profession-loadout-theme .skill-bar-inspection.necromancer-shroud,
-.profession-loadout-theme .skill-bar-inspection.thief-shadow-shroud {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 14px;
-}
-
 .profession-loadout-theme .skill-bar-inspection.engineer-amalgam-protocols {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -146,16 +112,6 @@
   justify-self: stretch;
 }
 
-/* Flow each pet card's icons and give the enlarged portrait and its equally sized
-   pet skills room to wrap, with the picked pet's name beneath the portrait. */
-.selectable-skills-bar .ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 6px;
-}
-
 .selectable-skills-bar .ranger-mechanics .ranger-pet .skill-bar-inspection-slot .sbar-icon {
   width: 60px;
   height: 60px;
@@ -171,10 +127,8 @@
   --accent-dim: #813a43;
 }
 
-/* Deadeye offers nine stolen skills; keep both the live palette and build
-   inspection list compact instead of rendering one nine-icon row. */
-.thief-theme .deadeye-stolen-skills-grid > .pal-row,
-.thief-theme .deadeye-stolen-skills-grid > .skill-bar-inspection-skills {
+/* Keep Deadeye's nine stolen skills in a compact live-palette grid. */
+.thief-theme .deadeye-stolen-skills-grid > .pal-row {
   display: grid;
   grid-template-columns: repeat(3, max-content);
 }

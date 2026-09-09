@@ -4,7 +4,6 @@ import {
   warriorAdrenalineResourceViews,
   warriorBurstPaletteAvailability,
   warriorPaletteGroups,
-  warriorSkillBarGroups,
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
@@ -14,7 +13,6 @@ import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/ty
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS),
-  skillBarGroups: (context: WarriorUiContext) => warriorSkillBarGroups(context, SKILLS),
   resourceViews: warriorAdrenalineResourceViews,
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
     warriorBurstPaletteAvailability(context, skill),

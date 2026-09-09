@@ -2,7 +2,6 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   mesmerMechanicPaletteGroups,
-  mesmerMechanicSkillBarGroups,
   mesmerResourceViews,
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
@@ -52,7 +51,6 @@ function miragePaletteSkillAvailability(context: MesmerUiContext, skill: Skill):
 export const mirageUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   effectPresentations: mirageEffectPresentations,
   paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, MIRAGE_MECHANIC_SKILLS, 'clones'),
-  skillBarGroups: () => mesmerMechanicSkillBarGroups('Shatters', MIRAGE_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) => [
     ...mesmerResourceViews(context, {
       id: 'clones',

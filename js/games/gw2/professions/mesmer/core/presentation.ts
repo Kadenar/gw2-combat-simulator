@@ -10,7 +10,6 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionSkillBarGroup,
   ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
@@ -72,17 +71,6 @@ export function mesmerMechanicPaletteGroups(
       // Keep the blades/clones/notes pips directly above the shatter/instrument
       // skills rather than tucked underneath them.
       ...(resourceId ? { resourceIds: [resourceId], resourcePlacement: 'above' as const } : {})
-    }
-  ];
-}
-
-export function mesmerMechanicSkillBarGroups(label: string, skillIds: readonly SkillId[]): ProfessionSkillBarGroup[] {
-  return [
-    {
-      id: `mesmer-${label.toLowerCase()}`,
-      label,
-      skillIds: [...skillIds],
-      color: '#9b73c7'
     }
   ];
 }
@@ -195,8 +183,6 @@ export const mesmerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
     mesmerUiSpecialization(context) === 'Core'
       ? mesmerMechanicPaletteGroups(context, CORE_MECHANIC_SKILLS, 'clones')
       : [],
-  skillBarGroups: (context: MesmerUiContext) =>
-    mesmerUiSpecialization(context) === 'Core' ? mesmerMechanicSkillBarGroups('Shatters', CORE_MECHANIC_SKILLS) : [],
   resourceViews: (context: MesmerUiContext) =>
     mesmerUiSpecialization(context) === 'Core'
       ? mesmerResourceViews(context, {

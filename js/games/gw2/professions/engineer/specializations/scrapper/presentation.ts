@@ -1,5 +1,4 @@
 import {
-  engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
   namedSkillId,
   uniqueIdsBySkillName
@@ -24,7 +23,6 @@ function scrapperEventLogRow(
 
 export const scrapperUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: scrapperEventLogRow,
-  skillBarGroups: (context: EngineerUiContext) => engineerFSkillBarGroups(scrapperProfessionSkills(context)),
   paletteGroups: (context: EngineerUiContext) => [
     {
       id: 'engineer-profession',

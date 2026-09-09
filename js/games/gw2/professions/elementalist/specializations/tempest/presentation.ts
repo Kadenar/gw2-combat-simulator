@@ -1,5 +1,5 @@
 /**
- * Tempest UI contract: groups the four overloads on the skill bar and rotation palette, and
+ * Tempest UI contract: groups the four overloads on the rotation palette, and
  * previews overload availability so the editor can grey out casts the scheduler would reject.
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -50,16 +50,6 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
 
 /** Presentation fragment the Tempest module contributes to the elementalist UI contract. */
 export const tempestUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  skillBarGroups: () => [
-    {
-      id: 'elementalist-tempest-overloads',
-      label: 'Overloads',
-      skillIds: Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS),
-      color: '#cf6c42',
-      className: 'elementalist-overloads',
-      order: -10
-    }
-  ],
   paletteGroups: () => [
     {
       id: 'elementalist-tempest-overloads',

@@ -3,7 +3,6 @@ import {
   warriorAdrenalineResourceViews,
   warriorBurstPaletteAvailability,
   warriorPaletteGroups,
-  warriorSkillBarGroups,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import type {
@@ -55,7 +54,6 @@ function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotI
 export const paragonUi: Partial<ProfessionUiContract> = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, CHANTS),
   rotationStateSnapshot: paragonStateSnapshot,
-  skillBarGroups: (context: WarriorUiContext) => warriorSkillBarGroups(context, CHANTS),
   resourceViews: resources,
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
     warriorBurstPaletteAvailability(context, skill),

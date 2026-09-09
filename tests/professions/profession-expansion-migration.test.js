@@ -92,6 +92,10 @@ function assertUiContracts(entry, profession, specialization) {
   };
   const groups = profession.ui.paletteGroups(context);
   const views = profession.ui.resourceViews(context);
+  // Build groups must expose real choices; read-only mechanics belong to the live palette.
+  for (const group of profession.ui.skillBarGroups(context)) {
+    assert.ok(group.selections?.length, String(group.id));
+  }
 
   assert.equal(Array.isArray(groups), true);
   assert.equal(Array.isArray(views), true);

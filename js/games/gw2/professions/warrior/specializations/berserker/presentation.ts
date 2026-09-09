@@ -4,7 +4,6 @@ import {
   warriorAdrenalineResourceViews,
   warriorBurstPaletteAvailability,
   warriorPaletteGroups,
-  warriorSkillBarGroups,
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
@@ -50,7 +49,6 @@ export const berserkerUi: Partial<ProfessionUiContract> = Object.freeze({
   // Berserk is a mode window, so overlapping activation records remain binary in result charts.
   effectPresentations: () => [...BERSERKER_EFFECT_PRESENTATIONS],
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS, PRIMAL_BURSTS_BY_WEAPON),
-  skillBarGroups: (context: WarriorUiContext) => warriorSkillBarGroups(context, SKILLS, PRIMAL_BURSTS_BY_WEAPON),
   resourceViews: warriorAdrenalineResourceViews,
   paletteSkillAvailability: availability,
   rotationStateSnapshot: (context: WarriorUiContext) => {

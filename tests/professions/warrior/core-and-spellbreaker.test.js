@@ -3,7 +3,6 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { skillBarInspectionStacks } from '#gw2/app/build/panels/skills.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
@@ -248,30 +247,24 @@ test('Warrior F keys follow the selected primary weapons', () => {
       }
     };
     const paletteGroups = warriorProfession.ui.paletteGroups(context);
-    const skillBarGroups = warriorProfession.ui.skillBarGroups(context);
 
     return {
       palette: paletteGroups[0].skillIds,
-      paletteGroups,
-      skillBar: skillBarGroups[0].skillIds,
-      skillBarGroups
+      paletteGroups
     };
   };
 
   const core = groups('Core', ['Axe', 'Axe'], ['Greatsword', '']);
 
   assert.deepEqual(core.palette, [ID.EVISCERATE, ID.ARCING_SLICE]);
-  assert.deepEqual(core.skillBar, core.palette);
 
   const berserker = groups('Berserker', ['Axe', 'Axe'], ['Staff', '']);
 
   assert.deepEqual(berserker.palette, [ID.DECAPITATE, ID.RAMPART_SPLITTER, ID.BERSERK]);
-  assert.deepEqual(berserker.skillBar, berserker.palette);
 
   const spellbreaker = groups('Spellbreaker', ['Dagger', 'Axe'], ['Hammer', '']);
 
   assert.deepEqual(spellbreaker.palette, [ID.BREACHING_STRIKE, ID.EARTHSHAKER, ID.FULL_COUNTER]);
-  assert.deepEqual(spellbreaker.skillBar, spellbreaker.palette);
 
   const paragon = groups('Paragon', ['Staff', ''], ['Spear', '']);
 
@@ -282,20 +275,13 @@ test('Warrior F keys follow the selected primary weapons', () => {
     ID.CHANT_OF_RECUPERATION,
     ID.CHANT_OF_FREEDOM
   ]);
-  assert.deepEqual(paragon.skillBar, paragon.palette);
 
   const bladesworn = groups('Bladesworn', ['Axe', 'Axe'], ['Greatsword', '']);
 
   assert.deepEqual(bladesworn.palette, [ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
-  assert.deepEqual(bladesworn.skillBar, bladesworn.palette);
   const dragonSlashSkills = [ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH];
 
   assert.deepEqual(bladesworn.paletteGroups.find((group) => group.id === 'dragon-slash').skillIds, dragonSlashSkills);
-  assert.deepEqual(
-    bladesworn.skillBarGroups.find((group) => group.id === 'warrior-dragon-slash').skillIds,
-    dragonSlashSkills
-  );
-  assert.equal(bladesworn.skillBarGroups.find((group) => group.id === 'warrior-gunsaber').placement, 'weapon-bar');
   assert.deepEqual(
     bladesworn.paletteGroups.filter((group) => group.stackId === 'bladesworn-profession').map((group) => group.id),
     ['profession', 'dragon-slash', 'dragon-trigger']
@@ -425,26 +411,6 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
     warriorCatalog.autoattackChains.find((candidate) => candidate[0] === ID.SWIFT_CUT),
     chain
   );
-  const gunsaberGroup = warriorProfession.ui
-    .skillBarGroups({
-      specialization: 'Bladesworn',
-      build: createWarriorBuildDefaults()
-    })
-    .find((group) => group.id === 'warrior-gunsaber');
-
-  assert.deepEqual(
-    skillBarInspectionStacks(gunsaberGroup.skillIds.map((skillId) => warriorCatalog.skillsById.get(skillId))).map(
-      ({ root, children }) => [root.id, children.map((skill) => skill.id)]
-    ),
-    [
-      [ID.SWIFT_CUT, [ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST]],
-      [ID.BLOOMING_FIRE, []],
-      [ID.ARTILLERY_SLASH, []],
-      [ID.CYCLONE_TRIGGER, []],
-      [ID.BREAK_STEP, []]
-    ]
-  );
-
   const displayedSteps = (rotation) => {
     const result = simulate('Bladesworn', ['Unsheathe Gunsaber', ...rotation], {
       initialResource: 100
