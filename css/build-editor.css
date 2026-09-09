@@ -12,16 +12,19 @@
 
 .build-tab-list {
   display: flex;
-  flex: 1 1 240px;
+  flex: 0 1 auto;
   gap: 4px;
   min-width: 0;
+  max-width: calc(100% - 40px);
   overflow-x: auto;
   padding: 2px;
 }
 
 .build-tab {
+  position: relative;
   display: flex;
   flex: 0 0 auto;
+  min-width: 128px;
   max-width: 240px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -47,12 +50,18 @@
   text-overflow: ellipsis;
 }
 
+.build-tab > button {
+  width: 100%;
+  text-align: left;
+}
+
 .build-tab.is-active button,
 .build-tab button:hover {
   color: var(--text-bright);
 }
 
-.build-tab button:focus-visible {
+.build-tab button:focus-visible,
+.build-tab-new:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
@@ -60,29 +69,64 @@
 .build-tab .build-tab-close,
 .build-tab .build-tab-rename {
   flex-shrink: 0;
-  padding-inline: 8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 26px;
+  padding: 0;
+  border-radius: 3px;
 }
 
-/* Reveal the inline rename action on hover, focus, and devices without hover. */
-.build-tab .build-tab-rename {
+/* Overlay actions without widening tabs; keep them available to keyboard and touch users. */
+.build-tab-controls {
+  position: absolute;
+  inset: 3px 3px 3px auto;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  border-radius: 3px;
+  background: linear-gradient(to right, transparent, var(--bg-panel) 8px);
   opacity: 0;
+  pointer-events: none;
 }
 
-.build-tab:hover .build-tab-rename,
-.build-tab:focus-within .build-tab-rename {
+.build-tab:hover .build-tab-controls,
+.build-tab:focus-within .build-tab-controls {
   opacity: 1;
+  pointer-events: auto;
+}
+
+.build-tab-controls button:hover,
+.build-tab-new:hover {
+  color: var(--text-bright);
+  background: var(--border);
 }
 
 @media (hover: none) {
-  .build-tab .build-tab-rename {
+  .build-tab-controls {
     opacity: 1;
+    pointer-events: auto;
   }
+}
+
+.build-tab-new {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text-dim);
+  background: var(--bg-panel);
+  cursor: pointer;
 }
 
 .build-tab-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  margin-left: auto;
 }
 
 .build-tab-notice {

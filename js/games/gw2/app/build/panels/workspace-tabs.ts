@@ -63,14 +63,16 @@ export function renderBuildTabs(app: ProfessionAppState): void {
           const id = escapeHtml(tab.id);
           return `<div class="build-tab${selected ? ' is-active' : ''}">
           <button type="button" data-build-tab-action="select" data-build-tab-id="${id}" aria-pressed="${selected}" title="${name}">${name}</button>
+          <div class="build-tab-controls">
           <button type="button" class="build-tab-rename" data-build-tab-action="rename" data-build-tab-id="${id}" aria-label="Rename ${name}" title="Rename ${name}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 3 5 5-13 13H3v-5Z"/><path d="m14 5 5 5"/></svg></button>
-          ${workspace.tabs.length > 1 ? `<button type="button" class="build-tab-close" data-build-tab-action="close" data-build-tab-id="${id}" aria-label="Close ${name}">&times;</button>` : ''}
+          ${workspace.tabs.length > 1 ? `<button type="button" class="build-tab-close" data-build-tab-action="close" data-build-tab-id="${id}" aria-label="Close ${name}" title="Close ${name}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button>` : ''}
+          </div>
         </div>`;
         })
         .join('')}
     </div>
+    <button type="button" class="build-tab-new" data-build-tab-action="new" aria-label="New build" title="New build"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <div class="build-tab-actions">
-      <button type="button" class="btn btn-io" data-build-tab-action="new">+ New build</button>
       <button type="button" class="btn btn-io" data-build-tab-action="duplicate">Duplicate</button>
     </div>
     ${workspace.storageError ? `<div class="build-tab-notice" role="status">${escapeHtml(workspace.storageError)}</div>` : ''}`;

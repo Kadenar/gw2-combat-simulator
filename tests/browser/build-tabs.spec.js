@@ -30,7 +30,7 @@ test('build tabs isolate edits and results and support duplication, inline renam
   await expect(strip.locator('.build-tab-close')).toHaveCount(2);
   await strip.locator('.build-tab.is-active').hover();
   const rename = strip.getByRole('button', { name: 'Rename Build 1 copy', exact: true });
-  await expect(rename).toHaveCSS('opacity', '1');
+  await expect(strip.locator('.build-tab.is-active .build-tab-controls')).toHaveCSS('opacity', '1');
   page.once('dialog', (dialog) => dialog.accept('Alternative'));
   await rename.click();
   await page.locator('#btn-sim-clear').click();
@@ -52,6 +52,7 @@ test('build tabs isolate edits and results and support duplication, inline renam
   await expect(page.locator('#rotation-results')).toContainText('No analysis yet');
   await page.locator('.simulator-view-tab[data-simulator-view="workspace"]').click();
   await strip.getByRole('button', { name: 'Alternative', exact: true }).click();
+  await strip.getByRole('button', { name: 'Build 1', exact: true }).hover();
   await strip.getByRole('button', { name: 'Close Build 1', exact: true }).click();
   await expect(strip.locator('.build-tab')).toHaveCount(1);
   await expect(strip.locator('.build-tab-close')).toHaveCount(0);
@@ -63,7 +64,7 @@ test('build tabs isolate edits and results and support duplication, inline renam
   await expect(strip.locator('.build-tab')).toHaveCount(1);
   await expect(strip.getByRole('button', { name: 'Alternative', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-  await strip.getByRole('button', { name: '+ New build', exact: true }).click();
+  await strip.getByRole('button', { name: 'New build', exact: true }).click();
   await expect(strip.locator('.build-tab')).toHaveCount(2);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
 });
@@ -104,4 +105,30 @@ test('tab overflow stays inside its strip on narrow screens', async ({ page }) =
   expect(geometry.scrollWidth).toBeGreaterThan(geometry.clientWidth);
   expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
   await expect(page.locator('.build-tab.is-active')).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'New build', exact: true })).toBeInViewport();
+});
+
+// Hidden controls leave the tab width alone and remain reachable without a mouse.
+test('tab icons overlay labels on hover and keyboard focus, with an adjacent add button', async ({ page }) => {
+  await openWorkspace(page);
+  const tab = page.locator('.build-tab').first();
+  const controls = tab.locator('.build-tab-controls');
+  const add = page.locator('.build-tab-new');
+  await page.mouse.move(0, 0);
+  await expect(controls).toHaveCSS('opacity', '0');
+  const before = await tab.boundingBox();
+  const plus = await add.boundingBox();
+  expect(plus.x - (before.x + before.width)).toBeLessThan(16);
+  await expect(add).toHaveText('');
+  await tab.hover();
+  await expect(controls).toHaveCSS('opacity', '1');
+  expect((await tab.boundingBox()).width).toBe(before.width);
+  await page.mouse.move(0, 0);
+  await tab.getByRole('button', { name: 'Build 1', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  await expect(tab.getByRole('button', { name: 'Rename Build 1', exact: true })).toBeFocused();
+  await expect(controls).toHaveCSS('opacity', '1');
+  await add.click();
+  await expect(page.locator('.build-tab')).toHaveCount(2);
+  await expect(add).toBeFocused();
 });
