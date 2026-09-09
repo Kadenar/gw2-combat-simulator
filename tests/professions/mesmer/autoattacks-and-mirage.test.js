@@ -144,7 +144,7 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
   assert.equal(belowCap.endState.profession.resource, 3);
   const cloneGain = belowCap.events.find((event) => event.type === 'resource' && event.reason === 'Ether Clone');
   assert.ok(cloneGain);
-  assert.equal(Math.round(cloneGain.at * 1000 - belowCap.steps[2].start), 442);
+  assert.equal(Math.round(cloneGain.at * 1000 - belowCap.steps[2].start), 440);
   assert.equal(
     belowCap.events.some(
       (event) => event.type === 'condition' && event.skillName === 'Ether Clone' && event.condition === 'Torment'
@@ -170,7 +170,7 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
       event.duration === 9
   );
   assert.ok(maximumCloneTorment);
-  assert.equal(Math.round(maximumCloneTorment.at * 1000 - atCap.steps[2].start), 442);
+  assert.equal(Math.round(maximumCloneTorment.at * 1000 - atCap.steps[2].start), 440);
 });
 
 test('Ether Clone resolves its at-cap outcome from clone count at projectile time', () => {
@@ -182,8 +182,8 @@ test('Ether Clone resolves its at-cap outcome from clone count at projectile tim
   });
   const resultAt = (offset) =>
     simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone', { name: 'Split Second', offset }], config);
-  const freedBeforePacket = resultAt(441);
-  const freedAfterPacket = resultAt(443);
+  const freedBeforePacket = resultAt(439);
+  const freedAfterPacket = resultAt(441);
   const hasCloneGain = (result) =>
     result.events.some((event) => event.type === 'resource' && event.reason === 'Ether Clone');
   const hasMaximumTorment = (result) =>

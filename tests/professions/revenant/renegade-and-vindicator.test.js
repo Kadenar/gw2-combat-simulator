@@ -121,7 +121,7 @@ test('Demon skills use their current projectile and condition packets', () => {
   );
   assert.deepEqual(
     banishEvents.filter((event) => event.type === 'damage').map((event) => Math.round(event.at * 1000)),
-    [402, 521, 640]
+    [400, 520, 640]
   );
   assert.equal(
     banishEvents.filter((event) => event.type === 'condition' && event.condition === 'Chilled' && event.duration === 1)
@@ -146,7 +146,7 @@ test('Demon skills use their current projectile and condition packets', () => {
         event.type === 'damage' &&
         event.skillName === 'Call to Anguish' &&
         event.coefficient === 1.2 &&
-        event.at === 0.804
+        event.at === 0.8
     )
   );
   assert.ok(
@@ -155,12 +155,12 @@ test('Demon skills use their current projectile and condition packets', () => {
         event.skillName === 'Call to Anguish' &&
         event.condition === 'Chilled' &&
         event.duration === 2 &&
-        event.at === 0.804
+        event.at === 0.8
     )
   );
   assert.ok(
     anguish.events.some(
-      (event) => event.type === 'control' && event.skillName === 'Call to Anguish' && event.at === 0.804
+      (event) => event.type === 'control' && event.skillName === 'Call to Anguish' && event.at === 0.8
     )
   );
   assert.ok(
@@ -169,7 +169,7 @@ test('Demon skills use their current projectile and condition packets', () => {
         event.type === 'damage' &&
         event.skillName === 'Unyielding Impact' &&
         event.coefficient === 1 &&
-        event.at === 1.787
+        event.at === 1.79
     )
   );
   assert.deepEqual(
@@ -221,7 +221,7 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
 
   assert.equal(baselinePulse.stacks, 1);
   assert.equal(baselinePulse.duration, 5);
-  assert.equal(baselinePulse.at, 0.362);
+  assert.equal(baselinePulse.at, 0.36);
   assert.ok(
     baseline.events.some(
       (event) => event.type === 'damage' && event.skillName === 'Embrace the Darkness' && event.coefficient === 0.3
@@ -302,11 +302,11 @@ test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
       .map((event) => [event.at, event.duration]),
     [
       [0.25, 3],
-      [0.75, 3],
-      [1.75, 3],
-      [2.75, 3],
-      [3.75, 3],
-      [4.75, 3]
+      [0.77, 3],
+      [1.77, 3],
+      [2.77, 3],
+      [3.77, 3],
+      [4.77, 3]
     ]
   );
 
@@ -341,7 +341,7 @@ test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
 });
 
 // Use isolated strike times to distinguish the 250 ms ICD from the independent strike delay.
-test('Impossible Odds uses a 250 ms interval and delay for player-owned strikes', () => {
+test('Impossible Odds uses a 250 ms interval and 240 ms delay for player-owned strikes', () => {
   const profession = {
     ...revenantProfession,
     resolveRuntime(config) {
@@ -380,9 +380,9 @@ test('Impossible Odds uses a 250 ms interval and delay for player-owned strikes'
       .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
       .map((event) => [event.at, event.triggeredBy]),
     [
-      [1.25, 'Unlabelled equipment'],
-      [1.5, 'Sigil'],
-      [1.75, 'Player']
+      [1.24, 'Unlabelled equipment'],
+      [1.49, 'Sigil'],
+      [1.74, 'Player']
     ]
   );
 });
@@ -406,7 +406,7 @@ test('Impossible Odds follows Shackles damage while its upkeep is active', () =>
   );
   assert.ok(shackles);
   assert.equal(followups.length, 1);
-  assert.ok(Math.abs(followups[0].at - shackles.at - 0.25) < 1e-12);
+  assert.ok(Math.abs(followups[0].at - shackles.at - 0.24) < 1e-12);
 });
 
 test('Icerazor packets use player ownership and trigger player equipment', () => {
@@ -579,7 +579,7 @@ test('Citadel Orders preserve their packet, pulse, cost, and recharge profiles',
           event.triggeredBy === 'Citadel Bombardment'
       )
       .map((event) => Math.round(event.at * 1000)),
-    [1490, 1770, 2090, 2570]
+    [1480, 1760, 2080, 2560]
   );
 
   const orders = simulate(
@@ -1373,7 +1373,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     (event) => event.type === 'damage' && event.skillName === 'Enchanted Daggers'
   );
 
-  assert.equal(siphon.at, 1.5);
+  assert.equal(siphon.at, 1.52);
   assert.equal(siphon.flatStrikeBase, 1028);
   assert.equal(siphon.flatStrikePowerCoeff, 0.06);
   assert.equal(daggers.endState.profession.enchantedDaggers.charges, 5);
@@ -1387,7 +1387,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   assert.equal(odds.steps.at(-1).start, 1500);
   assert.ok(
     odds.resolvedEvents.some(
-      (event) => event.skillName === 'Impossible Odds' && event.coefficient === 0.65 && event.at === 0.75
+      (event) => event.skillName === 'Impossible Odds' && event.coefficient === 0.65 && event.at === 0.74
     )
   );
 
@@ -1405,14 +1405,12 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     ]
   });
 
+  // Air triggered by the 240 ms follow-up lands before the original trigger's 250 ms ICD expires.
   assert.deepEqual(
     oddsWithAir.resolvedEvents
       .filter((event) => event.skillName === 'Impossible Odds')
       .map((event) => [event.at, event.triggeredBy]),
-    [
-      [0.75, 'Phase Traversal'],
-      [1, 'Sigil of Air']
-    ]
+    [[0.74, 'Phase Traversal']]
   );
   assert.ok(
     oddsWithAir.resolvedEvents.some(

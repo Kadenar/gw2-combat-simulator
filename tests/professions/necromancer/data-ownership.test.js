@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
 import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 
 import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
 import { NECROMANCER_CORE_EXTRA_SKILLS } from '#gw2/professions/necromancer/core/skills/index.js';
@@ -14,6 +15,20 @@ import { REAPER_SHOUT_SKILL_MECHANICS } from '#gw2/professions/necromancer/speci
 import { REAPER_SHROUD_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/shroud-skills.js';
 
 const professionSourceRoot = new URL('../../../js/games/gw2/professions/necromancer/', import.meta.url);
+
+// Validate evaluated arrays, including generated packets and profiles, so authored offsets stay on the 40 ms grid.
+test('Necromancer authored effect ticks use the action grid', () => {
+  for (const entry of [...necromancerCatalog.skills, ...necromancerCatalog.balanceProfiles]) {
+    for (const effect of entry.effects || []) {
+      for (const tick of effect.ticks || []) {
+        assert.ok(
+          Math.abs(tick.atMs - Math.round(tick.atMs / 40) * 40) <= 1e-6,
+          `${entry.name || entry.id}: off-grid tick at ${tick.atMs} ms`
+        );
+      }
+    }
+  }
+});
 
 test('Necromancer owner-local skill families compose without duplicates or omissions', () => {
   assertComposedCatalog(REAPER_BASE_SKILL_MECHANICS, [REAPER_SHROUD_SKILL_MECHANICS, REAPER_SHOUT_SKILL_MECHANICS]);

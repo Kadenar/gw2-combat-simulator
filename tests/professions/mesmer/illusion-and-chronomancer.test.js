@@ -531,7 +531,7 @@ test('Chaos Storm uses configured pulse offsets and Lesser Chaos Storm stays per
 
   assert.deepEqual(
     damageEvents(chaosStorm, 'Chaos Storm').map((event) => Math.round(event.at * 1000)),
-    [281, 1279, 2280, 3282, 4279, 5280]
+    [280, 1280, 2280, 3280, 4280, 5280]
   );
 
   const lesserChaosStorm = simulateMesmer(
@@ -620,7 +620,7 @@ test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
 
   assert.deepEqual(
     applications(simulate()),
-    [7591, 17251, 22011, 22421, 25251, 25591, 28001, 28421, 31261, 31591].map((at) => ({ at, stacks: 1 }))
+    [7591, 17201, 22001, 22401, 25201, 25601, 28001, 28401, 31201, 31601].map((at) => ({ at, stacks: 1 }))
   );
 });
 
@@ -1202,7 +1202,7 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
   assert.equal(normalConversion.amount, 1);
   assert.ok(Math.abs(normalConversion.at - 3.3601) < 0.00001);
   assert.ok(Math.abs(resummon.at - 3.36) < 0.00001);
-  assert.ok(Math.abs(repeat.at - 5.82) < 0.00001);
+  assert.ok(Math.abs(repeat.at - 5.84) < 0.00001);
   assert.equal(chronoConversion.amount, 1);
   assert.ok(Math.abs(chronoConversion.at - 6.3601) < 0.00001);
 });
@@ -1236,15 +1236,15 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       attackNames: ['Sword Attack', 'Blurred Frenzy'],
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword',
-      initial: [845, 1321, 1362, 1645, 1679, 1920, 1962, 2246, 2279],
+      initial: [840, 1320, 1360, 1640, 1680, 1920, 1960, 2240, 2280],
       repeat: [4560, 5040, 5080, 5360, 5400, 5640, 5680, 5960, 6000]
     },
     {
       skill: 'Phantasmal Duelist',
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
-      initial: [830, 1030, 1230, 1430, 1630, 1830, 2030, 2230],
-      repeat: [3860, 4060, 4260, 4460, 4660, 4860, 5060, 5260]
+      initial: [840, 1040, 1240, 1440, 1640, 1840, 2040, 2240],
+      repeat: [3880, 4080, 4280, 4480, 4680, 4880, 5080, 5280]
     },
     {
       skill: 'Phantasmal Mage',
@@ -1258,7 +1258,7 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Sword',
       traits: [TRAIT.CHRONOPHANTASMA, TRAIT.BOUNTIFUL_BLADES],
-      initial: [720, 840, 960, 980, 1080, 1100, 1220, 1340],
+      initial: [720, 840, 960, 1000, 1080, 1120, 1240, 1360],
       repeat: [3160, 3320, 3320, 3400, 3440, 3520, 3560, 3680]
     },
     {
@@ -1267,20 +1267,20 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       secondaryWeapon: 'Sword',
       selectedSkills: ['Phantasmal Disenchanter'],
       initial: [1240],
-      repeat: [3230]
+      repeat: [3240]
     },
     {
       skill: 'Phantasmal Warden',
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Focus',
       initial: [880, 1240, 1600, 1960, 2320, 2680, 3080, 3440, 3800, 4160, 4520, 4880],
-      repeat: [8020, 8380, 8740, 9100, 9460, 9820, 10220, 10580, 10940, 11300, 11670, 12020]
+      repeat: [8040, 8400, 8760, 9120, 9480, 9840, 10240, 10600, 10960, 11320, 11680, 12040]
     },
     {
       skill: 'Phantasmal Warlock',
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
-      initial: [1200, 1300, 2000, 2100, 2800, 2900],
+      initial: [1200, 1320, 2000, 2120, 2800, 2920],
       repeat: [5560, 5600, 6360, 6400, 7160, 7200]
     },
     {
@@ -1288,7 +1288,7 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
       initial: [1160],
-      repeat: [3300]
+      repeat: [3320]
     }
   ];
 
@@ -1347,7 +1347,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       primaryWeapon: 'Staff',
       secondaryWeapon: ''
     },
-    [['Chaos Storm', 0, [281, 1279, 2280, 3282, 4279, 5280]]]
+    [['Chaos Storm', 0, [280, 1280, 2280, 3280, 4280, 5280]]]
   );
   assertOffsets(
     ['Confusing Images'],
@@ -1356,7 +1356,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol'
     },
-    [['Confusing Images', 0, [921, 1081, 1199, 1441, 1560, 1679, 1841]]]
+    [['Confusing Images', 0, [920, 1080, 1200, 1440, 1560, 1680, 1840]]]
   );
   assertOffsets(
     ['Winds of Chaos'],
@@ -1365,7 +1365,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       primaryWeapon: 'Staff',
       secondaryWeapon: ''
     },
-    [['Winds of Chaos', 0, [533, 623]]]
+    [['Winds of Chaos', 0, [520, 640]]]
   );
   assertOffsets(
     ['Illusionary Wave', 'Mind Stab', 'Mirror Blade', 'Spatial Surge'],
@@ -1376,14 +1376,14 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       secondaryWeapon: 'Sword'
     },
     [
-      ['Illusionary Wave', 0, [401]],
+      ['Illusionary Wave', 0, [400]],
       ['Mind Stab', 1, [200]],
-      ['Mirror Blade', 2, [602, 767, 918, 1084, 1250, 1416]],
+      ['Mirror Blade', 2, [600, 760, 920, 1080, 1240, 1400]],
       ['Spatial Surge', 3, [360, 520, 680]]
     ]
   );
   assertOffsets(['Well of Calamity'], { specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] }, [
-    ['Well of Calamity', 0, [559, 1559, 2561, 3554]]
+    ['Well of Calamity', 0, [560, 1560, 2560, 3560]]
   ]);
   assertOffsets(['Bladesong Dissonance'], { specialization: 'Virtuoso', initialResource: 5 }, [
     ['Bladesong Dissonance', 0, [400]]
@@ -1395,7 +1395,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Sword'
     },
-    [['Counterspell', 1, [322]]]
+    [['Counterspell', 1, [320]]]
   );
   assertOffsets(
     ['Illusionary Riposte', 'Counter Blade'],
@@ -1404,7 +1404,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword'
     },
-    [['Counter Blade', 1, [484]]]
+    [['Counter Blade', 1, [480]]]
   );
   assertOffsets(
     ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
@@ -1415,8 +1415,8 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
     },
     [
       ['Ether Bolt', 0, [400]],
-      ['Ether Blast', 1, [481]],
-      ['Ether Clone', 2, [442]]
+      ['Ether Blast', 1, [480]],
+      ['Ether Clone', 2, [440]]
     ]
   );
   assertOffsets(
@@ -1426,7 +1426,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol'
     },
-    [['Magic Bullet', 0, [362]]]
+    [['Magic Bullet', 0, [360]]]
   );
 });
 
@@ -1445,21 +1445,21 @@ test('Well of Calamity uses its measured cast, pulse conditions, and ethereal fi
 
   assert.equal(result.steps[0].end - result.steps[0].start, 700);
   assert.deepEqual(conditions, [
-    ['Crippled', 559, 1, 2],
-    ['Weakness', 559, 1, 2],
-    ['Crippled', 1559, 1, 2],
-    ['Weakness', 1559, 1, 2],
-    ['Crippled', 2561, 1, 2],
-    ['Weakness', 2561, 1, 2],
-    ['Crippled', 3554, 1, 2],
-    ['Weakness', 3554, 1, 2]
+    ['Crippled', 560, 1, 2],
+    ['Weakness', 560, 1, 2],
+    ['Crippled', 1560, 1, 2],
+    ['Weakness', 1560, 1, 2],
+    ['Crippled', 2560, 1, 2],
+    ['Weakness', 2560, 1, 2],
+    ['Crippled', 3560, 1, 2],
+    ['Weakness', 3560, 1, 2]
   ]);
   assert.deepEqual(well.comboFields, [
     {
       ownerId: 'mesmer',
       fieldType: 'Ethereal',
       duration: 3,
-      startMs: 559,
+      startMs: 560,
       startAnchor: 'castStart'
     }
   ]);

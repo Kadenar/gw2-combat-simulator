@@ -231,7 +231,7 @@ test('a delayed Combat Start suppresses earlier damage without moving display ze
   assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.50s');
   assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.00s');
   assert.ok(result.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.at >= 0.5));
-  assert.ok(Math.abs(result.dpsStartTime - 1.002) < 1e-12);
+  assert.ok(Math.abs(result.dpsStartTime - 1) < 1e-12);
 });
 
 test('event log timestamps use the same explicit Combat Start origin as rotation tiles', () => {

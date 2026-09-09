@@ -879,13 +879,13 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   assert.deepEqual(
     support.effects[0].ticks.map((tick) => [tick.atMs, tick.coefficient]),
     [
-      [967, 0.5],
-      [1167, 0.5],
-      [1367, 0.5],
-      [1567, 0.5],
-      [1767, 0.5],
-      [1967, 0.5],
-      [2167, 0.5]
+      [960, 0.5],
+      [1160, 0.5],
+      [1360, 0.5],
+      [1560, 0.5],
+      [1760, 0.5],
+      [1960, 0.5],
+      [2160, 0.5]
     ]
   );
   assert.equal(bladetrail.effects[0].ticks.length, 2);
@@ -907,11 +907,11 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
       .map((event) => Math.round((event.at - action.at) * 1000));
   };
 
-  assert.deepEqual(packetOffsets('Wild Throw', ['Berserk', 'Wild Throw']), [233, 433, 600, 800, 967, 1167, 1280]);
-  assert.deepEqual(packetOffsets('Maiming Spear'), [1000, 1517]);
+  assert.deepEqual(packetOffsets('Wild Throw', ['Berserk', 'Wild Throw']), [240, 440, 600, 800, 960, 1160, 1280]);
+  assert.deepEqual(packetOffsets('Maiming Spear'), [1000, 1520]);
   assert.deepEqual(packetOffsets('Mighty Throw'), [480]);
   assert.deepEqual(packetOffsets('Disrupting Throw'), [400]);
-  assert.deepEqual(packetOffsets("Spearmarshal's Support"), [967, 1167, 1367, 1567, 1767, 1967, 2167]);
+  assert.deepEqual(packetOffsets("Spearmarshal's Support"), [960, 1160, 1360, 1560, 1760, 1960, 2160]);
 
   const singleTarget = simulate('Berserker', ['Mighty Throw']);
 
@@ -1363,15 +1363,15 @@ test('Warrior packets use their configured Quickness offsets', () => {
   assert.deepEqual(packetOffsets('Precise Cut', daggerMace), [210]);
   assert.deepEqual(packetOffsets('Focused Slash', daggerMace), [187]);
   assert.deepEqual(packetOffsets('Keen Strike', daggerMace), [204]);
-  assert.deepEqual(packetOffsets('Breaching Strike', daggerMace), [758]);
-  assert.deepEqual(packetOffsets('Kick', daggerMace), [441]);
+  assert.deepEqual(packetOffsets('Breaching Strike', daggerMace), [760]);
+  assert.deepEqual(packetOffsets('Kick', daggerMace), [440]);
   assert.deepEqual(packetOffsets('Bloodthirster', swordAxe), [320]);
-  assert.deepEqual(packetOffsets('Dual Strike', swordAxe), [350, 350]);
+  assert.deepEqual(packetOffsets('Dual Strike', swordAxe), [360, 360]);
   assert.deepEqual(packetOffsets('Rend', swordAxe), [330, 660]);
   assert.deepEqual(packetOffsets('Hamstring', swordAxe), [192]);
   assert.deepEqual(
     packetOffsets('Whirling Axe', swordAxe),
-    [245, 367, 490, 612, 734, 857, 979, 1102, 1224, 1346, 1469, 1591, 1714, 1836, 1958]
+    [261, 359, 490, 620, 751, 849, 979, 1110, 1240, 1338, 1469, 1599, 1730, 1828, 1958]
   );
 });
 

@@ -1522,7 +1522,7 @@ test('Thief skill bar previews specialization-specific stolen skills', () => {
       .flatMap((group) => group.skillIds)
       .map((id) => thiefCatalog.skillsById.get(id)?.name);
 
-  assert.deepEqual(namesFor('Core'), ['Throw Gunk', 'Consume Plasma', 'Whirling Axe']);
+  assert.deepEqual(namesFor('Core'), ['Detonate Plasma', 'Throw Magnetic Bomb', 'Soul Stone Venom']);
   assert.deepEqual(namesFor('Daredevil'), namesFor('Core'));
   assert.deepEqual(namesFor('Deadeye'), [
     'Steal Time',

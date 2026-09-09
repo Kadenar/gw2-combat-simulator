@@ -99,13 +99,13 @@ test('Virtuoso bladesongs use configured projectile packet trains', () => {
 
   const harmony = simulateMesmer(['Bladesong Harmony', { name: '__wait', waitMs: 2000 }], config);
 
-  assert.deepEqual(packets(harmony, 'Bladesong Harmony'), [0.69, 0.848, 1.007, 1.174, 1.324]);
-  assert.deepEqual(packets(harmony, 'Bladesong Harmony', 'condition'), [0.69, 0.848, 1.007, 1.174, 1.324]);
+  assert.deepEqual(packets(harmony, 'Bladesong Harmony'), [0.68, 0.84, 1, 1.16, 1.32]);
+  assert.deepEqual(packets(harmony, 'Bladesong Harmony', 'condition'), [0.68, 0.84, 1, 1.16, 1.32]);
 
   const sorrow = simulateMesmer(['Bladesong Sorrow', { name: '__wait', waitMs: 2000 }], config);
 
-  assert.deepEqual(packets(sorrow, 'Bladesong Sorrow'), [0.922, 0.997, 1.081, 1.155, 1.155]);
-  assert.deepEqual(packets(sorrow, 'Bladesong Sorrow', 'condition'), [0.922, 0.997, 1.081, 1.155, 1.155]);
+  assert.deepEqual(packets(sorrow, 'Bladesong Sorrow'), [0.92, 1, 1.08, 1.16, 1.16]);
+  assert.deepEqual(packets(sorrow, 'Bladesong Sorrow', 'condition'), [0.92, 1, 1.08, 1.16, 1.16]);
   assert.deepEqual(
     sorrow.resolvedEvents
       .filter(
@@ -113,7 +113,7 @@ test('Virtuoso bladesongs use configured projectile packet trains', () => {
           event.type === 'condition' && event.skillName === 'Bladesong Sorrow' && event.condition === 'Confusion'
       )
       .map((event) => Number(event.at.toFixed(3))),
-    [0.922, 0.997, 1.081, 1.155, 1.155]
+    [0.92, 1, 1.08, 1.16, 1.16]
   );
 });
 
@@ -131,7 +131,7 @@ test('Cry of Pain improves every Bladesong Sorrow confusion packet', () => {
 
   assert.deepEqual(
     confusion.map((event) => Number(event.at.toFixed(3))),
-    [0.922, 0.997, 1.081, 1.155, 1.155]
+    [0.92, 1, 1.08, 1.16, 1.16]
   );
   assert.ok(confusion.every((event) => event.stacks === 2 && event.duration === 4));
 });
@@ -423,20 +423,16 @@ test('Phantasmal Swordsman follows its packet, bleed, and blade timeline', () =>
 
   assert.equal(result.steps[0].fullCastMs, 880);
   assert.ok(Math.abs(swordsmanDamage[0].at - 0.759) < 1e-12);
-  assertEventTimes(
-    phantasmDamage,
-    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159],
-    'Phantasmal Swordsman damage'
-  );
+  assertEventTimes(phantasmDamage, [1.72, 2.2, 2.24, 2.52, 2.56, 2.8, 2.84, 3.12, 3.16], 'Phantasmal Swordsman damage');
   assert.ok(Math.abs(phantasmalBlade.at - 4.373) < 1e-12);
   assertEventTimes(
     bleeding,
-    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159, 4.373],
+    [1.72, 2.2, 2.24, 2.52, 2.56, 2.8, 2.84, 3.12, 3.16, 4.373],
     'Phantasmal Swordsman bleeding'
   );
   assertEventTimes(
     bladeGains.map((event) => event.at),
-    [2.5591, 4.2901, 4.3731],
+    [2.5601, 4.2901, 4.3731],
     'Phantasmal Swordsman blade gain'
   );
   assert.deepEqual(
@@ -466,7 +462,7 @@ test('Thousand Cuts spreads ten packets and triggers Bloodsong', () => {
       (event) => event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Thousand Cuts'
     )
     .map((event) => event.at);
-  const expected = [0, 0.517, 1.033, 1.55, 2.067, 2.6, 3.117, 3.633, 4.15, 4.667];
+  const expected = [0, 0.52, 1.04, 1.56, 2.08, 2.6, 3.12, 3.64, 4.16, 4.68];
   const bloodsongTimes = result.events
     .filter((event) => event.type === 'resource' && event.reason === 'Bloodsong')
     .map((event) => event.at);

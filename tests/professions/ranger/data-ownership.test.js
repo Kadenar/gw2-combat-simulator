@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 
 import {
   RANGER_CORE_EXTRA_SKILLS,
@@ -17,6 +18,20 @@ import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/speciali
 import { SOULBEAST_STANCE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
 
 const professionRoot = new URL('../../../js/games/gw2/professions/ranger/', import.meta.url);
+
+// Validate evaluated arrays so generated pet pulses and balance profiles obey the authored packet grid too.
+test('Ranger authored effect ticks use the 40 ms action grid', () => {
+  for (const entry of [...rangerCatalog.skills, ...rangerCatalog.balanceProfiles]) {
+    for (const effect of entry.effects ?? []) {
+      for (const tick of effect.ticks ?? []) {
+        assert.ok(
+          Math.abs(tick.atMs - Math.round(tick.atMs / 40) * 40) <= 1e-6,
+          `${entry.id} ${entry.name}: ${tick.atMs} ms`
+        );
+      }
+    }
+  }
+});
 
 function familySlug(value) {
   return value.replace(/[^a-z0-9]+/g, '-');

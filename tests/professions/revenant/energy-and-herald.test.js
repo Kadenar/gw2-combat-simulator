@@ -474,7 +474,7 @@ test('legend invocation traits resolve after swap effects', () => {
   assert.equal(swap.at, 0);
   assert.equal(call.at, 0);
   assert.equal(call.coefficient, 0.9);
-  assert.equal(invoke.at, 0.75);
+  assert.equal(invoke.at, 0.76);
   assert.equal(invoke.coefficient, 1);
   assert.ok(spiritBoon.eventOrder < call.eventOrder);
   assert.ok(call.eventOrder < invoke.eventOrder);

@@ -24,7 +24,7 @@ test('Troubadour instruments use configured packets and normalized strength', ()
   assert.equal(lute.steps[0].end, 560);
   assert.deepEqual(
     luteHits.map((event) => Number(event.at.toFixed(3))),
-    [0.435, 0.635, 0.835, 1.035]
+    [0.44, 0.64, 0.84, 1.04]
   );
   assert.deepEqual(
     luteHits.map((event) => event.coefficient),
@@ -37,12 +37,12 @@ test('Troubadour instruments use configured packets and normalized strength', ()
   const syncopate = drum.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Syncopate');
 
   assert.equal(drum.steps[0].end, 680);
-  assert.equal(drumHit.at, 0.518);
+  assert.equal(drumHit.at, 0.52);
   assert.equal(drumHit.coefficient, 2);
   assert.equal(drumHit.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
   assert.deepEqual(
     syncopate.map((event) => event.at),
-    [0.518, 3.518, 3.518]
+    [0.52, 3.52, 3.52]
   );
   assert.deepEqual(
     syncopate.map((event) => event.coefficient),
@@ -203,7 +203,7 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
   assert.equal(result.steps[1].end, 960);
   assert.deepEqual(
     taleHits.map((event) => Number(event.at.toFixed(3))),
-    [0.91, 1.91, 2.91, 3.91]
+    [0.92, 1.92, 2.92, 3.92]
   );
   assert.deepEqual(
     taleHits.map((event) => event.coefficient),
@@ -214,10 +214,10 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
       .filter((event) => event.condition === 'Torment')
       .map((event) => [Number(event.at.toFixed(3)), event.stacks, event.duration]),
     [
-      [0.91, 1, 8],
-      [1.91, 1, 8],
-      [2.91, 1, 8],
-      [3.91, 1, 8]
+      [0.92, 1, 8],
+      [1.92, 1, 8],
+      [2.92, 1, 8],
+      [3.92, 1, 8]
     ]
   );
   assert.deepEqual(
@@ -225,18 +225,18 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
       .filter((event) => event.condition !== 'Torment')
       .map((event) => [event.condition, Number(event.at.toFixed(3)), event.stacks, event.duration]),
     [
-      ['Weakness', 0.91, 1, 5],
-      ['Vulnerability', 1.91, 10, 4]
+      ['Weakness', 0.92, 1, 5],
+      ['Vulnerability', 1.92, 10, 4]
     ]
   );
   assert.ok(
     result.events.some(
-      (event) => event.type === 'control' && event.skillName === 'Tale of the Tortured Mastermind' && event.at === 3.91
+      (event) => event.type === 'control' && event.skillName === 'Tale of the Tortured Mastermind' && event.at === 3.92
     )
   );
   assert.ok(
     result.resolvedEvents.some(
-      (event) => event.type === 'damage' && event.skillName === 'Syncopate' && event.at === 3.91
+      (event) => event.type === 'damage' && event.skillName === 'Syncopate' && event.at === 3.92
     )
   );
   assert.equal(result.endState.profession.resource, 1);
@@ -256,7 +256,7 @@ test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind 
 
   const proc = result.events.find((event) => event.type === 'proc' && event.name === 'Chaotic Interruption');
 
-  assert.equal(proc?.at, 3.91);
+  assert.equal(proc?.at, 3.92);
   assert.equal(proc?.sourceSkill, 'Tale of the Tortured Mastermind');
   assert.equal(result.endState.cooldowns['Phantasmal Warlock'].readyAt, 6400);
 });
@@ -588,11 +588,11 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
   );
 
   assert.ok(
-    altered.events.some((event) => event.type === 'control' && event.skillName === 'Crescendo' && event.at === 1.53)
+    altered.events.some((event) => event.type === 'control' && event.skillName === 'Crescendo' && event.at === 1.52)
   );
   assert.ok(
     altered.resolvedEvents.some(
-      (event) => event.type === 'damage' && event.skillName === 'Crescendo' && event.at === 1.53
+      (event) => event.type === 'damage' && event.skillName === 'Crescendo' && event.at === 1.52
     )
   );
 

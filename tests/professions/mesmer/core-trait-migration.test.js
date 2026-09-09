@@ -106,7 +106,7 @@ test('Bountiful Blades owns two additional Mirror Blade packets and respects int
     assert.ok(bounce.every((event) => event.skillId === ID.MIRROR_BLADE));
     assert.deepEqual(
       bounce.map((event) => event.at),
-      [1.25, 1.416]
+      [1.24, 1.4]
     );
     assert.deepEqual(
       bounce.map((event) => event.coefficient),

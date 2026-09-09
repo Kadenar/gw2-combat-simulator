@@ -55,6 +55,21 @@ const slices = Object.freeze([
   ['specializations/antiquary', antiquaryModule]
 ]);
 
+// Check evaluated arrays, including generated packets and alternate outcome profiles, at the catalog boundary.
+test('Thief authored effect ticks use ordered non-negative 40 ms offsets', () => {
+  for (const entry of [...thiefCatalog.skills, ...thiefCatalog.balanceProfiles]) {
+    for (const effect of entry.effects || []) {
+      let previous = 0;
+      for (const tick of effect.ticks || []) {
+        const label = `${entry.id} ${entry.name}: ${tick.atMs} ms`;
+        assert.ok(Number.isFinite(tick.atMs) && tick.atMs >= previous, label);
+        assert.ok(Math.abs(tick.atMs - Math.round(tick.atMs / 40) * 40) < 1e-6, label);
+        previous = tick.atMs;
+      }
+    }
+  }
+});
+
 const specializationStateKeys = Object.freeze({
   Daredevil: [
     'selectedDodge',

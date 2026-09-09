@@ -318,14 +318,14 @@ describe('Power Conduit skill profiles', () => {
     );
 
     assert.deepEqual(damageTimeline(requiem, "Eternity's Requiem"), [
-      [1163, "Eternity's Requiem", 1],
-      [1241, "Eternity's Requiem", 0.9],
-      [1361, "Eternity's Requiem", 0.8],
-      [1445, "Eternity's Requiem", 0.7],
-      [1486, "Eternity's Requiem", 0.6],
-      [1562, "Eternity's Requiem", 0.5],
-      [1678, "Eternity's Requiem", 0.4],
-      [1762, "Eternity's Requiem", 0.3]
+      [1160, "Eternity's Requiem", 1],
+      [1240, "Eternity's Requiem", 0.9],
+      [1360, "Eternity's Requiem", 0.8],
+      [1440, "Eternity's Requiem", 0.7],
+      [1480, "Eternity's Requiem", 0.6],
+      [1560, "Eternity's Requiem", 0.5],
+      [1680, "Eternity's Requiem", 0.4],
+      [1760, "Eternity's Requiem", 0.3]
     ]);
   });
 });
@@ -639,8 +639,8 @@ test('Dervish casts retain their scythes through form expiry and concurrent lege
 test('Impossible Odds follows both Deathstrike hits and only the final Assassin release packet', () => {
   // Deathstrike hits clear the 250 ms ICD; Assassin's earlier shockwaves cannot trigger a follow-up.
   for (const [name, expectedAt] of [
-    ['Deathstrike', [570, 850]],
-    ['Release Potential: Assassin', [1050]]
+    ['Deathstrike', [560, 840]],
+    ['Release Potential: Assassin', [1040]]
   ]) {
     const result = simulate(
       'Conduit',
@@ -717,7 +717,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       .filter((event) => event.type === 'damage' && event.skillName === 'Beguiling Haze')
       .map((event) => [Math.round(event.at * 1000), event.coefficient]),
     [
-      [522, 2.2],
+      [520, 2.2],
       [850, 0.6],
       [1100, 0.6]
     ]
@@ -792,7 +792,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     vortex.events
       .filter((event) => event.type === 'damage' && event.skillName === 'Hex-Eater Vortex')
       .map((event) => [Math.round(event.at * 1000), event.coefficient]),
-    [443, 562, 682, 802, 920, 1039].map((at) => [at, 0.2])
+    [440, 560, 680, 800, 920, 1040].map((at) => [at, 0.2])
   );
   assert.ok(
     vortex.events.some(
@@ -845,8 +845,8 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
       .filter((event) => event.type === 'damage' && /Shatter/.test(event.name))
       .map((event) => [event.at, event.coefficient]),
     [
-      [1.402, 0.2],
-      [1.402, 0.2]
+      [1.4, 0.2],
+      [1.4, 0.2]
     ]
   );
   assert.equal(

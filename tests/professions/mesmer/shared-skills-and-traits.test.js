@@ -353,13 +353,13 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
 
   assert.deepEqual(
     burst.map((event) => Number((event.at - triggerAt).toFixed(3))),
-    [0.217, 0.25, 0.384]
+    [0.2, 0.24, 0.4]
   );
   assert.deepEqual(
     consecutive.resolvedEvents
       .filter((event) => event.type === 'condition' && event.name === 'Cutter Burst — Jagged Mind')
       .map((event) => Number((event.at - triggerAt).toFixed(3))),
-    [0.217, 0.25, 0.384]
+    [0.2, 0.24, 0.4]
   );
 
   const expired = simulateMesmer(
@@ -381,7 +381,7 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
   assert.ok(Math.abs(bladecallHits.reduce((sum, event) => sum + event.coefficient, 0) - 1.5) < 1e-12);
   assert.deepEqual(
     bladecallHits.map((event) => Number(event.at.toFixed(3))),
-    [0.199, 0.199, 0.199, 2.716, 2.716, 2.766]
+    [0.2, 0.2, 0.2, 2.72, 2.72, 2.76]
   );
   assert.deepEqual(
     bladecall.resolvedEvents
@@ -389,7 +389,7 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
         (event) => event.type === 'condition' && event.skillName === 'Bladecall' && event.sourceId === TRAIT.JAGGED_MIND
       )
       .map((event) => Number(event.at.toFixed(3))),
-    [0.199, 0.199, 0.199, 2.716, 2.716, 2.766]
+    [0.2, 0.2, 0.2, 2.72, 2.72, 2.76]
   );
 });
 
@@ -458,7 +458,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
       .filter((event) => event.type === 'damage' && event.skillName === 'Phantasmal Duelist' && event.source === source)
       .map((event) => Number(event.at.toFixed(3)));
 
-  assert.deepEqual(times('Player'), [0.35, 0.35, 0.4]);
+  assert.deepEqual(times('Player'), [0.36, 0.36, 0.4]);
   assert.deepEqual(
     result.resolvedEvents
       .filter(
@@ -467,7 +467,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
       .map((event) => event.coefficient),
     [0.33, 0.33, 0.33]
   );
-  assert.deepEqual(times('Phantasm'), [1.39, 1.59, 1.79, 1.99, 2.19, 2.39, 2.59, 2.79]);
+  assert.deepEqual(times('Phantasm'), [1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8]);
   assert.ok(
     result.resolvedEvents
       .filter(
@@ -482,7 +482,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
           event.type === 'condition' && event.skillName === 'Phantasmal Duelist' && event.condition === 'Bleeding'
       )
       .map((event) => Number(event.at.toFixed(3))),
-    [1.39, 1.59, 1.79, 1.99, 2.19, 2.39, 2.59, 2.79]
+    [1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8]
   );
 });
 

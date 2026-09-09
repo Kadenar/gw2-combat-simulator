@@ -58,6 +58,23 @@ const strikeCoefficient = (effect) =>
 
 const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
 
+test('Revenant authored skill and balance-profile effect offsets use the 40 ms action grid', () => {
+  // Check assembled data, including generated arrays and alternate IDs, before runtime cast scaling.
+  for (const skill of [...revenantCatalog.skills, ...revenantCatalog.balanceProfiles]) {
+    for (const effect of skill.effects || []) {
+      // Unrelenting Assault's supplied 260–840 ms evenly spaced impacts intentionally override the grid.
+      if (skill.id === SKILL.UNRELENTING_ASSAULT && effect.type === 'strike') continue;
+      for (const field of ['atMs', 'intervalMs']) {
+        if (effect[field] != null) assert.equal(effect[field] % 40, 0, `${skill.name} (${skill.id}): ${field}`);
+      }
+
+      for (const tick of effect.ticks || []) {
+        assert.equal(tick.atMs % 40, 0, `${skill.name} (${skill.id}): ${tick.atMs} ms`);
+      }
+    }
+  }
+});
+
 test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   const echoingEruption = revenantCatalog.skillsById.get(SKILL.ECHOING_ERUPTION);
 
@@ -1288,8 +1305,8 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
       .map((event) => Math.round(event.at * 1000 - start));
   };
 
-  assert.deepEqual(damageOffsets('Abyssal Raze'), [559]);
-  assert.deepEqual(damageOffsets('Abyssal Force'), [1162]);
+  assert.deepEqual(damageOffsets('Abyssal Raze'), [560]);
+  assert.deepEqual(damageOffsets('Abyssal Force'), [1160]);
   assert.deepEqual(damageOffsets('Abyssal Blitz'), [560, 720, 960]);
   assert.deepEqual(damageOffsets('Abyssal Blot'), [960, 1240, 1520, 1800, 2080]);
   const rechargeProcs = result.procSteps.filter((proc) => proc.skill.endsWith('Abyssal Raze recharge'));

@@ -115,7 +115,7 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
   assert.ok(Math.abs(normalDamage.at - (normalCastEnd + 1.16)) < 0.00001);
   assert.ok(Math.abs(normalConversion.at - (normalCastEnd + 2.0401)) < 0.00001);
   assert.ok(Math.abs(resummon.at - (chronoCastEnd + 2.04)) < 0.00001);
-  assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.3)) < 0.00001);
+  assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.32)) < 0.00001);
   assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.1401)) < 0.00001);
 });
 
@@ -234,7 +234,7 @@ test('Mind the Gap grants its clone before a concurrent two-clone Continuum Spli
   );
   const clone = result.events.find((event) => event.type === 'resource' && event.reason === 'Mind the Gap');
 
-  assert.equal(Math.round(clone.at * 1000 - result.steps[0].start), 485);
+  assert.equal(Math.round(clone.at * 1000 - result.steps[0].start), 520);
   assert.deepEqual(shatterResourceSpends(result).get(1), {
     count: 2,
     resource: 'clones',

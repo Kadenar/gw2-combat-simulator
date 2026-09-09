@@ -7,6 +7,7 @@ import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+
 import {
   createMesmerBuildDefaults,
   migrateMesmerBuild,
@@ -170,6 +171,56 @@ const applyMesmerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(mes
 
 // Keeps the public Core index contract while the named files own supplemental fragments and actions.
 const authoringMesmerProfession = withActivePatchPreview(mesmerProfession);
+
+// Include generated packets, clone gains, and phantasm overrides in the authored timing contract.
+test('Mesmer authored damage and resource offsets use ordered action ticks', () => {
+  const check = (value, path = 'Mesmer', key = '') => {
+    if (value == null) return;
+    if (typeof value === 'number') {
+      if (
+        ![
+          'atMs',
+          'intervalMs',
+          'startMs',
+          'damageAtMs',
+          'repeatDamageAtMs',
+          'damageAtMsByEntity',
+          'repeatDamageAtMsByEntity'
+        ].includes(key)
+      )
+        return;
+      assert.ok(Number.isFinite(value), `${path}: invalid offset ${value}`);
+      assert.ok(Math.abs(value - Math.round(value / 40) * 40) <= 1e-6, `${path}: off-grid offset ${value}`);
+    } else if (Array.isArray(value)) {
+      if (value.every((tick) => tick?.atMs != null && tick.type == null)) {
+        assert.ok(
+          value.every((tick, index) => tick.atMs >= 0 && (index === 0 || tick.atMs >= value[index - 1].atMs)),
+          `${path}: unordered packets`
+        );
+      }
+
+      value.forEach((item, index) => check(item, `${path}[${index}]`, key));
+    } else if (typeof value === 'object') {
+      for (const [name, item] of Object.entries(value)) check(item, `${path}.${name}`, name);
+    }
+  };
+
+  check({
+    skills: mesmerCatalog.skills.map(({ id, effects, resource, trackedHitDamage, comboFields, damageAtMs }) => ({
+      id,
+      effects,
+      resource,
+      trackedHitDamage,
+      comboFields,
+      damageAtMs
+    })),
+    balanceProfiles: mesmerCatalog.balanceProfiles,
+    clones: CLONE_ATTACKS,
+    phantasms: MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
+    repeatPhantasms: MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
+    instruments: INSTRUMENTS
+  });
+});
 
 test('Core Mesmer catalog extras retain named ownership', () => {
   assert.equal(MESMER_CORE_INDEX_EXTRA_SKILLS, MESMER_CORE_EXTRA_SKILLS);
@@ -465,16 +516,16 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
 
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
   const expected = {
-    [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2950, 3710],
-    [ID.PHANTASMAL_BERSERKER]: [560, 1340, 2620, 3680, 5160],
+    [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2960, 3710],
+    [ID.PHANTASMAL_BERSERKER]: [560, 1360, 2620, 3680, 5160],
     [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 8560, 9270],
-    [ID.PHANTASMAL_DISENCHANTER]: [760, 1240, 1920, 3230, 4080],
-    [ID.PHANTASMAL_DUELIST]: [560, 2230, 2800, 5260, 5800],
-    [ID.PHANTASMAL_LANCER]: [520, 1160, 2040, 3300, 4140],
+    [ID.PHANTASMAL_DISENCHANTER]: [760, 1240, 1920, 3240, 4080],
+    [ID.PHANTASMAL_DUELIST]: [560, 2240, 2800, 5280, 5800],
+    [ID.PHANTASMAL_LANCER]: [520, 1160, 2040, 3320, 4140],
     [ID.PHANTASMAL_MAGE]: [800, 2000, 2240, 3920, 4160],
-    [ID.PHANTASMAL_SWORDSMAN]: [880, 2279, 3410, 6000, 7120],
-    [ID.PHANTASMAL_WARDEN]: [460, 4880, 7040, 12020, 14180],
-    [ID.PHANTASMAL_WARLOCK]: [780, 2900, 4120, 7200, 8460]
+    [ID.PHANTASMAL_SWORDSMAN]: [880, 2280, 3410, 6000, 7120],
+    [ID.PHANTASMAL_WARDEN]: [460, 4880, 7040, 12040, 14180],
+    [ID.PHANTASMAL_WARLOCK]: [780, 2920, 4120, 7200, 8460]
   };
   const catalogCastTimeMs = {
     [ID.PHANTASMAL_DEFENDER]: 1155,
@@ -506,7 +557,7 @@ test('Warden preserves all measured initial and Chronophantasma strike packets',
   );
   assert.deepEqual(
     MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS[ID.PHANTASMAL_WARDEN].repeatDamageTicks.Damage.map((tick) => tick.atMs),
-    [8020, 8380, 8740, 9100, 9460, 9820, 10220, 10580, 10940, 11300, 11670, 12020]
+    [8040, 8400, 8760, 9120, 9480, 9840, 10240, 10600, 10960, 11320, 11680, 12040]
   );
 });
 
@@ -927,9 +978,9 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
     name: 'Cutter Burst',
     actorType: 'player',
     ticks: [
-      { atMs: 217, coefficient: 0.2 },
-      { atMs: 250, coefficient: 0.2 },
-      { atMs: 384, coefficient: 0.2 }
+      { atMs: 200, coefficient: 0.2 },
+      { atMs: 240, coefficient: 0.2 },
+      { atMs: 400, coefficient: 0.2 }
     ]
   });
   assert.deepEqual(
@@ -939,8 +990,8 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
       effect.ticks.map((tick) => tick.atMs)
     ]),
     [
-      [0.75, 3, [199, 199, 199]],
-      [0.75, 3, [2716, 2716, 2766]]
+      [0.75, 3, [200, 200, 200]],
+      [0.75, 3, [2720, 2720, 2760]]
     ]
   );
   assert.equal(TRAIT_DAMAGE['Phantasmal Blade'].weaponStrength, 2553.5);

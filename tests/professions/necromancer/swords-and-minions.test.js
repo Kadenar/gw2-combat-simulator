@@ -1010,9 +1010,10 @@ test('Vampiric Presence uses its half-second interval and stronger Shroud siphon
     (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC_PRESENCE
   );
 
+  // The first hit and every other hit clear the half-second cooldown on the quantized, unquickened timeline.
   assert.deepEqual(
     baseSiphons.map((event) => Number(event.at.toFixed(2))),
-    [0.27, 0.81, 1.35, 1.89]
+    [0.3, 0.84, 1.38, 1.92]
   );
   assert.equal(
     baseSiphons.every(

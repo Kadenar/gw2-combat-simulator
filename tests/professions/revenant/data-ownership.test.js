@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 
 import { REVENANT_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/index.js';
 import { REVENANT_LEGEND_CALL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
@@ -9,8 +10,6 @@ import { REVENANT_CENTAUR_SKILL_MECHANICS } from '#gw2/professions/revenant/core
 import { REVENANT_DEMON_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legends/demon.js';
 import { REVENANT_DWARF_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legends/dwarf.js';
 import { REVENANT_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
-import { REVENANT_TRAIT_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/trait-skills.js';
-import { REVENANT_UNDERWATER_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/underwater-skills.js';
 import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/index.js';
 import { CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/cosmic-wisdom-skills.js';
 import { CONDUIT_ENTITY_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
@@ -25,10 +24,19 @@ import { VINDICATOR_ALLIANCE_SKILL_MECHANICS } from '#gw2/professions/revenant/s
 import { VINDICATOR_DODGE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import { VINDICATOR_PROFESSION_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/profession-skills.js';
 
+test('Removed Revenant skills are absent from the simulator catalog and mechanics', () => {
+  // Removed underwater, story, and unused trait skills must not be available to simulations.
+  for (const skillId of [
+    27198, 32588, 34198, 44657, 76497, 28692, 28714, 28797, 28815, 28827, 28915, 28930, 48170, 50390, 50395, 50410,
+    50456, 50483
+  ]) {
+    assert.equal(revenantCatalog.skillsById.has(skillId), false);
+    assert.equal(REVENANT_CORE_BASE_SKILL_MECHANICS[skillId], undefined);
+  }
+});
+
 test('Revenant Core moved skill families compose without duplicates', () => {
   const families = [
-    REVENANT_UNDERWATER_SKILL_MECHANICS,
-    REVENANT_TRAIT_SKILL_MECHANICS,
     REVENANT_LEGEND_CALL_SKILL_MECHANICS,
     REVENANT_SUPPLEMENTAL_SKILL_MECHANICS,
     REVENANT_DWARF_SKILL_MECHANICS,

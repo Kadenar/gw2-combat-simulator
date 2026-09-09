@@ -180,9 +180,10 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(preview.locator('.optimizer-preview-portrait strong')).toHaveCount(0);
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
   await expect(preview.locator('.attr-row').filter({ hasText: /^Power/ })).toBeVisible();
+  // Accept source and bundled artwork so this worker regression also runs against production builds in WebKit.
   await expect(preview.locator('.optimizer-preview-portrait img')).toHaveAttribute(
     'src',
-    /\/images\/professions\/virtuoso\.png$/
+    /\/(?:images\/professions\/virtuoso|assets\/virtuoso-[\w-]+)\.png$/
   );
   await expect
     .poll(() => preview.locator('.optimizer-preview-portrait img').evaluate((image) => image.naturalWidth))

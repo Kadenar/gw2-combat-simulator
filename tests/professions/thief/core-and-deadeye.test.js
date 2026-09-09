@@ -516,12 +516,8 @@ test('Unload grants 2 initiative when every bullet lands', () => {
 
   assert.equal(quickened.steps[0].end - quickened.steps[0].start, 1320);
   assert.equal(quickened.steps[0].interrupted, false);
-  assert.deepEqual(
-    quickened.events
-      .filter((event) => event.type === 'damage' && event.skillName === 'Unload')
-      .map((event) => Math.round(event.at * 1000)),
-    [97, 193, 290, 387, 483, 580, 677, 773]
-  );
+  // The refund requires all bullets to land; their authored offsets are a separate catalog contract.
+  assert.equal(quickened.events.filter((event) => event.type === 'damage' && event.skillName === 'Unload').length, 8);
   assert.equal(quickenedRefund.at, 1.32);
   assert.ok(Math.abs(quickenedRefund.state.initiative - 3.32) < 1e-9);
 
@@ -895,7 +891,7 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
 });
 
 test('Steal exposes a choice pool and consumes whichever stolen skill is selected', () => {
-  const stolenSkillIds = [ID.THROW_GUNK, ID.CONSUME_PLASMA, ID.WHIRLING_AXE];
+  const stolenSkillIds = [ID.DETONATE_PLASMA, ID.THROW_MAGNETIC_BOMB, ID.SOUL_STONE_VENOM];
   const initialGroups = thiefProfession.ui.paletteGroups({ specialization: 'Core' });
   const initialProfessionGroup = initialGroups.find((group) => group.id === 'thief-profession');
   const initialStolenGroup = initialGroups.find((group) => group.id === 'thief-stolen-skills');
@@ -906,7 +902,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
   assert.equal(
     thiefProfession.ui.paletteSkillAvailability(
       { specialization: 'Core' },
-      thiefCatalog.skillsById.get(ID.CONSUME_PLASMA)
+      thiefCatalog.skillsById.get(ID.DETONATE_PLASMA)
     ).available,
     false
   );
@@ -924,11 +920,11 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
   assert.equal(
     thiefProfession.ui.paletteSkillAvailability(
       { specialization: 'Core', professionState: stored.endState.profession },
-      thiefCatalog.skillsById.get(ID.CONSUME_PLASMA)
+      thiefCatalog.skillsById.get(ID.DETONATE_PLASMA)
     ).available,
     true
   );
-  const used = simulate('Core', ['Steal', 'Consume Plasma']);
+  const used = simulate('Core', ['Steal', 'Detonate Plasma']);
 
   assert.equal(used.warnings.length, 0);
   assert.equal(used.endState.profession.storedStolenSkillId, null);
@@ -939,6 +935,43 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
       .find((group) => group.id === 'thief-stolen-skills').skillIds,
     stolenSkillIds
   );
+
+  // Both users of the base pool must gate each choice and consume it once, with Improvisation locking the reuse.
+  for (const specialization of ['Core', 'Daredevil']) {
+    const runtime = thiefProfession.resolveRuntime({ specialization });
+    assert.deepEqual(
+      runtime.catalog.skills
+        .filter((skill) => skill.slot === 'Profession_2')
+        .map((skill) => skill.id)
+        .sort(),
+      [...stolenSkillIds].sort()
+    );
+    for (const id of stolenSkillIds) {
+      const name = thiefCatalog.skillsById.get(id).name;
+      const unavailable = simulate(specialization, [name]);
+      assert.ok(
+        unavailable.warnings.some((warning) => /steal this skill/i.test(warning)),
+        name
+      );
+      const consumed = simulate(specialization, ['Steal', name]);
+      assert.deepEqual(consumed.warnings, [], name);
+      assert.equal(consumed.endState.profession.storedStolenSkillCount, 0, name);
+      assert.deepEqual(consumed.endState.profession.storedStolenSkillIds, [], name);
+      assert.ok(
+        consumed.events.some((event) => event.type === 'damage' && event.skillId === id),
+        name
+      );
+
+      const config = { selectedTraitIds: [TRAIT.IMPROVISATION] };
+      const retained = simulate(specialization, ['Steal', name], config);
+      assert.deepEqual(retained.warnings, [], name);
+      assert.equal(retained.endState.profession.storedStolenSkillCount, 1, name);
+      assert.deepEqual(retained.endState.profession.storedStolenSkillIds, [id], name);
+      const reused = simulate(specialization, ['Steal', name, name], config);
+      assert.deepEqual(reused.warnings, [], name);
+      assert.equal(reused.endState.profession.storedStolenSkillCount, 0, name);
+    }
+  }
 });
 
 test('Daredevil capacity and every dodge replacement resolve explicitly', () => {

@@ -50,7 +50,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     [ID.FOCUSED_SLASH, 360, 280],
     [ID.KEEN_STRIKE, 440, 280],
     [ID.DISRUPTING_STAB, 440, 160],
-    [69297, 842, 758]
+    [69297, 842, 760]
   ]) {
     const canonicalSkillId = canonicalGw2SkillId(skillId);
     const skill = warriorCatalog.skillsById.get(canonicalSkillId);
