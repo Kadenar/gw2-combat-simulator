@@ -3,6 +3,7 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENTANGLING_ASP]: {
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
@@ -143,8 +144,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 173.913043478261 + index * 173.913043478261,
+        ticks: [160, 360, 520, 680, 880].map((atMs) => ({
+          atMs,
           coefficient: 1.5 / 5
         })),
         name: 'Ashen Assault',

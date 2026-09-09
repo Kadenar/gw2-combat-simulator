@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DEATHS_ADVANCE]: {
     castTimeMs: 250,
@@ -157,7 +158,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 260 + index * 260, coefficient: 2.8 / 2 })),
+        ticks: [280, 520].map((atMs) => ({ atMs, coefficient: 2.8 / 2 })),
         name: 'Double Tap',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -213,7 +214,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 222 + index * 222, coefficient: 2.25 / 3 })),
+        ticks: [240, 440, 680].map((atMs) => ({ atMs, coefficient: 2.25 / 3 })),
         name: 'Three Round Burst',
         actorType: 'player',
         timingAnchor: 'castStart',

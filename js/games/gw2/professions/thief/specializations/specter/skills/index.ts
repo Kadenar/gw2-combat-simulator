@@ -223,7 +223,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 120.24 + index * 120.24, coefficient: 4.5 / 3 })),
+        ticks: [120, 240, 360].map((atMs) => ({ atMs, coefficient: 4.5 / 3 })),
         name: 'Shadowfall',
         actorType: 'player',
         timingAnchor: 'castStart',

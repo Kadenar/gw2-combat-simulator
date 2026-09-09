@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DOUBLE_STRIKE]: {
     quicknessCastTimeMs: 360,
@@ -219,7 +220,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 180 + index * 180, coefficient: 0.63 / 2 })),
+        ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 0.63 / 2 })),
         name: 'Twisting Fangs',
         actorType: 'player',
         timingAnchor: 'castStart',

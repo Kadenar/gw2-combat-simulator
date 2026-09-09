@@ -8,10 +8,11 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefCastContext, ThiefCoreState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
+// Each base Steal offers the same three supported stolen skills for the user to choose from.
 export const THIEF_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
-  ID.THROW_GUNK,
-  ID.CONSUME_PLASMA,
-  ID.WHIRLING_AXE
+  ID.DETONATE_PLASMA,
+  ID.THROW_MAGNETIC_BOMB,
+  ID.SOUL_STONE_VENOM
 ]);
 
 export function storedStolenSkillChoices(

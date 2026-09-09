@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BOLA_SHOT]: {
     castTimeMs: 500,
@@ -71,8 +72,8 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 8 }, (_, index) => ({
-          atMs: 96.666666666667 + index * 96.666666666667,
+        ticks: [80, 200, 280, 400, 480, 600, 680, 760].map((atMs) => ({ // TODO: Need to get actual packet timing
+          atMs,
           coefficient: 3.36 / 8
         })),
         name: 'Unload',
@@ -134,7 +135,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 168 + index * 168, coefficient: 1.5 / 5 })),
+        ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 1.5 / 5 })),
         name: 'Repeater (offhand empty)',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -158,7 +159,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 120.24 + index * 120.24, coefficient: 0.75 / 3 })),
+        ticks: [120, 240, 360].map((atMs) => ({ atMs, coefficient: 0.75 / 3 })),
         name: 'Black Powder',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -184,7 +185,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 136 + index * 136, coefficient: 1.8 / 5 })),
+        ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
         name: 'Sneak Attack',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -208,7 +209,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 168 + index * 168, coefficient: 7.5 / 5 })),
+        ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 7.5 / 5 })),
         name: 'Repeater',
         actorType: 'player',
         timingAnchor: 'castStart',

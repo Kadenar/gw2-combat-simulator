@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WEAKENING_WHIRL]: {
     quicknessCastTimeMs: 720,
@@ -10,8 +11,8 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({
-          atMs: 111.333333333333 + index * 111.333333333333,
+        ticks: [120, 240, 320].map((atMs) => ({
+          atMs,
           coefficient: 2.22 / 3
         })),
         name: 'Weakening Whirl',
@@ -83,8 +84,8 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({
-          atMs: 166.666666666667 + index * 166.666666666667,
+        ticks: [160, 320, 520, 680].map((atMs) => ({
+          atMs,
           coefficient: 2.1 / 4
         })),
         name: 'Punishing Strikes',
@@ -167,8 +168,8 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({
-          atMs: 173.333333333333 + index * 173.333333333333,
+        ticks: [160, 360, 520].map((atMs) => ({
+          atMs,
           coefficient: 1.8 / 3
         })),
         name: 'Dust Strike',

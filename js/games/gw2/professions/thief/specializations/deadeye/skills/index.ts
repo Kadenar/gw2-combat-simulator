@@ -519,7 +519,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 136 + index * 136, coefficient: 1.8 / 5 })),
+        ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
         name: 'Malicious Sneak Attack',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -612,7 +612,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 210.336 + index * 210.336, coefficient: 1.6 / 8 })),
+        ticks: [200, 440, 640, 840, 1040, 1280, 1480, 1680].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
         name: 'Malicious Shadowsquall',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -720,8 +720,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 173.913043478261 + index * 173.913043478261,
+        ticks: [160, 360, 520, 680, 880].map((atMs) => ({
+          atMs,
           coefficient: 1.5 / 5
         })),
         name: 'Malicious Ashen Assault',

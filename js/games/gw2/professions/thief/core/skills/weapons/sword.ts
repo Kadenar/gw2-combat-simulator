@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LARCENOUS_STRIKE]: {
     castTimeMs: 500,
@@ -189,9 +190,9 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'strike',
         ticks: [
-          { atMs: 400.3, coefficient: 0.53 },
-          { atMs: 559.7, coefficient: 0.53 },
-          { atMs: 718.9, coefficient: 0.53 }
+          { atMs: 400, coefficient: 0.53 },
+          { atMs: 560, coefficient: 0.53 },
+          { atMs: 720, coefficient: 0.53 }
         ],
         name: 'Flawless Execution — Packet 1',
         actorType: 'player',
@@ -200,7 +201,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 1240.4, coefficient: 1.6 }],
+        ticks: [{ atMs: 1240, coefficient: 1.6 }],
         name: 'Final Slash Damage',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -209,12 +210,12 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'strike',
         ticks: [
-          { atMs: 320.4, coefficient: 0.25 },
-          { atMs: 439.7, coefficient: 0.25 },
-          { atMs: 519.2, coefficient: 0.25 },
-          { atMs: 640.2, coefficient: 0.25 },
-          { atMs: 760.1, coefficient: 0.25 },
-          { atMs: 840.5, coefficient: 0.25 }
+          { atMs: 320, coefficient: 0.25 },
+          { atMs: 440, coefficient: 0.25 },
+          { atMs: 520, coefficient: 0.25 },
+          { atMs: 640, coefficient: 0.25 },
+          { atMs: 760, coefficient: 0.25 },
+          { atMs: 840, coefficient: 0.25 }
         ],
         name: 'Projectile Damage',
         actorType: 'player',

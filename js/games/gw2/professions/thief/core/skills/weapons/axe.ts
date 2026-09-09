@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VENOMOUS_VOLLEY]: {
     castTimeMs: 750,
@@ -10,9 +11,9 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({
-          atMs: 173.333333333333 + index * 173.333333333333,
-          coefficient: 3.5999999999999996 / 3
+        ticks: [160, 360, 520].map((atMs) => ({
+          atMs,
+          coefficient: 3.6 / 3
         })),
         name: 'Venomous Volley',
         actorType: 'player',

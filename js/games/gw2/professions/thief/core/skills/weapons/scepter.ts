@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SHADOW_BOLT]: {
     quicknessCastTimeMs: 520,
@@ -32,8 +33,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 7 }, (_, index) => ({
-          atMs: 274.285714285714 + index * 274.285714285714,
+        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
+          atMs,
           coefficient: 2.31 / 7
         })),
         name: 'Endless Night',
@@ -43,7 +44,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 274.285714285714, condition: 'Slow', stacks: 1, duration: 1.5 }],
+        ticks: [{ atMs: 280, condition: 'Slow', stacks: 1, duration: 1.5 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -52,37 +53,37 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'condition',
         ticks: [
           {
-            atMs: 274.285714285714,
+            atMs: 280,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
           {
-            atMs: 548.571428571429,
+            atMs: 560,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
           {
-            atMs: 822.857142857143,
+            atMs: 840,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
           {
-            atMs: 1097.142857142857,
+            atMs: 1080,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
           {
-            atMs: 1371.428571428571,
+            atMs: 1360,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
           {
-            atMs: 1645.714285714285,
+            atMs: 1640,
             condition: 'Torment',
             stacks: 1,
             duration: 6
@@ -146,8 +147,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({
-          atMs: 333.333333333333 + index * 333.333333333333,
+        ticks: [320, 680, 1000].map((atMs) => ({
+          atMs,
           coefficient: 1.35 / 3
         })),
         name: 'Triple Threat',
@@ -158,8 +159,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'condition',
         ticks: [
-          { atMs: 333.333333333333, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 666.666666666667, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 320, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 680, condition: 'Torment', stacks: 1, duration: 4 },
           { atMs: 1000, condition: 'Torment', stacks: 1, duration: 4 }
         ],
         actorType: 'player',
@@ -284,7 +285,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 245 + index * 245, coefficient: 1.6 / 8 })),
+        ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
         name: 'Shadowsquall',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -293,13 +294,13 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'condition',
         ticks: [
-          { atMs: 245, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 490, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 735, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 980, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1225, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1470, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1715, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 240, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 480, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 720, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1000, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1240, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1480, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1720, condition: 'Poisoned', stacks: 1, duration: 3 },
           { atMs: 1960, condition: 'Poisoned', stacks: 1, duration: 3 }
         ],
         actorType: 'player',

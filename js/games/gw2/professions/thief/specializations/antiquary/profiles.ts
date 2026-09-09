@@ -91,8 +91,8 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         type: 'strike',
         ticks: [
           { atMs: 440, coefficient: 1 },
-          { atMs: 723, coefficient: 1 },
-          { atMs: 1006, coefficient: 1 }
+          { atMs: 720, coefficient: 1 },
+          { atMs: 1000, coefficient: 1 }
         ]
       },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }

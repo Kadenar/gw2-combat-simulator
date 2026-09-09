@@ -1,6 +1,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: {
     // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
@@ -29,8 +30,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'condition',
-        ticks: Array.from({ length: 4 }, (_, index) => ({
-          atMs: 400 + index * 500,
+        ticks: [400, 920, 1400, 1920].map((atMs) => ({
+          atMs,
           condition: 'Confusion',
           stacks: 1,
           duration: 8
@@ -105,7 +106,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 100, coefficient: 6 / 5 })),
+        ticks: [0, 120, 200, 320, 400].map((atMs) => ({ atMs, coefficient: 6 / 5 })),
         name: 'Additional Bomb Damage',
         actorType: 'player',
         timingAnchor: 'castEnd',
@@ -113,8 +114,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'condition',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: index * 100,
+        ticks: [0, 120, 200, 320, 400].map((atMs) => ({
+          atMs,
           condition: 'Burning',
           stacks: 1,
           duration: 3.5
@@ -216,8 +217,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({
-          atMs: 111.333333333333 + index * 111.333333333333,
+        ticks: [120, 240, 320].map((atMs) => ({
+          atMs,
           coefficient: 3 / 3
         })),
         name: 'Stone Summit Cannon — Packet 1',
@@ -536,7 +537,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 500 + index * 1000, coefficient: 2.5 / 5 })),
+        ticks: [520, 1520, 2520, 3520, 4520].map((atMs) => ({ atMs, coefficient: 2.5 / 5 })),
         name: 'Mistburn Mortar',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -544,8 +545,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'condition',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 500 + index * 1000,
+        ticks: [520, 1520, 2520, 3520, 4520].map((atMs) => ({
+          atMs,
           condition: 'Burning',
           stacks: 1,
           duration: 1.5

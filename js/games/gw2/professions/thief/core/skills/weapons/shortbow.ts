@@ -2,6 +2,7 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TRICK_SHOT]: {
     castTimeMs: 500,
@@ -32,7 +33,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 90 + index * 90, coefficient: 2.4 / 4 })),
+        ticks: [80, 200, 280, 360].map((atMs) => ({ atMs, coefficient: 2.4 / 4 })),
         name: 'Choking Gas',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -93,7 +94,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 170 + index * 170, coefficient: 2 / 4 })),
+        ticks: [160, 360, 520, 680].map((atMs) => ({ atMs, coefficient: 2 / 4 })),
         name: 'Small Explosion',
         actorType: 'player',
         timingAnchor: 'castStart',
