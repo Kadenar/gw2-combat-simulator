@@ -73,12 +73,21 @@ function decorateStaticLinks(root: Document): void {
 /** Reports the document height to the host frame for iframe auto-resize. */
 function setupResizeReporter(root: Document): void {
   const post = (): void => {
-    const height = root.documentElement.scrollHeight;
+    // Focus replaces the visible document, so let auto-sizing hosts shrink away the hidden editor's height.
+    const focusedWorkspace = root.querySelector('.embed body[data-rotation-focus] .rotation-section');
+    const height = focusedWorkspace
+      ? Math.ceil(focusedWorkspace.getBoundingClientRect().height)
+      : root.documentElement.scrollHeight;
     globalThis.parent?.postMessage({ type: EMBED_HEIGHT_MESSAGE, height, url: globalThis.location?.href }, HOST_ORIGIN);
   };
 
   if (typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(post).observe(root.documentElement);
+  }
+
+  // A fixed workspace can change focus without resizing the document underneath it.
+  if (root.body && typeof MutationObserver !== 'undefined') {
+    new MutationObserver(post).observe(root.body, { attributes: true, attributeFilter: ['data-rotation-focus'] });
   }
 
   globalThis.addEventListener?.('load', post);
