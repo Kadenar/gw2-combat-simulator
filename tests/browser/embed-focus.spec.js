@@ -61,6 +61,7 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
   await focus.click();
   await expect(focus).toHaveText('Exit focus');
   await expectInHostViewport(workspace);
+  await expect.poll(async () => (await workspace.boundingBox()).height).toBe(page.viewportSize().height);
   expect(await page.evaluate(() => scrollY)).toBe(hostScroll);
   expect(await page.locator('iframe').evaluate((iframe) => iframe.clientHeight)).toBe(frameHeight);
   const panel = frame.locator('.rotation-panel-shell > .rotation-panel');
@@ -73,6 +74,29 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
   await expectInHostViewport(config);
   await close.click();
   await expect(config).toBeHidden();
+
+  // Scrolling into host content below the iframe must clip the full workspace instead of squeezing its controls.
+  const focusedHeight = (await workspace.boundingBox()).height;
+  const frameTop = await page.locator('iframe').evaluate((iframe) => iframe.getBoundingClientRect().top + scrollY);
+  for (const remaining of [300, 80, 10, -100]) {
+    await page.evaluate((top) => scrollTo(0, top), frameTop + frameHeight - remaining);
+    await expect
+      .poll(async () => {
+        const panelBounds = await workspace.boundingBox();
+        const frameBounds = await page.locator('iframe').boundingBox();
+        return Math.abs(panelBounds.y + panelBounds.height - frameBounds.y - frameBounds.height);
+      })
+      .toBeLessThan(1);
+    await expect.poll(async () => (await workspace.boundingBox()).height).toBe(focusedHeight);
+    expect(await page.locator('iframe').evaluate((iframe) => iframe.clientHeight)).toBe(frameHeight);
+  }
+
+  await expect(workspace).not.toBeInViewport();
+  await page.evaluate((top) => scrollTo(0, top), hostScroll);
+  await expectInHostViewport(workspace);
+  await page.setViewportSize({ width: 900, height: 450 });
+  await expectInHostViewport(workspace);
+  await expect.poll(async () => (await workspace.boundingBox()).height).toBe(450);
   await focus.click();
   await expect(frame.locator('body')).not.toHaveAttribute('data-rotation-focus', '');
   expect(await workspace.evaluate((element) => element.style.inset)).toBe('');

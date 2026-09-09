@@ -489,6 +489,11 @@
    into a host page (e.g. an iframe on another site). Tune the hidden set here.
    --------------------------------------------------------------------------- */
 
+/* Keep viewport observation independent of content removed from flow when focus mode starts. */
+html.embed {
+  min-height: 100vh;
+}
+
 /* Landing page: keep only the profession picker; drop hero, marketing, footer. */
 .embed .landing-header,
 .embed .landing-footer,

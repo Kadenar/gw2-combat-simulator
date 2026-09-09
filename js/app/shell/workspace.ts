@@ -163,7 +163,9 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   // Place focus where the host is already scrolled instead of jumping to the top of a tall iframe.
   if (previous.focus !== state.focus && controller.document.documentElement.classList.contains('embed')) {
     controller.stopFocusViewport?.();
-    controller.stopFocusViewport = state.focus ? trackEmbeddedViewport(controller.rotationSection) : undefined;
+    controller.stopFocusViewport = state.focus
+      ? trackEmbeddedViewport(controller.rotationSection, { preserveHeight: true })
+      : undefined;
   }
 
   if (previous.focus && !state.focus && controller.focusScrollPosition) {

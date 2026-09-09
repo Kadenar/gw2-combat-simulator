@@ -30,17 +30,27 @@ export const EMBED_HEIGHT_MESSAGE = 'gw2sim:height';
 const HOST_ORIGIN = '*';
 
 /** Tracks the visible host area without requiring access to a cross-origin parent document. */
-export function trackEmbeddedViewport(element: HTMLElement, onVisible?: () => void): () => void {
+export function trackEmbeddedViewport(
+  element: HTMLElement,
+  { onVisible, preserveHeight = false }: { onVisible?: () => void; preserveHeight?: boolean } = {}
+): () => void {
   const root = element.ownerDocument;
   const view = root.defaultView!;
   let frame = 0;
   let stopped = false;
+  let viewportHeight = 0;
   const observer = new IntersectionObserver(([entry]) => {
     if (stopped) return;
     const rect = entry.intersectionRect;
     if (rect.width > 0 && rect.height > 0) {
-      element.style.inset = `${rect.top}px ${view.innerWidth - rect.right}px ${view.innerHeight - rect.bottom}px ${rect.left}px`;
-      element.style.setProperty('--embed-viewport-height', `${rect.height}px`);
+      // At a frame edge, pin focus at full height and let the host clip it like a sticky panel.
+      // Interior intersections reveal the host height again, including after a browser resize.
+      // ponytail: clipped edges retain the last measured height; exact resize tracking there needs host viewport messages.
+      if (!preserveHeight || (rect.top > 0 && rect.bottom < view.innerHeight)) viewportHeight = rect.height;
+      viewportHeight = Math.min(view.innerHeight, Math.max(viewportHeight, rect.height));
+      const top = Math.min(rect.top, view.innerHeight - viewportHeight);
+      element.style.inset = `${top}px ${view.innerWidth - rect.right}px ${view.innerHeight - top - viewportHeight}px ${rect.left}px`;
+      element.style.setProperty('--embed-viewport-height', `${viewportHeight}px`);
       element.style.setProperty('--embed-viewport-width', `${rect.width}px`);
       onVisible?.();
     }
@@ -62,8 +72,10 @@ export function trackEmbeddedViewport(element: HTMLElement, onVisible?: () => vo
 
 /** Position before opening so native autofocus cannot scroll a tall iframe toward an offscreen dialog. */
 export function showEmbeddedDialog(dialog: HTMLDialogElement): () => void {
-  const stopTracking = trackEmbeddedViewport(dialog, () => {
-    if (!dialog.open) dialog.showModal();
+  const stopTracking = trackEmbeddedViewport(dialog, {
+    onVisible: () => {
+      if (!dialog.open) dialog.showModal();
+    }
   });
   const stop = (): void => {
     dialog.removeEventListener('close', stop);
