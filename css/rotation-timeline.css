@@ -817,6 +817,19 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   box-shadow: 0 0 0 2px #ff7c5577;
 }
 
+/* Give cancelled zero-damage casts a stronger red edge and glow without shifting nearby tiles. */
+.rot-skill.rot-cancelled {
+  border-color: #ff3b45;
+  box-shadow:
+    0 0 0 1px #ff3b45,
+    0 0 8px 2px #ff3b4580;
+}
+
+/* Match timing labels to the cancellation border so the failure is easier to spot. */
+.rot-skill.rot-cancelled :is(.rot-time, .rot-timed-action-badge) {
+  color: #ff6b73;
+}
+
 .rot-skill.rot-charge-mismatch .rot-charge-release-badge {
   background: #8d3325;
   color: #fff;

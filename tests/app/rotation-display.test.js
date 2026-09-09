@@ -24,6 +24,62 @@ import {
 } from '#app/shell/workspace.js';
 import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
 import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
+
+// Cancellation styling follows each activation's damage, even when the same skill is cast again.
+test('timeline gives only interrupted zero-damage casts a red border', () => {
+  const skill = { id: 1, name: 'Example Skill' };
+  const app = {
+    skills: [skill],
+    skillById: new Map([[1, skill]]),
+    adapter: { eliteSpecialization: () => '' },
+    profession: { ui: { timelineWeaponLineTransition: () => null } }
+  };
+  const steps = [
+    { interrupted: true },
+    { interrupted: true },
+    { interrupted: false },
+    { interrupted: true, invalid: true }
+  ].map((state, ri) => ({
+    ...state,
+    ri,
+    skill: skill.name,
+    activationId: `cast:${ri}`,
+    start: ri * 100,
+    end: ri * 100 + 100
+  }));
+  const build = {
+    rotation: steps.map(() => ({ type: 'cast', skillId: 1 })),
+    startingWeaponSet: 1,
+    weapons: [],
+    alternateWeapons: []
+  };
+  const results = {
+    steps,
+    duration: 1,
+    resolvedEvents: [
+      { activationId: 'cast:0', damage: 0 },
+      { activationId: 'cast:1', damage: 10, at: 0.8 }
+    ]
+  };
+  for (const readOnly of [false, true]) {
+    const html = timelineRowsView(app, build, results, readOnly, new Set(), false)
+      .rows.map((row) => row.html)
+      .join('');
+    assert.match(
+      html,
+      /class="rot-skill rot-cancelled"[^>]*data-idx="0"[^>]*Cancelled without dealing damage[^>]*--att-border:#ff3b45/
+    );
+    for (const index of [1, 2, 3]) {
+      assert.match(html, new RegExp(`data-idx="${index}"[^>]*--att-border:#9d7bd0`));
+    }
+
+    const pending = timelineRowsView(app, build, null, readOnly, new Set(), false)
+      .rows.map((row) => row.html)
+      .join('');
+    assert.doesNotMatch(pending, /rot-cancelled|--att-border:#ff3b45/);
+  }
+});
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));

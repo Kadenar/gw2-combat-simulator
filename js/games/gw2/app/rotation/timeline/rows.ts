@@ -87,6 +87,10 @@ export function timelineRowsView(
   const rotation = build.rotation;
   let procHtml = '';
   const resultSteps = results?.steps || [];
+  // Only flag interrupted casts with no resolved damage, including delayed hits and condition ticks.
+  const damagingActivations = new Set(
+    (results?.resolvedEvents || []).filter((event) => Number(event.damage) > 0).map((event) => event.activationId)
+  );
   // Action details carry runtime-selected variants and other cast facts into the generic timeline tooltip.
   const actionDetails = new Map(
     (results?.events || [])
@@ -416,6 +420,8 @@ export function timelineRowsView(
       const skill = resolveEntrySkill(app, item.command);
       const step = steps.get(index);
       const invalid = Boolean(step?.invalid);
+      const cancelledWithoutDamage =
+        !invalid && step?.interrupted === true && !!step.activationId && !damagingActivations.has(step.activationId);
       const display =
         item.type === 'wait'
           ? 'Wait'
@@ -490,6 +496,7 @@ export function timelineRowsView(
         step && !invalid && item.type === 'cast'
           ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, [
               ...(actionDetail ? [actionDetail] : []),
+              ...(cancelledWithoutDamage ? ['Cancelled without dealing damage'] : []),
               ...chargeOutcomeDetails
             ])
           : display;
@@ -513,8 +520,8 @@ export function timelineRowsView(
       const canEditWait = item.type === 'wait';
       // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
       const deadTimeHtml = (deadTimesByIndex.get(index) || []).map(renderDeadTime).join('');
-      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}"${readOnly ? '' : ' draggable="true"'}
-                    data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
+      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
+                    data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
