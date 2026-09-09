@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 42682,
+        "benchmarkDps": 43150,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -16,7 +16,7 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 41600,
+        "benchmarkDps": 41517,
         "sourceBenchmarkDps": 41809,
         "upToDate": true
       },
@@ -25,7 +25,7 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
-        "benchmarkDps": 42176,
+        "benchmarkDps": 42103,
         "sourceBenchmarkDps": 41433,
         "dpsReportUrl": "https://dps.report/gkj1-20260501-134125_golem",
         "upToDate": true
@@ -40,7 +40,7 @@
         "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 41296,
+        "benchmarkDps": 41320,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
       },
@@ -49,7 +49,7 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 33101,
+        "benchmarkDps": 33084,
         "sourceBenchmarkDps": 33198,
         "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
         "upToDate": true
@@ -64,7 +64,7 @@
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-radiance-spear-greatsword",
-        "benchmarkDps": 40191,
+        "benchmarkDps": 41750,
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
@@ -79,13 +79,13 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 41414
+        "benchmarkDps": 41362
       },
       {
         "label": "Power (Greatsword / Spear) - Nagy Rotation",
         "build": "data/gw2/builds/guardian/b-power-luminary-nagy.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-nagy.json",
-        "benchmarkDps": 41818,
+        "benchmarkDps": 42089,
         "sourceBenchmarkDps": 41568,
         "dpsReportUrl": "https://dps.report/0C3r-41568splumi_golem",
         "upToDate": true
@@ -95,7 +95,7 @@
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
-        "benchmarkDps": 41406,
+        "benchmarkDps": 41427,
         "sourceBenchmarkDps": 40768,
         "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
         "upToDate": true
@@ -105,7 +105,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-luminary-spear-greatsword",
-        "benchmarkDps": 37815,
+        "benchmarkDps": 37141,
         "sourceBenchmarkDps": 37129,
         "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
         "upToDate": true

@@ -1,809 +1,944 @@
 {
-  "metadata": {
-    "log": "https://dps.report/so5x-20260418-005724_golem",
-    "benchmarkDurationSeconds": 94.842,
-    "benchmarkDamage": 3969455,
-    "benchmarkDps": 41853.345564201518,
-    "simulatedDps": 41620.706415391214,
-    "timingSource": "Elite Insights cast activations reconstructed by the dps.report importer",
-    "note": "Sword of Justice and Procession of Blades are inferred as pre-casts from their 40 and 70 logged hits; Spear of Justice begins 267 ms before combat."
-  },
   "rotation": [
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Procession of Blades",
+      "type": "cast",
       "skillId": 30364
     },
     {
-      "name": "Spear of Justice",
-      "skillId": 29887
+      "type": "cast",
+      "skillId": 29887,
+      "interruptAfterMs": 520
     },
     {
-      "name": "__combat_start",
-      "offset": 267
+      "type": "combat-start",
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Symbol of Luminance",
+      "type": "cast",
       "skillId": 73132
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940,
-      "interruptMs": 280
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Gleaming Disc",
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
       "skillId": 72978
     },
     {
-      "name": "Solar Storm",
-      "skillId": 73094
+      "type": "cast",
+      "skillId": 73094,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 134
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 240
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "__wait",
-      "waitMs": 33
+      "type": "cast",
+      "skillId": 9137,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Dragon's Maw",
+      "type": "cast",
       "skillId": 30273
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "__wait",
-      "waitMs": 34
+      "type": "cast",
+      "skillId": 9138,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Whirling Wrath",
-      "skillId": 9081
+      "type": "cast",
+      "skillId": 9081,
+      "interruptAfterMs": 1467
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "wait",
+      "durationMs": 13
     },
     {
-      "name": "Leap of Faith",
-      "skillId": 9080
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 280
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
+      "skillId": 9080,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 167
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Gleaming Disc",
+      "type": "cast",
       "skillId": 72978
     },
     {
-      "name": "Procession of Blades",
+      "type": "cast",
       "skillId": 30364
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 320
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Solar Storm",
+      "type": "cast",
       "skillId": 73094
     },
     {
-      "name": "Spear of Justice",
+      "type": "cast",
       "skillId": 29887
     },
     {
-      "name": "Helio Rush",
+      "type": "cast",
       "skillId": 72940,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Symbol of Luminance",
+      "type": "cast",
       "skillId": 73132
     },
     {
-      "name": "Sword of Justice",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Purification",
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
       "skillId": 30025
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Gleaming Disc",
+      "type": "cast",
       "skillId": 72978
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 33
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146
     },
     {
-      "name": "Whirling Wrath",
-      "skillId": 9081
+      "type": "cast",
+      "skillId": 9081,
+      "interruptAfterMs": 1467
     },
     {
-      "name": "__wait",
-      "waitMs": 33
+      "type": "wait",
+      "durationMs": 13
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
+      "skillId": 9137,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Binding Blade",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Procession of Blades",
+      "type": "cast",
       "skillId": 30364
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "__wait",
-      "waitMs": 67
+      "type": "cast",
+      "skillId": 9138,
+      "interruptAfterMs": 80
     },
     {
-      "name": "Whirling Wrath",
-      "skillId": 9081
+      "type": "cast",
+      "skillId": 9081,
+      "interruptAfterMs": 1467
     },
     {
-      "name": "Strike",
+      "type": "wait",
+      "durationMs": 13
+    },
+    {
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "__wait",
-      "waitMs": 33
+      "type": "cast",
+      "skillId": 9138,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 240
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 166
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Gleaming Disc",
-      "skillId": 72978
+      "type": "cast",
+      "skillId": 72978,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Spear of Justice",
+      "type": "cast",
       "skillId": 29887
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Helio Rush",
-      "skillId": 72940
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Procession of Blades",
+      "type": "cast",
       "skillId": 30364
     },
     {
-      "name": "Symbol of Luminance",
+      "type": "cast",
       "skillId": 73132
     },
     {
-      "name": "Solar Storm",
-      "skillId": 73094
+      "type": "cast",
+      "skillId": 73094,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Gleaming Disc",
-      "skillId": 72978
+      "type": "cast",
+      "skillId": 72978,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 134
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "cast",
+      "skillId": 9137,
+      "interruptAfterMs": 80
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 240
+    },
+    {
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "__wait",
-      "waitMs": 67
+      "type": "cast",
+      "skillId": 9137,
+      "interruptAfterMs": 80
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Strike",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Dragon's Maw",
+      "type": "cast",
       "skillId": 30273
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139
     },
     {
-      "name": "Spear of Justice",
-      "skillId": 29887
+      "type": "cast",
+      "skillId": 29887,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Whirling Wrath",
-      "skillId": 9081
+      "type": "cast",
+      "skillId": 9081,
+      "interruptAfterMs": 1466
     },
     {
-      "name": "Procession of Blades",
+      "type": "wait",
+      "durationMs": 14
+    },
+    {
+      "type": "cast",
       "skillId": 30364
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 280
     },
     {
-      "name": "Leap of Faith",
-      "skillId": 9080
+      "type": "cast",
+      "skillId": 9080,
+      "interruptAfterMs": 680
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 67
-    },
-    {
-      "name": "Gleaming Disc",
+      "type": "cast",
       "skillId": 72978
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 240
     },
     {
-      "name": "Solar Storm",
+      "type": "cast",
       "skillId": 73094
     },
     {
-      "name": "Sword of Justice",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Symbol of Luminance",
+      "type": "cast",
       "skillId": 73132
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 440
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "__wait",
-      "waitMs": 103
-    },
-    {
-      "name": "Purification",
+      "type": "cast",
       "skillId": 30025
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Helio Rush",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 72940,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Gleaming Disc",
+      "type": "cast",
       "skillId": 72978
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 100
+      "type": "cast",
+      "skillId": 9137,
+      "interruptAfterMs": 80
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 280
     },
     {
-      "name": "Whirling Wrath",
-      "skillId": 9081
+      "type": "cast",
+      "skillId": 9081,
+      "interruptAfterMs": 1466
     },
     {
-      "name": "__wait",
-      "waitMs": 166
+      "type": "wait",
+      "durationMs": 14
     },
     {
-      "name": "Spear of Justice",
+      "type": "cast",
+      "skillId": 9137,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
       "skillId": 29887
     },
     {
-      "name": "__wait",
-      "waitMs": 34
+      "type": "cast",
+      "skillId": 9137,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Procession of Blades",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 30364
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "__wait",
-      "waitMs": 20
-    },
-    {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 520
+      "interruptAfterMs": 520
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "__wait",
-      "waitMs": 34
+      "type": "cast",
+      "skillId": 9138,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 240
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 167
+      "type": "wait",
+      "durationMs": 160
     },
     {
-      "name": "Gleaming Disc",
-      "skillId": 72978
+      "type": "cast",
+      "skillId": 72978,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Helio Rush",
+      "type": "cast",
       "skillId": 72940,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "cast",
+      "skillId": 73055,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Daybreaking Slash",
+      "type": "cast",
       "skillId": 73055
     },
     {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Daybreaking Slash",
-      "skillId": 73055
-    },
-    {
-      "name": "Procession of Blades",
+      "type": "cast",
       "skillId": 30364
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Spear of Justice",
+      "type": "cast",
       "skillId": 29887
     },
     {
-      "name": "Symbol of Luminance",
+      "type": "cast",
       "skillId": 73132
     },
     {
-      "name": "Helio Rush",
-      "skillId": 72940
+      "type": "cast",
+      "skillId": 72940,
+      "interruptAfterMs": 320
     },
     {
-      "name": "Solar Storm",
+      "type": "cast",
       "skillId": 73094
     },
     {
-      "name": "Gleaming Disc",
+      "type": "cast",
       "skillId": 72978
     },
     {
-      "name": "Swap Weapons",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 100
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Whirling Wrath",
-      "skillId": 9081
+      "type": "cast",
+      "skillId": 9081,
+      "interruptAfterMs": 1434
     },
     {
-      "name": "Symbol of Resolution",
-      "skillId": 9146
+      "type": "wait",
+      "durationMs": 6
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
+      "skillId": 9146,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Dragon's Maw",
+      "type": "cast",
       "skillId": 30273
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     }
   ]

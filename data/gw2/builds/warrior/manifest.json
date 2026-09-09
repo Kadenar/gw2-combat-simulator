@@ -18,7 +18,7 @@
         "label": "Power (Spear + Greatsword)",
         "build": "data/gw2/builds/warrior/b-power-berserker-spear-greatsword.json",
         "rotation": "data/gw2/rotations/warrior/r-power-berserker-spear-greatsword-bench.json",
-        "benchmarkDps": 42293,
+        "benchmarkDps": 42291,
         "upToDate": true
       },
       {
@@ -45,14 +45,14 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 42854,
+        "benchmarkDps": 42855,
         "upToDate": true
       },
       {
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 43358,
+        "benchmarkDps": 43359,
         "upToDate": true
       },
       {
@@ -72,7 +72,7 @@
         "label": "Power (Sword/Axe + Dagger/Mace)",
         "build": "data/gw2/builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
-        "benchmarkDps": 42315,
+        "benchmarkDps": 42312,
         "upToDate": true
       }
     ]
