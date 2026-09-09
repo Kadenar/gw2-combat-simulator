@@ -1,3 +1,5 @@
+import { bindDialog, showDialog } from '#app/dialog.js';
+
 const TUTORIAL_DIALOG_ID = 'simulator-tutorial-dialog';
 const DEFAULT_TUTORIAL_ID = 'quick-start';
 
@@ -91,7 +93,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
           <p class="tutorial-dialog-eyebrow">Tutorials</p>
           <h2 id="simulator-tutorial-title">How to use the simulator</h2>
         </div>
-        <button type="button" class="tutorial-dialog-close" data-tutorial-close aria-label="Close tutorial">&times;</button>
+        <button type="button" class="tutorial-dialog-close" data-dialog-close aria-label="Close tutorial">&times;</button>
       </div>
       <div class="tutorial-picker" role="group" aria-label="Choose a tutorial">
         <button type="button" class="tutorial-picker-button" data-tutorial-choice="quick-start" aria-pressed="true">Quick start</button>
@@ -115,7 +117,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
           </ol>
           <div class="tutorial-dialog-actions">
             <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
-            <button type="button" class="btn btn-clear" data-tutorial-close>Close</button>
+            <button type="button" class="btn btn-clear" data-dialog-close>Close</button>
           </div>
         </div>
       </div>
@@ -136,7 +138,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
           </ol>
           <div class="tutorial-dialog-actions">
             <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
-            <button type="button" class="btn btn-clear" data-tutorial-close>Close</button>
+            <button type="button" class="btn btn-clear" data-dialog-close>Close</button>
           </div>
         </div>
       </div>
@@ -161,7 +163,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
           </aside>
           <div class="tutorial-dialog-actions">
             <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
-            <button type="button" class="btn btn-clear" data-tutorial-close>Close</button>
+            <button type="button" class="btn btn-clear" data-dialog-close>Close</button>
           </div>
         </div>
       </div>
@@ -189,18 +191,11 @@ export function mountSimulatorTutorial(root: Document = document): void {
 
   const motionPreference = root.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)');
   const shouldPlay = (): boolean => !motionPreference?.matches;
-  const closeDialog = (): void => {
-    activateTutorialPanel(dialog, activeTutorialId, false);
-    if (typeof dialog.close === 'function') dialog.close();
-    else dialog.removeAttribute('open');
-  };
+  bindDialog(dialog);
 
   // Route every launcher through one opener so the header and landing page share tutorial state.
   const openDialog = (): void => {
-    if (!dialog.open) {
-      if (typeof dialog.showModal === 'function') dialog.showModal();
-      else dialog.setAttribute('open', '');
-    }
+    showDialog(dialog);
 
     activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   };
@@ -209,18 +204,11 @@ export function mountSimulatorTutorial(root: Document = document): void {
     tutorialTrigger.addEventListener('click', openDialog);
   });
   dialog.addEventListener('click', (event) => {
-    if (event.target === dialog) {
-      closeDialog();
-      return;
-    }
-
     const target = event.target as { closest?: (selector: string) => Element };
     const choice = target.closest?.('[data-tutorial-choice]') as HTMLElement | undefined;
     if (choice?.dataset.tutorialChoice) {
       activeTutorialId = choice.dataset.tutorialChoice;
       activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
-    } else if (target.closest?.('[data-tutorial-close]')) {
-      closeDialog();
     } else if (target.closest?.('[data-tutorial-replay]')) {
       const image = dialog.querySelector<HTMLImageElement>(
         `[data-tutorial-panel="${activeTutorialId}"] .tutorial-animation`

@@ -1,5 +1,6 @@
 /** Owns the simulator page's rotation workspace layout, focus mode, and live DPS chrome. */
-import { showEmbeddedDialog, trackEmbeddedViewport } from '#app/embed.js';
+import { trackEmbeddedViewport } from '#app/embed.js';
+import { bindDialog, showDialog } from '#app/dialog.js';
 
 export type RotationWorkspaceAction = 'toggle-config' | 'close-config' | 'toggle-focus' | 'escape';
 
@@ -149,7 +150,7 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   controller.configPanel.toggleAttribute('aria-modal', state.configOpen);
   if (controller.configDialog) {
     if (state.configOpen && !previous.configOpen) {
-      controller.stopConfigViewport = showEmbeddedDialog(controller.configDialog);
+      controller.stopConfigViewport = showDialog(controller.configDialog);
     } else if (!state.configOpen) {
       controller.stopConfigViewport?.();
       controller.stopConfigViewport = undefined;
@@ -334,22 +335,7 @@ export function mountRotationWorkspace(root: Document = document): void {
 
   configButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-config', true));
   configCloseButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'close-config', true));
-  configDialog?.addEventListener('cancel', (event) => {
-    event.preventDefault();
-    dispatchWorkspaceAction(controller, 'close-config', true);
-  });
-  configDialog?.addEventListener('click', (event) => {
-    if (event.target !== configDialog) return;
-    const bounds = configDialog.getBoundingClientRect();
-    if (
-      event.clientX < bounds.left ||
-      event.clientX > bounds.right ||
-      event.clientY < bounds.top ||
-      event.clientY > bounds.bottom
-    ) {
-      dispatchWorkspaceAction(controller, 'close-config', true);
-    }
-  });
+  if (configDialog) bindDialog(configDialog, () => dispatchWorkspaceAction(controller, 'close-config', true));
   focusButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-focus'));
   root.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || event.defaultPrevented) return;

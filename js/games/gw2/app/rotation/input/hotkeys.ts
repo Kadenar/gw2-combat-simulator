@@ -1,3 +1,4 @@
+import { bindDialog, showDialog } from '#app/dialog.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import { shouldIgnoreHotkey } from '#ui/shared/dom.js';
 
@@ -434,12 +435,7 @@ function ensureStyles(document: Document): void {
     /* Let active hotkey badges sit just above the tile without moving its cooldown or clipping the badge. */
     .pal-skill:has(> .pal-hotkey) { overflow:visible; }
     .rotation-panel:not(.rotation-hotkeys-active) .pal-hotkey { opacity:.45; }
-    .rotation-hotkey-dialog { position:fixed; inset:0; width:min(720px, calc(100vw - 32px));
-      max-height:calc(100vh - 32px); margin:auto; padding:0; overflow:auto;
-      border:1px solid var(--border-light); border-radius:8px;
-      background:var(--bg-panel); color:var(--text); box-shadow:0 18px 60px rgba(0,0,0,.65); }
-    .rotation-hotkey-dialog::backdrop { background:rgba(5,7,12,.78); }
-    .rotation-hotkey-form { padding:18px; }
+    .rotation-hotkey-dialog { --dialog-width:720px; }
     .rotation-hotkey-form h3 { margin:0 0 6px; }
     .rotation-hotkey-intro { margin:0 0 10px; color:var(--text-dim); font-size:12px; }
     .rotation-hotkey-enable { display:flex; align-items:center; gap:7px; margin:0 0 14px;
@@ -455,7 +451,6 @@ function ensureStyles(document: Document): void {
     .rotation-hotkey-field input:focus { border-color:var(--accent); outline:1px solid var(--accent); }
     .rotation-hotkey-import-status { margin:12px 0 0; color:var(--health); font-size:11px; }
     .rotation-hotkey-error { margin:12px 0 0; color:var(--condi); font-size:11px; }
-    .rotation-hotkey-actions { display:flex; justify-content:flex-end; gap:6px; margin-top:14px; }
     @media (max-width:700px) { .rotation-hotkey-groups { grid-template-columns:1fr; } }
   `;
   document.head.append(style);
@@ -516,7 +511,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
   const dialog = document.createElement('dialog');
   dialog.className = 'rotation-hotkey-dialog';
   dialog.setAttribute('aria-labelledby', 'rotation-hotkey-title');
-  dialog.innerHTML = `<form class="rotation-hotkey-form" method="dialog">
+  dialog.innerHTML = `<form class="rotation-hotkey-form app-dialog-body" method="dialog">
     <h3 id="rotation-hotkey-title">Rotation hotkeys</h3>
     <p class="rotation-hotkey-intro">Hotkeys are enabled by default. Click the rotation panel to activate them. Bindings apply to every profession.</p>
     <label class="rotation-hotkey-enable">
@@ -531,17 +526,18 @@ function ensureDialog(controller: RotationHotkeyController): void {
     <div class="rotation-hotkey-groups">${hotkeyFieldsHtml()}</div>
     <p class="rotation-hotkey-import-status" role="status" hidden></p>
     <p class="rotation-hotkey-error" role="alert" hidden></p>
-    <div class="rotation-hotkey-actions">
+    <div class="rotation-hotkey-actions app-dialog-actions">
       ${
         controller.keybindImport
           ? `<button type="button" class="btn btn-io" data-hotkey-import>${escapeHtml(controller.keybindImport.label)}</button>`
           : ''
       }
       <button type="button" class="btn btn-undo" data-hotkey-reset>Reset defaults</button>
-      <button type="button" class="btn" data-hotkey-cancel>Cancel</button>
+      <button type="button" class="btn" data-dialog-close>Cancel</button>
       <button type="button" class="btn btn-run" data-hotkey-save>Save</button>
     </div>
   </form>`;
+  bindDialog(dialog);
   document.body.append(dialog);
   controller.dialog = dialog;
 
@@ -644,7 +640,6 @@ function ensureDialog(controller: RotationHotkeyController): void {
   dialog.querySelector('[data-hotkey-reset]')?.addEventListener('click', () => {
     populateDialog(controller, defaultRotationHotkeyBindings());
   });
-  dialog.querySelector('[data-hotkey-cancel]')?.addEventListener('click', () => dialog.close());
   dialog.querySelector('[data-hotkey-save]')?.addEventListener('click', () => {
     const bindings = dialogBindings(dialog);
     const enabled = Boolean(dialog.querySelector<HTMLInputElement>('[data-hotkey-enabled]')?.checked);
@@ -701,7 +696,7 @@ function ensureControls(controller: RotationHotkeyController): void {
   button.addEventListener('click', () => {
     ensureDialog(controller);
     populateDialog(controller);
-    controller.dialog?.showModal();
+    if (controller.dialog) showDialog(controller.dialog);
   });
   const sharedControls = heading.querySelector('.rotation-builder-controls');
   const focusButton = sharedControls?.querySelector('.rotation-focus-toggle');

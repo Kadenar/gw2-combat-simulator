@@ -1,3 +1,4 @@
+import { bindDialog, showDialog } from '#app/dialog.js';
 import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
@@ -13,7 +14,6 @@ interface BuildTemplateDialogElements {
   readonly code: HTMLTextAreaElement;
   readonly previewButton: HTMLButtonElement;
   readonly applyButton: HTMLButtonElement;
-  readonly closeButtons: readonly HTMLButtonElement[];
   readonly error: HTMLElement;
   readonly switchProfession: HTMLAnchorElement;
   readonly preview: HTMLElement;
@@ -31,10 +31,8 @@ function ensureStyles(document: Document): void {
   style.id = 'build-template-import-styles';
   style.textContent = `
     .build-template-import { margin-left:auto; letter-spacing:normal; text-transform:none; }
-    .build-template-import-dialog { position:fixed; inset:0; width:min(760px, calc(100vw - 28px));
-      max-height:calc(100vh - 28px); margin:auto; padding:0; overflow:auto;
-      border:1px solid var(--border-light); border-radius:12px; background:var(--bg-panel);
-      color:var(--text); box-shadow:0 22px 80px rgba(0,0,0,.72); }
+    .build-template-import-dialog { --dialog-width:760px; --dialog-gap:28px;
+      border-radius:12px; box-shadow:0 22px 80px rgba(0,0,0,.72); }
     .build-template-import-dialog::backdrop { background:rgba(3,6,12,.82); backdrop-filter:blur(3px); }
     .build-template-import-header { display:flex; align-items:flex-start; gap:18px; padding:20px 22px;
       text-align:left;
@@ -82,7 +80,7 @@ function ensureStyles(document: Document): void {
     .build-template-preview-item small { display:block; color:var(--text-dim); font-size:10px; }
     .build-template-import-warnings { margin:0; padding:10px 12px; border-top:1px solid #8b6a25;
       background:rgba(166,124,34,.09); color:#e0bd68; font-size:11px; line-height:1.5; white-space:pre-wrap; }
-    .build-template-import-actions { display:flex; justify-content:flex-end; gap:7px; margin-top:18px; padding-top:16px;
+    .build-template-import-actions { gap:7px; margin-top:18px; padding-top:16px;
       border-top:1px solid var(--border); }
     .build-template-import-actions [data-build-template-apply]:disabled { opacity:.45; cursor:not-allowed; }
     @media (max-width:640px) { .build-template-preview-grid { grid-template-columns:1fr; }
@@ -110,11 +108,11 @@ function createDialog(document: Document): BuildTemplateDialogElements {
         <p class="build-template-import-eyebrow">In-game build import</p>
         <h3 id="build-template-import-title">Preview Guild Wars 2 build</h3>
       </div>
-      <button type="button" class="build-template-import-close" data-build-template-close aria-label="Close">&times;</button>
+      <button type="button" class="build-template-import-close" data-dialog-close aria-label="Close">&times;</button>
     </header>
     <div class="build-template-import-body">
       <label class="build-template-code-label" for="build-template-code">Build chat code</label>
-      <textarea id="build-template-code" class="build-template-code" data-build-template-code spellcheck="false" placeholder="[&amp;DQ...=]"></textarea>
+      <textarea id="build-template-code" class="build-template-code" data-build-template-code autofocus spellcheck="false" placeholder="[&amp;DQ...=]"></textarea>
       <div class="build-template-preview-row">
         <button type="button" class="btn btn-io" data-build-template-preview>Preview build</button>
       </div>
@@ -142,19 +140,19 @@ function createDialog(document: Document): BuildTemplateDialogElements {
         </div>
         <p class="build-template-import-warnings" data-build-template-warnings hidden></p>
       </section>
-      <footer class="build-template-import-actions">
-        <button type="button" class="btn" data-build-template-close>Cancel</button>
+      <footer class="build-template-import-actions app-dialog-actions">
+        <button type="button" class="btn" data-dialog-close>Cancel</button>
         <button type="button" class="btn btn-io" data-build-template-apply disabled>Apply build</button>
       </footer>
     </div>
   </div>`;
+  bindDialog(dialog);
   document.body.append(dialog);
   return {
     dialog,
     code: required(dialog, '[data-build-template-code]'),
     previewButton: required(dialog, '[data-build-template-preview]'),
     applyButton: required(dialog, '[data-build-template-apply]'),
-    closeButtons: [...dialog.querySelectorAll<HTMLButtonElement>('[data-build-template-close]')],
     error: required(dialog, '[data-build-template-error]'),
     switchProfession: required(dialog, '[data-build-template-switch]'),
     preview: required(dialog, '[data-build-template-result]'),
@@ -280,8 +278,7 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
   button.addEventListener('click', () => {
     elements.code.value = '';
     clearResult();
-    elements.dialog.showModal();
-    elements.code.focus();
+    showDialog(elements.dialog);
   });
   elements.code.addEventListener('input', clearResult);
   elements.code.addEventListener('keydown', (event) => {
@@ -296,12 +293,5 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
     const selectedWeapons = activePreview.weaponOptions[Number(elements.weaponSelect.value)] ?? activePreview.weapons;
     applyBuildTemplatePreview(app, activePreview, selectedWeapons);
     elements.dialog.close();
-  });
-  for (const closeButton of elements.closeButtons) {
-    closeButton.addEventListener('click', () => elements.dialog.close());
-  }
-
-  elements.dialog.addEventListener('click', (event) => {
-    if (event.target === elements.dialog) elements.dialog.close();
   });
 }

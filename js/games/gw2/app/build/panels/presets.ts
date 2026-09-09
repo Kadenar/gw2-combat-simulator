@@ -1,5 +1,5 @@
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
-import { showEmbeddedDialog } from '#app/embed.js';
+import { bindDialog, showDialog } from '#app/dialog.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
 import { replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
@@ -382,8 +382,9 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       container.querySelector('.build-templates-header')!.append(close);
       dialog.append(container.querySelector('.build-templates-panel')!);
       container.append(browse, dialog, dialog.querySelector('.template-toast')!);
-      browse.addEventListener('click', () => showEmbeddedDialog(dialog));
-      close.addEventListener('click', () => dialog.close());
+      close.dataset.dialogClose = '';
+      bindDialog(dialog);
+      browse.addEventListener('click', () => showDialog(dialog));
       dialog.addEventListener('close', () => closeTemplateMenus(container));
     }
 

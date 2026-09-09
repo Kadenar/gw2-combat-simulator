@@ -1,3 +1,4 @@
+import { bindDialog, showDialog } from '#app/dialog.js';
 import { fetchJsonAsset, getRotationItems, readJsonFile } from '#gw2/app/build/io/files.js';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc-rotation-import.js';
 import { readDpsReportRotationData, readDpsReportRotationUrl } from '#gw2/app/build/io/dps-report-rotation-import.js';
@@ -148,12 +149,6 @@ function ensureStyles(document: Document): void {
   const style = document.createElement('style');
   style.id = 'rotation-import-styles';
   style.textContent = `
-    .rotation-import-dialog { position:fixed; inset:0; width:min(560px, calc(100vw - 32px));
-      max-height:calc(100vh - 32px); margin:auto; padding:0; overflow:auto;
-      border:1px solid var(--border-light); border-radius:8px; background:var(--bg-panel);
-      color:var(--text); box-shadow:0 18px 60px rgba(0,0,0,.65); }
-    .rotation-import-dialog::backdrop { background:rgba(5,7,12,.78); }
-    .rotation-import-form { padding:18px; }
     .rotation-import-form h3 { margin:0 0 6px; color:var(--text-bright); }
     .rotation-import-intro { margin:0 0 14px; color:var(--text-dim); font-size:12px; line-height:1.5; }
     .rotation-import-experimental { margin:0 0 14px; padding:8px 10px; border:1px solid #a67c22;
@@ -185,7 +180,6 @@ function ensureStyles(document: Document): void {
     .rotation-import-observation-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
     .rotation-import-observation-summary { color:var(--text); }
     .rotation-import-observation-detail { display:block; margin-top:4px; color:var(--text-dim); }
-    .rotation-import-actions { display:flex; justify-content:flex-end; gap:6px; margin-top:14px; }
     .rotation-import-actions [data-rotation-import-apply]:disabled { opacity:.45; cursor:not-allowed; }
   `;
   document.head.append(style);
@@ -199,7 +193,7 @@ function createDialog(document: Document, destination: RotationImportDestination
   dialog.className = 'rotation-import-dialog';
   dialog.dataset.rotationImportDestination = destination;
   dialog.setAttribute('aria-labelledby', titleId);
-  dialog.innerHTML = `<form class="rotation-import-form" method="dialog">
+  dialog.innerHTML = `<form class="rotation-import-form app-dialog-body" method="dialog">
     <h3 id="${titleId}">${reference ? 'Load reference rotation' : 'Load rotation'}</h3>
     <p class="rotation-import-intro">Load a saved rotation JSON, reconstruct an ArcDPS EVTC log, or import the Elite Insights casts from a dps.report link.</p>
     <p class="rotation-import-experimental"><strong>Experimental:</strong> Combat-log import may produce incomplete or inaccurate rotations. dps.report omits some raw EVTC evidence, so review the imported rotation before relying on it.</p>
@@ -226,11 +220,12 @@ function createDialog(document: Document, destination: RotationImportDestination
     <p class="rotation-import-error" role="alert" data-rotation-import-error hidden></p>
     <div class="rotation-import-warnings" aria-label="Import notices" data-rotation-import-warnings hidden></div>
     <div class="rotation-import-observations" aria-label="Combat log observations" data-rotation-import-observations hidden></div>
-    <div class="rotation-import-actions">
-      <button type="button" class="btn" data-rotation-import-close>Cancel</button>
+    <div class="rotation-import-actions app-dialog-actions">
+      <button type="button" class="btn" data-dialog-close>Cancel</button>
       <button type="button" class="btn btn-io" data-rotation-import-apply disabled>${reference ? 'Use as reference' : 'Apply rotation'}</button>
     </div>
   </form>`;
+  bindDialog(dialog);
   document.body.append(dialog);
 
   const dropZone = dialog.querySelector<HTMLElement>('[data-rotation-import-drop]');
@@ -244,7 +239,7 @@ function createDialog(document: Document, destination: RotationImportDestination
   const presetSelect = dialog.querySelector<HTMLSelectElement>('[data-rotation-import-preset]');
   const presetButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-preset-load]');
   const applyButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-apply]');
-  const closeButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-close]');
+  const closeButton = dialog.querySelector<HTMLButtonElement>('[data-dialog-close]');
   if (
     !dropZone ||
     !status ||
@@ -479,7 +474,7 @@ export function bindRotationImportDialog(
 
   button.addEventListener('click', () => {
     resetMessages();
-    elements.dialog.showModal();
+    showDialog(elements.dialog);
     void populateManifestRotations();
   });
   elements.browseButton.addEventListener('click', () => fileInput.click());
@@ -509,7 +504,6 @@ export function bindRotationImportDialog(
     activePreview = null;
     elements.dialog.close();
   });
-  elements.closeButton.addEventListener('click', () => elements.dialog.close());
   elements.dialog.addEventListener('close', () => {
     importGeneration += 1;
     activePreview = null;

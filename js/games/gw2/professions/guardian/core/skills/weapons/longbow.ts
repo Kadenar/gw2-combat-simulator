@@ -61,10 +61,13 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.PUNCTURE_SHOT]: {
     castTimeMs: 1000,
+    // The shot has committed by its observed impact; cancelling the remaining animation preserves the projectile.
+    interruptCommitMs: 560,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 600, coefficient: 1 }],
+        ticks: [{ atMs: 560, coefficient: 1 }],
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

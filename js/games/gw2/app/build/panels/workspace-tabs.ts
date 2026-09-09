@@ -1,3 +1,4 @@
+import { bindDialog, showDialog } from '#app/dialog.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -13,8 +14,8 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
     <h2 id="build-rename-title">Rename build</h2>
     <label for="build-rename-name">Build name</label>
     <input id="build-rename-name" name="name" type="text" maxlength="80" required autocomplete="off" autofocus>
-    <div class="build-rename-actions">
-      <button type="button" class="btn btn-io" data-cancel>Cancel</button>
+    <div class="build-rename-actions app-dialog-actions">
+      <button type="button" class="btn btn-io" data-dialog-close>Cancel</button>
       <button type="submit" class="btn btn-io">Save</button>
     </div>
   </form>`;
@@ -32,7 +33,7 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
     saveBuildWorkspace(app);
     dialog.close();
   });
-  dialog.querySelector('[data-cancel]')!.addEventListener('click', () => dialog.close());
+  bindDialog(dialog);
   dialog.addEventListener('close', () => {
     dialog.remove();
     renderBuildTabs(app);
@@ -41,8 +42,8 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
       ?.focus({ preventScroll: true });
   });
   document.body.append(dialog);
-  dialog.showModal();
-  input.select();
+  input.addEventListener('focus', () => input.select(), { once: true });
+  showDialog(dialog);
 }
 
 /** Keeps one editor mounted while ordinary buttons select independent build sessions. */

@@ -70,22 +70,6 @@ export function trackEmbeddedViewport(
   };
 }
 
-/** Position before opening so native autofocus cannot scroll a tall iframe toward an offscreen dialog. */
-export function showEmbeddedDialog(dialog: HTMLDialogElement): () => void {
-  const stopTracking = trackEmbeddedViewport(dialog, {
-    onVisible: () => {
-      if (!dialog.open) dialog.showModal();
-    }
-  });
-  const stop = (): void => {
-    dialog.removeEventListener('close', stop);
-    stopTracking();
-  };
-
-  dialog.addEventListener('close', stop, { once: true });
-  return stop;
-}
-
 /** True when the current page was opened in embed mode (`?embed` / `?embed=1`). */
 export function isEmbedded(): boolean {
   try {
