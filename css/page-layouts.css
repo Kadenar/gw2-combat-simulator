@@ -507,9 +507,9 @@
   padding-top: 0;
 }
 
-/* Auto-sized iframes can be much taller than a screen; keep the focused workspace bounded. */
+/* Host viewport tracking bounds focus without shrinking the iframe and displacing the host's scroll position. */
 .embed body[data-rotation-focus] .rotation-section {
-  max-height: 900px;
+  max-height: var(--embed-viewport-height, 900px);
 }
 
 /* Fixed-height hosts may leave room below the capped workspace; cover the underlying editor there too. */
@@ -521,12 +521,12 @@
   background: var(--bg-dark);
 }
 
-/* Center embedded settings in the frame and keep the heading visible while its controls scroll. */
+/* Center settings in the visible host viewport and keep the heading visible while its controls scroll. */
 .embed dialog.perma-section {
   inset: 0;
-  width: min(560px, calc(100% - 24px));
+  width: min(560px, calc(var(--embed-viewport-width, 100vw) - 24px));
   max-width: none;
-  max-height: calc(100% - 24px);
+  max-height: calc(var(--embed-viewport-height, 100vh) - 24px);
   margin: auto;
   padding: 0;
   overflow: hidden;

@@ -1,4 +1,5 @@
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { showEmbeddedDialog } from '#app/embed.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
 import { replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
@@ -261,33 +262,6 @@ function closeTemplateMenus(container: ParentNode | null | undefined): void {
     .forEach((details) => details.removeAttribute('open'));
 }
 
-function showTemplateDialog(dialog: HTMLDialogElement): void {
-  // Intersection geometry includes the host viewport, even when a cross-origin iframe is taller than the screen.
-  let frame = 0;
-  const observer = new IntersectionObserver(([entry]) => {
-    const rect = entry.intersectionRect;
-    if (rect.width > 0 && rect.height > 0) {
-      dialog.style.inset = `${rect.top}px ${innerWidth - rect.right}px ${innerHeight - rect.bottom}px ${rect.left}px`;
-      dialog.style.setProperty('--template-viewport-height', `${rect.height}px`);
-      dialog.style.setProperty('--template-viewport-width', `${rect.width}px`);
-      if (!dialog.open) dialog.showModal();
-    }
-
-    // Parent scrolling can move the visible rectangle without changing its intersection ratio.
-    observer.disconnect();
-    frame = requestAnimationFrame(() => observer.observe(document.documentElement));
-  });
-  dialog.addEventListener(
-    'close',
-    () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    },
-    { once: true }
-  );
-  observer.observe(document.documentElement);
-}
-
 function mountBuildTemplateLayout(container: HTMLElement): void {
   const buildEditor = document.querySelector<HTMLElement>('.build-editor');
   if (!buildEditor) return;
@@ -408,7 +382,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       container.querySelector('.build-templates-header')!.append(close);
       dialog.append(container.querySelector('.build-templates-panel')!);
       container.append(browse, dialog, dialog.querySelector('.template-toast')!);
-      browse.addEventListener('click', () => showTemplateDialog(dialog));
+      browse.addEventListener('click', () => showEmbeddedDialog(dialog));
       close.addEventListener('click', () => dialog.close());
       dialog.addEventListener('close', () => closeTemplateMenus(container));
     }

@@ -2,7 +2,7 @@
  * Embed support for hosting the simulator inside a parent page (e.g. an
  * `<iframe>` on another site).
  *
- * Two concerns:
+ * Three concerns:
  *  1. Iframe auto-resize — reports document height to the parent via
  *     `postMessage` so the host can size the frame to its content.
  *  2. Embed chrome — when the page is opened with `?embed=1`, a top-level
@@ -10,6 +10,8 @@
  *     sections) can be hidden in CSS, and internal navigation is rewritten to
  *     preserve the flag so the whole tool stays embedded as the user moves
  *     between the landing page and profession pages.
+ *  3. Host viewport tracking — keeps embedded dialogs and focus mode in the
+ *     visible browser area while the parent page scrolls and resizes.
  *
  * Importing this module in a browser initializes both automatically. Importing
  * it outside a browser has no side effect.
@@ -26,6 +28,51 @@ export const EMBED_HEIGHT_MESSAGE = 'gw2sim:height';
  * other frames reading the height signal.
  */
 const HOST_ORIGIN = '*';
+
+/** Tracks the visible host area without requiring access to a cross-origin parent document. */
+export function trackEmbeddedViewport(element: HTMLElement, onVisible?: () => void): () => void {
+  const root = element.ownerDocument;
+  const view = root.defaultView!;
+  let frame = 0;
+  let stopped = false;
+  const observer = new IntersectionObserver(([entry]) => {
+    if (stopped) return;
+    const rect = entry.intersectionRect;
+    if (rect.width > 0 && rect.height > 0) {
+      element.style.inset = `${rect.top}px ${view.innerWidth - rect.right}px ${view.innerHeight - rect.bottom}px ${rect.left}px`;
+      element.style.setProperty('--embed-viewport-height', `${rect.height}px`);
+      element.style.setProperty('--embed-viewport-width', `${rect.width}px`);
+      onVisible?.();
+    }
+
+    // Host scrolling can move the visible rectangle without changing its intersection ratio.
+    observer.disconnect();
+    frame = view.requestAnimationFrame(() => observer.observe(root.documentElement));
+  });
+  observer.observe(root.documentElement);
+  return () => {
+    stopped = true;
+    view.cancelAnimationFrame(frame);
+    observer.disconnect();
+    element.style.removeProperty('inset');
+    element.style.removeProperty('--embed-viewport-height');
+    element.style.removeProperty('--embed-viewport-width');
+  };
+}
+
+/** Position before opening so native autofocus cannot scroll a tall iframe toward an offscreen dialog. */
+export function showEmbeddedDialog(dialog: HTMLDialogElement): () => void {
+  const stopTracking = trackEmbeddedViewport(dialog, () => {
+    if (!dialog.open) dialog.showModal();
+  });
+  const stop = (): void => {
+    dialog.removeEventListener('close', stop);
+    stopTracking();
+  };
+
+  dialog.addEventListener('close', stop, { once: true });
+  return stop;
+}
 
 /** True when the current page was opened in embed mode (`?embed` / `?embed=1`). */
 export function isEmbedded(): boolean {
@@ -72,12 +119,12 @@ function decorateStaticLinks(root: Document): void {
 
 /** Reports the document height to the host frame for iframe auto-resize. */
 function setupResizeReporter(root: Document): void {
+  let lastHeight = 0;
   const post = (): void => {
-    // Focus replaces the visible document, so let auto-sizing hosts shrink away the hidden editor's height.
+    // Preserve host scroll position during focus; its workspace follows the visible viewport inside the existing frame.
     const focusedWorkspace = root.querySelector('.embed body[data-rotation-focus] .rotation-section');
-    const height = focusedWorkspace
-      ? Math.ceil(focusedWorkspace.getBoundingClientRect().height)
-      : root.documentElement.scrollHeight;
+    const height = focusedWorkspace && lastHeight ? lastHeight : root.documentElement.scrollHeight;
+    lastHeight = height;
     globalThis.parent?.postMessage({ type: EMBED_HEIGHT_MESSAGE, height, url: globalThis.location?.href }, HOST_ORIGIN);
   };
 

@@ -1,4 +1,6 @@
 /** Owns the simulator page's rotation workspace layout, focus mode, and live DPS chrome. */
+import { showEmbeddedDialog, trackEmbeddedViewport } from '#app/embed.js';
+
 export type RotationWorkspaceAction = 'toggle-config' | 'close-config' | 'toggle-focus' | 'escape';
 
 export type RotationWorkspaceState = Readonly<{
@@ -18,6 +20,9 @@ type RotationWorkspaceController = {
   configPanel: HTMLElement;
   document: Document;
   focusButton: HTMLButtonElement;
+  rotationSection: HTMLElement;
+  stopConfigViewport?: () => void;
+  stopFocusViewport?: () => void;
   focusScrollPosition?: Readonly<{ left: number; top: number }>;
   state: RotationWorkspaceState;
 };
@@ -143,12 +148,23 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   controller.configPanel.setAttribute('role', 'dialog');
   controller.configPanel.toggleAttribute('aria-modal', state.configOpen);
   if (controller.configDialog) {
-    if (state.configOpen && !controller.configDialog.open) controller.configDialog.showModal();
-    else if (!state.configOpen && controller.configDialog.open) controller.configDialog.close();
+    if (state.configOpen && !previous.configOpen) {
+      controller.stopConfigViewport = showEmbeddedDialog(controller.configDialog);
+    } else if (!state.configOpen) {
+      controller.stopConfigViewport?.();
+      controller.stopConfigViewport = undefined;
+      if (controller.configDialog.open) controller.configDialog.close();
+    }
   }
 
   controller.focusButton.setAttribute('aria-pressed', String(state.focus));
   controller.focusButton.textContent = state.focus ? 'Exit focus' : 'Focus';
+
+  // Place focus where the host is already scrolled instead of jumping to the top of a tall iframe.
+  if (previous.focus !== state.focus && controller.document.documentElement.classList.contains('embed')) {
+    controller.stopFocusViewport?.();
+    controller.stopFocusViewport = state.focus ? trackEmbeddedViewport(controller.rotationSection) : undefined;
+  }
 
   if (previous.focus && !state.focus && controller.focusScrollPosition) {
     const { left, top } = controller.focusScrollPosition;
@@ -172,7 +188,7 @@ function dispatchWorkspaceAction(
   if (next === previous) return;
   applyWorkspaceState(controller, next);
 
-  if (!previous.configOpen && next.configOpen) {
+  if (!previous.configOpen && next.configOpen && !controller.configDialog) {
     controller.configCloseButton.focus();
   } else if (previous.configOpen && !next.configOpen && restoreConfigFocus) {
     controller.configButton.focus();
@@ -235,6 +251,7 @@ function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonEle
   button.setAttribute('aria-label', 'Close simulation config');
   button.title = 'Close simulation config';
   button.textContent = '\u00d7';
+  button.autofocus = true;
 
   heading.replaceChildren(title, button);
   return button;
@@ -307,6 +324,7 @@ export function mountRotationWorkspace(root: Document = document): void {
     configPanel,
     document: root,
     focusButton,
+    rotationSection,
     state: DEFAULT_ROTATION_WORKSPACE_STATE
   };
   controllers.set(root, controller);
