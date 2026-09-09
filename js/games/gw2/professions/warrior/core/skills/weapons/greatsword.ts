@@ -1,4 +1,4 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Core Warrior greatsword packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -71,8 +71,8 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
       {
         type: 'strike',
         ticks: [
-          { atMs: 517, coefficient: 1.5 },
-          { atMs: 1517, coefficient: 1.5 }
+          { atMs: 520, coefficient: 1.5 },
+          { atMs: 1520, coefficient: 1.5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -86,16 +86,16 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
       {
         type: 'strike',
         ticks: [
-          { atMs: 314.945652173913, coefficient: 0.775 },
-          { atMs: 480.706521739131, coefficient: 0.775 },
-          { atMs: 679.619565217393, coefficient: 0.775 },
-          { atMs: 878.532608695653, coefficient: 0.775 },
-          { atMs: 1160.32608695652, coefficient: 0.775 },
-          { atMs: 1309.51086956522, coefficient: 0.775 },
-          { atMs: 1558.152173913046, coefficient: 0.775 },
-          { atMs: 1790.217391304347, coefficient: 0.775 },
+          { atMs: 320, coefficient: 0.775 },
+          { atMs: 480, coefficient: 0.775 },
+          { atMs: 680, coefficient: 0.775 },
+          { atMs: 880, coefficient: 0.775 },
+          { atMs: 1160, coefficient: 0.775 },
+          { atMs: 1320, coefficient: 0.775 },
+          { atMs: 1560, coefficient: 0.775 },
+          { atMs: 1800, coefficient: 0.775 },
           {
-            atMs: 2270.92391304348,
+            atMs: 2280,
             coefficient: 1.5,
             name: 'Hundred Blades — Final Strike Damage'
           }

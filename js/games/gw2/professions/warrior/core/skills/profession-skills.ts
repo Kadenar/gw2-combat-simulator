@@ -179,7 +179,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.BREACHING_STRIKE]: {
-    interruptCommitMs: 758,
+    // Keep commitment, damage, and boon removal together on the nearest 40 ms tick.
+    interruptCommitMs: 760,
     skillWeapon: 'Dagger',
     comboFinishers: [
       {
@@ -199,14 +200,14 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 758, coefficient: 2.5 }],
+        ticks: [{ atMs: 760, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'custom',
         eventType: 'warrior.boon-removal',
-        atMs: 758,
+        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         event: {

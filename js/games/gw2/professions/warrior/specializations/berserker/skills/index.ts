@@ -1,4 +1,4 @@
-/** Explicit PvE skill mechanics owned by the Berserker Warrior module. */
+/** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -115,7 +115,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 588.461538461539, coefficient: 3.5 }],
+        ticks: [{ atMs: 600, coefficient: 3.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -521,9 +521,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'strike',
         ticks: [
-          { atMs: 233.333333333333, coefficient: 0.75 },
+          { atMs: 240, coefficient: 0.75 },
           {
-            atMs: 433.333333333333,
+            atMs: 440,
             coefficient: 0.75,
             metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
           },
@@ -533,9 +533,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
             coefficient: 0.75,
             metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
           },
-          { atMs: 966.666666666667, coefficient: 0.75 },
+          { atMs: 960, coefficient: 0.75 },
           {
-            atMs: 1166.666666666667,
+            atMs: 1160,
             coefficient: 0.75,
             metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
           },

@@ -287,13 +287,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 441.047619047619, coefficient: 1 }],
+        ticks: [{ atMs: 440, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        atMs: 441.047619047619,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         controlKind: 'knockback'

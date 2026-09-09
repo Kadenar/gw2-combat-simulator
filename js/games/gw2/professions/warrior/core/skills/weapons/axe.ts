@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -77,7 +78,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'strike',
         ticks: Array.from({ length: 15 }, (_, index) => ({
-          atMs: 300 + index * 150,
+          atMs: quantizeGw2ActionTimingMs(300 + index * 150),
           coefficient: 0.5592
         })),
         timingAnchor: 'castStart',
@@ -103,7 +104,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         type: 'strike',
         coefficient: 2.35,
         hits: 2,
-        atMs: 350,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -112,7 +113,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         boon: 'quickness',
         duration: 2,
         stacks: 1,
-        atMs: 350,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

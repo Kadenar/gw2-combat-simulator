@@ -1,4 +1,4 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Core Warrior spear packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -20,7 +20,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
         // target that foe is always the golem, so the effective coefficient is
         // 0.75 * 1.5 = 1.125. The epicenter bonus is folded in here because the
         // simulator has no target-position model to gate it on.
-        ticks: [{ atMs: 1517, coefficient: 1.125 }],
+        ticks: [{ atMs: 1520, coefficient: 1.125 }],
         name: 'Maiming Spear — Aftershock Damage',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -55,7 +55,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 460, coefficient: 0.9 }],
+        ticks: [{ atMs: 480, coefficient: 0.9 }],
         name: 'Mighty Throw — Shard Damage',
         // Single-target suppression follows this stable packet identity rather than the display label.
         metadata: { packetKind: 'warrior.mighty-throw-shard' },
@@ -69,7 +69,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 399.75, coefficient: 2 }],
+        ticks: [{ atMs: 400, coefficient: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -92,13 +92,13 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'strike',
         ticks: [
-          { atMs: 967, coefficient: 0.5 },
-          { atMs: 1167, coefficient: 0.5 },
-          { atMs: 1367, coefficient: 0.5 },
-          { atMs: 1567, coefficient: 0.5 },
-          { atMs: 1767, coefficient: 0.5 },
-          { atMs: 1967, coefficient: 0.5 },
-          { atMs: 2167, coefficient: 0.5 }
+          { atMs: 960, coefficient: 0.5 },
+          { atMs: 1160, coefficient: 0.5 },
+          { atMs: 1360, coefficient: 0.5 },
+          { atMs: 1560, coefficient: 0.5 },
+          { atMs: 1760, coefficient: 0.5 },
+          { atMs: 1960, coefficient: 0.5 },
+          { atMs: 2160, coefficient: 0.5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
