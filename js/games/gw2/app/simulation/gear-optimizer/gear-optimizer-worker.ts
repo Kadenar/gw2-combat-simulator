@@ -1,13 +1,6 @@
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
-import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
-import { createFastOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js';
-import {
-  optimizerEquipment,
-  optimizerScore,
-  verifyOptimizerScore,
-  type GearOptimizerRequest,
-  type OptimizerCandidate
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import type { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+import type { createFastOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js';
+import type { GearOptimizerRequest, OptimizerCandidate } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 
 export type GearOptimizerWorkerRequest = { readonly requestId: number } & (
   | { readonly kind: 'init'; readonly request: GearOptimizerRequest }
@@ -23,8 +16,16 @@ let job: ReturnType<typeof createGroupedOptimizer> | ReturnType<typeof createFas
 self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWorkerRequest>) => {
   const post = (payload: object): void => self.postMessage({ requestId: data.requestId, ...payload });
   try {
+    // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
+    const { optimizerEquipment, optimizerScore, verifyOptimizerScore } =
+      await import('#gw2/app/simulation/gear-optimizer/gear-optimizer.js');
     if (data.kind === 'init') {
       activeId = data.requestId;
+      const [{ loadProfessionAppAdapter }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
+        import('#gw2/app/profession/registry.js'),
+        import('#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js'),
+        import('#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js')
+      ]);
       const adapter = await loadProfessionAppAdapter(data.request.contentId);
       if (!adapter) throw new TypeError('Optimizer profession is unavailable.');
       if (activeId !== data.requestId) return;

@@ -56,9 +56,22 @@ await Promise.all(runtimeAssets.map((asset) => access(path.join(siteRoot, asset)
 
 const bundledAssets = await readdir(path.join(siteRoot, 'assets'));
 // Dedicated chunks prove Vite recognized the static Worker constructors instead of embedding raw TypeScript assets.
-for (const worker of ['modifier-contribution-worker-', 'random-distribution-worker-']) {
+for (const worker of ['modifier-contribution-worker-', 'random-distribution-worker-', 'gear-optimizer-worker-']) {
   if (!bundledAssets.some((asset) => asset.startsWith(worker) && asset.endsWith('.js'))) {
     throw new Error(`${worker} worker chunk is missing from the site build.`);
+  }
+}
+
+// Worker entries must stay out of shared imports: WebKit can reevaluate them and register a second message handler.
+const optimizerWorker = bundledAssets.find(
+  (asset) => asset.startsWith('gear-optimizer-worker-') && asset.endsWith('.js')
+);
+const optimizerImport = new RegExp(
+  `(?:\\bfrom\\s*|\\bimport\\s*(?:\\(\\s*)?)["']\\./${optimizerWorker.replaceAll('.', '\\.')}["']`
+);
+for (const asset of bundledAssets.filter((asset) => asset.endsWith('.js'))) {
+  if (optimizerImport.test(await readFile(path.join(siteRoot, 'assets', asset), 'utf8'))) {
+    throw new Error(`${asset} imports the optimizer worker entry instead of shared code.`);
   }
 }
 
