@@ -108,15 +108,15 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        // Preserve the measured four-packet spirit cadence explicitly from cast start.
-        ticks: [640, 1040, 1440, 1840].map((atMs) => ({ atMs, coefficient: 0.8 })),
+        // Include the spirit's arrival delay: four strikes begin 1320 ms after cast start, 400 ms apart.
+        ticks: [1320, 1720, 2120, 2520].map((atMs) => ({ atMs, coefficient: 0.8 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
         // Every sword packet applies its own Vulnerability at the matching impact time.
-        ticks: [640, 1040, 1440, 1840].map((atMs) => ({
+        ticks: [1320, 1720, 2120, 2520].map((atMs) => ({
           atMs,
           condition: 'Vulnerability',
           stacks: 3,

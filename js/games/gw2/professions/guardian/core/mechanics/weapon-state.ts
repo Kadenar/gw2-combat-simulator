@@ -6,18 +6,18 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardia
 import type { GuardianCastContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /**
- * Arms or consumes Guardian flip skills after a completed cast. Shared GW2
+ * Arms or consumes Guardian flip skills after a committed cast. Shared GW2
  * hooks have already advanced or reset autoattack chains at this point.
  *
- * - Interrupted casts (effective end short of the full cast) leave everything
- *   untouched, so flips are not armed.
+ * - Cancels before commitment leave flips untouched; committed atomic casts
+ *   still arm their flip when the remaining animation is cancelled.
  * - When a skill's flip differs from its chain successor and the flip points
  *   back at it, arm that flip: Zealot's Flame gets a fixed 3s window, otherwise
  *   the flip stays castable for the skill's cooldown/recharge (min 1, default 5).
  * - Casting a flip skill consumes its `availableFlips` entry.
  */
 export function updateWeaponCastState(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.action.cancelled || (skill.interruptMode === 'per-packet' && context.action.interrupted)) return;
   // Banish fully refreshes Mighty Blow only after Banish completes successfully.
   if (skill.id === GUARDIAN_SKILL_IDS.BANISH) context.state.cooldowns.delete(GUARDIAN_SKILL_IDS.MIGHTY_BLOW);
 

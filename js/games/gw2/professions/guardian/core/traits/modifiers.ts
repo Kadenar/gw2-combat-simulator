@@ -32,8 +32,7 @@ export function guardianRuntimeState(context: Gw2ModifierContext): Partial<Guard
 }
 
 function activeWeapon(context: Gw2ModifierContext): string | undefined {
-  const eventWeapon = context.event?.skillWeapon;
-  if (typeof eventWeapon === 'string') return eventWeapon;
+  // Equipped-weapon traits follow swaps at impact time, including delayed attacks from the previous weapon.
   const weaponSet = context.timeline?.activeWeaponSetAt(context.time) || 1;
   return gw2PrimaryWeapon(context.config, weaponSet);
 }

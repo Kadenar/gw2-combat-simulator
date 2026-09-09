@@ -11,8 +11,8 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ammoRecharge: 8,
     ammoCastLockout: 2,
     // Helio occupies the action lane for at most 440 ms, but collision or a
-    // queued cancel can release it on any action tick from 280 ms onward.
-    interruptCommitMs: 280,
+    // queued cancel can release it on any action tick from 240 ms onward.
+    interruptCommitMs: 240,
     effects: [
       {
         type: 'strike',
@@ -32,12 +32,17 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.GLEAMING_DISC]: {
     quicknessCastTimeMs: 560,
+    // The disc commits at 520 ms, allowing a queued cancel to release the remaining animation.
+    interruptCommitMs: 520,
     cooldown: 12,
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 0 + index * 680, coefficient: 3 / 2 })),
+        // The first impact follows the windup; the shock wave lands 680 ms later.
+        ticks: [480, 1160].map((atMs) => ({ atMs, coefficient: 3 / 2 })),
         name: 'Gleaming Disc',
+        // The launched disc and delayed shock wave survive cancellation of the remaining animation.
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -59,26 +64,32 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SOLAR_STORM]: {
     castTimeMs: 560,
     unaffectedByQuickness: true,
+    // The volley commits before impact; cancelling the remaining animation preserves its delayed strikes.
+    interruptCommitMs: 480,
     cooldown: 15,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1.5 }],
+        // Shards begin 1120 ms after activation, after the cast and projectile delay.
+        ticks: [{ atMs: 1120, coefficient: 1.5 }],
         name: 'Solar Storm — 1st Strike',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 1.2 }],
-        name: 'Solar Storm — 2nd Strike',
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 960, coefficient: 0.9 }],
+        ticks: [{ atMs: 1320, coefficient: 1.2 }],
+        name: 'Solar Storm — 2nd Strike',
+        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 1520, coefficient: 0.9 }],
         name: 'Solar Storm — 3rd Strike',
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

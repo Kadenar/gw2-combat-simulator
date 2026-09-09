@@ -14,6 +14,7 @@ import {
 } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
+import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
@@ -531,7 +532,13 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     conditionDurationBonus(_ctx, state, at) {
       return Number(state.buffUntil || 0) > at ? 0.1 : 0;
     },
-    strikeMultiplier: timedStrikeBuff(1.1)
+    strikeMultiplier(ctx, state, event) {
+      // The trap hit benefits from the debuff it applies; afterHit records the window for subsequent attacks.
+      const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : undefined;
+      return isGw2PlayerActorEvent(event) && skill?.categories?.includes('Trap')
+        ? 1.1
+        : timedStrikeBuff(1.1)(ctx, state, event);
+    }
   }),
 
   Eagle: defineRelic({

@@ -17,7 +17,7 @@ import { buildGuardianStrike, emitGuardianEvent } from '#gw2/professions/guardia
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianCastContext,
   GuardianEventContext,
@@ -185,15 +185,14 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
 
 /**
  * Applies state changes and conditional virtue bonuses after a radiant weapon
- * finishes casting.
+ * commits, including cancellation of its remaining animation.
  *
- * True for interrupted casts; otherwise false so declared
+ * True for uncommitted casts; otherwise false so declared
  * effects remain authoritative.
  */
 function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  // Return true (interrupted) so the engine discards declared effects; the
-  // handler owns all output and must suppress on interrupt.
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
+  // Use the scheduler's commit decision so cancelled aftercast preserves weapon state and linked virtue output.
+  if (context.action.cancelled) return true;
   if (skill.radiantWeapon && skill.flipParentId == null) {
     const state = luminaryState.from(context);
     state.radiantWeapon = skill.radiantWeapon;
@@ -202,33 +201,13 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
     emitForgeWeaponSwap(context, skill);
   }
 
-  if (skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER && luminaryState.from(context).radiantJusticeArmed) {
-    const profile = balanceProfileFromContext(context, PROFILE.radiantJusticeImpact);
-    const strike = balanceProfileEffect(profile, 'strike');
-    const vulnerability = balanceProfileEffect(profile, 'condition');
-    const delay = Number(strike?.atMs ?? 760) / 1000;
-    const impactAt = radiantWeaponImpactAt(context, skill) + delay;
-    luminaryState.from(context).radiantJusticeArmed = false;
-    context.emit(
-      buildGuardianStrike({
-        at: impactAt,
-        sourceId: skill.id,
-        skillId: skill.id,
-        skillName: skill.name,
-        name: 'Dazzling Hammer — Radiant Justice Impact',
-        coefficient: Number(strike?.coefficient ?? 1.5)
-      })
-    );
-    emitSkillCondition(context, {
-      at: impactAt,
-      source: 'guardian',
-      sourceId: skill.id,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: skill.name,
-      condition: 'Vulnerability',
-      stacks: Number(vulnerability?.stacks ?? 8),
-      duration: Number(vulnerability?.duration ?? 8)
+  if (skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER) {
+    // Decide at impact so Justice activated during this animation can empower this hammer.
+    context.tasks.schedule({
+      type: 'guardian.luminary.hammer-impact',
+      at: radiantWeaponImpactAt(context, skill),
+      ownerId: context.reservationId,
+      payload: { activationId: context.reservationId }
     });
   }
 
@@ -265,6 +244,42 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   }
 
   return false;
+}
+
+/** Consumes Justice once at the first committed hammer impact, preserving that cast's ownership for the extra hit. */
+export function handleRadiantHammerImpact(
+  context: GuardianSchedulerContext,
+  task: ScheduledTask<SchedulerRecord>
+): void {
+  const state = luminaryState.from(context);
+  if (!state.radiantJusticeArmed) return;
+  state.radiantJusticeArmed = false;
+  const skill = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER)!;
+  const profile = balanceProfileFromContext(context, PROFILE.radiantJusticeImpact);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const vulnerability = balanceProfileEffect(profile, 'condition');
+  const at = task.at + Number(strike?.atMs ?? 760) / 1000;
+  context.emit(
+    buildGuardianStrike({
+      at,
+      sourceId: skill.id,
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Dazzling Hammer — Radiant Justice Impact',
+      coefficient: Number(strike?.coefficient ?? 1.5)
+    })
+  );
+  emitSkillCondition(context, {
+    at,
+    source: 'guardian',
+    sourceId: skill.id,
+    actorType: 'effect',
+    skillId: skill.id,
+    skillName: skill.name,
+    condition: 'Vulnerability',
+    stacks: Number(vulnerability?.stacks ?? 8),
+    duration: Number(vulnerability?.duration ?? 8)
+  });
 }
 
 /**

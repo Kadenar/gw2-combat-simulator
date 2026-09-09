@@ -85,7 +85,8 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         type: 'strike',
         coefficient: 0.6,
         hits: 1,
-        atMs: 1160,
+        // Illuminated shards continue the same delayed volley at 200 ms intervals.
+        atMs: 1720,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -94,7 +95,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         type: 'strike',
         coefficient: 0.3,
         hits: 1,
-        atMs: 1360,
+        atMs: 1920,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'

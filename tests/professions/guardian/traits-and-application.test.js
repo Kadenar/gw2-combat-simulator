@@ -398,6 +398,33 @@ test('Dragonhunter traps and control traits apply their complete effects', () =>
   assert.equal(maw.endState.profession.endurance, 100);
 });
 
+test('Dragonhunter relic boosts the triggering trap hit and expires for later attacks', () => {
+  // A fresh trap receives the bonus immediately, without making the timed buff permanent or stacking it twice.
+  for (const trap of ["Dragon's Maw", 'Purification', 'Procession of Blades']) {
+    const simulate = (relic) =>
+      simulateGw2({
+        profession: guardianProfession,
+        rotation: [
+          trap,
+          { type: 'wait', durationMs: 5000 },
+          'Strike',
+          { type: 'wait', durationMs: 6000 },
+          'Leap of Faith'
+        ],
+        config: { ...config, primaryWeapon: 'Greatsword', specialization: 'Dragonhunter', relic }
+      });
+    const baseline = simulate('');
+    const boosted = simulate('Dragonhunter');
+    const hits = (result) => result.resolvedEvents.filter((event) => event.type === 'damage');
+    const original = hits(baseline);
+    const actual = hits(boosted);
+    assert.ok(Math.abs(actual[0].damage / original[0].damage - 1.1) < 1e-9, trap);
+    assert.ok(Math.abs(actual.at(-2).damage / original.at(-2).damage - 1.1) < 1e-9, trap);
+    assert.equal(actual.at(-1).damage, original.at(-1).damage, trap);
+    assert.deepEqual(boosted.warnings, []);
+  }
+});
+
 test('Glacial Heart and Master of Consecrations replace their numeric effects', () => {
   const glacial = simulateGw2({
     profession: guardianProfession,

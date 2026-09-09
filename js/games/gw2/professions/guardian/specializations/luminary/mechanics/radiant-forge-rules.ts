@@ -7,6 +7,7 @@ import {
 } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import {
   advanceRadiantForgeState,
+  handleRadiantHammerImpact,
   radiantForgeAvailability
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -94,8 +95,8 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,
-    when: (context) =>
-      stanceModifierActive(context, 'guardian-piercing-stance', GUARDIAN_SKILL_IDS.PIERCING_STANCE, 'Piercing Stance')
+    // The stance is active before its impact, including the damage it triggers at that timestamp.
+    when: (context) => guardianTimedBuffActive(context, 'guardian-piercing-stance')
   },
   {
     id: 'guardian.daring-advance',
@@ -167,6 +168,9 @@ export const luminarySkillMechanicHandlers = Object.freeze({
 });
 
 export const luminarySchedulerHooks = Object.freeze({
+  taskHandlers: Object.freeze({
+    'guardian.luminary.hammer-impact': handleRadiantHammerImpact
+  }),
   prepareEvent: Object.freeze({
     id: 'guardian.glaring-burst-variant',
     order: 20,

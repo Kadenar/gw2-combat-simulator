@@ -31,6 +31,28 @@ const config = {
   target: { armor: 2597 }
 };
 
+test('a committed Strike cancel preserves its pending hit and advances the autoattack chain', () => {
+  const strike = guardianCatalog.skillsByName.get('Strike');
+  for (const committed of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        { name: 'Strike', interruptMs: committed ? strike.interruptCommitMs : strike.interruptCommitMs / 2 },
+        committed ? 'Vengeful Strike' : 'Strike'
+      ],
+      config: { ...config, boons: { quickness: true }, primaryWeapon: 'Greatsword' }
+    });
+    const actions = result.events.filter((event) => event.type === 'action');
+    assert.deepEqual(result.warnings, []);
+    const firstHit = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.activationId === actions[0].activationId
+    );
+    assert.equal(actions[1].skillName, committed ? 'Vengeful Strike' : 'Strike');
+    assert.equal(Boolean(firstHit), committed);
+    if (committed) assert.ok(firstHit.at > actions[0].endsAt);
+  }
+});
+
 const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
 
 const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
@@ -74,10 +96,11 @@ test('Symbol of Blades and Symbol of Faith fields follow their pulse windows', (
 
 test('Guardian greatsword autos retain aftercast only after commitment', () => {
   // Early cancelled attempts release the lane; committed cancels keep the remainder of the same autoattack.
-  for (const [name, preceding, commitMs, fullMs] of [
-    ['Vengeful Strike', ['Strike'], 400, 600],
-    ['Wrathful Strike', ['Strike', 'Vengeful Strike'], 520, 680]
+  for (const [name, preceding, fullMs] of [
+    ['Vengeful Strike', ['Strike'], 600],
+    ['Wrathful Strike', ['Strike', 'Vengeful Strike'], 680]
   ]) {
+    const commitMs = guardianCatalog.skillsByName.get(name).interruptCommitMs;
     for (const interruptMs of [80, commitMs]) {
       const result = simulateGw2({
         profession: guardianProfession,
@@ -87,6 +110,10 @@ test('Guardian greatsword autos retain aftercast only after commitment', () => {
       assert.deepEqual(result.warnings, []);
       const attempted = result.steps[preceding.length];
       const next = result.steps[preceding.length + 1];
+      assert.equal(
+        result.resolvedEvents.some((event) => event.type === 'damage' && event.activationId === attempted.activationId),
+        interruptMs >= commitMs
+      );
       assert.equal(attempted.cancelledBeforeCommit === true, interruptMs < commitMs);
       assert.equal(next.start - attempted.start, interruptMs < commitMs ? interruptMs : fullMs);
     }
@@ -450,12 +477,12 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   );
   assert.deepEqual(profile(quick, 'Whirling Wrath'), {
     cast: 1480,
-    ticks: [120, 200, 320, 440, 520, 640, 720, 840, 960, 1040, 1160, 1280, 1360, 1480],
+    ticks: [440, 480, 600, 640, 760, 800, 920, 960, 1080, 1120, 1240, 1280, 1400, 1440],
     coefficient: 4.375
   });
   assert.deepEqual(profile(quick, 'Leap of Faith'), {
     cast: 720,
-    ticks: [720],
+    ticks: [640],
     coefficient: 2
   });
   assert.deepEqual(profile(quick, 'Symbol of Resolution'), {
@@ -487,6 +514,30 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   );
   assert.equal(tetherBreakdown.conditionDamage, 0);
   assert.equal(tetherBreakdown.hits, 10);
+});
+
+// Whirling Wrath cancels at melee launches, so a launched projectile survives an immediate weapon interrupt.
+test('Whirling Wrath retains each launched melee and projectile pair', () => {
+  const simulate = (rotation) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: { ...config, boons: { quickness: true }, primaryWeapon: 'Greatsword' },
+      observationPolicy: { kind: 'tail', durationMs: 2000 }
+    });
+  const strikes = (result) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.WHIRLING_WRATH)
+      .map((event) => ({ at: event.at, coefficient: event.coefficient }));
+  const full = strikes(simulate(['Whirling Wrath']));
+  for (let index = 0; index < full.length; index += 2) {
+    const interruptMs = Math.round(full[index].at * 1000);
+    assert.deepEqual(strikes(simulate([{ name: 'Whirling Wrath', interruptMs }])), full.slice(0, index + 2));
+    assert.deepEqual(
+      strikes(simulate([{ name: 'Whirling Wrath', interruptMs: interruptMs - 1 }])),
+      full.slice(0, index)
+    );
+  }
 });
 
 test('Guardian longbow uses measured Quickness cast times', () => {
@@ -600,7 +651,7 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
   );
   assert.deepEqual(quick['Sword of Justice'], {
     cast: 600,
-    ticks: [640, 1040, 1440, 1840],
+    ticks: [1320, 1720, 2120, 2520],
     coefficient: 3.2
   });
   assert.deepEqual(
@@ -611,10 +662,10 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
       )
       .map((event) => [Math.round((event.at - swordAction.at) * 1000), event.stacks, event.duration]),
     [
-      [640, 3, 8],
-      [1040, 3, 8],
-      [1440, 3, 8],
-      [1840, 3, 8]
+      [1320, 3, 8],
+      [1720, 3, 8],
+      [2120, 3, 8],
+      [2520, 3, 8]
     ]
   );
   const swordRecharge = simulateGw2({
@@ -629,7 +680,7 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
   );
   assert.deepEqual(quick['Procession of Blades'], {
     cast: 440,
-    ticks: [1280, 1560, 1840, 2120, 2400, 2680, 2960, 3240, 3520, 3800],
+    ticks: [1720, 2000, 2280, 2560, 2840, 3120, 3400, 3680, 3960, 4240],
     coefficient: 4.4
   });
   assert.deepEqual(quick['Bane Signet'], {
@@ -639,14 +690,65 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
   });
   assert.deepEqual(quick["Dragon's Maw"], {
     cast: 440,
-    ticks: [520],
+    ticks: [1400],
     coefficient: 3.6
   });
   assert.deepEqual(quick.Purification, {
     cast: 600,
-    ticks: [520],
+    ticks: [1560],
     coefficient: 0.1875
   });
+});
+
+test('Solar Storm preserves its committed volley and rejects uncommitted illumination changes', () => {
+  // Compare packet survival and state transitions without prescribing the skill's numerical commit threshold.
+  const skill = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SOLAR_STORM);
+  const simulate = (interruptMs) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Helio Rush', { name: 'Solar Storm', interruptMs }, { type: 'wait', durationMs: 2000 }],
+      config: { ...config, primaryWeapon: 'Spear', boons: { quickness: true } }
+    });
+  const packets = (result) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillId === skill.id)
+      .map((event) => [event.at, event.coefficient]);
+  const full = simulate(undefined);
+  const committed = simulate(skill.interruptCommitMs);
+  const cancelled = simulate(0);
+
+  assert.ok(packets(full).length > 0);
+  assert.deepEqual(packets(committed), packets(full));
+  assert.deepEqual(packets(cancelled), []);
+  assert.equal(
+    cancelled.procSteps.some((step) => step.skill === 'Illuminated' && step.sourceSkill === skill.name),
+    false
+  );
+  assert.equal(cancelled.endState.profession.spearIlluminatedArmed, true);
+  assert.deepEqual(committed.warnings, []);
+});
+
+test('Delayed spear damage uses equipped-weapon trait stats while retaining spear weapon strength', () => {
+  // Swapping during projectile travel changes Zealous Blade's power bonus, not the attack's weapon-strength roll.
+  const simulate = (swap) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Solar Storm', ...(swap ? ['Swap Weapons'] : []), { type: 'wait', durationMs: 2000 }],
+      config: {
+        ...config,
+        primaryWeapon: 'Spear',
+        weaponSet2Primary: 'Greatsword',
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]
+      }
+    });
+  const firstHit = (result) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.SOLAR_STORM);
+  const spear = firstHit(simulate(false));
+  const greatsword = firstHit(simulate(true));
+
+  assert.equal(Math.round(spear.at * 1000), 1120);
+  assert.equal(greatsword.resolvedWeaponStrength, spear.resolvedWeaponStrength);
+  assert.ok(Math.abs(greatsword.damage / spear.damage - (2000 + 240) / (2000 + 120)) < 1e-9);
 });
 
 test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () => {
@@ -814,7 +916,7 @@ test('Guardian spear coefficients and repeated pulses stay per-hit', () => {
     result.resolvedEvents
       .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
       .map((event) => Math.round((event.at - gleamingAction.at) * 1000)),
-    [0, 680]
+    [480, 1160]
   );
   assert.deepEqual(coefficients('Symbol of Luminance — Initial'), [1.5]);
   assert.deepEqual(coefficients('Symbol of Luminance'), [0.5, 0.5, 0.5, 0.5, 0.5]);

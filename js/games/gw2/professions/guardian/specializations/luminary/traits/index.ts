@@ -58,7 +58,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   const at = context.effectiveEnd + 0.001;
   const state = luminaryState.from(context);
   const weapon = skill.radiantWeapon!;
-  // Only initial weapon equips trigger these boons; flip attacks and interrupted equips do not.
+  // Only committed weapon equips trigger these boons; flip attacks and uncommitted attempts do not.
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY)) {
     const profile = balanceProfileFromContext(context, PROFILE.resplendentWeaponry);
     for (const effect of profile?.effects || []) {
@@ -76,9 +76,11 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
+    // The active armament changes when its cast starts, so hammer boosts its own hit and other equips remove it.
+    const armamentAt = context.start;
     const armaments = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.radiantArmaments), 'buff');
     emitSkillBuff(context, skill, {
-      at,
+      at: armamentAt,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',
@@ -89,7 +91,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
     });
     emitGuardianProc(context, {
       name: 'Radiant Armaments',
-      at,
+      at: armamentAt,
       sourceSkill: skill.name,
       detail: weapon === 'hammer' ? 'Radiant hammer: +7% strike damage' : `${weapon}: hammer bonus removed`,
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)
@@ -209,8 +211,8 @@ function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: Guardia
 
 export function updateLuminaryTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   replayInitialLuminaryState(context, skill);
-  // Radiant-weapon traits react here after a completed cast so the forge mechanic stays independent of trait code.
-  if (context.effectiveEnd >= context.fullEnd - context.epsilon) handleRadiantWeaponEquipped(context, skill);
+  // Committed animation cancels still equip the weapon and trigger its traits.
+  if (!context.action.cancelled) handleRadiantWeaponEquipped(context, skill);
   if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
     // Register Exit Radiant Forge as an available flip so the scheduler and
     // UI treat it as an always-ready option while the forge is active.

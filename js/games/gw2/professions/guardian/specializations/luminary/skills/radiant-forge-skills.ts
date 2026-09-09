@@ -191,14 +191,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.DAZZLING_HAMMER]: {
     quicknessCastTimeMs: 480,
+    interruptCommitMs: 400,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
-      // The hammer impact grants its PvE Might and Fury even without a target.
+      // Once launched, the hammer's impact, boons and blast combo survive cancellation of its remaining animation.
       {
         type: 'boon',
         boon: 'might',
         stacks: 8,
+        persistsAfterInterrupt: true,
         duration: 8,
         atMs: 440,
         timingAnchor: 'castStart',
@@ -209,6 +211,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'boon',
         boon: 'fury',
         duration: 6,
+        persistsAfterInterrupt: true,
         atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -217,6 +220,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         // Dazzling Hammer grants Light Aura only after this blast successfully finishes a combo.
+        persistsAfterInterrupt: true,
         ticks: [{ atMs: 440, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -224,6 +228,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
           {
             ownerId: 'guardian',
             finisherType: 'Blast',
+            // Hammer can encounter a field from cast start through its committed impact, when it grants the aura.
+            fieldSelectionAnchor: 'castStart',
             ambiguousFieldSelection: 'oldest'
           }
         ]
@@ -234,6 +240,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'cast',
         controlKind: 'daze',
+        persistsAfterInterrupt: true,
         duration: 2
       }
     ]

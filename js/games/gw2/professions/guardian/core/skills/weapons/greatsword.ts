@@ -6,13 +6,17 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LEAP_OF_FAITH]: {
     quicknessCastTimeMs: 720,
-    // Cancelling at or after 680 ms preserves the landing strike and blind at cast end.
+    // Cancelling at or after 680 ms preserves the landing strike and blind.
     interruptCommitMs: 680,
     effects: [
       {
         type: 'strike',
         coefficient: 2,
         hits: 1,
+        // The normal landing impact precedes the end of the animation by 80 ms.
+        atMs: 640,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         persistsAfterInterrupt: true,
         // Leap of Faith only creates combo effects when this packet resolves through an active field.
         comboFinishers: [
@@ -26,6 +30,10 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       {
         type: 'blind',
         duration: 3,
+        // Blind applies with the landing hit, rather than after the remaining animation.
+        atMs: 640,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         persistsAfterInterrupt: true
       }
     ]
@@ -34,24 +42,13 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     interruptMode: 'per-packet',
     // The catalog derives the unquickened cast from this measured Quickness duration.
     quicknessCastTimeMs: 1480,
+    // Each melee pulse launches its projectile; stopping the channel cannot recall that projectile.
     effects: [
       strikeTimeline(
-        [
-          { atMs: 120, coefficient: 0.35 },
-          { atMs: 200, coefficient: 0.275 },
-          { atMs: 320, coefficient: 0.35 },
-          { atMs: 440, coefficient: 0.275 },
-          { atMs: 520, coefficient: 0.35 },
-          { atMs: 640, coefficient: 0.275 },
-          { atMs: 720, coefficient: 0.35 },
-          { atMs: 840, coefficient: 0.275 },
-          { atMs: 960, coefficient: 0.35 },
-          { atMs: 1040, coefficient: 0.275 },
-          { atMs: 1160, coefficient: 0.35 },
-          { atMs: 1280, coefficient: 0.275 },
-          { atMs: 1360, coefficient: 0.35 },
-          { atMs: 1480, coefficient: 0.275 }
-        ],
+        Array.from({ length: 7 }, (_, index) => [
+          { atMs: 440 + index * 160, coefficient: 0.35 },
+          { atMs: 480 + index * 160, launchAtMs: 440 + index * 160, projectile: true, coefficient: 0.275 }
+        ]).flat(),
         {
           timingAnchor: 'castStart',
           timingScale: 'cast'
@@ -61,13 +58,13 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.GREAT_SWORD_STRIKE]: {
     castTimeMs: 600,
-    // Strike has no cancellable tail: its packet commits on the 400 ms
-    // Quickness action boundary.
-    interruptCommitMs: 400,
+    // A committed cancel advances the chain and preserves the pending hit at its normal impact time.
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 1 }],
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -90,9 +87,9 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.GREAT_SWORD_WRATHFUL_STRIKE]: {
     castTimeMs: 1000,
-    // Damage lands at 440 ms; the 520 ms safe cancel still keeps the full
+    // Damage lands at 440 ms; the 480 ms safe cancel still keeps the full
     // 680 ms Quickness action lane occupied.
-    interruptCommitMs: 520,
+    interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
@@ -154,6 +151,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Binding Blade — Tether',
+        // Keep the tether's damage separate from the initial strike in the combat breakdown.
+        damageBreakdownName: 'Binding Blade — Tether',
         canCrit: false,
         sourceId: 9148,
         // Tether pulses are non-critical power strikes, so they remain in strike totals.

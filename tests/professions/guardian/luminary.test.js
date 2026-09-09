@@ -29,6 +29,63 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
+test('committed disc cancellation preserves the illuminated shock wave', () => {
+  // Verify persistence and enhancement on the same delayed packet, without pinning timing metadata.
+  const disc = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.GLEAMING_DISC);
+  const run = (illuminated, interruptMs) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        ...(illuminated ? ['Symbol of Luminance'] : []),
+        { name: disc.name, interruptMs },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      config: { ...config, boons: { quickness: true } }
+    });
+  const result = run(true, disc.interruptCommitMs);
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === disc.id);
+  const shock = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillId === disc.id && event.hitIndex === 2
+  );
+  const ordinary = run(false, disc.interruptCommitMs).resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillId === disc.id && event.hitIndex === 2
+  );
+  assert.ok(shock.at > action.endsAt);
+  assert.ok(shock.coefficient > ordinary.coefficient);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    run(true, 0).resolvedEvents.some((event) => event.type === 'damage' && event.skillId === disc.id),
+    false
+  );
+});
+
+test('a launched hammer still finishes its blast and supplies aura for the following Sovereign trigger', () => {
+  // A committed cancel must preserve the combo-producing impact, not only the weapon flip state.
+  const hammer = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Symbol of Resolution',
+      'Enter Radiant Forge',
+      { name: hammer.name, interruptMs: hammer.interruptCommitMs },
+      'Shining Spin'
+    ],
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      boons: { quickness: true },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
+  });
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === hammer.id);
+  const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === hammer.id);
+  assert.ok(combo.at > action.endsAt);
+  assert.ok(
+    result.resolvedEvents.some((event) => event.name === 'Sovereign of Light' && event.triggeredBy === 'Shining Spin')
+  );
+  assert.deepEqual(result.warnings, []);
+});
+
 test('Luminary skill boons reach the effects chart with boon-duration scaling', () => {
   // Single casts cover each missing boon source without relying on a saved benchmark rotation.
   for (const [rotation, expected] of [
@@ -833,16 +890,14 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
     Math.abs(damage(defiantAfterDaze, 'Shining Spin').damage / damage(ordinaryAfterDaze, 'Shining Spin').damage - 1) <
       1e-9
   );
-  assert.ok(Math.abs(dazzling.damage / damage(empowered, 'Dazzling Hammer').damage - 1) < 1e-9);
+  // Hammer gains its armament before the first impact; selecting staff removes it before any staff pulse.
+  assert.ok(Math.abs(dazzling.damage / damage(empowered, 'Dazzling Hammer').damage - 1.07) < 1e-9);
   assert.ok(Math.abs(shining.damage / damage(empowered, 'Shining Spin').damage - 1.17 / 1.1) < 1e-9);
   const armamentStaff = armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
   const empoweredStaff = empowered.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
 
-  assert.ok(Math.abs(armamentStaff[0].damage / empoweredStaff[0].damage - 1.17 / 1.1) < 1e-9);
   assert.equal(
-    armamentStaff
-      .slice(1)
-      .every((event, index) => Math.abs(event.damage / empoweredStaff[index + 1].damage - 1) < 1e-9),
+    armamentStaff.every((event, index) => Math.abs(event.damage / empoweredStaff[index].damage - 1) < 1e-9),
     true
   );
   assert.equal(armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage').length, 4);
@@ -882,7 +937,7 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
   assert.ok(Math.abs(empoweredBlade.damage / normalBlade.damage - 1.5) < 1e-9);
 });
 
-test('Radiant-weapon traits activate only after a completed equip cast', () => {
+test('Radiant-weapon traits require a committed equip cast', () => {
   const run = (radiantWeapon) =>
     simulateGw2({
       profession: guardianProfession,
@@ -890,7 +945,7 @@ test('Radiant-weapon traits activate only after a completed equip cast', () => {
       config: {
         ...config,
         specialization: 'Luminary',
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS]
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS]
       }
     });
   const completed = run('Dazzling Hammer');
@@ -898,8 +953,31 @@ test('Radiant-weapon traits activate only after a completed equip cast', () => {
 
   assert.equal(completed.procSteps.filter((step) => step.skill === 'Empowered Armaments').length, 1);
   assert.equal(interrupted.procSteps.filter((step) => step.skill === 'Empowered Armaments').length, 0);
+  assert.equal(completed.procSteps.filter((step) => step.skill === 'Radiant Armaments').length, 1);
+  assert.equal(interrupted.procSteps.filter((step) => step.skill === 'Radiant Armaments').length, 0);
   assert.deepEqual(completed.endState.profession.radiantWeaponsUsed, { hammer: true });
   assert.deepEqual(interrupted.endState.profession.radiantWeaponsUsed, {});
+});
+
+test('a committed radiant weapon cancel arms and consumes its flip while an uncommitted attempt does not', () => {
+  // Exercise the state transition using the catalog's cutoff, without pinning its numerical tuning.
+  const hammer = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
+  const run = (interruptMs) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Enter Radiant Forge', { name: hammer.name, interruptMs }, 'Shining Spin'],
+      config: { ...config, specialization: 'Luminary', selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS] }
+    });
+  const committed = run(hammer.interruptCommitMs);
+  assert.deepEqual(committed.warnings, []);
+  assert.equal(committed.endState.profession.radiantWeapon, 'hammer');
+  assert.equal(committed.endState.profession.radiantWeaponsUsed.hammer, true);
+  assert.equal(committed.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.SHINING_SPIN], undefined);
+  assert.ok(committed.procSteps.some((step) => step.skill === 'Empowered Armaments'));
+  assert.ok(committed.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Shining Spin'));
+  const cancelled = run(0);
+  assert.ok(cancelled.warnings.some((warning) => warning.includes('Shining Spin')));
+  assert.equal(cancelled.endState.profession.radiantWeaponsUsed.hammer, undefined);
 });
 
 test('Radiant weapon equips replace the prior flip and preserve its parent cooldown', () => {
@@ -1020,6 +1098,68 @@ test('Radiant virtues grant one-use hammer and sword empowerments', () => {
   );
 });
 
+test('Radiant Justice selects the first committed hammer impact after activation', () => {
+  const run = (rotation) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: { ...config, specialization: 'Luminary', boons: { quickness: true } }
+    });
+  const baseline = run(['Enter Radiant Forge', 'Dazzling Hammer']);
+  const primary = baseline.resolvedEvents.find((event) => event.name === 'Dazzling Hammer');
+  const action = baseline.events.find(
+    (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER
+  );
+  const impactOffsetMs = Math.round((primary.at - action.at) * 1000);
+  // Exercise both sides of impact, including Justice used after impact but before the cast finishes.
+  for (const [offset, selectedIndex] of [
+    [impactOffsetMs - 80, 0],
+    [impactOffsetMs + 20, 1]
+  ]) {
+    const result = run([
+      'Enter Radiant Forge',
+      'Dazzling Hammer',
+      { name: 'Radiant Justice', offset },
+      { type: 'wait', durationMs: 1000 },
+      'Dazzling Hammer',
+      { type: 'wait', durationMs: 1000 }
+    ]);
+    const primaries = result.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer');
+    const extras = result.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
+    assert.equal(extras.length, 1);
+    assert.equal(extras[0].activationId, primaries[selectedIndex].activationId);
+    assert.ok(Math.abs(extras[0].at - primaries[selectedIndex].at - 0.76) < 1e-9);
+    assert.equal(result.endState.profession.radiantJusticeArmed, false);
+    assert.deepEqual(result.warnings, []);
+  }
+
+  const cancelled = run([
+    'Radiant Justice',
+    'Enter Radiant Forge',
+    { name: 'Dazzling Hammer', interruptMs: 0 },
+    'Dazzling Hammer',
+    { type: 'wait', durationMs: 1000 }
+  ]);
+  const committed = cancelled.resolvedEvents.find((event) => event.name === 'Dazzling Hammer');
+  const extra = cancelled.resolvedEvents.find((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
+  assert.equal(extra.activationId, committed.activationId);
+  // A miss still spends the one-use empowerment; deferred emission must retain the off-target cast's ownership.
+  const offTarget = run([
+    'Radiant Justice',
+    'Enter Radiant Forge',
+    { name: 'Dazzling Hammer', offTarget: true },
+    'Dazzling Hammer',
+    { type: 'wait', durationMs: 1000 }
+  ]);
+  const missedExtra = offTarget.events.find((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
+  assert.equal(missedExtra.offTarget, true);
+  assert.equal(
+    offTarget.resolvedEvents.some((event) => event.name === missedExtra.name && event.damage > 0),
+    false
+  );
+  assert.equal(offTarget.endState.profession.radiantJusticeArmed, false);
+});
+
 test('Guardian strike modifiers use their tested additive and mult buckets', () => {
   const run = (selectedTraitIds) =>
     simulateGw2({
@@ -1050,6 +1190,27 @@ test('Guardian strike modifiers use their tested additive and mult buckets', () 
   ]);
 
   assert.ok(Math.abs(pulse(conditional) / pulse(baseline) - (1.25 / 1.05) * 1.05 * 1.05) < 1e-9);
+});
+
+test('Piercing Stance applies its bonus to its first strike without stacking damage on refresh', () => {
+  // Compare the skill's own formula with the bonus, both before and after an existing stance application.
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Piercing Stance', 'Piercing Stance'],
+    config: { ...config, specialization: 'Luminary' }
+  });
+  const hits = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.PIERCING_STANCE
+  );
+  assert.equal(hits.length, 2);
+  for (const hit of hits) {
+    const unmodified =
+      ((hit.coefficient * config.stats.power * hit.resolvedWeaponStrength) / config.target.armor) *
+      (1 + hit.criticalChance * (hit.criticalDamage - 1));
+    assert.ok(Math.abs(hit.damage / unmodified - 1.1) < 1e-9);
+  }
+
+  assert.deepEqual(result.warnings, []);
 });
 
 test('Luminary stances apply modifiers, combos, delayed damage, and control', () => {
@@ -1232,7 +1393,8 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
     ['Symbol of Resolution', 'Leap of Faith', 'Piercing Stance'],
     [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
   );
-  const daring = simulate(['Daring Advance']);
+  const daring = simulate(['Daring Advance', 'Leap of Faith']);
+  const daringBound = simulate(['Symbol of Resolution', 'Daring Advance']);
   const gleaming = simulate(['Symbol of Resolution', 'Enter Radiant Forge', 'Gleaming Blade']);
   const dazzlingUnbound = simulate(['Enter Radiant Forge', 'Dazzling Hammer']);
   const dazzlingBound = simulate(['Symbol of Resolution', 'Enter Radiant Forge', 'Dazzling Hammer']);
@@ -1246,7 +1408,7 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
   assert.deepEqual(
     [
       combo(bound, 'Leap of Faith'),
-      combo(daring, 'Daring Advance'),
+      combo(daringBound, 'Daring Advance'),
       combo(gleaming, 'Gleaming Blade'),
       combo(dazzlingBound, 'Dazzling Hammer')
     ].map((event) => [event.fieldType, event.finisherType, event.outcome.name]),
@@ -1262,6 +1424,9 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
     'Piercing Stance'
   );
   assert.equal(dazzlingUnbound.endState.profession.lightAuraUntil, 0);
+  // Daring's field remains available to a subsequent finisher, while its own leap needs another field.
+  assert.equal(combo(daring, 'Daring Advance'), undefined);
+  assert.equal(combo(daring, 'Leap of Faith').fieldSourceId, GUARDIAN_SKILL_IDS.DARING_ADVANCE);
   assert.ok(dazzlingBound.endState.profession.lightAuraUntil > 0);
 });
 
@@ -1397,7 +1562,7 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   assert.ok(Math.abs(clawSovereign.damage / justiceSovereign.damage - 1.07) < 1e-12);
 });
 
-test('Sovereign of Light ignores fresh stance modifiers but retains an active Piercing Stance', () => {
+test('Sovereign of Light receives fresh Piercing Stance but not fresh Daring Advance', () => {
   const simulate = (rotation) =>
     simulateGw2({
       profession: guardianProfession,
@@ -1415,7 +1580,8 @@ test('Sovereign of Light ignores fresh stance modifiers but retains an active Pi
   const unmodifiedDamage = ((1.5 * config.stats.power * 690.5) / config.target.armor) * (1 + 0.05 * (1.5 - 1));
 
   assert.equal(sovereignDamage(freshDaring), unmodifiedDamage);
-  assert.equal(sovereignDamage(freshPiercing), unmodifiedDamage);
+  // Piercing's buff precedes its aura detonation; refreshing the stance must not multiply its bonus again.
+  assert.ok(Math.abs(sovereignDamage(freshPiercing) / unmodifiedDamage - 1.1) < 1e-12);
   assert.ok(Math.abs(sovereignDamage(activePiercing) / unmodifiedDamage - 1.1) < 1e-12);
 });
 
@@ -1442,6 +1608,11 @@ test('Sovereign of Light resolves overlapping aura grants and finishers chronolo
     }
   });
 
+  // Lesser Symbol of Blades appears during Hammer's cast, supplying its impact aura for Resolve.
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'combo' && event.skillName === 'Dazzling Hammer'),
+    true
+  );
   assert.deepEqual(
     result.resolvedEvents
       .filter((event) => event.name === 'Sovereign of Light')

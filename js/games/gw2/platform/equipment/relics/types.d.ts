@@ -3,6 +3,7 @@ import type { StableEventQueue } from '#kernel/events/queue.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 
 /** Minimal configuration surface consumed by relic rules. */
 export interface Gw2RelicConfig extends SchedulerRecord {
@@ -31,6 +32,7 @@ export interface Gw2RelicMaterializerContext {
 }
 
 export interface Gw2RelicContext extends SchedulerRecord {
+  readonly helpers?: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
   readonly totals: { strike: number; condition: number };

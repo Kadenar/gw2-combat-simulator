@@ -81,7 +81,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     for (const projectile of extraProjectiles) {
       const at = context.start + Number(projectile.atMs || 0) / 1000;
       const hitIndex = projectile.hitIndex;
-      if (interrupted && at > context.effectiveEnd + context.epsilon) continue;
+      // Illuminated projectiles belong to the committed volley and survive its cancelled aftercast.
       context.emit(
         buildGuardianStrike({
           sourceId: skill.id,
@@ -95,7 +95,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
           skillWeapon: 'Spear'
         })
       );
-      if (emittedAt == null) emittedAt = context.start + 0.56;
+      if (emittedAt == null) emittedAt = context.start + 1.12;
     }
 
     return emittedAt;
@@ -123,8 +123,13 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     }
 
     if (skill.id === ID.GLEAMING_DISC && hits === 2) {
+      // Enhance a committed, persistent shock wave even when its impact follows the cancelled animation.
       const shockWaveAt = firstAt + (Number(ticks[1].atMs) - Number(ticks[0].atMs)) / 1000;
-      if (interrupted && shockWaveAt > context.effectiveEnd + context.epsilon) {
+      if (
+        interrupted &&
+        effect.persistsAfterInterrupt !== true &&
+        shockWaveAt > context.effectiveEnd + context.epsilon
+      ) {
         continue;
       }
 
@@ -199,6 +204,8 @@ function emitProc(
  * Luminance's persistent window.
  */
 export function updateSpearIlluminationState(context: GuardianCastContext, skill: GuardianSkill): void {
+  // An uncommitted attempt neither launches bonus packets nor changes Illuminated state.
+  if (context.action.cancelled) return;
   const state = professionCoreState(context);
   if (skill.weapon !== 'Spear') return;
   const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start + context.epsilon;
