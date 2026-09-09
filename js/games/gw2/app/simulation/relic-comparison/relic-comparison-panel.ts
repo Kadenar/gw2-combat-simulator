@@ -121,6 +121,7 @@ export function renderRelicComparison(app: ProfessionAppState): void {
     container.innerHTML = '';
     return;
   }
+
   if (!result?.relicComparisonAvailable) {
     container.innerHTML =
       '<p class="optimizer-empty">Add a rotation and equip a relic in the <a href="#workspace">Workspace</a> to run a relic comparison.</p>';

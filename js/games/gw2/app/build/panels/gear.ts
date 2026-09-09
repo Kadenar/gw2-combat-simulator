@@ -62,7 +62,7 @@ function enhanceDetailedSelect(select: HTMLSelectElement, index: number): void {
     choice.type = 'button';
     choice.className = 'gear-select-option';
     choice.dataset.value = optionElement.value;
-    choice.disabled = optionElement.disabled;
+    choice.disabled = optionElement.matches(':disabled');
     choice.setAttribute('role', 'option');
     choice.setAttribute('aria-selected', String(optionElement.selected));
 
@@ -109,12 +109,13 @@ function enhanceDetailedSelect(select: HTMLSelectElement, index: number): void {
     }
   }
 
-  menu.addEventListener('toggle', () => {
-    const isOpen = menu.matches(':popover-open');
-    trigger.setAttribute('aria-expanded', String(isOpen));
-    display.classList.toggle('is-open', isOpen);
-    if (!isOpen) return;
-
+  let search = '';
+  let lastTypedAt = 0;
+  // Measure and position in the opening task, before the browser can paint the popover at its default location.
+  const openMenu = (): void => {
+    if (menu.matches(':popover-open')) return;
+    search = '';
+    menu.showPopover();
     const triggerRect = trigger.getBoundingClientRect();
     const menuRect = menu.getBoundingClientRect();
     menu.style.left = `${Math.max(8, Math.min(triggerRect.left, window.innerWidth - menuRect.width - 8))}px`;
@@ -124,19 +125,55 @@ function enhanceDetailedSelect(select: HTMLSelectElement, index: number): void {
         : Math.max(8, triggerRect.top - menuRect.height - 2)
     }px`;
     menu.querySelector<HTMLButtonElement>('[aria-selected="true"]:not(:disabled)')?.focus();
+  };
+
+  trigger.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (menu.matches(':popover-open')) menu.hidePopover();
+    else openMenu();
   });
 
-  menu.addEventListener('keydown', (event) => {
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+  menu.addEventListener('toggle', () => {
+    const isOpen = menu.matches(':popover-open');
+    trigger.setAttribute('aria-expanded', String(isOpen));
+    display.classList.toggle('is-open', isOpen);
+  });
+
+  // Match names while typing; repeated letters cycle matches and Enter keeps the existing selection path.
+  display.addEventListener('keydown', (event) => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+    const navigation = ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key);
+    const typing = event.key.length === 1 && (event.key !== ' ' || search !== '');
+    if (!navigation && !typing) return;
+    event.preventDefault();
+    openMenu();
     const choices = [...menu.querySelectorAll<HTMLButtonElement>('.gear-select-option:not(:disabled)')];
     const currentIndex = choices.indexOf(document.activeElement as HTMLButtonElement);
+    if (typing) {
+      const now = performance.now();
+      search = (now - lastTypedAt > 700 ? '' : search) + event.key.toLocaleLowerCase();
+      lastTypedAt = now;
+      const repeated = [...search].every((letter) => letter === search[0]);
+      const prefix = repeated ? search[0]! : search;
+      const start = currentIndex + (prefix.length === 1 ? 1 : 0);
+      for (let offset = 0; offset < choices.length; offset += 1) {
+        const choice = choices[(Math.max(0, start) + offset) % choices.length]!;
+        if (choice.querySelector('.gear-option-name')!.textContent.toLocaleLowerCase().startsWith(prefix)) {
+          choice.focus();
+          break;
+        }
+      }
+
+      return;
+    }
+
+    search = '';
     const nextIndex =
       event.key === 'Home'
         ? 0
         : event.key === 'End'
           ? choices.length - 1
           : (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + choices.length) % choices.length;
-    event.preventDefault();
     choices[nextIndex]?.focus();
   });
 
