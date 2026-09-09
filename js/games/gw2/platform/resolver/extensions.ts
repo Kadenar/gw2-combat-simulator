@@ -10,11 +10,7 @@ import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reacti
 
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/types.js';
-import type {
-  Gw2ResolverExtensions,
-  Gw2ResolverReactionRegistry,
-  Gw2ResolverReactions
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverExtensions, Gw2ResolverReactions } from '#gw2/platform/resolver/types.js';
 
 /** Composes all resolver-stage and synchronous equipment capabilities once. */
 export function createGw2ResolverExtensions({
@@ -26,18 +22,9 @@ export function createGw2ResolverExtensions({
   readonly events?: readonly SimulationEvent[];
   readonly professionReactions?: Gw2ResolverReactions;
 }): Readonly<Gw2ResolverExtensions> {
-  let reactions: Readonly<Gw2ResolverReactionRegistry> | null = null;
-  const dispatch: Gw2ResolverReactionRegistry['dispatch'] = (stage, context, event, details) => {
-    if (!reactions) {
-      throw new TypeError('GW2 resolver reactions dispatched during construction.');
-    }
-
-    return reactions.dispatch(stage, context, event, details);
-  };
-
-  reactions = createGw2ResolverReactionRegistry({
+  const reactions = createGw2ResolverReactionRegistry({
     professionReactions,
-    contributions: createGw2EquipmentReactionContributions({ dispatch })
+    contributions: createGw2EquipmentReactionContributions()
   });
 
   const historicalRelicContext = Object.freeze({

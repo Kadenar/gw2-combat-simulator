@@ -12,7 +12,6 @@ import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,
   applySkillPatch,
-  patchRuntimeValuesFor,
   professionPatchFor,
   validatePatchOverview,
   validatePatchPreview
@@ -142,7 +141,7 @@ function createPatchAuthoringMetadata(
   });
 }
 
-const PROFESSION_PATCH_FIELDS = new Set(['skills', 'balanceProfiles', 'modifierRules', 'constants', 'overview']);
+const PROFESSION_PATCH_FIELDS = new Set(['skills', 'balanceProfiles', 'modifierRules', 'overview']);
 
 function assertProfessionPatchShape(professionId: string, patch: ProfessionPatchPreview): void {
   assertObject(patch, `${professionId} patch`);
@@ -152,7 +151,7 @@ function assertProfessionPatchShape(professionId: string, patch: ProfessionPatch
     }
   }
 
-  for (const field of ['skills', 'balanceProfiles', 'modifierRules', 'constants'] as const) {
+  for (const field of ['skills', 'balanceProfiles', 'modifierRules'] as const) {
     if (patch[field] != null) {
       assertObject(patch[field], `${professionId} patch ${field}`);
     }
@@ -280,8 +279,6 @@ export function withPatchPreview<
     return validatedPreviewCatalog();
   };
 
-  const patchValuesFor = (patchId = CURRENT_PATCH_ID) =>
-    assertPatchId(patchId) === CURRENT_PATCH_ID ? Object.freeze({}) : patchRuntimeValuesFor(preview, definition.id);
   const validatePatch = (candidate: ProfessionPatchPreview | null | undefined): true => {
     if (!candidate) return true;
     assertProfessionPatchShape(definition.id, candidate);
@@ -320,7 +317,6 @@ export function withPatchPreview<
     ...family,
     preview,
     catalogFor,
-    patchValuesFor,
     patchAuthoring,
     validatePatch,
     resolveRuntime,

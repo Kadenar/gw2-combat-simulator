@@ -40,7 +40,6 @@ export interface GearOptimizerRequest {
   readonly revision: number;
   readonly build: Gw2ApplicationBuild;
   readonly patchId: string;
-  readonly patchValues: Gw2Config['patchValues'];
   readonly observationPolicy: ObservationPolicy;
   readonly selections: GearOptimizerSelections;
   readonly limit: number;
@@ -106,7 +105,6 @@ export function captureGearOptimizerRequest(
     revision: app.buildRevision,
     build: app.build,
     patchId: app.patchId,
-    patchValues: app.profession.patchValuesFor?.(app.patchId) || {},
     observationPolicy,
     selections,
     limit: 20,
@@ -170,10 +168,6 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2
     throw new RangeError('Invalid result limit.');
   if (request.patchId !== 'current' && request.patchId !== adapter.profession.preview?.id)
     throw new TypeError('Unknown patch.');
-  if (
-    JSON.stringify(request.patchValues) !== JSON.stringify(adapter.profession.patchValuesFor?.(request.patchId) || {})
-  )
-    throw new TypeError('Patch data changed; start a new search.');
   const policy = request.observationPolicy;
   const boundary = policy?.kind === 'tail' ? policy.durationMs : policy?.kind === 'absolute' ? policy.endTimeMs : 0;
   if (!policy || !['rotation', 'tail', 'absolute'].includes(policy.kind) || !Number.isFinite(boundary) || boundary < 0)
@@ -414,7 +408,6 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
     const config = adapter.simulationConfig(app);
     return {
       ...config,
-      patchValues: request.patchValues,
       randomness: { ...config.randomness, mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC }
     };
   }

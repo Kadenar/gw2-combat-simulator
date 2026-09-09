@@ -3,15 +3,12 @@ import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
-// The game-owned manifest is the one source for namespaced runtime data and temporary public aliases.
+// Serve and copy runtime data only at the game-owned paths declared in the manifest.
 const gameDataManifest = JSON.parse(readFileSync(path.resolve('data', 'games.json'), 'utf8'));
-const runtimeData = gameDataManifest.games.flatMap((game) =>
-  game.runtimeData.map((entry) => ({ ...entry, gameId: game.id }))
-);
-const runtimeRoutes = runtimeData.flatMap((entry) =>
-  [entry.publicPath, ...(entry.legacyPublicPaths || [])].map((publicPath) => ({
+const runtimeRoutes = gameDataManifest.games.flatMap((game) =>
+  game.runtimeData.map(({ publicPath, source }) => ({
     publicPath: publicPath.replaceAll('\\', '/').replace(/^\/+|\/+$/g, ''),
-    source: path.resolve(entry.source)
+    source: path.resolve(source)
   }))
 );
 
@@ -97,7 +94,7 @@ function renderProfessionPages() {
   };
 }
 
-// Copies each game-owned runtime directory to its canonical path and compatibility aliases.
+// Copies each game-owned runtime directory to its canonical public path.
 function copyRuntimeData() {
   return {
     name: 'copy-runtime-data',
@@ -113,7 +110,7 @@ function copyRuntimeData() {
   };
 }
 
-// Dev counterpart to copyRuntimeData: serve canonical and legacy paths raw so JSON bypasses Vite transforms.
+// Dev counterpart to copyRuntimeData: serve runtime files raw so JSON bypasses Vite transforms.
 function serveRuntimeData() {
   return {
     name: 'serve-runtime-data',
@@ -176,6 +173,8 @@ function injectGithubPagesRedirect() {
 
 // Vite configuration for building the site, including copying runtime data and serving it during development.
 export default defineConfig(({ command, mode }) => ({
+  // Each page has its own HTML entry; missing assets must return 404 instead of the home page.
+  appType: 'mpa',
   base: command === 'serve' ? '/' : './',
   publicDir: false,
   // Resolve local artwork independently of source-file depth in JavaScript URLs and CSS.

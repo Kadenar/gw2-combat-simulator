@@ -308,9 +308,7 @@ export type Gw2ResolverStage =
   | 'control.resolved'
   | 'blind.resolved'
   | 'peitha.resolved'
-  | 'weakness-vulnerability.resolved'
-  | 'weapon-set.changed'
-  | 'food-proc.created';
+  | 'weakness-vulnerability.resolved';
 
 export type Gw2ResolverReactions = Readonly<Partial<Record<Gw2ResolverStage, Gw2ResolverReaction>>>;
 

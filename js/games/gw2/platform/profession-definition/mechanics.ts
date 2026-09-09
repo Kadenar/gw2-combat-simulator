@@ -171,21 +171,6 @@ export function onAuraApplied<
   return resolvedReaction('aura.applied', declaration);
 }
 
-/** Creates an ordered resolver reaction for food proc creation. */
-export function onFoodProcCreated<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('food-proc.created', declaration);
-}
-
 export interface ResolvedCriticalHitOptions<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,

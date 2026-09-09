@@ -170,7 +170,7 @@ function cleanupProfessionPatch(): void {
   const professions = asRecord(root.professions);
   const patch = professions && asRecord(professions[editorState.selectedProfessionId]);
   if (!patch || !professions) return;
-  for (const key of ['skills', 'balanceProfiles', 'modifierRules', 'constants']) {
+  for (const key of ['skills', 'balanceProfiles', 'modifierRules']) {
     removeEmptyRecord(patch, key);
   }
 

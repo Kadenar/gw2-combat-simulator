@@ -1,6 +1,6 @@
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
 import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import type { PatchPreview, PatchRuntimeValues } from '#gw2/integrations/patches/authoring/patches.js';
+import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 import type { SchedulerRecord, RotationCommand, ObservationPolicy } from '#gw2/platform/engine/execution/types.js';
 import type {
@@ -45,7 +45,6 @@ import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
 export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
   readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
-  readonly patchValuesFor?: (patchId?: string) => PatchRuntimeValues;
 };
 
 export interface RotationActionOptions extends SchedulerRecord {

@@ -7,7 +7,6 @@ import {
   applyModifierRulePatch,
   applyNumEdit,
   applySkillPatch,
-  patchRuntimeValue,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -441,6 +440,16 @@ test('patch preview accepts generated overviews and rejects manual notes', () =>
   );
 });
 
+test('patch preview rejects retired constants at both authoring scopes', () => {
+  // Unsupported edits must fail validation instead of being accepted without affecting simulation.
+  for (const fields of [{ constants: { factor: 2 } }, { professions: { fixture: { constants: { factor: 2 } } } }]) {
+    assert.throws(
+      () => validatePatchPreview({ id: 'fixture-preview', label: 'Fixture Preview', ...fields }),
+      /unsupported field constants/
+    );
+  }
+});
+
 test('native professions keep live and lazy preview catalogs side by side', () => {
   const core = defineNativeModule({
     id: 'Core',
@@ -466,13 +475,11 @@ test('native professions keep live and lazy preview catalogs side by side', () =
     {
       id: 'fixture-preview',
       label: 'Fixture Preview',
-      constants: { 'shared.factor': { from: 2, to: 3 } },
       professions: {
         fixture: {
           skills: {
             1: { coefficient: { from: 1, to: 2 } }
-          },
-          constants: { 'fixture.factor': { add: 1 } }
+          }
         }
       }
     }
@@ -495,11 +502,6 @@ test('native professions keep live and lazy preview catalogs side by side', () =
       .catalog.skillsById.get(1).effects[0].coefficient,
     2
   );
-  const values = family.patchValuesFor('fixture-preview');
-
-  assert.equal(patchRuntimeValue(values, 'shared.factor', 2), 3);
-  assert.equal(patchRuntimeValue(values, 'fixture.factor', 4), 5);
-  assert.equal(patchRuntimeValue(values, 'missing', 4), 4);
   assert.throws(() => family.catalogFor('missing'), /Unknown Fixture patch/);
 
   const config = {

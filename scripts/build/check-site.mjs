@@ -19,14 +19,18 @@ const pages = [
 ];
 const runtimeAssets = [
   path.join('data', 'gw2', 'builds', 'elementalist', 'manifest.json'),
-  path.join('data', 'gw2', 'rotations', 'elementalist', 'r-power-tempest-sword.json'),
-  path.join('Builds', 'elementalist', 'manifest.json'),
-  path.join('Rotations', 'elementalist', 'r-power-tempest-sword.json')
+  path.join('data', 'gw2', 'rotations', 'elementalist', 'r-power-tempest-sword.json')
 ];
 const sourceAssetPattern = /(?:src|href)=["'](?:\.\/)?(?:css|js)\//;
+const siteEntries = await readdir(siteRoot);
 
-if (!development && (await readdir(siteRoot)).includes('patch-preview.html')) {
+if (!development && siteEntries.includes('patch-preview.html')) {
   throw new Error('Production site must not include the local patch-preview.html authoring page.');
+}
+
+// Retired aliases must not return as duplicate runtime directories in deployable builds.
+if (siteEntries.some((entry) => ['builds', 'rotations'].includes(entry.toLowerCase()))) {
+  throw new Error('Site runtime data must use data/gw2 paths without root-level Builds or Rotations aliases.');
 }
 
 for (const page of pages) {

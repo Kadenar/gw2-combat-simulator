@@ -9,11 +9,7 @@ import type {
   AnyNativeModule,
   NativeProfessionContract as StableNativeProfessionContract
 } from '#gw2/platform/profession-definition/module-types.js';
-import type {
-  PatchPreview,
-  PatchRuntimeValues,
-  ProfessionPatchPreview
-} from '#gw2/integrations/patches/authoring/patches.js';
+import type { PatchPreview, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 
 export interface NativePreviewModifierRuleTarget {
   readonly id: string;
@@ -80,7 +76,6 @@ export type NativeProfessionContract<
 > = StableNativeProfessionContract<TModules, TPresentation, TSimulation> & {
   readonly preview: PatchPreview | null;
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
-  readonly patchValuesFor: (patchId?: string) => PatchRuntimeValues;
   /** Serializable live metadata consumed by the local patch authoring UI. */
   readonly patchAuthoring: NativePatchAuthoringMetadata;
   /** Validates one profession's authored edits against live declarations. */

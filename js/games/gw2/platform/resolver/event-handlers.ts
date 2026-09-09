@@ -155,7 +155,6 @@ export function createGw2ResolverEventHandlers({
       // Invalid/missing values normalize to set one so later sigil and weapon
       // queries always have a valid one-based set number.
       ctx.activeWeaponSet = Number(event.weaponSet) === 2 ? 2 : 1;
-      reactions.dispatch('weapon-set.changed', ctx, event);
     },
 
     sigil_swap: noop

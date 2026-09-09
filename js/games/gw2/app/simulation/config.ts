@@ -115,7 +115,6 @@ export function createGw2SimulationConfig({
 
   return {
     patchId: app.patchId || 'current',
-    patchValues: app.profession?.patchValuesFor?.(app.patchId || 'current') || Object.freeze({}),
     specialization,
     selectedTraitIds: selectedTraitIds as readonly SkillId[],
     selectedSkills: app.adapter?.slotLoadout

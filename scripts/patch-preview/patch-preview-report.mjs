@@ -27,7 +27,7 @@ function describeNumericEdit(edit) {
   return `add ${edit.add}`;
 }
 
-// Generates a report of the active patch preview, including professions, skills, modifier rules, and constants.
+// Generates a report of the active patch preview, including professions, skills, and modifier rules.
 for (const [professionId, patch] of Object.entries(activePatchPreview.professions || {})) {
   const nativeProfession = await loadProfession(professionId);
 
@@ -78,12 +78,4 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
       console.log(`  [ ] modifier ${id} (${target.moduleId}) parameters.${name}: ${describeNumericEdit(numericEdit)}`);
     }
   }
-
-  for (const key of Object.keys(patch.constants || {})) {
-    console.log(`  [ ] constant ${key}`);
-  }
-}
-
-for (const key of Object.keys(activePatchPreview.constants || {})) {
-  console.log(`\n[ ] global constant ${key}`);
 }

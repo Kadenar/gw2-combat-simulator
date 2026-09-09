@@ -255,8 +255,7 @@ export function createProfessionRuntime({
 
     const configForPatch = (patchId: string): Gw2Config => ({
       ...baseConfig,
-      patchId,
-      patchValues: profession.patchValuesFor?.(patchId) || Object.freeze({})
+      patchId
     });
     const current = simulateBuild(rotation, configForPatch('current'));
     const preview = simulateBuild(rotation, configForPatch(previewPatchId));

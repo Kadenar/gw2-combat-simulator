@@ -13,7 +13,7 @@ import { generatePatchOverview } from '#gw2/integrations/patches/app/model.js';
 
 const API_PATH = '/api/patch-preview';
 const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
-const TOP_LEVEL_FIELDS = new Set(['id', 'label', 'publishedAt', 'sourceUrl', 'constants', 'professions']);
+const TOP_LEVEL_FIELDS = new Set(['id', 'label', 'publishedAt', 'sourceUrl', 'professions']);
 
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -34,10 +34,6 @@ function assertAuthoringShape(preview) {
 
   if (preview.professions != null) {
     assertRecord(preview.professions, 'Patch preview professions');
-  }
-
-  if (preview.constants != null) {
-    assertRecord(preview.constants, 'Patch preview constants');
   }
 }
 

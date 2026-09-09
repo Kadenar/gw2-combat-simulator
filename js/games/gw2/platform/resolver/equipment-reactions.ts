@@ -30,7 +30,6 @@ import type {
   Gw2ConditionResolution,
   Gw2ResolverEvent,
   Gw2ResolverReactionContributions,
-  Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
@@ -42,8 +41,6 @@ export const GW2_REACTION_ORDER = Object.freeze({
   LATE_COMMON: 100,
   FINAL_COMMON: 200
 });
-
-type Dispatch = Gw2ResolverReactionRegistry['dispatch'];
 
 const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
 
@@ -128,7 +125,8 @@ function createResolvedCriticalSigilEffects(
   }
 }
 
-function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+/** Enqueues each food proc directly so its normal damage, condition, or boon handler resolves it. */
+function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const proc = criticalFoodProc(ctx);
   if (!proc) return;
   const conditionalEffect = ctx.config.timeOfDay === 'night' ? proc.nightEffect : proc.dayEffect;
@@ -177,12 +175,7 @@ function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, e
     } as Gw2ResolverEvent;
   }
 
-  const professionUpdates =
-    dispatch('food-proc.created', ctx, foodEvent, {
-      proc,
-      triggeringEvent: event
-    }) || {};
-  enqueueOrdered(ctx.queue, { ...foodEvent, ...professionUpdates });
+  enqueueOrdered(ctx.queue, foodEvent);
   ctx.recordProc(
     'food',
     proc.name,
@@ -194,11 +187,7 @@ function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, e
 }
 
 /** Resolver-time equipment hooks. Scheduler-owned sigil generation stays out. */
-export function createGw2EquipmentReactionContributions({
-  dispatch
-}: {
-  readonly dispatch: Dispatch;
-}): Gw2ResolverReactionContributions {
+export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionContributions {
   const criticalFoodReaction = onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>(
     {
       id: 'food.critical-strike',
@@ -225,7 +214,7 @@ export function createGw2EquipmentReactionContributions({
       handler: (ctx, event, _details, application) => {
         // Food procs are discrete events, so materialize every threshold application independently.
         for (let proc = 0; proc < application.quantity; proc += 1) {
-          createCriticalFoodEffect(dispatch, ctx, event);
+          createCriticalFoodEffect(ctx, event);
         }
       }
     }

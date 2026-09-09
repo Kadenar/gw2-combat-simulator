@@ -70,7 +70,6 @@ test('ally calculations always use one strike per second per ally', () => {
     strikesPerSecond: 1
   });
   assert.equal(config.patchId, 'current');
-  assert.deepEqual(config.patchValues, {});
   assert.equal(config.sharePlayerBoonsWithSummons, true);
 
   build.assumptions.sharePlayerBoonsWithSummons = false;

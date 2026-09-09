@@ -6,14 +6,12 @@
         {
           "kind": "builds",
           "source": "data/gw2/builds",
-          "publicPath": "data/gw2/builds",
-          "legacyPublicPaths": ["Builds"]
+          "publicPath": "data/gw2/builds"
         },
         {
           "kind": "rotations",
           "source": "data/gw2/rotations",
-          "publicPath": "data/gw2/rotations",
-          "legacyPublicPaths": ["Rotations"]
+          "publicPath": "data/gw2/rotations"
         }
       ]
     }

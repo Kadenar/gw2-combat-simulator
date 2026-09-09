@@ -126,7 +126,6 @@ export interface ProfessionPatchPreview {
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
   readonly balanceProfiles?: Readonly<Record<string, BalanceProfilePatchEdit>>;
   readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
-  readonly constants?: Readonly<Record<string, NumEdit>>;
   /** Deterministic summaries generated from skills and modifierRules. */
   readonly overview?: readonly PatchOverviewEntry[];
 }
@@ -136,11 +135,8 @@ export interface PatchPreview {
   readonly label: string;
   readonly publishedAt?: string;
   readonly sourceUrl?: string;
-  readonly constants?: Readonly<Record<string, NumEdit>>;
   readonly professions?: Readonly<Record<string, ProfessionPatchPreview>>;
 }
-
-export type PatchRuntimeValues = Readonly<Record<string, NumEdit>>;
 
 const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
 const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
@@ -199,16 +195,6 @@ export function applyNumEdit(current: number, edit: NumEdit, label = 'Patched va
   }
 
   return numericValue(result, `${label} result`);
-}
-
-/** Applies the configured runtime patch edit for a constant when one exists. */
-export function patchRuntimeValue(
-  values: PatchRuntimeValues | null | undefined,
-  key: string,
-  liveValue: number
-): number {
-  const edit = values?.[key];
-  return edit == null ? liveValue : applyNumEdit(liveValue, edit, `Patch constant ${key}`);
 }
 
 const MODIFIER_PATCH_FIELDS = new Set(['amount', 'factor', 'parameters']);
@@ -651,17 +637,6 @@ export function professionPatchFor(
   return preview?.professions?.[professionId] || null;
 }
 
-/** Merges global and profession-specific runtime patch constants. */
-export function patchRuntimeValuesFor(
-  preview: PatchPreview | null | undefined,
-  professionId: string
-): PatchRuntimeValues {
-  return Object.freeze({
-    ...(preview?.constants || {}),
-    ...(professionPatchFor(preview, professionId)?.constants || {})
-  });
-}
-
 /** Validates and normalizes a complete patch preview declaration. */
 export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   if (!preview || typeof preview !== 'object') {
@@ -680,8 +655,11 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
     throw new TypeError('Patch preview label is required.');
   }
 
-  if (Object.hasOwn(preview, 'notes')) {
-    throw new TypeError('Patch preview has unsupported field notes.');
+  // Reject retired fields so authored entries cannot silently have no simulation effect.
+  for (const field of ['notes', 'constants']) {
+    if (Object.hasOwn(preview, field)) {
+      throw new TypeError(`Patch preview has unsupported field ${field}.`);
+    }
   }
 
   if (preview.sourceUrl != null) {
@@ -702,8 +680,10 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   }
 
   for (const [professionId, patch] of Object.entries(preview.professions || {})) {
-    if (Object.hasOwn(patch, 'notes')) {
-      throw new TypeError(`${professionId} patch has unsupported field notes.`);
+    for (const field of ['notes', 'constants']) {
+      if (Object.hasOwn(patch, field)) {
+        throw new TypeError(`${professionId} patch has unsupported field ${field}.`);
+      }
     }
 
     validatePatchOverview(patch.overview, `${professionId} patch overview`);

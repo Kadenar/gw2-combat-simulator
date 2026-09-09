@@ -21,9 +21,7 @@ export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
   'control.resolved',
   'blind.resolved',
   'peitha.resolved',
-  'weakness-vulnerability.resolved',
-  'weapon-set.changed',
-  'food-proc.created'
+  'weakness-vulnerability.resolved'
 ]);
 
 const STAGES = new Set<string>(GW2_RESOLVER_STAGES);
