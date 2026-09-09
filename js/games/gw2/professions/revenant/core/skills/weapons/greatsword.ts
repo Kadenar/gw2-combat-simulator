@@ -161,6 +161,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.ETERNITYS_REQUIEM]: {
     quicknessCastTimeMs: 840,
+    // Preserve the impacts when the cast is interrupted after committing at 800 ms.
+    interruptCommitMs: 800,
     cooldown: 15,
     energyCost: 10,
     effects: [
@@ -170,6 +172,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
+        // Committed impacts continue landing after the cast is interrupted.
+        persistsAfterInterrupt: true,
         ticks: [
           // Median packet positions by hit rank, snapped independently to 40 ms action ticks.
           // Individual uses vary from six to ten target hits.

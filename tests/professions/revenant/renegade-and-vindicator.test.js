@@ -341,7 +341,7 @@ test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
 });
 
 // Use isolated strike times to distinguish the 250 ms ICD from the independent strike delay.
-test('Impossible Odds uses a 250 ms interval and 240 ms delay for player-owned strikes', () => {
+test('Impossible Odds uses a 250 ms interval and 250 ms delay for player-owned strikes', () => {
   const profession = {
     ...revenantProfession,
     resolveRuntime(config) {
@@ -380,9 +380,9 @@ test('Impossible Odds uses a 250 ms interval and 240 ms delay for player-owned s
       .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
       .map((event) => [event.at, event.triggeredBy]),
     [
-      [1.24, 'Unlabelled equipment'],
-      [1.49, 'Sigil'],
-      [1.74, 'Player']
+      [1.25, 'Unlabelled equipment'],
+      [1.5, 'Sigil'],
+      [1.75, 'Player']
     ]
   );
 });
@@ -406,7 +406,7 @@ test('Impossible Odds follows Shackles damage while its upkeep is active', () =>
   );
   assert.ok(shackles);
   assert.equal(followups.length, 1);
-  assert.ok(Math.abs(followups[0].at - shackles.at - 0.24) < 1e-12);
+  assert.ok(Math.abs(followups[0].at - shackles.at - 0.25) < 1e-12);
 });
 
 test('Icerazor packets use player ownership and trigger player equipment', () => {
@@ -1387,7 +1387,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   assert.equal(odds.steps.at(-1).start, 1500);
   assert.ok(
     odds.resolvedEvents.some(
-      (event) => event.skillName === 'Impossible Odds' && event.coefficient === 0.65 && event.at === 0.74
+      (event) => event.skillName === 'Impossible Odds' && event.coefficient === 0.65 && event.at === 0.75
     )
   );
 
@@ -1405,12 +1405,15 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     ]
   });
 
-  // Air triggered by the 240 ms follow-up lands before the original trigger's 250 ms ICD expires.
+  // Air triggered by the 250 ms follow-up lands on the ICD boundary and can trigger another IO strike.
   assert.deepEqual(
     oddsWithAir.resolvedEvents
       .filter((event) => event.skillName === 'Impossible Odds')
       .map((event) => [event.at, event.triggeredBy]),
-    [[0.74, 'Phase Traversal']]
+    [
+      [0.75, 'Phase Traversal'],
+      [1, 'Sigil of Air']
+    ]
   );
   assert.ok(
     oddsWithAir.resolvedEvents.some(

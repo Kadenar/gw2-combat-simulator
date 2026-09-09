@@ -170,7 +170,8 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
   if (
     context.config.relic === 'Peitha' &&
     event.type === 'damage' &&
-    ((event.skillName === 'Deathstrike' && event.name === 'Initial Damage') ||
+    // Use the initial strike's identity so display labels cannot change shadowstep procs.
+    ((event.skillId === ID.DEATHSTRIKE && event.sourceId === ID.DEATHSTRIKE) ||
       event.skillName === "Phantom's Onslaught" ||
       // Unrelenting Assault's opening shadowstep triggers one relic attack, not one per strike.
       (event.skillId === ID.UNRELENTING_ASSAULT && event.hitIndex === 1) ||

@@ -40,7 +40,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.45 }],
-        name: 'Initial Damage',
+        name: 'Deathstrike',
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -48,7 +48,10 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 2.67 }],
-        name: 'Final Damage',
+        name: 'Deathstrike — Follow-up',
+        // Track the follow-up separately while retaining Deathstrike as the casting skill.
+        damageBreakdownName: 'Deathstrike — Follow-up',
+        sourceId: ID.DEATHSTRIKE_ID_28625,
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -120,7 +123,8 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'strike',
         coefficient: 2.67,
         hits: 1,
-        name: 'Final Strike Damage',
+        name: 'Deathstrike — Follow-up',
+        damageBreakdownName: 'Deathstrike — Follow-up',
         actorType: 'player'
       }
     ]
@@ -134,7 +138,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 0.9 }],
-        name: 'Rift Slash — Packet 1',
+        name: 'Rift Slash',
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -142,7 +146,10 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         ticks: [{ atMs: 1400, coefficient: 0.2175 }],
-        name: 'Rift Damage',
+        name: 'Rift Slash — Rift',
+        // The delayed rift has its own logged damage identity, separate from the sword attack.
+        damageBreakdownName: 'Rift Slash — Rift',
+        sourceId: 29073,
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',

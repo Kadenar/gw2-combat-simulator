@@ -56,6 +56,36 @@ const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 const strikeCoefficient = (effect) =>
   effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
 
+test('sword follow-ups retain their casting skill while exposing separate damage identities', async () => {
+  // Damage labels and packet IDs must split the breakdown without changing activation ownership.
+  const profession = await loadProfession('revenant');
+  for (const [skillName, followupName, sourceId] of [
+    ['Deathstrike', 'Deathstrike — Follow-up', SKILL.DEATHSTRIKE_ID_28625],
+    ['Rift Slash', 'Rift Slash — Rift', 29073]
+  ]) {
+    const result = simulate(
+      'Renegade',
+      skillName === 'Rift Slash' ? ['Preparation Thrust', 'Brutal Blade', skillName] : [skillName],
+      { primaryWeapon: 'Sword', secondaryWeapon: 'Sword' },
+      observationTail(2000)
+    );
+    const primary = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === skillName);
+    const followup = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === followupName);
+    assert.ok(primary);
+    assert.ok(followup);
+    assert.equal(followup.sourceId, sourceId);
+    assert.notEqual(followup.sourceId, primary.sourceId);
+    assert.equal(followup.skillId, primary.skillId);
+    assert.equal(followup.activationId, primary.activationId);
+    const rows = skillBreakdownRows(result);
+    assert.ok(rows.some((row) => row.name === skillName));
+    assert.ok(rows.some((row) => row.name === followupName));
+    assert.ok(
+      simulationEventLogRows(result, null, profession).some((row) => row.description.startsWith(`HIT ${followupName} `))
+    );
+  }
+});
+
 describe('Power Conduit skill profiles', () => {
   const skill = (name) => revenantCatalog.skillsByName.get(name);
   test('retain authored cooldowns, casts, and coefficients', () => {
@@ -172,8 +202,8 @@ describe('Power Conduit skill profiles', () => {
     const deathstrike = simulate('Conduit', ['Deathstrike'], config);
 
     assert.deepEqual(damageTimeline(deathstrike, 'Deathstrike'), [
-      [320, 'Initial Damage', 0.45],
-      [600, 'Final Damage', 2.67]
+      [320, 'Deathstrike', 0.45],
+      [600, 'Deathstrike — Follow-up', 2.67]
     ]);
     assert.deepEqual(deathstrike.endState.cooldowns.Deathstrike, {
       readyAt: 12420,
@@ -273,8 +303,8 @@ describe('Power Conduit skill profiles', () => {
     assert.deepEqual(
       rift.map((event) => event.slice(1)),
       [
-        ['Rift Slash — Packet 1', 0.9],
-        ['Rift Damage', 0.2175]
+        ['Rift Slash', 0.9],
+        ['Rift Slash — Rift', 0.2175]
       ]
     );
     assert.equal(rift[1][0] - rift[0][0], 1000);
@@ -888,7 +918,7 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
       selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
       startingLegend: LEGEND.ASSASSIN,
       sourceSkill: 'Deathstrike',
-      sourceName: 'Initial Damage',
+      sourceName: 'Deathstrike',
       delay: 0.24
     },
     {
