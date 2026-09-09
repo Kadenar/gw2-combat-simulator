@@ -81,7 +81,8 @@ function breakdownDisplayName(
   group: 'Player' | 'Entities' | 'Environment',
   damageBreakdownName: string
 ): string {
-  if (group !== 'Entities' || !parentSkill) return sourceSkill;
+  // Player effects can opt into a separate row without losing parent-skill cast attribution.
+  if (group !== 'Entities' || !parentSkill) return damageBreakdownName || sourceSkill;
   let name = damageBreakdownName || String(entry.name || sourceSkill);
   const parentPrefix = `${parentSkill}${PARENT_SKILL_SEPARATOR}`;
   if (name.startsWith(parentPrefix)) name = name.slice(parentPrefix.length);

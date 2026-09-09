@@ -9,7 +9,7 @@ import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
 import { retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
 import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { createEvent } from '#gw2/platform/engine/events/events.js';
-import { effectFirstAt, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
 import { normalizeObservationPolicy, observationEndTime } from '#kernel/execution/observation.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
@@ -153,15 +153,11 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
         skill,
         effect
       ) ?? effect;
-    const firstAt = effectFirstAt(start, fullEnd, timing);
     const perPacket = skill.interruptMode === 'per-packet';
     const cancelledCommitEffect =
       interrupted && !perPacket && cancelledBeforeEffectCommit(context, skill, effect, start, fullEnd, effectiveEnd);
     if (cancelledCommitEffect) continue;
     const cancelPendingEffects = interrupted && (perPacket || effect.persistsAfterInterrupt !== true);
-    // Per-packet channels keep only applications that occurred by the interrupt;
-    // committed effects may retain future packets only through explicit persistence.
-    if (cancelPendingEffects && firstAt > effectiveEnd + context.epsilon) continue;
     const base = {
       activationId,
       source: effect.source || context.profession.id,
@@ -190,9 +186,11 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
       statusDuration: duration
     });
 
-    // Materialize first so a per-packet channel can retain its exact landed prefix.
+    // Channel cancellation cannot recall a launched projectile. Impact order need not match launch order,
+    // so inspect every application even when an earlier impact belongs to an unlaunched packet.
     for (const application of applications) {
-      if (cancelPendingEffects && application.at > effectiveEnd + context.epsilon) break;
+      const cancellationBoundary = perPacket ? (application.launchAt ?? application.at) : application.at;
+      if (cancelPendingEffects && cancellationBoundary > effectiveEnd + context.epsilon) continue;
       observeEffect(context.emit(application.event), effect, index);
     }
   }

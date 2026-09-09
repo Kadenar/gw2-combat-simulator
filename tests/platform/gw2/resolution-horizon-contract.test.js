@@ -183,9 +183,7 @@ function contractProfession() {
               { atMs: 900, coefficient: 1 }
             ],
             timingAnchor: 'castStart',
-            timingScale: 'fixed',
-            persistsAfterInterrupt: true,
-            interruptCommitMs: 100
+            timingScale: 'fixed'
           }
         ]
       },
@@ -460,6 +458,95 @@ test('interrupt modes distinguish whole-effect commits from per-packet channels'
   assert.deepEqual(
     channel.events.filter((event) => event.type === 'damage').map((event) => event.at),
     [0.2, 0.6]
+  );
+});
+
+// Channel cancellation preserves launched follow-ups, while later pulses remain cancelled at either cast speed.
+test('per-packet channels retain launched projectiles beyond the interrupt', () => {
+  const pairedProfession = defineProfession({
+    id: 'paired-channel',
+    name: 'Paired Channel',
+    catalog: createCanonicalCatalog({
+      generated: [
+        {
+          id: 990050,
+          name: 'Paired Channel',
+          castTimeMs: 2000,
+          quicknessCastTimeMs: 1000,
+          interruptMode: 'per-packet',
+          effects: [
+            {
+              type: 'strike',
+              weaponStrength: 1000,
+              ticks: [200, 600].flatMap((launch) => [
+                { atMs: launch, coefficient: 1 },
+                { atMs: launch + 100, launchAtMs: launch, projectile: true, coefficient: 0.5 }
+              ]),
+              timingAnchor: 'castStart',
+              timingScale: 'cast'
+            }
+          ]
+        }
+      ]
+    })
+  });
+  for (const quickness of [false, true]) {
+    const scale = quickness ? 1 : 2;
+    for (const [cutoff, expected] of [
+      [199, []],
+      [200, [200, 300]],
+      [250, [200, 300]],
+      [600, [200, 300, 600, 700]]
+    ]) {
+      const result = simulateGw2({
+        profession: pairedProfession,
+        rotation: [{ name: 'Paired Channel', interruptMs: cutoff * scale }],
+        config: fixtureConfig({ boons: { quickness } }),
+        observationPolicy: { kind: 'tail', durationMs: 2000 }
+      });
+      assert.deepEqual(
+        result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => Math.round(event.at * 1000)),
+        expected.map((at) => at * scale)
+      );
+      assert.deepEqual(result.warnings, []);
+    }
+  }
+});
+
+// A later impact may have launched earlier, even when every impact occurs after cancellation.
+test('channel projectile filtering uses launch order independently of impact order', () => {
+  const projectileProfession = defineProfession({
+    id: 'projectile-order',
+    name: 'Projectile Order',
+    catalog: createCanonicalCatalog({
+      generated: [
+        {
+          id: 990051,
+          name: 'Projectiles',
+          castTimeMs: 1000,
+          interruptMode: 'per-packet',
+          effects: [
+            {
+              type: 'strike',
+              projectile: true,
+              ticks: [
+                { atMs: 300, launchAtMs: 250, coefficient: 1 },
+                { atMs: 500, launchAtMs: 100, coefficient: 1 }
+              ],
+              timingAnchor: 'castStart',
+              timingScale: 'fixed'
+            }
+          ]
+        }
+      ]
+    })
+  });
+  const result = createScheduler({ profession: projectileProfession, startingTime: 5 }).run([
+    { name: 'Projectiles', interruptMs: 200 }
+  ]);
+  assert.deepEqual(
+    result.events.filter((event) => event.type === 'damage').map((event) => event.at),
+    [5.5]
   );
 });
 

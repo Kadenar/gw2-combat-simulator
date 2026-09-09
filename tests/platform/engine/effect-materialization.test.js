@@ -59,6 +59,51 @@ test('canonical strike timelines reject invalid or ambiguous hits', () => {
   );
 });
 
+// Projectile launch offsets are validated before scheduling and share the impact's time origin.
+test('projectile ticks validate launch offsets and materialize both timing anchors', () => {
+  const catalog = (tick, projectile = true) =>
+    createCanonicalCatalog({
+      generated: [
+        {
+          id: 930050,
+          name: 'Projectile',
+          effects: [
+            {
+              type: 'strike',
+              projectile,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              ticks: [{ atMs: 300, coefficient: 1, ...tick }]
+            }
+          ]
+        }
+      ]
+    });
+  for (const launchAtMs of [-1, NaN, Infinity, 301]) {
+    assert.throws(() => catalog({ launchAtMs }), /valid launchAtMs/);
+  }
+
+  assert.throws(() => catalog({ launchAtMs: 100 }, false), /requires a projectile/);
+  assert.throws(() => catalog({ launchAtMs: 100, projectile: false }), /requires a projectile/);
+  const skill = catalog({ launchAtMs: '100' }).skills[0];
+  assert.equal(skill.effects[0].ticks[0].launchAtMs, 100);
+  for (const [timingAnchor, origin] of [
+    ['castStart', 2],
+    ['castEnd', 3]
+  ]) {
+    const [application] = materializeSkillEffectApplications({
+      skill,
+      effect: { ...skill.effects[0], timingAnchor },
+      start: 2,
+      fullEnd: 3,
+      baseEvent: { source: 'test', sourceId: skill.id }
+    });
+    assert.equal(application.launchAt, origin + 0.1);
+    assert.equal(application.at, origin + 0.3);
+    assert.equal(application.event.projectile, true);
+  }
+});
+
 test('canonical strikes distinguish one timestamp from an explicit packet timeline', () => {
   const catalog = createCanonicalCatalog({
     generated: [

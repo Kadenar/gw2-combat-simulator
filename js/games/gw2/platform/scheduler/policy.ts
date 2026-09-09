@@ -95,7 +95,13 @@ function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, eff
       ? {
           ticks: effect.ticks.map((tick) => ({
             ...tick,
-            atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
+            atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs)),
+            // Projectile launches track the same cast-speed changes as their impacts.
+            ...(tick.launchAtMs == null
+              ? {}
+              : {
+                  launchAtMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.launchAtMs))
+                })
           }))
         }
       : {}),

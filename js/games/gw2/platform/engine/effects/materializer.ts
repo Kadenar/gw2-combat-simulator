@@ -21,6 +21,7 @@ export interface EffectEventBase extends SchedulerRecord {
 
 export interface MaterializedEffectApplication {
   readonly at: number;
+  readonly launchAt?: number;
   readonly event: SimulationEventInput;
 }
 
@@ -47,6 +48,8 @@ function nestedEffectMetadata(
 function strikeEventFields(source: SchedulerRecord): SchedulerRecord {
   return {
     ...(source.name != null ? { name: String(source.name) } : {}),
+    // Explicit packet labels let the breakdown separate effects while retaining their casting skill.
+    ...(source.damageBreakdownName != null ? { damageBreakdownName: String(source.damageBreakdownName) } : {}),
     ...(source.weaponStrength != null ? { weaponStrength: Number(source.weaponStrength) } : {}),
     ...(source.independentSummonStrike != null ? { independentSummonStrike: source.independentSummonStrike } : {}),
     ...(source.summonUsesProfessionModifiers != null
@@ -121,6 +124,8 @@ export function materializeSkillEffectApplications({
       const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt;
       applications.push({
         at,
+        // Launch and impact use the same already-scaled timeline and anchor.
+        ...(tick?.launchAtMs == null ? {} : { launchAt: origin + tick.launchAtMs / 1000 }),
         event: {
           ...effectBaseEvent,
           type: 'damage',

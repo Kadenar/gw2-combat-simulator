@@ -21,6 +21,9 @@ export type SkillInterruptMode = 'commit' | 'per-packet';
 
 export interface StrikeTick {
   readonly atMs: number;
+  /** Projectile launch offset; shares the impact's anchor and scaling and survives channel cancellation after launch. */
+  readonly launchAtMs?: number;
+  readonly projectile?: boolean;
   readonly coefficient: number;
   readonly name?: string;
   readonly weaponStrength?: number;
@@ -73,6 +76,8 @@ export interface SkillEffectBase {
 
 export interface StrikeEffect extends SkillEffectBase {
   readonly type: 'strike';
+  /** Optional row label separates an effect's damage while preserving its source skill. */
+  readonly damageBreakdownName?: string;
   /** Aggregate coefficient; hits above one require one explicit shared atMs timestamp. */
   readonly coefficient?: number;
   readonly hits?: number;
