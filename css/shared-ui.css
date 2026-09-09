@@ -163,7 +163,8 @@ body[data-profession] .simulator-view-tabs {
   padding: 6px 14px;
   align-items: center;
   justify-content: center;
-  border: 1px solid transparent;
+  /* Keep inactive upper tabs subtly outlined so each navigation target is visible. */
+  border: 1px solid var(--border);
   border-radius: 2px;
   color: var(--text-dim);
   font-size: 11px;

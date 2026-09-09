@@ -26,7 +26,7 @@
   flex: 0 0 auto;
   min-width: 128px;
   /* Truncate long labels inside the available strip width while keeping the dropdown visible. */
-  max-width: min(240px, 100%);
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--bg-panel);
@@ -53,6 +53,8 @@
 
 .build-tab > button {
   width: 100%;
+  /* Cap the label before intrinsic sizing so the list reserves only the visible tab width. */
+  max-width: calc(240px - 30px - 2px);
   text-align: left;
 }
 
@@ -169,10 +171,6 @@
 
 /* Keep tab controls reachable on phones while file actions collapse into the overflow menu. */
 @media (max-width: 600px) {
-  .build-tab-list {
-    flex: 1;
-  }
-
   .build-actions-label,
   #build-actions-trigger {
     display: inline-block;
