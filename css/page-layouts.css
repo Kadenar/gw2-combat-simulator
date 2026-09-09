@@ -6,9 +6,8 @@
   --accent-dim: #8e7135;
   min-height: 100vh;
   padding-bottom: 0;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(110, 77, 156, 0.18), transparent 34rem),
-    radial-gradient(circle at 85% 8%, rgba(208, 170, 85, 0.12), transparent 30rem), var(--bg-dark);
+  /* Match the surrounding Snow Crows charcoal so the embedded picker blends into its host page. */
+  background: var(--bg-dark);
 }
 
 #app.landing-shell {
@@ -506,4 +505,39 @@
 .embed .landing-shell,
 .embed #app {
   padding-top: 0;
+}
+
+/* Center embedded settings in the frame and keep the heading visible while its controls scroll. */
+.embed dialog.perma-section {
+  inset: 0;
+  width: min(560px, calc(100% - 24px));
+  max-width: none;
+  max-height: calc(100% - 24px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text);
+  background: var(--bg-panel);
+  transform: none;
+  transition: none;
+}
+
+.embed dialog.perma-section[open] {
+  display: flex;
+}
+
+.embed dialog.perma-section::backdrop {
+  background: rgba(5, 7, 12, 0.72);
+}
+
+.embed dialog.perma-section .perma-panel {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+}
+
+.embed body[data-simulation-config-open][data-rotation-focus] .rotation-section {
+  right: 0;
 }
