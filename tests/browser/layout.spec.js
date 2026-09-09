@@ -8,6 +8,13 @@ async function openSimulator(page, viewport = { width: 1280, height: 900 }) {
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 }
 
+// Templates live in a dialog; use its launcher before selecting a build.
+async function openTemplates(page) {
+  await page.locator('.build-tab-new').click();
+  await page.getByRole('button', { name: /Browse templates/ }).click();
+  await expect(page.locator('#build-templates-dialog')).toBeVisible();
+}
+
 // The real palette must show projected endurance under Mirage Dodge without exposing an ammo counter.
 test('Mirage dodge displays its continuously regenerated endurance', async ({ page }) => {
   await openSimulator(page);
@@ -295,6 +302,7 @@ test('profession state duration checks use their own authoritative transitions',
     await page.goto(fixture.page, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.professionApp);
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    await openTemplates(page);
     await page
       .locator('.presets-group')
       .filter({ has: page.locator('.presets-group-label', { hasText: fixture.specialization }) })
@@ -493,17 +501,20 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
 
 test('loaded manifest rows show each weapon stay instead of repeated set totals', async ({ page }) => {
   await page.goto('/guardian.html', { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.guardianApp);
+  await page.waitForFunction(() => window.professionApp);
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await openTemplates(page);
   await page.locator('.template-load-btn').first().click();
   await expect
     .poll(() =>
-      page.evaluate(() => window.guardianApp.currentTemplate !== null && window.guardianApp.simulationStatus === 'idle')
+      page.evaluate(
+        () => window.professionApp.currentTemplate !== null && window.professionApp.simulationStatus === 'idle'
+      )
     )
     .toBe(true);
 
   const durations = await page.evaluate(() => {
-    const app = window.guardianApp;
+    const app = window.professionApp;
     const timelineEnd = app.results.duration * 1000;
     const timelineStart = Math.min(0, ...app.results.steps.filter((step) => !step.invalid).map((step) => step.start));
     const swapId = app.activeCatalog.skillsByName.get('Swap Weapons').id;
@@ -567,6 +578,7 @@ test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ p
 test('rotation comparison keeps editable and read-only timelines stacked without page overflow', async ({ page }) => {
   await openSimulator(page);
   // Start from a manifest build so the reference picker has one compatible skill loadout.
+  await openTemplates(page);
   const templateButton = page.locator('.template-load-btn').first();
   await templateButton.click();
   await expect
