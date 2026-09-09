@@ -1,5 +1,60 @@
 import { expect, test } from '@playwright/test';
 
+// Cross-origin, auto-height hosts must keep the picker in the visible browser area as the host scrolls and resizes.
+test('template dialog follows the visible viewport inside a tall cross-origin iframe', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  // The intercepted host has no network address; allow this test page to reach the local simulator server.
+  await page.context().grantPermissions(['local-network-access'], { origin: 'http://localhost:4173' });
+  await page.route('http://localhost:4173/embed-host', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<style>body { margin: 0; padding-top: 60px; } iframe { width: 90%; height: 3000px; border: 0; }</style>
+      <iframe title="Simulator" src="http://127.0.0.1:4173/mesmer.html?embed=1"></iframe>`
+    })
+  );
+  await page.goto('http://localhost:4173/embed-host');
+  const frame = page.frameLocator('iframe');
+  await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const browse = frame.getByRole('button', { name: 'Browse templates' });
+  const dialog = frame.getByRole('dialog', { name: 'Build templates' });
+  await browse.click();
+
+  const expectVisibleCenter = async () => {
+    await expect
+      .poll(async () => {
+        const host = await page.locator('iframe').boundingBox();
+        const modal = await dialog.boundingBox();
+        if (!host || !modal) return false;
+        const viewport = page.viewportSize();
+        const top = Math.max(0, host.y);
+        const bottom = Math.min(viewport.height, host.y + host.height);
+        return (
+          Math.abs(modal.y + modal.height / 2 - (top + bottom) / 2) < 2 &&
+          modal.y >= top + 11 &&
+          modal.y + modal.height <= bottom - 11
+        );
+      })
+      .toBe(true);
+  };
+
+  await expectVisibleCenter();
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await page.evaluate(() => scrollTo(0, 500));
+  await expectVisibleCenter();
+  await page.evaluate(() => scrollTo(0, 900));
+  await expectVisibleCenter();
+  await page.setViewportSize({ width: 700, height: 500 });
+  await expectVisibleCenter();
+  await dialog.getByRole('button', { name: 'Close build templates' }).click();
+  await expect(dialog).toBeHidden();
+  await page.evaluate(() => scrollTo(0, 0));
+  await browse.click();
+  await expectVisibleCenter();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(browse).toBeFocused();
+});
+
 // A long catalog stays out of the embedded editor and remains usable with keyboard, scrolling, and partial loading.
 test('embedded templates browse in a bounded dialog and return to the editor after loading', async ({ page }) => {
   await page.route('**/data/gw2/builds/mesmer/manifest.json*', (route) =>
