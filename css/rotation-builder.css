@@ -121,6 +121,47 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
   color: var(--accent);
 }
 
+/* Reserve chart and table space while results load, with a quiet pulse that respects reduced motion. */
+.analysis-skeleton {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.analysis-skeleton > div {
+  background: var(--border);
+  border-radius: var(--radius);
+  animation: analysis-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.analysis-skeleton-heading {
+  width: 35%;
+  height: 20px;
+}
+
+.analysis-skeleton-chart {
+  height: 220px;
+}
+
+.analysis-skeleton-row {
+  height: 28px;
+}
+
+@keyframes analysis-skeleton-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analysis-skeleton > div {
+    animation: none;
+  }
+}
+
 .simulation-workspace > * {
   min-width: 0;
 }

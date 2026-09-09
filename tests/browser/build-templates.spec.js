@@ -15,8 +15,9 @@ test('template dialog follows the visible viewport inside a tall cross-origin if
   await page.goto('http://localhost:4173/embed-host');
   const frame = page.frameLocator('iframe');
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
-  const browse = frame.getByRole('button', { name: 'Browse templates' });
+  const browse = frame.getByRole('button', { name: /Browse templates/ });
   const dialog = frame.getByRole('dialog', { name: 'Build templates' });
+  await frame.locator('.build-tab-new').click();
   await browse.click();
 
   const expectVisibleCenter = async () => {
@@ -48,11 +49,12 @@ test('template dialog follows the visible viewport inside a tall cross-origin if
   await dialog.getByRole('button', { name: 'Close build templates' }).click();
   await expect(dialog).toBeHidden();
   await page.evaluate(() => scrollTo(0, 0));
+  await frame.locator('.build-tab-new').click();
   await browse.click();
   await expectVisibleCenter();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  await expect(browse).toBeFocused();
+  await expect(frame.locator('.build-tab-new')).toBeFocused();
 });
 
 // A long catalog stays out of the embedded editor and remains usable with keyboard, scrolling, and partial loading.
@@ -75,7 +77,7 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
   const frame = page.frameLocator('iframe');
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
   const templates = frame.locator('.build-templates');
-  const browse = frame.getByRole('button', { name: 'Browse templates' });
+  const browse = frame.getByRole('button', { name: /Browse templates/ });
   const dialog = frame.getByRole('dialog', { name: 'Build templates' });
   const close = dialog.getByRole('button', { name: 'Close build templates' });
 
@@ -99,6 +101,7 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
     expect(editorBounds.y).toBeGreaterThanOrEqual(templateBounds.y + templateBounds.height);
     expect(editorBounds.x).toBe(templateBounds.x);
 
+    await frame.locator('.build-tab-new').click();
     await browse.click();
     await expect(close).toBeFocused();
     expect(await dialog.evaluate((element) => element.matches(':modal'))).toBe(true);
@@ -122,20 +125,29 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
     await expect(close).toBeInViewport();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    await expect(browse).toBeFocused();
+    await expect(frame.locator('.build-tab-new')).toBeFocused();
   }
 
+  await frame.locator('.build-tab-new').click();
   await browse.click();
   await dialog.locator('.template-actions > summary').first().click();
   await dialog.getByRole('menuitem', { name: 'Load build only' }).first().click();
   await expect(dialog).toBeHidden();
-  await expect(browse).toBeFocused();
+  await expect(frame.locator('.build-tab-new')).toBeFocused();
   await expect(templates.getByRole('status')).toContainText('build only');
   await templates.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(templates.getByRole('status')).toBeHidden();
+  await frame.locator('.build-tab-new').click();
   await browse.click();
   await close.click();
-  await expect(browse).toBeFocused();
+  await expect(frame.locator('.build-tab-new')).toBeFocused();
+  // The primary choice reached through New must preserve the existing build in its own tab.
+  await frame.locator('.build-tab-new').click();
+  await browse.click();
+  await dialog.locator('.template-load-btn').first().click();
+  await expect(dialog).toBeHidden();
+  await expect(frame.locator('.build-tab')).toHaveCount(2);
+  await expect(frame.locator('.build-tab-new')).toBeFocused();
 });
 
 // A small manifest exercises grouping and intersecting filters without depending on saved rotations.

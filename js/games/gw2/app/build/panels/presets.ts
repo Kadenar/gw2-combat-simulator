@@ -1,5 +1,5 @@
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
-import { bindDialog, showDialog } from '#app/dialog.js';
+import { bindDialog } from '#app/dialog.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
 import { replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
@@ -367,12 +367,6 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       dialog.className = 'build-templates-dialog';
       dialog.id = 'build-templates-dialog';
       dialog.setAttribute('aria-labelledby', 'build-templates-title');
-      const browse = document.createElement('button');
-      browse.type = 'button';
-      browse.className = 'btn';
-      browse.textContent = 'Browse templates';
-      browse.setAttribute('aria-haspopup', 'dialog');
-      browse.setAttribute('aria-controls', dialog.id);
       const close = document.createElement('button');
       close.type = 'button';
       close.className = 'btn';
@@ -381,11 +375,13 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       close.autofocus = true;
       container.querySelector('.build-templates-header')!.append(close);
       dialog.append(container.querySelector('.build-templates-panel')!);
-      container.append(browse, dialog, dialog.querySelector('.template-toast')!);
+      container.append(dialog, dialog.querySelector('.template-toast')!);
       close.dataset.dialogClose = '';
       bindDialog(dialog);
-      browse.addEventListener('click', () => showDialog(dialog));
-      dialog.addEventListener('close', () => closeTemplateMenus(container));
+      dialog.addEventListener('close', () => {
+        closeTemplateMenus(container);
+        delete container.dataset.newBuild;
+      });
     }
 
     let templateFilter: TemplateFilter = 'all';
@@ -445,7 +441,10 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       const preset = app.templatePresets[Number(button.dataset.templateIndex)];
       if (!preset) return;
       closeTemplateMenus(container);
-      loadTemplateAction(app, preset, action, button);
+      // Browsing from New creates an independent build; explicit partial-load actions still target the current build.
+      const destination = action === 'template' && container.dataset.newBuild === 'true' ? 'new-tab' : action;
+      delete container.dataset.newBuild;
+      loadTemplateAction(app, preset, destination, button);
     });
     document.addEventListener('click', (event) => {
       const target = event.target;

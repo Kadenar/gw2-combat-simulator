@@ -7,6 +7,16 @@ async function openWorkspace(page, viewport = { width: 1440, height: 1000 }) {
   await expect(page.locator('#build-workspace-tabs')).toBeVisible();
 }
 
+async function newBuild(page) {
+  await page.locator('.build-tab-new').click();
+  await page.getByRole('button', { name: 'New blank build', exact: true }).click();
+}
+
+async function buildAction(page, name) {
+  await page.getByRole('button', { name: 'Build actions', exact: true }).click();
+  await page.getByRole('button', { name, exact: true }).click();
+}
+
 async function settled(page) {
   await page.waitForFunction(() => {
     const app = window.professionApp;
@@ -22,7 +32,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await settled(page);
   const originalDps = await page.locator('#floating-dps').textContent();
-  await strip.getByRole('button', { name: 'Duplicate', exact: true }).click();
+  await buildAction(page, 'Duplicate build');
   await settled(page);
   await expect(strip.locator('.build-tab')).toHaveCount(2);
   await expect(strip.locator('.build-tab-close')).toHaveCount(2);
@@ -54,10 +64,11 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await page.locator('.simulator-view-tab[data-simulator-view="workspace"]').click();
   await strip.getByRole('button', { name: 'Alternative', exact: true }).click();
   await strip.getByRole('button', { name: 'Build 1', exact: true }).hover();
+  page.once('dialog', (dialog) => dialog.accept());
   await strip.getByRole('button', { name: 'Close Build 1', exact: true }).click();
   await expect(strip.locator('.build-tab')).toHaveCount(1);
   await expect(strip.locator('.build-tab-close')).toHaveCount(0);
-  await expect(strip.locator('.build-tab-notice')).toHaveCount(0);
+  await expect(strip.locator('.build-tab-notice')).toBeHidden();
   await expect(strip.getByRole('button', { name: 'Alternative', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -65,7 +76,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await expect(strip.locator('.build-tab')).toHaveCount(1);
   await expect(strip.getByRole('button', { name: 'Alternative', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-  await strip.getByRole('button', { name: 'New build', exact: true }).click();
+  await newBuild(page);
   await expect(strip.locator('.build-tab')).toHaveCount(2);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
 });
@@ -74,7 +85,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
 test('rename dialog validates names and restores focus without switching builds', async ({ page }) => {
   await openWorkspace(page, { width: 390, height: 844 });
   const strip = page.locator('#build-workspace-tabs');
-  await strip.getByRole('button', { name: 'New build', exact: true }).click();
+  await newBuild(page);
   const rename = strip.getByRole('button', { name: 'Rename Build 1', exact: true });
   const dialog = page.getByRole('dialog', { name: 'Rename build', exact: true });
   const input = dialog.getByRole('textbox', { name: 'Build name' });
@@ -153,7 +164,7 @@ test('tab overflow stays inside its strip on narrow screens', async ({ page }) =
   expect(geometry.scrollWidth).toBeGreaterThan(geometry.clientWidth);
   expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
   await expect(page.locator('.build-tab.is-active')).toBeInViewport();
-  await expect(page.getByRole('button', { name: 'New build', exact: true })).toBeInViewport();
+  await expect(page.locator('.build-tab-new')).toBeInViewport();
 });
 
 // Hidden controls leave the tab width alone and remain reachable without a mouse.
@@ -167,7 +178,7 @@ test('tab icons overlay labels on hover and keyboard focus, with an adjacent add
   const before = await tab.boundingBox();
   const plus = await add.boundingBox();
   expect(plus.x - (before.x + before.width)).toBeLessThan(16);
-  await expect(add).toHaveText('');
+  await expect(add).toContainText('New');
   await tab.hover();
   await expect(controls).toHaveCSS('opacity', '1');
   expect((await tab.boundingBox()).width).toBe(before.width);
@@ -176,7 +187,85 @@ test('tab icons overlay labels on hover and keyboard focus, with an adjacent add
   await page.keyboard.press('Tab');
   await expect(tab.getByRole('button', { name: 'Rename Build 1', exact: true })).toBeFocused();
   await expect(controls).toHaveCSS('opacity', '1');
-  await add.click();
+  await newBuild(page);
   await expect(page.locator('.build-tab')).toHaveCount(2);
   await expect(add).toBeFocused();
+});
+
+// Both responsive layouts keep all actions reachable without widening the iframe.
+test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and outside clicks', async ({ page }) => {
+  await page.goto('/mesmer.html?embed=1');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(async () => {
+    const { addBuildTab } = await import('/js/games/gw2/app/build/state/workspace.ts');
+    for (let index = 0; index < 5; index += 1)
+      addBuildTab(window.professionApp, window.professionApp.build, `Alternative build ${index}`);
+  });
+  for (const width of [1100, 700, 390, 320, 1100]) {
+    await page.setViewportSize({ width, height: 844 });
+    const mobile = width <= 600;
+    await expect(page.locator('.build-tab-list')).toBeVisible();
+    if (!mobile) {
+      await expect(page.locator('#btn-export-build')).toBeVisible();
+      await expect(page.locator('.build-tab.is-active')).toBeInViewport();
+    }
+
+    await page.locator('#build-actions-trigger').click();
+    const menu = page.locator('#build-actions-menu');
+    await expect(menu).toBeInViewport();
+    await expect(menu.locator('#btn-export-build')).toHaveCount(mobile ? 1 : 0);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(page.locator('#build-actions-trigger')).toBeFocused();
+    await page.locator('.build-tab-new').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('button', { name: 'New blank build' })).toBeFocused();
+    await page.locator('.gear-heading h3').click();
+    await expect(page.locator('#build-new-menu')).toBeHidden();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width + 1);
+    const newButton = await page.locator('.build-tab-new').boundingBox();
+    const actions = await page.locator('#build-actions-trigger').boundingBox();
+    expect(Math.abs(newButton.y - actions.y)).toBeLessThan(2);
+  }
+
+  const nav = await page.locator('.simulator-view-tabs').boundingBox();
+  const firstTab = await page.locator('.build-tab-list').boundingBox();
+  const help = await page.locator('.community-actions').boundingBox();
+  expect(nav.x).toBe(firstTab.x + 2);
+  expect(help.x - (nav.x + nav.width)).toBeGreaterThanOrEqual(24);
+});
+
+// Reparented controls keep their original listeners, and destructive actions still allow cancellation.
+test('mobile actions export, import, reset, and delete the active build', async ({ page }) => {
+  await openWorkspace(page, { width: 390, height: 844 });
+  const original = await page.evaluate(() => structuredClone(window.professionApp.build));
+  const download = page.waitForEvent('download');
+  await buildAction(page, /Export$/);
+  expect((await download).suggestedFilename()).toMatch(/\.json$/);
+  const chooser = page.waitForEvent('filechooser');
+  await buildAction(page, /Import$/);
+  await (
+    await chooser
+  ).setFiles({
+    name: 'build.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ ...original, targetArmor: 2400 }))
+  });
+  await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await buildAction(page, 'Reset build');
+  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+  page.once('dialog', (dialog) => dialog.accept());
+  await buildAction(page, 'Reset build');
+  await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(original.targetArmor);
+  await newBuild(page);
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await page.locator('.build-tab.is-active').hover();
+  await page.locator('.build-tab.is-active .build-tab-close').click();
+  await expect(page.locator('.build-tab')).toHaveCount(2);
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.locator('.build-tab.is-active').hover();
+  await page.locator('.build-tab.is-active .build-tab-close').click();
+  await expect(page.locator('.build-tab')).toHaveCount(1);
+  await expect(page.locator('.build-tab-close')).toHaveCount(0);
 });

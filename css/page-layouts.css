@@ -507,6 +507,34 @@ html.embed {
   display: none;
 }
 
+/* Separate navigation from help actions in the narrower host without overlapping either group. */
+.embed body[data-profession] #app > header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  /* Match the content gutter; the header must not add a second horizontal inset. */
+  padding-inline: 2px;
+}
+
+.embed body[data-profession] #app > header .header-brand {
+  display: none;
+}
+
+.embed body[data-profession] #app > header .community-actions {
+  position: static;
+  flex-wrap: wrap;
+  margin: 0 0 0 auto;
+}
+
+/* Let the longest navigation label wrap rather than widening very small embeds. */
+@media (max-width: 360px) {
+  .embed .simulator-view-tab {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
 .embed .landing-shell,
 .embed #app {
   padding-top: 0;

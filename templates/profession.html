@@ -42,8 +42,41 @@
                   <div id="gear-set-all" class="gear-set-all"></div>
                 </div>
                 <div class="build-io-btns">
-                  <button id="btn-export-build" class="btn btn-io">⬆ Export</button>
-                  <button id="btn-import-build" class="btn btn-io">⬇ Import</button>
+                  <!-- Document minus/plus icons distinguish exporting and importing without arrow glyphs. -->
+                  <button id="btn-export-build" class="btn btn-io">
+                    <svg
+                      class="btn-icon"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6" />
+                    </svg>
+                    Export
+                  </button>
+                  <button id="btn-import-build" class="btn btn-io">
+                    <svg
+                      class="btn-icon"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6m-3-3v6" />
+                    </svg>
+                    Import
+                  </button>
                   <button id="btn-reset-build" class="btn btn-clear">Reset</button>
                   <input type="file" id="import-file-input" accept=".json" hidden />
                 </div>
@@ -111,8 +144,40 @@
                     ↷ Redo
                   </button>
                   <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
-                  <button id="btn-export-rotation" class="btn btn-io">↓ Save Rotation</button>
-                  <button id="btn-import-rotation" class="btn btn-io">↑ Load Rotation</button>
+                  <button id="btn-export-rotation" class="btn btn-io">
+                    <svg
+                      class="btn-icon"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6" />
+                    </svg>
+                    Save Rotation
+                  </button>
+                  <button id="btn-import-rotation" class="btn btn-io">
+                    <svg
+                      class="btn-icon"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6m-3-3v6" />
+                    </svg>
+                    Load Rotation
+                  </button>
                   <input
                     type="file"
                     id="rotation-file-input"

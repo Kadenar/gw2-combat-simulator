@@ -87,7 +87,16 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       workspace: null,
       analysis: null,
       floatingDps: null,
-      analysisEmptyHtml: `<div class="analysis-empty-state">
+      // An existing rotation is waiting for results, so reserve the analysis layout instead of prompting for skills.
+      analysisEmptyHtml: app.build.rotation.length
+        ? `<div class="analysis-skeleton" role="status" aria-label="Loading combat analysis" aria-busy="true">
+          <div class="analysis-skeleton-heading" aria-hidden="true"></div>
+          <div class="analysis-skeleton-chart" aria-hidden="true"></div>
+          <div class="analysis-skeleton-row" aria-hidden="true"></div>
+          <div class="analysis-skeleton-row" aria-hidden="true"></div>
+          <div class="analysis-skeleton-row" aria-hidden="true"></div>
+        </div>`
+        : `<div class="analysis-empty-state">
         <strong>No analysis yet</strong>
         <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
       </div>`
