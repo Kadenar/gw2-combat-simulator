@@ -8,6 +8,39 @@ const launchers = [
   ['.build-tab-menu-trigger', '.build-rename-dialog']
 ];
 
+// A viewport notification can arrive after native close() but before its queued close event.
+test('embedded viewport updates cannot reopen a closed dialog', async ({ page }) => {
+  await page.goto('/');
+  const reopened = await page.evaluate(async () => {
+    const { showDialog } = await import('/js/app/dialog.ts');
+    document.documentElement.classList.add('embed');
+    const NativeObserver = window.IntersectionObserver;
+    let notify;
+    window.IntersectionObserver = class {
+      constructor(callback) {
+        notify = () => callback([{ intersectionRect: document.documentElement.getBoundingClientRect() }]);
+      }
+      observe() {}
+      disconnect() {}
+    };
+    const dialog = document.createElement('dialog');
+    document.body.append(dialog);
+    const stop = showDialog(dialog);
+    try {
+      notify();
+      if (!dialog.open) throw new Error('The initial viewport notification must open the dialog.');
+      dialog.close();
+      notify();
+      return dialog.open;
+    } finally {
+      stop();
+      dialog.remove();
+      window.IntersectionObserver = NativeObserver;
+    }
+  });
+  expect(reopened).toBe(false);
+});
+
 // Each migrated feature keeps native focus and dismissal, including clicks on the shell's own padding.
 test('shared modals dismiss consistently and return focus to their launcher', async ({ page }) => {
   await page.goto('/mesmer.html');

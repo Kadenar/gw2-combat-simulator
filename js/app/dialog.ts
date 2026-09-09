@@ -34,8 +34,12 @@ export function showDialog(dialog: HTMLDialogElement): () => void {
     return () => {};
   }
 
+  let opened = false;
   const stopTracking = trackEmbeddedViewport(dialog, {
     onVisible: () => {
+      // Open once per request so viewport updates cannot reopen it before the queued close event runs.
+      if (opened) return;
+      opened = true;
       if (!dialog.open) dialog.showModal();
     }
   });
