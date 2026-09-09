@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { runOrdinaryOptimizer } from '../helpers/gear-optimizer.js';
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
 import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
@@ -13,8 +14,7 @@ import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/simulati
 import {
   groupOptimizerSpace,
   groupedEquipmentAt,
-  optimizerEquivalenceKey,
-  estimateOptimizerCount
+  optimizerEquivalenceKey
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
 import {
   captureGearOptimizerRequest,
@@ -24,8 +24,7 @@ import {
   optimizerSlots,
   optimizerWeaponSets,
   optimizerCardinality,
-  optimizerScore,
-  runOrdinaryOptimizer
+  optimizerScore
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 import {
   retainOptimizerCandidate,
@@ -145,7 +144,7 @@ test('equal integer vectors merge before evaluation without losing coverage or r
   const full = createGroupedOptimizer(captured, adapter);
   const cached = full.evaluateRange(0n, full.space.count);
   assert.equal(full.space.count, 7n);
-  assert.equal(estimateOptimizerCount(full.space.ordinary, adapter), 8n);
+  assert.equal(full.space.ordinary.rawCount, 8n);
   assert.equal(cached.represented, '8');
   assert.equal(cached.simulations, '7');
   const ordinary = runOrdinaryOptimizer({ ...captured, limit: 20 }, adapter);

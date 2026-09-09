@@ -4,7 +4,9 @@ import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { thiefCatalog, thiefSkillRuntimeOwner } from '#gw2/professions/thief/catalog.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { nativeSkillRuntimeOwner } from '#gw2/platform/profession-definition/catalog.js';
+import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
@@ -207,7 +209,7 @@ test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
       rawOwnerById.set(Number(id), owner);
       const skill = catalogById.get(id);
 
-      if (skill) assert.equal(thiefSkillRuntimeOwner(skill), owner, id);
+      if (skill) assert.equal(nativeSkillRuntimeOwner(thiefNativeModules, skill), owner, id);
     }
   }
 
@@ -245,7 +247,7 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
     );
     assert.equal(
       runtime.catalog.skills.some((skill) => {
-        const owner = thiefSkillRuntimeOwner(skill);
+        const owner = nativeSkillRuntimeOwner(thiefNativeModules, skill);
 
         return owner !== 'Core' && owner !== activeElite;
       }),

@@ -70,7 +70,6 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
   extraFields = {} as Gw2BuildExtraFieldDescriptors<TBuild>,
   normalizeExtra = (build) => build,
   validateExtra = () => [],
-  legacyGearAliases = {},
   slotLoadout = null
 }: Gw2BuildCodecOptions<TBuild>): Readonly<Gw2BuildCodec<TBuild>> {
   if (!/^[a-z][a-z0-9-]*$/.test(String(professionId || ''))) {
@@ -87,10 +86,6 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 
   validateExtraFieldDescriptors(extraFields);
 
-  const aliases = Object.freeze({
-    ...DEFAULT_GEAR_ALIASES,
-    ...legacyGearAliases
-  });
   const options: Gw2BuildValidationOptions = {
     professionId,
     schemaVersion,
@@ -118,7 +113,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
         ? [saved.sigils, saved.sigils]
         : saved.weaponSigils;
     const specializations = normalizeSpecializations(saved.specializations, defaults.specializations, catalog);
-    const gear = normalizeGear(saved.gear, defaults, aliases);
+    const gear = normalizeGear(saved.gear, defaults, DEFAULT_GEAR_ALIASES);
     let migrated = {
       ...defaults,
       ...saved,
@@ -129,7 +124,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       alternateWeaponPrefixes: normalizeWeaponPrefixes(
         saved.alternateWeaponPrefixes,
         [gear.Weapon1, gear.Weapon2],
-        aliases
+        DEFAULT_GEAR_ALIASES
       ),
       weapons: normalizeWeaponPair(saved.weapons, defaults.weapons, catalog),
       // Second weapon set is optional; allowEmpty=true lets both slots be "".

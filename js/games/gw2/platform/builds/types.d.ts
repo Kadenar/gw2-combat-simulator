@@ -235,7 +235,6 @@ export interface Gw2BuildCodecOptions<TBuild extends Gw2CanonicalBuild = Gw2Cano
   readonly extraFields?: Gw2BuildExtraFieldDescriptors<TBuild>;
   readonly normalizeExtra?: (build: TBuild, context: Gw2BuildCodecContext<TBuild>) => TBuild;
   readonly validateExtra?: (build: TBuild) => unknown[] | { readonly errors?: readonly unknown[] } | null | undefined;
-  readonly legacyGearAliases?: Readonly<Record<string, string>>;
   readonly slotLoadout?: Gw2SlotLoadout<TBuild> | null;
 }
 

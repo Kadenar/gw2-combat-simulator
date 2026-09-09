@@ -26,11 +26,18 @@ test('a non-GW2 game reaches the shared bootstrap through explicit game and cont
   assert.equal(content.gameId, 'fake');
 });
 
-test('legacy profession markup defaults to the GW2 game ID', async () => {
-  const root = { body: { dataset: { profession: 'pilot' } } };
-  const app = await bootstrapGameApp(root, fakeRegistry('gw2'));
-
-  assert.equal(app.started, true);
+test('bootstrap requires both explicit IDs even when legacy profession markup is present', async () => {
+  // Reject incomplete identity before attempting to select or mount content.
+  for (const dataset of [
+    { profession: 'pilot' },
+    { game: 'gw2', profession: 'pilot' },
+    { content: 'pilot', profession: 'pilot' }
+  ]) {
+    await assert.rejects(
+      bootstrapGameApp({ body: { dataset } }, fakeRegistry('gw2')),
+      /requires data-game and data-content/
+    );
+  }
 });
 
 test('the GW2 game plug-in exposes the existing lazy profession registry', async () => {

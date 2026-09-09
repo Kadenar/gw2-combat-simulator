@@ -4,10 +4,7 @@ import {
   captureGearOptimizerRequest,
   createOptimizerSpace
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
-import {
-  estimateOptimizerCount,
-  groupOptimizerSpace
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+import { groupOptimizerSpace } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
 
 const adapter = await loadProfessionAppAdapter('warrior');
 const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
@@ -34,7 +31,6 @@ for (const prefixes of [
     JSON.stringify({
       prefixes,
       rawAssignments: ordinary.rawCount.toString(),
-      previousGroupedCandidates: estimateOptimizerCount(ordinary, adapter).toString(),
       uniqueCandidates: space.count.toString(),
       preparationMs: Math.round(performance.now() - started)
     })

@@ -418,15 +418,3 @@ export const RANGER_TRAIT_IDS = Object.freeze({
   GALE_FORCE: 2336, // Gale Force
   SHRIKE: 2372 // Shrike
 });
-
-export const RANGER_SPECIALIZATION_IDS = Object.freeze({
-  DRUID: 5, // Druid
-  MARKSMANSHIP: 8, // Marksmanship
-  NATURE_MAGIC: 25, // Nature Magic
-  SKIRMISHING: 30, // Skirmishing
-  BEASTMASTERY: 32, // Beastmastery
-  WILDERNESS_SURVIVAL: 33, // Wilderness Survival
-  SOULBEAST: 55, // Soulbeast
-  UNTAMED: 72, // Untamed
-  GALESHOT: 78 // Galeshot
-});

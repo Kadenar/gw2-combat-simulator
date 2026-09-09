@@ -69,34 +69,6 @@ function contribution(
   ];
 }
 
-/** A cheap upper bound keeps selector edits responsive; exact merging runs only in workers. */
-export function estimateOptimizerCount(ordinary: OptimizerSpace, adapter: Gw2AppAdapter): bigint {
-  const buckets = new Map<string, { slots: number; choices: number }>();
-  for (const dimension of ordinary.dimensions) {
-    const isGear = Object.hasOwn(ordinary.request.build.gear, dimension.key);
-    const signature =
-      isGear && !dimension.key.includes('Weapon')
-        ? JSON.stringify(
-            dimension.choices.map((prefix) => [
-              prefix,
-              contribution(dimension.key, prefix as string, ordinary, adapter)
-            ])
-          )
-        : dimension.key;
-    const bucket = buckets.get(signature) || { slots: 0, choices: dimension.choices.length };
-    bucket.slots++;
-    buckets.set(signature, bucket);
-  }
-
-  return optimizerCardinality(
-    [...buckets.values()].map(({ slots, choices }) => {
-      let count = 1n;
-      for (let i = 1; i <= slots; i++) count = (count * BigInt(choices + i - 1)) / BigInt(i);
-      return count;
-    })
-  );
-}
-
 /** Merge equal integer totals after each slot, retaining coverage and the smallest representative assignment. */
 export function groupOptimizerSpace(
   ordinary: OptimizerSpace,
