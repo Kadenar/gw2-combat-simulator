@@ -59,12 +59,7 @@ export interface TimelineRowRender {
 const timelineCommandKeys = new WeakMap<object, number>();
 let nextTimelineCommandKey = 1;
 
-const UNLABELED_WEAPON_LINES = new Set(['Celestial Avatar', 'Elixir Gun', 'Flamethrower', 'Gunsaber']);
-
-/** Hides redundant bar-replacement labels so their skill tiles keep the normal timeline alignment. */
-export function timelineWeaponLineLabel(weaponLine: string | null | undefined): string {
-  return !weaponLine || weaponLine.endsWith(' Kit') || UNLABELED_WEAPON_LINES.has(weaponLine) ? '' : weaponLine;
-}
+const TOME_WEAPON_LINES = ['Tome of Justice', 'Tome of Resolve', 'Tome of Courage'];
 
 function timelineCommandKey(command: RotationCommand): number {
   const object = command as object;
@@ -224,6 +219,20 @@ export function timelineRowsView(
     automaticTomeStowsByIndex.set(marker.insertionIndex, markers);
   }
 
+  // Page exhaustion closes the tome line, so keep its stow beside the final chapter.
+  const automaticTomeStowsByRow = new Map<number, typeof automaticTomeStows>();
+  const automaticTomeStowRowMarkers = new Set<(typeof automaticTomeStows)[number]>();
+  for (const marker of automaticTomeStows) {
+    const rowIndex = TOME_WEAPON_LINES.map((line) =>
+      timelineWeaponLineExitMarkerRowIndex(rows, marker.insertionIndex, line)
+    ).find((index) => index >= 0);
+    if (rowIndex === undefined) continue;
+    const markers = automaticTomeStowsByRow.get(rowIndex) || [];
+    markers.push(marker);
+    automaticTomeStowsByRow.set(rowIndex, markers);
+    automaticTomeStowRowMarkers.add(marker);
+  }
+
   const targetThresholds =
     app.profession.ui.targetHealthThresholds?.({
       specialization,
@@ -280,7 +289,7 @@ export function timelineRowsView(
     const time = formatTime(marker.start);
     const detail = ['Stow Tome', `Tome closed automatically at ${time}`, 'No tome pages remaining'].join('\n');
     const icon = app.activeCatalog.skillsByName.get('Stow Tome')?.icon || ACTION_ICONS['Stow Tome'] || PLACEHOLDER_ICON;
-    return `<div class="rot-skill rot-injected" title="${esc(detail)}"
+    return `<div class="rot-skill rot-injected rot-automatic-transition" title="${esc(detail)}"
             style="--att-border:#d6b46b">
             <img src="${esc(icon)}" alt="" />
             <span class="rot-injected-badge">AUTO</span>
@@ -412,6 +421,7 @@ export function timelineRowsView(
       }
 
       for (const marker of automaticTomeStowsByIndex.get(index) || []) {
+        if (automaticTomeStowRowMarkers.has(marker)) continue;
         rowItems.push(renderAutomaticTomeStow(marker));
       }
 
@@ -579,6 +589,10 @@ export function timelineRowsView(
       rowItems.push(renderAutomaticPhotonForgeExit(marker));
     }
 
+    for (const marker of automaticTomeStowsByRow.get(rowNumber) || []) {
+      rowItems.push(renderAutomaticTomeStow(marker));
+    }
+
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
       for (const marker of overlayProcMarkersByIndex.get(rotation.length) || []) {
@@ -603,6 +617,7 @@ export function timelineRowsView(
       }
 
       for (const marker of automaticTomeStowsByIndex.get(rotation.length) || []) {
+        if (automaticTomeStowRowMarkers.has(marker)) continue;
         rowItems.push(renderAutomaticTomeStow(marker));
       }
     }
@@ -610,10 +625,8 @@ export function timelineRowsView(
     const skills = rowItems.join('');
     const finalSkill = row.skills.at(-1);
     const insertAt = finalSkill ? finalSkill.index + 1 : 0;
-    const lineLabel = timelineWeaponLineLabel(row.weaponLine);
-    const lineTitle = row.weaponLine ? `${row.weaponLine} weapon line` : '';
+    // Preserve state boundaries as separate lines without adding labels beside their skill icons.
     return `<div class="rot-row-line">
-            ${lineLabel ? `<div class="rot-row-line-label" title="${esc(lineTitle)}">${esc(lineLabel)}</div>` : ''}
             <div class="rot-row-skills" data-insert-idx="${insertAt}">${skills}</div>
         </div>`;
   });
