@@ -432,47 +432,6 @@ implementation first.
 
 ---
 
-# Runtime constants
-
-Some numeric behavior does not belong to:
-
-- a skill;
-- a balance profile;
-- or a declarative modifier rule.
-
-For those cases, the preview schema supports **named patchable constants**.
-
-Example runtime code:
-
-```ts
-const factor = patchRuntimeValue(context.config.patchValues, 'warrior.traits.example.factor', 0.1);
-```
-
-The preview can then supply:
-
-```ts
-constants: {
-  "warrior.traits.example.factor": {
-    from: 0.1,
-    to: 0.15,
-  },
-},
-```
-
-Constants can exist globally or under an individual profession.
-
-They are an **advanced escape hatch for imperative code**.
-
-The current local authoring UI does not provide a general constant editor, so adding a new constant usually requires:
-
-1. exposing the named `patchRuntimeValue()` seam in code;
-2. adding the structured constant edit to the manifest;
-3. validating the preview.
-
-Prefer skills, balance profiles, or modifier parameters whenever those already own the value.
-
----
-
 # Behavior changes
 
 Not every balance patch is numeric.
@@ -549,8 +508,7 @@ Authors do not maintain a second copy of patch-note prose.
 Manual overview notes are intentionally unsupported so the displayed summary cannot drift away from the actual
 structured preview.
 
-Runtime constants and ordinary code-only behavior changes are not automatically described by this generated diff
-overview.
+Code-only behavior changes are not automatically described by this generated diff overview.
 
 Use the official source link and code review for those changes.
 
@@ -665,16 +623,6 @@ live modifier declarations
 preview modifier edits
         ↓
 preview runtime rules
-```
-
-while imperative values use:
-
-```text
-live constant
-        +
-patchValues
-        ↓
-preview runtime value
 ```
 
 Untouched data remains live data.
@@ -813,8 +761,7 @@ before promotion.
 The command builds the typed preview and resolves affected preview catalogs/runtimes so stale selectors and invalid
 modifier declarations fail before promotion.
 
-It also prints a promotion checklist for supported authored targets such as skills, modifier rules, and runtime
-constants.
+It also prints a promotion checklist for supported authored targets such as skills and modifier rules.
 
 Balance-profile patches are validated as part of preview catalog construction; inspect their authored manifest entries
 when promoting them as well.
@@ -841,19 +788,18 @@ The promotion should be reviewable as an ordinary source change rather than an a
 
 Use this as the quick reference:
 
-| Change                                 | Author through                            |
-| -------------------------------------- | ----------------------------------------- |
-| Skill coefficient                      | Skills → effect                           |
-| Skill cooldown/cast time/resource cost | Skills → numeric field                    |
-| Condition or boon duration/stacks      | Skills → effect/tick                      |
-| New or removed skill effect            | Skills → add/remove effect                |
-| Shared non-skill mechanic data         | Balance profiles                          |
-| Static trait damage modifier           | Traits & modifiers                        |
-| Runtime trait scaling value            | Modifier parameter                        |
-| Imperative numeric constant            | `patchRuntimeValue()` + manifest constant |
-| Behavioral/code change                 | Ordinary patch-aware implementation       |
-| PvP/WvW-only change                    | Do not author                             |
-| Description-only change                | Do not author                             |
+| Change                                 | Author through                      |
+| -------------------------------------- | ----------------------------------- |
+| Skill coefficient                      | Skills → effect                     |
+| Skill cooldown/cast time/resource cost | Skills → numeric field              |
+| Condition or boon duration/stacks      | Skills → effect/tick                |
+| New or removed skill effect            | Skills → add/remove effect          |
+| Shared non-skill mechanic data         | Balance profiles                    |
+| Static trait damage modifier           | Traits & modifiers                  |
+| Runtime trait scaling value            | Modifier parameter                  |
+| Behavioral/code change                 | Ordinary patch-aware implementation |
+| PvP/WvW-only change                    | Do not author                       |
+| Description-only change                | Do not author                       |
 
 The key principle is:
 

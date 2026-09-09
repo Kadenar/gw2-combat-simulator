@@ -20,7 +20,7 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 | `js/games/gw2/integrations/logs/`     | EVTC and dps.report parsing and rotation reconstruction                                     |
 | `js/games/gw2/integrations/keybinds/` | Optional GW2 keybind import                                                                 |
 | `js/games/gw2/integrations/patches/`  | Patch-preview manifest, authoring model, and optional browser UI                            |
-| `data/games.json`                     | Runtime game-data roots and compatibility aliases                                           |
+| `data/games.json`                     | Canonical runtime game-data roots                                                           |
 | `data/gw2/builds/`                    | Saved GW2 build presets                                                                     |
 | `data/gw2/rotations/`                 | Saved GW2 rotation presets                                                                  |
 | `tests/`                              | Unit, integration, architecture, browser, and regression tests                              |
@@ -1117,7 +1117,6 @@ A preview should patch a value where that value already belongs:
 skill change           → skills.ts-backed catalog data
 profile change         → profiles.ts
 modifier change        → declarative modifier rule
-imperative constant    → explicit patchRuntimeValue seam
 behavior change        → ordinary patch-aware implementation
 ```
 
