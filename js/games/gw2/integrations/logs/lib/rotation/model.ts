@@ -3,6 +3,23 @@ export type RotationActionKind =
 
 export type RotationActionStatus = 'completed' | 'reduced' | 'interrupted' | 'unknown' | 'instant';
 
+/** Each log adapter returns this notice once; saved rotations do not pass through log adapters. */
+export const LOG_OPENER_WARNING =
+  'The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.';
+
+/** Source-clock evidence stays separate from composite inputs and simulator command timing. */
+export interface RotationSourceAction {
+  readonly startMs: number;
+  readonly durationMs: number;
+  readonly rawSkillId: number;
+  readonly status: RotationActionStatus;
+  readonly metadataAccurate?: boolean;
+  readonly acceleration?: number;
+  readonly savedDurationMs?: number;
+  readonly eiRule?: string;
+  readonly castOrigin?: 'skill' | 'trait' | 'gear' | 'unconditional';
+}
+
 export interface ReconstructedRotationCommand {
   readonly name: string;
   readonly skillId?: string | number;
@@ -65,6 +82,7 @@ export interface RotationReconstructionBase<
   readonly timelineOriginMs: number;
   readonly combatStartTimestampMs: number | null;
   readonly actions: readonly Action[];
+  readonly sourceActions?: readonly RotationSourceAction[];
   readonly rotation: readonly ReconstructedCommand[];
   readonly warnings: readonly string[];
 }

@@ -99,7 +99,7 @@ export interface DpsReportRotationPlayer extends RotationPlayerIdentity {
 
 export interface DpsReportRotationAction extends RotationActionSummary {
   readonly metadataAccurate: boolean;
-  readonly inferred: boolean;
+
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }
 

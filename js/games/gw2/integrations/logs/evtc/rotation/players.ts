@@ -1,34 +1,18 @@
+import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import { modernAnimationActions, legacyActivationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+/** Selects EVTC players from source-specific evidence before reconstruction dispatch. */
 /** Selects EVTC players from source-specific evidence before reconstruction dispatch. */
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import {
-  EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
   type EvtcRotationPlayer,
   type ParsedEvtc,
   type ParsedEvtcAgent,
   type ParsedEvtcEvent
 } from '#gw2/integrations/logs/evtc/types.js';
-import { EVTC_ROTATION_PROFILES, TRANSITION_WINDOW_MS } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
-import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 
-const TRANSITION_GAIN_BUFF_IDS = new Set(
-  EVTC_ROTATION_PROFILES.flatMap((profile) =>
-    profile.buffTransitions.flatMap((transition) => (transition.gain ? [transition.buffSkillId] : []))
-  )
-);
-const TRANSITION_LOSS_BUFF_IDS = new Set(
-  EVTC_ROTATION_PROFILES.flatMap((profile) =>
-    profile.buffTransitions.flatMap((transition) => (transition.loss ? [transition.buffSkillId] : []))
-  )
-);
-const TRANSITION_LOSS_DURATION_BUFF_IDS = new Set(
-  EVTC_ROTATION_PROFILES.flatMap((profile) =>
-    profile.buffTransitions.flatMap((transition) =>
-      transition.lossRequiresRemainingDuration ? [transition.buffSkillId] : []
-    )
-  )
-);
+import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 
 function addressHex(address: bigint): string {
   return `0x${address.toString(16)}`;
@@ -42,54 +26,13 @@ export function selectedPlayerEvent(event: ParsedEvtcEvent, address: bigint): bo
   return event.source === address;
 }
 
+/** Rank players by decoded casts and actual swap markers, including surviving pre-log stops. */
 function rawActionCount(log: ParsedEvtc, address: bigint): number {
-  let count = 0;
-  let hasModernAnimations = false;
-  const lastTransitionSignal = new Map<string, number>();
-  for (const event of log.events) {
-    if (event.target === address && event.buff !== 0) {
-      const gain = event.buffRemove === 0;
-      const configured = gain
-        ? TRANSITION_GAIN_BUFF_IDS.has(event.skillId)
-        : TRANSITION_LOSS_BUFF_IDS.has(event.skillId) &&
-          (!TRANSITION_LOSS_DURATION_BUFF_IDS.has(event.skillId) || Math.max(event.value, event.buffDamage) > 0);
-      const key = `${event.skillId}:${gain ? 'gain' : 'loss'}`;
-      const previous = lastTransitionSignal.get(key);
-      if (configured && (previous == null || event.time - previous >= TRANSITION_WINDOW_MS)) {
-        count += 1;
-        lastTransitionSignal.set(key, event.time);
-      }
-    }
-
-    if (!selectedPlayerEvent(event, address)) continue;
-    if (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START) {
-      hasModernAnimations = true;
-      count += 1;
-    } else if (event.stateChange === EVTC_STATE_CHANGE.WEAPON_SWAP) {
-      count += 1;
-    }
-  }
-
-  if (hasModernAnimations) return count;
-  const hasLegacyStarts = log.events.some(
-    (event) =>
-      selectedPlayerEvent(event, address) &&
-      event.stateChange === EVTC_STATE_CHANGE.NONE &&
-      (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)
+  const names = new Map(log.skills.map((s) => [s.id, s.name]));
+  return (
+    (usesModernAnimations(log) ? modernAnimationActions : legacyActivationActions)(log, address, names).length +
+    log.events.filter((e) => e.source === address && e.stateChange === EVTC_STATE_CHANGE.WEAPON_SWAP).length
   );
-  for (const event of log.events) {
-    if (
-      selectedPlayerEvent(event, address) &&
-      event.stateChange === EVTC_STATE_CHANGE.NONE &&
-      (hasLegacyStarts
-        ? event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS
-        : event.activation === EVTC_ACTIVATION.CANCEL_FIRE || event.activation === EVTC_ACTIVATION.RESET)
-    ) {
-      count += 1;
-    }
-  }
-
-  return count;
 }
 
 function playerDescription(log: ParsedEvtc, agent: ParsedEvtcAgent): EvtcRotationPlayer | null {

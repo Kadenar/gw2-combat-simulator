@@ -89,14 +89,7 @@ export interface ParsedEvtc {
   readonly events: readonly ParsedEvtcEvent[];
 }
 
-export type EvtcRotationEvidence =
-  | 'animation'
-  | 'legacy-activation'
-  | 'effect'
-  | 'resource-inference'
-  | 'state-change'
-  | 'buff-transition'
-  | 'initial-state';
+export type EvtcRotationEvidence = 'animation' | 'legacy-activation' | 'effect' | 'state-change' | 'buff-transition';
 
 export interface EvtcRotationAction extends RotationActionSummary {
   readonly evidence: EvtcRotationEvidence;

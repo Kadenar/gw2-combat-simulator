@@ -11,10 +11,13 @@ export interface EvtcRecordedRotationAction {
   readonly rawName: string;
   readonly evidence: EvtcRotationEvidence;
   readonly status: RotationActionStatus;
+  readonly acceleration?: number;
+  readonly savedDurationMs?: number;
+  readonly metadataAccurate?: boolean;
+  readonly eiRule?: string;
+  readonly castOrigin?: 'skill' | 'trait' | 'gear' | 'unconditional';
   readonly eventIndex: number;
   readonly weaponSet?: number | null;
-  readonly suppressesWeaponSwap?: boolean;
-  readonly initialState?: boolean;
   readonly precast?: boolean;
   readonly offTarget?: boolean;
   readonly canonicalSkillId?: number;
@@ -23,19 +26,10 @@ export interface EvtcRecordedRotationAction {
   readonly replayCastEnd?: number;
   readonly replayInterruptMs?: number;
   readonly replayDurationMs?: number;
-  /** Remaining duration reported for a hidden initial-state replay action. */
-  readonly initialStateDurationMs?: number;
-  readonly forceCompleteReplay?: boolean;
   readonly independentTimeline?: boolean;
   readonly concurrentTimeline?: boolean;
   /** Direct damage proves this autoattack executed during Vindicator's leap before landing. */
   readonly vindicatorDodgeAuto?: boolean;
-  /** Keeps the observed action boundary for offsets without replaying its duration as a separate wait. */
-  readonly suppressFollowingWait?: boolean;
-  /** Earlier combat boundary inferred from profession-specific opening-hit evidence. */
-  readonly combatStartOverride?: number;
-  // Profession reconstruction can recover a missing EVTC combat boundary from an action's effect packets.
-  readonly inferredCombatStart?: number;
 }
 
 export interface EvtcProfessionReconstructionContext {

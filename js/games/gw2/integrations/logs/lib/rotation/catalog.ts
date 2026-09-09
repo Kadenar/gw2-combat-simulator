@@ -104,16 +104,6 @@ export function findNamedRotationSkill(
   return findRotationSkill(Number.NaN, name, catalog, profile);
 }
 
-export function isDirectPlayerSkill(skill: Skill): boolean {
-  if (skill.simulatorExcluded === true || skill.parentId != null) return false;
-  const type = normalizedName(skill.type);
-  const slot = normalizedName(skill.slot);
-  return (
-    ['action', 'elite', 'heal', 'profession', 'utility', 'weapon'].includes(type) ||
-    /^(downed|elite|heal|profession|utility|weapon)/.test(slot)
-  );
-}
-
 export function actionKind(skill: Skill | null, name: string): RotationActionKind {
   const normalizedActionName = normalizedName(name);
   if (normalizedActionName === 'swap weapons') return 'weapon-swap';
@@ -127,21 +117,6 @@ export function actionKind(skill: Skill | null, name: string): RotationActionKin
   if (type === 'elite') return 'elite';
   if (type === 'action') return 'action';
   return 'unknown';
-}
-
-export function effectWindowMs(skill: Skill): number {
-  let maximum = 0;
-  for (const effect of skill.effects || []) {
-    const at = Math.max(0, Number(effect.atMs || 0));
-    const applications = Math.max(1, Number(effect.applications || 1));
-    const interval = Math.max(0, Number(effect.intervalMs || 0));
-    const lastTickAt = Array.isArray(effect.ticks)
-      ? Math.max(0, ...effect.ticks.map((tick) => Number(tick.atMs || 0)))
-      : 0;
-    maximum = Math.max(maximum, lastTickAt, at + (applications - 1) * interval);
-  }
-
-  return Math.max(100, Math.min(maximum + 100, 10_000));
 }
 
 export function skillIdentity(

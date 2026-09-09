@@ -12,7 +12,6 @@ import type {
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 export const EFFECT_PACKET_TOLERANCE_MS = 80;
-const AGENT_SPAWN_STATE_CHANGE = 6;
 
 export interface StrikePacketValidation {
   readonly expectedCount: number;
@@ -39,11 +38,6 @@ interface ExpectedStrikePacket {
 export interface StrikePacketMatcherOptions {
   readonly toleranceMs?: number;
   readonly runtimeDurationMs?: (skill: Skill, action: EvtcRecordedRotationAction) => number;
-}
-
-export interface CommittedStrikeActionOptions {
-  readonly maxFallbackImpactMs?: number;
-  readonly matcher?: StrikePacketMatcherOptions;
 }
 
 export { normalized };
@@ -194,8 +188,6 @@ export function missingInterruptCommitWarnings(
   const validatePackets = createStrikePacketMatcher(context);
   const missingBySkill = new Map<string, number>();
   for (const action of actions) {
-    // Profession evidence can prove that a boundary (such as an Engineer kit transition) completed rather than interrupted the cast.
-    if (action.forceCompleteReplay) continue;
     if (!validatePackets(action).observedPostInterruptWithoutCommit) continue;
     const skill = skillForAction(context, action);
     const name = skill?.name || action.canonicalName || action.rawName;
@@ -206,165 +198,4 @@ export function missingInterruptCommitWarnings(
     ([name, count]) =>
       `EVTC observed ${count} interrupted ${name} cast${count === 1 ? '' : 's'} dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; reconstruction preserves the cancellation and omits that damage.`
   );
-}
-
-export function committedActionsFromStrikePackets(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
-  options: CommittedStrikeActionOptions = {}
-): ReadonlySet<EvtcRecordedRotationAction> {
-  const validatePackets = createStrikePacketMatcher(context, options.matcher);
-  const committed = new Set<EvtcRecordedRotationAction>();
-  for (const action of actions) {
-    const packets = validatePackets(action);
-    if (packets.expectedCount > 0 && packets.anyObserved) {
-      committed.add(action);
-    }
-  }
-
-  const maxFallbackImpactMs = Math.max(0, Number(options.maxFallbackImpactMs ?? 0));
-  if (maxFallbackImpactMs === 0) return committed;
-  for (const event of context.log.events) {
-    if (
-      event.source !== context.playerAddress ||
-      event.buff !== 0 ||
-      event.stateChange !== EVTC_STATE_CHANGE.NONE ||
-      event.activation !== EVTC_ACTIVATION.NONE ||
-      event.value <= 0
-    ) {
-      continue;
-    }
-
-    const candidate = actions
-      .filter(
-        (action) =>
-          (event.skillId === action.rawSkillId || event.skillId === action.canonicalSkillId) &&
-          action.start <= event.time &&
-          event.time - action.start <= maxFallbackImpactMs
-      )
-      .sort((left, right) => right.start - left.start || right.eventIndex - left.eventIndex)[0];
-    if (candidate) committed.add(candidate);
-  }
-
-  return committed;
-}
-
-export function reconcileCastEffectPackets(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const validatePackets = createStrikePacketMatcher(context);
-  const skillNames = new Map(context.log.skills.map((skill) => [skill.id, normalized(skill.name)]));
-  return actions.map((action) => {
-    if (action.forceCompleteReplay) {
-      return { ...action, status: 'completed' as const };
-    }
-
-    if (action.status !== 'completed' && action.status !== 'interrupted' && action.status !== 'reduced') {
-      return action;
-    }
-
-    const wasInterrupted = action.status === 'interrupted' || action.status === 'reduced';
-
-    const packets = validatePackets(action);
-    const actualDuration = Math.max(0, action.end - action.start);
-    const skill = skillForAction(context, action);
-    const evtcQuicknessDuration =
-      action.expectedDuration == null ? 0 : (Math.max(0, Number(action.expectedDuration)) * 2) / 3;
-    const runtimeDuration = Math.max(0, quicknessRuntimeDurationMs(skill) || evtcQuicknessDuration);
-    let phantasmCommitted = false;
-    if (skill?.phantasm === true) {
-      const phantasmIdentity = normalized(action.canonicalName || action.rawName).replace(/^phantasmal\s+/, '');
-      const matchingPhantasmAddresses = new Set(
-        context.log.agents
-          .filter((agent) => normalized(agent.character).replace(/^illusionary\s+/, '') === phantasmIdentity)
-          .map((agent) => agent.address)
-      );
-      const matchingPhantasmSpawn = context.log.events.some(
-        (event) =>
-          matchingPhantasmAddresses.has(event.source) &&
-          event.stateChange === AGENT_SPAWN_STATE_CHANGE &&
-          Math.abs(event.time - (action.start + runtimeDuration)) <= EFFECT_PACKET_TOLERANCE_MS
-      );
-      phantasmCommitted =
-        matchingPhantasmSpawn &&
-        (packets.anyObserved ||
-          context.log.events.some(
-            (event) =>
-              event.source === context.playerAddress &&
-              event.buff === 0 &&
-              event.value > 0 &&
-              event.activation === EVTC_ACTIVATION.NONE &&
-              event.stateChange === EVTC_STATE_CHANGE.NONE &&
-              (event.skillId === action.rawSkillId ||
-                event.skillId === action.canonicalSkillId ||
-                skillNames.get(event.skillId) === normalized(action.canonicalName || action.rawName)) &&
-              Math.abs(event.time - (action.start + runtimeDuration)) <= EFFECT_PACKET_TOLERANCE_MS
-          ));
-    }
-
-    if (!packets.anyObserved && !phantasmCommitted) return action;
-    if (wasInterrupted && phantasmCommitted && runtimeDuration > 0) {
-      return {
-        ...action,
-        status: 'completed' as const,
-        replayCastEnd: action.start + runtimeDuration
-      };
-    }
-
-    let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
-    const replayCastEnd = action.replayCastEnd;
-    const suppressFollowingWait = action.suppressFollowingWait;
-    // Landed packets alone cannot extend an atomic cast to completion or supply missing commit metadata.
-    if (wasInterrupted && skill?.interruptMode === 'per-packet' && packets.lastObservedExpectedOffsetMs != null) {
-      // A packet after an unreliable animation-stop marker proves the channel reached that packet boundary, while a
-      // cancellation with no packets retains its exact observed duration.
-      replayDuration = Math.max(replayDuration, packets.lastObservedExpectedOffsetMs);
-    }
-
-    if (wasInterrupted) {
-      if (packets.allObserved && runtimeDuration > 0 && replayDuration + 10 >= runtimeDuration) {
-        return {
-          ...action,
-          status: 'completed' as const,
-          replayCastEnd: Math.max(action.end, action.start + replayDuration)
-        };
-      }
-
-      return {
-        ...action,
-        status: 'reduced' as const,
-        replayInterruptMs: replayDuration,
-        ...(replayCastEnd == null ? {} : { replayCastEnd }),
-        ...(suppressFollowingWait == null ? {} : { suppressFollowingWait })
-      };
-    }
-
-    if (actualDuration === 0) return action;
-    if (replayDuration > actualDuration) {
-      return {
-        ...action,
-        status: 'completed' as const,
-        replayCastEnd: action.start + replayDuration
-      };
-    }
-
-    if (
-      action.expectedDuration != null &&
-      action.expectedDuration > 0 &&
-      actualDuration + 10 >= action.expectedDuration
-    ) {
-      return action;
-    }
-
-    return runtimeDuration > 0 && replayDuration + 75 < runtimeDuration
-      ? {
-          ...action,
-          status: 'reduced' as const,
-          replayInterruptMs: replayDuration,
-          ...(replayCastEnd == null ? {} : { replayCastEnd }),
-          ...(suppressFollowingWait == null ? {} : { suppressFollowingWait })
-        }
-      : action;
-  });
 }

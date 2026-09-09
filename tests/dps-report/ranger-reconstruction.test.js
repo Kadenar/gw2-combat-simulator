@@ -55,44 +55,6 @@ test('merges Untamed smash rows and removes the simulator-owned Lesser Sic Em pr
   );
 });
 
-test('orders recovered Cyclone Bow state around both Galeshot opener forms', () => {
-  const cases = [
-    {
-      rotation: [
-        { id: 77319, skills: [{ castTime: 0, duration: 680, timeGained: 0 }] },
-        { id: 77213, skills: [{ castTime: 700, duration: 0, timeGained: 0 }] }
-      ],
-      damage: [{ id: 77319, connectedHits: 3 }],
-      expected: ['Summon Cyclone Bow', 'Bluster']
-    },
-    {
-      rotation: [
-        { id: 12469, skills: [{ castTime: 0, duration: 1000, timeGained: 0 }] },
-        { id: 77213, skills: [{ castTime: 1100, duration: 0, timeGained: 0 }] }
-      ],
-      expected: ['Barrage', 'Summon Cyclone Bow']
-    }
-  ];
-  const skillMap = {
-    s12469: { name: 'Barrage' },
-    s77319: { name: 'Bluster' },
-    s77213: { name: 'Dismiss Cyclone Bow', isInstantCast: true }
-  };
-
-  for (const fixture of cases) {
-    const report = reportFixture('Galeshot', fixture.rotation, skillMap, {
-      start: 100,
-      damage: fixture.damage
-    });
-    const result = reconstructDpsReportRotation(report, rangerCatalog);
-
-    assert.deepEqual(
-      result.rotation.slice(0, 2).map((command) => command.name),
-      fixture.expected
-    );
-  }
-});
-
 test('normalizes Galeshot swap, pet, and automatic report signals', () => {
   const report = reportFixture(
     'Galeshot',
@@ -133,40 +95,4 @@ test('normalizes Galeshot swap, pet, and automatic report signals', () => {
     result.actions.every((action) => action.supportedByCatalog),
     true
   );
-});
-
-test('recovers Galeshot casts only from packet totals and cast-sized bow gaps', () => {
-  const report = reportFixture(
-    'Galeshot',
-    [
-      { id: 76787, skills: [{ castTime: 0, duration: 0, timeGained: 0 }] },
-      { id: 76807, skills: [{ castTime: 680, duration: 680, timeGained: 0 }] },
-      { id: 77213, skills: [{ castTime: 1360, duration: 0, timeGained: 0 }] },
-      { id: 76787, skills: [{ castTime: 2000, duration: 0, timeGained: 0 }] },
-      { id: 77174, skills: [{ castTime: 2200, duration: 1000, timeGained: 0 }] },
-      { id: 76757, skills: [{ castTime: 3880, duration: 320, timeGained: 0 }] },
-      { id: 77213, skills: [{ castTime: 4200, duration: 0, timeGained: 0 }] }
-    ],
-    {
-      s76787: { name: 'Summon Cyclone Bow', isInstantCast: true },
-      s76807: { name: "Quarry's Peril" },
-      s77213: { name: 'Dismiss Cyclone Bow', isInstantCast: true },
-      s77174: { name: 'Supersonic Arrow' },
-      s76757: { name: 'Mistral' }
-    },
-    {
-      damage: [
-        { id: 77319, connectedHits: 3 },
-        { id: 76807, connectedHits: 2 }
-      ]
-    }
-  );
-
-  const result = reconstructDpsReportRotation(report, rangerCatalog);
-
-  assert.deepEqual(
-    result.actions.filter((action) => action.inferred).map((action) => action.name),
-    ['Bluster', "Quarry's Peril"]
-  );
-  assert.match(result.warnings.join('\n'), /Recovered report evidence:.*Bluster.*Quarry's Peril/);
 });

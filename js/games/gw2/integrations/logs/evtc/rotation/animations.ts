@@ -1,261 +1,145 @@
-/** Pairs modern animations and legacy activations into recorded EVTC casts before replay inference. */
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
-  type EvtcRotationEvidence,
   type ParsedEvtc,
   type ParsedEvtcEvent
 } from '#gw2/integrations/logs/evtc/types.js';
-import { EFFECT_PACKET_TOLERANCE_MS } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import type { EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
-import type { EvtcRecordedRotationAction as RecordedAction } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
-import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
-import { selectedPlayerEvent } from '#gw2/integrations/logs/evtc/rotation/players.js';
+import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
+import type { EvtcRecordedRotationAction as RecordedAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
+const SERVER_DELAY_MS = 10;
 const STANDARD_DODGE_ANIMATION_ID = 23275;
-const STANDARD_DODGE_STOP_ACTIVATION = 6;
 export const WEAPON_STOW_ANIMATION_ID = 23285;
 
-function skillName(names: ReadonlyMap<number, string>, skillId: number): string {
-  // arcdps emits ordinary dodge rolls through an unnamed animation ID; naming it here lets every profession resolve it to its simulator Dodge action.
-  if (skillId === STANDARD_DODGE_ANIMATION_ID) return 'Dodge';
-  if (skillId === WEAPON_STOW_ANIMATION_ID) return 'Weapon Stow';
-  return names.get(skillId)?.trim() || `Unknown ${skillId}`;
+/** Match .NET Math.Round's ties-to-even behavior for EI duration and acceleration metadata. */
+function roundEven(value: number): number {
+  const floor = Math.floor(value);
+  return value - floor === 0.5 ? floor + (floor % 2 === 0 ? 0 : 1) : Math.round(value);
 }
 
-function expectedDuration(event: ParsedEvtcEvent): number | null {
-  const duration = event.buffDamage > 0 ? event.buffDamage : event.value;
-  return duration >= 0 ? duration : null;
+function skillName(names: ReadonlyMap<number, string>, id: number): string {
+  if (id === STANDARD_DODGE_ANIMATION_ID) return 'Dodge';
+  if (id === WEAPON_STOW_ANIMATION_ID) return 'Weapon Stow';
+  return names.get(id)?.trim() || 'Unknown ' + id;
 }
 
-function activationStatus(activation: number): RotationActionStatus {
-  if (activation === EVTC_ACTIVATION.CANCEL_CANCEL) return 'interrupted';
-  if (activation === EVTC_ACTIVATION.CANCEL_FIRE) return 'completed';
-  if (activation === EVTC_ACTIVATION.RESET) return 'completed';
-  return 'unknown';
+/** EI d7f186c AnimatedCastEvent: observed duration, activation and acceleration remain source evidence. */
+function animatedCast(
+  start: ParsedEvtcEvent | null,
+  stop: ParsedEvtcEvent | null,
+  eventIndex: number,
+  names: ReadonlyMap<number, string>,
+  logEnd: number,
+  modern: boolean
+): RecordedAction {
+  const event = start ?? stop!;
+  const at = start?.time ?? stop!.time - stop!.value;
+  const dodge = event.skillId === STANDARD_DODGE_ANIMATION_ID;
+  let expected = start ? (start.buffDamage > 0 ? start.buffDamage : start.value) : stop!.value;
+  if (!stop && dodge) expected = 750;
+  let duration = stop?.value ?? Math.min(expected, logEnd - at);
+  let scaled = stop?.buffDamage ?? 0;
+  if (start && stop && Math.abs(duration - (stop.time - start.time)) > SERVER_DELAY_MS) {
+    duration = stop.time - start.time;
+    scaled = 0;
+  }
+
+  if (stop && dodge) {
+    expected = duration;
+    scaled = 0;
+  }
+
+  const ratio = scaled > 0 && duration > 0 ? scaled / duration : 1;
+  let acceleration = !modern && start?.activation === EVTC_ACTIVATION.QUICKNESS ? 1 : 0;
+  let status: RecordedAction['status'] = 'unknown';
+  let savedDuration = 0;
+  if (stop) {
+    if (scaled > 0) acceleration = Math.max(-1, Math.min(1, ratio > 1 ? (ratio - 1) / 0.5 : -(1 - ratio) / 0.6));
+    // Resurrect remains unknown in EI regardless of the activation byte.
+    if (event.skillId !== 1066) {
+      if (stop.activation === EVTC_ACTIVATION.CANCEL_CANCEL) {
+        status = 'interrupted';
+        savedDuration = -duration;
+      } else if (stop.activation === EVTC_ACTIVATION.RESET) status = 'completed';
+      else if (stop.activation === EVTC_ACTIVATION.CANCEL_FIRE || stop.activation === 6) {
+        status = 'reduced';
+        savedDuration = Math.max(roundEven(expected / ratio) - duration, 0);
+      }
+    }
+  }
+
+  return {
+    start: at,
+    end: at + duration,
+    expectedDuration: expected,
+    rawSkillId: event.skillId,
+    rawName: skillName(names, event.skillId),
+    evidence: modern ? 'animation' : 'legacy-activation',
+    status,
+    eventIndex,
+    acceleration: roundEven(acceleration * 1000) / 1000,
+    savedDurationMs: savedDuration,
+    ...(start ? {} : { precast: true })
+  };
 }
 
-function isStandardDodgeStop(event: ParsedEvtcEvent): boolean {
-  return event.skillId === STANDARD_DODGE_ANIMATION_ID && event.activation === STANDARD_DODGE_STOP_ACTIVATION;
-}
-
-function isWeaponStowStop(event: ParsedEvtcEvent): boolean {
-  return event.skillId === WEAPON_STOW_ANIMATION_ID && event.activation === STANDARD_DODGE_STOP_ACTIVATION;
-}
-
-function pairAnimationEvents(
+/** EI CombatEventFactory.CreateCastEvents pairs within actor/skill groups and truncates only unknown casts. */
+function pairAnimations(
   log: ParsedEvtc,
   address: bigint,
   names: ReadonlyMap<number, string>,
-  startStateChange: number,
-  endStateChange: number,
-  evidence: EvtcRotationEvidence,
-  inferTruncatedPrecast = false
+  modern: boolean
 ): RecordedAction[] {
-  const firstPlayerEventTime = Math.min(
-    ...log.events.filter((event) => selectedPlayerEvent(event, address) && event.time > 0).map((event) => event.time)
-  );
-  const combatStartTime = log.events.find(
-    (event) => selectedPlayerEvent(event, address) && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
-  )?.time;
-  const starts: Array<{
-    readonly event: ParsedEvtcEvent;
-    readonly eventIndex: number;
-    matched: boolean;
-  }> = [];
-  const ends: Array<{
-    readonly event: ParsedEvtcEvent;
-    readonly eventIndex: number;
-  }> = [];
-  log.events.forEach((event, eventIndex) => {
-    if (!selectedPlayerEvent(event, address)) return;
-    if (event.stateChange === startStateChange) {
-      starts.push({ event, eventIndex, matched: false });
-    } else if (
-      event.stateChange === endStateChange &&
-      (event.activation === EVTC_ACTIVATION.CANCEL_FIRE ||
-        event.activation === EVTC_ACTIVATION.CANCEL_CANCEL ||
-        event.activation === EVTC_ACTIVATION.RESET ||
-        isStandardDodgeStop(event) ||
-        isWeaponStowStop(event))
-    ) {
-      ends.push({ event, eventIndex });
-    }
-  });
-
+  const window = evtcRecordingWindow(log);
+  const pending = new Map<number, { event: ParsedEvtcEvent; index: number }>();
   const actions: RecordedAction[] = [];
-  for (const end of ends) {
-    const eligible = starts.filter(
-      (start) =>
-        !start.matched &&
-        (start.event.time < end.event.time ||
-          (start.event.time === end.event.time && start.eventIndex < end.eventIndex))
-    );
-    const exact = eligible.filter((start) => start.event.skillId === end.event.skillId);
-    const start = (exact.length ? exact : eligible).at(-1);
-    if (!start) {
-      const rawName = skillName(names, end.event.skillId);
-      const inferredStart = end.event.time - end.event.value;
-      const truncatedAtLogStart = Number.isFinite(firstPlayerEventTime) && inferredStart < firstPlayerEventTime;
-      // Modern arcdps can omit an animation start that happened just before combat while still recording its stop.
-      const crossesCombatStart =
-        combatStartTime != null && inferredStart <= combatStartTime && end.event.time >= combatStartTime;
-      const hasCommitEvidence = log.events.some(
-        (event) =>
-          event.source === address &&
-          event.skillId === end.event.skillId &&
-          event.time >= inferredStart &&
-          event.time <= end.event.time + EFFECT_PACKET_TOLERANCE_MS &&
-          event.stateChange === 0 &&
-          event.activation === EVTC_ACTIVATION.NONE &&
-          event.buffRemove === 0 &&
-          (event.value > 0 || event.buffDamage > 0)
-      );
-      // A missing opening start is still a recorded cast when its completion and direct effect both survive;
-      // transformation state remains the fallback for non-damaging modern precasts.
-      const precast =
-        (truncatedAtLogStart && (inferTruncatedPrecast || hasCommitEvidence)) ||
-        (crossesCombatStart && hasCommitEvidence);
-      if (end.event.value <= 0 || (!rawName.toLowerCase().includes('dodge') && !precast)) {
-        continue;
-      }
-
-      actions.push({
-        start: inferredStart,
-        end: end.event.time,
-        expectedDuration: expectedDuration(end.event),
-        rawSkillId: end.event.skillId,
-        rawName,
-        evidence,
-        status:
-          isStandardDodgeStop(end.event) || isWeaponStowStop(end.event)
-            ? 'completed'
-            : activationStatus(end.event.activation),
-        eventIndex: end.eventIndex,
-        precast
-      });
-      continue;
+  for (const [index, event] of log.events.entries()) {
+    if (event.source !== address) continue;
+    const isStart = modern
+      ? event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
+      : event.stateChange === 0 && [1, 2].includes(event.activation);
+    const isStop = modern
+      ? event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP
+      : event.stateChange === 0 && [3, 4, 5, 6].includes(event.activation);
+    if (!isStart && !isStop) continue;
+    const start = pending.get(event.skillId);
+    if (isStart) {
+      if (start) actions.push(animatedCast(start.event, null, start.index, names, window.end, modern));
+      pending.set(event.skillId, { event, index });
+    } else {
+      const action = animatedCast(start?.event ?? null, event, start?.index ?? index, names, window.end, modern);
+      if (start || action.start < window.start) actions.push(action);
+      pending.delete(event.skillId);
     }
-
-    start.matched = true;
-    const elapsed = Math.max(0, end.event.time - start.event.time);
-    const reported = Math.max(0, end.event.value);
-    const duration = reported > 0 && Math.abs(reported - elapsed) <= 150 ? reported : elapsed;
-    actions.push({
-      start: start.event.time,
-      end: start.event.time + duration,
-      expectedDuration: expectedDuration(start.event),
-      rawSkillId: start.event.skillId,
-      rawName: skillName(names, start.event.skillId),
-      evidence,
-      status:
-        isStandardDodgeStop(end.event) || isWeaponStowStop(end.event)
-          ? 'completed'
-          : activationStatus(end.event.activation),
-      eventIndex: start.eventIndex
-    });
   }
 
-  for (const start of starts) {
-    if (start.matched) continue;
-    const duration = Math.max(0, expectedDuration(start.event) || 0);
-    const rawName = skillName(names, start.event.skillId);
-    if (duration === 0 && rawName.startsWith('Unknown ')) continue;
-    actions.push({
-      start: start.event.time,
-      end: start.event.time + duration,
-      expectedDuration: duration || null,
-      rawSkillId: start.event.skillId,
-      rawName,
-      evidence,
-      status: 'unknown',
-      eventIndex: start.eventIndex
-    });
-  }
-
-  return actions;
+  for (const { event, index } of pending.values())
+    actions.push(animatedCast(event, null, index, names, window.end, modern));
+  const player = log.agents.some((agent) => agent.address === address && agent.elite !== 0xffffffff);
+  const sorted = actions
+    .filter((action) => !player || action.end - action.start > 1)
+    .sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
+  return sorted.map((action, index) =>
+    action.status === 'unknown' && sorted[index + 1]
+      ? { ...action, end: Math.min(action.end, sorted[index + 1].start + SERVER_DELAY_MS) }
+      : action
+  );
 }
 
-/** Uses modern start/stop records and transformation evidence to recover clipped precasts. */
+/** Decodes modern animation records without requiring a surviving start. */
 export function modernAnimationActions(
   log: ParsedEvtc,
   address: bigint,
-  names: ReadonlyMap<number, string>,
-  profile: EvtcRotationProfessionProfile
+  names: ReadonlyMap<number, string>
 ): RecordedAction[] {
-  const startsInConfiguredTransformation = log.events.some(
-    (event) =>
-      event.target === address &&
-      event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
-      profile.buffTransitions.some((transition) => transition.gain != null && transition.buffSkillId === event.skillId)
-  );
-  return pairAnimationEvents(
-    log,
-    address,
-    names,
-    EVTC_STATE_CHANGE.ANIMATION_START,
-    EVTC_STATE_CHANGE.ANIMATION_STOP,
-    'animation',
-    startsInConfiguredTransformation
-  );
+  return pairAnimations(log, address, names, true);
 }
 
-/** Normalizes both legacy encodings into the same paired-action representation. */
+/** Decodes legacy activations with the same pairing and recording-window contract. */
 export function legacyActivationActions(
   log: ParsedEvtc,
   address: bigint,
   names: ReadonlyMap<number, string>
 ): RecordedAction[] {
-  const starts = log.events.some(
-    (event) =>
-      selectedPlayerEvent(event, address) &&
-      event.stateChange === EVTC_STATE_CHANGE.NONE &&
-      (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)
-  );
-  if (starts) {
-    const synthetic: ParsedEvtc = {
-      ...log,
-      events: log.events.map((event) => {
-        if (event.stateChange !== EVTC_STATE_CHANGE.NONE) return event;
-        if (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS) {
-          return { ...event, stateChange: -1 };
-        }
-
-        if (
-          event.activation === EVTC_ACTIVATION.CANCEL_FIRE ||
-          event.activation === EVTC_ACTIVATION.CANCEL_CANCEL ||
-          event.activation === EVTC_ACTIVATION.RESET
-        ) {
-          return { ...event, stateChange: -2 };
-        }
-
-        return event;
-      })
-    };
-    return pairAnimationEvents(synthetic, address, names, -1, -2, 'legacy-activation');
-  }
-
-  return log.events.flatMap((event, eventIndex) => {
-    if (
-      !selectedPlayerEvent(event, address) ||
-      event.stateChange !== EVTC_STATE_CHANGE.NONE ||
-      event.value <= 0 ||
-      (event.activation !== EVTC_ACTIVATION.CANCEL_FIRE && event.activation !== EVTC_ACTIVATION.RESET)
-    ) {
-      return [];
-    }
-
-    return [
-      {
-        start: event.time,
-        end: event.time + event.value,
-        expectedDuration: event.value,
-        rawSkillId: event.skillId,
-        rawName: skillName(names, event.skillId),
-        evidence: 'legacy-activation' as const,
-        status: activationStatus(event.activation),
-        eventIndex
-      }
-    ];
-  });
+  return pairAnimations(log, address, names, false);
 }

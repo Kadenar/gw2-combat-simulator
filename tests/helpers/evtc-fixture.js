@@ -108,6 +108,12 @@ export function expandedEvtcFixture({
 
   laterActivation.writeBigUInt64LE(3_000n, 0);
 
+  // A timed observation after the cast gives EI a recording end for missing-stop duration clipping.
+  const recordingEnd = Buffer.alloc(64);
+  recordingEnd.writeBigUInt64LE(secondActivation ? 3800n : 1800n, 0);
+  recordingEnd.writeBigUInt64LE(EVTC_FIXTURE_PLAYER, 8);
+  recordingEnd.writeUInt16LE(1, 40);
+  recordingEnd[56] = 2;
   if (!interruptedDamage) {
     return Buffer.concat([
       header,
@@ -116,14 +122,16 @@ export function expandedEvtcFixture({
       skillCount,
       skill,
       activation,
-      ...(secondActivation ? [laterActivation] : [])
+      ...(secondActivation ? [laterActivation] : []),
+      recordingEnd
     ]);
   }
 
   const animationStop = Buffer.alloc(64);
 
-  animationStop.writeBigUInt64LE(1_000n, 0);
+  animationStop.writeBigUInt64LE(1_040n, 0);
   animationStop.writeBigUInt64LE(EVTC_FIXTURE_PLAYER, 8);
+  animationStop.writeInt32LE(40, 24);
   animationStop.writeUInt32LE(1_000, 36);
   animationStop.writeUInt16LE(1, 40);
   animationStop[51] = 4;

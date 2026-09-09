@@ -11,7 +11,6 @@
  * Usage: node scripts/analysis/reconstruct-evtc-rotation.mjs <fight.evtc|.evtc.zip|.zevtc>
  *   [--player=<hex-address>]   Disambiguate when several players are recorded.
  *   [--timeline]               Include the intermediate reconstructed actions.
- *   [--no-instant-inference]   Skip inference of instant (untimed) casts.
  */
 import { readFile } from 'node:fs/promises';
 
@@ -30,7 +29,7 @@ if (!input) {
     'Usage: npm run build:modules && node ' +
       'scripts/analysis/reconstruct-evtc-rotation.mjs ' +
       '<fight.evtc|fight.evtc.zip|fight.zevtc> ' +
-      '[--player=<hex-address>] [--timeline] [--no-instant-inference]'
+      '[--player=<hex-address>] [--timeline]'
   );
   process.exit(1);
 }
@@ -76,8 +75,7 @@ if (!selected) {
 
 const profession = await loadProfession(selected.professionId);
 const result = reconstructEvtcRotation(log, profession?.catalog || null, {
-  playerAddress: selected.address,
-  inferInstantCasts: !args.includes('--no-instant-inference')
+  playerAddress: selected.address
 });
 const output = {
   metadata: {
@@ -88,7 +86,9 @@ const output = {
     timingSource: 'EVTC animation activations, state changes, and direct instant-skill effects',
     combatStartTimestampMs: result.combatStartTimestampMs,
     warnings: result.warnings,
-    ...(args.includes('--timeline') ? { reconstructedActions: result.actions } : {})
+    ...(args.includes('--timeline')
+      ? { sourceActions: result.sourceActions, reconstructedActions: result.actions }
+      : {})
   },
   rotation: result.rotation
 };

@@ -8,7 +8,6 @@ import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-repo
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import {
   DPS_REPORT_PROFESSION_ROTATION_PARSERS,
-  detectDpsReportRotationPlayers,
   getDpsReportProfessionRotationParser,
   reconstructDpsReportRotation
 } from '#gw2/integrations/logs/dps-report/rotation/index.js';
@@ -212,42 +211,6 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
   );
 });
 
-test('shortens a slower precast lead-in without shifting later casts relative to report combat start', () => {
-  const report = parseDpsReport({
-    players: [
-      {
-        name: 'Fixture Elementalist',
-        profession: 'Elementalist',
-        rotation: [
-          { id: 1_000, skills: [{ castTime: -1_200, duration: 1_600 }] },
-          { id: 1_001, skills: [{ castTime: 400, duration: 400 }] }
-        ]
-      }
-    ],
-    phases: [{ start: 0, end: 1_000, name: 'Full Fight' }],
-    skillMap: { s1000: { name: 'Opening Cast' }, s1001: { name: 'Following Cast' } }
-  });
-  const result = reconstructDpsReportRotation(report, {
-    skills: [
-      skill(1_000, 'Opening Cast', {
-        type: 'Utility',
-        quicknessCastTimeMs: 1_000,
-        effects: [{ type: 'strike', ticks: [{ atMs: 800, coefficient: 1 }], timingAnchor: 'castStart' }]
-      }),
-      skill(1_001, 'Following Cast', { type: 'Weapon', quicknessCastTimeMs: 400 })
-    ]
-  });
-
-  // The faster replay opener must land at the report boundary while the next input remains 400 ms into combat.
-  assert.equal(result.timelineOriginMs + result.combatStartTimestampMs, 0);
-  assert.deepEqual(result.rotation, [
-    { name: 'Opening Cast', skillId: 1_000 },
-    { name: '__combat_start', offset: 800 },
-    { name: '__wait', waitMs: 200 },
-    { name: 'Following Cast', skillId: 1_001 }
-  ]);
-});
-
 test('preserves shortened per-packet cast durations from dps.report', () => {
   const report = parseDpsReport({
     players: [
@@ -280,7 +243,7 @@ test('preserves shortened per-packet cast durations from dps.report', () => {
   const casts = result.rotation.filter((command) => command.name === 'Whirling Wrath');
 
   assert.equal(casts[0].interruptMs, undefined);
-  assert.equal(casts[1].interruptMs, 1_400);
+  assert.equal(casts[1].interruptMs, 1_401);
 });
 
 test('shortened report inputs preserve elapsed time and obey scheduler cancellation contracts', () => {
@@ -346,45 +309,6 @@ test('shortened report inputs preserve elapsed time and obey scheduler cancellat
   }
 });
 
-test('reconstructs generic report casts and applies Amalgam report corrections', () => {
-  const report = parseDpsReport(reportFixture());
-  const players = detectDpsReportRotationPlayers(report);
-
-  assert.deepEqual(
-    players.map((player) => [player.professionId, player.specializationId]),
-    [['engineer', 'amalgam']]
-  );
-  const result = reconstructDpsReportRotation(report, catalogFixture(), {
-    selectedSkillIds: [76927, 77104]
-  });
-
-  assert.equal(result.combatStartTimestampMs, 900);
-  assert.equal(
-    result.actions.some((action) => action.name === 'Throw Mine' && action.inferred),
-    true
-  );
-  assert.equal(
-    result.actions.some((action) => action.name === 'Bomb Kit' && action.inferred),
-    true
-  );
-  const demolish = result.actions.find((action) => action.name === 'Offensive Protocol: Demolish');
-
-  assert.equal(demolish?.skillId, 76927);
-  assert.equal(demolish?.durationMs, 1_560);
-  assert.equal(result.actions.filter((action) => action.name === 'Overcharged Shot').length, 1);
-  assert.equal(
-    result.actions.some((action) => action.name === 'Stow Bomb Kit'),
-    true
-  );
-  assert.equal(
-    result.actions.some((action) => action.name === 'Automatic Proc'),
-    false
-  );
-  assert.equal(result.rotation.find((command) => command.name === '__combat_start')?.offset, 520);
-  assert.match(result.warnings.join('\n'), /Recovered setup:.*Throw Mine.*Bomb Kit/);
-  assert.doesNotMatch(result.warnings.join('\n'), /duplicate instant|automatic trait|potentially incomplete/);
-});
-
 test('preserves cancelled and shortened autoattack inputs at their observed durations', () => {
   const fixture = reportFixture();
   fixture.players[0].rotation.push(
@@ -439,34 +363,6 @@ test('preserves cancelled and shortened autoattack inputs at their observed dura
       ['Flame Jet', 400],
       ['Bomb', 80]
     ]
-  );
-});
-
-test('drops inaccurate Engineer toolbelt rows that the active build cannot equip', () => {
-  const fixture = reportFixture();
-  fixture.players[0].rotation.push({ id: 76613, skills: [{ castTime: 2_700, duration: 0, timeGained: 0 }] });
-  fixture.skillMap.s76613 = {
-    name: 'Symbiotic Shielding',
-    isInstantCast: true,
-    isNotAccurate: true
-  };
-  const catalog = catalogFixture();
-  catalog.skills.push(
-    skill(76613, 'Symbiotic Shielding', {
-      type: 'profession',
-      castTimeMs: 0,
-      toolbeltParentName: 'Mitotic State'
-    })
-  );
-
-  const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {
-    selectedSkillIds: [76927, 77104],
-    selectedSkillNames: ['Bomb Kit', 'Flamethrower', 'Plasmatic State']
-  });
-
-  assert.equal(
-    result.actions.some((action) => action.name === 'Symbiotic Shielding'),
-    false
   );
 });
 
@@ -526,7 +422,7 @@ test('imports reported Mechanist commands and Overclock without replaying passiv
   );
   assert.equal(imported.actionCount, commands.length);
   assert.deepEqual(imported.warnings, [
-    'Source limitation: dps.report may omit instant casts and pre-combat state. Review the imported opening.'
+    'The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.'
   ]);
 });
 

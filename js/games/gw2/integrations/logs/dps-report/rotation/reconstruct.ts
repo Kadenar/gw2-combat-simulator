@@ -1,3 +1,4 @@
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
 import {
   actionKind,
   findNamedRotationSkill,
@@ -12,8 +13,8 @@ import type {
   RotationActionStatus
 } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
-import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { firstStrikePacketOffsetMs, retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
+import { replayInterruptDurationMs, retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
@@ -28,14 +29,12 @@ import type {
   ParsedDpsReport
 } from '#gw2/integrations/logs/dps-report/types.js';
 import { dpsReportRotationProfile } from '#gw2/integrations/logs/dps-report/rotation/profiles.js';
-import { reconstructDpsReportProfessionActions } from '#gw2/integrations/logs/dps-report/rotation/professions/index.js';
+import { normalizeLogProfessionActions } from '#gw2/integrations/logs/lib/rotation/professions/index.js';
 import type {
   DpsReportRecordedAction,
   DpsReportResolvedAction,
   DpsReportRotationOptions
 } from '#gw2/integrations/logs/dps-report/rotation/types.js';
-
-const DUPLICATE_SIGNAL_WINDOW_MS = 75;
 
 function automaticProc(metadata: DpsReportSkillMetadata | null): boolean {
   return Boolean(metadata?.isTraitProc || metadata?.isUnconditionalProc || metadata?.isGearProc);
@@ -89,20 +88,6 @@ function castIntersectsPhase(cast: DpsReportCast, phase: DpsReportPhase): boolea
   return cast.castTime < phase.end && cast.castTime + cast.duration >= phase.start;
 }
 
-function duplicateDetectionSignal(
-  cast: DpsReportCast,
-  casts: readonly DpsReportCast[],
-  metadata: DpsReportSkillMetadata | null
-): boolean {
-  if (cast.duration !== 0 || metadata?.isNotAccurate !== true) return false;
-  return casts.some(
-    (candidate) =>
-      candidate !== cast &&
-      candidate.duration > 0 &&
-      Math.abs(cast.castTime - (candidate.castTime + candidate.duration)) <= DUPLICATE_SIGNAL_WINDOW_MS
-  );
-}
-
 function castStatus(cast: DpsReportCast): RotationActionStatus {
   if (cast.duration <= 0) return 'instant';
   if (Number(cast.timeGained || 0) < 0) return 'interrupted';
@@ -114,25 +99,18 @@ function recordedActions(
   report: ParsedDpsReport,
   player: DpsReportPlayer,
   phase: DpsReportPhase
-): { actions: DpsReportRecordedAction[]; ignoredAutomaticProcs: number; ignoredDuplicateSignals: number } {
+): DpsReportRecordedAction[] {
   const actions: DpsReportRecordedAction[] = [];
-  let ignoredAutomaticProcs = 0;
-  let ignoredDuplicateSignals = 0;
+
   let eventIndex = 0;
   for (const group of player.rotation) {
     const metadata = skillMetadata(report, group.id);
     if (automaticProc(metadata)) {
-      ignoredAutomaticProcs += group.skills.length;
       continue;
     }
 
     for (const cast of group.skills) {
       if (!castIntersectsPhase(cast, phase)) continue;
-      if (duplicateDetectionSignal(cast, group.skills, metadata)) {
-        ignoredDuplicateSignals += 1;
-        continue;
-      }
-
       const duration = Math.max(0, cast.duration);
       actions.push({
         start: cast.castTime,
@@ -150,7 +128,7 @@ function recordedActions(
   }
 
   actions.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
-  return { actions, ignoredAutomaticProcs, ignoredDuplicateSignals };
+  return actions;
 }
 
 function selectedSkillForAction(
@@ -194,9 +172,9 @@ function resolveAction(
 /** Preserves shortened inputs; the scheduler cancels damage unless explicit commit or per-packet rules permit it. */
 function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   const sourceDurationMs = action.end - action.start;
-  const quantizedDurationMs = quantizeGw2ActionTimingMs(sourceDurationMs);
+  const interruptMs = replayInterruptDurationMs(action.skill, sourceDurationMs);
   const runtimeDurationMs = quicknessReferenceCastTimeMs(action.skill);
-  return sourceDurationMs > 0 && quantizedDurationMs < runtimeDurationMs ? quantizedDurationMs : null;
+  return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
 function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCommand {
@@ -215,31 +193,9 @@ function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCo
   return command;
 }
 
-/** Replaces shortened report timing when a skill's aftercast cannot release the simulator cast lane early. */
-function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportResolvedAction {
-  if (!retainsReplayCastLockout(action.skill, action.end - action.start)) return action;
-  // Observed durations are replayed as interruptions; the scheduler then
-  // retains the ordinary cast lane while still allowing instant actions.
-  if (observedInterruptMs(action) != null) return action;
-  const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
-  if (!(runtimeDuration > 0) || action.end - action.start >= runtimeDuration) return action;
-  return {
-    ...action,
-    end: action.start + runtimeDuration,
-    status: 'completed'
-  };
-}
-
 /** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
 function replayActionEnd(action: DpsReportResolvedAction, completeReportedAftercast = false): number {
   if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
-  // A packet-proven combat marker inside an opening cast must use the
-  // simulator's cast lane, not EI's slightly shorter animation observation.
-  if (action.combatStartOverride != null) {
-    const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
-    if (runtimeDuration > 0) return Math.max(action.end, action.start + runtimeDuration);
-  }
-
   if (retainsReplayCastLockout(action.skill, observedInterruptMs(action) ?? action.end - action.start)) {
     const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
     return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
@@ -282,40 +238,13 @@ function applyCastInterrupts(actions: readonly DpsReportResolvedAction[]): DpsRe
   return replay;
 }
 
-/** Runs simultaneous instant inputs before cast-time skills, preserving EI order within each class. */
+/** EI groups casts by skill; stable JSON traversal order is the only available tie policy. */
 function compareSimultaneousActions(left: DpsReportResolvedAction, right: DpsReportResolvedAction): number {
-  return Number(instantReplayAction(right)) - Number(instantReplayAction(left)) || left.eventIndex - right.eventIndex;
+  return left.eventIndex - right.eventIndex;
 }
 
 function compareResolvedActions(left: DpsReportResolvedAction, right: DpsReportResolvedAction): number {
   return left.start - right.start || compareSimultaneousActions(left, right);
-}
-
-/** Fits a slower precast to its replay strike timing while preserving the report's combat clock. */
-function alignOpeningStrike(
-  actions: readonly DpsReportResolvedAction[],
-  sourceCombatStart: number
-): DpsReportResolvedAction[] {
-  return actions.map((action) => {
-    if (
-      action.inference != null ||
-      action.combatStartOverride != null ||
-      action.start > sourceCombatStart ||
-      action.end < sourceCombatStart
-    ) {
-      return action;
-    }
-
-    const strikeOffset = firstStrikePacketOffsetMs(action.skill, quicknessReferenceCastTimeMs(action.skill), {
-      explicitOnly: true
-    });
-    if (strikeOffset == null || action.start + strikeOffset >= sourceCombatStart) return action;
-
-    return {
-      ...action,
-      start: sourceCombatStart - strikeOffset
-    };
-  });
 }
 
 function buildRotation(
@@ -332,63 +261,17 @@ function buildRotation(
     commandFor: actionCommand,
     // Troubadour EI animations omit ordinary aftercast; its measured catalog cadence already models that occupied lane.
     replayEnd: (action) => replayActionEnd(action, completeReportedAftercast),
-    hasObservedCastTime: (action) => action.inference == null,
+    hasObservedCastTime: () => true,
     compareSimultaneousActions,
     // Weapon Swap is a supported simulator action even when no catalog entry was supplied.
     canEmit: (action) => action.skill != null || (action.isSwap && normalized(action.rawName) === 'weapon swap')
   });
 }
 
-function warningList(
-  actions: readonly DpsReportRotationAction[],
-  resolved: readonly DpsReportResolvedAction[]
-): string[] {
-  const warnings = [
-    'Source limitation: dps.report may omit instant casts and pre-combat state. Review the imported opening.'
-  ];
+function warningList(actions: readonly DpsReportRotationAction[]): string[] {
+  const warnings = [LOG_OPENER_WARNING];
   const unsupported = actions.filter((action) => !action.supportedByCatalog);
   const interrupted = actions.filter((action) => action.status === 'interrupted');
-  const recoveredSetup = [
-    ...new Set(
-      resolved
-        .filter(
-          (action) =>
-            action.inference != null &&
-            action.inference !== 'elementalist-aura' &&
-            action.inference !== 'elementalist-blinding-flash' &&
-            action.inference !== 'elementalist-damage-evidence' &&
-            action.inference !== 'ranger-damage-evidence' &&
-            action.control == null &&
-            !(action.inference === 'initial-kit' && action.skill?.handlerId === 'engineer.kit-stow')
-        )
-        .map((action) => action.name)
-    )
-  ];
-  if (recoveredSetup.length) {
-    const setup =
-      recoveredSetup.length === 1
-        ? recoveredSetup[0]
-        : `${recoveredSetup.slice(0, -1).join(', ')} and ${recoveredSetup.at(-1)}`;
-    warnings.push(`Recovered setup: added the missing ${setup} from dependent casts.`);
-  }
-
-  const recoveredReportEvidence = [
-    ...new Set(
-      resolved
-        .filter(
-          (action) =>
-            action.inference === 'elementalist-aura' ||
-            action.inference === 'elementalist-blinding-flash' ||
-            action.inference === 'elementalist-damage-evidence' ||
-            action.inference === 'ranger-damage-evidence'
-        )
-        .map((action) => action.name)
-    )
-  ];
-  if (recoveredReportEvidence.length) {
-    warnings.push(`Recovered report evidence: added missing ${recoveredReportEvidence.join(', ')} casts.`);
-  }
-
   if (unsupported.length) {
     warnings.push(
       `Needs review: ${unsupported.length} report action${unsupported.length === 1 ? '' : 's'} could not be matched and ${unsupported.length === 1 ? 'was' : 'were'} preserved as timing waits.`
@@ -399,35 +282,6 @@ function warningList(
     warnings.push(
       `Interrupted cast: ${interrupted.length} cast${interrupted.length === 1 ? ' was' : 's were'} kept at the recorded shortened duration.`
     );
-  }
-
-  const equippedKits = new Set<string>();
-  let missingInitialKit = '';
-  let mineArmed = false;
-  let missingMineSetup = false;
-  for (const action of resolved) {
-    if (action.skill?.handlerId === 'engineer.kit-equip') {
-      equippedKits.add(normalized(action.skill.kitName || action.name));
-    }
-
-    const requiredKit = normalized(action.skill?.kit);
-    if (requiredKit && !equippedKits.has(requiredKit) && !missingInitialKit) {
-      missingInitialKit = String(action.skill?.kit || '').trim();
-    }
-
-    if (normalized(action.name) === 'throw mine') mineArmed = true;
-    if (normalized(action.name) === 'detonate') {
-      if (!mineArmed) missingMineSetup = true;
-      mineArmed = false;
-    }
-  }
-
-  if (missingInitialKit) {
-    warnings.push(`Missing setup: ${missingInitialKit} was required, but its equip action could not be recovered.`);
-  }
-
-  if (missingMineSetup) {
-    warnings.push('Missing setup: Detonate was present, but the preceding Throw Mine action could not be recovered.');
   }
 
   return warnings;
@@ -458,53 +312,44 @@ export function reconstructDpsReportWithProfile(
 
   const { phase, index: phaseIndex } = phaseFor(report, options.phaseIndex);
   const recorded = recordedActions(report, player, phase);
-  const professionActions = reconstructDpsReportProfessionActions({
-    report,
-    player,
-    phase,
+  const professionActions = normalizeLogProfessionActions({
     profile,
     catalog,
-    recordedActions: recorded.actions,
+    recordedActions: recorded,
     selectedSkillNames: options.selectedSkillNames,
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig
   });
-  const resolved = alignOpeningStrike(
-    applyCastInterrupts(
-      professionActions
-        .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
-        .map(applyRetainedCastLockout)
-        .sort(compareResolvedActions)
-        // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.
-        .filter((action) => action.skill?.simulatorExcluded !== true)
-        // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
-        .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
-    ),
-    phase.start
+  const resolved = applyCastInterrupts(
+    professionActions
+      .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
+      .sort(compareResolvedActions)
+      // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.
+      .filter((action) => action.skill?.simulatorExcluded !== true)
+      // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
+      .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
   ).sort(compareResolvedActions);
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');
   }
 
-  const combatStart = replayCombatStart(resolved, phase.start) ?? phase.start;
+  const combatStart = phase.start;
   const origin = Math.min(resolved[0].start, combatStart);
-  const actions: DpsReportRotationAction[] = resolved
-    .filter((action) => action.control == null)
-    .map((action) => ({
-      timestampMs: action.start - origin,
-      endTimestampMs: action.end - origin,
-      durationMs: action.end - action.start,
-      expectedDurationMs: action.expectedDurationMs ?? null,
-      rawSkillId: action.rawSkillId,
-      skillId: action.skillId,
-      name: action.name,
-      kind: actionKind(action.skill, action.name),
-      status: action.status,
-      supportedByCatalog: action.skill != null,
-      metadataAccurate: action.metadataAccurate,
-      inferred: action.inference != null,
-      ...(action.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: action.doubleEdgeOutcome })
-    }));
+  const actions: DpsReportRotationAction[] = resolved.map((action) => ({
+    timestampMs: action.start - origin,
+    endTimestampMs: action.end - origin,
+    durationMs: action.end - action.start,
+    expectedDurationMs: action.expectedDurationMs ?? null,
+    rawSkillId: action.rawSkillId,
+    skillId: action.skillId,
+    name: action.name,
+    kind: actionKind(action.skill, action.name),
+    status: action.status,
+    supportedByCatalog: action.skill != null,
+    metadataAccurate: action.metadataAccurate,
+
+    ...(action.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: action.doubleEdgeOutcome })
+  }));
   return {
     parserId: `${profile.professionId}:${profile.specializationId}`,
     player: {
@@ -523,10 +368,17 @@ export function reconstructDpsReportWithProfile(
       start: phase.start,
       end: phase.end
     },
+    sourceActions: recorded.map((action) => ({
+      startMs: action.start,
+      durationMs: action.end - action.start,
+      rawSkillId: action.rawSkillId,
+      status: action.status,
+      metadataAccurate: action.metadataAccurate
+    })),
     timelineOriginMs: origin,
     combatStartTimestampMs: combatStart - origin,
     actions,
     rotation: buildRotation(resolved, origin, combatStart, profile.specializationId === 'troubadour'),
-    warnings: warningList(actions, resolved)
+    warnings: warningList(actions)
   };
 }

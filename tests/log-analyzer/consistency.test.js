@@ -7,6 +7,7 @@ import { EVTC_ROTATION_PROFILES } from '#gw2/integrations/logs/evtc/rotation/pro
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent, log } from '../helpers/evtc-fixture.js';
 
 const fixtureSkill = {
@@ -19,6 +20,55 @@ const fixtureSkill = {
   effects: []
 };
 const catalog = { skills: [fixtureSkill] };
+
+test('both importers order tied legend swaps before weapon swaps without reversing distinct timestamps', () => {
+  // Report skill-group order and EVTC record order cannot decide which weapon owns a tied legend-swap proc.
+  for (const legendOffset of [0, 1]) {
+    for (const reverseSourceOrder of [false, true]) {
+      const events = [
+        evtcEvent({ time: 1000, stateChange: 11, target: 5n }),
+        evtcEvent({ time: 1000 + legendOffset, stateChange: 69, target: PLAYER, skillId: 27890, buff: 1, value: 1000 })
+      ];
+      const rotation = [
+        { id: 65001, skills: [{ castTime: 1000, duration: 0 }] },
+        { id: 28134, skills: [{ castTime: 1000 + legendOffset, duration: 0 }] }
+      ];
+
+      if (reverseSourceOrder) {
+        events.reverse();
+        rotation.reverse();
+      }
+
+      const evtc = reconstructEvtcRotation(
+        log({
+          agents: [{ ...log().agents[0], profession: 9, elite: 63 }],
+          // EVTC can name only the stance buff, with no record for the inferred cast's skill ID.
+          skills: [{ id: 27890, name: 'Legendary Assassin Stance' }],
+          events
+        }),
+        revenantCatalog,
+        { includeCombatStart: false }
+      );
+      const report = reconstructDpsReportRotation(
+        {
+          players: [{ name: 'Fixture', profession: 'Renegade', rotation }],
+          phases: [{ start: 1000, end: 2000, name: 'Full Fight' }],
+          skillMap: {
+            s65001: { name: 'Weapon Swap', isSwap: true },
+            s28134: { name: 'Legendary Assassin Stance' }
+          }
+        },
+        revenantCatalog
+      );
+      for (const result of [evtc, report]) {
+        const legendIndex = result.rotation.findIndex((command) => command.name === 'Swap Legends');
+        const weaponIndex = result.rotation.findIndex((command) => command.name === 'Swap Weapons');
+        assert.ok(legendIndex >= 0 && weaponIndex >= 0);
+        assert.equal(legendIndex < weaponIndex, legendOffset === 0);
+      }
+    }
+  }
+});
 
 test('both importers preserve idle after cancelled and committed retained-lockout casts', () => {
   // An idle gap beyond boundary jitter follows the occupied lane, which ends early only below the commit cutoff.
@@ -42,7 +92,7 @@ test('both importers preserve idle after cancelled and committed retained-lockou
         ]
       }),
       { skills },
-      { includeCombatStart: false, inferInstantCasts: false }
+      { includeCombatStart: false }
     );
     const report = reconstructDpsReportRotation(
       {
@@ -105,7 +155,7 @@ for (const [professionCode, professionName] of [
                 ]
               }),
               { skills },
-              { includeCombatStart: false, inferInstantCasts: false }
+              { includeCombatStart: false }
             )
           : reconstructDpsReportRotation(
               {
@@ -172,13 +222,13 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
       events: [
         evtcEvent({ stateChange: 1 }),
         evtcEvent({ time: 1_200, stateChange: 67, skillId: 1_000, value: 600 }),
-        evtcEvent({ time: 1_840, stateChange: 68, skillId: 1_000, value: 640, activation: 3 }),
+        evtcEvent({ time: 1_840, stateChange: 68, skillId: 1_000, value: 640, activation: 5 }),
         evtcEvent({ time: 1_840, stateChange: 67, skillId: 1_000, value: 600 }),
-        evtcEvent({ time: 2_480, stateChange: 68, skillId: 1_000, value: 640, activation: 3 })
+        evtcEvent({ time: 2_480, stateChange: 68, skillId: 1_000, value: 640, activation: 5 })
       ]
     },
     catalog,
-    { inferInstantCasts: false }
+    {}
   );
   const report = reconstructDpsReportRotation(
     {
@@ -214,21 +264,12 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
   );
 });
 
-test('the shared timeline preserves controls, unsupported durations, idle gaps, and concurrent offsets', () => {
+test('the shared timeline preserves unsupported durations, idle gaps, and concurrent offsets', () => {
   const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0, quicknessCastTimeMs: 0 };
   const actions = [
     { start: 0, end: 400, eventIndex: 0, skill: fixtureSkill, name: 'Mind Stab', skillId: 1_000 },
     { start: 200, end: 200, eventIndex: 1, skill: instant, name: 'Instant', skillId: 2_000 },
-    { start: 800, end: 900, eventIndex: 2, skill: null, name: 'Unknown', skillId: 9_000 },
-    {
-      start: 1_000,
-      end: 1_000,
-      eventIndex: 3,
-      skill: null,
-      name: 'Reset',
-      skillId: -1,
-      control: 'cooldown-reset'
-    }
+    { start: 800, end: 900, eventIndex: 2, skill: null, name: 'Unknown', skillId: 9_000 }
   ];
 
   assert.deepEqual(buildReplayTimeline(actions, 0, 100, { commandFor: ({ name, skillId }) => ({ name, skillId }) }), [
@@ -236,9 +277,7 @@ test('the shared timeline preserves controls, unsupported durations, idle gaps, 
     { name: '__combat_start', offset: 120 },
     { name: 'Instant', skillId: 2_000, offset: 200 },
     { name: '__wait', waitMs: 400 },
-    { name: '__wait', waitMs: 100 },
-    { name: '__wait', waitMs: 100 },
-    { name: '__cooldown_reset' }
+    { name: '__wait', waitMs: 100 }
   ]);
 });
 
@@ -357,7 +396,7 @@ test('the shared timeline subtracts accumulated simulator cast overruns from a l
   ]);
 });
 
-test('runtime alignment preserves inferred or mechanic-owned occupied intervals without adding waits', () => {
+test('runtime alignment preserves mechanic-owned occupied intervals without adding waits', () => {
   // A source interval supplied by setup inference or a charge mechanic is already accounted for outside cast runtime.
   const rotation = buildReplayTimeline(
     [

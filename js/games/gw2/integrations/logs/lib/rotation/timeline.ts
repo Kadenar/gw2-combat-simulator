@@ -13,15 +13,11 @@ export interface ReplayTimelineAction {
   readonly skill: Skill | null;
   readonly name: string;
   readonly skillId: string | number;
-  readonly control?: 'cooldown-reset';
   readonly independentTimeline?: boolean;
   /** Replays observed overlap while retaining this action as the scheduler's next relative-offset anchor. */
   readonly concurrentTimeline?: boolean;
-  readonly followingWaitMs?: number;
   /** Runtime occupancy of a profession-resolved skill variant, including its built-in wind-up. */
   readonly replayDurationMs?: number;
-  /** Opening-hit evidence may place combat before a source phase/EVTC boundary so its damage remains observable. */
-  readonly combatStartOverride?: number;
 }
 
 export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
@@ -34,7 +30,7 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   readonly replayEnd?: (action: Action) => number;
   /** Makes waits compensate when emitted commands use a different cast duration than the source log. */
   readonly alignWaitsToSimulatorTiming?: boolean;
-  /** Limits runtime correction to observed casts, preserving inferred setup and waits owned by profession mechanics. */
+  /** Limits runtime correction to observed casts, preserving command occupancy owned by profession mechanics. */
   readonly hasObservedCastTime?: (action: Action) => boolean;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
   readonly commandFor: (action: Action) => ReconstructedRotationCommand;
@@ -53,19 +49,6 @@ function observedAftercastWaitMs(action: ReplayTimelineAction, replayEnd: number
   return excessMs > OBSERVED_CAST_TOLERANCE_MS ? excessMs : 0;
 }
 
-/** Applies the earliest proven combat boundary without moving a later source boundary forward. */
-export function replayCombatStart(
-  actions: readonly { readonly combatStartOverride?: number }[],
-  sourceCombatStart: number | null
-): number | null {
-  const overrides = actions
-    .map((action) => Number(action.combatStartOverride))
-    .filter((value) => Number.isFinite(value));
-  if (!overrides.length) return sourceCombatStart;
-  const earliestOverride = Math.min(...overrides);
-  return sourceCombatStart == null ? earliestOverride : Math.min(sourceCombatStart, earliestOverride);
-}
-
 /** Converts one normalized action timeline into executable commands so both log sources preserve the same gaps and overlaps. */
 export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   actions: readonly Action[],
@@ -80,15 +63,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
   const alignWaitsToSimulatorTiming = policy.alignWaitsToSimulatorTiming === true;
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
-  const effectiveCombatStart = replayCombatStart(actions, combatStart);
-  const preserveCombatStartOffset = actions.some(
-    (action) => Number(action.combatStartOverride) === effectiveCombatStart
-  );
   const entries: Array<
     | { readonly type: 'action'; readonly action: Action }
     | { readonly type: 'combat-start'; readonly at: number; readonly index: number }
   > = actions.map((action) => ({ type: 'action', action }));
-  if (effectiveCombatStart != null) entries.push({ type: 'combat-start', at: effectiveCombatStart, index: -1 });
+  if (combatStart != null) entries.push({ type: 'combat-start', at: combatStart, index: -1 });
   entries.sort((left, right) => {
     const leftTime = left.type === 'action' ? left.action.start : left.at;
     const rightTime = right.type === 'action' ? right.action.start : right.at;
@@ -106,12 +85,26 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     return leftIndex - rightIndex;
   });
 
+  // Tied Revenant swaps must trigger the outgoing weapon's sigils before changing weapons.
+  // Exchange only the swap slots so other simultaneous inputs retain their source order.
+  const weaponSwapIndices = new Map<number, number>();
+  for (const [index, entry] of entries.entries()) {
+    if (entry.type !== 'action') continue;
+    if (entry.action.name === 'Swap Weapons') weaponSwapIndices.set(entry.action.start, index);
+    const weaponIndex = weaponSwapIndices.get(entry.action.start);
+    if (entry.action.name !== 'Swap Legends' || weaponIndex == null) continue;
+    [entries[weaponIndex], entries[index]] = [entry, entries[weaponIndex]];
+    weaponSwapIndices.delete(entry.action.start);
+  }
+
   const rotation: ReconstructedCommand[] = [];
   let activeCastEnd = origin;
   let activeCast: Action | null = null;
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
   let pendingAftercast: { until: number; progressedTo: number } | null = null;
+  let interruptPaddingEnd = origin;
+  let interruptPaddingProgress = origin;
   // Log adapters use this scheduler projection when source cast boundaries differ from serial replay timing.
   let projectedTime = origin;
   let projectedReservedEnd = origin;
@@ -129,7 +122,18 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
   };
 
+  // Wait only after cancellation, preserving the rounded lane without delaying overlapping commands or reviving packets.
+  const appendInterruptPadding = (): void => {
+    appendWait(
+      interruptPaddingEnd -
+        (alignWaitsToSimulatorTiming ? Math.max(projectedTime, projectedReservedEnd) : interruptPaddingProgress)
+    );
+    interruptPaddingEnd = origin;
+    interruptPaddingProgress = origin;
+  };
+
   const appendPendingAftercastWait = (): void => {
+    appendInterruptPadding();
     if (!pendingAftercast) return;
     const waitMs = alignWaitsToSimulatorTiming
       ? quantizeWaitMs(pendingAftercast.until - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
@@ -139,6 +143,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   };
 
   const appendObservedIdle = (nextActionAt: number): void => {
+    appendInterruptPadding();
     const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
     const observedGapMs = nextActionAt - blockingEnd;
     const retainedTimingJitter =
@@ -170,9 +175,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
         // Round combat offsets relative to the skill, retaining exact packet-proven boundaries so opening hits stay observable.
-        const offset = preserveCombatStartOffset
-          ? at - previousCastStart
-          : quantizeGw2ActionTimingMs(at - previousCastStart);
+        const offset = quantizeGw2ActionTimingMs(at - previousCastStart);
         rotation.push({ name: '__combat_start', offset });
         if (alignWaitsToSimulatorTiming && projectedPreviousCastStart != null) {
           projectedTime = Math.max(projectedTime, projectedPreviousCastStart + offset);
@@ -187,14 +190,6 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     const action = entry.action;
-    if (action.control === 'cooldown-reset') {
-      if (overlapping) appendPendingAftercastWait();
-      else appendObservedIdle(at);
-      rotation.push({ name: '__cooldown_reset' });
-      if (alignWaitsToSimulatorTiming) projectedTime = Math.max(projectedTime, projectedReservedEnd);
-      continue;
-    }
-
     const actionReplayEnd = Math.max(at, replayEnd(action));
     if (!canEmit(action)) {
       if (overlapping) appendPendingAftercastWait();
@@ -236,9 +231,16 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       );
     }
 
+    if (interruptPaddingEnd > origin && concurrent) {
+      interruptPaddingProgress = Math.max(
+        interruptPaddingProgress,
+        at + (action.replayDurationMs ?? quicknessReferenceCastTimeMs(action.skill))
+      );
+    }
+
     rotation.push(command);
     if (alignWaitsToSimulatorTiming) {
-      // Inferred setup and mechanic-owned charge intervals already define their replay occupancy.
+      // Mechanic-owned charge intervals already define their replay occupancy.
       const runtimeMs =
         action.replayDurationMs ??
         (action.skill && policy.hasObservedCastTime?.(action) !== false
@@ -271,8 +273,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       }
     }
 
-    if (action.followingWaitMs && action.followingWaitMs > 0) {
-      appendWait(quantizeWaitMs(action.followingWaitMs));
+    if (action.skill?.interruptMode === 'per-packet' && command.interruptMs != null) {
+      const paddingMs = quantizeGw2ActionTimingMs(command.interruptMs) - command.interruptMs;
+      if (paddingMs > 0) {
+        const end = (alignWaitsToSimulatorTiming ? projectedTime : at) + command.interruptMs;
+        interruptPaddingEnd = Math.max(interruptPaddingEnd, end + paddingMs);
+        interruptPaddingProgress = at + command.interruptMs;
+      }
     }
 
     const aftercastWaitMs = observedAftercastWaitMs(action, actionReplayEnd);
