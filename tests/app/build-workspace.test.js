@@ -283,6 +283,28 @@ test('template loading cannot overwrite a tab selected while its fetch is pendin
   assert.match(alerts[0], /build changed while loading/);
 });
 
+test('template build loads rename only the active tab and persist its name', async (t) => {
+  storage(t);
+  t.mock.method(globalThis, 'fetch', async (url) => ({
+    ok: true,
+    json: async () => (String(url).startsWith('rotation') ? { rotation: [] } : build('downloaded'))
+  }));
+  const preset = { section: 'Chronomancer', label: 'Power', build: 'build.json', rotation: 'rotation.json' };
+
+  // Both build replacement actions adopt the template identity, while loading just a rotation keeps the tab name.
+  for (const action of ['template', 'build', 'rotation']) {
+    const { app, tab } = appFixture();
+    const active = addBuildTab(app, build('other'), 'Custom name');
+    await loadTemplateAction(app, preset, action, { innerHTML: 'Load' });
+    const expectedName = action === 'rotation' ? 'Custom name' : 'Chronomancer · Power';
+    assert.equal(active.name, expectedName);
+    assert.equal(tab.name, 'Original');
+    assert.equal(app.workspace.tabs.length, 2);
+    const restored = loadBuildWorkspace(adapter);
+    assert.equal(restored.tabs.find(({ id }) => id === active.id).name, expectedName);
+  }
+});
+
 test('open template in new tab commits the complete bundle and preserves the source tab', async (t) => {
   storage(t);
   const { app, tab } = appFixture();

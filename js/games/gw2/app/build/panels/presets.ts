@@ -471,6 +471,7 @@ export async function loadTemplateAction(
   button.disabled = true;
   button.textContent = 'Loading…';
   try {
+    const name = [preset.section, preset.label, templateTileContent(preset).weapons].filter(Boolean).join(' · ');
     if (action === 'rotation') {
       if (!preset.rotation) {
         throw new Error('Rotation asset missing.');
@@ -504,7 +505,6 @@ export async function loadTemplateAction(
       const build = replaceBuildConfiguration(buildData, previousBuild, app.adapter);
       const replacement = replaceBuildRotation(Array.isArray(rotationItems) ? rotationItems : [], build, app.adapter);
       if (action === 'new-tab') {
-        const name = [preset.section, preset.label, templateTileContent(preset).weapons].filter(Boolean).join(' · ');
         addBuildTab(app, replacement, name, patchId);
       } else {
         validateDestination();
@@ -517,6 +517,12 @@ export async function loadTemplateAction(
         signature: buildSignature(app.build)
       };
       updateTemplateSelection(app);
+    }
+
+    // Successful build loads use the same template name as new tabs; rotation-only loads retain the build's name.
+    if (action === 'build' || action === 'template') {
+      const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+      if (tab) tab.name = name.trim().slice(0, 80) || 'New build';
     }
 
     if (action !== 'new-tab') showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
