@@ -17,6 +17,139 @@ function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   });
 }
 
+test('cast-start field selection survives expiration but still requires a committed impact', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 20,
+        name: 'Delayed Finishers',
+        castTimeMs: 1000,
+        interruptCommitMs: 300,
+        effects: [undefined, 'castStart'].map((fieldSelectionAnchor, index) => ({
+          type: 'strike',
+          coefficient: 1,
+          weaponStrength: 1000,
+          atMs: 600 + index * 200,
+          timingAnchor: 'castStart',
+          timingScale: 'fixed',
+          persistsAfterInterrupt: true,
+          comboFinishers: [
+            { ownerId: 'combo-fixture', finisherType: 'Blast', fieldSelectionAnchor, attemptGroup: `effect:${index}` }
+          ]
+        }))
+      },
+      {
+        id: 21,
+        name: 'Later Field',
+        castTimeMs: 0,
+        comboFields: [{ ownerId: 'combo-fixture', fieldType: 'Fire', duration: 2 }],
+        effects: []
+      }
+    ]
+  });
+
+  // The earlier default finisher also exercises history retention before the anchored finisher resolves.
+  for (const { label, startsAt = 0, expiresAt, castDelayMs = 0, interruptMs, laterField, expected } of [
+    { label: 'expired field', expiresAt: 0.5, expected: [0.8] },
+    { label: 'active field', expiresAt: 2, expected: [0.6, 0.8] },
+    { label: 'cancelled before commitment', expiresAt: 0.5, interruptMs: 100, expected: [] },
+    { label: 'committed impact', expiresAt: 0.5, interruptMs: 400, expected: [0.8] },
+    { label: 'field created after cast start', interruptMs: 400, laterField: true, expected: [0.6, 0.8] },
+    { label: 'field entirely within cast', startsAt: 0.2, expiresAt: 0.5, expected: [0.8] },
+    { label: 'field expired before cast', expiresAt: 0.5, castDelayMs: 1000, expected: [] },
+    { label: 'field created after impact', startsAt: 0.9, expiresAt: 2, expected: [] }
+  ]) {
+    const profession = fixtureProfession((context) => {
+      if (expiresAt != null) {
+        context.emit({
+          type: 'combo_field',
+          at: startsAt,
+          source: 'Initial Field',
+          sourceId: 'initial-field',
+          actorType: 'effect',
+          fieldId: 'field:initial',
+          fieldType: 'Fire',
+          expiresAt,
+          ownerId: 'combo-fixture',
+          ownerActorType: 'player'
+        });
+      }
+    }, catalog);
+    const rotation = [
+      ...(castDelayMs ? [{ type: 'wait', durationMs: castDelayMs }] : []),
+      { name: 'Delayed Finishers', ...(interruptMs == null ? {} : { interruptMs }) },
+      ...(laterField ? ['Later Field'] : []),
+      { type: 'wait', durationMs: 1000 }
+    ];
+    const predicted = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() }).run(rotation);
+    const result = simulateGw2({
+      profession,
+      rotation,
+      config: { target: { armor: 2597, conditions: {} } }
+    });
+
+    for (const events of [predicted.events, result.resolvedEvents]) {
+      assert.deepEqual(
+        events.filter((event) => event.type === 'combo').map((event) => event.at),
+        expected,
+        label
+      );
+      assert.deepEqual(
+        events
+          .filter((event) => event.type === 'buff' && event.comboId && event.kind === 'might')
+          .map((event) => event.at),
+        expected,
+        `${label}: outcomes stay at impact`
+      );
+    }
+  }
+});
+
+test('own-field exclusion survives rebinding and still allows fields from earlier activations', () => {
+  for (const [excludeOwnField, earlierField, expectedFieldId] of [
+    [true, false, undefined],
+    [true, true, 'field:earlier'],
+    [false, false, 'field:own']
+  ]) {
+    const profession = fixtureProfession((context) => {
+      const field = {
+        type: 'combo_field',
+        at: 0,
+        expiresAt: 2,
+        source: 'Fixture Field',
+        sourceId: 'fixture.field',
+        actorType: 'effect',
+        fieldType: 'Light',
+        ownerId: 'combo-fixture',
+        ownerActorType: 'player'
+      };
+      if (earlierField) context.emit({ ...field, fieldId: 'field:earlier', activationId: 'cast:earlier' });
+      context.emit({
+        type: 'damage',
+        at: 1,
+        source: 'Fixture Leap',
+        sourceId: 'fixture.leap',
+        actorType: 'player',
+        activationId: 'cast:current',
+        coefficient: 1,
+        weaponStrength: 1000,
+        comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Leap', excludeOwnField }]
+      });
+      // Author a higher-priority own field last to exercise rebinding as well as initial selection.
+      context.emit({ ...field, fieldId: 'field:own', activationId: 'cast:current', comboBindingPriority: 1 });
+    });
+    const rotation = [{ type: 'wait', durationMs: 2000 }];
+    const predicted = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() }).run(rotation);
+    const resolved = simulateGw2({ profession, rotation, config: { target: { armor: 2597 } } });
+    for (const events of [predicted.events, resolved.resolvedEvents]) {
+      assert.deepEqual(
+        events.filter((event) => event.type === 'combo').map((event) => event.fieldId),
+        expectedFieldId ? [expectedFieldId] : []
+      );
+    }
+  }
+});
+
 test('owned canonical descriptors produce shared combo events without a profession adapter', () => {
   const catalog = createCanonicalCatalog({
     generated: [

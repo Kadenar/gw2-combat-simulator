@@ -1,4 +1,8 @@
-import { normalizeComboFieldType, normalizeComboFinisherType } from '#gw2/platform/combos/events.js';
+import {
+  normalizeComboFieldType,
+  normalizeComboFinisherType,
+  normalizeComboFieldSelectionAnchor
+} from '#gw2/platform/combos/events.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillEffect, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -67,6 +71,10 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
       }
 
       const effectDelay = Number(descriptor.effectDelay ?? 0);
+      if (descriptor.excludeOwnField != null && typeof descriptor.excludeOwnField !== 'boolean') {
+        throw new TypeError(`comboFinishers entry ${index + 1} excludeOwnField must be a boolean.`);
+      }
+
       if (!(effectDelay >= 0) || !Number.isFinite(effectDelay)) {
         throw new TypeError(`comboFinishers entry ${index + 1} requires a non-negative effectDelay.`);
       }
@@ -75,6 +83,7 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
         ...descriptor,
         ...(descriptor.attemptGroup == null && attemptGroup ? { attemptGroup } : {}),
         finisherType: normalizeComboFinisherType(descriptor.finisherType ?? descriptor.type),
+        fieldSelectionAnchor: normalizeComboFieldSelectionAnchor(descriptor.fieldSelectionAnchor),
         chance: Math.max(0, Math.min(1, chance)),
         attempts: positiveInteger(descriptor.attempts, 1, `comboFinishers entry ${index + 1} attempts`),
         applications: positiveInteger(descriptor.applications, 1, `comboFinishers entry ${index + 1} applications`),

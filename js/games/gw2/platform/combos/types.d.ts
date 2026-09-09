@@ -7,6 +7,8 @@ export type ComboFieldType =
 
 export type ComboFinisherType = 'Blast' | 'Leap' | 'Projectile' | 'Whirl';
 
+export type ComboFieldSelectionAnchor = 'event' | 'castStart';
+
 export type ComboFieldBinding =
   | { readonly kind: 'field-id'; readonly fieldId: string }
   | { readonly kind: 'field-type'; readonly fieldType: ComboFieldType }
@@ -25,6 +27,8 @@ export interface ComboFinisherEvent extends SimulationEventBase<'combo_finisher'
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldBinding: ComboFieldBinding;
+  /** Earliest eligible field interaction; the window ends at the finisher event without moving its outcome. */
+  readonly fieldSelectionAt?: number;
   readonly companionCandidates?: readonly string[];
   readonly effectAt: number;
   readonly chance: number;

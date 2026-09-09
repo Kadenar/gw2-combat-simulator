@@ -8,6 +8,7 @@ import type {
   ComboEvent,
   ComboFieldBinding,
   ComboFieldEvent,
+  ComboFieldSelectionAnchor,
   ComboFieldType,
   ComboFinisherEvent,
   ComboFinisherType,
@@ -67,6 +68,13 @@ export function normalizeComboFinisherType(value: unknown): ComboFinisherType {
   }
 
   return normalized;
+}
+
+/** Finishers select at their event by default; a cast-start anchor opens an earlier eligibility window. */
+export function normalizeComboFieldSelectionAnchor(value: unknown): ComboFieldSelectionAnchor {
+  if (value == null || value === 'event') return 'event';
+  if (value === 'castStart') return 'castStart';
+  throw new TypeError(`Invalid combo fieldSelectionAnchor: ${String(value)}.`);
 }
 
 export interface SelectComboFieldOptions {
@@ -164,6 +172,11 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
 
   if (event.type === 'combo_finisher') {
     const at = Number(event.at);
+    const fieldSelectionAt = event.fieldSelectionAt == null ? null : Number(event.fieldSelectionAt);
+    if (fieldSelectionAt != null && (!Number.isFinite(fieldSelectionAt) || fieldSelectionAt > at)) {
+      throw new TypeError('Combo finisher fieldSelectionAt must be finite and must not follow at.');
+    }
+
     const effectAt = Number(event.effectAt);
     if (!Number.isFinite(effectAt) || effectAt < at) {
       throw new TypeError('Combo finisher effectAt must not precede at.');
@@ -185,6 +198,7 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
       attemptId: requiredString(event.attemptId, 'Combo finisher attemptId'),
       finisherType: normalizeComboFinisherType(event.finisherType),
       fieldBinding: normalizeComboFieldBinding(event.fieldBinding),
+      ...(fieldSelectionAt == null ? {} : { fieldSelectionAt }),
       effectAt,
       chance: clamp(chance, 0, 1),
       applications: positiveInteger(event.applications, 'Combo finisher applications'),
@@ -246,21 +260,14 @@ export function createGw2ComboRuntimeState(): Gw2ComboRuntimeState {
   };
 }
 
-/** Registers an active combo field by its stable field identifier. */
+/** Retains field history so delayed finishers can validate a selection made before expiration. */
 export function registerComboField(state: Gw2ComboRuntimeState, event: ComboFieldEvent): void {
   state.fields.set(event.fieldId, event);
 }
 
-function activeAt(field: ComboFieldEvent, at: number): boolean {
-  return field.at <= at + EPSILON && field.expiresAt > at + EPSILON;
-}
-
-// Expired fields are cleaned up lazily inside boundField, not on every event,
-// so they accumulate in state until a finisher actually queries them.
-function discardExpiredFields(state: Gw2ComboRuntimeState, at: number): void {
-  for (const [fieldId, field] of state.fields) {
-    if (field.expiresAt <= at + EPSILON) state.fields.delete(fieldId);
-  }
+function activeAt(field: ComboFieldEvent, at: number, fieldSelectionAt = at): boolean {
+  // Anchored finishers accept a field present at any point from cast start through impact.
+  return field.at <= at + EPSILON && field.expiresAt > Math.max(field.at, fieldSelectionAt) + EPSILON;
 }
 
 function warningLabel(event: ComboFinisherEvent): string {
@@ -278,9 +285,9 @@ function boundField(
   event: ComboFinisherEvent,
   warn: (message: string) => void
 ): ComboFieldEvent | null {
-  discardExpiredFields(state, event.at);
+  const at = event.fieldSelectionAt ?? event.at;
   const label = warningLabel(event);
-  const time = event.at.toFixed(3);
+  const time = at.toFixed(3);
   if (event.fieldBinding.kind === 'none') {
     // warnOnUnbound=false suppresses the warning for finishers that are
     // intentionally unbound (e.g. a Whirl that self-manages its field choice).
@@ -296,7 +303,7 @@ function boundField(
 
   if (event.fieldBinding.kind === 'field-id') {
     const field = state.fields.get(event.fieldBinding.fieldId);
-    if (field && activeAt(field, event.at)) return field;
+    if (field && activeAt(field, event.at, at)) return field;
     warnOnce(
       state,
       `inactive-id|${event.fieldBinding.fieldId}|${label}`,
@@ -309,7 +316,7 @@ function boundField(
   const binding = event.fieldBinding;
   if (binding.kind !== 'field-type') return null;
   const candidates = [...state.fields.values()]
-    .filter((field) => field.fieldType === binding.fieldType && activeAt(field, event.at))
+    .filter((field) => field.fieldType === binding.fieldType && activeAt(field, event.at, at))
     .sort((left, right) => left.at - right.at);
   if (candidates[0]) return candidates[0];
   warnOnce(

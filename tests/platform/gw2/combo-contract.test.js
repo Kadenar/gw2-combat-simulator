@@ -218,3 +218,55 @@ test('catalog combo field descriptors normalize and validate explicit metadata',
     /positive duration/
   );
 });
+
+test('finisher selection anchors default to the event and reject invalid metadata', () => {
+  assert.throws(
+    () =>
+      normalizeGw2ComboCatalogSkill({
+        id: 1,
+        name: 'Invalid Self Combo',
+        comboFinishers: [{ finisherType: 'Leap', excludeOwnField: 'true' }]
+      }),
+    /excludeOwnField must be a boolean/
+  );
+  for (const anchor of [undefined, 'event', 'castStart']) {
+    const skill = normalizeGw2ComboCatalogSkill({
+      id: 1,
+      name: 'Anchored Blast',
+      comboFinishers: [{ finisherType: 'Blast', fieldSelectionAnchor: anchor }]
+    });
+    assert.equal(skill.comboFinishers[0].fieldSelectionAnchor, anchor ?? 'event');
+  }
+
+  assert.throws(
+    () =>
+      normalizeGw2ComboCatalogSkill({
+        id: 1,
+        name: 'Invalid Anchor',
+        comboFinishers: [{ finisherType: 'Blast', fieldSelectionAnchor: 'castEnd' }]
+      }),
+    /Invalid combo fieldSelectionAnchor/
+  );
+
+  const preparer = createGw2EventPreparer();
+  const finisher = {
+    type: 'combo_finisher',
+    at: 1,
+    effectAt: 1,
+    source: 'Fixture',
+    sourceId: 'fixture.finisher',
+    attemptId: 'attempt:anchor',
+    finisherType: 'Blast',
+    fieldBinding: { kind: 'none' },
+    chance: 1,
+    applications: 1,
+    successfulCombos: 1
+  };
+  assert.equal(preparer.prepare(context, { ...finisher, fieldSelectionAt: 0 }).fieldSelectionAt, 0);
+  for (const fieldSelectionAt of [NaN, Infinity, 2]) {
+    assert.throws(
+      () => preparer.prepare(context, { ...finisher, fieldSelectionAt }),
+      /fieldSelectionAt must be finite/
+    );
+  }
+});

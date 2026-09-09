@@ -2,6 +2,7 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   createGw2ComboRuntimeState,
   normalizeComboFieldType,
+  normalizeComboFieldSelectionAnchor,
   normalizeComboFinisherType,
   registerComboField,
   resolveComboAttempt,
@@ -20,6 +21,7 @@ import type {
   ComboEvent,
   ComboFieldBinding,
   ComboFieldEvent,
+  ComboFieldSelectionAnchor,
   ComboFieldType,
   ComboFinisherEvent,
   ComboFinisherType
@@ -43,6 +45,7 @@ interface OwnedFieldDescriptor extends SchedulerRecord {
 interface OwnedFinisherDescriptor extends SchedulerRecord {
   readonly ownerId: string;
   readonly finisherType: ComboFinisherType;
+  readonly fieldSelectionAnchor?: ComboFieldSelectionAnchor;
   readonly chance: number;
   readonly attempts: number;
   readonly applications: number;
@@ -124,6 +127,7 @@ function finisherDescriptors<TProfessionState extends object>(
       ...raw,
       ownerId: String(raw.ownerId),
       finisherType: normalizeComboFinisherType(raw.finisherType ?? raw.type),
+      fieldSelectionAnchor: normalizeComboFieldSelectionAnchor(raw.fieldSelectionAnchor),
       chance: Math.max(0, Math.min(1, Number(raw.chance ?? 1))),
       attempts: Math.max(1, Math.trunc(Number(raw.attempts ?? 1))),
       applications: Math.max(1, Math.trunc(Number(raw.applications ?? 1))),
@@ -139,7 +143,8 @@ function fieldAt(event: SimulationEvent, descriptor: OwnedFieldDescriptor) {
 function activeOwnedFields<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   ownerId: string,
-  at: number
+  at: number,
+  fieldSelectionAt = at
 ): ComboFieldEvent[] {
   return context
     .eventsOfType('combo_field')
@@ -148,7 +153,7 @@ function activeOwnedFields<TProfessionState extends object>(
         event.type === 'combo_field' &&
         event.ownerId === ownerId &&
         event.at <= at + context.epsilon &&
-        Number(event.expiresAt) > at + context.epsilon
+        Number(event.expiresAt) > Math.max(event.at, fieldSelectionAt) + context.epsilon
     )
     .sort((left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0));
 }
@@ -156,7 +161,9 @@ function activeOwnedFields<TProfessionState extends object>(
 function descriptorBinding<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   descriptor: OwnedFinisherDescriptor,
-  at: number
+  at: number,
+  fieldSelectionAt = at,
+  activationId?: string
 ): {
   binding: ComboFieldBinding;
   fieldAt?: number;
@@ -173,13 +180,17 @@ function descriptorBinding<TProfessionState extends object>(
                 event.type === 'combo_field' &&
                 event.fieldId === explicit.fieldId &&
                 event.at <= at + context.epsilon &&
-                Number(event.expiresAt) > at + context.epsilon
+                Number(event.expiresAt) > Math.max(event.at, fieldSelectionAt) + context.epsilon
             )
         : undefined;
     return { binding: explicit, fieldAt: field?.at, warnOnUnbound: false };
   }
 
-  const fields = activeOwnedFields(context, descriptor.ownerId, at);
+  // A cast-start anchor widens eligibility through impact, retaining fields encountered anywhere in that window.
+  // Some finishers cannot use the field created by their own activation; older casts remain eligible.
+  const fields = activeOwnedFields(context, descriptor.ownerId, at, fieldSelectionAt).filter(
+    (field) => descriptor.excludeOwnField !== true || !activationId || field.activationId !== activationId
+  );
   const { field, ambiguous } = selectComboFieldForFinisher(fields, {
     preferredFieldTypes: descriptor.preferredFieldTypes as readonly ComboFieldType[] | undefined,
     ambiguousFieldSelection: descriptor.ambiguousFieldSelection === 'oldest' ? 'oldest' : 'none'
@@ -223,9 +234,17 @@ function rebindPendingFinishers<TProfessionState extends object>(
       applications: Number(pending.applications ?? 1),
       successfulCombos: Number(pending.successfulCombos ?? 1),
       preferredFieldTypes: pending.comboPreferredFieldTypes,
-      ambiguousFieldSelection: pending.comboAmbiguousFieldSelection
+      ambiguousFieldSelection: pending.comboAmbiguousFieldSelection,
+      excludeOwnField: pending.comboExcludeOwnField
     } satisfies OwnedFinisherDescriptor;
-    const rebound = descriptorBinding(context, descriptor, pending.at);
+    // Later-authored fields can join the cast window, but fields appearing after impact remain ineligible.
+    const rebound = descriptorBinding(
+      context,
+      descriptor,
+      pending.at,
+      Number(pending.fieldSelectionAt ?? pending.at),
+      pending.activationId
+    );
     const resolvedAt = Math.max(pending.at, Number(rebound.fieldAt ?? pending.at));
     context.replaceEvent(pending, {
       at: resolvedAt,
@@ -272,7 +291,24 @@ function produceFinisher<TProfessionState extends object>(
   descriptorIndex: number
 ): void {
   const at = event.type === 'action' ? Number(event.endsAt ?? event.at) : event.at;
-  const { binding, fieldAt: boundFieldAt, warnOnUnbound } = descriptorBinding(context, descriptor, at);
+  let fieldSelectionAt = at;
+  if (descriptor.fieldSelectionAnchor === 'castStart') {
+    // Remember when this activation began so field expiration cannot erase an earlier interaction.
+    const action =
+      event.type === 'action'
+        ? event
+        : event.activationId
+          ? context.eventsOfType('action').find((candidate) => candidate.activationId === event.activationId)
+          : undefined;
+    if (!action) throw new TypeError('Cast-start combo field selection requires an owning action.');
+    fieldSelectionAt = action.at;
+  }
+
+  const {
+    binding,
+    fieldAt: boundFieldAt,
+    warnOnUnbound
+  } = descriptorBinding(context, descriptor, at, fieldSelectionAt, event.activationId);
   const resolvedAt = Math.max(at, Number(boundFieldAt ?? at));
   const parentEventOrder = Number(event.causalOrder ?? event.eventOrder ?? event.at);
   const attemptRoot = String(event.activationId || `${event.sourceId}:${event.skillName || event.name}`);
@@ -295,10 +331,12 @@ function produceFinisher<TProfessionState extends object>(
         : `${attemptRoot}:${descriptor.finisherType.toLowerCase()}:${String(descriptor.attemptGroup || 'skill')}:${descriptorIndex + 1}:${attempt}`,
       finisherType: descriptor.finisherType,
       fieldBinding: binding,
+      ...(descriptor.fieldSelectionAnchor === 'castStart' ? { fieldSelectionAt } : {}),
       comboAllowRebind: descriptor.fieldBinding == null,
       comboOwnerId: descriptor.ownerId,
       comboPreferredFieldTypes: descriptor.preferredFieldTypes,
       comboAmbiguousFieldSelection: descriptor.ambiguousFieldSelection,
+      ...(descriptor.excludeOwnField === true ? { comboExcludeOwnField: true } : {}),
       warnOnUnbound,
       chance: descriptor.chance,
       applications: descriptor.applications,
