@@ -2,16 +2,22 @@
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Log-measured impact/aftercast timings are separate from Aura's fixed one-second fuse pulses.
 export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BLOSSOMING_AURA]: {
-    castTimeMs: 750,
+    quicknessCastTimeMs: 600,
+    interruptCommitMs: 480,
+    handlerId: 'revenant.blossoming-aura',
+    rechargeAnchor: 'castStart',
+    duration: 4,
+    pulseInterval: 1,
     cooldown: 8,
     energyCost: 10,
     effects: [
       {
         type: 'strike',
         ticks: Array.from({ length: 4 }, (_, index) => ({
-          atMs: 130.346666666667 + index * 130.346666666667,
+          atMs: 480 + index * 1000,
           coefficient: 4.8 / 4
         })),
         name: 'Pulsing Damage',
@@ -22,6 +28,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
       {
         type: 'strike',
         coefficient: 1,
+        damageIncreasePerStack: 0.5,
         hits: 1,
         name: 'Final Damage',
         actorType: 'player'
@@ -42,7 +49,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: []
   },
   [ID.ACERBIC_CUT]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 640,
+    interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -51,6 +59,9 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         coefficient: 0.533,
         hits: 1,
         name: 'Acerbic Cut',
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         actorType: 'player'
       },
       {
@@ -62,7 +73,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.SERENE_SLASH]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 560,
+    interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -71,12 +83,16 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         coefficient: 0.533,
         hits: 1,
         name: 'Serene Slash',
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         actorType: 'player'
       }
     ]
   },
   [ID.MOTIVATING_WHIRL]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 440,
+    interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -85,6 +101,9 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         coefficient: 1,
         hits: 1,
         name: 'Motivating Whirl',
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         actorType: 'player'
       }
     ]
@@ -130,6 +149,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.DETONATE_BLOSSOMING_AURA]: {
+    handlerId: 'revenant.detonate-blossoming-aura',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

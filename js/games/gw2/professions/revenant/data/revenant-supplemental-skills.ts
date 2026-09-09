@@ -33,19 +33,6 @@ const records: readonly Skill[] = [
     flipSkillId: null
   },
   {
-    id: 27198,
-    name: 'Dome of the Mists',
-    description: 'Create an area that blocks projectiles and weakens foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Dome_of_the_Mists.png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 27659,
     name: 'Legendary Assassin Stance',
     description: 'Invoke the power of the legendary assassin Shiro Tagachi.',
@@ -81,101 +68,6 @@ const records: readonly Skill[] = [
     weapon: '',
     specialization: '',
     categories: ['Legend'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28692,
-    name: 'Igniting Brand',
-    description:
-      'Throw your spear at your foe. Upon impact, damage your foe and connect to them through the Mists. While the connection is active it will apply burning.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Igniting_Brand.png',
-    type: 'Weapon',
-    slot: 'Weapon_4',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28714,
-    name: 'Spear of Anguish',
-    description:
-      'Throw a mist spear toward your foe, inflicting increasing durations of torment the closer the foe is to you.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spear_of_Anguish.png',
-    type: 'Weapon',
-    slot: 'Weapon_1',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28797,
-    name: 'Frigid Discharge',
-    description: 'Detonate the sphere to cause it to explode, damaging and chilling foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Frigid_Discharge.png',
-    type: 'Weapon',
-    slot: 'Weapon_3',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28815,
-    name: 'Devour Brand',
-    description: 'Step through the Mists toward the branded foe, dealing damage in an area to nearby foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Devour_Brand.png',
-    type: 'Weapon',
-    slot: 'Weapon_4',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28827,
-    name: 'Venomous Sphere',
-    description:
-      'Launch a sphere outward from the Mists. The sphere will attack nearby foes as it travels, poisoning them.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Venomous_Sphere.png',
-    type: 'Weapon',
-    slot: 'Weapon_3',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28915,
-    name: 'Rapid Assault',
-    description: 'Rapidly strike foes in front of you, inflicting vulnerability.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rapid_Assault.png',
-    type: 'Weapon',
-    slot: 'Weapon_2',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28930,
-    name: 'Rift Containment',
-    description:
-      'Create two rifts, one above and one below your target. After a short delay, these rifts will create a barrier from the Mists, preventing foes from crossing.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rift_Containment.png',
-    type: 'Weapon',
-    slot: 'Weapon_5',
-    weapon: '',
-    specialization: '',
-    categories: [],
     nextChainId: null,
     flipSkillId: null
   },
@@ -220,33 +112,6 @@ const records: readonly Skill[] = [
     flipSkillId: null
   },
   {
-    id: 32588,
-    name: 'Rite of the Great Dwarf (trait skill)',
-    description:
-      'Channel the power of the Rite of the Great Dwarf to turn yourself and nearby allies to stone to reduce incoming damage.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rite_of_the_Great_Dwarf_(trait_skill).png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Dwarf'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 34198,
-    name: 'Vengeful Snowballs',
-    description: 'Invoke snowballs to circle around you, damaging and chilling foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vengeful_Snowballs.png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 42752,
     name: 'Dismiss Lieutenant Soulcleave',
     description: 'Order Ofela Soulcleave to leave the field.',
@@ -259,19 +124,6 @@ const records: readonly Skill[] = [
     nextChainId: null,
     flipSkillId: null,
     flipParentId: 45773
-  },
-  {
-    id: 44657,
-    name: 'Essence Sap (Doppelganger)',
-    description: 'Throw energy at your target, slowing them.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Essence_Sap_(Doppelganger).png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
   },
   {
     id: 46843,
@@ -361,87 +213,6 @@ const records: readonly Skill[] = [
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Unchained_Desolation.png',
     type: 'Action',
     slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 48170,
-    name: 'Legendary Prisoner Stance',
-    description: 'Invoke the power of the legendary prisoner Palawa Joko.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Legendary_Prisoner_Stance.png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: ['Legend'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 50390,
-    name: 'Rift of Pain',
-    description:
-      'Saturate your target, creating a chilling area around them with a field type based on which legend you are attuned to upon casting. Allies in the affected area gain beneficial effects.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rift_of_Pain.png',
-    type: 'Weapon',
-    slot: 'Weapon_3',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 50395,
-    name: 'Mistsfire',
-    description: 'Unleash the Mists toward your enemies, changing effects based on your current legend.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mistsfire.png',
-    type: 'Weapon',
-    slot: 'Weapon_1',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 50410,
-    name: 'Reckoning Blast',
-    description:
-      'Release a blast of Mists energy that heals allies and knocks enemies back, infusing your foes with dangerous power. Inflict conditions based on your current legend each time a target is struck.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Reckoning_Blast.png',
-    type: 'Weapon',
-    slot: 'Weapon_4',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 50456,
-    name: 'Portal Fire',
-    description:
-      'Open the Mists around you to fire multiple projectiles at your enemy, with a chance to inflict conditions based on your current legend.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Portal_Fire.png',
-    type: 'Weapon',
-    slot: 'Weapon_2',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 50483,
-    name: 'Torrential Mists',
-    description: 'Release the Mists from your aura with a chance to inflict conditions based on your current legend.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Torrential_Mists.png',
-    type: 'Weapon',
-    slot: 'Weapon_5',
     weapon: '',
     specialization: '',
     categories: [],
@@ -641,20 +412,6 @@ const records: readonly Skill[] = [
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blitz_Mines.png',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 76497,
-    name: 'Replenishing Despair (trait skill)',
-    description:
-      'Siphon health from nearby enemies when you gain a dark aura. Siphon healing is reduced for each target struck beyond the first.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Replenishing_Despair_(trait_skill).png',
-    type: 'Action',
-    slot: 'Action',
     weapon: '',
     specialization: '',
     categories: [],

@@ -21,7 +21,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         coefficient: 0,
         hits: 1,
-        atMs: 500,
+        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         flatStrikeBase: 1028,

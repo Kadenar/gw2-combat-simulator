@@ -1,4 +1,4 @@
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+/** Canonical Core ranger skill fragments; measured Quickness timings define their action windows. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -27,7 +27,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         duration: 4
       }
     ],
-    quicknessCastTimeMs: 500
+    quicknessCastTimeMs: 560
   },
   [ID.PANTHERS_PROWL]: {
     effects: [
@@ -38,7 +38,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    quicknessCastTimeMs: 400
   },
   [ID.WARCLAWS_ENGAGE]: {
     evades: true,
@@ -49,7 +49,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    quicknessCastTimeMs: 800
   },
   [ID.CHEETAHS_STRIKE]: {
     effects: [
@@ -112,7 +112,10 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_2',
-    quicknessCastTimeMs: 667,
+    // The 740 ms activation commits before 260 ms of recovery; committed cancels retain that recovery.
+    quicknessCastTimeMs: 1000,
+    interruptCommitMs: 740,
+    retainsCastLockoutAfterInterrupt: true,
     recharge: 5,
     cooldown: 5,
     flipParentId: ID.MONGOOSES_FRENZY,
@@ -120,10 +123,11 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     effects: [
       {
         type: 'strike',
+        // Snap each strike to the nearest 40 ms action tick while preserving its coefficient.
         ticks: [
-          { atMs: 222, coefficient: 1.25 },
-          { atMs: 444.666667, coefficient: 1.25 },
-          { atMs: 666.666667, coefficient: 2.5 }
+          { atMs: 240, coefficient: 1.25 },
+          { atMs: 440, coefficient: 1.25 },
+          { atMs: 680, coefficient: 2.5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -132,7 +136,10 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 3,
-        duration: 8
+        duration: 8,
+        atMs: 740,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
@@ -179,7 +186,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_4',
-    quicknessCastTimeMs: 760,
+    quicknessCastTimeMs: 800,
     recharge: 12,
     cooldown: 12,
     flipParentId: ID.WARCLAWS_ENGAGE,

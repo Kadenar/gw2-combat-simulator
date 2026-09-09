@@ -336,6 +336,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   },
   {
     id: REVENANT_CORE_BALANCE_PROFILE_IDS.invokingTorment,
+    // Keep the invocation strike and its conditions together on the nearest action tick.
     name: 'Invoke Torment',
     profileKind: 'trait',
     categories: ['Trait'],
@@ -343,7 +344,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 750, coefficient: 1 }],
+        ticks: [{ atMs: 760, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Invoke Torment',
@@ -351,7 +352,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 750, condition: 'Torment', stacks: 1, duration: 10 }],
+        ticks: [{ atMs: 760, condition: 'Torment', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Invoke Torment',
@@ -359,7 +360,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 750, condition: 'Poisoned', stacks: 1, duration: 10 }],
+        ticks: [{ atMs: 760, condition: 'Poisoned', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Invoke Torment',
@@ -368,7 +369,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 750, condition: 'Burning', stacks: 1, duration: 4 }],
+        ticks: [{ atMs: 760, condition: 'Burning', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Invoke Torment',

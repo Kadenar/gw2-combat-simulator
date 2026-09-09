@@ -1,4 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 /**
  * Revenant legend-swap transition.
@@ -32,7 +33,7 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
       : Number(skill.resourceGain || 0);
   state.energyUpdatedAt = at;
   state.activeUpkeeps = [];
-  state.availableFlips = {};
+  clearRevenantLegendFlips(context);
   context.emit({
     type: 'sigil_swap',
     at,

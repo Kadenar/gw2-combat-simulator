@@ -1,4 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { handleBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 /**
  * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
@@ -112,6 +113,7 @@ export const revenantSchedulerHooks = Object.freeze({
   },
   onEventScheduled,
   taskHandlers: Object.freeze({
+    'revenant.blossoming-aura': handleBlossomingAura,
     'revenant.abyssal-raze-recharge': handleAbyssalRazeRechargeReduction,
     'revenant.crushing-abyss-gain': handleCrushingAbyssGain,
     'revenant.crushing-abyss-weapon-swap': handleCrushingAbyssWeaponSwap,

@@ -171,23 +171,23 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         ticks: [
-          // Median packet positions by hit rank across the supplied logs.
+          // Median packet positions by hit rank, snapped independently to 40 ms action ticks.
           // Individual uses vary from six to ten target hits.
-          { atMs: 323, coefficient: 1 },
-          { atMs: 401, coefficient: 0.9 },
-          { atMs: 521, coefficient: 0.8 },
-          { atMs: 605, coefficient: 0.7 },
-          { atMs: 646, coefficient: 0.6 },
-          { atMs: 722, coefficient: 0.5 },
-          { atMs: 838, coefficient: 0.4 },
-          { atMs: 922, coefficient: 0.3 },
+          { atMs: 320, coefficient: 1 },
+          { atMs: 400, coefficient: 0.9 },
+          { atMs: 520, coefficient: 0.8 },
+          { atMs: 600, coefficient: 0.7 },
+          { atMs: 640, coefficient: 0.6 },
+          { atMs: 720, coefficient: 0.5 },
+          { atMs: 840, coefficient: 0.4 },
+          { atMs: 920, coefficient: 0.3 },
           // Large targets overlap all nine random and five guaranteed impact areas.
-          { atMs: 1002, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1082, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1162, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1242, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1322, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1402, coefficient: 0.3, metadata: { largeHitboxOnly: true } }
+          { atMs: 1000, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1080, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1160, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1240, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1320, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1400, coefficient: 0.3, metadata: { largeHitboxOnly: true } }
         ],
         metadata: {}
       }

@@ -1,4 +1,5 @@
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
@@ -120,7 +121,7 @@ function advanceRevenantEnergyInterval(
     }
 
     state.activeUpkeeps = [];
-    state.availableFlips = {};
+    clearRevenantLegendFlips(context);
     state.energyUpdatedAt = starvedAt;
     emitRevenantStateSnapshot(context, starvedAt, 'upkeep-starved');
     state.energyAccrual = { at: starvedAt, energy: 0, rate: regeneration, maximum };

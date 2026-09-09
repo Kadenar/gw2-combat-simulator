@@ -172,6 +172,8 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     event.type === 'damage' &&
     ((event.skillName === 'Deathstrike' && event.name === 'Initial Damage') ||
       event.skillName === "Phantom's Onslaught" ||
+      // Unrelenting Assault's opening shadowstep triggers one relic attack, not one per strike.
+      (event.skillId === ID.UNRELENTING_ASSAULT && event.hitIndex === 1) ||
       event.skillId === ID.PHASE_SMASH)
   ) {
     const delay = event.skillId === ID.PHASE_SMASH ? 0 : event.skillName === 'Deathstrike' ? 0.24 : 0.68;

@@ -5,12 +5,13 @@
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Align measured impacts and their attached effects on the nearest 40 ms action tick.
 const BEGUILING_HAZE_EFFECTS = Object.freeze([
   {
     type: 'strike',
     name: 'Beguiling Haze',
     actorType: 'player',
-    ticks: [{ atMs: 522, coefficient: 2.2 }],
+    ticks: [{ atMs: 520, coefficient: 2.2 }],
     timingAnchor: 'castStart',
     timingScale: 'fixed'
   }
@@ -21,7 +22,7 @@ const HEX_EATER_VORTEX_EFFECTS = Object.freeze([
     type: 'strike',
     name: 'Hex-Eater Vortex',
     actorType: 'player',
-    ticks: [443, 562, 682, 802, 920, 1039].map((atMs) => ({
+    ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
       atMs,
       coefficient: 0.2
     })),
@@ -32,7 +33,7 @@ const HEX_EATER_VORTEX_EFFECTS = Object.freeze([
     type: 'condition',
     name: 'Hex-Eater Vortex',
     actorType: 'player',
-    ticks: [443, 562, 682, 802, 920, 1039].map((atMs) => ({
+    ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
       atMs,
       condition: 'Torment',
       stacks: 1,
@@ -115,7 +116,7 @@ const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
     type: 'strike',
     coefficient: 0.4,
     hits: 2,
-    atMs: 1402,
+    atMs: 1400,
     name: 'Twin Moon Sweep — Shatter',
     actorType: 'player',
     timingAnchor: 'castStart',
@@ -125,7 +126,7 @@ const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
   {
     type: 'condition',
     ticks: Array.from({ length: 2 }, (_, index) => ({
-      atMs: 1402 + index * 0,
+      atMs: 1400 + index * 0,
       condition: 'Confusion',
       stacks: 3,
       duration: 3

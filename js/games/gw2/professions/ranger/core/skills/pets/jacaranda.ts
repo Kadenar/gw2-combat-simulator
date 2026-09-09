@@ -5,6 +5,9 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Snap each 1.5-second pulse independently so both conditions stay aligned without accumulating rounding drift.
+const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];
+
 export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.JACARANDAS_EMBRACE]: {
     interruptCommitMs: 0,
@@ -21,7 +24,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        ticks: [0, 1500, 3000, 4500, 6000].map((atMs) => ({
+        ticks: EMBRACE_PULSE_TIMES_MS.map((atMs) => ({
           atMs,
           condition: 'Vulnerability',
           stacks: 1,
@@ -36,7 +39,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'condition',
         ticks: [1, 2, 2, 2, 2].map((duration, index) => ({
-          atMs: index * 1500,
+          atMs: EMBRACE_PULSE_TIMES_MS[index],
           condition: 'Immobilized',
           stacks: 1,
           duration

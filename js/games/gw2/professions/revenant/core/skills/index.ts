@@ -10,8 +10,6 @@ import { REVENANT_DEMON_SKILL_MECHANICS } from '#gw2/professions/revenant/core/s
 import { REVENANT_DWARF_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legends/dwarf.js';
 import { REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/profession-skills.js';
 import { REVENANT_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
-import { REVENANT_TRAIT_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/trait-skills.js';
-import { REVENANT_UNDERWATER_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/underwater-skills.js';
 import { REVENANT_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/axe.js';
 import { REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/hammer.js';
@@ -26,8 +24,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 /** Preserves the original catalog precedence while each skill family owns its fragments. */
 export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  ...REVENANT_UNDERWATER_SKILL_MECHANICS,
-  ...REVENANT_TRAIT_SKILL_MECHANICS,
   ...REVENANT_LEGEND_CALL_SKILL_MECHANICS,
   ...REVENANT_SUPPLEMENTAL_SKILL_MECHANICS,
   ...REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS,

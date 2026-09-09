@@ -1,18 +1,21 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
 export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SURGE_OF_THE_MISTS]: {
-    castTimeMs: 1000,
+    // Reviewed timings are Quickness durations; Surge's coefficient is the total across nine hits.
+    quicknessCastTimeMs: 1720,
     cooldown: 20,
     energyCost: 15,
     effects: [
       {
         type: 'strike',
         ticks: Array.from({ length: 9 }, (_, index) => ({
-          atMs: 75.48 + index * 75.48,
-          coefficient: 29.160000000000004 / 9
+          atMs: quantizeGw2ActionTimingMs(75.48 + index * 75.48), // TODO: Need to get proper timing
+          coefficient: 3.24 / 9
         })),
         name: 'Surge of the Mists',
         actorType: 'player',
@@ -28,13 +31,17 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.REJUVENATING_ASSAULT]: {
-    castTimeMs: 1000,
+    quicknessCastTimeMs: 680,
+    comboFinishers: [{ ownerId: 'revenant', finisherType: 'Whirl', ambiguousFieldSelection: 'oldest' }],
     cooldown: 0,
     energyCost: 0,
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 340 + index * 340, coefficient: 2 / 2 })),
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: quantizeGw2ActionTimingMs(340 + index * 340),
+          coefficient: 2 / 2
+        })),
         name: 'Rejuvenating Assault',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -64,7 +71,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RAPID_SWIPE]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -102,7 +109,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: []
   },
   [ID.FORCEFUL_BASH]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 0,
     effects: [

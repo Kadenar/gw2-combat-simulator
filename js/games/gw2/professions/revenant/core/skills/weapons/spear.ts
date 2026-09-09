@@ -2,6 +2,7 @@
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ABYSSAL_FIRE]: {
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
@@ -183,7 +184,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 1162, coefficient: 0.8 }],
+        ticks: [{ atMs: 1160, coefficient: 0.8 }],
         name: 'Abyssal Force',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -193,7 +194,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1162, condition: 'Burning', stacks: 1, duration: 8 }],
+        ticks: [{ atMs: 1160, condition: 'Burning', stacks: 1, duration: 8 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -201,7 +202,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1162, condition: 'Chilled', stacks: 1, duration: 2 }],
+        ticks: [{ atMs: 1160, condition: 'Chilled', stacks: 1, duration: 2 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -221,7 +222,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 396, coefficient: 0.85 }],
+        ticks: [{ atMs: 400, coefficient: 0.85 }],
         name: 'Abyssal Strike',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -230,7 +231,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 396, condition: 'Torment', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 400, condition: 'Torment', stacks: 1, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -238,7 +239,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 396, condition: 'Vulnerability', stacks: 1, duration: 6 }],
+        ticks: [{ atMs: 400, condition: 'Vulnerability', stacks: 1, duration: 6 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -266,7 +267,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 559, coefficient: 1 }],
+        ticks: [{ atMs: 560, coefficient: 1 }],
         damageIncreasePerStack: 0.33,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -275,14 +276,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 559, condition: 'Torment', stacks: 1, duration: 5 }],
+        ticks: [{ atMs: 560, condition: 'Torment', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 559, condition: 'Torment', stacks: 2, duration: 5 }],
+        ticks: [{ atMs: 560, condition: 'Torment', stacks: 2, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
@@ -294,7 +295,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         kind: 'crushing-abyss',
         duration: 10,
         stacks: 1,
-        atMs: 559,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Crushing Abyss',

@@ -153,24 +153,13 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   RELEASE_POTENTIAL_WARRIOR: 78895, // Release Potential: Warrior
   LEGENDARY_DWARF_STANCE_ID_26650: 26650, // Legendary Dwarf Stance
   ELEMENTAL_BLAST: 27162, // Elemental Blast
-  DOME_OF_THE_MISTS: 27198, // Dome of the Mists
   LEGENDARY_ASSASSIN_STANCE_ID_27659: 27659, // Legendary Assassin Stance
   LEGENDARY_CENTAUR_STANCE_ID_28141: 28141, // Legendary Centaur Stance
   LEGENDARY_DEMON_STANCE_ID_28376: 28376, // Legendary Demon Stance
-  IGNITING_BRAND: 28692, // Igniting Brand
-  SPEAR_OF_ANGUISH: 28714, // Spear of Anguish
-  FRIGID_DISCHARGE: 28797, // Frigid Discharge
-  DEVOUR_BRAND: 28815, // Devour Brand
-  VENOMOUS_SPHERE: 28827, // Venomous Sphere
-  RAPID_ASSAULT: 28915, // Rapid Assault
-  RIFT_CONTAINMENT: 28930, // Rift Containment
   PROTECTIVE_SOLACE_ID_29310: 29310, // Protective Solace
   HEALING_ORB: 29373, // Healing Orb
   JADE_WINDS_ID_31294: 31294, // Jade Winds
-  RITE_OF_THE_GREAT_DWARF_TRAIT_SKILL: 32588, // Rite of the Great Dwarf (trait skill)
-  VENGEFUL_SNOWBALLS: 34198, // Vengeful Snowballs
   DISMISS_LIEUTENANT_SOULCLEAVE: 42752, // Dismiss Lieutenant Soulcleave
-  ESSENCE_SAP_DOPPELGANGER: 44657, // Essence Sap (Doppelganger)
   CALL_OF_THE_DWARF: 46843, // Call of the Dwarf
   CALL_OF_THE_CENTAUR: 46847, // Call of the Centaur
   CALL_OF_THE_RENEGADE: 46849, // Call of the Renegade
@@ -178,12 +167,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   CALL_OF_THE_DEMON: 46856, // Call of the Demon
   CALL_OF_THE_DRAGON: 46857, // Call of the Dragon
   UNCHAINED_DESOLATION: 47889, // Unchained Desolation
-  LEGENDARY_PRISONER_STANCE: 48170, // Legendary Prisoner Stance
-  RIFT_OF_PAIN: 50390, // Rift of Pain
-  MISTSFIRE: 50395, // Mistsfire
-  RECKONING_BLAST: 50410, // Reckoning Blast
-  PORTAL_FIRE: 50456, // Portal Fire
-  TORRENTIAL_MISTS: 50483, // Torrential Mists
   SOOTHING_STONE_ID_56661: 56661, // Soothing Stone
   FORCED_ENGAGEMENT_ID_56662: 56662, // Forced Engagement
   VENGEFUL_HAMMERS_ID_56752: 56752, // Vengeful Hammers
@@ -199,7 +182,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   OTHERWORLDLY_ATTRACTION_ALLY: 71827, // Otherworldly Attraction (ally)
   OTHERWORLDLY_ATTRACTION_ENEMY: 71880, // Otherworldly Attraction (enemy)
   BLITZ_MINES: 73149, // Blitz Mines
-  REPLENISHING_DESPAIR_TRAIT_SKILL: 76497, // Replenishing Despair (trait skill)
   BEGUILING_HAZE_ID_76805: 76805, // Beguiling Haze
   FORM_OF_THE_DERVISH_ATTACK: 76818, // Form of the Dervish (Attack)
   TWIN_MOON_SWEEP_ID_77001: 77001, // Twin Moon Sweep

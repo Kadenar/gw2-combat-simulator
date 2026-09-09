@@ -10,8 +10,11 @@ import {
 import { activateEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
 import { revenantSpearSkillHandlers } from '#gw2/professions/revenant/core/execution/spear.js';
 import { revenantUpkeepSkillHandlers } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { activateBlossomingAura, detonateBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 
 const handlers = Object.freeze({
+  'revenant.blossoming-aura': replaceSkill<RevenantCastContext>({ afterEffects: activateBlossomingAura }),
+  'revenant.detonate-blossoming-aura': replaceSkill<RevenantCastContext>({ afterEffects: detonateBlossomingAura }),
   'revenant.weapon-swap': gw2WeaponSwapSkillHandler,
   'revenant.legend-swap': replaceSkill<RevenantCastContext>({
     afterEffects: rawCoreHandlers['revenant.legend-swap'] as SkillHandlerPhase<RevenantCastContext>

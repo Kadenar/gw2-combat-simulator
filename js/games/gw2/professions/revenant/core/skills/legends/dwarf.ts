@@ -112,7 +112,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         duration: 3,
         stacks: 1,
         applications: 5,
-        atMs: 500,
+        atMs: 520,
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

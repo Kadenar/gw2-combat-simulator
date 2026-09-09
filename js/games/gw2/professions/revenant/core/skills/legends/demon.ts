@@ -2,6 +2,7 @@
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RESIST_THE_DARKNESS]: {
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
@@ -46,7 +47,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 402 + index * 119, coefficient: 1.2 / 3 })),
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 400 + index * 120, coefficient: 1.2 / 3 })),
         name: 'Banish Enchantment',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -57,7 +58,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'condition',
         ticks: Array.from({ length: 3 }, (_, index) => ({
-          atMs: 402 + index * 119,
+          atMs: 400 + index * 120,
           condition: 'Chilled',
           stacks: 1,
           duration: 1
@@ -71,7 +72,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'condition',
         ticks: Array.from({ length: 3 }, (_, index) => ({
-          atMs: 402 + index * 119,
+          atMs: 400 + index * 120,
           condition: 'Torment',
           stacks: 1,
           duration: 3
@@ -93,7 +94,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 804, coefficient: 1.2 }],
+        ticks: [{ atMs: 800, coefficient: 1.2 }],
         name: 'Call to Anguish',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -103,7 +104,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 804, condition: 'Chilled', stacks: 1, duration: 2 }],
+        ticks: [{ atMs: 800, condition: 'Chilled', stacks: 1, duration: 2 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -113,7 +114,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'control',
         actorType: 'player',
-        atMs: 804,
+        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -148,7 +149,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 362, coefficient: 0.3 }],
+        ticks: [{ atMs: 360, coefficient: 0.3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Embrace the Darkness',
@@ -188,7 +189,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 557, coefficient: 1 }],
+        ticks: [{ atMs: 560, coefficient: 1 }],
         name: 'Unyielding Impact',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -196,21 +197,21 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 557, condition: 'Burning', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 560, condition: 'Burning', stacks: 1, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 557, condition: 'Torment', stacks: 4, duration: 3 }],
+        ticks: [{ atMs: 560, condition: 'Torment', stacks: 4, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 557, condition: 'Poisoned', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 560, condition: 'Poisoned', stacks: 1, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'

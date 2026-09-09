@@ -2,15 +2,21 @@
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
 export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.UNRELENTING_ASSAULT]: {
-    castTimeMs: 750,
+    // Represent both activation phases with their reviewed total Quickness duration.
+    quicknessCastTimeMs: 840,
     cooldown: 12,
     energyCost: 15,
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 104 + index * 104, coefficient: 3.9325 / 5 })),
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          // Preserve the supplied first impact and equal spacing through the final cast frame.
+          atMs: 260 + index * ((840 - 260) / 4),
+          coefficient: 3.9325 / 5
+        })),
         name: 'Unrelenting Assault',
         actorType: 'player',
         timingAnchor: 'castStart',

@@ -47,7 +47,6 @@ export function resetCoalescenceOfRuin(context: RevenantSchedulerContext, _task:
 
 const IMPERIAL_GUARD_OWNER = 'revenant.imperial-guard';
 const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({
-  [ID.BLOSSOMING_AURA]: 4,
   [ID.OTHERWORLDLY_BOND]: 7
 });
 
@@ -78,6 +77,7 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
   if (
     skill.type === 'Weapon' &&
     skill.id !== ID.IMPERIAL_GUARD &&
+    skill.id !== ID.BLOSSOMING_AURA &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId
   ) {
@@ -112,4 +112,12 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
 export function expireImperialGuard(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
   delete professionCoreState(context).availableFlips[ID.TRUE_STRIKE];
   emitRevenantStateSnapshot(context, task.at, 'imperial-guard-expired');
+}
+
+/** Legend changes and upkeep starvation clear legend follow-ups while preserving independent weapon effects. */
+export function clearRevenantLegendFlips(context: RevenantSchedulerContext): void {
+  const state = professionCoreState(context);
+  state.availableFlips = Object.fromEntries(
+    Object.entries(state.availableFlips).filter(([id]) => context.catalog.skillsById.get(Number(id))?.type === 'Weapon')
+  );
 }
