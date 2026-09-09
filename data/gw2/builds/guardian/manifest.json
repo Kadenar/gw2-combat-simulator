@@ -68,6 +68,13 @@
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
+      },
+      {
+        "label": "Power (Longbow / Greatsword)",
+        "build": "data/gw2/builds/guardian/b-power-dragonhunter-longbow-greatsword.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-longbow-greatsword-bench.json",
+        "benchmarkDps": 41934,
+        "dpsReportUrl": "https://dps.report/7zCO-42179lbdh-_golem"
       }
     ]
   },

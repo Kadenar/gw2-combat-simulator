@@ -7,6 +7,7 @@ import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
@@ -50,6 +51,24 @@ test('preserves standalone autoattack identity and shortened timing with localiz
     assert.equal(command.name, 'Hammer Bolt');
     assert.equal(command.interruptMs, duration < 560 ? duration : undefined);
   }
+});
+
+test('Revenant import preserves an explicit follow-up without inventing its missing chain opener', () => {
+  // An incomplete log must reach simulator validation instead of being rewritten into a valid opener.
+  const report = reportFixture('Renegade', [{ id: 29256, skills: [{ castTime: 0, duration: 520, timeGained: 0 }] }], {
+    s29256: { name: 'Brutal Blade' }
+  });
+  const imported = reconstructDpsReportRotation(report, revenantCatalog);
+  const simulation = simulateGw2({
+    profession: revenantProfession,
+    rotation: imported.rotation,
+    config: defaultSimulationConfig({ specialization: 'Renegade', primaryWeapon: 'Sword' })
+  });
+
+  assert.equal(imported.actions.at(-1).skillId, 29256);
+  assert.equal(simulation.steps.at(-1).skillId, 29256);
+  assert.equal(simulation.steps.at(-1).invalid, true);
+  assert.match(simulation.warnings.join(' '), /Brutal Blade is unavailable — cast Preparation Thrust first/);
 });
 
 test('rounds imported legend swap offsets to the nearest 40 ms relative to the preceding cast', () => {
@@ -323,41 +342,31 @@ test('rounds EI cast durations without extending cancellations to nearby commit 
 });
 
 for (const timeGained of [200, -200]) {
-  test(`Luminary keeps the pending chain step after a shortened cast with timeGained ${timeGained}`, () => {
+  test(`Guardian import leaves chain validation to the simulator after a shortened cast with timeGained ${timeGained}`, () => {
+    // Explicit follow-up evidence survives import even when the simulator rejects its cancelled prerequisite.
     const report = reportFixture(
       'Luminary',
       [
-        { id: 90_001, skills: [{ castTime: 0, duration: 200, timeGained }] },
-        { id: 90_002, skills: [{ castTime: 200, duration: 400, timeGained: 0 }] }
+        { id: 9137, skills: [{ castTime: 0, duration: 80, timeGained }] },
+        { id: 9138, skills: [{ castTime: 80, duration: 600, timeGained: 0 }] }
       ],
-      { s90001: { name: 'Chain Root' }, s90002: { name: 'Chain Follow-up' } }
+      { s9137: { name: 'Strike' }, s9138: { name: 'Vengeful Strike' } }
     );
-    const catalog = {
-      skills: [
-        skill(90_001, 'Chain Root', {
-          slot: 'Weapon_1',
-          quicknessCastTimeMs: 400,
-          chainRoot: 90_001,
-          nextChainId: 90_002
-        }),
-        skill(90_002, 'Chain Follow-up', {
-          slot: 'Weapon_1',
-          quicknessCastTimeMs: 400,
-          chainRoot: 90_001
-        })
-      ]
-    };
-    const result = reconstructDpsReportRotation(report, catalog);
+    const imported = reconstructDpsReportRotation(report, guardianCatalog);
+    const simulation = simulateGw2({
+      profession: guardianProfession,
+      rotation: imported.rotation,
+      config: defaultSimulationConfig({ specialization: 'Luminary', primaryWeapon: 'Greatsword' })
+    });
 
-    assert.deepEqual(result.rotation, [
-      { name: '__combat_start' },
-      { name: 'Chain Root', skillId: 90_001, interruptMs: 200 },
-      { name: 'Chain Root', skillId: 90_001 }
-    ]);
+    assert.equal(imported.actions.at(-1).skillId, 9138);
+    assert.ok(imported.rotation.some((command) => command.skillId === 9138));
+    assert.equal(simulation.steps.at(-1).invalid, true);
+    assert.match(simulation.warnings.join(' '), /Vengeful Strike is unavailable — cast Strike first/);
   });
 }
 
-test('Guardian import resets a pending chain only when the intervening cast lands damage by cast end', () => {
+test('Guardian imports recorded chain steps while the simulator handles intervening casts', () => {
   // A cancelled follow-up leaves the chain pending across a trap or cancelled leap; a landed leap resets it.
   for (const [interruptingId, duration, nextId] of [
     [30364, 440, 9138],

@@ -4,6 +4,10 @@ import test from 'node:test';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
@@ -84,62 +88,32 @@ test('tracks Elementalist attunements when resolving EI-only skill names', () =>
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
 
-test('reconstructs Aerial Agility across other skills and resets it after a five-second gap', () => {
-  const report = reportFixture(
-    'Elementalist',
-    [
+test('Aerial Agility keeps recorded IDs and leaves invalid chain steps to the simulator', () => {
+  // Repeated names cannot justify inventing a follow-up or replacing an explicitly recorded dash.
+  for (const nextId of [ID.AERIAL_AGILITY, ID.AERIAL_AGILITY_DASH]) {
+    const report = reportFixture(
+      'Elementalist',
+      [
+        { id: ID.AERIAL_AGILITY, skills: [{ castTime: 0, duration: 520, timeGained: 0 }] },
+        { id: nextId, skills: [{ castTime: 520, duration: 520, timeGained: 0 }] }
+      ],
       {
-        id: ID.AERIAL_AGILITY,
-        skills: [
-          { castTime: 0, duration: 500, timeGained: 0 },
-          { castTime: 1_000, duration: 500, timeGained: 0 },
-          { castTime: 1_500, duration: 500, timeGained: 0 },
-          { castTime: 2_500, duration: 500, timeGained: 0 },
-          { castTime: 7_501, duration: 500, timeGained: 0 }
-        ]
-      },
-      {
-        id: ID.FIREBALL,
-        skills: [
-          { castTime: 500, duration: 500, timeGained: 0 },
-          { castTime: 2_000, duration: 500, timeGained: 0 }
-        ]
+        [`s${ID.AERIAL_AGILITY}`]: { name: 'Aerial Agility' },
+        [`s${nextId}`]: { name: 'Aerial Agility' }
       }
-    ],
-    {
-      [`s${ID.AERIAL_AGILITY}`]: { name: 'Aerial Agility' },
-      [`s${ID.FIREBALL}`]: { name: 'Fireball' }
-    }
-  );
-  const catalog = {
-    skills: [
-      skill(ID.AERIAL_AGILITY, 'Aerial Agility', { type: 'Weapon', quicknessCastTimeMs: 500 }),
-      skill(ID.AERIAL_AGILITY_CHAIN, 'Aerial Agility (chain)', {
-        type: 'Weapon',
-        quicknessCastTimeMs: 500
-      }),
-      skill(ID.AERIAL_AGILITY_DASH, 'Aerial Agility (dash)', {
-        type: 'Weapon',
-        quicknessCastTimeMs: 500
-      }),
-      skill(ID.FIREBALL, 'Fireball', { type: 'Weapon', quicknessCastTimeMs: 500 })
-    ]
-  };
+    );
+    const imported = reconstructDpsReportRotation(report, elementalistCatalog);
+    const simulation = simulateGw2({
+      profession: elementalistProfession,
+      rotation: imported.rotation,
+      config: defaultSimulationConfig({ specialization: 'Core', primaryWeapon: 'Pistol', startAttunement: 'Air' })
+    });
 
-  const result = reconstructDpsReportRotation(report, catalog);
-
-  assert.deepEqual(
-    result.actions.map((action) => action.name),
-    [
-      'Aerial Agility',
-      'Fireball',
-      'Aerial Agility (chain)',
-      'Aerial Agility (dash)',
-      'Fireball',
-      'Aerial Agility',
-      'Aerial Agility'
-    ]
-  );
+    assert.equal(imported.actions.at(-1).skillId, nextId);
+    assert.equal(simulation.steps.at(-1).skillId, nextId);
+    assert.equal(simulation.steps.at(-1).invalid, true);
+    assert.match(simulation.warnings.join(' '), /is unavailable — cast Aerial Agility \(chain\) first/);
+  }
 });
 
 test('preserves report cast status and duration without inventing skill commit metadata', () => {

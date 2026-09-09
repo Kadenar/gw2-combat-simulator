@@ -1,10 +1,5 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
-import { normalizeAutoattackChains } from '#gw2/integrations/logs/lib/rotation/rules/autoattack-chains.js';
-import {
-  catalogSkillById,
-  normalizedName as normalized,
-  recordedActionSkill
-} from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/revenant/conduit.js';
 import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/revenant/renegade.js';
 import { reconstructVindicatorDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/revenant/vindicator.js';
@@ -101,13 +96,6 @@ export function reconstructRevenantDpsReportActions(
     ...context,
     recordedActions: common
   }) || [...common];
-  const actionable = normalizeGeneratedRevenantActions(context, specialized);
-  return normalizeAutoattackChains(actionable, {
-    skillFor: (action) => recordedActionSkill(action, context),
-    skillById: (skillId) => catalogSkillById(context.catalog, skillId),
-    // EI normally reports the exact root when a chain restarts, even if a later stage was expected.
-    trustExplicitRootReset: true,
-    // Weapon and legend changes reset the equipped chain; ordinary Revenant skills do not.
-    resetsChain: (action, skill) => action.isSwap || skill?.handlerId === 'revenant.legend-swap'
-  });
+  // Preserve recorded chain IDs so the simulator owns cancellation, advancement, and availability.
+  return normalizeGeneratedRevenantActions(context, specialized);
 }
