@@ -116,7 +116,12 @@ export function renderRelicComparison(app: ProfessionAppState): void {
   const container = document.getElementById('optimizer-relic-comparison');
   if (!container || document.body?.dataset.simulatorView !== 'gear-optimizer') return;
   const result = app.results;
-  if (!app.build.rotation.length || !result?.relicComparisonAvailable) {
+  // Keep the comparison UI empty until a rotation exists to compare.
+  if (!app.build.rotation.length) {
+    container.innerHTML = '';
+    return;
+  }
+  if (!result?.relicComparisonAvailable) {
     container.innerHTML =
       '<p class="optimizer-empty">Add a rotation and equip a relic in the <a href="#workspace">Workspace</a> to run a relic comparison.</p>';
     return;

@@ -3,7 +3,8 @@
 /* Build tabs share one editor and contain their own overflow at every viewport width. */
 .build-workspace-tabs {
   display: flex;
-  align-items: center;
+  /* Align to the tab tops so a horizontal scrollbar cannot shift the adjacent buttons. */
+  align-items: flex-start;
   gap: 8px;
   min-width: 0;
   margin-bottom: 8px;
@@ -24,7 +25,8 @@
   display: flex;
   flex: 0 0 auto;
   min-width: 128px;
-  max-width: 240px;
+  /* Truncate long labels inside the available strip width while keeping the dropdown visible. */
+  max-width: min(240px, 100%);
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--bg-panel);
@@ -65,51 +67,29 @@
   outline-offset: -2px;
 }
 
-.build-tab .build-tab-close,
-.build-tab .build-tab-rename {
-  flex-shrink: 0;
+/* Each tab reserves a visible dropdown trigger so its label and actions never overlap. */
+.build-tab .build-tab-menu-trigger {
+  flex: 0 0 30px;
+  width: 30px;
+  padding: 0;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 26px;
-  padding: 0;
-  border-radius: 3px;
+  border-left: 1px solid var(--border);
 }
 
-/* Overlay actions without widening tabs; keep them available to keyboard and touch users. */
-.build-tab-controls {
-  position: absolute;
-  inset: 3px 3px 3px auto;
-  display: flex;
-  align-items: center;
-  padding-left: 8px;
-  border-radius: 3px;
-  background: linear-gradient(to right, transparent, var(--bg-panel) 8px);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.build-tab:hover .build-tab-controls,
-.build-tab:focus-within .build-tab-controls {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.build-tab-controls button:hover,
+.build-tab-menu-trigger:hover,
 .build-tab-new:hover {
   color: var(--text-bright);
   background: var(--border);
 }
 
-@media (hover: none) {
-  .build-tab-controls {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
 .build-tab-new {
   flex-shrink: 0;
+}
+
+.build-tab-new,
+.build-tab-actions {
+  margin-top: 2px;
 }
 
 .build-tab-actions {
@@ -128,7 +108,8 @@
   min-height: 36px;
 }
 
-.build-actions-label {
+.build-actions-label,
+#build-actions-trigger {
   display: none;
 }
 
@@ -192,8 +173,9 @@
     flex: 1;
   }
 
-  .build-actions-label {
-    display: inline;
+  .build-actions-label,
+  #build-actions-trigger {
+    display: inline-block;
   }
 
   .build-toolbar-io {
@@ -261,8 +243,7 @@
 
 /* ─── Build templates ─── */
 .build-templates {
-  max-width: 860px;
-  margin: 0 auto 12px;
+  margin: 0;
 }
 
 .build-templates-region {
@@ -677,86 +658,6 @@
   .template-preset {
     width: 100%;
   }
-}
-
-@media (min-width: 1200px) {
-  #app.has-template-sidebar {
-    max-width: 1654px;
-  }
-
-  .profession-layout {
-    display: grid;
-    grid-template-columns: 310px minmax(0, 1fr);
-    align-items: start;
-    gap: 12px;
-  }
-
-  .profession-main {
-    min-width: 0;
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .build-templates-region {
-    display: contents;
-  }
-
-  .build-templates {
-    position: sticky;
-    top: calc(var(--profession-header-height, 112px) + 12px);
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    grid-column: 1;
-    grid-row: 1;
-    align-self: start;
-  }
-
-  .build-templates-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .build-templates-header .template-actions-hint {
-    display: none;
-  }
-
-  .build-templates .presets-group {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .build-templates .presets-group-label {
-    min-width: 0;
-    text-align: left;
-  }
-
-  .template-preset-list {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .template-preset {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .template-toast {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
-}
-
-/* Embedded catalogs open on demand without reserving a sidebar or pushing the editor below every template. */
-.embed .profession-layout {
-  display: block;
-}
-
-.embed .build-templates {
-  position: static;
-  max-width: none;
-  margin-bottom: 0;
 }
 
 .build-templates-dialog {

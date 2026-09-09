@@ -290,15 +290,13 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
   const main = document.createElement('div');
   main.className = 'profession-main';
 
-  // Move the complete build-and-rotation editor as one unit so it stays contiguous beside templates.
+  // Move the complete build-and-rotation editor as one unit so it stays contiguous with template feedback above it.
   appRoot.insertBefore(layout, buildEditor);
   layout.append(templateRegion, main);
   templateRegion.append(container);
   while (layout.nextSibling) {
     main.append(layout.nextSibling);
   }
-
-  appRoot.classList.add('has-template-sidebar');
 }
 
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {
@@ -361,8 +359,10 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       </div>`;
     app.templateContainer = container;
     mountBuildTemplateLayout(container);
-    if (document.documentElement.classList.contains('embed')) {
-      // Keep the embedded editor in view; browse the existing catalog in a native modal and leave Undo outside it.
+    {
+      // Every layout browses the same catalog in a native dialog; Undo stays accessible in the editor.
+      const panel = container.querySelector('.build-templates-panel')!;
+      const toast = container.querySelector('.template-toast')!;
       const dialog = document.createElement('dialog');
       dialog.className = 'build-templates-dialog';
       dialog.id = 'build-templates-dialog';
@@ -374,8 +374,8 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       close.setAttribute('aria-label', 'Close build templates');
       close.autofocus = true;
       container.querySelector('.build-templates-header')!.append(close);
-      dialog.append(container.querySelector('.build-templates-panel')!);
-      container.append(dialog, dialog.querySelector('.template-toast')!);
+      dialog.append(panel);
+      container.append(dialog, toast);
       close.dataset.dialogClose = '';
       bindDialog(dialog);
       dialog.addEventListener('close', () => {

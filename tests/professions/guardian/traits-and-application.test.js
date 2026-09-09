@@ -47,7 +47,7 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     rotation: ['True Strike', { type: 'wait', durationMs: 5000 }],
     config: {
       ...config,
-      target: { ...config.target, health: 2500 },
+      target: { ...config.target, health: 2500, startingHealthFraction: 0.7 },
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
     }
   });
@@ -82,6 +82,72 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     true
   );
   assert.equal(zealotsResolution.endState.profession.zealotsResolutionReadyAt, resolution[0].at + 30);
+});
+
+test("Zealot's Resolution requires the enemy to be below its threshold before the hit", () => {
+  // Crossing the threshold and hitting a target already below it are distinct proc opportunities.
+  const run = (rotation, startingHealthFraction = 1) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: {
+        ...config,
+        primaryWeapon: 'Mace',
+        stats: { ...config.stats, power: 4000 },
+        target: { ...config.target, health: 4000, startingHealthFraction },
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
+      }
+    });
+  const pulses = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION
+    );
+  assert.equal(pulses(run(['True Strike'])).length, 0);
+  assert.equal(pulses(run(['True Strike'], 0.75)).length, 0);
+  assert.ok(pulses(run(['True Strike'], 0.74)).length > 0);
+  const followup = run(['True Strike', 'Pure Strike']);
+  const secondHit = followup.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Pure Strike'
+  );
+  assert.equal(pulses(followup)[0].at, secondHit.at);
+  assert.equal(followup.endState.profession.zealotsResolutionReadyAt, secondHit.at + 30);
+});
+
+test("Spear's Furious Focus symbol precedes the tether and only later pulses gain Big Game Hunter", () => {
+  // Check modifier ordering rather than pinning cast durations: the tether cannot amplify an earlier pulse.
+  for (const quickness of [false, true]) {
+    const run = (bigGameHunter) =>
+      simulateGw2({
+        profession: guardianProfession,
+        rotation: ['Spear of Justice', { type: 'wait', durationMs: 5000 }],
+        config: {
+          ...config,
+          specialization: 'Dragonhunter',
+          primaryWeapon: 'Longbow',
+          boons: { fury: true, quickness },
+          selectedTraitIds: [
+            GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+            ...(bigGameHunter ? [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER] : [])
+          ]
+        }
+      });
+    const baseline = run(false);
+    const enhanced = run(true);
+    const pulses = (result) =>
+      result.resolvedEvents.filter(
+        (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES
+      );
+    const normal = pulses(baseline),
+      boosted = pulses(enhanced);
+    const tether = enhanced.events.find((event) => event.type === 'guardian.dragonhunter-tethered');
+    assert.ok(boosted[0].at < tether.at);
+    assert.equal(boosted[0].damage, normal[0].damage);
+    assert.ok(Math.abs(boosted[1].damage / normal[1].damage - 1.25) < 1e-9);
+    const field = enhanced.events.find(
+      (event) => event.type === 'combo_field' && event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES
+    );
+    assert.equal(field.at, boosted[0].at);
+  }
 });
 
 test('Furious Focus uses a separate stochastic weapon-strength activation from its triggering virtue', () => {

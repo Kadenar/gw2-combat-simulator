@@ -29,11 +29,17 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const tab = page.getByRole('link', { name: 'Gear Optimizer', exact: true });
   await expect(tab).toHaveAttribute('aria-current', 'page');
+  const strip = page.locator('#build-workspace-tabs');
+  await expect(strip).toBeVisible();
+  expect(await strip.evaluate((element) => element.nextElementSibling?.id)).toBe('gear-optimizer-view');
+  await expect(strip.locator('#btn-export-build')).toBeVisible();
+  await expect(strip.locator('#btn-import-build')).toBeVisible();
   await expect(page.locator('#gear-optimizer form')).toBeVisible();
   await expect(page.locator('#gear-optimizer-view > .optimizer-view-heading, #gear-optimizer > summary')).toHaveCount(
     0
   );
   await expect(page.locator('#rotation-results')).toBeHidden();
+  await expect(page.locator('#optimizer-relic-comparison')).toBeEmpty();
   await page
     .getByRole('navigation', { name: 'Simulator sections' })
     .getByRole('link', { name: 'Workspace', exact: true })
@@ -55,6 +61,11 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await page.goBack();
   await expect(tab).toHaveAttribute('aria-current', 'page');
   await expect(comparison.locator('[data-role="relic-comparison-chart"]')).toBeVisible();
+  // Switching to a blank build removes the previous build's comparison without leaving the optimizer.
+  await strip.locator('.build-tab-new').click();
+  await page.getByRole('button', { name: 'New blank build', exact: true }).click();
+  await expect(tab).toHaveAttribute('aria-current', 'page');
+  await expect(comparison).toBeEmpty();
 });
 
 // Optional requirements survive worker updates, reject before combat, and disappear when cleared.

@@ -5,7 +5,7 @@ const launchers = [
   ['.build-template-import', '.build-template-import-dialog'],
   ['#btn-import-rotation', '.rotation-import-dialog[data-rotation-import-destination="current"]'],
   ['.rotation-hotkey-button', '.rotation-hotkey-dialog'],
-  ['.build-tab-rename', '.build-rename-dialog']
+  ['.build-tab-menu-trigger', '.build-rename-dialog']
 ];
 
 // Each migrated feature keeps native focus and dismissal, including clicks on the shell's own padding.
@@ -18,6 +18,8 @@ test('shared modals dismiss consistently and return focus to their launcher', as
     for (const dismiss of ['button', 'escape', 'backdrop']) {
       await trigger.focus();
       await trigger.click();
+      if (dialogSelector === '.build-rename-dialog')
+        await page.locator('#build-tab-menu').getByRole('button', { name: 'Rename', exact: true }).click();
       await expect(dialog).toBeVisible();
       expect(
         await dialog.evaluate((element) => element.matches(':modal') && element.contains(document.activeElement))
@@ -62,6 +64,8 @@ test('shared modals stay visible in a scrolled iframe and release viewport track
     await trigger.scrollIntoViewIfNeeded();
     const hostScroll = await page.evaluate(() => scrollY);
     await trigger.click();
+    if (dialogSelector === '.build-rename-dialog')
+      await frame.locator('#build-tab-menu').getByRole('button', { name: 'Rename', exact: true }).click();
     await expect(dialog).toBeVisible();
     expect(await page.evaluate(() => scrollY)).toBe(hostScroll);
     const expectWithinHost = async () => {

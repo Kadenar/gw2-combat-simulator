@@ -38,7 +38,7 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
     dialog.remove();
     renderBuildTabs(app);
     document
-      .querySelector<HTMLButtonElement>(`[data-build-tab-action="rename"][data-build-tab-id="${CSS.escape(id)}"]`)
+      .querySelector<HTMLButtonElement>(`.build-tab-menu-trigger[data-build-tab-id="${CSS.escape(id)}"]`)
       ?.focus({ preventScroll: true });
   });
   document.body.append(dialog);
@@ -68,15 +68,23 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     </div>
     <div id="build-actions-menu" class="build-toolbar-menu" popover="auto" role="group" aria-label="Build actions">
       <div class="build-menu-io"></div>
-      <button type="button" data-build-tab-action="duplicate">Duplicate build</button>
-      <hr>
+    </div>
+    <div id="build-tab-menu" class="build-toolbar-menu" popover="auto" role="group" aria-label="Tab options">
+      <button type="button" data-build-tab-action="load" ${app.templateContainer ? '' : 'disabled'}>Load template…</button>
+      <button type="button" data-build-tab-action="rename">Rename</button>
+      <button type="button" data-build-tab-action="duplicate">Duplicate tab</button>
+      <button type="button" data-build-tab-action="close">Close tab</button>
     </div>
     <div class="build-tab-notice" role="status" hidden></div>`;
-  editor.before(strip);
+  // Keep shared build controls above both the optimizer and the workspace/analysis editor.
+  (document.getElementById('gear-optimizer-view') || editor).before(strip);
   // Move the bound controls intact so export, import, and reset keep their existing behavior.
   const reset = document.getElementById('btn-reset-build')!;
   reset.textContent = 'Reset build';
-  strip.querySelector('#build-actions-menu')!.append(reset);
+  const tabMenu = strip.querySelector<HTMLElement>('#build-tab-menu')!;
+  tabMenu.querySelector('[data-build-tab-action="close"]')!.before(reset);
+  // Reset's existing listener must see the chosen tab before it changes the editor.
+  reset.addEventListener('click', () => app.activateBuildTab?.(tabMenu.dataset.buildTabId!), { capture: true });
   const ioButtons = ['btn-export-build', 'btn-import-build'].map((id) => document.getElementById(id)!);
   const narrow = window.matchMedia('(max-width: 600px)');
   const placeIo = () => {
@@ -88,9 +96,11 @@ export function mountBuildTabs(app: ProfessionAppState): void {
   narrow.addEventListener('change', placeIo);
   // Native popovers supply outside-click/Escape dismissal; clamp each dropdown inside the iframe.
   strip.querySelectorAll<HTMLElement>('[popover]').forEach((menu) => {
-    const trigger = strip.querySelector<HTMLButtonElement>(`[popovertarget="${menu.id}"]`)!;
     menu.addEventListener('toggle', () => {
       if (!menu.matches(':popover-open')) return;
+      const trigger = strip.querySelector<HTMLButtonElement>(
+        `[popovertarget="${menu.id}"]${menu.dataset.buildTabId ? `[data-build-tab-id="${CSS.escape(menu.dataset.buildTabId)}"]` : ''}`
+      )!;
       const bounds = trigger.getBoundingClientRect();
       menu.style.left = `${Math.max(8, Math.min(bounds.left, innerWidth - menu.offsetWidth - 8))}px`;
       menu.style.top = `${Math.max(8, Math.min(bounds.bottom + 4, innerHeight - menu.offsetHeight - 8))}px`;
@@ -101,20 +111,51 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
     if (!button || !app.workspace) return;
     const action = button.dataset.buildTabAction;
-    if (button.hasAttribute('popovertarget')) return;
+    if (button.hasAttribute('popovertarget')) {
+      if (button.dataset.buildTabId) {
+        if (tabMenu.dataset.buildTabId !== button.dataset.buildTabId && tabMenu.matches(':popover-open'))
+          tabMenu.hidePopover();
+        tabMenu.dataset.buildTabId = button.dataset.buildTabId;
+        tabMenu.querySelector<HTMLButtonElement>('[data-build-tab-action="close"]')!.disabled =
+          app.workspace.tabs.length === 1;
+      }
+
+      return;
+    }
+
     const menu = button.closest<HTMLElement>('[popover]');
     menu?.hidePopover();
-    const trigger = menu && strip.querySelector<HTMLButtonElement>(`[popovertarget="${menu.id}"]`);
+    const trigger =
+      menu &&
+      strip.querySelector<HTMLButtonElement>(
+        `[popovertarget="${menu.id}"]${menu.dataset.buildTabId ? `[data-build-tab-id="${CSS.escape(menu.dataset.buildTabId)}"]` : ''}`
+      );
     trigger?.focus({ preventScroll: true });
     if (!action) return;
-    const id = button.dataset.buildTabId || app.workspace.activeTabId;
-    if (action === 'browse') {
-      if (app.templateContainer) app.templateContainer.dataset.newBuild = 'true';
+    const id = button.dataset.buildTabId || menu?.dataset.buildTabId || app.workspace.activeTabId;
+    if (action === 'browse' || action === 'load') {
+      if (action === 'load') {
+        app.activateBuildTab?.(id);
+        strip
+          .querySelector<HTMLButtonElement>(`.build-tab-menu-trigger[data-build-tab-id="${CSS.escape(id)}"]`)
+          ?.focus({ preventScroll: true });
+      }
+
+      if (app.templateContainer) app.templateContainer.dataset.newBuild = String(action === 'browse');
       const dialog = document.querySelector<HTMLDialogElement>('#build-templates-dialog');
-      if (dialog) showDialog(dialog);
-      else {
-        app.templateContainer?.scrollIntoView({ block: 'start' });
-        app.templateContainer?.querySelector<HTMLButtonElement>('.template-load-btn')?.focus({ preventScroll: true });
+      if (dialog) {
+        // Loading can rename and rerender the tab before the dialog closes; restore focus to its new trigger.
+        if (action === 'load')
+          dialog.addEventListener(
+            'close',
+            () => {
+              strip
+                .querySelector<HTMLButtonElement>(`.build-tab-menu-trigger[data-build-tab-id="${CSS.escape(id)}"]`)
+                ?.focus({ preventScroll: true });
+            },
+            { once: true }
+          );
+        showDialog(dialog);
       }
 
       return;
@@ -123,8 +164,9 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     if (action === 'select' && id) app.activateBuildTab?.(id);
     if (action === 'new') addBuildTab(app);
     if (action === 'duplicate') {
-      const active = app.workspace.tabs.find((tab) => tab.id === app.workspace?.activeTabId)!;
-      addBuildTab(app, app.build, `${active.name} copy`);
+      const tab = app.workspace.tabs.find((tab) => tab.id === id)!;
+      const active = id === app.workspace.activeTabId;
+      addBuildTab(app, active ? app.build : tab.build, `${tab.name} copy`, active ? app.patchId : tab.patchId);
     }
 
     if (action === 'rename' && id) {
@@ -134,12 +176,17 @@ export function mountBuildTabs(app: ProfessionAppState): void {
 
     if (action === 'close' && id && confirm('Delete this build? This cannot be undone.')) closeBuildTab(app, id);
     renderBuildTabs(app);
-    if (action === 'select' || action === 'close')
-      strip.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')?.focus({ preventScroll: true });
+    if (action === 'select' || action === 'close' || action === 'duplicate')
+      strip
+        .querySelector<HTMLButtonElement>(
+          action === 'select' ? 'button[aria-pressed="true"]' : '.build-tab.is-active .build-tab-menu-trigger'
+        )
+        ?.focus({ preventScroll: true });
   });
   renderBuildTabs(app);
   // Keep the selected tab visible when resizing reduces the space left by the toolbar actions.
-  new ResizeObserver(() => renderBuildTabs(app)).observe(strip.querySelector('.build-tab-list')!);
+  const list = strip.querySelector<HTMLElement>('.build-tab-list')!;
+  new ResizeObserver(() => scrollActiveBuildIntoView(list)).observe(list);
 }
 
 /** Names are escaped and tab overflow stays inside the strip, including narrow screens. */
@@ -157,10 +204,7 @@ export function renderBuildTabs(app: ProfessionAppState): void {
       const id = escapeHtml(tab.id);
       return `<div class="build-tab${selected ? ' is-active' : ''}">
           <button type="button" data-build-tab-action="select" data-build-tab-id="${id}" aria-pressed="${selected}" title="${name}">${name}</button>
-          <div class="build-tab-controls">
-          <button type="button" class="build-tab-rename" data-build-tab-action="rename" data-build-tab-id="${id}" aria-label="Rename ${name}" title="Rename ${name}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 3 5 5-13 13H3v-5Z"/><path d="m14 5 5 5"/></svg></button>
-          ${workspace.tabs.length > 1 ? `<button type="button" class="build-tab-close" data-build-tab-action="close" data-build-tab-id="${id}" aria-label="Close ${name}" title="Close ${name}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button>` : ''}
-          </div>
+          <button type="button" class="build-tab-menu-trigger" popovertarget="build-tab-menu" data-build-tab-id="${id}" aria-label="Options for ${name}" title="Options for ${name}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         </div>`;
     })
     .join('');
@@ -168,6 +212,11 @@ export function renderBuildTabs(app: ProfessionAppState): void {
   notice.textContent = workspace.storageError || '';
   notice.hidden = !workspace.storageError;
   list.scrollLeft = scrollLeft;
+  scrollActiveBuildIntoView(list);
+}
+
+/** Resizing should reveal the selected tab without replacing focused controls. */
+function scrollActiveBuildIntoView(list: HTMLElement): void {
   const selected = list.querySelector<HTMLElement>('.is-active');
   if (selected) {
     const bounds = selected.getBoundingClientRect();

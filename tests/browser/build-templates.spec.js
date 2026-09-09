@@ -1,5 +1,41 @@
 import { expect, test } from '@playwright/test';
 
+// Standalone layouts keep the editor full width and preserve catalog filters across viewport changes.
+test('standalone templates open only in a dialog at every viewport width', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/mesmer.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const container = page.locator('.build-templates');
+  const dialog = page.locator('#build-templates-dialog');
+  const newButton = page.locator('.build-tab-new');
+  for (const width of [390, 1199, 1200, 1600]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expect(dialog).toBeHidden();
+    await expect(container.locator(':scope > .build-templates-panel')).toHaveCount(0);
+    expect((await container.boundingBox()).height).toBe(0);
+    const layout = await page.locator('.profession-layout').boundingBox();
+    const main = await page.locator('.profession-main').boundingBox();
+    expect(main.x).toBe(layout.x);
+    expect(main.width).toBe(layout.width);
+    await newButton.click();
+    await page.getByRole('button', { name: /Browse templates/ }).click();
+    await expect(dialog).toBeInViewport();
+    await expect(dialog.getByRole('button', { name: 'Close build templates' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(newButton).toBeFocused();
+  }
+
+  await newButton.click();
+  await page.getByRole('button', { name: /Browse templates/ }).click();
+  await dialog.locator('.template-filter').first().locator('summary').click();
+  await dialog.locator('[data-template-filter="power"]').click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(dialog).toBeInViewport();
+  await expect(dialog.locator('[data-template-role-value]')).toHaveText('Power');
+  await dialog.getByRole('button', { name: 'Close build templates' }).click();
+  await expect(newButton).toBeFocused();
+});
+
 // Cross-origin, auto-height hosts must keep the picker in the visible browser area as the host scrolls and resizes.
 test('template dialog follows the visible viewport inside a tall cross-origin iframe', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 800 });
@@ -170,8 +206,9 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
   );
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   const templates = page.locator('.build-templates');
-  await expect(templates).toBeVisible();
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.locator('.build-tab-new').click();
+  await page.getByRole('button', { name: /Browse templates/ }).click();
   const chrono = templates.locator('.presets-group').filter({ hasText: 'Chronomancer' });
   const mirage = templates.locator('.presets-group').filter({ hasText: 'Mirage' });
   const power = chrono.locator('.template-subgroup').filter({ has: page.locator('summary', { hasText: /^Power$/ }) });
