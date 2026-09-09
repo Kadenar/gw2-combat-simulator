@@ -172,6 +172,8 @@ test('embedded simulation config uses a dismissible native modal', async ({ page
   await expect(trigger).toBeFocused();
 
   await trigger.click();
+  // Host viewport measurement opens asynchronously; raw mouse clicks do not wait for the backdrop to exist.
+  await expect(config).toBeVisible();
   const iframeBox = await page.locator('iframe').boundingBox();
   await page.mouse.click(iframeBox.x + 4, iframeBox.y + 4);
   await expect(config).toBeHidden();
