@@ -1,5 +1,4 @@
 import { reconstructCommonRevenantActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
-import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { reconstructConduitActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/conduit.js';
 import { reconstructHeraldActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/herald.js';
 import { normalizeRevenantCastPackets } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/normalization.js';
@@ -24,10 +23,6 @@ export function reconstructRevenantProfessionActions(
   const actions = (
     specializationReconstructors.get(context.profile.specializationId) || reconstructCommonRevenantActions
   )(context);
-  // Arc records recovery animations after target death; retain in-flight casts but omit later player inputs.
-  const encounterEnd = encounterEndTime(context.log);
-  return normalizeRevenantCastPackets(
-    context,
-    actions.filter((action) => encounterEnd == null || action.start < encounterEnd)
-  );
+  // Merge finish segments before shared reconstruction decides which inputs belong to the encounter.
+  return normalizeRevenantCastPackets(context, actions);
 }

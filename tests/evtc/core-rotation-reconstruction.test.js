@@ -57,36 +57,270 @@ test('inferred setup uses the same Quickness fallback as replay', () => {
   assert.equal(catalogDuration(context, { skillId: 3000, name: 'Blink' }), 360);
 });
 
-test('Revenant observation ends at encounter target death while retaining an in-flight cast', () => {
-  // Allied buff traffic and an earlier secondary target death must not determine the replay boundary.
-  for (const elite of [0, 52, 63, 69]) {
+// These synthetic windows exercise import eligibility without tying it to a saved rotation or damage total.
+const encounterTarget = {
+  ...log().agents[0],
+  address: 0x2000n,
+  profession: log().header.encounterId,
+  elite: 0xffffffff
+};
+
+test('every profession retains crossing casts and excludes later inputs in every cast format', () => {
+  const players = [
+    ...Array.from({ length: 9 }, (_, index) => [index + 1, 0]),
+    [7, 59],
+    [4, 5],
+    [9, 52],
+    [9, 63],
+    [9, 69]
+  ];
+  for (const [profession, elite] of players) {
+    for (const format of ['modern', 'legacy-paired', 'legacy-duration']) {
+      for (const stateChange of [2, 4]) {
+        const cast = (start) =>
+          format === 'legacy-duration'
+            ? [event({ time: start, skillId: 1000, activation: 3, value: 560 })]
+            : [
+                event({
+                  time: start,
+                  skillId: 1000,
+                  stateChange: format === 'modern' ? 67 : 0,
+                  activation: format === 'modern' ? 0 : 1,
+                  value: 560
+                }),
+                event({
+                  time: start + 560,
+                  skillId: 1000,
+                  stateChange: format === 'modern' ? 68 : 0,
+                  activation: 3,
+                  value: 560
+                })
+              ];
+        const result = reconstructEvtcRotation(
+          log({
+            agents: [
+              { ...log().agents[0], profession, elite },
+              encounterTarget,
+              { ...encounterTarget, address: 0x3000n, profession: 99999 }
+            ],
+            events: [
+              ...cast(1000),
+              event({ time: 1100, target: 0x4000n, skillId: 9999, value: 1000, buff: 1 }),
+              event({ time: 1160, source: 0x4000n, stateChange: 2 }),
+              event({ time: 1180, source: 0x3000n, stateChange: 4 }),
+              event({ time: 1400, source: 0x2000n, stateChange }),
+              ...cast(1560)
+            ].sort((left, right) => left.time - right.time)
+          }),
+          { skills: [{ ...catalog.skills[0], castTimeMs: 560, unaffectedByQuickness: true }] },
+          { includeCombatStart: false, inferInstantCasts: false }
+        );
+        const label = `${profession}:${elite}, ${format}, end=${stateChange}`;
+        assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1000 }], label);
+        assert.equal(result.actions[0].durationMs, 560, label);
+        assert.equal(result.actions[0].status, 'completed', label);
+        assert.deepEqual(result.warnings, [], label);
+      }
+    }
+  }
+});
+
+test('the strict boundary excludes exact and grace-period starts while retaining precombat inputs', () => {
+  for (const [profession, elite] of [
+    [7, 59],
+    [4, 5],
+    [8, 34]
+  ]) {
     const result = reconstructEvtcRotation(
       log({
-        agents: [
-          { ...log().agents[0], profession: 9, elite },
-          { ...log().agents[0], address: 0x2000n, profession: log().header.encounterId, elite: 0xffffffff }
-        ],
+        agents: [{ ...log().agents[0], profession, elite }, encounterTarget],
         events: [
           event({ time: 1000, skillId: 1000, stateChange: 67, value: 560 }),
-          event({ time: 1100, target: 0x2000n, skillId: 1000, value: 100 }),
-          event({ time: 1120, target: 0x2000n, skillId: 1000, value: 100 }),
-          event({ time: 1140, target: 0x3000n, skillId: 1000, value: 100 }),
-          ...Array.from({ length: 3 }, (_, index) =>
-            event({ time: 1150 + index, target: 0x4000n, skillId: 9999, value: 1000, buff: 1 })
-          ),
-          event({ time: 1160, source: 0x4000n, stateChange: 2 }),
-          event({ time: 1180, source: 0x3000n, stateChange: 4 }),
+          event({ time: 1200, stateChange: 1 }),
+          event({ time: 1399, target: 4n, stateChange: 11 }),
           event({ time: 1400, source: 0x2000n, stateChange: 4 }),
-          event({ time: 1560, skillId: 1000, stateChange: 68, activation: 3, value: 560 }),
-          event({ time: 1560, skillId: 1000, stateChange: 67, value: 560 }),
-          event({ time: 2120, skillId: 1000, stateChange: 68, activation: 3, value: 560 })
+          ...[1400, 1401, 1599, 3399].map((time) => event({ time, skillId: 3000, stateChange: 67, value: 500 })),
+          event({ time: 1560, skillId: 1000, stateChange: 68, activation: 3, value: 560 })
+        ].sort((left, right) => left.time - right.time)
+      }),
+      catalog,
+      { inferInstantCasts: false }
+    );
+    assert.equal(result.timelineOriginMs, 1000);
+    assert.equal(result.combatStartTimestampMs, 200);
+    assert.deepEqual(
+      result.actions.map((action) => [action.name, action.timestampMs]),
+      [
+        ['Mind Stab', 0],
+        ['Swap Weapons', 399]
+      ]
+    );
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
+test('late swaps, buff transitions, and inferred instant inputs cannot enter the replay', () => {
+  for (const time of [1400, 1401]) {
+    // Exercise sources separately so a buff transition cannot hide the weapon swap being tested.
+    for (const input of [
+      event({ time, target: 4n, stateChange: 11 }),
+      event({ time, target: PLAYER, skillId: 29446, buff: 1, buffRemove: 1, stateChange: 72 }),
+      event({ time, target: 0x2000n, skillId: 2000, value: 100 })
+    ]) {
+      const fixture = log({
+        agents: [{ ...log().agents[0], profession: 8, elite: 34 }, encounterTarget],
+        events: [
+          event({ time: 1000, skillId: 1000, stateChange: 67, value: 560 }),
+          event({ time: 1400, source: 0x2000n, stateChange: 4 }),
+          input,
+          event({ time: 1560, skillId: 1000, stateChange: 68, activation: 3, value: 560 })
+        ].sort((left, right) => left.time - right.time)
+      });
+      const options = { includeCombatStart: false };
+      const unbounded = reconstructEvtcRotation({ ...fixture, agents: [fixture.agents[0]] }, catalog, options);
+      assert.equal(unbounded.actions.length, 2);
+      const result = reconstructEvtcRotation(fixture, catalog, options);
+      assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1000 }]);
+      assert.deepEqual(
+        result.actions.map((action) => action.name),
+        ['Mind Stab']
+      );
+      assert.deepEqual(result.warnings, []);
+    }
+  }
+});
+
+test('Revenant split animations retain finish segments starting after encounter end', () => {
+  const skills = [
+    {
+      id: 27074,
+      name: 'Deathstrike',
+      type: 'Weapon',
+      slot: 'Weapon_5',
+      castTimeMs: 800,
+      unaffectedByQuickness: true,
+      effects: []
+    },
+    { id: 28625, name: 'Deathstrike Finish', castTimeMs: 400, effects: [] }
+  ];
+  const result = reconstructEvtcRotation(
+    log({
+      agents: [{ ...log().agents[0], profession: 9, elite: 0 }, encounterTarget],
+      skills,
+      events: [
+        event({ time: 1000, skillId: 27074, stateChange: 67, value: 400 }),
+        event({ time: 1300, source: 0x2000n, stateChange: 4 }),
+        event({ time: 1400, skillId: 27074, stateChange: 68, activation: 3, value: 400 }),
+        event({ time: 1400, skillId: 28625, stateChange: 67, value: 400 }),
+        event({ time: 1800, skillId: 28625, stateChange: 68, activation: 3, value: 400 })
+      ]
+    }),
+    { skills },
+    { includeCombatStart: false, inferInstantCasts: false }
+  );
+  assert.deepEqual(result.rotation, [{ name: 'Deathstrike', skillId: 27074 }]);
+  assert.equal(result.actions[0].durationMs, 800);
+  assert.equal(result.actions[0].endTimestampMs, 800);
+  assert.equal(result.actions[0].status, 'completed');
+  assert.deepEqual(result.warnings, []);
+});
+
+test('discarded future inputs cannot truncate a crossing cast or change its replay spacing', () => {
+  const events = [
+    event({ time: 1000, skillId: 1000, stateChange: 67, value: 800 }),
+    event({ time: 1399, skillId: 2000, target: 0x2000n, value: 100 }),
+    event({ time: 1400, source: 0x2000n, stateChange: 4 }),
+    event({ time: 1800, skillId: 1000, stateChange: 68, activation: 3, value: 800 })
+  ];
+  const reconstruct = (extra) =>
+    reconstructEvtcRotation(
+      log({
+        agents: [{ ...log().agents[0], profession: 4, elite: 0 }, encounterTarget],
+        events: [...events, ...extra].sort((left, right) => left.time - right.time)
+      }),
+      catalog,
+      { includeCombatStart: false }
+    );
+  const baseline = reconstruct([]);
+  const withCleanup = reconstruct([
+    event({ time: 1400, skillId: 3000, stateChange: 67, value: 500 }),
+    event({ time: 1900, skillId: 3000, stateChange: 68, activation: 3, value: 500 })
+  ]);
+  assert.equal(withCleanup.actions[0].durationMs, 800);
+  assert.equal(withCleanup.rotation[0].interruptMs, undefined);
+  assert.deepEqual(withCleanup.rotation, baseline.rotation);
+});
+
+test('unknown encounter boundaries preserve inputs and their original time origin', () => {
+  for (const agents of [[log().agents[0]], [log().agents[0], encounterTarget]]) {
+    const result = reconstructEvtcRotation(
+      log({
+        agents,
+        events: [
+          event({ time: 1000, source: 0x3000n, stateChange: 4 }),
+          event({ time: 1400, skillId: 1000, stateChange: 67, value: 560 }),
+          event({ time: 1960, skillId: 1000, stateChange: 68, activation: 3, value: 560 })
         ]
       }),
       catalog,
       { includeCombatStart: false }
     );
+    assert.equal(result.timelineOriginMs, 1400);
     assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1000 }]);
-    assert.equal(result.actions[0].durationMs, 560);
+  }
+});
+
+test('excluded casts do not generate unsupported, unfinished, or interrupt-commit warnings', () => {
+  const warningCatalog = {
+    skills: [
+      ...catalog.skills,
+      {
+        id: 4000,
+        name: 'Warning Cast',
+        type: 'Utility',
+        slot: 'Utility',
+        castTimeMs: 800,
+        effects: [{ type: 'strike', atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }]
+      }
+    ]
+  };
+  const fixture = log({
+    agents: [log().agents[0], encounterTarget],
+    skills: [...log().skills, { id: 4000, name: 'Warning Cast' }],
+    events: [
+      event({ time: 1000, skillId: 1000, stateChange: 67, value: 560 }),
+      event({ time: 1400, source: 0x2000n, stateChange: 4 }),
+      event({ time: 1560, skillId: 1000, stateChange: 68, activation: 3, value: 560 }),
+      event({ time: 2000, skillId: 9999, stateChange: 67, value: 100 }),
+      event({ time: 3000, skillId: 4000, stateChange: 67, value: 800 }),
+      event({ time: 3200, skillId: 4000, stateChange: 68, activation: 4, value: 200 }),
+      event({ time: 3400, skillId: 4000, target: 0x2000n, value: 100 })
+    ]
+  });
+  const options = { includeCombatStart: false, inferInstantCasts: false };
+  const unbounded = reconstructEvtcRotation({ ...fixture, agents: [log().agents[0]] }, warningCatalog, options);
+  assert.ok(unbounded.warnings.some((warning) => warning.includes('not present')));
+  assert.ok(unbounded.warnings.some((warning) => warning.includes('no matching stop')));
+  assert.ok(unbounded.warnings.some((warning) => warning.includes('no interruptCommitMs')));
+  assert.deepEqual(reconstructEvtcRotation(fixture, warningCatalog, options).warnings, []);
+});
+
+test('all excluded inputs return the existing no-actions error, including late instant inference', () => {
+  for (const input of [
+    event({ time: 1400, skillId: 1000, stateChange: 67, value: 560 }),
+    event({ time: 1400, skillId: 2000, target: 0x2000n, value: 100 })
+  ]) {
+    assert.throws(
+      () =>
+        reconstructEvtcRotation(
+          log({
+            agents: [log().agents[0], encounterTarget],
+            events: [event({ time: 1400, source: 0x2000n, stateChange: 4 }), input]
+          }),
+          catalog
+        ),
+      { code: 'NO_ROTATION_ACTIONS' }
+    );
   }
 });
 

@@ -1,7 +1,6 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
-import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import {
   instantAction as directAction,
   playerInstance,
@@ -85,15 +84,4 @@ export function rangerSkill(
   name = rawSkillName(context, skillId)
 ): RangerRotationSkill | null {
   return findRotationSkill(skillId, name, context.catalog, context.profile) as RangerRotationSkill | null;
-}
-
-export function finalizeRangerActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context.log);
-  const completionTolerance = context.profile.specializationId === 'druid' ? 200 : 0;
-  return encounterEnd == null
-    ? [...actions]
-    : actions.filter((action) => action.start < encounterEnd + completionTolerance);
 }

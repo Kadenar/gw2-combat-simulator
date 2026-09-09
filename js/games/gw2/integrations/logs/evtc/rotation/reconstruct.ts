@@ -6,6 +6,7 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { TRANSITION_WINDOW_MS } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
+import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 
 import {
   EVTC_ACTIVATION,
@@ -524,6 +525,9 @@ export function reconstructWithProfile(
     );
   }
 
+  // Eligibility limits inputs, not evidence: retain complete stops and split animations across the boundary.
+  const encounterEnd = encounterEndTime(log);
+  const inEncounter = (action: RecordedAction): boolean => encounterEnd == null || action.start < encounterEnd;
   const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
   const hasModernAnimations = log.events.some(
     (event) => selectedPlayerEvent(event, agent.address) && event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
@@ -553,7 +557,7 @@ export function reconstructWithProfile(
   const inferredCombatStart = profile.inferCombatStartFromFirstCast
     ? (initialStateTime ??
       castActions
-        .filter((action) => action.status === 'completed')
+        .filter((action) => inEncounter(action) && action.status === 'completed')
         .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)[0]?.start)
     : null;
   let combatStart =
@@ -580,18 +584,17 @@ export function reconstructWithProfile(
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig,
     timelineOriginMs: Math.min(
-      ...genericActions.map((action) => action.start),
+      ...genericActions.filter(inEncounter).map((action) => action.start),
       combatStart == null ? Number.POSITIVE_INFINITY : combatStart
     )
   };
-  const reconstructedProfessionActions = reconstructProfessionActions(professionContext);
+  // Normalize complete profession evidence first; excluded future inputs must not participate in replay timing.
+  const reconstructedProfessionActions = reconstructProfessionActions(professionContext).filter(inEncounter);
   const professionActions = applyEngineReplayTiming(
     reconcileCastEffectPackets(professionContext, reconstructedProfessionActions),
     catalog,
     profile
   );
-  // Keep the EVTC diagnostic separate from replay reconciliation so report-based imports never emit it.
-  const interruptCommitWarnings = missingInterruptCommitWarnings(professionContext, professionActions);
   if (options.includeCombatStart !== false && combatStart == null) {
     // A profession parser may recover a clipped opener's combat boundary from its first observed effect packet.
     combatStart =
@@ -617,10 +620,13 @@ export function reconstructWithProfile(
     )
   );
   const recorded = [...initialSummons, ...professionActions];
-  const resolved = recorded.map((action) => resolveAction(action, catalog, profile));
+  let resolved = recorded.map((action) => resolveAction(action, catalog, profile));
   if (options.inferInstantCasts !== false) {
     resolved.push(...inferInstantActions(log, agent.address, catalog, profile, resolved));
   }
+
+  // Initial summons and late instant inference share the same window before origin, diagnostics, and output assembly.
+  resolved = resolved.filter(inEncounter);
 
   // Direct effect timestamps anchor instant inputs, including ammo flips; later idle time cannot move those inputs.
   resolved.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
@@ -652,6 +658,6 @@ export function reconstructWithProfile(
     combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),
-    warnings: [...warningList(actions), ...interruptCommitWarnings]
+    warnings: [...warningList(actions), ...missingInterruptCommitWarnings(professionContext, resolved)]
   };
 }

@@ -1,5 +1,4 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
-import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   createStrikePacketMatcher,
@@ -455,9 +454,6 @@ export function reconstructElementalistProfessionActions(
   actions = inferArcLightningChannelDurations(context, actions);
   actions = filterUncommittedFlamestrikes(context, actions);
   actions = [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context)];
-  // Out-of-combat weapon swaps after the target dies are cleanup, not part of the replayed rotation.
-  const encounterEnd = encounterEndTime(context.log);
-  if (encounterEnd != null) actions = actions.filter((action) => action.start < encounterEnd);
   return orderSimultaneousAttunementTransitions(context, actions).sort(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );

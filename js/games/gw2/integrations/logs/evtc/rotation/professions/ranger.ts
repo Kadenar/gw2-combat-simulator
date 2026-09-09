@@ -5,7 +5,6 @@ import {
 import { reconstructDruidActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/druid.js';
 import { reconstructGaleshotActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/galeshot.js';
 import { reconstructRangerPetActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/pets.js';
-import { finalizeRangerActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 import { reconstructSoulbeastActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/soulbeast.js';
 import { reconstructUntamedActions } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/untamed.js';
 import type {
@@ -33,5 +32,5 @@ export function reconstructRangerProfessionActions(
   actions = normalizeRangerCommonActions(context, actions);
   actions = analyzer?.(context, actions) || actions;
   actions = addRangerCommonActions(context, actions);
-  return finalizeRangerActions(context, actions);
+  return actions;
 }

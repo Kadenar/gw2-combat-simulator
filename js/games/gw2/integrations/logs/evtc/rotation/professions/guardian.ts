@@ -1,7 +1,6 @@
 import { normalizeGuardianAutoattacks } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/autoattacks.js';
 import {
   addGuardianCommonActions,
-  finalizeGuardianActions,
   prepareGuardianActions
 } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/common.js';
 import {
@@ -60,5 +59,5 @@ export function reconstructGuardianProfessionActions(
   actions = addGuardianCommonActions(context, actions);
   actions = analyzer?.reconstruct?.(context, actions) || actions;
   actions = normalizeGuardianAutoattacks(context, actions);
-  return finalizeGuardianActions(context, actions);
+  return actions;
 }

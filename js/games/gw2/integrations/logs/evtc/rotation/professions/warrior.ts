@@ -1,9 +1,6 @@
 import { reconstructBerserkerActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/berserker.js';
 import { reconstructBladeswornActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bladesworn.js';
-import {
-  normalizeWarriorCommonActions,
-  removePostEncounterWarriorActions
-} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/common.js';
+import { normalizeWarriorCommonActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/common.js';
 import { reconstructParagonActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/paragon.js';
 import { reconstructSpellbreakerActions } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/spellbreaker.js';
 import type {
@@ -35,5 +32,5 @@ export function reconstructWarriorProfessionActions(
 ): readonly EvtcRecordedRotationAction[] {
   const actions = normalizeWarriorCommonActions(context, context.recordedActions);
   const analyzer = specializationAnalyzers.get(context.profile.specializationId);
-  return removePostEncounterWarriorActions(context, analyzer?.(context, actions) || actions);
+  return analyzer?.(context, actions) || actions;
 }

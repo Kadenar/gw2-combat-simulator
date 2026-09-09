@@ -1,5 +1,4 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import {
   createStrikePacketMatcher,
   firstStrikePacketOffsetMs
@@ -165,29 +164,4 @@ export function normalizeWarriorCommonActions(
   }
 
   return normalized;
-}
-
-/**
- * Removes Warrior inputs after the encounter's primary target first exits
- * combat or dies. Target agents use the encounter ID as their profession code
- * in EVTC, which distinguishes them from ordinary adds and player agents.
- */
-export function removePostEncounterWarriorActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const targets = new Set(
-    context.log.agents
-      .filter((agent) => agent.profession === context.log.header.encounterId)
-      .map((agent) => agent.address)
-  );
-  const encounterEnd = context.log.events
-    .filter(
-      (event) =>
-        targets.has(event.source) &&
-        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
-    )
-    .map((event) => event.time)
-    .sort((left, right) => left - right)[0];
-  return encounterEnd == null ? [...actions] : actions.filter((action) => action.start < encounterEnd);
 }

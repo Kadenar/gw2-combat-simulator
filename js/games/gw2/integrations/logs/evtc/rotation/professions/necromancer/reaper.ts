@@ -1,6 +1,5 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
-import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -129,26 +128,8 @@ function truncatedReaperPrecastActions(context: EvtcProfessionReconstructionCont
   return actions;
 }
 
-function removePostEncounterReaperExit(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context.log);
-  if (encounterEnd == null) return [...actions];
-  return actions.filter(
-    (action) =>
-      !(
-        (action.rawSkillId === EXIT_REAPERS_SHROUD.skillId || action.rawName === EXIT_REAPERS_SHROUD.name) &&
-        action.start > encounterEnd
-      )
-  );
-}
-
 export function reconstructReaperActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
-  return removePostEncounterReaperExit(context, [
-    ...context.recordedActions,
-    ...truncatedReaperPrecastActions(context)
-  ]);
+  return [...context.recordedActions, ...truncatedReaperPrecastActions(context)];
 }

@@ -1,7 +1,6 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { normalized, skillForAction } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { findRotationSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
-import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { canonicalAction, combatStartTime } from '#gw2/integrations/logs/evtc/rotation/professions/shared.js';
 import type {
   EvtcProfessionReconstructionContext,
@@ -87,10 +86,8 @@ export function finalizeEngineerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context.log);
-  const inEncounter = encounterEnd == null ? [...actions] : actions.filter((action) => action.start < encounterEnd);
   const throwMine = selectedIdentity(context, 'Throw Mine', 6161);
-  return inEncounter.map((action) => {
+  return actions.map((action) => {
     // Modern logs use 30337 for Throw Mine casts and damage; replay through the equipped 6161 palette skill.
     const canonical =
       normalized(action.canonicalName || action.rawName) === normalized(throwMine.name)

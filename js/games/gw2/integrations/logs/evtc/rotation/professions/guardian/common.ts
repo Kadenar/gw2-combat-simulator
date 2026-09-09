@@ -1,5 +1,4 @@
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -59,14 +58,6 @@ function inferZealotsFlame(
   return inferred;
 }
 
-function removePostEncounterActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const encounterEnd = encounterEndTime(context.log);
-  return encounterEnd == null ? [...actions] : actions.filter((action) => action.start < encounterEnd);
-}
-
 /** Removes duplicate animation signals without replacing cancelled attempts with complete casts. */
 export function prepareGuardianActions(actions: readonly EvtcRecordedRotationAction[]): EvtcRecordedRotationAction[] {
   return removeDuplicateZeroDurationInterrupts(actions);
@@ -77,11 +68,4 @@ export function addGuardianCommonActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   return [...actions, ...inferZealotsFlame(context, actions)];
-}
-
-export function finalizeGuardianActions(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  return removePostEncounterActions(context, actions);
 }
