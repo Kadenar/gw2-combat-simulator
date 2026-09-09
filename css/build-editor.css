@@ -625,6 +625,58 @@
   }
 }
 
+/* Embedded catalogs open on demand without reserving a sidebar or pushing the editor below every template. */
+.embed .profession-layout {
+  display: block;
+}
+
+.embed .build-templates {
+  position: static;
+  max-width: none;
+  margin-bottom: 12px;
+}
+
+.build-templates-dialog {
+  inset: 0;
+  width: min(760px, calc(100% - 24px));
+  max-height: min(720px, calc(100% - 24px));
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  color: var(--text);
+  overscroll-behavior: contain;
+}
+
+.build-templates-dialog::backdrop {
+  background: rgba(5, 7, 12, 0.72);
+}
+
+.build-templates-dialog .build-templates-panel {
+  margin: 0;
+  border: 0;
+}
+
+/* Keep dismissal reachable while the catalog scrolls, including in short frames. */
+.build-templates-dialog .build-templates-header {
+  position: sticky;
+  top: -12px;
+  z-index: 101;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 0;
+  background: var(--bg-panel);
+}
+
+.build-templates-dialog .template-actions-hint {
+  display: none;
+}
+
+.build-templates-dialog .template-filters {
+  flex-wrap: wrap;
+}
+
 /* ─── Shared build-template preset groups ─── */
 .presets-group {
   display: flex;
