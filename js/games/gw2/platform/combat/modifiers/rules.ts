@@ -521,3 +521,8 @@ export function createModifierHooks({
   hooks.modifyAttributes = createAttributeHook(rulesByTarget);
   return Object.freeze(hooks) as Readonly<Gw2ModifierHooks>;
 }
+
+/** Compiles a family's merged rule list with the standard GW2 damage-bucket policies. */
+export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Readonly<Gw2ModifierHooks> {
+  return createModifierHooks({ rules });
+}

@@ -1,5 +1,5 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -430,15 +430,11 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
   ...rangerPetModifierRules
 ]);
 
-export function compileRangerModifierRules(rules: readonly Gw2ModifierRule[]) {
-  return createModifierHooks({ rules });
-}
-
 export const rangerCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyRangerAttributes,
   modifyConditionBaseDuration: modifyRangerConditionBaseDuration,
   modifierRules: rangerCoreModifierRules,
-  compileModifierRules: compileRangerModifierRules
+  compileModifierRules: compileGw2ModifierRules
 });
 
 export const rangerCoreCastRules = Object.freeze({

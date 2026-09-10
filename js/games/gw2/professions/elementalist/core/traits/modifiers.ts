@@ -8,7 +8,7 @@
  * The shared query helpers are also re-used by the specialization modifier files.
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
@@ -201,11 +201,6 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
   }
 ]);
 
-/** Compiles a rule list into the modifier hooks the combat pipeline consumes. */
-export function compileElementalistModifierRules(rules: readonly Gw2ModifierRule[]) {
-  return createModifierHooks({ rules });
-}
-
 // Apply live attunement, timed-buff, conjure, and signet attribute changes at
 // event time; build-time bonuses are intentionally handled upstream.
 export function modifyElementalistAttributes(
@@ -294,5 +289,5 @@ export function modifyElementalistAttributes(
 export const elementalistCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyElementalistAttributes,
   modifierRules: elementalistCoreModifierRules,
-  compileModifierRules: compileElementalistModifierRules
+  compileModifierRules: compileGw2ModifierRules
 });

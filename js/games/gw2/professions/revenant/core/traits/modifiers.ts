@@ -110,7 +110,7 @@ export const revenantSchedulerHooks = Object.freeze({
   })
 });
 
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { buffMatchesAudience, GW2_STANDARD_BOONS, sumActiveStacks } from '#gw2/platform/combat/state/boons.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -306,10 +306,6 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   }
 ]);
 
-export function compileRevenantModifierRules(rules: readonly Gw2ModifierRule[]) {
-  return createModifierHooks({ rules });
-}
-
 function modifyCoreCriticalChance(context: RevenantModifierContext, chance: number): number {
   return hasTrait(context, TRAIT.ROILING_MISTS) && (boonActive(context, 'fury') || periodicAssassinsPresence(context))
     ? chance + 0.25
@@ -364,5 +360,5 @@ export const revenantCoreAttributeRules = Object.freeze({
   modifyCriticalChance: modifyCoreCriticalChance,
   modifyConditionDuration: modifyCoreConditionDuration,
   modifierRules: revenantCoreModifierRules,
-  compileModifierRules: compileRevenantModifierRules
+  compileModifierRules: compileGw2ModifierRules
 });

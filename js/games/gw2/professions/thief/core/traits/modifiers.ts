@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -26,7 +26,7 @@ import { thiefCoreTaskHandlers } from '#gw2/professions/thief/core/mechanics/tas
 import { applyThiefWeaponSwapEffects } from '#gw2/professions/thief/core/execution/actions.js';
 import { observeThievesGuildCombatEvent } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ModifierContext, Gw2ModifierHooks, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { ThiefCoreState, ThiefPrecastContext, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
@@ -264,14 +264,10 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   return result;
 }
 
-export function compileThiefModifierRules(rules: readonly Gw2ModifierRule[]): Gw2ModifierHooks {
-  return createModifierHooks({ rules });
-}
-
 export const thiefCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyThiefCoreAttributes,
   modifierRules: thiefCoreModifierRules,
-  compileModifierRules: compileThiefModifierRules
+  compileModifierRules: compileGw2ModifierRules
 });
 
 function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration: number): number {

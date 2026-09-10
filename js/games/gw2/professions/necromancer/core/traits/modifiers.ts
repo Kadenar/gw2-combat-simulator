@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -282,11 +282,6 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
   }
 ]);
 
-/** Compiles declarative Necromancer modifier rules into the shared hook contract. */
-export function compileNecromancerModifierRules(rules: readonly Gw2ModifierRule[]) {
-  return createModifierHooks({ rules });
-}
-
 /** Applies Core skill-family recharge traits while preserving minion-death recharge exceptions. */
 function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   let result = duration;
@@ -330,7 +325,7 @@ export const necromancerCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyNecromancerCoreAttributes,
   modifyConditionBaseDuration: modifyNecromancerConditionBaseDuration,
   modifierRules: necromancerCoreModifierRules,
-  compileModifierRules: compileNecromancerModifierRules
+  compileModifierRules: compileGw2ModifierRules
 });
 
 export const necromancerCoreCastRules = Object.freeze({

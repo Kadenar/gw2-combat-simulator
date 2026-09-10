@@ -1,5 +1,5 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -258,11 +258,6 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   }
 ]);
 
-/** Compiles declarative Engineer modifier rules into the shared hook contract. */
-export function compileEngineerModifierRules(rules: readonly Gw2ModifierRule[]) {
-  return createModifierHooks({ rules });
-}
-
 /** Applies Core Engineer's static and runtime-dependent attribute changes to a fresh attribute snapshot. */
 function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = { ...attributes };
@@ -358,7 +353,7 @@ export const engineerCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyEngineerCoreAttributes,
   modifyConditionBaseDuration: modifyEngineerConditionBaseDuration,
   modifierRules: engineerCoreModifierRules,
-  compileModifierRules: compileEngineerModifierRules
+  compileModifierRules: compileGw2ModifierRules
 });
 
 export const engineerCoreCastRules = Object.freeze({

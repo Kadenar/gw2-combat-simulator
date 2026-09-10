@@ -1,5 +1,5 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -186,7 +186,7 @@ function modifyCastDuration(context: WarriorCastContext, duration: number): numb
 export const warriorCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyWarriorAttributes,
   modifierRules: warriorModifierRules,
-  compileModifierRules: (rules: readonly Gw2ModifierRule[]) => createModifierHooks({ rules })
+  compileModifierRules: compileGw2ModifierRules
 });
 
 export const warriorCoreCastRules = Object.freeze({

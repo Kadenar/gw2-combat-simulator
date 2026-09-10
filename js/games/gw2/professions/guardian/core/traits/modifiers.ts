@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
@@ -281,10 +281,6 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   }
 ]);
 
-export function compileGuardianModifierRules(rules: readonly Gw2ModifierRule[]) {
-  return createModifierHooks({ rules });
-}
-
 function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext, duration: number): number {
   const skill = context.skill;
   let result = duration;
@@ -350,7 +346,7 @@ function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, durati
 export const guardianCoreAttributeRules = Object.freeze({
   modifyConditionBaseDuration: modifyGuardianConditionBaseDuration,
   modifierRules: guardianCoreModifierRules,
-  compileModifierRules: compileGuardianModifierRules
+  compileModifierRules: compileGw2ModifierRules
 });
 
 export const guardianCoreCastRules = Object.freeze({
