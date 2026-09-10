@@ -33,26 +33,16 @@ export function buildScheduledEventStream(options: BuildScheduledEventStreamOpti
     resolverHandoff = {},
     source = 'platform.engine.scheduler'
   } = options;
-  if (!Array.isArray(events)) throw new TypeError('Scheduled stream requires events.');
-  // Timeline horizons start at zero so downstream duration calculations cannot observe negative time.
-  if (!Number.isFinite(rotationEndTime) || rotationEndTime < 0) {
-    throw new TypeError('Scheduled stream requires a finite, non-negative rotation end.');
-  }
-
-  if (!Number.isFinite(resolutionEndTime) || resolutionEndTime < rotationEndTime) {
-    throw new TypeError('Scheduled stream resolution end must be finite and not precede the rotation end.');
-  }
-
-  for (const event of events) assertSimulationEvent(event);
-  const stream = createEventStream(SCHEDULED_EVENT_STREAM_KIND, SCHEDULED_EVENT_STREAM_VERSION, events);
-  return Object.freeze({
-    ...stream,
+  // Use the consumer's rules before copying handoff metadata so malformed input cannot become a valid-looking object.
+  const stream = assertScheduledEventStream({
+    ...createEventStream(SCHEDULED_EVENT_STREAM_KIND, SCHEDULED_EVENT_STREAM_VERSION, events),
     eventSchemaVersion: EVENT_SCHEMA_VERSION,
     source,
     rotationEndTime,
     resolutionEndTime,
-    resolverHandoff: Object.freeze({ ...resolverHandoff })
+    resolverHandoff
   });
+  return Object.freeze({ ...stream, resolverHandoff: Object.freeze({ ...stream.resolverHandoff }) });
 }
 
 /**
@@ -68,7 +58,7 @@ export function assertScheduledEventStream(stream: unknown): ScheduledEventStrea
     !Array.isArray(candidate.events) ||
     !Number.isFinite(candidate.rotationEndTime) ||
     Number(candidate.rotationEndTime) < 0 ||
-    (candidate.resolutionEndTime != null &&
+    (candidate.resolutionEndTime !== undefined &&
       (!Number.isFinite(candidate.resolutionEndTime) ||
         candidate.resolutionEndTime < Number(candidate.rotationEndTime))) ||
     typeof candidate.source !== 'string' ||

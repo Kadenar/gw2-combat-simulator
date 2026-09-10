@@ -167,14 +167,53 @@ test('scheduled stream horizons cannot precede time zero', () => {
   const stream = buildScheduledEventStream({ events: [], rotationEndTime: 0 });
 
   assert.equal(stream.resolutionEndTime, 0);
-  assert.throws(
-    () => buildScheduledEventStream({ events: [], rotationEndTime: -1 }),
-    /finite, non-negative rotation end/
-  );
+  assert.throws(() => buildScheduledEventStream({ events: [], rotationEndTime: -1 }), /Invalid scheduled event stream/);
   assert.throws(
     () => assertScheduledEventStream({ ...stream, rotationEndTime: -1, resolutionEndTime: -1 }),
     /Invalid scheduled event stream/
   );
+});
+
+// Construction and consumption reject the same malformed metadata before it can affect resolution.
+test('scheduled stream construction and consumption share validation rules', () => {
+  const stream = buildScheduledEventStream({ events: [], rotationEndTime: 1 });
+  for (const invalid of [
+    { source: '' },
+    { source: null },
+    { source: 1 },
+    { rotationEndTime: -1 },
+    { rotationEndTime: Number.NaN },
+    { rotationEndTime: Infinity },
+    { rotationEndTime: '1' },
+    { resolutionEndTime: 0 },
+    { resolutionEndTime: Number.NaN },
+    { resolutionEndTime: Infinity },
+    { resolutionEndTime: null },
+    { resolverHandoff: null },
+    { resolverHandoff: [] },
+    { resolverHandoff: 'invalid' }
+  ]) {
+    const candidate = { ...stream, ...invalid };
+    assert.throws(() => buildScheduledEventStream(candidate), /Invalid scheduled event stream/);
+    assert.throws(() => assertScheduledEventStream(candidate), /Invalid scheduled event stream/);
+  }
+
+  // Unbuilt streams may omit the optional resolution horizon; the constructor supplies the rotation end.
+  const optionalHorizon = { ...stream, resolutionEndTime: undefined };
+  assert.equal(assertScheduledEventStream(optionalHorizon), optionalHorizon);
+  assert.equal(buildScheduledEventStream(optionalHorizon).resolutionEndTime, 1);
+
+  const invalidEvent = {
+    type: 'damage',
+    at: 0,
+    source: 'fixture',
+    sourceId: 1,
+    actorType: 'player'
+  };
+  for (const validate of [buildScheduledEventStream, assertScheduledEventStream]) {
+    assert.throws(() => validate({ ...stream, events: null }));
+    assert.throws(() => validate({ ...stream, events: [invalidEvent] }), /coefficient or flat strike value/);
+  }
 });
 
 test('state snapshot emission removes only matching adjacent synchronization checkpoints', () => {
