@@ -248,6 +248,10 @@ test('tab menu loads a template into the chosen tab and resets only that build',
 test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and outside clicks', async ({ page }) => {
   await page.goto('/mesmer.html?embed=1');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  // Larger labels cover wider platform font metrics without depending on a host-installed font.
+  await page.addStyleTag({
+    content: '@media (max-width: 360px) { body[data-profession] .simulator-view-tab { font-size: 12px; } }'
+  });
   await page.evaluate(async () => {
     const { addBuildTab } = await import('/js/games/gw2/app/build/state/workspace.ts');
     for (let index = 0; index < 5; index += 1)
