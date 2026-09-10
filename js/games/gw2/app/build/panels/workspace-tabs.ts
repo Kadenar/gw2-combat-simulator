@@ -49,8 +49,8 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
 /** Keeps one editor mounted while ordinary buttons select independent build sessions. */
 export function mountBuildTabs(app: ProfessionAppState): void {
   if (!app.workspace || document.getElementById('build-workspace-tabs')) return;
-  const editor = document.querySelector('.build-editor');
-  if (!editor) return;
+  const header = document.querySelector('#app > header');
+  if (!header) return;
   const strip = document.createElement('section');
   strip.id = 'build-workspace-tabs';
   strip.className = 'build-workspace-tabs';
@@ -76,8 +76,8 @@ export function mountBuildTabs(app: ProfessionAppState): void {
       <button type="button" data-build-tab-action="close">Close tab</button>
     </div>
     <div class="build-tab-notice" role="status" hidden></div>`;
-  // Keep shared build controls above both the optimizer and the workspace/analysis editor.
-  (document.getElementById('gear-optimizer-view') || editor).before(strip);
+  // Keep build switching and file actions inside the sticky header in every simulator view.
+  header.append(strip);
   // Move the bound controls intact so export, import, and reset keep their existing behavior.
   const reset = document.getElementById('btn-reset-build')!;
   reset.textContent = 'Reset build';

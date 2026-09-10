@@ -513,8 +513,8 @@ html.embed {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px 24px;
-  /* Match the content gutter; the header must not add a second horizontal inset. */
-  padding-inline: 2px;
+  /* Give the sticky surface a slight inset so controls stay clear of its edges. */
+  padding-inline: 8px;
 }
 
 .embed body[data-profession] #app > header .header-brand {

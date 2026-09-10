@@ -175,6 +175,11 @@ test('tab overflow stays inside its strip on narrow screens', async ({ page }) =
   expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
   await expect(page.locator('.build-tab.is-active')).toBeInViewport();
   await expect(page.locator('.build-tab-new')).toBeInViewport();
+  // Build switching stays reachable alongside navigation after scrolling the editor.
+  await page.evaluate(() => window.scrollTo(0, 500));
+  await expect(page.locator('#app > header')).toHaveClass(/simulator-header-scrolled/);
+  await expect(page.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
+  await expect(page.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
 });
 
 // Every tab exposes the same actions without switching builds merely to inspect its menu.
@@ -259,6 +264,11 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
   });
   for (const width of [1100, 700, 390, 320, 1100]) {
     await page.setViewportSize({ width, height: 844 });
+    // Embedded headers keep both rows visible as the header wraps at each width.
+    await page.evaluate(() => window.scrollTo(0, 500));
+    await expect(page.locator('#app > header')).toHaveClass(/simulator-header-scrolled/);
+    await expect(page.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
+    await expect(page.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
     const mobile = width <= 600;
     await expect(page.locator('.build-tab-list')).toBeVisible();
     if (!mobile) {
@@ -290,7 +300,7 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
   const nav = await page.locator('.simulator-view-tabs').boundingBox();
   const firstTab = await page.locator('.build-tab-list').boundingBox();
   const help = await page.locator('.community-actions').boundingBox();
-  expect(nav.x).toBe(firstTab.x + 2);
+  expect(nav.x).toBe(firstTab.x);
   expect(help.x - (nav.x + nav.width)).toBeGreaterThanOrEqual(24);
 });
 

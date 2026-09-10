@@ -2,6 +2,10 @@
 
 /* Build tabs share one editor and contain their own overflow at every viewport width. */
 .build-workspace-tabs {
+  /* Span a full row in both the standalone grid and embedded flex header. */
+  grid-column: 1 / -1;
+  grid-row: 4;
+  width: 100%;
   display: flex;
   /* Align to the tab tops so a horizontal scrollbar cannot shift the adjacent buttons. */
   align-items: flex-start;
