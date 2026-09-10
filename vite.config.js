@@ -176,12 +176,10 @@ export default defineConfig(({ command, mode }) => ({
   appType: 'mpa',
   base: command === 'serve' ? '/' : './',
   publicDir: false,
-  // Resolve local artwork independently of source-file depth in JavaScript URLs and CSS.
+  // Keep all local artwork under images, with one alias independent of JavaScript and CSS source depth.
   resolve: {
     alias: {
-      '@images': path.resolve('images'),
-      '@assets': path.resolve('assets'),
-      '@docs-assets': path.resolve('docs/assets')
+      '@images': path.resolve('images')
     }
   },
   plugins: [

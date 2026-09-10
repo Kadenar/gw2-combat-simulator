@@ -1,6 +1,7 @@
 # Guild Wars 2 Combat Simulator Wiki
 
-[Launch the simulator](https://kadenar.github.io/gw2-combat-simulator/) and model a PvE build and rotation in your browser.
+[Launch the simulator](https://kadenar.github.io/gw2-combat-simulator/) and model a PvE build and rotation in your
+browser.
 
 The simulator executes a rotation against a modeled target, then reports damage, DPS, conditions, modifiers, and combat
 state. Use it for controlled comparisons; it is not a replacement for in-game testing or combat logs.
@@ -12,7 +13,7 @@ state. Use it for controlled comparisons; it is not a replacement for in-game te
 3. Create or import a rotation with the [Rotation builder](Rotation-Builder).
 4. Use [Reading results](Reading-Results) to compare changes.
 
-![Simulator walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/docs/assets/gw2-combat-simulator-usage.gif)
+![Simulator walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/images/tutorials/gw2-combat-simulator-usage.gif)
 
 ## More help
 

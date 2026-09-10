@@ -12,8 +12,8 @@ Compare DPS only when the builds use the same rotation, target, assumptions, and
 
 ## Damage breakdown
 
-The damage table shows each source's total damage, DPS, casts, hits, and average damage per cast. Select a source to show
-its damage events on the timeline.
+The damage table shows each source's total damage, DPS, casts, hits, and average damage per cast. Select a source to
+show its damage events on the timeline.
 
 The condition table reports damage, DPS, and average stacks for each damaging condition.
 
@@ -22,7 +22,7 @@ The condition table reports damage, DPS, and average stacks for each damaging co
 The charts show how damage develops across the fight and when tracked boons, conditions, and buffs are active. Hover the
 charts for values at a specific time and use the effect toggles to reduce visual noise.
 
-![Analysis walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/docs/assets/gw2-combat-simulator-analysis.gif)
+![Analysis walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/images/tutorials/gw2-combat-simulator-analysis.gif)
 
 ## Modifier contributions
 

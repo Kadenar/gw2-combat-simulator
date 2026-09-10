@@ -13,12 +13,12 @@ The rotation builder turns an ordered list of actions into a millisecond-level c
 Only actions valid for the active build and current combat state can execute. The scheduler tracks cooldowns, ammo,
 weapon swaps, resources, skill chains, transformations, and profession mechanics.
 
-![Rotation builder walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/docs/assets/gw2-combat-simulator-rotation-builder.gif)
+![Rotation builder walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/images/tutorials/gw2-combat-simulator-rotation-builder.gif)
 
 ## Read the timeline
 
-Each row represents a requested action and its scheduled result. Select or inspect a row to see its timing and the active
-state around that point in the rotation.
+Each row represents a requested action and its scheduled result. Select or inspect a row to see its timing and the
+active state around that point in the rotation.
 
 Warnings explain rejected or altered actions. Common causes include:
 

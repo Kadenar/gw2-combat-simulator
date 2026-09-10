@@ -2,7 +2,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Keep the imported Weapon Stow action visually distinct in the simulator timeline.
 // Resolve the shared icon from the repository asset root so Vite can bundle it with the profession module.
-const WEAPON_STOW_ICON = new URL('@assets/warrior/weapon-stow.png', import.meta.url).href;
+const WEAPON_STOW_ICON = new URL('@images/warrior/weapon-stow.png', import.meta.url).href;
 
 export const WARRIOR_WEAPON_STOW: Skill = Object.freeze({
   id: -6,

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" preserveAspectRatio="none">
+  <!-- Uneven paint coverage and dry-brush streaks soften the artwork into its surrounding panel. -->
+  <defs>
+    <filter id="bristles" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045 0.12" numOctaves="3" seed="8" result="grain" />
+      <feDisplacementMap in="SourceGraphic" in2="grain" scale="24" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </defs>
+  <g fill="white" filter="url(#bristles)">
+    <path
+      d="M82 58 139 24 126 52 196 12 186 36 266 8 252 31 336 14 322 37 411 7 398 29 493 15 474 47 547 31
+         521 91 570 68 546 128 582 111 555 195 587 174 567 263 589 249 568 339 584 324 562 418 586 403
+         555 502 575 488 546 593 565 578 528 681 549 666 511 758 526 749 475 821 444 850 458 816
+         381 879 394 849 316 894 329 865 252 893 269 862 191 881 209 847 139 859 162 814 105 831
+         119 777 76 791 92 723 52 746 71 651 32 677 58 566 27 589 49 488 17 513 42 412 16 432
+         41 330 15 350 49 243 23 264 63 173 37 190 76 110 48 128Z"
+    />
+    <path
+      d="m57 63 41-34-31 75-23 27Zm493 8 37-39-19 71-28 40ZM18 315l20-51-6 60-22 49Zm558 333 25-62-16 91-30 43ZM78 783l20 25-13 43-18-24Zm339 83 34-29-16 40-39 20Z"
+    />
+  </g>
+  <g fill="none" stroke="white" stroke-linecap="square" opacity="0.65">
+    <path
+      d="m40 195 31-64m-44 139 23-44m-27 223 19-79m519-159 22-77m-19 304 16-83M99 793l21 46m367-13 24-39"
+      stroke-width="3"
+    />
+    <path d="m32 213 17-35m-32 194 9-28m554-147 9-40M56 714l8 31m378 126 21-19" stroke-width="2" />
+  </g>
+</svg>
