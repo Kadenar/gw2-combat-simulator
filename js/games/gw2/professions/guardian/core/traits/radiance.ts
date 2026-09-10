@@ -36,6 +36,7 @@ function queueRighteousMight(context: GuardianResolverContext, at: number, detai
 export function reactToRighteousInstincts(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   if (
     String(event.kind || '').toLowerCase() !== 'resolution' ||
+    event.resolvedAudience?.includesSelf !== true ||
     !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS)
   ) {
     return;

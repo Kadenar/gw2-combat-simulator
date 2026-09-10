@@ -942,7 +942,8 @@ test('Guardian strike modifiers use their tested additive and mult buckets', () 
       rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 1500 }],
       config: {
         ...config,
-        boons: { fury: true },
+        // Keep both boon-gated modifiers active so this test isolates damage bucket arithmetic from application order.
+        boons: { fury: true, resolution: true },
         primaryWeapon: 'Greatsword',
         selectedTraitIds,
         sigilSets: [{ names: ['Force'], strikeAdd: 0.05, strike: 1.05 }, {}],

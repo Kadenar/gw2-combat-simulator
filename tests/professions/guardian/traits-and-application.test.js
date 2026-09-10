@@ -227,7 +227,7 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
   const run = (selectedTraitIds) =>
     simulateGw2({
       profession: guardianProfession,
-      rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }],
+      rotation: ['Symbol of Resolution', 'Strike', { type: 'wait', durationMs: 6000 }],
       config: {
         ...config,
         primaryWeapon: 'Greatsword',
@@ -237,14 +237,16 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
   const righteous = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS]);
   const retribution = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS, GUARDIAN_TRAIT_IDS.RETRIBUTION]);
   const first = (result) => result.resolvedEvents.find((event) => event.name === 'Symbol of Resolution — Initial');
+  const followup = (result) => result.resolvedEvents.find((event) => event.name === 'Strike');
   const pulses = retribution.resolvedEvents.filter((event) => event.name === 'Symbol of Resolution');
 
-  assert.ok(Math.abs(first(retribution).damage / first(righteous).damage - 1.1) < 1e-9);
+  // The initial hit precedes its Resolution grant; only the follow-up inside that window receives the bonuses.
+  assert.equal(first(retribution).damage, first(righteous).damage);
+  assert.ok(Math.abs(followup(retribution).damage / followup(righteous).damage - 1.1) < 1e-9);
+  assert.ok(Math.abs(followup(retribution).criticalChance - first(retribution).criticalChance - 0.25) < 1e-9);
   assert.ok(
     Math.abs(
-      first(retribution).criticalChance -
-        0.25 -
-        (config.stats.precision > 895 ? (config.stats.precision - 895) / 2100 : 0)
+      first(retribution).criticalChance - (config.stats.precision > 895 ? (config.stats.precision - 895) / 2100 : 0)
     ) < 1e-9
   );
   assert.equal(

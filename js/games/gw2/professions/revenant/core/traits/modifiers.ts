@@ -116,7 +116,7 @@ export const revenantSchedulerHooks = Object.freeze({
 
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { buffMatchesAudience, GW2_STANDARD_BOONS, sumActiveStacks } from '#gw2/platform/combat/state/boons.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -209,23 +209,7 @@ function periodicAssassinsPresence(context: RevenantModifierContext): boolean {
 // Count distinct self-affecting boons active at the query time for Revenant
 // modifiers that scale with boon variety.
 export function revenantActiveBoonCount(context: RevenantModifierContext): number {
-  const active = new Set(
-    Object.entries(context.config?.boons || {})
-      .filter(([, value]) => (typeof value === 'number' ? value > 0 : Boolean(value)))
-      .map(([kind]) => kind.toLowerCase())
-      .filter(isStandardBoon)
-  );
-  for (const [kind, applications] of context.runtime?.boons || []) {
-    const normalized = String(kind).toLowerCase();
-    if (
-      isStandardBoon(normalized) &&
-      applications.some((application) => application.at <= context.time && application.expiresAt > context.time)
-    ) {
-      active.add(normalized);
-    }
-  }
-
-  return active.size;
+  return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
 }
 
 export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -278,7 +262,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.VICIOUS_REPRISAL) &&
-      revenantTimedBuff(context, 'resolution')
+      boonActive(context, 'resolution')
   },
   {
     id: 'revenant.destructive-impulses',
@@ -331,8 +315,7 @@ export function compileRevenantModifierRules(rules: readonly Gw2ModifierRule[]) 
 }
 
 function modifyCoreCriticalChance(context: RevenantModifierContext, chance: number): number {
-  return hasTrait(context, TRAIT.ROILING_MISTS) &&
-    (revenantTimedBuff(context, 'fury') || periodicAssassinsPresence(context))
+  return hasTrait(context, TRAIT.ROILING_MISTS) && (boonActive(context, 'fury') || periodicAssassinsPresence(context))
     ? chance + 0.25
     : chance;
 }
@@ -362,13 +345,17 @@ function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2S
   const modified = { ...attributes } as Record<string, number>;
   if (hasTrait(context, TRAIT.NOTORIETY)) {
     const baseMight = Math.max(0, Math.min(25, Number(context.config?.boons?.might || 0)));
-    const dynamicMight = Math.min(
-      Math.max(0, 25 - baseMight),
-      (context.runtime?.boons?.get('might') || [])
-        .filter((application) => application.at <= context.time && application.expiresAt > context.time)
-        .reduce((sum, application) => sum + Number(application.stacks ?? 1), 0)
+    // Notoriety converts only the player's Might; retain explicit zero stacks and the remaining configured cap.
+    const dynamicMight = sumActiveStacks(
+      context.runtime?.boons?.get('might') || [],
+      (application) =>
+        buffMatchesAudience(application, 'all') &&
+        application.at <= context.time &&
+        application.expiresAt > context.time,
+      (application) => Number(application.stacks ?? 1),
+      25 - baseMight
     );
-    const might = Math.min(25, baseMight + dynamicMight);
+    const might = baseMight + dynamicMight;
     modified.power = Number(modified.power || 0) + might * 10;
     modified.conditionDamage = Number(modified.conditionDamage || 0) - might * 10;
   }

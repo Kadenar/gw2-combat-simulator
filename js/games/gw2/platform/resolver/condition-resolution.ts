@@ -1,5 +1,6 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
+import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
 import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
@@ -159,14 +160,7 @@ export function createGw2ConditionResolution({
     const queryEvent = event as unknown as Gw2ResolverEvent;
     // Duration is snapshotted at application time. Damage stats and multipliers
     // are deliberately queried later at each tick.
-    const stats = ctx.query.statsAt(event.at, queryEvent, ctx);
-    const durationMultiplier = event.fixedDuration
-      ? 1
-      : ctx.query.conditionDurationMultiplier(name, event.at, stats, queryEvent, ctx);
-    const baseDurationMultiplier = event.fixedDuration
-      ? 1
-      : (ctx.query.conditionBaseDurationMultiplier?.(name, event.at, queryEvent, ctx) ?? 1);
-    const duration = Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
+    const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx);
     const expiresAt = event.at + duration;
     const stacks = Math.max(0, Number(event.stacks || 0));
     if (!stacks || !duration) return null;

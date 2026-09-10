@@ -3,6 +3,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
@@ -75,20 +76,6 @@ function runtimeBuffActive(context: Gw2ModifierContext, kind: string): boolean {
   );
 }
 
-function runtimeBuffStacks(context: Gw2ModifierContext, kind: string, maximum: number): number {
-  return Math.min(
-    maximum,
-    (context.runtime?.boons?.get(kind) || [])
-      .filter(
-        (application) =>
-          application.resolvedAudience.includesSelf &&
-          application.at <= context.time &&
-          application.expiresAt > context.time
-      )
-      .reduce((total, application) => total + application.stacks, 0)
-  );
-}
-
 function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   if (runtimeBuffActive(context, 'supercharged-cartridges')) return 0.2;
   if (runtimeBuffActive(context, 'overcharged-cartridges')) return 0.15;
@@ -104,8 +91,9 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       maximumStacks: 10,
       damagePerStack: 0.01
     } as Readonly<Record<string, number>>,
+    // Count live self applications only, matching Core Warrior's stack and expiry policy.
     amount: (context, _target, parameters) =>
-      runtimeBuffStacks(context, 'fierce-as-fire', parameters.maximumStacks) * parameters.damagePerStack,
+      warriorActiveBuffStacks(context, 'fierce-as-fire', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.FIERCE_AS_FIRE)
   },
   {

@@ -3,6 +3,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
 import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
 export interface Gw2CombatObserver {
@@ -31,15 +32,7 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
 
   const recordCondition = (event: SimulationEvent): void => {
     const name = canonicalTargetConditionName(event.condition);
-    const query = state.query!;
-    const stats = query.statsAt(event.at, event, state);
-    const durationMultiplier = event.fixedDuration
-      ? 1
-      : query.conditionDurationMultiplier(name, event.at, stats, event, state);
-    const baseDurationMultiplier = event.fixedDuration
-      ? 1
-      : (query.conditionBaseDurationMultiplier?.(name, event.at, event, state) ?? 1);
-    const duration = Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
+    const duration = conditionApplicationDuration(state.query!, name, event, state);
     const stacks = Math.max(0, Number(event.stacks || 0));
     if (!(duration > 0) || !(stacks > 0)) return;
     const entry = state.conditionState.get(name) || { stacks: [] };

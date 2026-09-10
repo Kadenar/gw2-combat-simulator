@@ -1,5 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { clamp } from '#gw2/platform/combat/numeric.js';
+import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   enqueueGw2OwnedComboFinisher,
   type EnqueueGw2OwnedComboFinisherOptions
@@ -195,15 +195,11 @@ export function recordTrait(
   context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }
 
-/** Counts permanent and timed boon applications at a timestamp, capped to the requested maximum. */
+/** Adapts resolver time and lowercase boon names to the shared permanent-plus-timed stack query. */
 export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
-  const normalized = String(kind || '').toLowerCase();
-  const permanent = context.config?.boons?.[normalized];
-  // config true = permanently 1 stack; numeric value = assumed stack count
-  const base = permanent === true ? 1 : Number(permanent || 0);
-  const applications = context.boons?.get(normalized) || [];
-  const dynamic = applications
-    .filter((application) => application.at <= at && application.expiresAt > at)
-    .reduce((sum, application) => sum + Number(application.stacks || 1), 0);
-  return clamp(base + dynamic, 0, maximum);
+  return queryActiveBoonStacks(
+    { config: context.config, runtime: context, time: at },
+    String(kind || '').toLowerCase(),
+    maximum
+  );
 }

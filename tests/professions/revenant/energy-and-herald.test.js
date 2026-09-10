@@ -819,7 +819,8 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
       config: { selectedTraitIds: [TRAIT.NOTORIETY], boons: { might: 0 } },
       time: 1,
       runtime: {
-        boons: new Map([['might', [{ at: 0, expiresAt: 10, stacks: 2 }]]])
+        // These Might stacks belong to the player, so Notoriety converts their attributes.
+        boons: new Map([['might', [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]])
       }
     },
     { power: 1060, conditionDamage: 1060 }

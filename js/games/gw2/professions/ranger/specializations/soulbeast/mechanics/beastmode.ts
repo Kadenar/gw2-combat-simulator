@@ -9,7 +9,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -230,7 +230,7 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.15,
     // Furious Strength requires the player to have Fury; pet fury does not count.
-    when: (context) => hasTrait(context, TRAIT.FURIOUS_STRENGTH) && activeBuff(context, 'fury')
+    when: (context) => hasTrait(context, TRAIT.FURIOUS_STRENGTH) && boonActive(context, 'fury')
   },
   {
     id: 'ranger.sic-em-player',

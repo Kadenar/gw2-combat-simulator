@@ -4,7 +4,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -12,8 +12,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import {
   revenantRuntimeCoreState,
-  revenantRuntimeSpecializationState,
-  revenantTimedBuff
+  revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/professions/revenant/core/traits/index.js';
@@ -110,8 +109,9 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
     amount: 0.25,
+    // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
     when: (context) =>
-      context.condition === 'Bleeding' && hasTrait(context, TRAIT.BLOOD_FURY) && revenantTimedBuff(context, 'fury')
+      context.condition === 'Bleeding' && hasTrait(context, TRAIT.BLOOD_FURY) && boonActive(context, 'fury')
   }
 ]);
 

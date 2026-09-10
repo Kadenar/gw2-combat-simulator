@@ -4,7 +4,7 @@ import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.j
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -44,12 +44,11 @@ function isOneHandedWeapon(weapon: string | undefined): boolean {
   );
 }
 
+/** Uses chronological self-boon queries while retaining Righteous Instincts' stacked Resolution window. */
 export function guardianBoonActive(context: Gw2ModifierContext, boon: string): boolean {
-  if (context.config?.boons?.[boon]) return true;
-  if (context.timeline?.timedActive(boon, context.time)) return true;
-  if (boon === 'resolution' && Number(guardianRuntimeState(context).resolutionUntil || 0) > context.time) return true;
-  return (context.runtime?.boons?.get(boon) || []).some(
-    (application) => application.at <= context.time && application.expiresAt > context.time
+  return (
+    boonActive(context, boon) ||
+    (boon === 'resolution' && Number(guardianRuntimeState(context).resolutionUntil || 0) > context.time)
   );
 }
 

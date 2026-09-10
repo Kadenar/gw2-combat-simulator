@@ -714,27 +714,25 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
     true
   );
 
-  const petBoonBaseline = simulate('Core', ['Call of the Wild', 'Intimidating Howl'], {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Warhorn',
-    selectedPet: 'Krytan Drakehound'
-  });
-  const petBountiful = simulate('Core', ['Call of the Wild', 'Intimidating Howl'], {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Warhorn',
-    selectedPet: 'Krytan Drakehound',
-    selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER]
-  });
   const petHit = (result) => result.resolvedEvents.find((event) => event.skillId === ID.INTIMIDATING_HOWL).damage;
-
-  assert.ok(
-    Math.abs(petHit(petBountiful) / petHit(petBoonBaseline) - 1.03) < 1e-9,
-    JSON.stringify({
-      baseline: petHit(petBoonBaseline),
-      bountiful: petHit(petBountiful),
-      ratio: petHit(petBountiful) / petHit(petBoonBaseline)
-    })
-  );
+  // Only received boons boost the pet: Call of the Wild is currently authored self-only, and party caps can exclude it.
+  for (const [skill, allies, expectedFactor] of [
+    ['Call of the Wild', 0, 1],
+    ['Sun Spirit', 2, 1.01],
+    ['Sun Spirit', 4, 1]
+  ]) {
+    const rotation = [skill, { type: 'wait', durationMs: 6000 }, 'Intimidating Howl'];
+    const config = {
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Warhorn',
+      selectedPet: 'Krytan Drakehound',
+      selectedSkills: ['Sun Spirit'],
+      allies: { count: allies }
+    };
+    const baseline = simulate('Core', rotation, config);
+    const bountiful = simulate('Core', rotation, { ...config, selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER] });
+    assert.ok(Math.abs(petHit(bountiful) / petHit(baseline) - expectedFactor) < 1e-9, `${skill}, ${allies} allies`);
+  }
 });
 
 test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', () => {
