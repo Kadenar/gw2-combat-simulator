@@ -211,18 +211,19 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
     .locator('tbody .optimizer-selected td')
     .first()
     .evaluate((cell) => getComputedStyle(cell).backgroundColor);
-  // Equipment icons replace slot labels, while upgrades stay attached to their actual armor or weapon.
+  // Visible slot labels and section headings keep the reference layout readable alongside equipment icons.
   const armor = preview.getByRole('region', { name: 'Armor', exact: true });
   await expect(armor.locator('.optimizer-preview-item-icon')).toHaveCount(6);
   await expect(armor.getByRole('group', { name: /^Helm:/ }).locator('.optimizer-preview-item-icon')).toHaveAttribute(
     'src',
     'https://render.guildwars2.com/file/AD7849A39265D6AA1C712ACD476E912E1EC30839/699210.png'
   );
-  await expect(armor.getByText('Helm', { exact: true })).toHaveCount(0);
+  await expect(armor.getByText('Helm', { exact: true })).toBeVisible();
+  await expect(armor.getByRole('heading', { name: 'Armor', exact: true })).toBeVisible();
   const secondSet = preview.getByRole('group', { name: 'Weapon set 2', exact: true });
   await expect(secondSet.locator('.optimizer-preview-item-icon')).toHaveCount(1);
   await expect(secondSet.locator('.optimizer-preview-upgrade')).toHaveCount(2);
-  await expect(preview.getByText('Weapon set 2', { exact: true })).toHaveCount(0);
+  await expect(secondSet.getByRole('heading', { name: 'Weapon set 2', exact: true })).toBeVisible();
   await expect(preview.locator('.optimizer-preview-portrait strong')).toHaveCount(0);
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
   await expect(preview.locator('.attr-row').filter({ hasText: /^Power/ })).toBeVisible();
@@ -234,6 +235,17 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect
     .poll(() => preview.locator('.optimizer-preview-portrait img').evaluate((image) => image.naturalWidth))
     .toBeGreaterThan(0);
+  // Desktop keeps artwork between the equipment and stats, with all six trinkets on one row.
+  const equipmentBounds = await preview.locator('.optimizer-preview-equipment').boundingBox();
+  const portraitBounds = await preview.locator('.optimizer-preview-portrait').boundingBox();
+  const detailsBounds = await preview.locator('.optimizer-preview-details').boundingBox();
+  expect(portraitBounds.x).toBeGreaterThanOrEqual(equipmentBounds.x + equipmentBounds.width);
+  expect(detailsBounds.x).toBeGreaterThanOrEqual(portraitBounds.x + portraitBounds.width);
+  expect(portraitBounds.height).toBeGreaterThan(600);
+  const trinketRows = await preview
+    .locator('.optimizer-preview-trinkets .optimizer-preview-item')
+    .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top));
+  expect(new Set(trinketRows).size).toBe(1);
   await preview.screenshot({ path: '.scratch/optimizer/character-desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);

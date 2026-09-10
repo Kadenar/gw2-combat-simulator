@@ -340,7 +340,8 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     await page.locator('.build-tab-new').focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('button', { name: 'New blank build' })).toBeFocused();
-    await page.locator('.gear-heading h3').click();
+    // Click a named heading outside the popover to exercise native dismissal across layouts.
+    await page.getByRole('heading', { name: 'Gear loadout', exact: true }).click();
     await expect(page.locator('#build-new-menu')).toBeHidden();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width + 1);
     const newButton = await page.locator('.build-tab-new').boundingBox();

@@ -269,15 +269,7 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 
   const existingMain = buildEditor.closest<HTMLElement>('.profession-main');
   if (existingMain?.parentElement) {
-    const layout = existingMain.parentElement;
-    let templateRegion = layout.querySelector<HTMLElement>(':scope > .build-templates-region');
-    if (!templateRegion) {
-      templateRegion = document.createElement('aside');
-      templateRegion.className = 'build-templates-region';
-      layout.insertBefore(templateRegion, existingMain);
-    }
-
-    templateRegion.append(container);
+    existingMain.parentElement.before(container);
     return;
   }
 
@@ -286,18 +278,18 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 
   const layout = document.createElement('div');
   layout.className = 'profession-layout';
-  const templateRegion = document.createElement('aside');
-  templateRegion.className = 'build-templates-region';
   const main = document.createElement('div');
   main.className = 'profession-main';
 
   // Move the complete build-and-rotation editor as one unit so it stays contiguous with template feedback above it.
   appRoot.insertBefore(layout, buildEditor);
-  layout.append(templateRegion, main);
-  templateRegion.append(container);
+  layout.append(main);
   while (layout.nextSibling) {
     main.append(layout.nextSibling);
   }
+
+  // The shared toolbar needs its picker, loading status and Undo outside regions hidden by tool navigation.
+  layout.before(container);
 }
 
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {

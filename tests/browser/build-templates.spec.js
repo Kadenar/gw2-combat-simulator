@@ -1,5 +1,47 @@
 import { expect, test } from '@playwright/test';
 
+// The shared toolbar must load templates without leaving a tool view or hiding its picker and feedback.
+test('templates load from the optimizer and Analysis toolbars', async ({ page }) => {
+  await page.route('**/data/gw2/builds/mesmer/manifest.json*', (route) =>
+    route.fulfill({
+      json: [
+        { section: 'Mirage', presets: [{ label: 'Power (Spear)', build: 'data/gw2/builds/mesmer/b-tool-test.json' }] }
+      ]
+    })
+  );
+  await page.route('**/data/gw2/builds/mesmer/b-tool-test.json*', async (route) => {
+    const build = await page.evaluate(() => window.professionApp.build);
+    await route.fulfill({ json: { ...build, targetArmor: 2400 } });
+  });
+  await page.goto('/mesmer.html#gear-optimizer');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const originalArmor = await page.evaluate(() => window.professionApp.build.targetArmor);
+  const dialog = page.getByRole('dialog', { name: 'Build templates', exact: true });
+  for (const view of ['Gear Optimizer', 'Analysis']) {
+    const tab = page.getByRole('link', { name: view, exact: true });
+    await tab.click();
+    await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+    await page.getByRole('button', { name: 'Load template…', exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await dialog.locator('.template-load-btn').click();
+    await expect(dialog).toBeHidden();
+    await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+    await expect(tab).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.template-toast')).toBeVisible();
+    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(originalArmor);
+    await page.locator('.build-tab-new').click();
+    await page.getByRole('button', { name: 'Browse templates…', exact: true }).click();
+    await expect(dialog).toBeVisible();
+    const previousCount = await page.locator('.build-tab').count();
+    await dialog.locator('.template-load-btn').click();
+    await expect(page.locator('.build-tab')).toHaveCount(previousCount + 1);
+    await expect(tab).toHaveAttribute('aria-current', 'page');
+    await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+    await page.locator('.build-tab').first().locator('[data-build-tab-action="select"]').click();
+  }
+});
+
 // Standalone layouts keep the editor full width and preserve catalog filters across viewport changes.
 test('standalone templates open only in a dialog at every viewport width', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

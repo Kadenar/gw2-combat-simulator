@@ -42,12 +42,13 @@ export function renderOptimizerPreview(
     label: string,
     value: string,
     icon?: string,
-    upgrades: readonly { label: string; value: string; icon?: string }[] = []
+    upgrades: readonly { label: string; value: string; icon?: string }[] = [],
+    showLabel = false
   ): string => {
     const description = `${label}: ${value || 'None'}${upgrades.map((upgrade) => `; ${upgrade.label}: ${upgrade.value || 'None'}`).join('')}`;
     return `<div class="optimizer-preview-item" role="group" aria-label="${escapeHtml(description)}" title="${escapeHtml(description)}" tabindex="0">
       ${icon ? `<img class="optimizer-preview-item-icon" src="${escapeHtml(icon)}" alt="" width="60" height="60" loading="lazy">` : ''}
-      <div><strong>${escapeHtml(value || 'None')}</strong>${upgrades
+      <div>${showLabel ? `<span class="optimizer-preview-slot">${escapeHtml(label)}</span>` : ''}<strong>${escapeHtml(value || 'None')}</strong>${upgrades
         .map(
           (upgrade) =>
             `<span class="optimizer-preview-upgrade">${upgrade.icon ? `<img src="${escapeHtml(upgrade.icon)}" alt="" width="16" height="16" loading="lazy">` : ''}${escapeHtml(upgrade.value || 'None')}</span>`
@@ -55,14 +56,18 @@ export function renderOptimizerPreview(
         .join('')}</div></div>`;
   };
 
-  // Keep section names available to assistive technology without repeating them above the gear.
-  const card = (title: string, items: string): string =>
-    `<section class="optimizer-preview-card" aria-label="${title}">${items}</section>`;
+  // Visible section and slot labels make the equipment readable around the central character artwork.
+  const card = (title: string, items: string, showHeading = true): string =>
+    `<section class="optimizer-preview-card" aria-label="${title}">${showHeading ? `<h4 class="optimizer-preview-section-title">${title}</h4>` : ''}${items}</section>`;
   const armor = ['Helm', 'Shoulders', 'Chest', 'Gloves', 'Leggins', 'Boots']
     .map((slot) =>
-      item(slot === 'Leggins' ? 'Leggings' : slot, build.gear[slot], ARMOR_ICONS[entry!.armorWeight][slot], [
-        { label: 'Rune', value: build.rune, icon: EQUIPMENT_ICONS[build.rune] }
-      ])
+      item(
+        slot === 'Leggins' ? 'Leggings' : slot,
+        build.gear[slot],
+        ARMOR_ICONS[entry!.armorWeight][slot],
+        [{ label: 'Rune', value: build.rune, icon: EQUIPMENT_ICONS[build.rune] }],
+        true
+      )
     )
     .join('');
   // Two-handed weapons hold both sigils; dual-wielded weapons each show their own upgrade.
@@ -71,7 +76,7 @@ export function renderOptimizerPreview(
       const names = set === 0 ? build.weapons : build.alternateWeapons;
       const prefixes = set === 0 ? [build.gear.Weapon1, build.gear.Weapon2] : build.alternateWeaponPrefixes;
       const twoHanded = app.weaponData[names[0]]?.wielding === '2h';
-      return `<div class="optimizer-preview-weapon-group" role="group" aria-label="Weapon set ${set + 1}">${names
+      return `<div class="optimizer-preview-weapon-group" role="group" aria-label="Weapon set ${set + 1}"><h5>Weapon set ${set + 1}</h5><div class="optimizer-preview-weapons">${names
         .flatMap((name, slot) =>
           !name || (slot === 1 && twoHanded)
             ? []
@@ -87,7 +92,7 @@ export function renderOptimizerPreview(
                 )
               ]
         )
-        .join('')}</div>`;
+        .join('')}</div></div>`;
     })
     .join('');
   const trinkets = ['Back', 'Accessory1', 'Accessory2', 'Amulet', 'Ring1', 'Ring2']
@@ -106,10 +111,10 @@ export function renderOptimizerPreview(
   container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>Result character</h3><span>Preview only</span></div><strong>${candidate.score.dps.toFixed(2)} DPS</strong></div>
     ${candidate.score.warnings.length ? `<p class="optimizer-preview-note" role="status">${candidate.score.warnings.map(escapeHtml).join('<br>')}</p>` : ''}
     <div class="optimizer-character">
-      <div class="optimizer-preview-equipment">${card('Armor', armor)}${card('Weapons', weapons)}</div>
+      <div class="optimizer-preview-equipment">${card('Armor', armor)}${card('Weapon sets', weapons)}</div>
       <div class="optimizer-preview-portrait">${artwork ? `<img src="${escapeHtml(artwork)}" alt="${escapeHtml(specialization)} artwork" width="600" height="600">` : ''}</div>
-      <div class="optimizer-preview-details">${card('Stats', `<label class="optimizer-preview-weapon-set"${sets.length < 2 ? ' hidden' : ''}>Weapon set <select aria-label="Preview weapon set">${sets.map((set) => `<option value="${set + 1}"${set + 1 === weaponSet ? ' selected' : ''}>${set + 1}</option>`).join('')}</select></label><div class="optimizer-preview-attributes"></div>`)}
-      ${card('Trinkets', `<div class="optimizer-preview-trinkets">${trinkets}</div>`)}${card('Upgrades &amp; consumables', upgrades)}${card('Infusions', infusions)}</div>
+      <div class="optimizer-preview-details">${card('Stats', `<label class="optimizer-preview-weapon-set"${sets.length < 2 ? ' hidden' : ''}>Weapon set <select aria-label="Preview weapon set">${sets.map((set) => `<option value="${set + 1}"${set + 1 === weaponSet ? ' selected' : ''}>${set + 1}</option>`).join('')}</select></label><div class="optimizer-preview-attributes"></div>`, false)}
+      ${card('Trinkets', `<div class="optimizer-preview-trinkets">${trinkets}</div>`)}${card('Consumables / upgrades', `<div class="optimizer-preview-consumables">${upgrades}</div>`)}${card('Infusions', `<div class="optimizer-preview-infusions">${infusions}</div>`)}</div>
     </div>`;
   renderAttributeStats(
     container.querySelector<HTMLElement>('.optimizer-preview-attributes')!,
