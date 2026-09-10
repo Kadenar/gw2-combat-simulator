@@ -152,15 +152,30 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
   height: 28px;
 }
 
-/* Fill the standard timeline viewport while keeping placeholder rows aligned at the top. */
-.rotation-skeleton {
-  min-height: 100%;
-  align-content: start;
+/* Retain the authored rows' layout so loading cannot collapse content-sized focus timelines. */
+.rotation-timeline:has(> .rotation-skeleton) {
+  position: relative;
+  overflow-y: hidden;
 }
 
-/* Template loading shares the analysis pulse, with placeholders sized for timeline rows. */
-.rotation-skeleton > div {
-  height: 44px;
+.rotation-timeline:has(> .rotation-skeleton) > :not(.rotation-skeleton),
+.rotation-timeline:has(> .rotation-skeleton) ~ .rotation-procs {
+  visibility: hidden;
+}
+
+/* Cover the full timeline, including layouts whose height comes from their content. */
+.rotation-skeleton {
+  position: absolute;
+  inset: 0;
+  align-content: start;
+  grid-auto-rows: var(--rotation-skeleton-row-height, auto);
+  gap: 4px;
+  padding: 4px 8px;
+  overflow: hidden;
+}
+
+.rotation-skeleton .rot-skill {
+  visibility: hidden;
 }
 
 .rotation-skeleton > div:nth-child(even) {
