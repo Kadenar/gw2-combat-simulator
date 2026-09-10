@@ -43,6 +43,31 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
   assert.deepEqual(profession.paletteGroups({}), []);
 });
 
+// Chained hooks receive the previous result even when an intermediate hook only observes it.
+test('event preparers and attribute modifiers preserve values through observing hooks', () => {
+  for (const [container, hook] of [
+    ['schedulerHooks', 'prepareEvent'],
+    ['attributeRules', 'modifyAttributes']
+  ]) {
+    const observed = [];
+    const profession = defineProfession({
+      id: 'chained',
+      name: 'Chained',
+      [container]: {
+        [hook]: [
+          (_context, value) => ({ ...value, power: value.power + 1 }),
+          (_context, value) => {
+            observed.push(value.power);
+          },
+          (_context, value) => ({ ...value, power: value.power * 2 })
+        ]
+      }
+    });
+    assert.deepEqual(profession[hook]({}, { power: 2 }), { power: 6 });
+    assert.deepEqual(observed, [3]);
+  }
+});
+
 test('profession contract supports zero or multiple resource views', () => {
   const none = defineProfession({
     id: 'resourceless',

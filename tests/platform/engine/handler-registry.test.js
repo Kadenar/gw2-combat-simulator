@@ -8,6 +8,5 @@ test('handler registry rejects duplicates and missing required handlers', () => 
 
   assert.equal(registry.dispatch({ type: 'observable' }, {}), undefined);
   assert.throws(() => registry.register('damage', () => {}), /Duplicate event handler/);
-  assert.throws(() => registry.require(['condition']), /Missing required/);
   assert.throws(() => registry.dispatch({ type: 'unknown' }, {}), /No event handler/);
 });

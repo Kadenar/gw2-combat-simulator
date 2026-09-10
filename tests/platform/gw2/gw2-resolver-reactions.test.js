@@ -48,6 +48,19 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
   assert.equal(registry.dispatch('blind.resolved', {}, { type: 'blind', at: 0 }), undefined);
 });
 
+// Generic buffs share the stage with boons but must not activate relic boon rules.
+test('relic boon reactions accept standard boons and ignore generic buffs', () => {
+  const seen = [];
+  const { reactions } = createGw2ResolverExtensions({ config: {} });
+  const context = { relic: { state: {}, rules: { boon: (_ctx, _state, event) => seen.push(event) } } };
+  const boon = { type: 'buff', at: 0, kind: 'might' };
+  const legacyBoon = { type: 'buff', at: 0, boon: 'fury' };
+  reactions.dispatch('buff.applied', context, { type: 'buff', at: 0, kind: 'generic-buff' });
+  reactions.dispatch('buff.applied', context, boon);
+  reactions.dispatch('buff.applied', context, legacyBoon);
+  assert.deepEqual(seen, [boon, legacyBoon]);
+});
+
 test('GW2 resolver registry rejects unknown stages and duplicate hook ids', () => {
   assert.throws(
     () => createGw2ResolverReactionRegistry({ professionReactions: { damage: () => {} } }),

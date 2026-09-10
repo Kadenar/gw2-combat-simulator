@@ -11,16 +11,8 @@ import {
   isResolverCriticalSigil,
   isSigilInternalCooldownReady
 } from '#gw2/platform/equipment/sigils/proc-events.js';
-import {
-  handleBoonRelics,
-  handleComboRelic,
-  handleConditionRelics,
-  handleControlRelics,
-  handlePeithaRelic,
-  handleRelicDamageResolved,
-  handleRelicsAfterHit,
-  handleWeaknessVulnerabilityRelic
-} from '#gw2/platform/resolver/relic-reactions.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
@@ -226,7 +218,9 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.combo',
         order: GW2_REACTION_ORDER.COMMON,
         // All successful combos reach the relic runtime so Steamshrieker can accept leaps as well as blasts.
-        handler: (ctx, event) => handleComboRelic(ctx, event)
+        handler(ctx, event) {
+          invokeRelicHook(ctx, 'combo', event);
+        }
       }
     ],
     'buff.applied': [
@@ -244,7 +238,10 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.boon',
         order: GW2_REACTION_ORDER.COMMON,
-        handler: (ctx, event) => handleBoonRelics(ctx, event)
+        handler(ctx, event) {
+          // Only standard boons trigger relic boon rules; generic buffs share this stage.
+          if (isStandardBoon(event.kind || event.boon)) invokeRelicHook(ctx, 'boon', event);
+        }
       }
     ],
     'damage.resolved': [
@@ -258,7 +255,9 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.damage-resolved',
         order: GW2_REACTION_ORDER.COMMON,
-        handler: (ctx, event) => handleRelicDamageResolved(ctx, event)
+        handler(ctx, event) {
+          invokeRelicHook(ctx, 'damageResolved', event);
+        }
       },
       {
         id: 'food.critical-strike',
@@ -270,7 +269,9 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.after-hit',
         order: GW2_REACTION_ORDER.FINAL_COMMON,
-        handler: (ctx, event) => handleRelicsAfterHit(ctx, event, skillForEvent(ctx.helpers, event))
+        handler(ctx, event) {
+          invokeRelicHook(ctx, 'afterHit', event, skillForEvent(ctx.helpers, event));
+        }
       }
     ],
     'condition.applied': [
@@ -278,7 +279,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.condition',
         order: GW2_REACTION_ORDER.LATE_COMMON,
         handler(ctx, application, details = {}) {
-          handleConditionRelics(ctx, application, conditionHelpers(ctx, details));
+          invokeRelicHook(ctx, 'condition', application, conditionHelpers(ctx, details));
         }
       }
     ],
@@ -287,7 +288,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.control',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details = {}) {
-          handleControlRelics(ctx, event, conditionHelpers(ctx, details));
+          invokeRelicHook(ctx, 'control', event, conditionHelpers(ctx, details));
         }
       }
     ],
@@ -296,7 +297,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.peitha',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details = {}) {
-          handlePeithaRelic(ctx, event, conditionHelpers(ctx, details).applyCondition);
+          invokeRelicHook(ctx, 'peitha', event, conditionHelpers(ctx, details).applyCondition);
         }
       }
     ],
@@ -304,7 +305,9 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.weakness-vulnerability',
         order: GW2_REACTION_ORDER.COMMON,
-        handler: (ctx, event) => handleWeaknessVulnerabilityRelic(ctx, event)
+        handler(ctx, event) {
+          invokeRelicHook(ctx, 'weaknessVulnerability', event);
+        }
       }
     ]
   });

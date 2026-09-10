@@ -1,8 +1,8 @@
 /**
  * Registry for resolver event handlers. Keeps event-type ownership explicit and
  * rejects duplicate registrations so shared GW2 handlers and profession handlers
- * cannot silently shadow each other, and verifies required types are present
- * before resolution dispatches events.
+ * cannot silently shadow each other. Dispatch rejects missing handlers so
+ * required events cannot be silently lost.
  */
 export type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
 
@@ -50,19 +50,6 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
    */
   has(type: string): boolean {
     return this.#handlers.has(type);
-  }
-
-  /**
-   * Verifies that every listed type is registered before resolution begins.
-   */
-  require(types: Iterable<string>): this {
-    for (const type of types || []) {
-      if (!this.has(type)) {
-        throw new Error(`Missing required event handler: ${type}`);
-      }
-    }
-
-    return this;
   }
 
   /**

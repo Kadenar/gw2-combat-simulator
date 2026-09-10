@@ -3,6 +3,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
@@ -17,7 +18,6 @@ import type { MaterializerProfessionState, MaterializerState } from '#gw2/platfo
 export type SigilTrigger = 'crit' | 'swap' | 'control' | 'strike';
 
 export interface SigilCapabilities {
-  readonly anyProc: boolean;
   readonly critical: boolean;
   readonly swap: boolean;
   readonly strike: boolean;
@@ -39,45 +39,13 @@ interface SigilEffectContext {
 
 type SigilEffectHandler = (effect: SigilEffectContext) => void;
 
-interface SigilTriggerRule {
-  weaponSet(event: SimulationEvent, state: MaterializerState): number;
-  sourceSkill(event: SimulationEvent): string;
-}
-
 const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
-
-const TRIGGER_RULES: Readonly<Record<SigilTrigger, SigilTriggerRule>> = Object.freeze({
-  crit: {
-    weaponSet: (_event, state) => state.activeWeaponSet,
-    sourceSkill: (event) => event.skillName || ''
-  },
-  swap: {
-    // Swap effects belong to the set that becomes active. A synthetic
-    // sigil_swap can state its set without mutating the observed state.
-    weaponSet: (event, state) =>
-      Number(event.weaponSet) === 2 ? 2 : Number(event.weaponSet) === 1 ? 1 : state.activeWeaponSet,
-    sourceSkill: (event) => event.skillName || 'Swap Weapons'
-  },
-  control: {
-    weaponSet: (_event, state) => state.activeWeaponSet,
-    sourceSkill: (event) => event.skillName || ''
-  },
-  strike: {
-    weaponSet: (_event, state) => state.activeWeaponSet,
-    sourceSkill: (event) => event.skillName || ''
-  }
-});
-
-function activeSigilNames(config: Gw2Config, weaponSet: number): readonly string[] {
-  return config.sigilSets?.[Math.max(1, weaponSet) - 1]?.names || [];
-}
 
 export function sigilCapabilities(config: Gw2Config): SigilCapabilities {
   const names = new Set(
     (config.sigilSets || []).flatMap((set) => set?.names || []).filter((name) => SIGIL_PROC_LOOKUP[name])
   );
   return Object.freeze({
-    anyProc: names.size > 0,
     critical: [...names].some((name) => SIGIL_PROC_LOOKUP[name].trigger === 'crit'),
     swap: [...names].some((name) => SIGIL_PROC_LOOKUP[name].trigger === 'swap'),
     strike: [...names].some((name) => SIGIL_PROC_LOOKUP[name].trigger === 'strike')
@@ -203,11 +171,13 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
 
   return Object.freeze({
     materialize(trigger: SigilTrigger, context: SchedulerContext, event: SimulationEvent, cause = event) {
-      const rule = TRIGGER_RULES[trigger];
-      const weaponSet = rule.weaponSet(event, state);
-      const sourceSkill = rule.sourceSkill(event);
+      // Synthetic swaps may name a destination without changing the active set; other triggers use live state.
+      const destination = Number(event.weaponSet);
+      const weaponSet =
+        trigger === 'swap' && (destination === 1 || destination === 2) ? destination : state.activeWeaponSet;
+      const sourceSkill = event.skillName || (trigger === 'swap' ? 'Swap Weapons' : '');
 
-      for (const name of activeSigilNames(config, weaponSet)) {
+      for (const name of gw2SigilSet(config, weaponSet).names || []) {
         const proc = SIGIL_PROC_LOOKUP[name];
         if (proc?.trigger !== trigger || !sigilReady(name, event.at)) continue;
         armSigil(name, event.at, proc.cooldown);

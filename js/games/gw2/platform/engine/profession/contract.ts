@@ -169,15 +169,8 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
     };
   }
 
-  if (hookName === 'prepareEvent') {
-    return (context: SchedulerRecord, initialValue: unknown) =>
-      hooks.reduce((chainedValue: unknown, hook) => {
-        const next = hook.handler(context, chainedValue);
-        return next === undefined ? chainedValue : next;
-      }, initialValue);
-  }
-
-  if (hookName.startsWith('modify')) {
+  // Preparers and modifiers pass each result onward, preserving the current value when a hook returns undefined.
+  if (hookName === 'prepareEvent' || hookName.startsWith('modify')) {
     return (context: SchedulerRecord, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);

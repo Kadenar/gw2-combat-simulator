@@ -25,7 +25,6 @@ export function createGw2ResolverRuntimeState({
   queue,
   professionState = {},
   warnings = [],
-  eventFilterState = {},
   applyCondition,
   createEquipmentState,
   reactions
@@ -40,7 +39,6 @@ export function createGw2ResolverRuntimeState({
     helpers,
     queue,
     warnings,
-    eventFilterState,
     breakdown: new Map(),
     conditions: new Map(),
     environmentDamage: 0,

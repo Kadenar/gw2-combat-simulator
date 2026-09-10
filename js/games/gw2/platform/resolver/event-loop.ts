@@ -15,10 +15,6 @@ interface CreateGw2ResolverHandlerRegistryOptions {
   readonly professionHandlers?: Gw2ResolverEventHandlers;
 }
 
-interface RunGw2ResolverEventLoopOptions {
-  readonly shouldSkipEvent?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => boolean;
-}
-
 const HOSTILE_TARGET_EVENT_TYPES = new Set([
   'damage',
   'condition',
@@ -86,15 +82,10 @@ function combatActivationKey(event: Gw2ResolverEvent): string | null {
 }
 
 /**
- * Drains a GW2 resolver queue. Professions may filter their own actor events,
- * but time ordering, encounter bounds, combat start, target death, and handler
- * dispatch remain common.
+ * Drains a GW2 resolver queue with shared time ordering, target eligibility,
+ * encounter bounds, combat start, target death, and handler dispatch.
  */
-export function runGw2ResolverEventLoop(
-  ctx: Gw2ResolverRuntime,
-  handlerRegistry: Gw2ResolverHandlerRegistry,
-  { shouldSkipEvent = () => false }: RunGw2ResolverEventLoopOptions = {}
-): void {
+export function runGw2ResolverEventLoop(ctx: Gw2ResolverRuntime, handlerRegistry: Gw2ResolverHandlerRegistry): void {
   if (!handlerRegistry) {
     throw new TypeError('GW2 resolver event loop requires a handler registry.');
   }
@@ -122,7 +113,7 @@ export function runGw2ResolverEventLoop(
         continue;
     }
 
-    if (missesTarget(event) || shouldSkipEvent(ctx, event)) continue;
+    if (missesTarget(event)) continue;
     if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON && isCombatGatedEvent(event)) continue;
 
     if (handlerRegistry.has(event.type)) {

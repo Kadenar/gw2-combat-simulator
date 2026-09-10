@@ -5,8 +5,11 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
-import { createRelicRuntime, createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { handleWeaknessVulnerabilityRelic } from '#gw2/platform/resolver/relic-reactions.js';
+import {
+  createRelicRuntime,
+  createRelicTimelineRuntime,
+  invokeRelicHook
+} from '#gw2/platform/equipment/relics/runtime.js';
 import { materializeBoonRelics } from '#gw2/platform/scheduler/relic-materializer.js';
 import {
   relicConditionDurationBonus,
@@ -576,7 +579,7 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
   const context = { relic };
   const trigger = (at) =>
-    handleWeaknessVulnerabilityRelic(context, {
+    invokeRelicHook(context, 'weaknessVulnerability', {
       type: 'weakness_vulnerability',
       at,
       skillName: `Trigger ${at}`

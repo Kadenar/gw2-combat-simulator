@@ -24,8 +24,7 @@ interface CreateGw2TriggerMaterializerOptions {
   readonly traits?: ReadonlySet<string | number> | null;
 }
 
-type MaterializerCapability =
-  'combatTracking' | 'buffFacts' | 'criticalFacts' | 'procSigils' | 'relicTriggers' | 'swapSigils' | 'weaponFacts';
+type MaterializerCapability = 'combatTracking' | 'buffFacts' | 'relicTriggers' | 'swapSigils' | 'weaponFacts';
 
 // This is the single source of truth for which canonical event types the
 // materializer observes and why each one matters.
@@ -63,8 +62,6 @@ export function createGw2TriggerMaterializer(
   const capabilityEnabled: Readonly<Record<MaterializerCapability, () => boolean>> = Object.freeze({
     combatTracking: () => true,
     buffFacts: () => state.criticalFactsRequired || typeof state.relic.rules.materializeBoon === 'function',
-    criticalFacts: () => state.criticalFactsRequired,
-    procSigils: () => sigilSupport.anyProc,
     relicTriggers: () => typeof state.relic.rules.weaknessVulnerability === 'function',
     swapSigils: () => sigilSupport.swap,
     weaponFacts: () => true

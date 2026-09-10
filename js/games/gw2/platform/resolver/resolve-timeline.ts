@@ -159,9 +159,7 @@ export function resolveGw2Timeline({
   beforeResolveTimeline,
   initializeEnvironment,
   professionHandlers = {},
-  professionState = {},
-  eventFilterState = {},
-  shouldSkipEvent
+  professionState = {}
 }: ResolveGw2TimelineOptions): Gw2ResolverResult | Gw2SimulationScore {
   if (typeof createRuntimeState !== 'function') {
     throw new TypeError('GW2 timeline resolver requires createRuntimeState.');
@@ -182,7 +180,6 @@ export function resolveGw2Timeline({
     helpers,
     queue,
     professionState,
-    eventFilterState,
     warnings: [...(handoff.warnings || [])],
     reactions
   });
@@ -213,7 +210,7 @@ export function resolveGw2Timeline({
     commonHandlers,
     professionHandlers
   });
-  runGw2ResolverEventLoop(ctx, registry, { shouldSkipEvent });
+  runGw2ResolverEventLoop(ctx, registry);
 
   const resolvedAt = onPhase ? performance.now() : 0;
   onPhase?.('resolution', resolvedAt - started);

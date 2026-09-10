@@ -191,7 +191,6 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
   helpers: Gw2ResolverHelpers;
   queue: Gw2EventQueue;
   warnings: string[];
-  eventFilterState: object;
   breakdown: Map<string, Gw2DamageBreakdownEntry>;
   conditions: Map<string, Gw2ConditionBreakdownEntry>;
   environmentDamage: number;
@@ -402,8 +401,6 @@ export interface ResolveGw2TimelineOptions {
   readonly initializeEnvironment: Gw2ConditionResolution['initializeEnvironment'];
   readonly professionHandlers?: Gw2ResolverEventHandlers;
   readonly professionState?: object;
-  readonly eventFilterState?: object;
-  readonly shouldSkipEvent?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => boolean;
 }
 
 export interface CreateGw2ResolverRuntimeStateOptions {
@@ -416,7 +413,6 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly queue: Gw2EventQueue;
   readonly professionState?: object;
   readonly warnings?: string[];
-  readonly eventFilterState?: object;
   readonly applyCondition: Gw2ConditionResolution['applyCondition'];
   readonly createEquipmentState: Gw2ResolverExtensions['createEquipmentState'];
   readonly reactions?: Gw2ResolverReactionRegistry;
