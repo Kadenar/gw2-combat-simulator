@@ -607,7 +607,9 @@
   outline: none;
 }
 
-.template-toast {
+/* Template progress stays visible beside the existing editor feedback after the picker closes. */
+.template-toast,
+.template-load-status {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -617,7 +619,8 @@
   font-size: 0.72rem;
 }
 
-.template-toast[hidden] {
+.template-toast[hidden],
+.template-load-status[hidden] {
   display: none;
 }
 

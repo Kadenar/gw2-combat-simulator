@@ -138,6 +138,40 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   element.ondragover = null;
   element.ondragleave = null;
   element.ondrop = null;
+  if (!readOnly && options.root === undefined) {
+    const loading = app.templateRotationLoading;
+    // Only template requests replace the timeline with a skeleton; edits invalidate their revision.
+    if (
+      loading?.revision === app.buildRevision &&
+      (loading.fetching || app.simulationStatus === 'queued' || app.simulationStatus === 'running')
+    ) {
+      element.setAttribute('aria-busy', 'true');
+      // An overlay hides existing rows without changing content-sized timeline geometry.
+      element.scrollTop = 0;
+      if (!element.querySelector(':scope > .rotation-skeleton')) {
+        element.insertAdjacentHTML(
+          'beforeend',
+          `<div class="rotation-skeleton" role="status" aria-label="Loading template rotation">
+            <div class="rot-row-line" aria-hidden="true"><div class="rot-row-skills">
+              <div class="rot-skill"><img alt=""><span class="rot-time">0.000s</span></div>
+            </div></div>
+          </div>`
+        );
+        // Match an existing row, or measure a native skill row when loading into an empty builder.
+        const skeleton = element.querySelector<HTMLElement>(':scope > .rotation-skeleton')!;
+        const row = element.querySelector(':scope > .rot-row .rot-row-line') || skeleton.firstElementChild!;
+        const rowHeight = row.getBoundingClientRect().height;
+        skeleton.style.setProperty('--rotation-skeleton-row-height', `${rowHeight}px`);
+        skeleton.innerHTML = '<div aria-hidden="true"></div>'.repeat(Math.ceil(element.clientHeight / rowHeight));
+      }
+
+      return;
+    }
+
+    delete app.templateRotationLoading;
+    element.querySelector(':scope > .rotation-skeleton')?.remove();
+  }
+
   if (!rotation.length) {
     if (!readOnly) app.rotationSkillHighlightKey = null;
     element.classList.add('is-empty');

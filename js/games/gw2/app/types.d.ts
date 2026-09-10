@@ -91,6 +91,8 @@ export interface ProfessionAppState {
   rotationComparison: RotationComparisonState | null;
   simulationStatus: 'idle' | 'queued' | 'running' | 'error';
   simulationError: string;
+  /** Template-only progress is scoped to a revision so ordinary rotation edits dismiss it. */
+  templateRotationLoading?: { revision: number; fetching: boolean };
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex?: number | null;
   procVisibility?: Set<string>;

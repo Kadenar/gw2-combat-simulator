@@ -213,6 +213,10 @@ test('tab dropdown exposes its actions and supports keyboard dismissal', async (
 
 // Loading from a tab replaces that destination while New continues to create independent builds.
 test('tab menu loads a template into the chosen tab and resets only that build', async ({ page }) => {
+  let releaseBuild;
+  const buildReady = new Promise((resolve) => {
+    releaseBuild = resolve;
+  });
   await page.route('**/data/gw2/builds/mesmer/manifest.json*', (route) =>
     route.fulfill({
       json: [
@@ -221,6 +225,7 @@ test('tab menu loads a template into the chosen tab and resets only that build',
     })
   );
   await page.route('**/data/gw2/builds/mesmer/b-menu-test.json*', async (route) => {
+    await buildReady;
     const build = await page.evaluate(() => window.professionApp.build);
     await route.fulfill({ json: { ...build, targetArmor: 2400 } });
   });
@@ -236,6 +241,16 @@ test('tab menu loads a template into the chosen tab and resets only that build',
   await expect(dialog).toBeVisible();
   await dialog.locator('.template-load-btn').click();
   await expect(dialog).toBeHidden();
+  // Hold the download to verify that dismissal and progress do not wait for the assets.
+  await expect(page.locator('.template-load-status')).toContainText('Loading Mirage · Power (Spear)');
+  await expect(page.locator('#rotation-timeline .rotation-skeleton')).toBeVisible();
+  await expect(page.locator('#rotation-timeline .rot-skill:visible')).toHaveCount(0);
+  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(initialArmor);
+  await expect(originalTrigger).toBeFocused();
+  releaseBuild();
+  await expect(page.locator('.template-load-status')).toBeHidden();
+  await settled(page);
+  await expect(page.locator('#rotation-timeline .rotation-skeleton')).toHaveCount(0);
   await expect(page.locator('.build-tab')).toHaveCount(2);
   await expect(originalTrigger).toBeFocused();
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
@@ -247,6 +262,44 @@ test('tab menu loads a template into the chosen tab and resets only that build',
   await expect(originalTrigger).toBeFocused();
   expect(await page.evaluate(() => window.professionApp.workspace.activeTabId)).toBe(originalId);
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(initialArmor);
+});
+
+// A failed background download leaves the current build intact and allows the same template to be retried.
+test('failed template loading clears progress and re-enables the picker', async ({ page }) => {
+  let releaseBuild;
+  const buildReady = new Promise((resolve) => {
+    releaseBuild = resolve;
+  });
+  await page.route('**/data/gw2/builds/mesmer/b-*.json*', async (route) => {
+    await buildReady;
+    await route.fulfill({ status: 503, body: 'Unavailable' });
+  });
+  await openWorkspace(page);
+  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+  await settled(page);
+  const originalBuild = await page.evaluate(() => window.professionApp.build);
+  await page.locator('.build-tab-new').click();
+  await page.getByRole('button', { name: /Browse templates/ }).click();
+  const picker = page.locator('#build-templates-dialog');
+  await picker.locator('.template-load-btn').first().click();
+  await expect(picker).toBeHidden();
+  await expect(page.locator('.template-load-status')).toBeVisible();
+  await expect(page.locator('#rotation-timeline .rotation-skeleton')).toBeVisible();
+  await expect(page.locator('#rotation-timeline .rot-skill:visible')).toHaveCount(0);
+  await page.locator('.build-tab-new').click();
+  await page.getByRole('button', { name: /Browse templates/ }).click();
+  await expect(picker.locator('.template-load-btn').first()).toBeDisabled();
+  const failure = page.waitForEvent('dialog');
+  releaseBuild();
+  const alert = await failure;
+  expect(alert.message()).toContain('Failed to load');
+  await alert.accept();
+  await expect(page.locator('.template-load-status')).toBeHidden();
+  await expect(picker.locator('.template-load-btn').first()).toBeEnabled();
+  await expect(page.locator('#rotation-timeline .rotation-skeleton')).toHaveCount(0);
+  await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
+  expect(await page.evaluate(() => window.professionApp.build)).toEqual(originalBuild);
+  await expect(page.locator('.build-tab')).toHaveCount(1);
 });
 
 // Both responsive layouts keep all actions reachable without widening the iframe.

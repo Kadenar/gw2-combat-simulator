@@ -112,17 +112,10 @@ export function getBuildExportPayload(build: Gw2ApplicationBuild): Omit<Gw2Appli
  * }>} Loaded build data and any valid rotation items.
  */
 export async function loadPresetBundle(preset: BuildTemplatePreset): Promise<PresetBundle> {
-  const buildData = await fetchJsonAsset(preset.build);
-  let rotationItems: unknown[] | undefined;
-  if (preset.rotation) {
-    const rotationData = await fetchJsonAsset(preset.rotation, {
-      optional: true
-    });
-    const items = getRotationItems(rotationData);
-    if (Array.isArray(items)) {
-      rotationItems = items;
-    }
-  }
-
-  return { buildData, rotationItems };
+  // The independent assets can download together instead of adding two network round trips to a template load.
+  const [buildData, rotationData] = await Promise.all([
+    fetchJsonAsset(preset.build),
+    preset.rotation ? fetchJsonAsset(preset.rotation, { optional: true }) : undefined
+  ]);
+  return { buildData, rotationItems: getRotationItems(rotationData) };
 }

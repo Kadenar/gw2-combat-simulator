@@ -68,6 +68,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   rotationComparison: ProfessionAppState['rotationComparison'];
   simulationStatus: ProfessionAppState['simulationStatus'];
   simulationError: string;
+  templateRotationLoading?: ProfessionAppState['templateRotationLoading'];
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex: number | null;
   overlaySigilProcs: boolean;
@@ -162,6 +163,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
 
   async init(): Promise<void> {
     await this.adapter.capabilities.patchPreview?.mount(this);
+    this.baselineSimulationRunner.warmup();
     bindPageControls(this);
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
       // Leaving the optimizer gives the next view priority; entering it preserves an active search.
@@ -208,7 +210,9 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     // together; otherwise every edit briefly collapses result-derived timeline rows and causes visible flicker.
     // Empty rotations have no resolved rows to preserve; clear them before a cold worker finishes loading.
     const deferRotationRender =
-      this.build.rotation.length > 0 && (!rebuildStatic || options.deferRotationRender === true);
+      this.build.rotation.length > 0 &&
+      !this.templateRotationLoading &&
+      (!rebuildStatic || options.deferRotationRender === true);
     if (deferRotationRender) {
       this.deferredRotationRenderRevision = revision;
       renderRotationComparison(this);
@@ -226,6 +230,10 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.adapter.recalculate(this);
     this.buildRevision += 1;
     this.gearOptimizerRunner?.cancel();
+    // Prior-result analysis must release CPU and discard callbacks as soon as the build changes.
+    this.randomDistributionRunner?.cancel?.();
+    this.modifierContributionRunner?.cancel?.();
+    this.relicComparisonRunner?.cancel?.();
     this.simulationStatus = 'queued';
     this.simulationError = '';
     saveBuildWorkspace(this);
@@ -280,7 +288,9 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
 
   failBaselineSimulation(error: unknown, revision: number): void {
     if (revision !== this.buildRevision) return;
-    const renderDeferredRotation = this.deferredRotationRenderRevision === revision;
+    // Failed template simulations must also replace their loading placeholder with the authored rotation.
+    const renderDeferredRotation =
+      this.deferredRotationRenderRevision === revision || this.templateRotationLoading?.revision === revision;
     if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
     this.simulationStatus = 'error';
     this.simulationError = error instanceof Error ? error.message : String(error || 'Simulation failed.');

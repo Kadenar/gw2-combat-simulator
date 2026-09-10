@@ -13,6 +13,7 @@ import {
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.js';
+import { loadPresetBundle } from '#gw2/app/build/io/files.js';
 
 function createApp() {
   return {
@@ -125,6 +126,25 @@ test('template sidebar renders outside the contiguous simulator editor', () => {
   assert.doesNotMatch(source, /simulationWorkspace/);
   assert.match(template, /<section class="build-editor panel">[\s\S]*\n {8}<div class="simulation-workspace">/);
   assert.doesNotMatch(template, /\n {6}<div class="simulation-workspace">/);
+});
+
+// Independent template assets must start together even when the build download has not completed.
+test('template bundles fetch build and rotation concurrently', async (t) => {
+  let releaseBuild;
+  const buildReady = new Promise((resolve) => {
+    releaseBuild = resolve;
+  });
+  const requested = [];
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    const path = String(url).split('?')[0];
+    requested.push(path);
+    if (path === 'build.json') await buildReady;
+    return { ok: true, json: async () => (path === 'build.json' ? { profession: 'mesmer' } : { rotation: [] }) };
+  });
+  const loading = loadPresetBundle({ build: 'build.json', rotation: 'rotation.json' });
+  assert.deepEqual(requested, ['build.json', 'rotation.json']);
+  releaseBuild();
+  assert.deepEqual(await loading, { buildData: { profession: 'mesmer' }, rotationItems: [] });
 });
 
 test('template actions load paired or partial state and support undo', async (t) => {

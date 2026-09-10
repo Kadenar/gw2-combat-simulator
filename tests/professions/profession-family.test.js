@@ -1100,7 +1100,7 @@ const revenantSpecializationStateKeys = Object.freeze({
     'bloodFuryReadyAt',
     'soulcleaveReadyAt'
   ],
-  Vindicator: [ 'reaversCurseUntil', 'forerunnerOfDeathUntil'],
+  Vindicator: ['reaversCurseUntil', 'forerunnerOfDeathUntil'],
   Conduit: [
     'affinity',
     'cosmicWisdomUntil',

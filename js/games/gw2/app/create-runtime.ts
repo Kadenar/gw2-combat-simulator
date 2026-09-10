@@ -9,6 +9,7 @@ import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison/r
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline-simulation.js';
 import type { ObservationPolicy, RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -244,29 +245,7 @@ export function createProfessionRuntime({
 
   /** Runs a serialized baseline job without depending on browser application state. */
   function calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput {
-    const { rotation, referenceRotation, baseConfig, selectedPatchId, previewPatchId } = request;
-    if (!previewPatchId) {
-      return {
-        result: simulateBuild(rotation, baseConfig),
-        patchComparison: null,
-        ...(referenceRotation ? { referenceResult: simulateBuild(referenceRotation, baseConfig) } : null)
-      };
-    }
-
-    const configForPatch = (patchId: string): Gw2Config => ({
-      ...baseConfig,
-      patchId
-    });
-    const current = simulateBuild(rotation, configForPatch('current'));
-    const preview = simulateBuild(rotation, configForPatch(previewPatchId));
-    return {
-      result: selectedPatchId === previewPatchId ? preview : current,
-      patchComparison: { patchId: previewPatchId, current, preview },
-      // Reference uses only the selected patch; patch comparison remains a Current-only analysis.
-      ...(referenceRotation
-        ? { referenceResult: simulateBuild(referenceRotation, configForPatch(selectedPatchId)) }
-        : null)
-    };
+    return calculateBaseline(request, profession);
   }
 
   function runSimulation(app: ProfessionAppState): Gw2SimulationResult {

@@ -33,13 +33,35 @@ export class BaselineSimulationRunner {
     this.requestId = 0;
   }
 
+  /** Load the selected profession while the page is opening, before a template click needs its first result. */
+  warmup(): void {
+    if (this.worker || typeof Worker !== 'function') return;
+    let worker: Worker | null = null;
+    try {
+      worker = this.createWorker();
+      worker.postMessage({
+        requestId: 0,
+        revision: -1,
+        warmup: true,
+        request: { gameId: this.app.gameId, contentId: this.app.contentId }
+      });
+    } catch {
+      // Warmup is optional; an actual simulation retries construction through the normal error path.
+      worker?.terminate();
+      this.worker = null;
+    }
+  }
+
   /** Coalesces rapid edits and keeps at most one expensive worker job in flight. */
   schedule(revision: number): void {
+    const request = this.app.adapter.baselineSimulationRequest(this.app);
+    // Clearing abandons the old rotation; subsequent skills must not queue behind its simulation or cold load.
+    if (this.inFlight && request.rotation.length === 0) this.cancel();
     const requestId = ++this.requestId;
     this.pending = {
       requestId,
       revision,
-      request: this.app.adapter.baselineSimulationRequest(this.app)
+      request
     };
     this.app.simulationStatus = 'queued';
     this.app.simulationError = '';
@@ -50,15 +72,18 @@ export class BaselineSimulationRunner {
     }, BASELINE_DEBOUNCE_MS);
   }
 
-  /** A tab switch invalidates even fallback callbacks and frees the worker for the incoming build. */
+  /** Cancel active work, retaining an idle worker so changing templates does not reload the same engine. */
   cancel(): void {
     this.requestId += 1;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
     this.pending = null;
+    if (this.inFlight) {
+      this.worker?.terminate();
+      this.worker = null;
+    }
+
     this.inFlight = null;
-    this.worker?.terminate();
-    this.worker = null;
   }
 
   private startPending(): void {
@@ -102,11 +127,14 @@ export class BaselineSimulationRunner {
   private createWorker(): Worker {
     const worker = new Worker(new URL('./baseline-simulation-worker.js', import.meta.url), { type: 'module' });
     worker.addEventListener('message', (event: MessageEvent<BaselineWorkerMessage>) => {
+      if (this.worker !== worker) return;
       const job = this.inFlight;
       if (!job || event.data.requestId !== job.requestId) return;
       this.finish(job, event.data);
     });
     worker.addEventListener('error', (event) => {
+      // Queued events from an abandoned worker cannot fail the replacement job.
+      if (this.worker !== worker) return;
       const job = this.inFlight;
       worker.terminate();
       if (this.worker === worker) this.worker = null;

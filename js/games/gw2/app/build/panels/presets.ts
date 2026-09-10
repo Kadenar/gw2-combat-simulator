@@ -9,6 +9,7 @@ import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 import { addBuildTab, captureBuildDestination, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
+import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
 type TemplateLoadAction = 'build' | 'rotation' | 'template' | 'new-tab';
 type TemplateCategory = 'power' | 'condi' | 'other';
@@ -375,7 +376,11 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       close.autofocus = true;
       container.querySelector('.build-templates-header')!.append(close);
       dialog.append(panel);
-      container.append(dialog, toast);
+      const loading = document.createElement('div');
+      loading.className = 'template-load-status';
+      loading.setAttribute('role', 'status');
+      loading.hidden = true;
+      container.append(dialog, toast, loading);
       close.dataset.dialogClose = '';
       bindDialog(dialog);
       dialog.addEventListener('close', () => {
@@ -464,12 +469,26 @@ export async function loadTemplateAction(
   action: TemplateLoadAction,
   button: HTMLButtonElement
 ): Promise<void> {
-  const originalContent = button.innerHTML;
+  const container = app.templateContainer;
+  const loading = container?.querySelector<HTMLElement>('.template-load-status');
+  if (loading && !loading.hidden) return;
   const previousBuild = structuredClone(app.build);
   const validateDestination = captureBuildDestination(app);
   const patchId = app.patchId;
-  button.disabled = true;
-  button.textContent = 'Loading…';
+  const buttons = container?.querySelectorAll<HTMLButtonElement>('button[data-template-index]') || [button];
+  // A selection dismisses the picker immediately; progress stays in the editor while assets load.
+  for (const control of buttons) control.disabled = true;
+  if (loading) {
+    loading.textContent = `Loading ${[preset.section, preset.label].filter(Boolean).join(' · ')}…`;
+    loading.hidden = false;
+  }
+
+  container?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
+  const focusTarget = typeof document === 'undefined' ? null : document.activeElement;
+  // Keep the old rotation out of view through both asset loading and the template's first simulation.
+  const rotationLoading = { revision: app.buildRevision, fetching: true };
+  app.templateRotationLoading = rotationLoading;
+  if (container) renderTimeline(app);
   try {
     const name = [preset.section, preset.label, templateTileContent(preset).weapons].filter(Boolean).join(' · ');
     if (action === 'rotation') {
@@ -519,6 +538,11 @@ export async function loadTemplateAction(
       updateTemplateSelection(app);
     }
 
+    rotationLoading.revision = app.buildRevision;
+    rotationLoading.fetching = false;
+    app.templateRotationLoading = rotationLoading;
+    if (container) renderTimeline(app);
+
     // Successful build loads use the same template name as new tabs; rotation-only loads retain the build's name.
     if (action === 'build' || action === 'template') {
       const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
@@ -528,13 +552,23 @@ export async function loadTemplateAction(
     if (action !== 'new-tab') showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
     saveBuildWorkspace(app);
     renderBuildTabs(app);
-    app.templateContainer?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
   } catch (error) {
+    if (app.templateRotationLoading === rotationLoading) {
+      delete app.templateRotationLoading;
+      if (container) renderTimeline(app);
+    }
+
     const message = error instanceof Error ? error.message : String(error);
     alert(`Failed to load ${actionLabel(action)}: ${message}`);
   } finally {
-    button.disabled = false;
-    button.innerHTML = originalContent;
+    for (const control of buttons) control.disabled = false;
+    if (loading) loading.hidden = true;
+    // Loading can replace the tab trigger that received focus when the picker closed.
+    if (focusTarget && !focusTarget.isConnected && document.activeElement === document.body) {
+      document
+        .querySelector<HTMLButtonElement>('.build-tab.is-active .build-tab-menu-trigger')
+        ?.focus({ preventScroll: true });
+    }
   }
 }
 

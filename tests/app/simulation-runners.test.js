@@ -202,7 +202,7 @@ test('rotation-only changes paint the builder once with their matching result', 
   assert.equal(app.deferredRotationRenderRevision, null);
 });
 
-test('build edits continue when browser storage rejects writes', (t) => {
+test('build edits cancel prior analysis even when browser storage rejects writes', (t) => {
   const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
   const storageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   t.after(() => {
@@ -225,6 +225,7 @@ test('build edits continue when browser storage rejects writes', (t) => {
   });
 
   let scheduledRevision = null;
+  const cancelled = [];
   const profession = {
     ui: {},
     migrateBuild: (build) => build
@@ -251,6 +252,9 @@ test('build edits continue when browser storage rejects writes', (t) => {
     activeCatalog: {},
     skillByName: new Map(),
     skills: [],
+    randomDistributionRunner: { cancel: () => cancelled.push('random') },
+    modifierContributionRunner: { cancel: () => cancelled.push('modifiers') },
+    relicComparisonRunner: { cancel: () => cancelled.push('relic') },
     baselineSimulationRunner: {
       schedule(revision) {
         scheduledRevision = revision;
@@ -262,9 +266,10 @@ test('build edits continue when browser storage rejects writes', (t) => {
   assert.equal(app.buildRevision, 1);
   assert.equal(scheduledRevision, 1);
   assert.equal(app.simulationStatus, 'queued');
+  assert.deepEqual(cancelled, ['random', 'modifiers', 'relic']);
 });
 
-test('baseline runner publishes only the newest revision and reuses one worker', (t) => {
+test('baseline runner coalesces edits, cancels cleared work, and reuses idle workers', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
   t.after(() => {
@@ -288,7 +293,9 @@ test('baseline runner publishes only the newest revision and reuses one worker',
       this.messages.push(message);
     }
 
-    terminate() {}
+    terminate() {
+      this.terminated = true;
+    }
 
     respond(message) {
       this.listeners.get('message')?.({ data: message });
@@ -301,7 +308,10 @@ test('baseline runner publishes only the newest revision and reuses one worker',
   });
 
   const published = [];
+  let rotation = [{ type: 'wait', durationMs: 1 }];
   const app = {
+    gameId: 'gw2',
+    contentId: 'necromancer',
     buildRevision: 1,
     simulationStatus: 'idle',
     simulationError: '',
@@ -310,7 +320,7 @@ test('baseline runner publishes only the newest revision and reuses one worker',
         return {
           gameId: 'gw2',
           contentId: 'necromancer',
-          rotation: [],
+          rotation,
           baseConfig: {},
           selectedPatchId: 'current'
         };
@@ -324,6 +334,17 @@ test('baseline runner publishes only the newest revision and reuses one worker',
     }
   };
   const runner = new BaselineSimulationRunner(app);
+
+  runner.warmup();
+  runner.warmup();
+  assert.equal(workers.length, 1, 'warmup creates only one worker');
+  const warmup = workers[0].messages.pop();
+  assert.equal(warmup.warmup, true);
+  assert.deepEqual(warmup.request, { gameId: 'gw2', contentId: 'necromancer' });
+  workers[0].respond({ requestId: warmup.requestId, revision: warmup.revision });
+  assert.equal(runner.inFlight, null);
+  assert.equal(app.simulationStatus, 'idle');
+  assert.deepEqual(published, [], 'warmup does not publish a simulation result');
 
   runner.schedule(1);
   app.buildRevision = 2;
@@ -346,6 +367,34 @@ test('baseline runner publishes only the newest revision and reuses one worker',
   });
   assert.deepEqual(published, [['new', 'new-reference', 2]]);
   assert.equal(workers.length, 1, 'the persistent worker handles both jobs');
+
+  // Clear releases the occupied slot without a response; late events cannot affect its replacement.
+  app.buildRevision = 3;
+  runner.schedule(3);
+  rotation = [];
+  app.buildRevision = 4;
+  runner.schedule(4);
+  assert.equal(workers[0].terminated, true);
+  assert.equal(workers.length, 2);
+  const clearJob = workers[1].messages[0];
+  workers[0].listeners.get('error')({ message: 'abandoned worker error' });
+  workers[0].respond({ ...workers[0].messages[2], output: { result: { id: 'abandoned' } } });
+  assert.equal(runner.inFlight, clearJob);
+
+  rotation = [{ type: 'wait', durationMs: 2 }];
+  app.buildRevision = 5;
+  runner.schedule(5);
+  workers[1].respond({ ...clearJob, output: { result: { id: 'empty' } } });
+  const editedJob = workers[1].messages[1];
+  workers[1].respond({ ...editedJob, output: { result: { id: 'edited' } } });
+  assert.deepEqual(published, [
+    ['new', 'new-reference', 2],
+    ['edited', undefined, 5]
+  ]);
+  assert.equal(workers.length, 2, 'skills added after Clear reuse the replacement worker');
+  runner.cancel();
+  assert.equal(runner.worker, workers[1], 'switching an idle tab retains the loaded engine');
+  assert.notEqual(workers[1].terminated, true);
 });
 
 test('superseded baseline fallbacks release the slot and publish only the newest edit', (t) => {
@@ -367,7 +416,7 @@ test('superseded baseline fallbacks release the slot and publish only the newest
   const app = {
     buildRevision: 1,
     adapter: {
-      baselineSimulationRequest: () => ({ revision: app.buildRevision }),
+      baselineSimulationRequest: () => ({ revision: app.buildRevision, rotation: [{ type: 'wait', durationMs: 1 }] }),
       calculateBaselineSimulation(request) {
         calculated.push(request.revision);
         return { result: { revision: request.revision } };

@@ -213,6 +213,7 @@ test('default empty timelines stay interactive while read-only timelines omit au
     ownerDocument: null,
     previousElementSibling: null,
     closest: () => null,
+    querySelector: () => null,
     querySelectorAll: () => [],
     toggleAttribute(name, value) {
       if (value) attributes.set(name, '');

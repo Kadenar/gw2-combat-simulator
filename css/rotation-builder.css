@@ -122,7 +122,8 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
 }
 
 /* Reserve chart and table space while results load, with a quiet pulse that respects reduced motion. */
-.analysis-skeleton {
+.analysis-skeleton,
+.rotation-skeleton {
   display: grid;
   gap: 12px;
   padding: 20px;
@@ -131,7 +132,8 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
   border-radius: var(--radius);
 }
 
-.analysis-skeleton > div {
+.analysis-skeleton > div,
+.rotation-skeleton > div {
   background: var(--border);
   border-radius: var(--radius);
   animation: analysis-skeleton-pulse 1.5s ease-in-out infinite;
@@ -150,6 +152,21 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
   height: 28px;
 }
 
+/* Fill the standard timeline viewport while keeping placeholder rows aligned at the top. */
+.rotation-skeleton {
+  min-height: 100%;
+  align-content: start;
+}
+
+/* Template loading shares the analysis pulse, with placeholders sized for timeline rows. */
+.rotation-skeleton > div {
+  height: 44px;
+}
+
+.rotation-skeleton > div:nth-child(even) {
+  width: 80%;
+}
+
 @keyframes analysis-skeleton-pulse {
   50% {
     opacity: 0.35;
@@ -157,7 +174,8 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .analysis-skeleton > div {
+  .analysis-skeleton > div,
+  .rotation-skeleton > div {
     animation: none;
   }
 }
