@@ -2,6 +2,7 @@ import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
 import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
 export interface Gw2CombatObserver {
@@ -26,22 +27,6 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
     if (actorType === GW2_EVENT_ACTOR_TYPES.PLAYER || actorType === GW2_EVENT_ACTOR_TYPES.SUMMON) {
       activateCombat(event.at);
     }
-  };
-
-  const recordBuff = (event: SimulationEvent): void => {
-    if (!event.resolvedAudience) throw new TypeError('Prepared buff events require resolvedAudience.');
-    const kind = String(event.kind || '').toLowerCase();
-    const applications = state.boons.get(kind) || [];
-    applications.push({
-      at: event.at,
-      expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
-      stacks: Math.max(1, Number(event.stacks || 1)),
-      source: event.source,
-      resolvedAudience: event.resolvedAudience
-    });
-    // Historical applications stay in the map because combat queries ask about
-    // arbitrary event timestamps, not only the scheduler's current clock.
-    state.boons.set(kind, applications);
   };
 
   const recordCondition = (event: SimulationEvent): void => {
@@ -73,7 +58,7 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
           activateCombat(event.at);
           break;
         case 'buff':
-          recordBuff(event);
+          recordBuffApplication(state.boons, event);
           break;
         case 'condition':
           markCombatActive(context, event);

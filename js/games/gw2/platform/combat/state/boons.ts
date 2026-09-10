@@ -1,7 +1,7 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
 
-import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
-import type { ResolvedEffectAudience } from '#gw2/platform/engine/events/types.js';
+import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
+import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 interface BuffAudienceMetadata {
   readonly source?: unknown;
@@ -51,6 +51,25 @@ export interface StandardBoonPresentation {
   readonly name: string;
   readonly maximumStacks?: number;
   readonly maximumDuration?: number;
+}
+
+/** Records prepared buffs without pruning history so both phases can query earlier timestamps. */
+export function recordBuffApplication(
+  boons: Map<string, Gw2TimedBuffApplication[]>,
+  event: SimulationEvent
+): Gw2TimedBuffApplication[] {
+  if (!event.resolvedAudience) throw new TypeError('Prepared buff events require resolvedAudience.');
+  const kind = String(event.kind || '').toLowerCase();
+  const applications = boons.get(kind) || [];
+  applications.push({
+    at: event.at,
+    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
+    stacks: Math.max(1, Number(event.stacks || 1)),
+    source: event.source,
+    resolvedAudience: event.resolvedAudience
+  });
+  boons.set(kind, applications);
+  return applications;
 }
 
 /** Restricts boon-only rules to GW2's standard boon set. */

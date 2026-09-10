@@ -15,6 +15,7 @@ import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
+  recordBuffApplication,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/state/boons.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
@@ -40,15 +41,7 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   Object.assign(event, { resolvedAudience });
   // Retain actual applications, including trait-generated boons, for effects charts.
   if (ctx.reporting) ctx.resolved.push(event);
-  const applications = ctx.boons.get(kind) || [];
-  applications.push({
-    at: event.at,
-    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
-    stacks: Math.max(1, Number(event.stacks || 1)),
-    source: event.source,
-    resolvedAudience
-  });
-  ctx.boons.set(kind, applications);
+  const applications = recordBuffApplication(ctx.boons, event);
   // Keep expired applications for historical timestamp queries, but report
   // only stacks active immediately after this application.
   const activeStacks = isDurationStackingBoon(kind)

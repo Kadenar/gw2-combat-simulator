@@ -4,9 +4,50 @@ import test from 'node:test';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
+  recordBuffApplication,
   remainingDurationStackSeconds,
   standardBoonPresentation
 } from '#gw2/platform/combat/state/boons.js';
+
+// Prepared applications retain their audience and expired history for timestamp queries in either phase.
+test('buff recording requires an audience and retains normalized application history', () => {
+  const boons = new Map();
+  const event = {
+    type: 'buff',
+    kind: 'Might',
+    at: 1,
+    duration: 2,
+    stacks: 3,
+    source: 'Trait',
+    sourceId: 1,
+    actorType: 'player'
+  };
+  assert.throws(() => recordBuffApplication(boons, event), /require resolvedAudience/);
+  assert.equal(boons.size, 0);
+  const resolvedAudience = {
+    includesSelf: true,
+    includesSummons: false,
+    alliedPlayerCount: 0,
+    companionIds: [],
+    recipientCount: 1
+  };
+  const history = recordBuffApplication(boons, { ...event, resolvedAudience });
+  const later = recordBuffApplication(boons, {
+    ...event,
+    kind: 'might',
+    at: 5,
+    duration: -1,
+    stacks: 0,
+    resolvedAudience
+  });
+  assert.equal(later, history);
+  assert.equal(boons.get('might'), history);
+  assert.equal(boons.size, 1);
+  assert.deepEqual(history, [
+    { at: 1, expiresAt: 3, stacks: 3, source: 'Trait', resolvedAudience },
+    { at: 5, expiresAt: 5, stacks: 1, source: 'Trait', resolvedAudience }
+  ]);
+});
 
 test('duration-stacking boons use their in-game duration caps', () => {
   for (const [kind, cap] of [
