@@ -130,13 +130,14 @@ test('typed event and stream constructors return immutable envelopes', () => {
   const stream = buildScheduledEventStream({
     events: [event],
     rotationEndTime: 1,
-    resolverHandoff: { profession: 'fixture' }
+    resolverHandoff: { hasExplicitCombatStart: true, combatStartTime: 0.5 }
   });
 
   assert.equal(Object.isFrozen(event), true);
   assert.equal(Object.isFrozen(stream), true);
   assert.equal(Object.isFrozen(stream.events), true);
   assert.equal(Object.isFrozen(stream.resolverHandoff), true);
+  assert.deepEqual(stream.resolverHandoff, { hasExplicitCombatStart: true, combatStartTime: 0.5 });
   assert.equal(stream.resolutionEndTime, stream.rotationEndTime);
   assert.equal(assertScheduledEventStream(stream), stream);
 

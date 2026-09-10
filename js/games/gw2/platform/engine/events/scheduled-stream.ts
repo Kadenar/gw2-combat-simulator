@@ -6,13 +6,13 @@
 import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from '#gw2/platform/engine/events/events.js';
 import { createEventStream } from '#kernel/events/stream.js';
 
-import type { ScheduledEventStream, SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Gw2ResolverHandoff, ScheduledEventStream, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 interface BuildScheduledEventStreamOptions {
   readonly events: readonly SimulationEvent[];
   readonly rotationEndTime: number;
   readonly resolutionEndTime?: number;
-  readonly resolverHandoff?: Record<string, unknown>;
+  readonly resolverHandoff?: Gw2ResolverHandoff;
   readonly source?: string;
 }
 

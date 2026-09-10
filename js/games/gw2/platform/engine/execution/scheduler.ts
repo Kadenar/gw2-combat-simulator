@@ -1238,8 +1238,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         rotationEndTime: normalizedRotationEnd,
         resolutionEndTime: resolutionEnd,
         resolverHandoff: {
-          profession: activeProfession.id,
-          professionState: snapshot,
           hasExplicitCombatStart: combatStartTime != null,
           combatStartTime
         }

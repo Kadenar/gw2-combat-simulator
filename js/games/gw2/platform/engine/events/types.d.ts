@@ -184,6 +184,13 @@ export interface SimulationEventInput {
   readonly [field: string]: unknown;
 }
 
+/** Carries encounter boundaries and diagnostics; profession state is reconstructed from chronological events. */
+export interface Gw2ResolverHandoff {
+  readonly warnings?: readonly string[];
+  readonly hasExplicitCombatStart?: boolean;
+  readonly combatStartTime?: number | null;
+}
+
 export interface ScheduledEventStream {
   readonly kind: 'gw2.simulation.events';
   readonly version: 1;
@@ -192,5 +199,5 @@ export interface ScheduledEventStream {
   readonly rotationEndTime: number;
   readonly resolutionEndTime?: number;
   readonly events: readonly SimulationEvent[];
-  readonly resolverHandoff: Readonly<Record<string, unknown>>;
+  readonly resolverHandoff: Gw2ResolverHandoff;
 }

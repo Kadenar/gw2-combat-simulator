@@ -11,6 +11,7 @@ import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.j
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
+import type { Gw2ResolverHandoff } from '#gw2/platform/engine/events/types.js';
 
 import type {
   Gw2ResolverEvent,
@@ -18,12 +19,6 @@ import type {
   Gw2ResolverRuntime,
   ResolveGw2TimelineOptions
 } from '#gw2/platform/resolver/types.js';
-
-interface Gw2ResolverHandoff {
-  readonly warnings?: readonly string[];
-  readonly hasExplicitCombatStart?: boolean;
-  readonly combatStartTime?: number | null;
-}
 
 interface CastCount {
   readonly name: string;
@@ -65,7 +60,7 @@ function addCastsToBreakdown(
 function buildResolverResult(
   ctx: Gw2ResolverRuntime,
   scheduled: ReturnType<typeof assertPlatformStream>,
-  handoff: Readonly<Gw2ResolverHandoff>
+  handoff: Gw2ResolverHandoff
 ): Gw2ResolverResult | Gw2SimulationScore {
   const totalDamage = playerDamageTotal(ctx);
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
@@ -194,7 +189,7 @@ export function resolveGw2Timeline({
   });
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
   const queue = new StableEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));
-  const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
+  const handoff = scheduled.resolverHandoff;
   const ctx = createGw2ResolverRuntimeState({
     reporting: output !== 'score',
     config,
