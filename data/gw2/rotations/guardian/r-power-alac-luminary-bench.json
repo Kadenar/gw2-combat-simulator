@@ -458,12 +458,7 @@
     },
     {
       "type": "cast",
-      "skillId": 9081,
-      "interruptAfterMs": 1476
-    },
-    {
-      "type": "wait",
-      "durationMs": 4
+      "skillId": 9081
     },
     {
       "type": "cast",
@@ -668,11 +663,7 @@
     {
       "type": "cast",
       "skillId": 9081,
-      "interruptAfterMs": 1439
-    },
-    {
-      "type": "wait",
-      "durationMs": 1
+      "interruptAfterMs": 1440
     },
     {
       "type": "cast",
