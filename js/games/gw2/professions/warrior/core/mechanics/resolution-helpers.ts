@@ -1,4 +1,5 @@
 import type {
+  WarriorConfig,
   WarriorResolverContext,
   WarriorResolverEvent,
   WarriorSchedulerContext,
@@ -7,10 +8,9 @@ import type {
 
 /**
  * Boons the configured target actually carries, capping how many a removal
- * effect can strip. Mirrors the target-config contract used by the scheduler.
+ * effect can strip and the bonuses damage modifiers receive.
  */
-function configuredTargetBoonCount(context: WarriorSchedulerContext | WarriorResolverContext): number {
-  const target = context.config.target;
+export function configuredTargetBoonCount(target: WarriorConfig['target']): number {
   if (target?.boonless === true) return 0;
   if (Array.isArray(target?.boons)) {
     return new Set(target.boons.map(String)).size;
@@ -33,6 +33,6 @@ export function warriorBoonRemovalCounts(
   event: WarriorSimulationEvent | WarriorResolverEvent
 ): { attempted: number; removed: number } {
   const attempted = Math.max(1, Math.trunc(Number(event.attemptedBoonRemovals) || 1));
-  const removed = Math.min(attempted, configuredTargetBoonCount(context));
+  const removed = Math.min(attempted, configuredTargetBoonCount(context.config.target));
   return { attempted, removed };
 }

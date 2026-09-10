@@ -5,7 +5,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/specializations/firebrand/mantras.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {
@@ -14,40 +14,6 @@ import type {
   GuardianSchedulerContext,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
-
-interface MantraDefinition {
-  readonly rootId: number;
-  readonly rootName: string;
-  readonly normalId: number;
-  readonly finalId: number;
-}
-
-const MANTRAS: readonly MantraDefinition[] = Object.freeze([
-  {
-    rootId: ID.MANTRA_OF_SOLACE,
-    rootName: 'Mantra of Solace',
-    normalId: ID.RESTORING_REPRIEVE,
-    finalId: ID.REJUVENATING_RESPITE
-  },
-  {
-    rootId: ID.MANTRA_OF_FLAME,
-    rootName: 'Mantra of Flame',
-    normalId: ID.FLAME_RUSH,
-    finalId: ID.FLAME_SURGE
-  },
-  {
-    rootId: ID.MANTRA_OF_POTENCE,
-    rootName: 'Mantra of Potence',
-    normalId: ID.POTENT_HASTE,
-    finalId: ID.OVERWHELMING_CELERITY
-  },
-  {
-    rootId: ID.MANTRA_OF_LIBERATION,
-    rootName: 'Mantra of Liberation',
-    normalId: ID.PORTENT_OF_FREEDOM,
-    finalId: ID.UNHINDERED_DELIVERY
-  }
-]);
 
 const MANTRA_BY_ROOT_ID = new Map(MANTRAS.map((definition) => [definition.rootId, definition]));
 const MANTRA_BY_NORMAL_ID = new Map(MANTRAS.map((definition) => [definition.normalId, definition]));

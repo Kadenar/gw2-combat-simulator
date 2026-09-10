@@ -7,6 +7,30 @@ import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
 import { testProfession } from '../../fixtures/test-profession.js';
 
+// Reloading to full may retain a pending timer, but neither policy may erase a cast lockout.
+test('ammo restoration preserves lockouts and explicitly retains or resets full-pool recharge', () => {
+  for (const policy of ['retain', 'reset']) {
+    const skill = { id: 980012, ammo: 2 };
+    const state = { time: 0, ammo: new Map(), cooldowns: new Map() };
+    const controller = createCooldownController({ state, rechargeDuration: () => 10 });
+    controller.spendAmmo(skill, 0);
+    controller.spendAmmo(skill, 0);
+    controller.setAmmoLockout(skill, 5, 0);
+    assert.equal(controller.restoreAmmo(skill, -1, 1, policy), 0);
+    assert.equal(controller.restoreAmmo(skill, 1, 1, policy), 1);
+    assert.equal(state.cooldowns.get(skill.id), 5);
+    assert.equal(state.ammo.get(skill.id).nextRechargeAt, 10);
+    assert.equal(controller.restoreAmmo(skill, 20, 2, policy), 1);
+    assert.equal(state.cooldowns.get(skill.id), 5);
+    assert.equal(state.ammo.get(skill.id).nextRechargeAt, policy === 'retain' ? 10 : null);
+    assert.equal(controller.restoreAmmo(skill, 1, 3, policy), 0);
+    controller.spendAmmo(skill, 6);
+    assert.equal(controller.refreshAmmo(skill, 10).charges, policy === 'retain' ? 2 : 1);
+    assert.equal(controller.refreshAmmo(skill, 16).charges, 2);
+    assert.equal(controller.restoreAmmo({ id: 980013 }, 1, 16, policy), 0);
+  }
+});
+
 test('event replacements merge into current identity before notifying policy indexes', () => {
   // Retained references must not discard earlier edits or diverge from the scheduler's indexes.
   const notifications = [];

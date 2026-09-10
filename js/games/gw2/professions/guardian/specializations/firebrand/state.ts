@@ -10,27 +10,39 @@ import type {
   GuardianSchedulerContext
 } from '#gw2/professions/guardian/types.js';
 
-export function createFirebrandState(config: GuardianConfig = {}): GuardianFirebrandState {
-  const archivistOfWhispers = hasTrait(config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
-  const traitMaximum = archivistOfWhispers ? 8 : 5;
-  // config.maximumTomePages can override upward (e.g. test harness or future
-  // traits), but never below what the selected traits already grant.
+/** Normalizes page overrides against trait capacity and starts regeneration only below the cap. */
+function initialTomePageState(
+  config: GuardianConfig,
+  archivistOfWhispers: boolean,
+  defaultMaximum: number,
+  traitMaximum: number,
+  tomePageInterval: number
+) {
   const maximumTomePages = Math.max(traitMaximum, Number(config.maximumTomePages || traitMaximum));
-  const tomePageInterval = hasTrait(config, GUARDIAN_TRAIT_IDS.LOREMASTER) ? 5 : 8;
   const configuredInitialPages = Number(config.initialTomePages ?? traitMaximum);
-  // If Archivist of Whispers raised the cap from 5 to 8 but the caller passed
-  // the old default of 5, silently upgrade to the new maximum so the sim
-  // doesn't start with fewer pages than the trait provides.
-  const initialPages = archivistOfWhispers && configuredInitialPages === 5 ? traitMaximum : configuredInitialPages;
+  // Archivist upgrades the untraited default, while explicit nondefault page counts remain intact.
+  const initialPages =
+    archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
   const tomePages = Math.max(0, Math.min(maximumTomePages, initialPages));
   return {
-    activeTome: '',
     tomePages,
     maximumTomePages,
     tomePageInterval,
-    // +Infinity signals "don't schedule a regen tick" when the pool is already
-    // full; the scheduler loop only advances the timer while pages < maximum.
-    nextTomePageAt: tomePages < maximumTomePages ? tomePageInterval : Number.POSITIVE_INFINITY,
+    nextTomePageAt: tomePages < maximumTomePages ? tomePageInterval : Number.POSITIVE_INFINITY
+  };
+}
+
+export function createFirebrandState(config: GuardianConfig = {}): GuardianFirebrandState {
+  const archivistOfWhispers = hasTrait(config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
+  return {
+    activeTome: '',
+    ...initialTomePageState(
+      config,
+      archivistOfWhispers,
+      5,
+      archivistOfWhispers ? 8 : 5,
+      hasTrait(config, GUARDIAN_TRAIT_IDS.LOREMASTER) ? 5 : 8
+    ),
     ashesCharges: 0,
     ashesBurnDuration: 2,
     ashesNextTriggerAt: 0,
@@ -100,15 +112,13 @@ export function initializeFirebrandBalanceState(context: GuardianSchedulerContex
   const traitMaximum = archivistOfWhispers
     ? Number(balanceProfileFromContext(context, PROFILE.archivistOfWhispers)?.maximumStacks ?? 8)
     : defaultMaximum;
-  state.maximumTomePages = Math.max(traitMaximum, Number(context.config.maximumTomePages || traitMaximum));
-  state.tomePageInterval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
+  const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
     ? Number(balanceProfileFromContext(context, PROFILE.loremaster)?.pulseInterval ?? 5)
     : Number(resources?.pulseInterval ?? 8);
-  const configuredInitialPages = Number(context.config.initialTomePages ?? traitMaximum);
-  const initialPages =
-    archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
-  state.tomePages = Math.max(0, Math.min(state.maximumTomePages, initialPages));
-  state.nextTomePageAt = state.tomePages < state.maximumTomePages ? state.tomePageInterval : Number.POSITIVE_INFINITY;
+  Object.assign(
+    state,
+    initialTomePageState(context.config, archivistOfWhispers, defaultMaximum, traitMaximum, interval)
+  );
   state.ashesBurnDuration = Number(
     balanceProfileEffect(balanceProfileFromContext(context, PROFILE.ashes), 'condition')?.duration ?? 2
   );

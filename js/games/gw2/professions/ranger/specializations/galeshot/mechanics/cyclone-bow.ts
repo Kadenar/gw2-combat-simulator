@@ -59,7 +59,8 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
   state.arrowsUpdatedAt += generated * interval;
 }
 
-function restoreArrow(context: RangerSchedulerContext, amount = 1): void {
+/** Restores arrows against the current profile cap without discarding fractional gains. */
+export function restoreArrow(context: RangerSchedulerContext, amount = 1): void {
   const state = galeshotState.from(context);
   state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows + amount);

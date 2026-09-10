@@ -101,6 +101,18 @@ export function createCooldownController<TProfessionState extends object>({
     return ammo;
   };
 
+  /** Restores charges without erasing lockouts; callers choose whether a full pool retains recharge progress. */
+  const restoreAmmo = (skill: Skill, count: number, at: number, whenFull: 'retain' | 'reset'): number => {
+    const ammo = refreshAmmo(skill, at);
+    if (!ammo) return 0;
+    const restored = Math.min(Math.max(0, Number(count) || 0), Math.max(0, ammo.maximum - ammo.charges));
+    if (!restored) return 0;
+    ammo.charges += restored;
+    if (ammo.charges >= ammo.maximum && whenFull === 'reset') ammo.nextRechargeAt = null;
+    syncAmmoCooldown(skill, ammo, at);
+    return restored;
+  };
+
   /**
    * Reduces serial count recharge, carrying overflow into later missing
    * charges. Reduction is capped only when the skill reaches maximum ammo.
@@ -158,6 +170,7 @@ export function createCooldownController<TProfessionState extends object>({
     reduceAmmoRecharge,
     reduceSkillRecharge,
     refreshAmmo,
+    restoreAmmo,
     setAmmoLockout,
     spendAmmo
   });

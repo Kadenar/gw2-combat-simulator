@@ -1,3 +1,4 @@
+import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/archetype-attributes.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import {
   createBuildAttributeContext,
@@ -13,26 +14,15 @@ import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 
 const PACK_ALPHA_ATTRIBUTES = Object.freeze(['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality']);
 
-const SOULBEAST_ARCHETYPE_ATTRIBUTES: Readonly<Record<string, Readonly<Record<string, number>>>> = Object.freeze({
-  Stout: Object.freeze({
-    Toughness: 200,
-    Vitality: 100
-  }),
-  Deadly: Object.freeze({
-    'Condition Damage': 150,
-    Precision: 100
-  }),
-  Versatile: Object.freeze({
-    Vitality: 200,
-    Concentration: 225
-  }),
-  Ferocious: Object.freeze({
-    Power: 150,
-    Ferocity: 100
-  }),
-  Supportive: Object.freeze({
-    Vitality: 100
-  })
+// Convert runtime attribute keys only where the build calculator requires display names.
+const BUILD_ATTRIBUTE_NAMES: Readonly<Record<string, string>> = Object.freeze({
+  toughness: 'Toughness',
+  vitality: 'Vitality',
+  conditionDamage: 'Condition Damage',
+  precision: 'Precision',
+  concentration: 'Concentration',
+  power: 'Power',
+  ferocity: 'Ferocity'
 });
 
 // Combine weapon-sensitive Ranger traits with Soulbeast-only pet and archetype
@@ -164,8 +154,8 @@ export function applyRangerBuildAttributeRules(
       attributeEffects.push({
         kind: 'flat',
         source: `Soulbeast ${archetype}`,
-        to: attribute,
-        amount,
+        to: BUILD_ATTRIBUTE_NAMES[attribute],
+        amount: Number(amount),
         feedsConversions: false
       });
     }

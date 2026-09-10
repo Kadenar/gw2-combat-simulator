@@ -1237,7 +1237,8 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
       selectedTraitIds: [TRAIT.KINETIC_INSIGHT]
     },
     time: 1,
-    event: { skillName: 'Release Potential: Warrior', actorType: 'player' },
+    // The modifier follows mechanic identity even when the display name changes.
+    event: { skillId: SKILL.RELEASE_POTENTIAL_WARRIOR, skillName: 'Renamed release', actorType: 'player' },
     runtime: {
       profession: {
         affinity: 3,

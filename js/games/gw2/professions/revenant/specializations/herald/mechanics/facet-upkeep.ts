@@ -54,7 +54,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
     actorType: 'player',
     skillId: TRAIT.ELEVATED_COMPASSION,
     skillName: 'Elevated Compassion',
-    name: 'Elevated Compassion â€” quickness',
+    name: 'Elevated Compassion - quickness',
     kind: String(effect.boon || 'quickness'),
     duration,
     stacks: Math.max(1, Number(effect.stacks ?? 1)),
@@ -165,7 +165,7 @@ export function handleHeraldFacetPulse(
   if (!skill || !pulse) return;
   emitSkillBuff(context, skill, {
     at: task.at,
-    name: `${skill.name} — ${pulse.kind}`,
+    name: `${skill.name} - ${pulse.kind}`,
     kind: pulse.kind,
     duration: pulse.duration,
     stacks: pulse.stacks,

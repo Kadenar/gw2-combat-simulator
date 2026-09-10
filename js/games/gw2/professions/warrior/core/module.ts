@@ -44,7 +44,8 @@ export const warriorCoreModule = defineNativeModule({
       skillMechanicHandlers: warriorCoreSkillMechanicHandlers,
       hooks: {
         ...warriorCoreSchedulerHooks,
-        snapshot: (context: WarriorSchedulerContext) => snapshotWarriorState(context.state.profession)
+        snapshot: (context: WarriorSchedulerContext) =>
+          snapshotWarriorState(context.state.profession, context.catalog.skillsById)
       }
     },
     resolution: {

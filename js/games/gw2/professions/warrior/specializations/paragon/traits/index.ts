@@ -31,7 +31,10 @@ function emitParagonState(context: WarriorSchedulerContext, at: number, reason: 
     state: {
       motivation: state.motivation,
       maximumMotivation: state.maximumMotivation,
-      activeRefrain: state.activeRefrain,
+      activeRefrainId: state.activeRefrainId,
+      // Retain the event's public label while resolver gameplay follows only the ID.
+      activeRefrain:
+        state.activeRefrainId == null ? '' : context.catalog.skillsById.get(state.activeRefrainId)?.name || '',
       nextRefrainAt: state.nextRefrainAt
     }
   });
@@ -55,7 +58,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
   const state = paragonState.from(context);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   const chants = balanceProfileFromContext(context, PROFILE.chants);
-  state.activeRefrain = skill.name;
+  state.activeRefrainId = skill.id;
   state.nextRefrainAt = at + Number(resources?.pulseInterval ?? 3);
   gainMotivation(
     context,
@@ -237,8 +240,13 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   const state = paragonState.from(context);
   const motivation = state.motivation;
   const level = motivationLevel(context, motivation);
-  const skill = [...context.catalog.skillsById.values()].find((candidate) => candidate.name === state.activeRefrain);
-  if (!skill) return;
+  const skill = state.activeRefrainId == null ? undefined : context.catalog.skillsById.get(state.activeRefrainId);
+  if (!skill) {
+    state.activeRefrainId = null;
+    state.nextRefrainAt = 0;
+    emitParagonState(context, at + context.epsilon, 'refrain-missing');
+    return;
+  }
 
   let cost = 1;
   const refrainBoons: Array<{ kind: string; duration: number; stacks?: number }> = [];
@@ -285,7 +293,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   if (state.motivation > 0) {
     state.nextRefrainAt = at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3);
   } else {
-    state.activeRefrain = '';
+    state.activeRefrainId = null;
     state.nextRefrainAt = 0;
   }
 
@@ -294,7 +302,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
 
 export function advanceParagon(context: WarriorSchedulerContext, target: number): void {
   const state = paragonState.from(context);
-  while (state.activeRefrain && state.motivation > 0 && state.nextRefrainAt <= target + context.epsilon) {
+  while (state.activeRefrainId && state.motivation > 0 && state.nextRefrainAt <= target + context.epsilon) {
     pulseRefrain(context, state.nextRefrainAt);
   }
 }
@@ -307,8 +315,8 @@ export function observeParagonEvent(context: WarriorSchedulerContext, event: War
 
   state.callToActionActivated = true;
   gainMotivation(context, Number(balanceProfileFromContext(context, PROFILE.callToAction)?.resourceGain ?? 4));
-  if (!state.activeRefrain) {
-    state.activeRefrain = 'Chant of Action';
+  if (!state.activeRefrainId) {
+    state.activeRefrainId = ID.CHANT_OF_ACTION;
     state.nextRefrainAt = event.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3);
   }
 
@@ -347,7 +355,7 @@ export function beginParagonCast(context: WarriorCastContext, skill: WarriorSkil
     !skill.burst ||
     skill.handlerId === 'warrior.chant' ||
     !hasTrait(context, TRAIT.RALLY_THE_VALIANT) ||
-    !state.activeRefrain
+    !state.activeRefrainId
   ) {
     return;
   }

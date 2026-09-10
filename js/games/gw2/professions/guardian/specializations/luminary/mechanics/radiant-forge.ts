@@ -147,35 +147,26 @@ export function radiantForgeAvailability(context: GuardianPrecastContext, skill:
  * weapon-bar transition events.
  */
 function radiantForge(context: GuardianCastContext, skill: GuardianSkill): void {
-  const entering = skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
-  const state = luminaryState.from(context);
-  if (!entering) {
-    // Cooldown is finalized on manual exit; automatic expiry calls this
-    // separately via advanceRadiantForgeState, so it must not be called twice.
-    finalizeRadiantForgeCooldown(context, context.effectiveEnd);
+  if (skill.id !== GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
+    exitRadiantForge(context, skill, context.effectiveEnd);
+    return;
   }
 
-  state.radiantForge = entering;
-  state.radiantForgeEndsAt = entering
-    ? context.effectiveEnd +
-      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20)
-    : 0;
-  state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
-  // Reset active weapon so traits don't carry stale weapon state across entries.
+  const state = luminaryState.from(context);
+  state.radiantForge = true;
+  state.radiantForgeEndsAt =
+    context.effectiveEnd +
+    Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20);
+  state.radiantForgeEnteredAt = context.effectiveEnd;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
-  // Autoattack chains must be wiped because the weapon bar changes entirely.
   resetAutoattackChains(context);
-  if (entering) {
-    state.radiantWeaponsUsed = {};
-  }
-
-  if (!entering) professionCoreState(context).availableFlips = {};
-  emitGuardianEvent(context, skill, entering ? 'guardian.radiant-forge-entered' : 'guardian.radiant-forge-exited', {
-    radiantForge: state.radiantForge,
+  state.radiantWeaponsUsed = {};
+  emitGuardianEvent(context, skill, 'guardian.radiant-forge-entered', {
+    radiantForge: true,
     radiantForgeEndsAt: state.radiantForgeEndsAt,
     radiantForgeEnteredAt: state.radiantForgeEnteredAt,
-    radiantWeapon: state.radiantWeapon
+    radiantWeapon: ''
   });
   emitForgeTransition(context, skill);
 }
@@ -401,30 +392,42 @@ export const guardianRadiantForgeEventHandlers = Object.freeze({
 export function advanceRadiantForgeState(context: GuardianSchedulerContext, target: number): void {
   const state = luminaryState.from(context);
   if (state.radiantForge && state.radiantForgeEndsAt <= target + context.epsilon) {
-    const expiredAt = state.radiantForgeEndsAt;
-    finalizeRadiantForgeCooldown(context, expiredAt);
-    const exit = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE);
-    if (exit) {
-      emitGuardianEvent(context, exit, 'guardian.radiant-forge-exited', {
-        at: expiredAt,
-        automatic: true,
-        radiantForge: false,
-        radiantForgeEndsAt: 0,
-        radiantForgeEnteredAt: 0,
-        radiantWeapon: ''
-      });
-      emitForgeTransition(context, exit, {
-        at: expiredAt,
-        automatic: true
-      });
-    }
-
-    state.radiantForge = false;
-    state.radiantForgeEndsAt = 0;
-    state.radiantForgeEnteredAt = 0;
-    state.radiantWeapon = '';
-    state.glaringBurstSwordSlow = false;
-    resetAutoattackChains(context);
-    professionCoreState(context).availableFlips = {};
+    exitRadiantForge(
+      context,
+      context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE),
+      state.radiantForgeEndsAt,
+      true
+    );
   }
+}
+
+/** Finalizes one exit at its actual timestamp, preserving manual and automatic observer ordering. */
+function exitRadiantForge(
+  context: GuardianSchedulerContext,
+  skill: GuardianSkill | undefined,
+  at: number,
+  automatic = false
+): void {
+  const state = luminaryState.from(context);
+  if (!state.radiantForge) return;
+  finalizeRadiantForgeCooldown(context, at);
+  const transition = {
+    radiantForge: false,
+    radiantForgeEndsAt: 0,
+    radiantForgeEnteredAt: 0,
+    radiantWeapon: ''
+  };
+  const emitExit = (): void => {
+    if (!skill) return;
+    const metadata = { at, ...(automatic ? { automatic: true } : {}) };
+    emitGuardianEvent(context, skill, 'guardian.radiant-forge-exited', { ...metadata, ...transition });
+    emitForgeTransition(context, skill, metadata);
+  };
+
+  if (automatic) emitExit();
+  Object.assign(state, transition);
+  state.glaringBurstSwordSlow = false;
+  resetAutoattackChains(context);
+  professionCoreState(context).availableFlips = {};
+  if (!automatic) emitExit();
 }

@@ -3,7 +3,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 
@@ -54,10 +54,10 @@ export const paragonSchedulerHooks = Object.freeze({
 
 function paragonRuntimeState(context: Gw2ModifierContext): {
   motivation?: number;
-  activeRefrain?: string;
+  activeRefrainId?: number | string | null;
 } {
   return (
-    readProfessionSpecializationState<{ motivation?: number; activeRefrain?: string }>(
+    readProfessionSpecializationState<{ motivation?: number; activeRefrainId?: number | string | null }>(
       context.runtime?.profession,
       'Paragon'
     ) || {}
@@ -104,7 +104,8 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     amount: (_context, target, parameters) =>
       target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionBonus : parameters.strikeBonus,
     when: (context) =>
-      hasTrait(context, TRAIT.STRENGTHENING_STANZAS) && paragonRuntimeState(context).activeRefrain === 'Chant of Action'
+      hasTrait(context, TRAIT.STRENGTHENING_STANZAS) &&
+      paragonRuntimeState(context).activeRefrainId === ID.CHANT_OF_ACTION
   },
   {
     id: 'warrior.brisk-pacing',

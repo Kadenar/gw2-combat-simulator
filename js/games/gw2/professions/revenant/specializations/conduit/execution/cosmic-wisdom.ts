@@ -6,7 +6,7 @@ import { conduitState } from '#gw2/professions/revenant/specializations/conduit/
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileEffect as effectByType,
@@ -63,12 +63,8 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
     (effect) => effect.type === 'buff' && effect.kind === 'cosmic-wisdom'
   );
   state.cosmicWisdomUntil = at + Number(cosmicWisdom?.duration || 0);
-  // Derive form name from active legend; strip "Release Potential: " prefix to get "Mesmer", "Assassin", etc.
-  state.conduitForm =
-    REVENANT_RELEASE_POTENTIAL_BY_LEGEND[professionCoreState(context).activeLegendId]?.replace(
-      'Release Potential: ',
-      ''
-    ) || '';
+  // Select the mechanic form directly from legend identity, independent of display labels.
+  state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[professionCoreState(context).activeLegendId] || '';
   // Energy overrides must be applied immediately so the very next skill cast sees the correct cost.
   syncConduitEnergyCostOverrides(context);
   emitRevenantStateSnapshot(context, at, 'cosmic-wisdom');

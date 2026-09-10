@@ -1,3 +1,4 @@
+import { restoreArrow } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 /** Registers scheduler-phase skill activations for this module. */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
@@ -43,12 +44,6 @@ function countAsWeaponSwap(context: RangerCastContext, skill: RangerSkill): void
     bundleSwap: true
   });
   applyRangerWeaponSwapTraits(context, skill);
-}
-
-function restoreArrows(context: RangerCastContext, skill: RangerSkill): void {
-  const state = galeshotState.from(context);
-  state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
-  state.arrows = Math.min(state.maximumArrows, state.arrows + Number(skill.arrowsRestored || 0));
 }
 
 export const galeshotSkillHandlers = Object.freeze({
@@ -102,7 +97,7 @@ export const galeshotSkillHandlers = Object.freeze({
   'ranger.galeshot-arrows': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      restoreArrows(context, skill);
+      restoreArrow(context, Number(skill.arrowsRestored || 0));
       emitGaleshotState(context, skill, context.start);
     }
   },
@@ -110,7 +105,7 @@ export const galeshotSkillHandlers = Object.freeze({
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const state = galeshotState.from(context);
-      restoreArrows(context, skill);
+      restoreArrow(context, Number(skill.arrowsRestored || 0));
       state.mistralUntil =
         context.start + balanceProfileValueFromContext(context, PROFILE.mistral, 'durationMultiplier', 6);
       emitGaleshotState(context, skill);

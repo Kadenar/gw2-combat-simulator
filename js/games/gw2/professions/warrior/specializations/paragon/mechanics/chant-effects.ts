@@ -3,11 +3,13 @@ import { paragonState } from '#gw2/professions/warrior/specializations/paragon/s
 import type { WarriorResolverContext, WarriorResolverEvent } from '#gw2/professions/warrior/types.js';
 
 // Mirrors scheduler-side paragon state into the resolver so modifier rules
-// can read motivation and activeRefrain. structuredClone prevents the resolver
+// can read motivation and refrain identity. The refrain name is only used for display.
+// structuredClone prevents the resolver
 // copy from aliasing the scheduler's live state objects.
 function handleParagonState(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   const state = paragonState.from(context);
   for (const [key, value] of Object.entries(event.state || {})) {
+    if (key === 'activeRefrain') continue;
     (state as unknown as SchedulerRecord)[key] = structuredClone(value);
   }
 }

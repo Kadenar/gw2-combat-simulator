@@ -1,3 +1,4 @@
+import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/archetype-attributes.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import {
@@ -61,16 +62,6 @@ const PACK_ALPHA_RUNTIME_ATTRIBUTES = Object.freeze([
   'toughness',
   'vitality'
 ] as const);
-
-const SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES: Readonly<
-  Record<string, Readonly<Partial<Record<keyof Gw2ResolvedStats, number>>>>
-> = Object.freeze({
-  Stout: Object.freeze({ toughness: 200, vitality: 100 }),
-  Deadly: Object.freeze({ conditionDamage: 150, precision: 100 }),
-  Versatile: Object.freeze({ vitality: 200, concentration: 225 }),
-  Ferocious: Object.freeze({ power: 150, ferocity: 100 }),
-  Supportive: Object.freeze({ vitality: 100 })
-});
 
 // Resolve the merged pet archetype's live attribute contribution, including
 // trait adjustments, without mutating the shared base stats.
@@ -147,7 +138,7 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
     if (hasTrait(context, TRAIT.PETS_PROWESS)) adjust('ferocity', -300);
 
     for (const [attribute, amount] of Object.entries(
-      SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[petArchetype(context, false)] || {}
+      SOULBEAST_ARCHETYPE_ATTRIBUTES[petArchetype(context, false)] || {}
     )) {
       adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
     }
@@ -155,9 +146,7 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
     const configuredArchetype = petArchetype(context, false);
     const activeArchetype = petArchetype(context, true);
 
-    for (const [attribute, amount] of Object.entries(
-      SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[configuredArchetype] || {}
-    )) {
+    for (const [attribute, amount] of Object.entries(SOULBEAST_ARCHETYPE_ATTRIBUTES[configuredArchetype] || {})) {
       adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
     }
 

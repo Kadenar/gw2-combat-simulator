@@ -1,3 +1,4 @@
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/mantras.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
@@ -37,9 +38,11 @@ function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
 }
 
 function isFinalMantraCharge(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  // The description prefix is the authoritative GW2 API signal; the ammo
-  // fallback handles cases where the catalog skill description is missing or
-  // incomplete (e.g. custom/test data).
+  // Canonical IDs decide charge identity; unfamiliar custom skills retain the description/ammo fallback.
+  const mantra = MANTRAS.find(({ rootId, normalId, finalId }) =>
+    [rootId, normalId, finalId].includes(Number(skill.id))
+  );
+  if (mantra) return skill.id === mantra.finalId;
   if (/^Final Charge\./.test(String(skill.description || ''))) return true;
   return skill.categories?.includes('Mantra') === true && Number(context.ammo?.charges || 0) === 1;
 }

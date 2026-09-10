@@ -104,20 +104,6 @@ export function applyWarriorBurstSpendTraits(
   applyBurstMastery(context, skill, adrenalineSpent, options);
 }
 
-// Restore ammo without erasing an active cast lockout or exposing a zero-charge skill early.
-function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, count: number, at: number): number {
-  const ammo = context.cooldownController.refreshAmmo(skill, at);
-  if (!ammo) return 0;
-  const missing = Math.max(0, ammo.maximum - ammo.charges);
-  const restored = Math.min(missing, Math.max(0, count));
-  if (!restored) return 0;
-
-  ammo.charges += restored;
-  if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
-  context.cooldownController.refreshAmmo(skill, at);
-  return restored;
-}
-
 // Preserve cast completion order: Signet Mastery, Peitha, then Brave Stride.
 export function completeWarriorSkill(context: WarriorCastContext, skill: WarriorSkill): void {
   applySignetMasteryCastComplete(context, skill);
@@ -142,7 +128,7 @@ export const warriorCoreSkillMechanicHandlers = Object.freeze({
   'warrior.core.reload-rifle': ({ context, at }: { context: WarriorSchedulerContext; at: number }): void => {
     // Rifle Butt restores one count to other rifle ammo skills and readies every rifle burst.
     for (const skill of context.catalog.skills) {
-      if (skill.weapon === 'Rifle' && skill.ammo) restoreAmmo(context, skill, 1, at);
+      if (skill.weapon === 'Rifle' && skill.ammo) context.cooldownController.restoreAmmo(skill, 1, at, 'reset');
       if (skill.id === ID.KILL_SHOT || skill.id === ID.GUN_FLAME) context.state.cooldowns.delete(skill.id);
     }
   },
@@ -173,7 +159,7 @@ export const warriorCoreSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     const skill = context.catalog.skillsById.get(ID.DRAGONS_ROAR) as WarriorSkill | undefined;
-    if (skill) restoreAmmo(context, skill, trigger.count ?? 3, at);
+    if (skill) context.cooldownController.restoreAmmo(skill, trigger.count ?? 3, at, 'reset');
   }
 });
 

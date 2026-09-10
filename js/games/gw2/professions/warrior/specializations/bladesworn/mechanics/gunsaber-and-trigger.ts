@@ -1,3 +1,4 @@
+import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -166,10 +167,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
 // strike profile from the number of rounds committed.
 export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSkill): void {
   const charges = Math.max(1, Number(context.ammo?.charges || 1));
-  const state = bladeswornState.from(context);
-  state.ammoRoundsSpentByActivation[context.reservationId] = charges;
-  state.ammoStartedFullByActivation[context.reservationId] =
-    charges >= Number(context.ammo?.maximum || skill.ammo || 0);
+  recordBladeswornAmmoSpend(context, charges, charges >= Number(context.ammo?.maximum || skill.ammo || 0));
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
@@ -384,25 +382,11 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
   }
 }
 
-function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, count: number, at: number): number {
-  const ammo = context.cooldownController.refreshAmmo(skill, at);
-  if (!ammo) return 0;
-  const restored = Math.min(Math.max(0, count), Math.max(0, ammo.maximum - ammo.charges));
-  if (!restored) return 0;
-
-  ammo.charges += restored;
-  // Tactical Reload restores a charge without resetting count-recharge
-  // progress. If the skill is temporarily full, the pending recharge can
-  // still refill a charge spent before that timer completes.
-  context.cooldownController.refreshAmmo(skill, at);
-  return restored;
-}
-
 function reloadBladeswornAmmo(context: WarriorSchedulerContext, at: number): void {
   for (const skillId of context.state.ammo.keys()) {
     const skill = context.catalog.skillsById.get(skillId);
     if (skill?.specialization === 'Bladesworn') {
-      restoreAmmo(context, skill, 1, at);
+      context.cooldownController.restoreAmmo(skill, 1, at, 'retain');
     }
   }
 }

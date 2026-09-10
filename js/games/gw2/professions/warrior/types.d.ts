@@ -104,7 +104,7 @@ export interface BladeswornState {
 export interface ParagonState {
   motivation: number;
   maximumMotivation: number;
-  activeRefrain: string;
+  activeRefrainId: SkillId | null;
   nextRefrainAt: number;
   inspiringImplementsReadyAt: number;
   callToActionActivated: boolean;
@@ -118,7 +118,10 @@ export interface ParagonState {
 }
 
 export interface WarriorState
-  extends WarriorCoreState, BerserkerState, SpellbreakerState, BladeswornState, ParagonState {}
+  extends WarriorCoreState, BerserkerState, SpellbreakerState, BladeswornState, ParagonState {
+  /** User-friendly refrain name derived from activeRefrainId for display. */
+  activeRefrain: string;
+}
 
 export interface WarriorRuntimeState {
   core: WarriorCoreState;
@@ -183,6 +186,7 @@ export type WarriorResolverContext = Gw2ResolverRuntime & {
 };
 
 export interface WarriorEndStateProjectionOptions {
+  readonly schedulerContext: WarriorSchedulerContext;
   readonly schedulerState: SchedulerState<WarriorRuntimeState>;
   readonly resolverState?: Partial<WarriorState> | null;
 }

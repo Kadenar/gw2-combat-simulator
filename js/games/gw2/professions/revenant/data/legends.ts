@@ -19,13 +19,20 @@ export const REVENANT_LEGEND_SPECIALIZATIONS = Object.freeze(
   )
 );
 
-export const REVENANT_RELEASE_POTENTIAL_BY_LEGEND: Readonly<Record<string, string>> = Object.freeze({
-  [LEGEND.ASSASSIN]: 'Release Potential: Assassin',
-  [LEGEND.CENTAUR]: 'Release Potential: Monk',
-  [LEGEND.DEMON]: 'Release Potential: Mesmer',
-  [LEGEND.DWARF]: 'Release Potential: Warrior',
-  [LEGEND.ENTITY]: 'Release Potential: Dervish'
+/** Stable form identities keep Cosmic Wisdom independent of button display names. */
+export const REVENANT_CONDUIT_FORM_BY_LEGEND: Readonly<Record<string, string>> = Object.freeze({
+  [LEGEND.ASSASSIN]: 'Assassin',
+  [LEGEND.CENTAUR]: 'Monk',
+  [LEGEND.DEMON]: 'Mesmer',
+  [LEGEND.DWARF]: 'Warrior',
+  [LEGEND.ENTITY]: 'Dervish'
 });
+
+export const REVENANT_RELEASE_POTENTIAL_BY_LEGEND: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(REVENANT_CONDUIT_FORM_BY_LEGEND).map(([id, form]) => [id, 'Release Potential: ' + form])
+  )
+);
 
 export const REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND: Readonly<Record<string, SkillId>> = Object.freeze({
   [LEGEND.ASSASSIN]: ID.RELEASE_POTENTIAL_ASSASSIN,

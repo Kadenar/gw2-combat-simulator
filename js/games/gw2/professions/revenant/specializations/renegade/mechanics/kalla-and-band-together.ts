@@ -94,9 +94,12 @@ export function replacesBandTogetherEffects(context: RevenantCastContext, skill:
   return isBandTogetherReady(renegadeState.from(context), context.start) && enhancedSkill(context, skill) != null;
 }
 
-/** Counts unexpired Kalla's Fervor applications. */
+/** Counts started, unexpired Fervor applications consistently for grants, modifiers, and siphons. */
 export function activeKallasFervorStacks(
-  state: RenegadeState,
+  state: {
+    readonly kallasFervor?: readonly Readonly<RenegadeState['kallasFervor'][number]>[];
+    readonly kallasFervorMaximumStacks?: number;
+  },
   at: number,
   maximumStacks = state.kallasFervorMaximumStacks
 ): number {

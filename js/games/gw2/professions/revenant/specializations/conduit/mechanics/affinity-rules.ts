@@ -12,7 +12,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
-import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/bolstered-bonds.js';
 import {
   revenantRuntimeCoreState,
@@ -33,6 +33,8 @@ import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/l
 import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
+  BEGUILING_HAZE_SKILL_IDS,
+  TWIN_MOON_SKILL_IDS,
   afterConduitTraitCast,
   modifyConduitCastDuration,
   modifyConduitRechargeDuration,
@@ -88,7 +90,9 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: { damagePerAffinity: 0.1 } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity,
     when: (context) =>
-      ['Release Potential: Dervish', 'Release Potential: Assassin'].includes(String(context.event?.skillName || ''))
+      ([ID.RELEASE_POTENTIAL_DERVISH, ID.RELEASE_POTENTIAL_ASSASSIN] as readonly number[]).includes(
+        Number(context.event?.skillId)
+      )
   },
   {
     id: 'revenant.release-warrior-affinity',
@@ -96,7 +100,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     parameters: { damagePerAffinity: 0.15 } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity,
-    when: (context) => context.event?.skillName === 'Release Potential: Warrior'
+    when: (context) => context.event?.skillId === ID.RELEASE_POTENTIAL_WARRIOR
   },
   {
     id: 'revenant.beguiling-haze-assassin-resonance',
@@ -104,14 +108,16 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
     factor: 2,
-    when: (context) => context.event?.skillName === 'Beguiling Haze' && equippedLegend(context, LEGEND.ASSASSIN)
+    when: (context) =>
+      BEGUILING_HAZE_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
   },
   {
     id: 'revenant.twin-moon-assassin-resonance',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.5,
-    when: (context) => context.event?.skillName === 'Twin Moon Sweep' && equippedLegend(context, LEGEND.ASSASSIN)
+    when: (context) =>
+      TWIN_MOON_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
   },
   {
     id: 'revenant.yearning-empowerment-numinous-gift',
@@ -338,11 +344,7 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
 
   if (cosmicWisdomActive) {
     // On legend swap the form updates to match the newly active legend (e.g. swapping to Demon yields Mesmer form).
-    state.conduitForm =
-      REVENANT_RELEASE_POTENTIAL_BY_LEGEND[professionCoreState(context).activeLegendId]?.replace(
-        'Release Potential: ',
-        ''
-      ) || '';
+    state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[professionCoreState(context).activeLegendId] || '';
     syncConduitEnergyCostOverrides(context);
   }
 

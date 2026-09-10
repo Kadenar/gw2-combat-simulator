@@ -16,7 +16,10 @@ import {
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/professions/revenant/core/traits/index.js';
-import { grantKallasFervor } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import {
+  grantKallasFervor,
+  activeKallasFervorStacks
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import {
   RENEGADE_PROFILE_IDS,
@@ -41,14 +44,7 @@ import type {
 } from '#gw2/professions/revenant/types.js';
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
-  // Count only applications that have started (at ≤ time) and not yet expired (expiresAt > time)
-  const state = revenantRuntimeSpecializationState(context, 'Renegade');
-  return Math.min(
-    Math.max(1, Number(state.kallasFervorMaximumStacks)),
-    (state.kallasFervor || []).filter(
-      (application) => Number(application.at || 0) <= context.time && Number(application.expiresAt || 0) > context.time
-    ).length
-  );
+  return activeKallasFervorStacks(revenantRuntimeSpecializationState(context, 'Renegade'), context.time);
 }
 
 export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

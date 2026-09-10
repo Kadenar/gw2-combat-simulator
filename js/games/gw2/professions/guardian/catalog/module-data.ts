@@ -1,3 +1,4 @@
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/mantras.js';
 import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/lib/catalog-data.js';
@@ -37,12 +38,9 @@ const willbenderFlameIds = new Set<SkillId>([
   ID.WILLBENDER_FLAMES_COURAGE
 ]);
 
-const firebrandFinalFlipByNormalId = new Map<SkillId, SkillId>([
-  [ID.RESTORING_REPRIEVE, ID.REJUVENATING_RESPITE],
-  [ID.FLAME_RUSH, ID.FLAME_SURGE],
-  [ID.POTENT_HASTE, ID.OVERWHELMING_CELERITY],
-  [ID.PORTENT_OF_FREEDOM, ID.UNHINDERED_DELIVERY]
-]);
+const firebrandFinalFlipByNormalId = new Map<SkillId, SkillId>(
+  MANTRAS.map(({ normalId, finalId }) => [normalId, finalId])
+);
 
 const flipParentById = createFlipParentMap(allSkills, {
   include(parent, child) {
