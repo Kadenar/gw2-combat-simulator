@@ -52,13 +52,6 @@ interface OwnedFinisherDescriptor extends SchedulerRecord {
   readonly successfulCombos: number;
 }
 
-function currentEvent<TProfessionState extends object>(
-  context: SchedulerContext<TProfessionState>,
-  original: SimulationEvent
-): SimulationEvent {
-  return context.eventByOrder(Number(original.eventOrder)) || original;
-}
-
 function fieldDescriptors<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   event: SimulationEvent
@@ -379,11 +372,12 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
           rebindPendingFinishers(context, String(event.ownerId));
         }
 
+        // Combo work reads current bindings when it runs; task payloads carry identity, not a snapshot.
         context.tasks.schedule({
           type: GW2_COMBO_MATERIALIZE_EVENT_TASK,
           at: Math.max(context.state.time, event.at),
           priority: taskPriority(event),
-          payload: { event, mode: 'resolve-event' }
+          payload: { eventOrder: event.eventOrder }
         });
         return;
       }
@@ -392,8 +386,8 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
     },
 
     handleTask(context: SchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
-      const original = task.payload?.event as SimulationEvent;
-      const event = currentEvent(context, original);
+      const event = context.eventByOrder(Number(task.payload?.eventOrder));
+      if (!event) throw new TypeError('Combo materializer task requires a scheduled event.');
       if (event.type === 'combo_field') {
         registerComboField(state, event as ComboFieldEvent);
         return;

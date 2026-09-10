@@ -12,6 +12,7 @@ export interface Gw2TriggerMaterializer {
   readonly state: SchedulerRecord;
   initialize(context: SchedulerContext): void;
   onEventScheduled(context: SchedulerContext, event: SimulationEvent): void;
+  onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;
   handleTask(context: SchedulerContext, task: ScheduledTask<SchedulerRecord>): void;
   critical(event: SimulationEvent): Gw2CriticalResult;
   rollRandom(probability: number, stream?: string): boolean;

@@ -13,8 +13,7 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 const applicationCatalog = assembleNativeApplicationCatalog(mesmerNativeModules, MESMER_NATIVE_CATALOG_OPTIONS);
 
-// Project clone, phantasm, and specialization state from scheduler events into a
-// stable simulation-end snapshot for subsequent consumers.
+// Project canonical live ammo and full-charge defaults for skills outside the active runtime catalog.
 function projectMesmerSimulationEndState({
   schedulerContext,
   schedulerState
@@ -22,9 +21,6 @@ function projectMesmerSimulationEndState({
   readonly schedulerContext: MesmerSchedulerContext;
   readonly schedulerState: MesmerSchedulerContext['state'];
 }): SchedulerRecord {
-  const includeRechargeRemaining = [...schedulerState.ammo.values()].some((value) =>
-    Object.hasOwn(value, 'nextRechargeRemaining')
-  );
   const runtimeSkillIds = new Set(schedulerContext.catalog.skills.map((skill) => String(skill.id)));
   const ammo = Object.fromEntries(
     applicationCatalog.skills.flatMap((skill) => {
@@ -38,8 +34,7 @@ function projectMesmerSimulationEndState({
             charges: maximum,
             maximum,
             rechargeDuration: schedulerContext.rechargeDurationFor(skill, 0),
-            nextRechargeAt: null,
-            ...(includeRechargeRemaining ? { nextRechargeRemaining: null } : {})
+            nextRechargeAt: null
           };
       return [[skill.name, value] as const];
     })

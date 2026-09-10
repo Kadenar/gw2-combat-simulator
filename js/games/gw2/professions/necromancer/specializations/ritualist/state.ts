@@ -1,6 +1,6 @@
 import type { RitualistState } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import { registerNecromancerStatePreserver } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 /** Declares Ritualist's public compatibility fields and inactive values. */
 export const RITUALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -31,17 +31,8 @@ export function createRitualistState(): RitualistState {
     // NaN signals "no pulse scheduled yet"; first apply event sets the anchor
     painfulBondPulseAnchorAt: Number.NaN
   };
-  registerNecromancerStatePreserver(state, () => {
-    // Resolver-owned effect windows must survive scheduler snapshots that carry the same specialization state keys.
-    const painfulBondUntil = state.painfulBondUntil;
-    const painfulBondPulseAnchorAt = state.painfulBondPulseAnchorAt;
-    const weaponSpells = state.weaponSpells;
-    return () => {
-      state.painfulBondUntil = painfulBondUntil;
-      state.painfulBondPulseAnchorAt = painfulBondPulseAnchorAt;
-      state.weaponSpells = weaponSpells;
-    };
-  });
+  // Preserve resolved effect cadence and per-recipient spending across scheduler snapshots.
+  registerNecromancerResolverFields(state, ['painfulBondUntil', 'painfulBondPulseAnchorAt', 'weaponSpells']);
   return state;
 }
 

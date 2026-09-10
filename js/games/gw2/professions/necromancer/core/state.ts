@@ -2,6 +2,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerConfig, NecromancerCoreState } from '#gw2/professions/necromancer/types.js';
+import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 /** Declares the Core fields exposed by every Necromancer end-state projection. */
 export const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -77,7 +78,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   const configuredLifeForce = Number(config.initialResource ?? 100);
   const lifeForce = (maximumLifeForce * Math.max(0, Math.min(100, configuredLifeForce))) / 100;
   // Seed every mutable subsystem independently, then reconcile public resource aliases once.
-  return syncNecromancerResources({
+  const state: NecromancerCoreState = syncNecromancerResources({
     lifeForce,
     resource: lifeForce,
     maximumLifeForce,
@@ -115,4 +116,16 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     traitProcReadyAt: {},
     tasteForBloodBuffs: {}
   });
+  registerNecromancerResolverFields(state, [
+    'targetChilledUntil',
+    'targetControlledUntil',
+    'dreadUntil',
+    'fearOfDeathReadyAt',
+    'vampiricPresenceReadyAt',
+    'barbedPrecisionProgress',
+    'spitefulFortitudeLifeForce',
+    'traitProcReadyAt',
+    'tasteForBloodBuffs'
+  ]);
+  return state;
 }

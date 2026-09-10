@@ -1,6 +1,6 @@
 import type { ScourgeState } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import { registerNecromancerStatePreserver } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 /** Declares Scourge's public compatibility field and inactive value. */
 export const SCOURGE_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -17,13 +17,8 @@ export function createScourgeState(): ScourgeState {
     demonicLoreReadyAt: 0,
     nourishingAshesReadyAt: 0
   };
-  registerNecromancerStatePreserver(state, () => {
-    // Demonic Lore's resolver ICD advances independently of scheduler-owned shade state.
-    const demonicLoreReadyAt = state.demonicLoreReadyAt;
-    return () => {
-      state.demonicLoreReadyAt = demonicLoreReadyAt;
-    };
-  });
+  // Demonic Lore advances independently of scheduler-owned shades and Nourishing Ashes.
+  registerNecromancerResolverFields(state, ['demonicLoreReadyAt']);
   return state;
 }
 

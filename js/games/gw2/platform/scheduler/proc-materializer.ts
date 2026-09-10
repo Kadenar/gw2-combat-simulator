@@ -153,17 +153,21 @@ export function createGw2TriggerMaterializer(
     onEventScheduled(context, event) {
       const required = EVENT_REQUIRED_CAPABILITY[event.type];
       if (!required || !capabilityEnabled[required]()) return;
-      // Deferring avoids recursive mutation inside the scheduler's observation
-      // callback and preserves chronology.
+      // Resolve the current event at execution time so deferred facts include intervening replacements.
       context.tasks.schedule({
         type: GW2_MATERIALIZE_EVENT_TASK,
         at: Math.max(context.state.time, event.at),
         priority: MATERIALIZER_TASK_PRIORITY,
-        payload: { event }
+        payload: { eventOrder: event.eventOrder }
       });
     },
     handleTask(context, task: ScheduledTask<SchedulerRecord>) {
-      processEvent(context, task.payload?.event as SimulationEvent);
+      const event = context.eventByOrder(Number(task.payload?.eventOrder));
+      if (!event) throw new TypeError('Materializer task requires a scheduled event.');
+      processEvent(context, event);
+    },
+    onEventReplaced(previous, replacement) {
+      state.query!.timeline.onEventReplaced(previous, replacement);
     },
     critical(event) {
       return state.query!.critical(event, event.at, state);

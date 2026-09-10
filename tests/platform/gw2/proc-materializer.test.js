@@ -3,6 +3,43 @@ import test from 'node:test';
 
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
+import { testProfession } from '../../fixtures/test-profession.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+
+test('queued shared facts use replacements made by earlier same-time tasks', () => {
+  // Completion-priority edits must reach boon observation and the single canonical critical fact.
+  const config = { stats: { precision: 895 }, randomness: { mode: 'stochastic', seed: 1 } };
+  const policy = createGw2SchedulerPolicy(config);
+  policy.requireCriticalFacts();
+  let buff;
+  let hit;
+  const scheduler = createScheduler({
+    profession: testProfession,
+    config,
+    schedulerPolicy: {
+      ...policy,
+      taskHandlers: {
+        ...policy.taskHandlers,
+        'fixture.replace': (context) => {
+          context.replaceEvent(buff, { duration: 10 });
+          context.replaceEvent(hit, { forceCrit: true });
+        }
+      }
+    }
+  });
+  const { context } = scheduler;
+  const owner = { source: 'fixture', sourceId: 'fixture.facts', actorType: 'player' };
+  buff = context.emit({ ...owner, type: 'buff', at: 1, kind: 'fury', stacks: 1, duration: 1 });
+  hit = context.emit({ ...owner, type: 'damage', at: 1, coefficient: 1, weaponStrength: 1000 });
+  context.tasks.schedule({ type: 'fixture.replace', at: 1, priority: -100 });
+  scheduler.advanceTo(1);
+
+  assert.equal(context.eventByOrder(hit.eventOrder).didCrit, true);
+  assert.equal(context.eventByOrder(hit.eventOrder).forceCrit, true);
+  assert.equal(policy.critical(context, { ...hit, at: 3 }).chance, 0.25);
+  assert.equal(policy.critical(context, { ...hit, at: 11 }).chance, 0);
+});
 
 test('critical facts follow weapon swaps without proc sigils', () => {
   const defaults = defaultSimulationConfig();

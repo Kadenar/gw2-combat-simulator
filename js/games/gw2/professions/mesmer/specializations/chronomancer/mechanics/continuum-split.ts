@@ -67,7 +67,10 @@ export function createContinuumController({
       [...continuum.ammo].map(([id, ammo]) => [
         id,
         {
-          ...ammo,
+          // Relative deadlines belong to the checkpoint; live ammo only stores absolute deadlines.
+          charges: ammo.charges,
+          maximum: ammo.maximum,
+          rechargeDuration: ammo.rechargeDuration,
           nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining,
           // Rewind the cast lockout independently of the next charge's recharge.
           lockoutReadyAt: at + ammo.lockoutRemaining

@@ -1,14 +1,20 @@
-type StateRestore = () => void;
-type StatePreserver = () => StateRestore;
+const resolverFields = new WeakMap<object, ReadonlySet<string>>();
 
-const statePreservers = new WeakMap<object, StatePreserver>();
-
-/** Lets a specialization preserve resolver-only fields without exposing their names to Core reconciliation. */
-export function registerNecromancerStatePreserver(state: object, preserver: StatePreserver): void {
-  statePreservers.set(state, preserver);
+/** Each state owner declares which fields scheduler snapshots must leave untouched. */
+export function registerNecromancerResolverFields<TState extends object>(
+  state: TState,
+  keys: readonly (keyof TState & string)[]
+): void {
+  resolverFields.set(state, new Set(keys));
 }
 
-/** Captures the registered specialization-state restore callback, or a no-op when none exists. */
-export function captureNecromancerStatePreserver(state: object): StateRestore {
-  return statePreservers.get(state)?.() || (() => undefined);
+/** Restores declared scheduler fields, deleting omitted fields and ignoring unknown snapshot keys. */
+export function restoreNecromancerStateSlice(state: object, snapshot: Record<string, unknown>): void {
+  const mutable = state as Record<string, unknown>;
+  const preserved = resolverFields.get(state);
+  for (const key of Object.keys(mutable)) {
+    if (preserved?.has(key)) continue;
+    if (Object.hasOwn(snapshot, key)) mutable[key] = structuredClone(snapshot[key]);
+    else delete mutable[key];
+  }
 }

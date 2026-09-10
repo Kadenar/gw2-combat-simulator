@@ -224,6 +224,10 @@ export function createGw2SchedulerPolicy(
       comboMaterializer.onEventScheduled(context, event);
     },
 
+    onEventReplaced(_context, previous, replacement) {
+      materializer.onEventReplaced(previous, replacement);
+    },
+
     critical(_context, event) {
       return materializer.critical(event);
     },

@@ -82,8 +82,7 @@ export function createGw2TimelineIndex({
   };
 
   const refreshIndex = (): void => {
-    // The source array is append-oriented. Shrinking it signals replacement and
-    // rebuilds the index; same-length in-place mutation is outside the contract.
+    // Appends are indexed incrementally; source replacements must call onEventReplaced.
     if (events.length < indexedLength) resetIndex();
     if (events.length === indexedLength) return;
     while (indexedLength < events.length) {
@@ -178,6 +177,16 @@ export function createGw2TimelineIndex({
   };
 
   return Object.freeze({
+    onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void {
+      // Rebuild lazily for changed history, but ignore unindexed packets such as critical damage facts.
+      if (
+        [previous, replacement].some((event) =>
+          ['buff', 'weapon_set', 'action', 'cooldown_snapshot'].includes(event.type)
+        )
+      ) {
+        resetIndex();
+      }
+    },
     buffStacksAt,
     timedStacks,
     timedActive,

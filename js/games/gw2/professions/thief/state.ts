@@ -1,7 +1,8 @@
 import {
   professionCoreState,
   projectPublicProfessionState,
-  flattenProfessionState
+  flattenProfessionState,
+  restoreFlatProfessionState
 } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type {
@@ -79,11 +80,9 @@ export function projectThiefEndState({
 
 // Resolver snapshots are routed back to whichever runtime slice declares each field, preserving scheduler ownership.
 export function handleThiefState(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  const incoming = structuredClone(event.state || {}) as Record<string, unknown>;
+  const incoming = (event.state || {}) as Record<string, unknown>;
   const core = professionCoreState(context) as unknown as Record<string, unknown>;
   const specialization = context.profession.specialization.state as unknown as Record<string, unknown>;
-  const ownerFor = (key: string): Record<string, unknown> =>
-    Object.hasOwn(specialization, key) ? specialization : core;
   const preserved: Record<string, unknown> = {
     traitProcProgress: core.traitProcProgress || {},
     traitProcReadyAt: core.traitProcReadyAt || {}
@@ -115,6 +114,6 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
   preserved.venomChargeBatches = mergedBatches;
   preserved.venomGeneration = Math.max(generation, Number(incoming.venomGeneration || 0));
 
-  for (const [key, value] of Object.entries(incoming)) ownerFor(key)[key] = value;
-  for (const [key, value] of Object.entries(preserved)) ownerFor(key)[key] = value;
+  // Reconcile grants and spending first; shared restoration then routes and detaches each field once.
+  restoreFlatProfessionState(core, specialization, { ...incoming, ...preserved });
 }

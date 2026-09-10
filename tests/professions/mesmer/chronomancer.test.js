@@ -36,12 +36,34 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
   cooldown.reduceAmmoRecharge(skill, 20, 2);
   continuum.restoreContinuum(4, 'test');
 
-  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 13);
+  // Checkpoint-only fields must not leak into the canonical live ammo schema.
+  assert.deepEqual(state.ammo.get(skill.id), {
+    charges: 0,
+    maximum: 2,
+    rechargeDuration: 10,
+    nextRechargeAt: 13,
+    lockoutReadyAt: 8
+  });
   cooldown.reduceAmmoRecharge(skill, 10, 4);
+  continuum.restoreContinuum(5, 'already restored');
   assert.equal(state.ammo.get(skill.id).charges, 1);
   assert.equal(state.cooldowns.get(skill.id), 8);
   cooldown.refreshAmmo(skill, 8);
   assert.equal(state.cooldowns.has(skill.id), false);
+});
+
+test('Continuum restoration projects ammo without checkpoint-relative fields', () => {
+  // Both named and ID-based public ammo projections expose only live state after a rewind.
+  const result = simulateMesmer(
+    ['Power Spike', 'Continuum Split', 'Continuum Shift'],
+    defaultSimulationConfig({ specialization: 'Chronomancer', initialResource: 3 })
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.endState.ammo['Power Spike']);
+  for (const ammo of [...Object.values(result.endState.ammo), ...Object.values(result.endState.ammoBySkillId)]) {
+    assert.equal(Object.hasOwn(ammo, 'nextRechargeRemaining'), false);
+    assert.equal(Object.hasOwn(ammo, 'lockoutRemaining'), false);
+  }
 });
 
 // Chronomancer clone refunds, phantasm repeats, and Continuum snapshots retain their timing contracts.

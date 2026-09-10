@@ -7,6 +7,40 @@ import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
 import { testProfession } from '../../fixtures/test-profession.js';
 
+test('event replacements merge into current identity before notifying policy indexes', () => {
+  // Retained references must not discard earlier edits or diverge from the scheduler's indexes.
+  const notifications = [];
+  const { context } = createScheduler({
+    profession: testProfession,
+    schedulerPolicy: {
+      onEventReplaced(context, previous, replacement) {
+        assert.equal(context.eventByOrder(previous.eventOrder), replacement);
+        assert.ok(context.eventsOfType(replacement.type).includes(replacement));
+        notifications.push([previous, replacement]);
+      }
+    }
+  });
+  const original = context.emit({
+    type: 'marker',
+    at: 0,
+    source: 'fixture',
+    sourceId: 'fixture.replace',
+    actorType: 'environment'
+  });
+  const first = context.replaceEvent(original, { name: 'retained' });
+  const second = context.replaceEvent(original, { detail: 'later edit' });
+  assert.equal(second.name, 'retained');
+  assert.equal(second.eventOrder, original.eventOrder);
+  assert.deepEqual(notifications, [
+    [original, first],
+    [first, second]
+  ]);
+  assert.equal(context.events.length, 1);
+  assert.equal(context.events[0], second);
+  assert.throws(() => context.replaceEvent(original, { eventOrder: 999 }), /cannot change eventOrder/);
+  assert.throws(() => context.replaceEvent({ ...original, eventOrder: 999 }, {}), /requires a scheduled event/);
+});
+
 // Shared control markers carry explicit ownership even when the rotation has no skill casts.
 test('combat-start and cooldown-reset markers declare environment ownership', () => {
   const result = createScheduler({ profession: testProfession }).run([

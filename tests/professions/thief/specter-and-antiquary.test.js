@@ -753,6 +753,70 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   assert.equal(personalProcs(ID.DEVOURER_VENOM).length, 2);
 });
 
+test('Thief snapshots reconcile venom generations and detach fields at their declared owners', () => {
+  // Repeated grants must retain resolved spending and proc progress without sharing mutable snapshot data.
+  const core = createThiefCoreState();
+  const state = createAntiquaryState();
+  const context = { profession: { core, specialization: { kind: 'Antiquary', state } } };
+  core.traitProcProgress = { [TRAIT.NO_QUARTER]: 0.5 };
+  core.traitProcReadyAt = { [TRAIT.NO_QUARTER]: 10 };
+  core.venomGeneration = 1;
+  core.venomChargeBatches[ID.SPIDER_VENOM] = [
+    { generation: 1, charges: 2, expiresAt: 10 },
+    { generation: 1, charges: 1, expiresAt: 1 },
+    { generation: 1, charges: 0, expiresAt: 20 }
+  ];
+  const snapshot = {
+    at: 1,
+    state: {
+      venomGeneration: 2,
+      venomChargeBatches: {
+        [ID.SPIDER_VENOM]: [
+          { generation: 1, charges: 5, expiresAt: 10 },
+          { generation: 2, charges: 3, expiresAt: 20 }
+        ]
+      },
+      traitProcProgress: {},
+      traitProcReadyAt: {},
+      availableFlips: { [ID.SPIDER_VENOM]: 10 },
+      backfireState: { outcome: 'success' }
+    }
+  };
+  handleThiefState(context, snapshot);
+  assert.deepEqual(
+    core.venomChargeBatches[ID.SPIDER_VENOM].map((batch) => batch.charges),
+    [2, 3]
+  );
+  assert.equal(Object.hasOwn(core, 'backfireState'), false);
+  assert.equal(Object.hasOwn(state, 'availableFlips'), false);
+  core.venomChargeBatches[ID.SPIDER_VENOM][1].charges = 1;
+  core.availableFlips[ID.SPIDER_VENOM] = 0;
+  state.backfireState.outcome = 'backfire';
+  assert.equal(snapshot.state.venomChargeBatches[ID.SPIDER_VENOM][1].charges, 3);
+  assert.equal(snapshot.state.availableFlips[ID.SPIDER_VENOM], 10);
+  assert.equal(snapshot.state.backfireState.outcome, 'success');
+
+  handleThiefState(context, { ...snapshot, at: 2 });
+  assert.deepEqual(
+    core.venomChargeBatches[ID.SPIDER_VENOM].map((batch) => batch.charges),
+    [2, 1]
+  );
+  assert.deepEqual(core.traitProcProgress, { [TRAIT.NO_QUARTER]: 0.5 });
+  assert.deepEqual(core.traitProcReadyAt, { [TRAIT.NO_QUARTER]: 10 });
+  handleThiefState(context, {
+    at: 3,
+    state: {
+      venomGeneration: 3,
+      venomChargeBatches: { [ID.SPIDER_VENOM]: [{ generation: 3, charges: 4, expiresAt: 15 }] }
+    }
+  });
+  assert.deepEqual(
+    core.venomChargeBatches[ID.SPIDER_VENOM].map((batch) => batch.charges),
+    [2, 4, 1]
+  );
+  assert.equal(core.venomGeneration, 3);
+});
+
 test('Mistburn snapshots preserve spent charges until a new generation is granted', () => {
   // Scheduler snapshots repeat grants; only a new application may refill resolver-consumed charges.
   const result = simulate('Antiquary', ['Skritt Swipe', 'Mistburn Mortar']);

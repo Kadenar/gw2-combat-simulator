@@ -82,6 +82,8 @@ export interface Gw2ResolvedStats extends SchedulerRecord {
 }
 
 export interface Gw2TimelineIndex {
+  /** Invalidates indexed history after the source owner replaces an event. */
+  onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;
   buffStacksAt(
     kind: string,
     time: number,

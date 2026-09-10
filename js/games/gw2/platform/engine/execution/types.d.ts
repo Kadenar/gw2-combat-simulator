@@ -194,6 +194,12 @@ export interface SchedulerPolicy<TProfessionState extends object = SchedulerReco
     defaultStacks: number
   ) => number | undefined;
   readonly onEventScheduled?: (context: SchedulerContext<TProfessionState>, event: SimulationEvent) => unknown;
+  /** Updates derived indexes after replacement without observing the event a second time. */
+  readonly onEventReplaced?: (
+    context: SchedulerContext<TProfessionState>,
+    previous: SimulationEvent,
+    replacement: SimulationEvent
+  ) => void;
   readonly advance?: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
   readonly taskHandlers?: Readonly<
     Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>>
@@ -225,6 +231,7 @@ export interface SchedulerContext<TProfessionState extends object = SchedulerRec
   eventsOfType(type: string): readonly SimulationEvent[];
   eventByOrder(order: number): SimulationEvent | undefined;
   emit(event: SimulationEventInput): SimulationEvent;
+  /** Applies updates to the current version of a scheduled event, preserving its eventOrder identity. */
   replaceEvent(event: SimulationEvent, updates: SchedulerRecord): SimulationEvent;
   emitDerived(cause: SimulationEvent, event: SimulationEventInput): SimulationEvent;
   buffStacks(kind: string, at?: number): number;

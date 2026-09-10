@@ -398,6 +398,14 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       return normalized;
     },
     replaceEvent(/** @type {SimulationEvent} */ event, /** @type {SchedulerRecord} */ updates) {
+      // Hooks may retain older references; always merge into the current version of this identity.
+      const current = context.eventByOrder(Number(event.eventOrder));
+      if (!current) throw new TypeError('Event replacement requires a scheduled event.');
+      if (Object.hasOwn(updates, 'eventOrder') && updates.eventOrder !== current.eventOrder) {
+        throw new TypeError('Event replacement cannot change eventOrder.');
+      }
+
+      event = current;
       const replacement = createEvent({ ...event, ...updates });
       const replaceReference = (collection: SimulationEvent[]): void => {
         const index = collection.indexOf(event);
@@ -409,6 +417,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       replaceReference(observationQueue);
       replaceIndexedEvent(event, replacement);
       indexBuffEvent(replacement);
+      schedulerPolicy.onEventReplaced?.(context, event, replacement);
       return replacement;
     },
     emitDerived(/** @type {SimulationEvent} */ cause, /** @type {SimulationEventInput} */ event) {

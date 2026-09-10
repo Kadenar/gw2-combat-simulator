@@ -3,15 +3,15 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * Handlers for necromancer events pulled off the scheduler/resolver queue.
  *
  *   - `handleNecromancerStateEvent` reconciles the resolver's profession state
- *     with the snapshot carried on a `necromancer.state` event, replacing it
- *     wholesale while preserving resolver-only fields and merging carapace
+ *     with the snapshot carried on a `necromancer.state` event, restoring
+ *     scheduler-owned fields while preserving resolver fields and merging carapace
  *     stacks (see mergeExpiryStacks).
  *   - `handleNecromancerChillEvent` canonicalizes internal chill packets.
  *   - `handleNecromancerSummonAttack` materializes a queued minion
  *     autoattack into a damage event, dropping it if the summon has expired.
  */
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
-import { captureNecromancerStatePreserver } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+import { restoreNecromancerStateSlice } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 /**
  * Declares revive-only skills as supported without changing combat state,
@@ -45,41 +45,12 @@ export function handleNecromancerStateEvent(
   event: NecromancerResolverEvent
 ): void {
   const core = professionCoreState(context);
-  const mutableCore = core as unknown as Record<string, unknown>;
-  const active = context.profession.specialization;
-  const specializationState = active.state as Record<string, unknown>;
-  const coreKeys = new Set(Object.keys(core));
-  const specializationKeys = new Set(Object.keys(specializationState));
   const resolverCarapace = core.carapaceExpiries || [];
-  const resolverOnly = {
-    targetChilledUntil: core.targetChilledUntil,
-    targetControlledUntil: core.targetControlledUntil,
-    dreadUntil: core.dreadUntil,
-    fearOfDeathReadyAt: core.fearOfDeathReadyAt,
-    vampiricPresenceReadyAt: core.vampiricPresenceReadyAt,
-    barbedPrecisionProgress: core.barbedPrecisionProgress,
-    spitefulFortitudeLifeForce: core.spitefulFortitudeLifeForce,
-    traitProcReadyAt: core.traitProcReadyAt,
-    tasteForBloodBuffs: core.tasteForBloodBuffs
-  };
-  // Capture specialization-only fields before replacing the shared and active-specialization snapshots.
-  const restoreSpecializationState = captureNecromancerStatePreserver(active.state);
-  for (const key of coreKeys) delete mutableCore[key];
-  for (const key of specializationKeys) delete specializationState[key];
-  for (const [key, value] of Object.entries(event.state || {})) {
-    if (coreKeys.has(key)) mutableCore[key] = structuredClone(value);
-    if (specializationKeys.has(key)) {
-      specializationState[key] = structuredClone(value);
-    }
-  }
-
-  // Merge independently accumulated resolver data after the snapshot replacement.
+  const snapshot = event.state || {};
+  restoreNecromancerStateSlice(core, snapshot);
+  restoreNecromancerStateSlice(context.profession.specialization.state, snapshot);
+  // Carapace is observed in both phases; preserve the greatest multiplicity of each expiry.
   core.carapaceExpiries = mergeExpiryStacks(core.carapaceExpiries, resolverCarapace);
-  for (const [key, value] of Object.entries(resolverOnly)) {
-    if (value !== undefined) mutableCore[key] = value;
-  }
-
-  restoreSpecializationState();
 }
 
 /** Converts the internal Necromancer chill packet into a canonical target condition event. */
