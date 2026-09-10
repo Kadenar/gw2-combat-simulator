@@ -1619,5 +1619,6 @@ test('Engineer is a loadable native application', async () => {
   const html = await readFile(new URL('../../../dist/site/engineer.html', import.meta.url), 'utf8');
 
   assert.match(html, /data-profession="engineer"/);
-  assert.match(html, /Engineer<\/span> Rotation Simulator/);
+  // The built document identifies the profession before the shared header mounts in the browser.
+  assert.match(html, /<title>GW2 Combat Simulator — Engineer<\/title>/);
 });

@@ -17,6 +17,7 @@ import {
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
+import { WARRIOR_WEAPON_STOW } from '#gw2/professions/warrior/core/skills/actions.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/execution/index.js';
@@ -67,7 +68,8 @@ const authoringWarriorProfession = withActivePatchPreview(warriorProfession);
 
 test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
   assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).name, 'Weapon Stow');
-  assert.match(warriorCatalog.skillsById.get(ID.WEAPON_STOW).icon, /assets\/warrior\/weapon-stow\.png$/);
+  // Catalog normalization preserves the authored icon; browser tests verify Vite resolves the artwork.
+  assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).icon, WARRIOR_WEAPON_STOW.icon);
   assert.equal(warriorCatalog.skillsByName.get('Forceful Shot').id, ID.FORCEFUL_SHOT);
   assert.equal(warriorCatalog.skillsByName.get('Path to Victory').id, ID.PATH_TO_VICTORY_ID_71932);
   assert.equal(warriorCatalog.skillsByName.get("Harrier's Toss").id, ID.HARRIERS_TOSS);

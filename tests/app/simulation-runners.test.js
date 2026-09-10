@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { createBuildTab } from '#gw2/app/build/state/workspace.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifier-contribution-runner.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
 import { createGameWorkerEndpoint, ManagedWorkerBatch } from '#app/simulation/game-worker-harness.js';
@@ -203,6 +204,7 @@ test('rotation-only changes paint the builder once with their matching result', 
 });
 
 test('build edits cancel prior analysis even when browser storage rejects writes', (t) => {
+  let storageWrites = 0;
   const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
   const storageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   t.after(() => {
@@ -213,12 +215,13 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   });
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
-    value: { body: { dataset: {} } }
+    value: { body: { dataset: {} }, getElementById: () => null }
   });
   Object.defineProperty(globalThis, 'localStorage', {
     configurable: true,
     value: {
       setItem() {
+        storageWrites += 1;
         throw new DOMException('Storage is full.', 'QuotaExceededError');
       }
     }
@@ -239,10 +242,13 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     recalculate() {},
     buildEditor: {}
   };
+  // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
+  const tab = createBuildTab({ rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkills: {}, infusions: [] });
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     initialRenderGeneration: 0,
     deferredRotationRenderRevision: null,
-    build: { rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkills: {} },
+    build: tab.build,
+    workspace: { tabs: [tab], activeTabId: tab.id },
     buildRevision: 0,
     simulationStatus: 'idle',
     simulationError: '',
@@ -263,6 +269,8 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   });
 
   assert.doesNotThrow(() => app.changed(false));
+  assert.equal(storageWrites, 1);
+  assert.ok(app.workspace.storageError);
   assert.equal(app.buildRevision, 1);
   assert.equal(scheduledRevision, 1);
   assert.equal(app.simulationStatus, 'queued');

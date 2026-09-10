@@ -118,12 +118,10 @@ test('specialization filters come from unique manifest section names', () => {
   assert.deepEqual(templateSpecializations(manifest), ['Weaver', 'Tempest']);
 });
 
-test('template sidebar renders outside the contiguous simulator editor', () => {
-  const source = readFileSync(new URL('../../js/games/gw2/app/build/panels/presets.ts', import.meta.url), 'utf8');
+// Keep the editor contiguous; browser tests cover the dynamically mounted template dialog.
+test('shared template keeps build and simulation controls in one editor', () => {
   const template = readFileSync(new URL('../../templates/profession.html', import.meta.url), 'utf8');
 
-  assert.match(source, /templateRegion\.append\(container\)/);
-  assert.doesNotMatch(source, /simulationWorkspace/);
   assert.match(template, /<section class="build-editor panel">[\s\S]*\n {8}<div class="simulation-workspace">/);
   assert.doesNotMatch(template, /\n {6}<div class="simulation-workspace">/);
 });

@@ -1202,5 +1202,6 @@ test('Thief is a loadable native application', async () => {
   const html = await readFile(new URL('../../../dist/site/thief.html', import.meta.url), 'utf8');
 
   assert.match(html, /data-profession="thief"/);
-  assert.match(html, /Thief<\/span> Rotation Simulator/);
+  // The built document identifies the profession before the shared header mounts in the browser.
+  assert.match(html, /<title>GW2 Combat Simulator — Thief<\/title>/);
 });
