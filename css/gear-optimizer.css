@@ -168,7 +168,8 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-panel);
-  overflow: hidden;
+  /* Results handle their own scrolling; let the filter menu extend past short result lists. */
+  overflow: visible;
 }
 .optimizer-columns {
   display: grid;
@@ -469,17 +470,21 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   color: var(--text-dim);
   font-weight: 500;
   font-size: 11px;
+  line-height: 16px;
+  background: var(--bg-panel-alt);
+}
+/* Stick both header rows together so set labels stay above their columns while scrolling. */
+.gear-optimizer thead {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--bg-panel-alt);
 }
 .gear-optimizer .optimizer-best > td {
   background: color-mix(in srgb, #25b8b7 24%, var(--bg-panel));
 }
-.optimizer-damage,
-.optimizer-delta {
+.optimizer-damage {
   font-family: var(--mono);
+  width: 1%;
 }
 .optimizer-damage strong {
   font-weight: 500;
@@ -491,10 +496,35 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   font-size: 10px;
   color: var(--text-dim);
 }
-/* Stack the weapon set beneath the slot name instead of compressing both into an abbreviation. */
-.gear-optimizer th .optimizer-weapon-set {
-  display: block;
-  margin: 3px 0 0;
+/* Stack the equipped label under its score so the pinned row does not widen every result. */
+.optimizer-score,
+.optimizer-comparison {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+}
+.optimizer-comparison {
+  margin-left: 5px;
+}
+.optimizer-score small,
+.optimizer-comparison small {
+  margin-left: 0;
+}
+.optimizer-delta {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.gear-optimizer th[scope='colgroup'] {
+  text-align: center;
+  padding-bottom: 4px;
+  border-bottom: 0;
+}
+/* Keep ungrouped column labels on the same baseline as the weapon and sigil labels. */
+.gear-optimizer th[rowspan] {
+  vertical-align: bottom;
+}
+.gear-optimizer thead tr + tr th {
+  padding-top: 4px;
 }
 .optimizer-equipment > span {
   display: block;
@@ -516,7 +546,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
-.optimizer-table-scroll th:first-child,
+.optimizer-table-scroll thead tr:first-child th:first-child,
 .optimizer-table-scroll td:first-child {
   padding-left: 16px;
 }

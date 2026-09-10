@@ -154,14 +154,49 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
     return `${((state.winners[0].score.dps / state.baseline.dps - 1) * 100).toFixed(1)}%`;
   });
   await expect(results.locator('tbody .optimizer-damage small')).toHaveText(percentage);
+  // Keep the equipped DPS difference directly below the percentage instead of consuming a column.
+  await expect(results.getByRole('columnheader', { name: 'Δ equipped', exact: true })).toHaveCount(0);
+  const comparison = results.locator('tbody .optimizer-comparison');
+  const difference = await page.evaluate(() => {
+    const state = window.professionApp.gearOptimizerRunner.state;
+    const delta = state.winners[0].score.dps - state.baseline.dps;
+    return `${delta >= 0 ? '+' : ''}${delta.toFixed(2)} DPS`;
+  });
+  await expect(comparison.locator('.optimizer-delta')).toHaveText(difference);
+  const percentBounds = await comparison.locator('small').boundingBox();
+  const deltaBounds = await comparison.locator('.optimizer-delta').boundingBox();
+  expect(deltaBounds.y).toBeGreaterThanOrEqual(percentBounds.y + percentBounds.height);
+  expect(deltaBounds.x).toBe(percentBounds.x);
   await expect(results.getByRole('cell', { name: 'Food: None', exact: true })).toBeVisible();
   await expect(results.getByRole('columnheader', { name: 'Helm', exact: true })).toBeVisible();
-  for (const set of [1, 2]) {
-    for (const label of ['Main hand', 'Sigil 1', 'Sigil 2'])
-      await expect(
-        results.getByRole('columnheader', { name: `${label} Weapon set ${set}`, exact: true })
-      ).toBeVisible();
-  }
+  // Set headers span the actual weapon slots and sigil pairs without repeating labels in each column.
+  await expect(results.locator('th[scope="colgroup"]')).toHaveText([
+    'Weapon set 1',
+    'Weapon set 2',
+    'Weapon set 1',
+    'Weapon set 2'
+  ]);
+  expect(
+    await results.locator('th[scope="colgroup"]').evaluateAll((headers) => headers.map((header) => header.colSpan))
+  ).toEqual([2, 1, 2, 2]);
+  await expect(results.locator('thead tr').nth(1).locator('th')).toHaveText([
+    'Main hand',
+    'Off hand',
+    'Main hand',
+    'Sigil 1',
+    'Sigil 2',
+    'Sigil 1',
+    'Sigil 2'
+  ]);
+  // Group titles occupy the upper row; all individual column labels share the lower baseline.
+  const labelPositions = await results.locator('th[scope="col"]').evaluateAll((headers) =>
+    headers.map((header) => {
+      const label = document.createRange();
+      label.selectNode(header.firstChild);
+      return label.getBoundingClientRect().bottom;
+    })
+  );
+  expect(Math.max(...labelPositions) - Math.min(...labelPositions)).toBeLessThan(1);
 
   await expect(results.locator('tbody').getByRole('cell', { name: /^Set 2 sigil 1:/ })).toBeVisible();
   // Row selection inspects an isolated candidate; changing preview sets must never save or equip it.
@@ -450,6 +485,17 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     await panel.getByRole('radio', { name: label, exact: true }).check();
     await expect(panel.locator('tbody tr')).toHaveCount(count);
     await expect(pinned).toBeVisible();
+    // Even a single result must leave the bottom of the filter menu visible and clickable.
+    const menuNote = panel.locator('.optimizer-filter-settings fieldset p');
+    await panel.locator('.optimizer-filter-settings').evaluate((element) => {
+      window.scrollBy(0, element.getBoundingClientRect().top - 100);
+    });
+    expect(
+      await menuNote.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return element.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
+      })
+    ).toBe(true);
     const equippedCells = await pinned
       .locator('.optimizer-equipment')
       .evaluateAll((cells) => cells.map((cell) => cell.getAttribute('aria-label')).join('|'));
@@ -486,7 +532,8 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     const viewportBottom = await scroll.evaluate(
       (element) => element.getBoundingClientRect().top + element.clientTop + element.clientHeight
     );
-    expect(Math.abs(row.y + row.height - viewportBottom)).toBeLessThan(0.1);
+    // clientHeight rounds to whole pixels while bounding boxes preserve fractional layout coordinates.
+    expect(Math.abs(row.y + row.height - viewportBottom)).toBeLessThan(0.5);
   }
 
   await page.setViewportSize({ width: 390, height: 844 });
