@@ -40,15 +40,26 @@ export function withMesmerCastEmission(
   }
 }
 
+/** Recognizes interrupted casts that reached their authored summon point using the caller's phase tolerance. */
+export function isCommittedInterruptedPhantasm(
+  context: Pick<MesmerCastContext, 'start' | 'fullEnd' | 'effectiveEnd'>,
+  skill: Pick<MesmerSkill, 'phantasmSummonProgress'>,
+  epsilon = EPSILON
+): boolean {
+  const progress = Number(skill.phantasmSummonProgress);
+  const summonAt = context.start + (context.fullEnd - context.start) * progress;
+  return (
+    context.effectiveEnd < context.fullEnd - epsilon &&
+    Number.isFinite(progress) &&
+    context.effectiveEnd >= summonAt - epsilon
+  );
+}
+
 /** Registers phantasm packets at cast start so observers see their authored timeline in order. */
 export function scheduleMesmerPhantasmEffects(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   const details = runtime.castDetails.get(context.reservationId) || {};
-  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
-  const summonProgress = Number(skill.phantasmSummonProgress);
-  const summonThreshold = context.start + (context.fullEnd - context.start) * summonProgress;
-  const completedInterruptedPhantasm =
-    interrupted && Number.isFinite(summonProgress) && context.effectiveEnd >= summonThreshold - EPSILON;
+  const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(context, skill);
   withMesmerCastEmission(
     context,
     skill,
@@ -208,10 +219,7 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
     context.tasks.cancelOwner(details.earlyResourceOwnerId || '');
   }
 
-  const phantasmSummonProgress = Number(skill.phantasmSummonProgress);
-  const phantasmSummonThreshold = context.start + (context.fullEnd - context.start) * phantasmSummonProgress;
-  const completedInterruptedPhantasm =
-    interrupted && Number.isFinite(phantasmSummonProgress) && context.effectiveEnd >= phantasmSummonThreshold - EPSILON;
+  const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(context, skill);
   runtime.activeEmission = {
     skill,
     effectiveEnd: interrupted && !completedInterruptedPhantasm ? context.effectiveEnd : Infinity,

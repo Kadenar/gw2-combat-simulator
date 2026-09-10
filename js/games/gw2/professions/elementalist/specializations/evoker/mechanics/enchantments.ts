@@ -15,9 +15,9 @@ import { ELECTRIC_ENCHANTMENT_ICON } from '#gw2/professions/elementalist/special
 import { type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
-// Materialize Electric Enchantment's strike and control package for the invoking
+// Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
-export function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
+function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const strike = balanceProfileEffectFromContext(context, PROFILE.galvanicEnchantment, 'strike');
   const burning = balanceProfileEffectFromContext(context, PROFILE.galvanicEnchantment, 'condition');
   emitSkillDamage(context, {
@@ -55,12 +55,25 @@ export function emitElectricEnchantment(context: ElementalistSchedulerContext, e
   });
 }
 
+/** Marks the canonical hit before emission so repeated or reentrant processing cannot spend it twice. */
+export function consumeElectricEnchantment(
+  context: ElementalistSchedulerContext,
+  state: EvokerState,
+  event: SimulationEvent
+): void {
+  const current = context.eventByOrder(Number(event.eventOrder)) || event;
+  if (state.electricEnchantmentStacks <= 0 || current.electricEnchantmentConsumed === true) return;
+  state.electricEnchantmentStacks -= 1;
+  context.replaceEvent(current, { electricEnchantmentConsumed: true });
+  emitElectricEnchantment(context, current);
+}
+
 /**
  * Retroactively spends armed stacks on already-scheduled player strikes,
  * earliest first, covering stacks granted after those strikes were queued. Stops
  * as soon as the stack pool runs out.
  */
-export function materializeArmedElectricEnchantments(context: ElementalistCastContext, state: EvokerState): void {
+export function applyElectricEnchantmentsRetrospectively(context: ElementalistCastContext, state: EvokerState): void {
   // electricEnchantmentConsumed prevents double-consuming the same hit if this runs twice
   // sorted chronologically so the earliest hits in the window consume stacks first
   const candidates = context.events
@@ -75,8 +88,6 @@ export function materializeArmedElectricEnchantments(context: ElementalistCastCo
     .sort((left, right) => left.at - right.at);
   for (const event of candidates) {
     if (state.electricEnchantmentStacks <= 0) break;
-    state.electricEnchantmentStacks -= 1;
-    context.replaceEvent(event, { electricEnchantmentConsumed: true });
-    emitElectricEnchantment(context, event);
+    consumeElectricEnchantment(context, state, event);
   }
 }

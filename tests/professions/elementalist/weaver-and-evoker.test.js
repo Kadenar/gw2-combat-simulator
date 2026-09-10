@@ -14,12 +14,88 @@ import { availability as evokerAvailability } from '#gw2/professions/elementalis
 import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
+import { applyElectricEnchantmentsRetrospectively } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { handlePrimordialStanceTick } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+
+test('Electric Enchantment shares consumption while preserving retrospective ordering and eligibility', () => {
+  // Immutable replacement leaves stale references behind; neither traversal may spend the same hit twice.
+  const state = createEvokerState({ evokerElement: 'Air' });
+  state.electricEnchantmentStacks = 0;
+  const events = [];
+  const context = {
+    catalog: elementalistCatalog,
+    profession: { id: 'elementalist' },
+    state: { profession: { specialization: { kind: 'Evoker', state } } },
+    combatStartTime: 2,
+    epsilon: 1e-6,
+    events,
+    eventByOrder: (order) => events.find((event) => event.eventOrder === order),
+    replaceEvent(event, updates) {
+      const index = events.findIndex((candidate) => candidate.eventOrder === event.eventOrder);
+      return (events[index] = { ...events[index], ...updates });
+    },
+    emit(event) {
+      const scheduled = { ...event, eventOrder: events.length };
+      events.push(scheduled);
+      onEventScheduled(context, scheduled);
+      return scheduled;
+    },
+    emitDerived(cause, event) {
+      assert.equal(context.eventByOrder(cause.eventOrder).electricEnchantmentConsumed, true);
+      return context.emit({ ...event, activationId: cause.activationId });
+    }
+  };
+  const hit = (at, fields = {}) =>
+    context.emit({
+      type: 'damage',
+      actorType: 'player',
+      coefficient: 1,
+      skillId: 42,
+      activationId: 'hit',
+      at,
+      ...fields
+    });
+  const later = hit(4);
+  const earlier = hit(3);
+  const precombat = hit(1);
+  const summon = hit(2, { actorType: 'summon' });
+  const zero = hit(2, { coefficient: 0 });
+  state.electricEnchantmentStacks = 1;
+  applyElectricEnchantmentsRetrospectively(context, state);
+  assert.equal(state.electricEnchantmentStacks, 0);
+  assert.equal(context.eventByOrder(earlier.eventOrder).electricEnchantmentConsumed, true);
+  for (const event of [later, precombat, summon, zero]) {
+    assert.notEqual(context.eventByOrder(event.eventOrder).electricEnchantmentConsumed, true);
+  }
+
+  state.electricEnchantmentStacks = 2;
+  onEventScheduled(context, earlier);
+  assert.equal(state.electricEnchantmentStacks, 2);
+  applyElectricEnchantmentsRetrospectively(context, state);
+  applyElectricEnchantmentsRetrospectively(context, state);
+  assert.equal(state.electricEnchantmentStacks, 1);
+  // Forward scheduling retains its existing lack of a combat-window filter.
+  const forward = hit(1);
+  assert.equal(context.eventByOrder(forward.eventOrder).electricEnchantmentConsumed, true);
+  assert.equal(state.electricEnchantmentStacks, 0);
+  onEventScheduled(context, forward);
+  assert.equal(state.electricEnchantmentStacks, 0);
+  const payloads = events.filter((event) => event.source === 'Electric Enchantment');
+  assert.equal(payloads.length, 9);
+  for (const event of payloads) {
+    assert.equal(event.sourceId, 42);
+    assert.equal(event.actorType, 'effect');
+    if (event.type !== 'proc') {
+      assert.equal(event.ownerActorType, 'player');
+      assert.equal(event.activationId, 'hit');
+    }
+  }
+});
 
 test('Elemental Balance reports the same patched duration used for its active window', () => {
   // Two qualifying entries arm the trait; its marker must explain the effective balance profile.

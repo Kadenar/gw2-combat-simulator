@@ -2,6 +2,49 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { scheduleMesmerPhantasmEffects } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { troubadourSchedulerHooks } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+
+test('phantasm packet and Harmonize commitment preserve their interruption tolerances', () => {
+  // Synthetic summon progress checks the commitment contract without pinning authored skill timings.
+  const harmonize = troubadourSchedulerHooks.onCastComplete.find(({ id }) => id.endsWith('.harmonize')).handler;
+  for (const progress of [0.5, undefined, NaN, Infinity, -Infinity]) {
+    for (const effectiveEnd of [3 - 5 * EPSILON, 3 - 3 * EPSILON, 3 - EPSILON / 2, 3, 4]) {
+      const packets = [];
+      const resources = [];
+      const context = {
+        start: 2,
+        fullEnd: 4,
+        effectiveEnd,
+        epsilon: 4 * EPSILON,
+        reservationId: 'phantasm',
+        mesmerRuntime: {
+          castDetails: new Map(),
+          activeEmission: null,
+          activePrimaryWeapon: () => 'Sword',
+          resources: { queueResources: (...args) => resources.push(args) },
+          skillEffects: {
+            schedule: (_skill, _end, _start, options) =>
+              packets.push({ ...options, emissionEnd: context.mesmerRuntime.activeEmission.effectiveEnd })
+          }
+        }
+      };
+      const skill = { resource: { mode: 'phantasm' }, phantasmSummonProgress: progress };
+      scheduleMesmerPhantasmEffects(context, skill);
+      harmonize(context, skill);
+      const packetCommitted = progress === 0.5 && effectiveEnd >= 3 - EPSILON && effectiveEnd < 4;
+      assert.equal(packets[0].phantasmSummonAt, packetCommitted ? effectiveEnd : undefined);
+      assert.equal(packets[0].emissionEnd, packetCommitted || effectiveEnd === 4 ? Infinity : effectiveEnd);
+      assert.equal(
+        resources.length,
+        (progress === 0.5 && effectiveEnd >= 3 - context.epsilon) || effectiveEnd === 4 ? 1 : 0
+      );
+      if (resources.length) assert.equal(resources[0][0], context.fullEnd + context.epsilon);
+      assert.equal(context.mesmerRuntime.activeEmission, null);
+    }
+  }
+});
 
 function createFixture() {
   const events = [];

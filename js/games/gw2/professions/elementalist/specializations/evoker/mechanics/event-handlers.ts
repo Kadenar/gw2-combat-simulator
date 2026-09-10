@@ -17,7 +17,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { elementalistEventSkill, emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import { emitElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
+import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
@@ -54,11 +54,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
 
   // forward-facing consumption; enchantments.ts covers strikes already queued when the stack was granted
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {
-    if (state.electricEnchantmentStacks > 0) {
-      state.electricEnchantmentStacks -= 1;
-      context.replaceEvent(event, { electricEnchantmentConsumed: true });
-      emitElectricEnchantment(context, event);
-    }
+    consumeElectricEnchantment(context, state, event);
   }
 
   // everything past this point is an attunement-entry trait

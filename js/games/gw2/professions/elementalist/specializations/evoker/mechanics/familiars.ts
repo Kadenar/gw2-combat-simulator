@@ -34,7 +34,7 @@ import {
   completeEvokerAttunement,
   triggerSpecializedElementEntry
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import { materializeArmedElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
+import { applyElectricEnchantmentsRetrospectively } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import {
   emitResource,
   flushPendingWeaponChargeGains,
@@ -387,7 +387,7 @@ function applyFamiliarSkillEffects(context: ElementalistCastContext, skill: Skil
   }
 
   if (familiarElement) {
-    materializeArmedElectricEnchantments(context, state);
+    applyElectricEnchantmentsRetrospectively(context, state);
   }
 
   if (skill.id === ID.ZAP) {
@@ -471,7 +471,7 @@ function applyMeditationEffects(context: ElementalistCastContext, skill: Skill):
       detail: `+${stacks} stacks`,
       icon: ELECTRIC_ENCHANTMENT_ICON
     });
-    materializeArmedElectricEnchantments(context, state);
+    applyElectricEnchantmentsRetrospectively(context, state);
   } else if (skill.id === ID.TOADS_FORTITUDE && state.element === 'Earth') {
     const resistance = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Toad Resistance');
     emitSkillBuff(context, skill, {

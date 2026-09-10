@@ -10,6 +10,7 @@ import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/t
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type {
   MesmerCastContext,
   MesmerRechargeContext,
@@ -119,10 +120,7 @@ export const troubadourAttributeRules = Object.freeze({
 function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSkill): void {
   if (skill.resource?.mode !== 'phantasm') return;
   const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
-  const summonProgress = Number(skill.phantasmSummonProgress);
-  const summonAt = context.start + (context.fullEnd - context.start) * summonProgress;
-  const completedInterruptedPhantasm =
-    interrupted && Number.isFinite(summonProgress) && context.effectiveEnd >= summonAt - context.epsilon;
+  const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(context, skill, context.epsilon);
   if (interrupted && !completedInterruptedPhantasm) return;
 
   const runtime = mesmerRuntimeFor(context);
