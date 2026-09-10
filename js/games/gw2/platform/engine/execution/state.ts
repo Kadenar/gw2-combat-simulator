@@ -1,11 +1,10 @@
 /**
  * Constructs the profession-neutral mutable state the scheduler owns during a
- * run: cooldowns, ammo, lockouts, skill-use counts, active weapon set, and
- * pending events. Profession-specific resources are nested under
- * `state.profession` via the profession contract.
+ * run: clock, cooldowns, ammo, lockouts, skill-use counts, and active weapon set.
+ * Profession-specific resources are nested under `state.profession` via the
+ * profession contract; the scheduler retains events for resolver handoff.
  */
 import type { SchedulerRecord, SchedulerState } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 interface SchedulerStateOptions<TProfessionState extends object> {
   readonly profession?: {
@@ -38,7 +37,6 @@ export function createSchedulerState<TProfessionState extends object = Scheduler
     lockouts: new Map(),
     activeWeaponSet: Math.max(1, Number(activeWeaponSet || 1)),
     skillUses: new Map(),
-    pendingEvents: [] as SimulationEvent[],
     profession: profession.createProfessionState(config)
   };
 }

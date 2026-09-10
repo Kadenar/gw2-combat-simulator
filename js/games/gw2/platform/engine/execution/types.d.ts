@@ -69,7 +69,6 @@ export interface SchedulerState<TProfessionState = SchedulerRecord> {
   lockouts: Map<string, number>;
   activeWeaponSet: number;
   skillUses: Map<SkillId, number>;
-  pendingEvents: SimulationEvent[];
   profession: TProfessionState;
 }
 

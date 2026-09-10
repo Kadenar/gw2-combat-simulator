@@ -374,7 +374,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       events.push(normalized);
       indexEvent(normalized);
       indexBuffEvent(normalized);
-      state.pendingEvents.push(normalized);
       observationQueue.push(normalized);
       if (!observingEvents) {
         let observationCount = 0;
@@ -407,7 +406,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
       deindexBuffEvent(event);
       replaceReference(events);
-      replaceReference(state.pendingEvents);
       replaceReference(observationQueue);
       replaceIndexedEvent(event, replacement);
       indexBuffEvent(replacement);
@@ -737,9 +735,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     schedulerPolicy.advance?.(context, target);
     activeProfession.advance(context, target);
     state.time = target;
-    // pendingEvents is only a scheduler-side view of future work; the complete
-    // canonical event list remains in events for the resolver handoff.
-    state.pendingEvents = state.pendingEvents.filter((event) => event.at > target + epsilon);
   }
 
   context.advanceTo = advanceTo;
