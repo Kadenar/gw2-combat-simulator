@@ -148,12 +148,59 @@ test('Mesmer previews timed and boon-dependent attributes separately', () => {
   assert.equal(stats(app, { regeneration: 1 }).Concentration.final, base.Concentration.final + 250);
 });
 
+// Shroud is useful only with a selected attribute source; Scourge never enters shroud.
+test('Shroud preview appears only for relevant traits or Signet of Spite', () => {
+  const shroud = (app) => attributeEffectControls(app).find((control) => control.key === 'shroud');
+  for (const specialization of [null, 'Reaper', 'Harbinger', 'Ritualist', 'Scourge'])
+    assert.equal(shroud(previewApp('necromancer', [], specialization)), undefined);
+  for (const trait of ['Death Perception', "Reaper's Onslaught"])
+    assert.equal(shroud(previewApp('necromancer', [trait])).description, trait);
+
+  const app = previewApp('necromancer');
+  app.build.selectedSkills.Utility1 = 'Signet of Spite';
+  app.adapter.recalculate(app);
+  assert.equal(shroud(app).description, 'Signet of Spite');
+  assert.equal(stats(app, { shroud: 1 }).Power.final, stats(app).Power.final - 180);
+  delete app.build.selectedSkills.Utility1;
+  app.adapter.recalculate(app);
+  assert.equal(shroud(app), undefined);
+
+  const scourge = previewApp('necromancer', ['Death Perception'], 'Scourge');
+  scourge.build.selectedSkills.Utility1 = 'Signet of Spite';
+  scourge.adapter.recalculate(scourge);
+  assert.equal(shroud(scourge), undefined);
+});
+
 test('Necromancer previews Carapace, shroud and target Vulnerability', () => {
   const app = previewApp('necromancer', ['Deadly Strength', "Reaper's Onslaught", 'Decimate Defenses']);
   const base = stats(app);
   assert.equal(stats(app, { carapace: 5 }).Power.final, base.Power.final + 50);
   assert.equal(stats(app, { shroud: 1 }).Ferocity.final, base.Ferocity.final + 300);
   close(stats(app, { 'condition:Vulnerability': 10 })['Critical Chance'].final, base['Critical Chance'].final + 20);
+});
+
+// The compact count includes each explicitly enabled condition once, regardless of its stacks.
+test('Target the Weak counts condition types without activating other condition-specific traits', () => {
+  const app = previewApp('necromancer', ['Target the Weak', 'Decimate Defenses']);
+  const original = structuredClone(app.build);
+  const base = stats(app)['Critical Chance'].final;
+  const controls = attributeEffectControls(app);
+  assert.deepEqual(
+    controls.filter((control) => control.kind === 'condition').map((control) => control.field),
+    ['Vulnerability']
+  );
+  close(stats(app, { targetTheWeak: 5 })['Critical Chance'].final, base + 10);
+  close(stats(app, { targetTheWeak: 5, 'condition:Vulnerability': 10 })['Critical Chance'].final, base + 32);
+  close(stats(app, { targetTheWeak: 99 })['Critical Chance'].final, base + 26);
+  close(stats(app, { targetTheWeak: -1 })['Critical Chance'].final, base);
+  assert.deepEqual(app.build, original);
+
+  const harbinger = previewApp('necromancer', ['Target the Weak', 'Wicked Corruption']);
+  close(stats(harbinger, { targetTheWeak: 5 })['Critical Damage'].final, stats(harbinger)['Critical Damage'].final);
+  close(
+    stats(harbinger, { targetTheWeak: 5, 'condition:Torment': 1 })['Critical Chance'].final,
+    stats(harbinger)['Critical Chance'].final + 12
+  );
 });
 
 test('Ranger previews Fury-dependent Ferocity and flanking critical chance', () => {

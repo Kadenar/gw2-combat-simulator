@@ -9,7 +9,12 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/timelines.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+  validatePatchPreview
+} from '#gw2/integrations/patches/authoring/patches.js';
+import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
@@ -63,6 +68,99 @@ function mechanic(name) {
 const applyEngineerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(engineerCatalog, patch), patch);
 
 const authoringEngineerProfession = withActivePatchPreview(engineerProfession);
+
+// Saved inheritance tuning uses semantic keys after loading without mutating the original edits.
+test('Mechanist profile overrides migrate without losing edits or bypassing validation', () => {
+  const resourceId = MECHANIST_BALANCE_PROFILE_IDS.resources;
+  const saved = {
+    id: 'mech-migration',
+    label: 'Mech migration',
+    professions: {
+      engineer: {
+        balanceProfiles: {
+          [resourceId]: {
+            fields: {
+              attributeBonus: 100,
+              attributeConversion: 0.25,
+              minimumStacks: 50,
+              maximumStacks: 500,
+              threshold: 80,
+              weaponAttributeBonus: 300,
+              coefficientMultiplier: 0.75,
+              basePower: 2
+            }
+          },
+          [ID.OVERCLOCK_SIGNET]: { fields: { maximumStacks: { add: 1 } } }
+        }
+      }
+    }
+  };
+  const original = structuredClone(saved);
+  const normalized = validatePatchPreview(saved);
+  const fields = normalized.professions.engineer.balanceProfiles;
+  assert.deepEqual(fields[resourceId].fields, {
+    baseAttribute: 100,
+    inheritanceRatio: 0.25,
+    secondaryAttributeCap: 50,
+    powerCap: 500,
+    improvedSecondaryAttributeCap: 80,
+    precisionCap: 300,
+    improvedInheritanceRatio: 0.75,
+    basePrecision: 2
+  });
+  assert.deepEqual(fields[ID.OVERCLOCK_SIGNET].fields, { packetCount: { add: 1 } });
+  assert.deepEqual(validatePatchPreview(normalized), normalized);
+  assert.deepEqual(saved, original);
+  const catalog = applyEngineerPatch(saved.professions.engineer);
+  const resources = catalog.balanceProfilesById.get(resourceId);
+  assert.equal(catalog.balanceProfilesById.get(ID.OVERCLOCK_SIGNET).packetCount, 6);
+  const attributes = engineerMechAttributes(
+    { selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR] },
+    { power: 4000, precision: 1000, ferocity: 1000 },
+    resources
+  );
+  assert.equal(attributes.power, 500);
+  assert.equal(attributes.precision, 300);
+  assert.equal(attributes.ferocity, 50);
+  for (const invalid of [
+    { minimumStacks: 20, secondaryAttributeCap: 30 },
+    { secondaryAttributeCap: { from: 99, to: 200 } },
+    { secondaryAttributeCap: NaN },
+    { imaginaryCap: 20 }
+  ]) {
+    assert.throws(() => applyEngineerPatch({ balanceProfiles: { [resourceId]: { fields: invalid } } }));
+  }
+
+  const conflict = structuredClone(saved);
+  conflict.professions.engineer.balanceProfiles[resourceId].fields.secondaryAttributeCap = 20;
+  assert.throws(() => validatePatchPreview(conflict), /edits both minimumStacks and secondaryAttributeCap/);
+});
+
+// Runtime cadence and calibration values cannot leak into the editor or be overridden through saved previews.
+test('Mechanist attack timing and reference inputs stay outside balance authoring', () => {
+  const id = MECHANIST_BALANCE_PROFILE_IDS.attackTiming;
+  const profile = engineerCatalog.balanceProfilesById.get(id);
+  const metadata = authoringEngineerProfession.patchAuthoring.modules.find((module) => module.id === 'Mechanist');
+  assert.equal(
+    [...metadata.balanceProfiles, ...metadata.skillVariants].some((entry) => entry.id === id),
+    false
+  );
+  for (const field of ['armGap', 'cycleGap', 'recoverySeconds', 'referencePower', 'referenceTargetArmor']) {
+    assert.equal(typeof profile[field], 'number');
+    assert.throws(
+      () => authoringEngineerProfession.validatePatch({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }),
+      new RegExp(`unsupported patch field ${field}`)
+    );
+    assert.equal(JSON.stringify(metadata).includes(`"${field}":`), false);
+  }
+
+  for (const field of ['minimumStacks', 'threshold', 'durationMultiplier', 'basePower', 'weaponStrength']) {
+    assert.throws(
+      () => authoringEngineerProfession.validatePatch({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }),
+      new RegExp(`does not expose ${field}`)
+    );
+  }
+});
 
 test('Engineer palette flips require explicit consumable targets and ignore raw API flips', () => {
   // Every declared parent must arm only its palette target, then consume it once.
@@ -245,7 +343,7 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
     modules.get('Holosmith').skills.find((skill) => skill.id === ID.VENT_EXHAUST).patchableFields.heatLoss,
     15
   );
-  assert.equal(profile('Mechanist', MECHANIST_BALANCE_PROFILE_IDS.resources).patchableFields.attributeConversion, 0.5);
+  assert.equal(profile('Mechanist', MECHANIST_BALANCE_PROFILE_IDS.resources).patchableFields.inheritanceRatio, 0.5);
   assert.equal(
     profile('Amalgam', AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).patchableFields.rechargeReduction,
     2.5
@@ -273,7 +371,7 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
         fields: { enhancedStrikeFactor: { from: 1.35, to: 1.5 } }
       },
       [MECHANIST_BALANCE_PROFILE_IDS.resources]: {
-        fields: { attributeConversion: { from: 0.5, to: 0.6 } }
+        fields: { inheritanceRatio: { from: 0.5, to: 0.6 } }
       },
       [AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies]: {
         fields: { rechargeReduction: { from: 2.5, to: 3 } }
@@ -287,7 +385,7 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
     preview.balanceProfilesById.get(HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).enhancedStrikeFactor,
     1.5
   );
-  assert.equal(preview.balanceProfilesById.get(MECHANIST_BALANCE_PROFILE_IDS.resources).attributeConversion, 0.6);
+  assert.equal(preview.balanceProfilesById.get(MECHANIST_BALANCE_PROFILE_IDS.resources).inheritanceRatio, 0.6);
   assert.equal(preview.balanceProfilesById.get(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).rechargeReduction, 3);
 
   assert.equal(engineerCatalog.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 50);

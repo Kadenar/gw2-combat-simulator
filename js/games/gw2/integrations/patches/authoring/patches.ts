@@ -1,5 +1,6 @@
 import {
   PATCHABLE_SKILL_NUMERIC_FIELDS,
+  PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS,
   PATCHABLE_EFFECT_NUMERIC_FIELDS
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
@@ -139,6 +140,7 @@ export interface PatchPreview {
 }
 
 const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
+const BALANCE_PROFILE_NUMERIC_FIELDS = new Set(PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS);
 const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
 type MutableRecord = Record<string, unknown>;
@@ -497,6 +499,43 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   return deepFreeze(clone);
 }
 
+// Translate historical Mechanist tuning keys only at the saved-patch boundary; runtime profiles stay semantic.
+const MECHANIST_PROFILE_FIELD_RENAMES: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  'engineer.mechanist.mech': {
+    attributeBonus: 'baseAttribute',
+    attributeConversion: 'inheritanceRatio',
+    minimumStacks: 'secondaryAttributeCap',
+    maximumStacks: 'powerCap',
+    threshold: 'improvedSecondaryAttributeCap',
+    weaponAttributeBonus: 'precisionCap',
+    coefficientMultiplier: 'improvedInheritanceRatio',
+    basePower: 'basePrecision'
+  },
+  '63095': { maximumStacks: 'packetCount' }
+};
+
+/** Preserves old sparse edits without mutating inputs or silently overriding a second spelling. */
+function migrateBalanceProfileFields(key: string, edit: BalanceProfilePatchEdit): BalanceProfilePatchEdit {
+  const names: Readonly<Record<string, string>> = {
+    'Jade Mech Attribute Inheritance': 'engineer.mechanist.mech',
+    'Jade Buster Cannon': '63095'
+  };
+  const renames = MECHANIST_PROFILE_FIELD_RENAMES[names[key] || key];
+  if (!renames || !edit.fields) return edit;
+  const fields = { ...edit.fields };
+  for (const [previous, current] of Object.entries(renames)) {
+    if (!Object.hasOwn(fields, previous)) continue;
+    if (Object.hasOwn(fields, current)) {
+      throw new TypeError(`Balance profile ${key} edits both ${previous} and ${current}. Use ${current} only.`);
+    }
+
+    fields[current] = fields[previous];
+    delete fields[previous];
+  }
+
+  return { ...edit, fields };
+}
+
 /** Produces an immutable patched balance profile using the shared sparse patch grammar. */
 function patchBalanceProfile(profile: BalanceProfile, edit: BalanceProfilePatchEdit): BalanceProfile {
   const clone = structuredClone(profile) as BalanceProfile;
@@ -506,7 +545,7 @@ function patchBalanceProfile(profile: BalanceProfile, edit: BalanceProfilePatchE
     ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
-    if (!SKILL_NUMERIC_FIELDS.has(field)) {
+    if (!BALANCE_PROFILE_NUMERIC_FIELDS.has(field)) {
       throw new TypeError(`Balance profile ${profile.name} has unsupported patch field ${field}.`);
     }
 
@@ -611,7 +650,7 @@ export function applyBalanceProfilePatch(
       throw new TypeError(`Patch edits balance profile ${profile.name} more than once.`);
     }
 
-    replacements.set(profile, patchBalanceProfile(profile, edit));
+    replacements.set(profile, patchBalanceProfile(profile, migrateBalanceProfileFields(String(profile.id), edit)));
   }
 
   if (!replacements.size) return catalog;
@@ -689,5 +728,14 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
     validatePatchOverview(patch.overview, `${professionId} patch overview`);
   }
 
-  return deepFreeze(structuredClone(preview));
+  const normalized = structuredClone(preview);
+  const profiles = normalized.professions?.engineer?.balanceProfiles;
+  if (profiles) {
+    const mutableProfiles = profiles as Record<string, BalanceProfilePatchEdit>;
+    for (const [key, edit] of Object.entries(profiles)) {
+      mutableProfiles[key] = migrateBalanceProfileFields(key, edit);
+    }
+  }
+
+  return deepFreeze(normalized);
 }

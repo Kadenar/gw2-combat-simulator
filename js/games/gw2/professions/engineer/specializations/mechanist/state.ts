@@ -78,11 +78,11 @@ export function engineerMechAttributes(
     return Number.isFinite(Number(value)) ? Number(value) : fallback;
   };
 
-  const baseAttribute = profileNumber('attributeBonus', 1000);
-  const inheritanceRatio = profileNumber('attributeConversion', 0.5);
-  const secondaryCap = profileNumber('minimumStacks', 750);
-  const improvedSecondaryCap = profileNumber('threshold', 1500);
-  const improvedInheritanceRatio = profileNumber('coefficientMultiplier', 1);
+  const baseAttribute = profileNumber('baseAttribute', 1000);
+  const inheritanceRatio = profileNumber('inheritanceRatio', 0.5);
+  const secondaryCap = profileNumber('secondaryAttributeCap', 750);
+  const improvedSecondaryCap = profileNumber('improvedSecondaryAttributeCap', 1500);
+  const improvedInheritanceRatio = profileNumber('improvedInheritanceRatio', 1);
   // Secondary stats inherit 50 % of the player's value up to 750.
   // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
   // raise the inheritance ratio to 100 % for their respective stat groups.
@@ -94,15 +94,15 @@ export function engineerMechAttributes(
 
   return {
     power: Math.min(
-      profileNumber('maximumStacks', 2250),
+      profileNumber('powerCap', 2250),
       baseAttribute + playerAttribute(playerStats, 'power', 1000) * inheritanceRatio
     ),
     precision: variable
       ? Math.min(
-          profileNumber('weaponAttributeBonus', 2500),
-          profileNumber('basePower', 1) + playerAttribute(playerStats, 'precision', 1000)
+          profileNumber('precisionCap', 2500),
+          profileNumber('basePrecision', 1) + playerAttribute(playerStats, 'precision', 1000)
         )
-      : profileNumber('basePower', 1),
+      : profileNumber('basePrecision', 1),
     toughness: baseAttribute + playerAttribute(playerStats, 'toughness', 1000),
     vitality: baseAttribute + playerAttribute(playerStats, 'vitality', 1000),
     ferocity: secondary('ferocity'),

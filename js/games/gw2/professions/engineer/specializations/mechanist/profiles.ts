@@ -18,6 +18,7 @@ export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
 // Supply standard trait metadata once; callers add only the values and effects
 // read by the Mechanist runtime.
 
+// Attribute caps, attack gaps, and reference damage inputs keep their own units and meanings.
 // Keep native mech scaling and cadence beside trait tuning so both autonomous
 // attacks and commanded attacks use the same balance-profile lookup path.
 export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -25,14 +26,14 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     id: MECHANIST_BALANCE_PROFILE_IDS.resources,
     name: 'Jade Mech Attribute Inheritance',
     profileKind: 'mechanic',
-    attributeBonus: 1000,
-    attributeConversion: 0.5,
-    minimumStacks: 750,
-    maximumStacks: 2250,
-    threshold: 1500,
-    weaponAttributeBonus: 2500,
-    coefficientMultiplier: 1,
-    basePower: 1,
+    baseAttribute: 1000,
+    inheritanceRatio: 0.5,
+    secondaryAttributeCap: 750,
+    powerCap: 2250,
+    improvedSecondaryAttributeCap: 1500,
+    precisionCap: 2500,
+    improvedInheritanceRatio: 1,
+    basePrecision: 1,
     effects: []
   },
   {
@@ -40,12 +41,12 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Jade Mech Attack Timing',
     profileKind: 'mechanic',
     quicknessCastMultiplier: 1.5,
-    minimumStacks: 0.5,
-    threshold: 1.075,
+    armGap: 0.5,
+    cycleGap: 1.075,
     initialDelay: 1,
-    durationMultiplier: 0.35,
-    basePower: 1500,
-    weaponStrength: 2597,
+    recoverySeconds: 0.35,
+    referencePower: 1500,
+    referenceTargetArmor: 2597,
     effects: []
   },
   {
@@ -100,7 +101,7 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Jade Buster Cannon',
     profileKind: 'skill-variant',
     parentId: ID.OVERCLOCK_SIGNET,
-    maximumStacks: 5,
+    packetCount: 5,
     pulseInterval: 0.65,
     effects: [
       { type: 'strike', coefficient: 0.95, hits: 1 },

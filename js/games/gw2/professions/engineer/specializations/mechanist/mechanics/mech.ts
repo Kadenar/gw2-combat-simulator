@@ -79,8 +79,9 @@ function mechWeaponScaling(
   const midpoint = weaponStrengthMidpoint(weaponStrengthProfile(profileId));
   return {
     damagePerCoefficient:
-      (midpoint * balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER)) /
-      balanceProfileValueFromContext(context, PROFILE.attackTiming, 'weaponStrength', STANDARD_TARGET_ARMOR),
+      (midpoint *
+        balanceProfileValueFromContext(context, PROFILE.attackTiming, 'referencePower', MECH_REFERENCE_POWER)) /
+      balanceProfileValueFromContext(context, PROFILE.attackTiming, 'referenceTargetArmor', STANDARD_TARGET_ARMOR),
     profileId
   };
 }
@@ -95,7 +96,12 @@ function mechDamageMetadata(
     independentSummonStrike: true,
     summonInheritsAttributes: true,
     summonUsesProfessionModifiers: true,
-    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+    summonBasePower: balanceProfileValueFromContext(
+      context,
+      PROFILE.attackTiming,
+      'referencePower',
+      MECH_REFERENCE_POWER
+    ),
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId
   };
@@ -273,7 +279,7 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
     const busyUntil =
       at +
       (hasCommandAnimation
-        ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'durationMultiplier', 0.35)
+        ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'recoverySeconds', 0.35)
         : 0);
     state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), busyUntil);
   }
@@ -358,13 +364,13 @@ export function handleEngineerMechAttack(
           ? balanceProfileValueFromContext(
               context,
               PROFILE.attackTiming,
-              'minimumStacks',
+              'armGap',
               MECHANIST_ATTACK_TIMING.jadeCannonArmGap
             )
           : balanceProfileValueFromContext(
               context,
               PROFILE.attackTiming,
-              'threshold',
+              'cycleGap',
               MECHANIST_ATTACK_TIMING.jadeCannonCycleGap
             )) /
           rate,
@@ -407,7 +413,7 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
   if (!state.mech?.active) return;
   const at = context.effectiveEnd;
   const interval = balanceProfileValueFromContext(context, PROFILE.overclock, 'pulseInterval', 0.65);
-  const hits = balanceProfileValueFromContext(context, PROFILE.overclock, 'maximumStacks', 5);
+  const hits = balanceProfileValueFromContext(context, PROFILE.overclock, 'packetCount', 5);
   const strike = balanceProfileEffectFromContext(context, PROFILE.overclock, 'strike');
   const condition = balanceProfileEffectFromContext(context, PROFILE.overclock, 'condition');
   // Block the basic attack loop for the full cannon burst so hits don't overlap.

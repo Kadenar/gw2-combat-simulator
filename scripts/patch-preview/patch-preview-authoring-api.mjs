@@ -90,9 +90,10 @@ export default activePatchPreview;
 // Validates a patch preview for authoring purposes.
 export function validateAuthoringPreview(preview, runtime) {
   assertAuthoringShape(preview);
-  runtime.validatePatchPreview(preview);
+  // Normalize saved field names before generating labels or returning editable controls.
+  const normalized = runtime.validatePatchPreview(preview);
   const generated = generatePatchOverview(
-    preview,
+    normalized,
     runtime.professions.map((profession) => profession.patchAuthoring)
   );
 
@@ -146,6 +147,8 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot, writeFile = wr
         professions,
         validatePatchPreview: patchModule.validatePatchPreview,
         initialPreview: previewModule.activePatchPreview
+          ? patchModule.validatePatchPreview(previewModule.activePatchPreview)
+          : null
       };
     });
 

@@ -8,6 +8,26 @@ import {
   validateAuthoringPreview
 } from '../../scripts/patch-preview/patch-preview-authoring-api.mjs';
 import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+
+// Saving an older preview rewrites both its controls and generated description to the canonical field name.
+test('patch authoring migrates saved Mechanist fields before generating overview prose', () => {
+  const id = 'engineer.mechanist.mech';
+  const preview = validateAuthoringPreview(
+    {
+      id: 'mech-fields',
+      label: 'Mech fields',
+      professions: { engineer: { balanceProfiles: { [id]: { fields: { minimumStacks: { from: 750, to: 800 } } } } } }
+    },
+    { validatePatchPreview, professions: [withActivePatchPreview(engineerProfession)] }
+  );
+  assert.deepEqual(preview.professions.engineer.balanceProfiles[id].fields, {
+    secondaryAttributeCap: { from: 750, to: 800 }
+  });
+  assert.match(preview.professions.engineer.overview[0].text, /secondary attribute cap/i);
+  assert.doesNotMatch(serializeActivePatchPreview(preview), /minimumStacks/);
+});
 
 test('patch authoring serializer emits the typed active preview module', () => {
   const source = serializeActivePatchPreview({

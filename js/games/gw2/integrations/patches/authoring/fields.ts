@@ -97,7 +97,14 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'windForceGain'
 ]);
 
+// Timing and summon reference inputs belong to runtime mechanics, not balance-preview controls.
 const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
+  'armGap',
+  'cycleGap',
+  'recoverySeconds',
+  'referencePower',
+  'referenceTargetArmor',
+
   'alternateEvery',
   'ammoCastLockout',
   'atMs',
@@ -113,8 +120,18 @@ const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
   'selfStunMs'
 ]);
 
-/** Balance profiles use the same reduced root-field boundary as authored skills. */
-export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = PATCHABLE_SKILL_NUMERIC_FIELDS;
+/** Profiles also expose named summon inheritance values without widening castable skill fields. */
+export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
+  ...PATCHABLE_SKILL_NUMERIC_FIELDS,
+  'baseAttribute',
+  'inheritanceRatio',
+  'secondaryAttributeCap',
+  'improvedSecondaryAttributeCap',
+  'improvedInheritanceRatio',
+  'powerCap',
+  'precisionCap',
+  'basePrecision'
+]);
 
 export const ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'baseExtraBlades',
