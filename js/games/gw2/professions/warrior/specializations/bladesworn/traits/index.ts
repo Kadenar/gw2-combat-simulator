@@ -62,6 +62,8 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
       sourceId: traitId,
       actorType: 'player',
       skillId: UNSEEN_SWORD_STRIKE_ID,
+      // The trait strike uses nonweapon strength independently of the weapon being swapped.
+      weaponStrengthProfileId: 'nonweapon.unequipped',
       skillName: 'Unseen Sword',
       parentSkillName: context.skill.name,
       name: 'Unseen Sword',

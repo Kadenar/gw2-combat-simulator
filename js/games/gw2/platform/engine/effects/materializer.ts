@@ -11,7 +11,8 @@ import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/ty
 export interface EffectEventBase extends SchedulerRecord {
   readonly source: string;
   readonly sourceId: SkillId;
-  readonly actorType?: SimulationActorType;
+  /** Materialized packets inherit the producer's declared actor. */
+  readonly actorType: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
   readonly skillId?: SkillId | null;

@@ -354,6 +354,8 @@ interface ComboOutcomeEventBase extends Record<string, unknown> {
   readonly at: number;
   readonly source: string;
   readonly sourceId: SkillId;
+  /** Outcomes preserve the combo's actor rather than deriving it from display metadata. */
+  readonly actorType: ComboEvent['actorType'];
 }
 
 function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {

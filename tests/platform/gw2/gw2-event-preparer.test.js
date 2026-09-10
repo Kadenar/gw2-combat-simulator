@@ -13,8 +13,12 @@ import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons
 test('non-weapon effect ownership has one canonical classifier', () => {
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'effect' }), true);
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'environment' }), true);
-  for (const source of ['Trait', 'SIGIL', 'relic', 'Food', 'equipment']) {
-    assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'player', source }), true, source);
+  // Display labels cannot override explicit ownership or fill in missing ownership.
+  for (const source of ['Player', 'Trait', 'SIGIL', 'relic', 'Food', 'equipment']) {
+    assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'player', source }), false, source);
+    assert.equal(isGw2NonWeaponEffectEvent({ source }), false, source);
+    assert.equal(isGw2PlayerActorEvent({ source }), false, source);
+    assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'effect', source }), true, source);
   }
 
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'summon', source: 'Phantasm' }), false);
@@ -25,7 +29,7 @@ test('non-weapon effect ownership has one canonical classifier', () => {
       at: 0,
       source: 'Equipment',
       sourceId: 'equipment.proc',
-      actorType: 'player',
+      actorType: 'effect',
       coefficient: 1
     }),
     'nonweapon.unequipped'
@@ -99,8 +103,23 @@ test('event preparation groups related triggered packets per simulation pass', (
   assert.equal(second.weaponStrengthProfileId, 'nonweapon.unequipped');
   assert.equal(activationOrder, 2);
 
+  // A player-owned nonweapon proc keeps its actor while sharing only its own packet strength roll.
+  const playerProc = {
+    ...packet,
+    actorType: 'player',
+    source: 'Renamed proc',
+    sourceId: 'player.proc',
+    weaponStrengthProfileId: 'nonweapon.unequipped'
+  };
+  const playerFirst = preparer.prepare(context, playerProc);
+  const playerSecond = preparer.prepare(context, { ...playerProc, at: 1.25 });
+  assert.equal(playerFirst.actorType, 'player');
+  assert.equal(playerFirst.activationId, 'effect:test:3');
+  assert.equal(playerSecond.activationId, playerFirst.activationId);
+
   const marker = {
     type: 'marker',
+    actorType: 'environment',
     at: 2,
     source: 'System',
     sourceId: 'marker'
@@ -121,6 +140,7 @@ test('event preparation resolves capped boon recipients before handoff', () => {
   };
   const prepared = createGw2EventPreparer().prepare(context, {
     type: 'buff',
+    actorType: 'player',
     at: 1,
     source: 'Player',
     sourceId: 'party-fury',

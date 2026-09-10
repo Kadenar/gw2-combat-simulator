@@ -5,6 +5,15 @@ import { assertScheduledEventStream, buildScheduledEventStream } from '#gw2/plat
 import { emitStateSnapshot, sameSnapshotValue } from '#gw2/platform/engine/events/state-snapshots.js';
 
 // Event envelopes and scheduled streams validate boundaries and preserve immutable snapshots.
+test('event ownership is required regardless of legacy source labels', () => {
+  for (const source of ['Player', 'Trait', 'Phantasm', 'Environment']) {
+    assert.throws(
+      () => createEvent({ type: 'damage', at: 0, source, sourceId: 'missing-actor', coefficient: 1 }),
+      /actorType.*required/
+    );
+  }
+});
+
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.equal(
     assertSimulationEvent({
@@ -21,6 +30,7 @@ test('typed event boundary rejects values outside the declared contract', () => 
     () =>
       assertSimulationEvent({
         type: 'damage',
+        actorType: 'player',
         at: 0,
         source: 'fixture',
         sourceId: 1
@@ -31,6 +41,7 @@ test('typed event boundary rejects values outside the declared contract', () => 
     () =>
       assertSimulationEvent({
         type: 'condition',
+        actorType: 'player',
         at: 0,
         source: 'fixture',
         sourceId: 1,
@@ -44,6 +55,7 @@ test('typed event boundary rejects values outside the declared contract', () => 
     () =>
       assertSimulationEvent({
         type: 'damage',
+        actorType: 'player',
         at: -1,
         source: 'fixture',
         sourceId: 1,
@@ -67,6 +79,7 @@ test('typed event boundary rejects values outside the declared contract', () => 
     () =>
       assertSimulationEvent({
         type: 'damage',
+        actorType: 'player',
         at: 0,
         source: 'fixture',
         sourceId: 1,
@@ -93,11 +106,14 @@ test('typed event boundary rejects values outside the declared contract', () => 
 test('live snapshot event types are canonical and event-form boon is rejected', () => {
   for (const type of ['cooldown_snapshot', 'self_condition']) {
     assert.equal(COMMON_EVENT_TYPES.includes(type), true);
-    assert.equal(assertSimulationEvent({ type, at: 0, source: 'fixture', sourceId: 1 }).type, type);
+    assert.equal(
+      assertSimulationEvent({ type, actorType: 'player', at: 0, source: 'fixture', sourceId: 1 }).type,
+      type
+    );
   }
 
   assert.throws(
-    () => assertSimulationEvent({ type: 'boon', at: 0, source: 'fixture', sourceId: 1 }),
+    () => assertSimulationEvent({ type: 'boon', actorType: 'player', at: 0, source: 'fixture', sourceId: 1 }),
     /Unsupported simulation event type/
   );
 });
@@ -192,6 +208,7 @@ test('state snapshot emission removes only matching adjacent synchronization che
   assert.deepEqual(
     {
       type: direct.type,
+      actorType: direct.actorType,
       at: direct.at,
       source: direct.source,
       sourceId: direct.sourceId,
@@ -200,6 +217,7 @@ test('state snapshot emission removes only matching adjacent synchronization che
     },
     {
       type: 'fixture.state',
+      actorType: 'player',
       at: 2,
       source: 'fixture',
       sourceId: 'fixture.state.resource-update',

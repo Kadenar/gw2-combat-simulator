@@ -114,7 +114,8 @@ export function calculateBuffedAttributes(
       }
     };
     liveBoons.set(kind, [application]);
-    events.push({ ...application, type: 'buff', kind, source: name, sourceId: 'stat-preview' });
+    // Preview events obey the same explicit player-ownership contract as simulated buffs.
+    events.push({ ...application, type: 'buff', kind, source: name, sourceId: 'stat-preview', actorType: 'player' });
   };
 
   // A one-second sample avoids treating default zero-valued expiry timers as newly expired buffs.
@@ -148,6 +149,7 @@ export function calculateBuffedAttributes(
       expiresAt: 60,
       instrument: ['Lute', 'Flute', 'Harp', 'Drum'][index],
       source: 'Fortissimo',
+      actorType: 'player',
       sourceId: 'stat-preview'
     });
   }

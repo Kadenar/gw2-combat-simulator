@@ -220,6 +220,7 @@ function contractProfession() {
         if (skill.id !== 990005) return;
         context.emit({
           type: 'damage',
+          actorType: 'player',
           at: context.start + 2,
           source: 'Metadata Bait',
           sourceId: skill.id,

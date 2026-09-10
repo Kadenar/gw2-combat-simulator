@@ -53,6 +53,7 @@ test('condition applications shorter than one second deal fractional damage', ()
     events: [
       {
         type: 'condition',
+        actorType: 'player',
         at: 0,
         name: 'Short Bleed',
         skillName: 'Short Bleed',
@@ -108,6 +109,7 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
     events: [
       {
         type: 'condition',
+        actorType: 'player',
         at: 0,
         name: 'Long Bleed',
         skillName: 'Long Bleed',
@@ -119,6 +121,7 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
       },
       {
         type: 'condition',
+        actorType: 'player',
         at: 0.75,
         name: 'Short Bleed',
         skillName: 'Short Bleed',
@@ -175,6 +178,7 @@ function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, 
     events: [
       {
         type: 'condition',
+        actorType: 'player',
         at: 0,
         name: 'Observed Bleed',
         skillName: 'Observed Bleed',
@@ -266,6 +270,7 @@ test('precombat conditions carry across an explicit combat start', () => {
     events: [
       {
         type: 'condition',
+        actorType: 'player',
         at: 0,
         name: 'Precombat Bleed',
         skillName: 'Precombat Bleed',
@@ -277,6 +282,7 @@ test('precombat conditions carry across an explicit combat start', () => {
       },
       {
         type: 'combat_start',
+        actorType: 'environment',
         at: 1,
         source: 'rotation',
         sourceId: 'combat-start'

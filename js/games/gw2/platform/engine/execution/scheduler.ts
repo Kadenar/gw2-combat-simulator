@@ -1147,6 +1147,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       } else if (command.type === 'cooldown-reset') {
         // Benchmark logs can include a pre-cast followed by the training-area
         // cooldown reset. The field remains active while skill recharges reset.
+        // Platform control markers belong to the environment, not a player skill.
         const at = Math.max(state.time, serialReadyAt, latestReservedEnd);
         advanceTo(at);
         state.cooldowns.clear();
@@ -1158,6 +1159,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           at,
           source: 'platform',
           sourceId: 'cooldown-reset',
+          actorType: 'environment',
           action: 'cooldown-reset',
           name: 'Cooldown Reset'
         });
@@ -1197,6 +1199,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           at: combatStartTime,
           source: 'platform',
           sourceId: 'combat-start',
+          // The encounter boundary is an environment marker, independent of player actions.
+          actorType: 'environment',
           action: 'combat-start'
         });
         steps.push({

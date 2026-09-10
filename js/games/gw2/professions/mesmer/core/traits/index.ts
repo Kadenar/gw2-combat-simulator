@@ -54,14 +54,14 @@ export function triggerMesmerPostShatterTraits(
   triggerIllusionaryMembrane(context, shatter, resolution.skill.name, resolution.at, epsilon);
 }
 
-/** Evaluates Chaotic Interruption when a delayed control packet actually lands. */
+/** Evaluates Chaotic Interruption with explicit player ownership when a delayed control packet lands. */
 export function handleChaoticInterruptionTask(
   context: MesmerSchedulerContext,
   task: MesmerSchedulerTask<'chaoticInterruption'>
 ): void {
   triggerChaoticInterruption(
     context,
-    { type: 'control', at: task.at, source: 'Skill', sourceId: task.payload.skillId },
+    { type: 'control', at: task.at, source: 'Skill', sourceId: task.payload.skillId, actorType: 'player' },
     task.payload.skillName
   );
 }

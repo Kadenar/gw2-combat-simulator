@@ -62,10 +62,11 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
           state: context.state as unknown as Record<string, unknown>,
           config: context.config as Gw2Config
         });
+    // Explicit nonweapon procs need their own strength roll even when the player remains their actor.
     const triggeredEffect =
       coefficientBasedDamage &&
       String(event.activationId || '').startsWith('cast:') &&
-      isGw2NonWeaponEffectEvent(event);
+      (isGw2NonWeaponEffectEvent(event) || event.weaponStrengthProfileId === 'nonweapon.unequipped');
 
     let activationId = event.activationId;
     if (triggeredEffect) {

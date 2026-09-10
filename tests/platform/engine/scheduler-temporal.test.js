@@ -7,6 +7,19 @@ import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
 import { testProfession } from '../../fixtures/test-profession.js';
 
+// Shared control markers carry explicit ownership even when the rotation has no skill casts.
+test('combat-start and cooldown-reset markers declare environment ownership', () => {
+  const result = createScheduler({ profession: testProfession }).run([
+    { type: 'cooldown-reset' },
+    { type: 'combat-start' }
+  ]);
+  for (const sourceId of ['cooldown-reset', 'combat-start']) {
+    const event = result.stream.events.find((entry) => entry.sourceId === sourceId);
+    assert.ok(event, `${sourceId} marker must be emitted`);
+    assert.equal(event.actorType, 'environment');
+  }
+});
+
 test('ammo recharge reductions carry overflow until maximum charges', () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
   const state = {
@@ -577,6 +590,7 @@ test('scheduler policies preserve event identity, task isolation, and causal der
       onCastStart(context) {
         const original = context.emit({
           type: 'marker',
+          actorType: 'environment',
           at: context.start,
           source: 'fixture',
           sourceId: 'fixture.original',
@@ -610,6 +624,7 @@ test('scheduler policies preserve event identity, task isolation, and causal der
         for (const name of ['derived-one', 'derived-two']) {
           context.emitDerived(task.payload.event, {
             type: 'marker',
+            actorType: 'environment',
             at: task.at,
             source: 'fixture',
             sourceId: `fixture.${name}`,

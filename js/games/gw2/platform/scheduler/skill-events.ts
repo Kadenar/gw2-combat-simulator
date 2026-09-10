@@ -41,6 +41,8 @@ interface SkillEventMetadata {
 interface StandardSkillEventEnvelope extends SchedulerRecord {
   readonly source: string;
   readonly sourceId: SkillId;
+  /** Standard emitters always supply ownership, including their player default. */
+  readonly actorType: SimulationActorType;
 }
 
 export interface EmitSkillDamageOptions extends SkillEventOwnership, SkillEventMetadata {

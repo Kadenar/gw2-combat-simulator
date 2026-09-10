@@ -74,8 +74,9 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     throw new Error('Event schemaVersion is invalid.');
   }
 
-  if (event.actorType !== undefined && !ACTOR_TYPES.has(event.actorType as SimulationActorType)) {
-    throw new Error('Event actorType is invalid.');
+  // Every producer must declare ownership before an event crosses the scheduler/resolver boundary.
+  if (!ACTOR_TYPES.has(event.actorType as SimulationActorType)) {
+    throw new Error('Event actorType is invalid. A valid actorType is required.');
   }
 
   if (event.ownerActorType !== undefined && !ACTOR_TYPES.has(event.ownerActorType as SimulationActorType)) {

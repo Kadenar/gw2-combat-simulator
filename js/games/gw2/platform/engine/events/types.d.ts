@@ -75,7 +75,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly at: number;
   readonly source: string;
   readonly sourceId: SkillId;
-  readonly actorType?: SimulationActorType;
+  /** Explicit actor ownership is required before scheduling or resolving an event. */
+  readonly actorType: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
   readonly name?: string;
@@ -155,7 +156,7 @@ export interface SimulationEventInput {
   readonly at: number;
   readonly source: string;
   readonly sourceId: SkillId;
-  readonly actorType?: SimulationActorType;
+  readonly actorType: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
   readonly name?: string;

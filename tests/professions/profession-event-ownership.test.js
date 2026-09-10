@@ -22,7 +22,7 @@ import { thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modif
 
 const OWNERSHIP_CASES = Object.freeze([
   ['player actor', { actorType: 'player' }, true],
-  ['legacy player source', { source: 'Player' }, true],
+  ['source without actor', { source: 'Player' }, false],
   ['player-owned effect', { actorType: 'effect', ownerActorType: 'player' }, true],
   ['explicitly player-owned summon', { actorType: 'summon', ownerActorType: 'player' }, true],
   ['unowned effect', { actorType: 'effect' }, false],

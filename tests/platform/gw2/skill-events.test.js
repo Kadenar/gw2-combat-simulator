@@ -264,6 +264,7 @@ test('procedural helpers retain scheduler timestamp, priority, and insertion ord
         });
         const cause = context.emit({
           type: 'marker',
+          actorType: 'environment',
           at: 1.5,
           source: 'fixture',
           sourceId: 'cause',

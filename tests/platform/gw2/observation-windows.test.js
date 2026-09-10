@@ -174,6 +174,7 @@ test('pending damage can kill mid-cast and suppress the current skill packet', (
     events: [
       {
         type: 'damage',
+        actorType: 'player',
         at: 89.44,
         name: 'Pending Tick',
         skillName: 'Previous Skill',
@@ -184,6 +185,7 @@ test('pending damage can kill mid-cast and suppress the current skill packet', (
       },
       {
         type: 'damage',
+        actorType: 'player',
         at: 89.44,
         name: 'Same-Time Follow-up',
         skillName: 'Different Skill',
@@ -194,6 +196,7 @@ test('pending damage can kill mid-cast and suppress the current skill packet', (
       },
       {
         type: 'damage',
+        actorType: 'player',
         at: 89.6,
         name: 'Current Skill Hit',
         skillName: 'Current Skill',
