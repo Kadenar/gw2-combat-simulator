@@ -527,11 +527,10 @@ html.embed {
   margin: 0 0 0 auto;
 }
 
-/* Let the longest navigation label wrap rather than widening very small embeds. */
+/* Use two columns on small screens so wider platform fonts cannot push navigation outside the viewport. */
 @media (max-width: 360px) {
-  .embed .simulator-view-tab {
-    white-space: normal;
-    text-align: center;
+  body[data-profession] .simulator-view-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
