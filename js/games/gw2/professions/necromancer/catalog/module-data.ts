@@ -9,20 +9,6 @@ import { TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
 
-export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
-  new Set([
-    'Well of Blood',
-    'Consume Conditions',
-    'Spectral Armor',
-    'Spectral Walk',
-    'Spectral Recall',
-    'Well of Power',
-    'Weapon of Warding',
-    'Weapon of Remedy',
-    "Xinrae's Weapon"
-  ])
-);
-
 const STATIC_REPLACEMENT_PAIRS = new Set<string>([
   `${ID.LIFE_BLAST}:${ID.DHUUMFIRE_BLAST}`,
   `${ID.FEAST_OF_CORRUPTION}:${ID.DEVOURING_DARKNESS}`,
@@ -59,12 +45,6 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
     cooldown: gw2BaseRecharge(skill),
     flipParentId: flipParentId ?? null,
     flipParent: flipParentId == null ? '' : generatedById.get(flipParentId)?.name || '',
-    simulatorExcluded: NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name),
-    ...(NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name)
-      ? {
-          patchAuthoringExcluded: true
-        }
-      : {}),
     effects: []
   };
 });

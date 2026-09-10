@@ -118,8 +118,12 @@ test('patch authoring omits unreachable skills for the remaining professions', (
 
   const necromancerNames = namesFor(necromancerProfession);
 
-  for (const unusedName of ['Consume Conditions', 'Spectral Walk', 'Weapon of Warding']) {
+  for (const unusedName of ['Spectral Armor', 'Spectral Walk', 'Weapon of Warding']) {
     assert.equal(necromancerNames.has(unusedName), false, unusedName);
+  }
+
+  for (const healName of ['Well of Blood', 'Consume Conditions']) {
+    assert.equal(necromancerNames.has(healName), true, healName);
   }
 
   const guardianNames = namesFor(guardianProfession);

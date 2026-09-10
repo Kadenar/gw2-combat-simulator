@@ -1704,22 +1704,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 10583,
-    name: 'Spectral Armor',
-    description: 'Spectral. Gain life force as you take damage.',
-    icon: 'https://render.guildwars2.com/file/0FF3E79414E84A63C012CEE30EA1A25FF3FAC966/102994.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Spectral'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 10585,
     name: 'End Death Shroud',
     description: 'Leave Death Shroud and return to your normal form.',
@@ -1866,22 +1850,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 10609,
-    name: 'Well of Power',
-    description: 'Well. Target area pulses, converting conditions on allies into boons and granting might.',
-    icon: 'https://render.guildwars2.com/file/5C0B58BEB6960B78BE25EDC00673D859D31C55D0/103825.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Well'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 10611,
     name: 'Signet of Undeath',
     description:
@@ -1959,39 +1927,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     specialization: '',
     categories: [],
     recharge: 40,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 10685,
-    name: 'Spectral Walk',
-    description:
-      'Spectral. Create a shadowy tether and become spectral, consuming conditions for life force. You may return to your initial position by using Spectral Recall.',
-    icon: 'https://render.guildwars2.com/file/5C04E817070BDB27A4196C9AD5CFB0AE059FFC54/103846.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Spectral'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: 10687
-  },
-  {
-    id: 10687,
-    name: 'Spectral Recall',
-    description: 'Return to the point where Spectral Walk began.',
-    icon: 'https://render.guildwars2.com/file/3329021651370622FBE6099FC1DE05C971164CCD/103847.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: [],
-    recharge: 0,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -3494,23 +3429,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 76752,
-    name: 'Weapon of Warding',
-    description:
-      'Weapon spell. Block attacks. Gain protection when the last stack is removed. Grant fewer stacks of this to nearby allies.',
-    icon: 'https://render.guildwars2.com/file/3D185FB008E701F359D3E5FCDE9477309C5C3530/3680183.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Ritualist',
-    categories: [],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 76864,
     name: 'Anguish',
     description:
@@ -3544,23 +3462,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 76941,
-    name: "Xinrae's Weapon",
-    description:
-      'Weapon spell. When you take damage over a percentage of your maximum health, heal for the difference, then steal life from that foe. Grant fewer stacks of this to nearby allies and break them out of stuns.',
-    icon: 'https://render.guildwars2.com/file/1AC290EA0B56F4B1141A53F062140F0AFB65D6CE/3680168.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: 'Ritualist',
-    categories: [],
-    recharge: 75,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 76961,
     name: 'Wanderlust',
     description:
@@ -3583,23 +3484,6 @@ export const SKILLS: readonly NecromancerSkill[] = [
     description:
       'Weapon spell. Your strikes will trigger an additional strike on nearby enemies. Allies receive fewer stacks of this.',
     icon: 'https://render.guildwars2.com/file/04294CE6BE3BBB314032BD430A631BC614D1E279/3680182.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Ritualist',
-    categories: [],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 77022,
-    name: 'Weapon of Remedy',
-    description:
-      'Weapon spell. Periodically remove conditions, healing for each condition removed. Grant this to nearby allies for a reduced duration.',
-    icon: 'https://render.guildwars2.com/file/B9991DBC4C14A5062CB206E062402A645627E704/3680181.png',
     type: 'Utility',
     weapon: '',
     slot: 'Utility',

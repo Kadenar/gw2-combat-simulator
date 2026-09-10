@@ -92,8 +92,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
 
   // Generated coverage for every skill in the API metadata snapshot.
   RECEIVE_THE_LIGHT: 9083, // "Receive the Light!"
-  ADVANCE: 9084, // "Advance!"
-  SAVE_YOURSELVES: 9085, // "Save Yourselves!"
   SHIELD_OF_JUDGMENT: 9087, // Shield of Judgment
   SHIELD_OF_ABSORPTION: 9091, // Shield of Absorption
   SHELTER: 9102, // Shelter
@@ -104,23 +102,15 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   HOLY_STRIKE: 9140, // Holy Strike
   SYMBOL_OF_SWIFTNESS: 9143, // Symbol of Swiftness
   LINE_OF_WARDING: 9144, // Line of Warding
-  HOLD_THE_LINE: 9152, // "Hold the Line!"
-  STAND_YOUR_GROUND: 9153, // "Stand Your Ground!"
   SIGNET_OF_RESOLVE: 9158, // Signet of Resolve
   HAMMER_SWING: 9159, // Hammer Swing
   HAMMER_BASH: 9160, // Hammer Bash
   SYMBOL_OF_PROTECTION: 9161, // Symbol of Protection
-  SIGNET_OF_MERCY: 9163, // Signet of Mercy
-  BOW_OF_TRUTH: 9175, // Bow of Truth
   MIGHTY_BLOW: 9194, // Mighty Blow
   RING_OF_WARDING: 9195, // Ring of Warding
   SHIELD_OF_ABSORPTION_ID_9224: 9224, // Shield of Absorption
   PULL: 9226, // Pull
-  MERCIFUL_INTERVENTION: 9246, // Merciful Intervention
   JUDGES_INTERVENTION: 9247, // Judge's Intervention
-  CONTEMPLATION_OF_PURITY: 9248, // Contemplation of Purity
-  WALL_OF_REFLECTION: 9251, // Wall of Reflection
-  HALLOWED_GROUND: 9253, // Hallowed Ground
   ZEALOTS_EMBRACE: 9260, // Zealot's Embrace
   EMPOWER: 9265, // Empower
   SHIELD_OF_JUDGMENT_ID_15834: 15834, // Shield of Judgment
@@ -144,19 +134,16 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   OVERWHELMING_CELERITY: 41988, // Overwhelming Celerity
   ECHO_OF_TRUTH: 42360, // Echo of Truth
   TOME_OF_COURAGE_ID_42371: 42371, // Tome of Courage
-  OPENING_PASSAGE: 42864, // Opening Passage
   FLAME_SURGE: 42924, // Flame Surge
   REJUVENATING_RESPITE: 42960, // Rejuvenating Respite
   POTENT_HASTE: 42983, // Potent Haste
   MANTRA_OF_LIBERATION: 43357, // Mantra of Liberation
   SEARING_SLASH: 43826, // Searing Slash
   MANTRA_OF_TRUTH: 44080, // Mantra of Truth
-  CLARIFIED_CONCLUSION: 44248, // Clarified Conclusion
   BLEEDING_EDGE: 44602, // Bleeding Edge
   CORE_CLEAVE: 45047, // Core Cleave
   FLAME_RUSH: 45082, // Flame Rush
   BLAZING_EDGE: 45402, // Blazing Edge
-  MANTRA_OF_LORE: 45460, // Mantra of Lore
   MANTRA_OF_FLAME: 46148, // Mantra of Flame
   SEEKING_JUDGMENT: 51645, // Seeking Judgment
   SEARING_LIGHT: 51660, // Searing Light
@@ -186,7 +173,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   ENTER_RADIANT_FORGE: 77073, // Enter Radiant Forge
   PIERCING_STANCE: 77078, // Piercing Stance
   VALOROUS_STANCE: 77300, // Valorous Stance
-  STALWART_STANCE: 77321, // Stalwart Stance
   RADIANT_COURAGE: 78358, // Radiant Courage
   RADIANT_RESOLVE: 78514, // Radiant Resolve
   RADIANT_JUSTICE: 78837, // Radiant Justice

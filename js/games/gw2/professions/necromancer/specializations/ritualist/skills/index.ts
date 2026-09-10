@@ -61,15 +61,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/execution/weapon-spells.ts`.
     handlerId: 'necromancer.weapon-spell'
   },
-  [ID.WEAPON_OF_WARDING]: {
-    castTimeMs: 500,
-    effects: [
-      {
-        type: 'control',
-        controlKind: 'control'
-      }
-    ]
-  },
   [ID.ANGUISH]: {
     quicknessCastTimeMs: 560,
     effects: [],
@@ -89,15 +80,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroudExit: 'ritualist',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.shroud'
-  },
-  [ID.XINRAES_WEAPON]: {
-    castTimeMs: 1000,
-    effects: [
-      {
-        type: 'control',
-        controlKind: 'control'
-      }
-    ]
   },
   [ID.WANDERLUST]: {
     quicknessCastTimeMs: 760,
@@ -135,10 +117,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     usableInShroud: true,
     // Custom: Emits Anguish's strike and party Might/Fury, then restores life force; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.innervate'
-  },
-  [ID.WEAPON_OF_REMEDY]: {
-    castTimeMs: 500,
-    effects: []
   },
   [ID.ESSENCE_BLAST]: {
     quicknessCastTimeMs: 600,

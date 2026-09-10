@@ -326,15 +326,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion-command'
   },
-  [ID.SPECTRAL_ARMOR]: {
-    castTimeMs: 500,
-    effects: [
-      {
-        type: 'control',
-        controlKind: 'control'
-      }
-    ]
-  },
   [ID.SUMMON_SHADOW_FIEND]: {
     castTimeMs: 500,
     effects: [],
@@ -403,15 +394,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
-      }
-    ]
-  },
-  [ID.WELL_OF_POWER]: {
-    castTimeMs: 500,
-    effects: [
-      {
-        type: 'control',
-        controlKind: 'control'
       }
     ]
   },
@@ -513,20 +495,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion-command'
-  },
-  [ID.SPECTRAL_WALK]: {
-    castTimeMs: 500,
-    effects: [
-      {
-        type: 'control',
-        controlKind: 'control'
-      }
-    ],
-    lifeForceGain: 4
-  },
-  [ID.SPECTRAL_RECALL]: {
-    castTimeMs: 500,
-    effects: []
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
     quicknessCastTimeMs: 600,

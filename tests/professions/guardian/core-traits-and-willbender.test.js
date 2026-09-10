@@ -847,7 +847,7 @@ test('Guardian alias input loads canonical Sword of Justice while Shield of Abso
   assert.equal(guardianCatalog.skillsById.get(9224).flipParentId, GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION);
 });
 
-test('non-DPS Guardian slot skills are excluded from the simulator surface', () => {
+test('out-of-scope Guardian slot skills are absent and migrate out of saved builds', () => {
   const excludedNames = [
     '"Advance!"',
     '"Save Yourselves!"',
@@ -864,7 +864,7 @@ test('non-DPS Guardian slot skills are excluded from the simulator surface', () 
   ];
 
   for (const name of excludedNames) {
-    assert.equal(guardianCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
+    assert.equal(guardianCatalog.skillsByName.has(name), false, name);
   }
 
   // Valorous Stance has simulated boons, so only its loadout selection is hidden.

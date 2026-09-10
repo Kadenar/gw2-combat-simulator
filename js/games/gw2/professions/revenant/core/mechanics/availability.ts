@@ -12,10 +12,6 @@ import type { RevenantPrecastContext, RevenantSkill } from '#gw2/professions/rev
 export function revenantCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || 'Core');
-  if (skill.id === ID.ABYSSAL_FIRE) {
-    return denyRevenantSkill(skill, 'revenant.abyssal-fire-hidden', 'use Abyssal Strike.');
-  }
-
   if (skill.id === ID.UNYIELDING_IMPACT && !state.availableFlips[ID.UNYIELDING_IMPACT]) {
     return denyRevenantSkill(skill, 'revenant.unyielding-impact-inactive', 'cast Call to Anguish first.');
   }

@@ -167,7 +167,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   assert.equal(twinMoonSweep.comboFinishers[0].finisherType, 'Whirl');
   assert.equal(twinMoonSweep.comboFinishers[0].applications, 2);
   assert.equal(twinMoonSweep.comboFinishers[0].effectDelay, 0.04);
-  assert.equal(revenantCatalog.skillsById.get(SKILL.ABYSSAL_FIRE).simulatorExcluded, true);
+  assert.equal(revenantCatalog.skillsByName.has('Abyssal Fire'), false);
   assert.ok(
     REVENANT_SUPPLEMENTAL_SKILLS.every(
       (skill) =>
@@ -1176,13 +1176,6 @@ test('Abyssal Strike uses 520ms Quickness timing for both spear swings', () => {
       .map((skill) => skill.name),
     ['Abyssal Strike']
   );
-
-  const hidden = simulate('Core', ['Abyssal Fire'], {
-    primaryWeapon: 'Spear',
-    secondaryWeapon: ''
-  });
-
-  assert.match(hidden.warnings[0], /unavailable for this build/);
 });
 
 test('Searing Fissure resolves its initial packet and three field pulses', () => {

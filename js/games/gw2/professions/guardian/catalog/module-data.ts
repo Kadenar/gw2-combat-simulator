@@ -10,24 +10,6 @@ import { TRAITS } from '#gw2/professions/guardian/data/traits-data.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(
-  new Set([
-    '"Advance!"',
-    '"Save Yourselves!"',
-    '"Hold the Line!"',
-    'Signet of Mercy',
-    'Merciful Intervention',
-    'Wall of Reflection',
-    'Contemplation of Purity',
-    '"Stand Your Ground!"',
-    'Valorous Stance',
-    'Stalwart Stance',
-    'Mantra of Lore',
-    'Hallowed Ground',
-    'Bow of Truth'
-  ])
-);
-
 const allSkills: readonly GuardianSkill[] = Object.freeze([...SKILLS, ...GUARDIAN_BUNDLE_SKILLS]);
 
 const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
@@ -59,24 +41,6 @@ for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
   flipParentById.set(finalId, normalId);
 }
 
-const patchAuthoringExcludedSkillIds = new Set<SkillId>(
-  allSkills.filter((skill) => GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name)).map((skill) => skill.id)
-);
-
-let discoveredExcludedFlip = true;
-
-while (discoveredExcludedFlip) {
-  discoveredExcludedFlip = false;
-
-  for (const [skillId, parentId] of flipParentById) {
-    if (patchAuthoringExcludedSkillIds.has(parentId) && !patchAuthoringExcludedSkillIds.has(skillId)) {
-      patchAuthoringExcludedSkillIds.add(skillId);
-
-      discoveredExcludedFlip = true;
-    }
-  }
-}
-
 const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
 
@@ -93,8 +57,8 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
           paletteFlip: false
         }
       : {}),
-    simulatorExcluded: GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name),
-    ...(patchAuthoringExcludedSkillIds.has(skill.id)
+    // Valorous Stance remains simulated, but has no supported patch-authoring surface.
+    ...(skill.id === ID.VALOROUS_STANCE
       ? {
           patchAuthoringExcluded: true
         }

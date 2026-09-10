@@ -70,10 +70,6 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       }
     ]
   },
-  [ID.OPENING_PASSAGE]: {
-    castTimeMs: 250,
-    effects: []
-  },
   [ID.POTENT_HASTE]: {
     castTimeMs: 0,
     canCastConcurrently: true,
@@ -100,10 +96,6 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 250,
     effects: []
   },
-  [ID.CLARIFIED_CONCLUSION]: {
-    castTimeMs: 250,
-    effects: []
-  },
   [ID.FLAME_RUSH]: {
     castTimeMs: 0,
     canCastConcurrently: true,
@@ -126,10 +118,6 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 12
       }
     ]
-  },
-  [ID.MANTRA_OF_LORE]: {
-    castTimeMs: 250,
-    effects: []
   },
   [ID.MANTRA_OF_FLAME]: {
     castTimeMs: 2240,

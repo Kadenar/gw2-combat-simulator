@@ -2,10 +2,11 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '#gw2/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -535,13 +536,29 @@ test('Manifest Sand Shade aliases load the one canonical Scourge behavior', () =
   }
 });
 
-test('every catalog skill has mechanics and non-DPS skills stay excluded', () => {
-  for (const name of NECROMANCER_NON_DPS_SKILL_NAMES) {
-    assert.equal(necromancerCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
-  }
+test('core heals remain selectable and castable without requiring damage effects', async () => {
+  const adapter = await loadProfessionAppAdapter('necromancer');
+  const build = { specialization: 'Core' };
+  const app = { profession: necromancerProfession, build, activeCatalog: necromancerCatalog };
 
+  // Heal slots remain usable even when their healing is outside the damage model.
+  for (const name of ['Well of Blood', 'Consume Conditions']) {
+    const skill = necromancerCatalog.skillsByName.get(name);
+    assert.equal(skill.type, 'Heal', name);
+    assert.equal(isSlotSkillSelectable(app, skill, 'Core'), true, name);
+    assert.equal(adapter.isSkillAvailable(skill, { build, specialization: 'Core' }), true, name);
+    const result = simulate('Core', [name]);
+    assert.deepEqual(result.warnings, [], name);
+    assert.ok(
+      result.events.some((event) => event.type === 'action' && event.skillId === skill.id),
+      name
+    );
+  }
+});
+
+test('every non-heal catalog skill has mechanics', () => {
   for (const skill of necromancerCatalog.skills) {
-    if (skill.simulatorExcluded) continue;
+    if (skill.type === 'Heal') continue;
     assert.equal(
       Boolean(
         skill.handlerId ||

@@ -3222,23 +3222,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     flipSkillId: null
   },
   {
-    id: 72931,
-    name: 'Abyssal Fire',
-    description:
-      'Ranged. Hurl your weapon at your foe. If you are in close range, swing your weapon at them instead. Striking a foe reduces the cooldown of Abyssal Raze once per skill use.',
-    icon: 'https://render.guildwars2.com/file/FFEE2544DCA106D90E704F6B4E4C3DE2BBA3C9ED/3379183.png',
-    type: 'Weapon',
-    weapon: 'Spear',
-    slot: 'Weapon_1',
-    specialization: '',
-    categories: [],
-    recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 72938,
     name: 'Abyssal Blitz',
     description:
@@ -3304,7 +3287,7 @@ export const SKILLS: readonly RevenantSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 72931
+    flipSkillId: null
   },
   {
     id: 73059,

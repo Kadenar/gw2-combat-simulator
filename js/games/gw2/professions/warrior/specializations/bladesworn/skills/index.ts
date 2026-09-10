@@ -16,17 +16,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     // Custom: Enters Dragon Trigger and starts charge/flow state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.dragon-trigger'
   },
-  [ID.ELECTRIC_FENCE]: {
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 5
-      }
-    ],
-    quicknessCastTimeMs: 333
-  },
   [ID.SHEATHE_GUNSABER]: {
     cooldown: 0,
     castTimeMs: 0,

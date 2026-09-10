@@ -16,21 +16,6 @@ import { PARAGON_SKILL_MECHANICS } from '#gw2/professions/warrior/specialization
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
 
-const WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS = new Set<number>([
-  14372, // "Shake It Off!"
-  14392, // Endure Pain
-  14406, // Berserker Stance
-  14408, // Banner of Tactics
-  14409, // "Fear Me!"
-  14412, // Balanced Stance
-  14528, // Banner of Defense
-  14575, // "On My Mark!"
-  41919, // Imminent Threat
-  43745, // Sight beyond Sight
-  45380, // Featherfoot Grace
-  62804 // Electric Fence
-]);
-
 const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
   14443, // Whirling Strike
   30989, // Burning Shackles
@@ -76,9 +61,7 @@ const generated: readonly Skill[] = Object.freeze(
       cooldown,
       ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
       flipParentId: flipParentById.get(skill.id) ?? null,
-      simulatorExcluded: WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)),
-      ...(WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)) ||
-      WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
+      ...(WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
         ? {
             patchAuthoringExcluded: true
           }

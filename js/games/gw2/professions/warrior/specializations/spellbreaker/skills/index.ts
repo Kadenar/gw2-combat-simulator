@@ -159,20 +159,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
-  [ID.IMMINENT_THREAT]: {
-    effects: [
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 5,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 167,
-    adrenalineGain: 3,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
   [ID.ARCING_SLICE_ID_42707]: {
     effects: [
       {
@@ -281,10 +267,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
-  [ID.SIGHT_BEYOND_SIGHT]: {
-    effects: [],
-    quicknessCastTimeMs: 333
-  },
   [ID.FULL_COUNTER]: {
     // The counterattack only occurs after absorbing an incoming attack. The
     // benchmark target never attacks, so activation alone has no effects.
@@ -349,23 +331,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     quicknessCastTimeMs: 1000
-  },
-  [ID.FEATHERFOOT_GRACE]: {
-    effects: [
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 5,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333
   },
   [ID.MAGEHUNTER_STRIKE]: {
     castTimeMs: 0,

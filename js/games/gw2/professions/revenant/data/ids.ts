@@ -122,7 +122,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   RAZORCLAWS_RAGE_ID_72363: 72363, // Razorclaw's Rage
   DARKRAZORS_DARING_ID_72366: 72366, // Darkrazor's Daring
   BREAKRAZORS_BASTION_ID_72389: 72389, // Breakrazor's Bastion
-  ABYSSAL_FIRE: 72931, // Abyssal Fire
   ABYSSAL_BLITZ: 72938, // Abyssal Blitz
   ABYSSAL_BLOT: 72954, // Abyssal Blot
   ABYSSAL_FORCE: 72972, // Abyssal Force

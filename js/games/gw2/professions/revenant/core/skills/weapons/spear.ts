@@ -4,39 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.ABYSSAL_FIRE]: {
-    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
-    handlerId: 'revenant.spear-recharge',
-    simulatorExcluded: true,
-    quicknessCastTimeMs: 460,
-    cooldown: 0,
-    energyCost: 0,
-    rechargeReduction: 1,
-    flipParentId: null,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
-        name: 'Abyssal Fire',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
-      }
-    ]
-  },
   [ID.ABYSSAL_BLITZ]: {
     interruptCommitMs: 0,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.

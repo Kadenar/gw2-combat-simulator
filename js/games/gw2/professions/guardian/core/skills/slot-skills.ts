@@ -7,14 +7,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 1000,
     effects: []
   },
-  [ID.ADVANCE]: {
-    castTimeMs: 250,
-    effects: []
-  },
-  [ID.SAVE_YOURSELVES]: {
-    castTimeMs: 250,
-    effects: []
-  },
   [ID.BANE_SIGNET]: {
     quicknessCastTimeMs: 500,
     effects: [
@@ -74,14 +66,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.HOLD_THE_LINE]: {
-    castTimeMs: 250,
-    effects: []
-  },
-  [ID.STAND_YOUR_GROUND]: {
-    castTimeMs: 250,
-    effects: []
-  },
   [ID.RENEWED_FOCUS]: {
     castTimeMs: 2000,
     // Custom: Refreshes all virtue cooldowns and readiness state; see `core/mechanics/virtues.ts`.
@@ -90,10 +74,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SIGNET_OF_RESOLVE]: {
     castTimeMs: 1000,
-    effects: []
-  },
-  [ID.SIGNET_OF_MERCY]: {
-    castTimeMs: 250,
     effects: []
   },
   [ID.SWORD_OF_JUSTICE]: {
@@ -126,10 +106,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         timingScale: 'fixed'
       }
     ]
-  },
-  [ID.BOW_OF_TRUTH]: {
-    castTimeMs: 250,
-    effects: []
   },
   [ID.PURGING_FLAMES]: {
     quicknessCastTimeMs: 320,
@@ -190,10 +166,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.MERCIFUL_INTERVENTION]: {
-    castTimeMs: 250,
-    effects: []
-  },
   [ID.JUDGES_INTERVENTION]: {
     castTimeMs: 250,
     effects: [
@@ -209,18 +181,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         duration: 8
       }
     ]
-  },
-  [ID.CONTEMPLATION_OF_PURITY]: {
-    castTimeMs: 250,
-    effects: []
-  },
-  [ID.WALL_OF_REFLECTION]: {
-    castTimeMs: 250,
-    effects: []
-  },
-  [ID.HALLOWED_GROUND]: {
-    castTimeMs: 250,
-    effects: []
   },
   [ID.LITANY_OF_WRATH]: {
     castTimeMs: 1000,

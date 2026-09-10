@@ -938,13 +938,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   },
   {
     profession: 'guardian',
-    skillId: 9248,
-    signal: '75D72E2DA47ECF47A6BD009B49B7C708',
-    kind: 'effect-dst',
-    rule: 'GuardianHelper.EffectCastFinderByDst(ContemplationOfPurity)'
-  },
-  {
-    profession: 'guardian',
     skillId: 9245,
     signal: 9245,
     kind: 'damage',
@@ -957,14 +950,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     kind: 'damage',
     rule: 'GuardianHelper.DamageCastFinder(LesserSmiteCondition)',
     origin: 'trait'
-  },
-  {
-    profession: 'guardian',
-    skillId: 9085,
-    signal: '68F2C378E6C80548B5A3C89870C5DD86',
-    kind: 'effect-dst',
-    rule: 'GuardianHelper.EffectCastFinderByDst(SaveYourselves)',
-    secondary: ['122BA55CCDF2B643929F6C4A97226DC9']
   },
   {
     profession: 'guardian',
@@ -1113,16 +1098,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: 'AF2B09AC1145AA4880B967C32A11E81C',
     kind: 'effect-dst',
     rule: 'FirebrandHelper.EffectCastFinderByDst(MantraOfFlameCast)',
-    minBuild: 115190,
-    maxBuild: 141374
-  },
-  {
-    profession: 'guardian',
-    specialization: 'firebrand',
-    skillId: 45460,
-    signal: '3D01B04C5700904BA279E9F135A3FAB3',
-    kind: 'effect-dst',
-    rule: 'FirebrandHelper.EffectCastFinderByDst(MantraOfLore)',
     minBuild: 115190,
     maxBuild: 141374
   },
@@ -1328,14 +1303,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     kind: 'buff-loss',
     rule: 'LuminaryHelper.BuffLossCastFinder(ExitRadiantForge)',
     swapOffset: -1
-  },
-  {
-    profession: 'guardian',
-    specialization: 'luminary',
-    skillId: 77321,
-    signal: 76868,
-    kind: 'buff-gain',
-    rule: 'LuminaryHelper.BuffGainCastFinder(StalwartStanceSkill)'
   },
   {
     profession: 'guardian',
@@ -1648,31 +1615,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   },
   {
     profession: 'necromancer',
-    skillId: 10583,
-    signal: 10582,
-    kind: 'buff-gain',
-    rule: 'NecromancerHelper.BuffGainCastFinder(SpectralArmorSkill)',
-    minBuild: 94051
-  },
-  {
-    profession: 'necromancer',
-    skillId: 10685,
-    signal: 15083,
-    kind: 'buff-gain',
-    rule: 'NecromancerHelper.BuffGainCastFinder(SpectralWalkSkill)',
-    minBuild: 0,
-    maxBuild: 94051
-  },
-  {
-    profession: 'necromancer',
-    skillId: 10685,
-    signal: 53476,
-    kind: 'buff-gain',
-    rule: 'NecromancerHelper.BuffGainCastFinder(SpectralWalkSkill)',
-    minBuild: 94051
-  },
-  {
-    profession: 'necromancer',
     skillId: 10562,
     signal: 'E78ED095E97F1D4A8BEB901796449E2F',
     kind: 'effect-dst',
@@ -1907,63 +1849,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: '0BC4AABB74F2AC43963CBB7B52993559',
     kind: 'effect',
     rule: 'RitualistHelper.EffectCastFinder(SummonSpiritsPlayerSkill)'
-  },
-  {
-    profession: 'necromancer',
-    specialization: 'ritualist',
-    skillId: 76752,
-    signal: 77011,
-    kind: 'buff-give',
-    rule: 'RitualistHelper.BuffGiveCastFinder(WeaponOfWarding)',
-    minBuild: 186019,
-    maxBuild: 190000
-  },
-  {
-    profession: 'necromancer',
-    specialization: 'ritualist',
-    skillId: 76752,
-    signal: 78624,
-    kind: 'buff-gain',
-    rule: 'RitualistHelper.BuffGainCastFinder(WeaponOfWarding)',
-    minBuild: 190000
-  },
-  {
-    profession: 'necromancer',
-    specialization: 'ritualist',
-    skillId: 77022,
-    signal: 76565,
-    kind: 'buff-give',
-    rule: 'RitualistHelper.BuffGiveCastFinder(WeaponOfRemedy)',
-    minBuild: 186019,
-    maxBuild: 190000
-  },
-  {
-    profession: 'necromancer',
-    specialization: 'ritualist',
-    skillId: 77022,
-    signal: 78272,
-    kind: 'buff-gain',
-    rule: 'RitualistHelper.BuffGainCastFinder(WeaponOfRemedy)',
-    minBuild: 190000
-  },
-  {
-    profession: 'necromancer',
-    specialization: 'ritualist',
-    skillId: 76941,
-    signal: 76764,
-    kind: 'buff-give',
-    rule: 'RitualistHelper.BuffGiveCastFinder(XinraeWeapon)',
-    minBuild: 186019,
-    maxBuild: 190000
-  },
-  {
-    profession: 'necromancer',
-    specialization: 'ritualist',
-    skillId: 76941,
-    signal: 78313,
-    kind: 'buff-gain',
-    rule: 'RitualistHelper.BuffGainCastFinder(XinraeWeapon)',
-    minBuild: 190000
   },
   {
     profession: 'necromancer',
@@ -3416,27 +3301,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   },
   {
     profession: 'warrior',
-    skillId: 14406,
-    signal: 14453,
-    kind: 'buff-gain',
-    rule: 'WarriorHelper.BuffGainCastFinder(BerserkersStanceSkill)'
-  },
-  {
-    profession: 'warrior',
-    skillId: 14412,
-    signal: 34778,
-    kind: 'buff-gain',
-    rule: 'WarriorHelper.BuffGainCastFinder(BalancedStanceSkill)'
-  },
-  {
-    profession: 'warrior',
-    skillId: 14392,
-    signal: 787,
-    kind: 'buff-gain',
-    rule: 'WarriorHelper.BuffGainCastFinder(EndurePainSkill)'
-  },
-  {
-    profession: 'warrior',
     skillId: 14410,
     signal: 51664,
     kind: 'buff-gain',
@@ -3507,14 +3371,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     kind: 'buff-gain',
     rule: 'BerserkerHelper.BuffGainCastFinder(BerserkSkill)',
     minBuild: 135242
-  },
-  {
-    profession: 'warrior',
-    specialization: 'spellbreaker',
-    skillId: 43745,
-    signal: 40616,
-    kind: 'buff-gain',
-    rule: 'SpellbreakerHelper.BuffGainCastFinder(SightBeyondSightSkill)'
   },
   {
     profession: 'warrior',

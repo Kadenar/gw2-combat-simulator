@@ -21,7 +21,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   CHOP: 14369, // Chop
   DOUBLE_CHOP: 14370, // Double Chop
   TRIPLE_CHOP: 14371, // Triple Chop
-  SHAKE_IT_OFF: 14372, // "Shake It Off!"
   GREATSWORD_SLICE: 14373, // Greatsword Slice
   BRUTAL_STRIKE: 14374, // Brutal Strike
   ARCING_SLICE: 14375, // Arcing Slice
@@ -35,7 +34,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   EARTHSHAKER: 14387, // Earthshaker
   STOMP: 14388, // Stomp
   HEALING_SIGNET: 14389, // Healing Signet
-  ENDURE_PAIN: 14392, // Endure Pain
   CHARGE: 14393, // Charge
   CALL_OF_VALOR: 14394, // Call of Valor
   KILL_SHOT: 14396, // Kill Shot
@@ -46,12 +44,8 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   TO_THE_LIMIT: 14402, // "To the Limit!"
   SIGNET_OF_MIGHT: 14404, // Signet of Might
   BANNER_OF_STRENGTH: 14405, // Banner of Strength
-  BERSERKER_STANCE: 14406, // Berserker Stance
   BANNER_OF_DISCIPLINE: 14407, // Banner of Discipline
-  BANNER_OF_TACTICS: 14408, // Banner of Tactics
-  FEAR_ME: 14409, // "Fear Me!"
   SIGNET_OF_FURY: 14410, // Signet of Fury
-  BALANCED_STANCE: 14412, // Balanced Stance
   SKULL_CRACK: 14414, // Skull Crack
   TREMOR: 14415, // Tremor
   VOLLEY: 14416, // Volley
@@ -80,11 +74,9 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   BULLS_CHARGE: 14516, // Bull's Charge
   CRUSHING_BLOW: 14518, // Crushing Blow
   FAN_OF_FIRE: 14519, // Fan of Fire
-  BANNER_OF_DEFENSE: 14528, // Banner of Defense
   TACTICAL_BLOW: 14548, // Tactical Blow
   HUNDRED_BLADES: 14554, // Hundred Blades
   ADRENALINE_RUSH: 14557, // Adrenaline Rush
-  ON_MY_MARK: 14575, // "On My Mark!"
   DEFIANT_STANCE: 21815, // Defiant Stance
   SUNDERING_LEAP: 29613, // Sundering Leap
   GUN_FLAME: 29644, // Gun Flame
@@ -115,14 +107,12 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   FORCEFUL_SHOT_ID_41330: 41330, // Forceful Shot
   WOUNDING_STRIKE: 41543, // Wounding Strike
   WHIRLING_STRIKE_ID_41746: 41746, // Whirling Strike
-  IMMINENT_THREAT: 41919, // Imminent Threat
   ARCING_SLICE_ID_42707: 42707, // Arcing Slice
   PRECISE_CUT: 42745, // Precise Cut
   COMBUSTIVE_SHOT_ID_42803: 42803, // Combustive Shot
   BREAK_ENCHANTMENTS: 43123, // Break Enchantments
   FLEETING_STABILITY: 43488, // Fleeting Stability
   EVISCERATE_ID_43566: 43566, // Eviscerate
-  SIGHT_BEYOND_SIGHT: 43745, // Sight beyond Sight
   WASTRELS_RUIN: 44004, // Wastrel's Ruin
   FULL_COUNTER: 44165, // Full Counter
   DISSONANCE: 44397, // Dissonance
@@ -130,14 +120,12 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   HUSHBLADE: 45160, // Hushblade
   BREACHING_STRIKE: 45252, // Breaching Strike
   WINDS_OF_DISENCHANTMENT: 45333, // Winds of Disenchantment
-  FEATHERFOOT_GRACE: 45380, // Featherfoot Grace
   MAGEHUNTER_STRIKE: 46044, // Magehunter Strike
   AURA_SLICER: 46233, // Aura Slicer
   GUNSTINGER: 62697, // Gunstinger
   UNSHEATHE_GUNSABER: 62745, // Unsheathe Gunsaber
   DRAGONS_ROAR: 62800, // Dragon's Roar
   DRAGON_TRIGGER: 62803, // Dragon Trigger
-  ELECTRIC_FENCE: 62804, // Electric Fence
   SHEATHE_GUNSABER: 62861, // Sheathe Gunsaber
   TACTICAL_RELOAD: 62901, // Tactical Reload
   DRAGONSPIKE_MINE: 62960, // Dragonspike Mine

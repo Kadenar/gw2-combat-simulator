@@ -1554,22 +1554,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14372,
-    name: '"Shake It Off!"',
-    description: 'Shout. Cure conditions on yourself and nearby allies. Also breaks stuns for affected allies.',
-    icon: 'https://render.guildwars2.com/file/E8D20BEE10E680A217A055CE62D938D97EA03B7A/103797.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Shout'],
-    recharge: 5,
-    ammo: 2,
-    ammoRecharge: 20,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14373,
     name: 'Greatsword Slice',
     description: 'Chain. Slice your foe.',
@@ -1781,22 +1765,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14392,
-    name: 'Endure Pain',
-    description: 'Stance. Take no damage from attacks. You are still susceptible to conditions and control effects.',
-    icon: 'https://render.guildwars2.com/file/9D66F0BCCEC7A7C344170659D4CF7C7E3ECF0C60/102867.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Stance'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14393,
     name: 'Charge',
     description: 'Grant boons and remove movement-impairing conditions from allies.',
@@ -1960,22 +1928,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14406,
-    name: 'Berserker Stance',
-    description: 'Stance. Gain adrenaline for a short time. Gain pulsing resistance.',
-    icon: 'https://render.guildwars2.com/file/076E24B408AADF15ECE3537453F9E1FCB93843F5/103864.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Stance'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14407,
     name: 'Banner of Discipline',
     description:
@@ -1993,39 +1945,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14408,
-    name: 'Banner of Tactics',
-    description:
-      'Banner. Place a banner that grants boons and superspeed and breaks stuns on initial placement, then pulses boons to you and nearby allies afterward.',
-    icon: 'https://render.guildwars2.com/file/6CA13E99B69F0150BCBD08D179D5464F39CEE84A/103917.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Banner'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14409,
-    name: '"Fear Me!"',
-    description: 'Shout. Induce fear in your foes. Fear duration increases based on your distance to the enemy.',
-    icon: 'https://render.guildwars2.com/file/ECDDC728B5B2579AB2586D979510C7EB077B7102/103928.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Shout'],
-    recharge: 48,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14410,
     name: 'Signet of Fury',
     description:
@@ -2037,22 +1956,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     specialization: '',
     categories: ['Signet'],
     recharge: 16,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14412,
-    name: 'Balanced Stance',
-    description: 'Stance. Gain stability and swiftness on an interval. Become immune to critical hits.',
-    icon: 'https://render.guildwars2.com/file/EE276A936FB880E44B2B310D56E6A9E22034E301/104112.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Stance'],
-    recharge: 25,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -2497,23 +2400,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 14528,
-    name: 'Banner of Defense',
-    description:
-      'Banner. Place a banner that grants barrier and boons on initial placement, then pulses additional boons to you and nearby allies afterward.',
-    icon: 'https://render.guildwars2.com/file/73B7B8A76934DAC798355ACC2C437EFFFB7EA23E/104142.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Banner'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 14544,
     name: 'Forceful Shot',
     description: 'Burst. Fire a forceful shot. Damage increases with adrenaline level.',
@@ -2574,22 +2460,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     recharge: 0,
     ammo: 0,
     ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 14575,
-    name: '"On My Mark!"',
-    description: 'Shout. Call out target foe to make them vulnerable.',
-    icon: 'https://render.guildwars2.com/file/F6D809292BC50B03A8E3A5F6C04201DE09A02C08/103221.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Shout'],
-    recharge: 5,
-    ammo: 2,
-    ammoRecharge: 20,
     nextChainId: null,
     flipSkillId: null
   },
@@ -3086,22 +2956,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 41919,
-    name: 'Imminent Threat',
-    description: 'Meditation. Taunt nearby foes, gaining adrenaline and barrier for each affected foe.',
-    icon: 'https://render.guildwars2.com/file/757EE26597312CDA34B2480914E5AD194B352380/1770665.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Spellbreaker',
-    categories: ['Meditation'],
-    recharge: 30,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 42707,
     name: 'Arcing Slice',
     description:
@@ -3196,23 +3050,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     recharge: 8,
     ammo: 0,
     ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 43745,
-    name: 'Sight beyond Sight',
-    description:
-      'Meditation. Reveal nearby foes and make your next attack a critical hit. Remove blindness and nondamaging conditions.',
-    icon: 'https://render.guildwars2.com/file/B52152CBC82E492696D90460090366D7EC31022C/1770666.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Spellbreaker',
-    categories: ['Meditation'],
-    recharge: 1,
-    ammo: 2,
-    ammoRecharge: 20,
     nextChainId: null,
     flipSkillId: null
   },
@@ -3333,22 +3170,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
-    id: 45380,
-    name: 'Featherfoot Grace',
-    description: 'Meditation. Gain a burst of superspeed and resistance.',
-    icon: 'https://render.guildwars2.com/file/C703F700B534032C2058B0175041DDB60A0A780A/1770664.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Spellbreaker',
-    categories: ['Meditation'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 46044,
     name: 'Magehunter Strike',
     description:
@@ -3444,23 +3265,6 @@ export const SKILLS: readonly WarriorSkill[] = [
     recharge: 8,
     ammo: 0,
     ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 62804,
-    name: 'Electric Fence',
-    description:
-      'Armament. Throw a device that leaves behind a wall of energy, blocking projectiles and crippling foes that pass through it. Foes that are already crippled become immobilized.',
-    icon: 'https://render.guildwars2.com/file/B16774E2D1169FC126A8CF4A2A7A403A1153460B/2491653.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Bladesworn',
-    categories: [],
-    recharge: 1,
-    ammo: 2,
-    ammoRecharge: 30,
     nextChainId: null,
     flipSkillId: null
   },

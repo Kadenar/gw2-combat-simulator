@@ -3,7 +3,7 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
-import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '#gw2/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
@@ -295,7 +295,6 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
     ),
     true
   );
-  assert.equal(NECROMANCER_NON_DPS_SKILL_NAMES.has('Resilient Weapon'), false);
 });
 
 test('Ritualist weapon spells scale with allied players', () => {

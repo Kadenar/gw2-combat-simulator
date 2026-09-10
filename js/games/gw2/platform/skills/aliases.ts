@@ -28,7 +28,6 @@ export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.fre
   46170: 9125, // Hammer of Wisdom
   68666: 9154, // Renewed Focus
   44846: 9168, // Sword of Justice
-  43565: 9175, // Bow of Truth
   68670: 29965, // Feel My Wrath
   68686: 30273, // Dragon's Maw
   68648: 41780, // Tome of Resolve

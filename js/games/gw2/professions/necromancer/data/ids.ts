@@ -106,16 +106,12 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   LOCUST_SWARM: 10557, // Locust Swarm
   RENDING_CLAWS: 10561, // Rending Claws
   PLAGUE_SIGNET: 10562, // Plague Signet
-  SPECTRAL_ARMOR: 10583, // Spectral Armor
   NECROTIC_GRASP: 10596, // Necrotic Grasp
   CORRUPT_BOON: 10602, // Corrupt Boon
   CHILLBLAINS: 10605, // Chillblains
   EPIDEMIC: 10606, // Epidemic
   SPECTRAL_RING: 10608, // Spectral Ring
-  WELL_OF_POWER: 10609, // Well of Power
   SPECTRAL_GRASP: 10620, // Spectral Grasp
-  SPECTRAL_WALK: 10685, // Spectral Walk
-  SPECTRAL_RECALL: 10687, // Spectral Recall
   CORROSIVE_POISON_CLOUD: 10689, // Corrosive Poison Cloud
   BLOOD_CURSE: 10698, // Blood Curse
   RENDING_CURSE: 10699, // Rending Curse
@@ -171,10 +167,7 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   ISOLATE: 73107, // Isolate
   DISTRESS: 73116, // Distress
   NIGHTMARE_WEAPON: 76739, // Nightmare Weapon
-  WEAPON_OF_WARDING: 76752, // Weapon of Warding
-  XINRAES_WEAPON: 76941, // Xinrae's Weapon
   SPLINTER_WEAPON: 76975, // Splinter Weapon
-  WEAPON_OF_REMEDY: 77022, // Weapon of Remedy
   RESILIENT_WEAPON: 77259 // Resilient Weapon
 });
 
