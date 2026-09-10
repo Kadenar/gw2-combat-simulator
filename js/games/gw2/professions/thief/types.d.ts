@@ -176,7 +176,6 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   mistburnGeneration: number;
   kryptisDamageUntil: number;
   chakInitiativeRefundUntil: number;
-  holoUtilityCooldownReductionExpiresAt: number;
   holoUtilityCooldownReductionExpirations: number[];
   forgedSurferGeneration: number;
   forgedSurferMaximumBombHits: number;

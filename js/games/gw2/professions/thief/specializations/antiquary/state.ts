@@ -24,7 +24,6 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     mistburnGeneration: 0,
     kryptisDamageUntil: 0,
     chakInitiativeRefundUntil: 0,
-    holoUtilityCooldownReductionExpiresAt: 0,
     holoUtilityCooldownReductionExpirations: [],
     forgedSurferGeneration: 0,
     // clamped 1-5 at init so handleForgedSurfer never needs to bounds-check the assumption at runtime
@@ -54,7 +53,6 @@ export const ANTIQUARY_PUBLIC_END_STATE_KEYS: readonly (keyof AntiquaryState)[] 
   'mistburnExpiresAt',
   'kryptisDamageUntil',
   'chakInitiativeRefundUntil',
-  'holoUtilityCooldownReductionExpiresAt',
   'holoUtilityCooldownReductionExpirations',
   'forgedSurferGeneration',
   'forgedSurferMaximumBombHits',
@@ -79,7 +77,6 @@ export const ANTIQUARY_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AntiquaryState>
   mistburnExpiresAt: 0,
   kryptisDamageUntil: 0,
   chakInitiativeRefundUntil: 0,
-  holoUtilityCooldownReductionExpiresAt: 0,
   holoUtilityCooldownReductionExpirations: [],
   forgedSurferGeneration: 0,
   forgedSurferMaximumBombHits: 5,

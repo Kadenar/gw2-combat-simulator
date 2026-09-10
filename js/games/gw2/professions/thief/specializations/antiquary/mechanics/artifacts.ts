@@ -185,7 +185,6 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
       ...(state.holoUtilityCooldownReductionExpirations || []),
       expiresAt
     ];
-    state.holoUtilityCooldownReductionExpiresAt = Math.max(...state.holoUtilityCooldownReductionExpirations);
   } else if (skill.id === ID.FORGED_SURFER_DASH_ID_76633) {
     state.forgedSurferGeneration += 1; // bumped here (before task scheduling) so the task payload and state always agree on which run is current
   }

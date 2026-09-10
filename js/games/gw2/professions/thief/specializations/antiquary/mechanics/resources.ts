@@ -28,10 +28,10 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
     state.mistburnCharges = 0;
   }
 
-  if (Number(state.holoUtilityCooldownReductionExpiresAt || 0) <= target) {
-    // bulk-clear the per-use expiration list once the last window has passed; individual uses are consumed in rules.ts
-    state.holoUtilityCooldownReductionExpirations = [];
-  }
+  // Expire each charge independently without changing FIFO grant order.
+  state.holoUtilityCooldownReductionExpirations = state.holoUtilityCooldownReductionExpirations.filter(
+    (expiresAt) => expiresAt > target
+  );
 
   for (const [skillId, penalty] of Object.entries(state.backfireState)) {
     if (Number(penalty.activeUntil || 0) <= target) {

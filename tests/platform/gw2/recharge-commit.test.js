@@ -6,6 +6,7 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { projectThiefEndState, snapshotThiefState } from '#gw2/professions/thief/state.js';
 
 // Small authored skills isolate reservation ownership from profession damage and cast timing data.
 function commitmentScheduler(ammo = false) {
@@ -197,8 +198,12 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   const { context, state } = scheduler;
   const antiquary = state.profession.specialization.state;
   scheduler.advanceTo(1);
-  antiquary.holoUtilityCooldownReductionExpirations = [0, 5, 10];
-  antiquary.holoUtilityCooldownReductionExpiresAt = 10;
+  // Grant order differs from expiry order: the first live grant must be consumed first.
+  antiquary.holoUtilityCooldownReductionExpirations = [0, 10, 5];
+  const projected = () => projectThiefEndState({ schedulerState: state, resolverState: state.profession });
+  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 10);
+  assert.equal(Object.hasOwn(antiquary, 'holoUtilityCooldownReductionExpiresAt'), false);
+  assert.equal(Object.hasOwn(snapshotThiefState(state.profession), 'holoUtilityCooldownReductionExpiresAt'), false);
   const placement = context.catalog.skillsByName.get('Prepare Thousand Needles');
   const persistent = context.rechargeDurationFor(placement, 1);
   const before = structuredClone(antiquary);
@@ -207,17 +212,17 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   assert.deepEqual(antiquary, before);
 
   assert.equal(scheduler.cast({ type: 'cast', skillId: placement.id }), true);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [10]);
+  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [5]);
   const action = scheduler.events.find((event) => event.type === 'action');
   assert.ok(Math.abs(action.rechargeReadyAt - action.at - persistent * 0.2) < 1e-9);
   scheduler.advanceTo(action.endsAt);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [10]);
-  assert.equal(antiquary.holoUtilityCooldownReductionExpiresAt, 10);
+  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [5]);
+  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 5);
 
   const pitfall = context.catalog.skillsByName.get('Prepare Pitfall');
   assert.equal(scheduler.cast({ type: 'cast', skillId: pitfall.id }), true);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.equal(antiquary.holoUtilityCooldownReductionExpiresAt, 0);
+  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 0);
   assert.deepEqual(scheduler.warnings, []);
 });
 
@@ -267,35 +272,42 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
   });
   const { context, state } = scheduler;
   const antiquary = state.profession.specialization.state;
-  antiquary.holoUtilityCooldownReductionExpirations = [30, 40];
-  antiquary.holoUtilityCooldownReductionExpiresAt = 40;
+  antiquary.holoUtilityCooldownReductionExpirations = [30, 35, 40];
+  const projected = () => projectThiefEndState({ schedulerState: state, resolverState: state.profession });
   const heal = context.catalog.skillsByName.get('Hide in Shadows');
   assert.equal(scheduler.cast({ type: 'cast', skillId: heal.id }), true);
   scheduler.advanceTo(scheduler.events.find((event) => event.type === 'action').endsAt);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 40]);
+  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 35, 40]);
   const unselected = context.catalog.skillsByName.get("Assassin's Signet");
   assert.equal(scheduler.cast({ type: 'cast', skillId: unselected.id }), false);
   assert.equal(scheduler.warnings.length, 1);
   assert.match(scheduler.warnings[0], /not equipped/);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 40]);
+  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 35, 40]);
 
   const needles = context.catalog.skillsByName.get('Prepare Thousand Needles');
   assert.equal(scheduler.cast({ type: 'cast', skillId: needles.id, interruptAfterMs: 0 }), true);
   scheduler.advanceTo(state.time);
   const cancelled = scheduler.events.find((event) => event.type === 'action' && event.skillId === needles.id);
   assert.equal(cancelled.cancelled, true);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 40]);
+  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 35, 40]);
   const pitfall = context.catalog.skillsByName.get('Prepare Pitfall');
   assert.equal(scheduler.cast({ type: 'cast', skillId: pitfall.id }), true);
+  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [35, 40]);
+  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 40);
+
+  scheduler.advanceTo(35);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [40]);
-  assert.equal(antiquary.holoUtilityCooldownReductionExpiresAt, 40);
+  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 40);
 
   scheduler.advanceTo(40);
+  // Natural expiry normalizes public output before any utility cast can prune it.
+  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
+  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 0);
   const persistent = context.rechargeDurationFor(needles);
   assert.equal(scheduler.cast({ type: 'cast', skillId: needles.id }), true);
   const action = scheduler.events.findLast((event) => event.type === 'action');
   assert.equal(action.rechargeReadyAt - action.at, persistent);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.equal(antiquary.holoUtilityCooldownReductionExpiresAt, 0);
+  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 0);
   assert.equal(scheduler.warnings.length, 1);
 });

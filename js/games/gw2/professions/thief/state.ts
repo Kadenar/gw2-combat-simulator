@@ -36,13 +36,14 @@ import type {
 } from '#gw2/professions/thief/types.js';
 
 // The family projector composes each independently owned state slice into the stable public end-state contract.
-export const THIEF_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefState)[] = Object.freeze([
+export const THIEF_PUBLIC_END_STATE_KEYS = Object.freeze([
   ...THIEF_CORE_PUBLIC_END_STATE_KEYS,
   ...DAREDEVIL_PUBLIC_END_STATE_KEYS,
   ...DEADEYE_PUBLIC_END_STATE_KEYS,
   ...SPECTER_PUBLIC_END_STATE_KEYS,
-  ...ANTIQUARY_PUBLIC_END_STATE_KEYS
-]);
+  ...ANTIQUARY_PUBLIC_END_STATE_KEYS,
+  'holoUtilityCooldownReductionExpiresAt'
+] as const);
 
 const INACTIVE_STATE_DEFAULTS: Readonly<Partial<ThiefState>> = Object.freeze({
   ...DAREDEVIL_INACTIVE_STATE_DEFAULTS,
@@ -75,7 +76,15 @@ export function projectThiefEndState({
     ])
   );
 
-  return projectPublicProfessionState(state, THIEF_PUBLIC_END_STATE_KEYS, INACTIVE_STATE_DEFAULTS);
+  // Retain the public scalar as a derived value; expired or consumed charges report zero.
+  const publicState = {
+    ...state,
+    holoUtilityCooldownReductionExpiresAt: Math.max(
+      0,
+      ...(state.holoUtilityCooldownReductionExpirations || []).filter((expiresAt) => expiresAt > schedulerState.time)
+    )
+  };
+  return projectPublicProfessionState(publicState, THIEF_PUBLIC_END_STATE_KEYS, INACTIVE_STATE_DEFAULTS);
 }
 
 // Resolver snapshots are routed back to whichever runtime slice declares each field, preserving scheduler ownership.

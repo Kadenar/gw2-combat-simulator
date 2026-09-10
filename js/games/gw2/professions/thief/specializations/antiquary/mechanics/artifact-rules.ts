@@ -176,9 +176,8 @@ function commitAntiquaryRechargeDuration(context: ThiefPrecastContext, duration:
     (expiresAt) => Number(expiresAt) > context.start
   );
   state.holoUtilityCooldownReductionExpirations = expirations;
-  // consume the earliest slot; each Holo-Dancer Decoy use adds one entry, so stacking is supported
+  // Consume the oldest grant, even when a newer charge expires sooner.
   const consumed = expirations.shift();
-  state.holoUtilityCooldownReductionExpiresAt = expirations.length ? Math.max(...expirations) : 0;
   return duration * (consumed == null ? 1 : multiplier);
 }
 
