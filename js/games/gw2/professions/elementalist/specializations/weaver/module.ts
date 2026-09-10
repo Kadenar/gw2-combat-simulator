@@ -10,6 +10,7 @@ import { createWeaverState } from '#gw2/professions/elementalist/specializations
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 import { WEAVER_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { weaverSkillHandlers } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
 /**
  * Weaver specialization module.
@@ -29,6 +30,7 @@ export const weaverModule = defineNativeModule({
     modifiers: weaverAttributeRules,
     execution: {
       castRules: weaverCastRules,
+      skillHandlers: weaverSkillHandlers,
       skillMechanicHandlers: weaverSkillMechanicHandlers,
       hooks: weaverSchedulerHooks
     }

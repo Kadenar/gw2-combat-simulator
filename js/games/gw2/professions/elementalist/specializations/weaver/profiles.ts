@@ -70,6 +70,15 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
   duration
 });
 
+/** One authored source for stance skill templates and the patchable live-attunement pulse profile. */
+export const PRIMORDIAL_STANCE_EFFECTS = Object.freeze({
+  strike: { type: 'strike', coefficient: 0.33, hits: 1 },
+  Fire: { type: 'condition', name: 'Fire', condition: 'Burning', stacks: 1, duration: 2 },
+  Water: { type: 'condition', name: 'Water', condition: 'Chilled', stacks: 1, duration: 1 },
+  Air: { type: 'condition', name: 'Air', condition: 'Vulnerability', stacks: 8, duration: 3 },
+  Earth: { type: 'condition', name: 'Earth', condition: 'Bleeding', stacks: 2, duration: 6 }
+} satisfies Record<string, SkillEffect>);
+
 /** Default profiles registered with the Weaver module data. */
 export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Shared Weave Self bucket: `initialDelay` is the attunement recharge applied
@@ -108,37 +117,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     parentId: ID.PRIMORDIAL_STANCE_FIRE,
     name: 'Primordial Stance - Dynamic Pulse',
     profileKind: 'skill-variant',
-    effects: [
-      { type: 'strike', coefficient: 0.33, hits: 1 },
-      {
-        type: 'condition',
-        name: 'Fire',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2
-      },
-      {
-        type: 'condition',
-        name: 'Water',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 1
-      },
-      {
-        type: 'condition',
-        name: 'Air',
-        condition: 'Vulnerability',
-        stacks: 8,
-        duration: 3
-      },
-      {
-        type: 'condition',
-        name: 'Earth',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 6
-      }
-    ]
+    effects: Object.values(PRIMORDIAL_STANCE_EFFECTS)
   },
   {
     id: WEAVER_BALANCE_PROFILE_IDS.unravel,

@@ -16,6 +16,10 @@ import { weaverCastRules } from '#gw2/professions/elementalist/specializations/w
 import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { handlePrimordialStanceTick } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
 test('Elemental Balance reports the same patched duration used for its active window', () => {
   // Two qualifying entries arm the trait; its marker must explain the effective balance profile.
@@ -403,6 +407,122 @@ test('attunement variants of an equipped glyph share their cooldown', () => {
   // Switching variants must preserve the first variant's recharge.
   const recharge = (elementalistCatalog.skillsByName.get('Glyph of Storms (Air)').cooldown * 1000) / 1.25;
   assert.ok(casts[1].start - casts[0].start >= recharge);
+});
+
+test('Primordial Stance schedules unique authored pulse times without emitting placeholder packets', () => {
+  // Each variant uses the replacement registry and timing policy while retaining its activation owner.
+  const runtime = elementalistProfession.resolveRuntime({ specialization: 'Weaver' });
+  for (const id of [
+    ID.PRIMORDIAL_STANCE_FIRE,
+    ID.PRIMORDIAL_STANCE_WATER,
+    ID.PRIMORDIAL_STANCE_AIR,
+    ID.PRIMORDIAL_STANCE_EARTH
+  ]) {
+    const canonical = elementalistCatalog.skillsById.get(id);
+    const effect = canonical.effects.find((candidate) => candidate.type === 'condition');
+    const skill = {
+      ...canonical,
+      effects: [{ ...effect, ticks: [0, 1250, 1250, 3000].map((atMs) => ({ ...effect.ticks[0], atMs })) }]
+    };
+    const scheduled = [];
+    const handler = runtime.skillHandlerFor(skill);
+    assert.equal(handler.mode, 'replace');
+    handler.beforeEffects(
+      {
+        start: 10,
+        fullEnd: 10,
+        effectiveEnd: 10,
+        epsilon: 1e-9,
+        reservationId: 'stance',
+        schedulerPolicy: {
+          effectTiming: (_context, _skill, authored) => ({
+            ...authored,
+            ticks: authored.ticks.map((tick) => ({ ...tick, atMs: tick.atMs * 2 }))
+          })
+        },
+        tasks: { schedule: (task) => scheduled.push(task) },
+        emit: () => assert.fail('Pulses must wait for their scheduled tasks'),
+        replaceEvent: () => assert.fail('No placeholder packets should be emitted')
+      },
+      skill
+    );
+    assert.deepEqual(
+      scheduled.map((task) => task.at),
+      [12.5, 16]
+    );
+    assert.ok(scheduled.every((task) => task.ownerId === 'stance' && task.payload.sourceId === id));
+  }
+});
+
+test('Primordial Stance retains dynamic profile patches and activation ownership within the observation window', () => {
+  // A short tail includes the first pulse but must not resolve the following pulse or an activation-time strike.
+  const profession = withPatchPreview(elementalistProfession, {
+    id: 'stance-preview',
+    label: 'Stance Preview',
+    professions: {
+      elementalist: {
+        balanceProfiles: {
+          [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
+            effects: [
+              { type: 'strike', coefficient: { from: 0.33, to: 0.5 } },
+              { type: 'condition', name: 'Fire', stacks: { from: 1, to: 3 }, duration: { from: 2, to: 4 } }
+            ]
+          }
+        }
+      }
+    }
+  });
+  const result = simulateGw2({
+    profession,
+    config: {
+      specialization: 'Weaver',
+      patchId: 'stance-preview',
+      startAttunement: 'Fire',
+      secondaryAttunement: 'Fire',
+      selectedSkills: ['Primordial Stance (Fire)'],
+      stats: { power: 1000 },
+      target: { armor: 2597 }
+    },
+    rotation: ['Primordial Stance (Fire)'],
+    observationPolicy: { kind: 'tail', durationMs: 1500 }
+  });
+  assert.deepEqual(result.warnings, []);
+  const action = result.events.find((event) => event.type === 'action');
+  const pulses = result.events.filter(
+    (event) => event.skillName === 'Primordial Stance' && (event.type === 'damage' || event.type === 'condition')
+  );
+  assert.ok(pulses.length > 0);
+  assert.ok(
+    pulses.every((event) => event.at > action.at && event.at <= 1.5 && event.activationId === action.activationId)
+  );
+  assert.equal(pulses.find((event) => event.type === 'damage').coefficient, 0.5);
+  const burning = pulses.find((event) => event.type === 'condition');
+  assert.equal(burning.stacks, 3);
+  assert.equal(burning.duration, 4);
+  assert.ok(result.events.every((event) => event.cancelled !== true));
+});
+
+test('Primordial Stance does not restore removed profile effects through fallback values', () => {
+  // Removing the active attunement's condition and strike leaves this pulse with nothing to emit.
+  handlePrimordialStanceTick(
+    {
+      catalog: applyBalanceProfilePatch(elementalistCatalog, {
+        balanceProfiles: {
+          [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
+            removeEffects: [{ type: 'strike' }, { type: 'condition', name: 'Fire' }]
+          }
+        }
+      }),
+      state: {
+        profession: {
+          core: { primaryAttunement: 'Fire' },
+          specialization: { kind: 'Weaver', state: { secondaryAttunement: 'Fire' } }
+        }
+      },
+      emit: () => assert.fail('Removed profile effects must not emit')
+    },
+    { at: 1, payload: { sourceId: ID.PRIMORDIAL_STANCE_FIRE } }
+  );
 });
 
 test('Primordial Stance variants share charges and count recharge', () => {
