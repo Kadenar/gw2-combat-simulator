@@ -78,7 +78,6 @@ export interface MesmerBuild extends Gw2Build {
     readonly regeneration?: boolean;
   };
   initialResource?: number;
-  weaponmasterTraining?: boolean;
 }
 
 export interface MesmerCanonicalBuild extends Gw2CanonicalBuild {
@@ -96,8 +95,6 @@ export interface MesmerConfig extends Gw2Config {
   readonly weaponSet2Primary?: string;
   readonly weaponSet2Secondary?: string;
   readonly initialResource?: number;
-  readonly infiniteForge?: boolean;
-  readonly weaponmasterTraining?: boolean;
   readonly selectedTraitIds?: readonly SkillId[];
 }
 

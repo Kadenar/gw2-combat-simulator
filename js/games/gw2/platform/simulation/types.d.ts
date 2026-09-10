@@ -61,6 +61,7 @@ export interface Gw2SimulationEndState {
   /** Resolution-end clock in milliseconds, including any observation tail. */
   readonly time: number;
   readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
+  /** Name-keyed live scheduler ammo; absent entries do not imply full charges. Prefer ammoBySkillId for identity. */
   readonly ammo: Readonly<Record<string, unknown>>;
   /** ID-keyed ammo avoids collisions between distinct skills sharing a display name. */
   readonly ammoBySkillId: Readonly<Record<string, unknown>>;

@@ -120,15 +120,16 @@ test('Mesmer state creation and snapshots are profession owned', () => {
     specialization: 'Virtuoso'
   });
   const state = virtuosoRuntime.createProfessionState({
-    specialization: 'Virtuoso',
-    infiniteForge: true
+    specialization: 'Virtuoso'
   });
 
   state.specialization.state.numericResource = 3;
   state.core.clones.push({ id: 1 });
   const snapshot = snapshotMesmerState(state);
 
-  assert.equal(state.specialization.state.nextForgeAt, 3);
+  // Recurring task timing is excluded from both specialization state and public snapshots.
+  assert.equal(Object.hasOwn(state.specialization.state, 'nextForgeAt'), false);
+  assert.equal(Object.hasOwn(snapshot, 'nextForgeAt'), false);
   assert.equal(snapshot.numericResource, 3);
   assert.equal(snapshot.cloneCount, 1);
   assert.equal(mesmerProfession.id, 'mesmer');

@@ -29,7 +29,6 @@ export function createDefaultConfig() {
         conditionDurationBonuses: {}
       }
     ],
-    weaponmasterTraining: true,
     initialResource: 5,
     stats: {
       power: 2500,

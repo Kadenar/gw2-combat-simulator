@@ -979,7 +979,7 @@ const mesmerSlices = Object.freeze([
 const mesmerSpecializationStateKeys = Object.freeze({
   Chronomancer: ['continuum', 'timeBombUntil'],
   Mirage: ['ambushUntil', 'ambushSource', 'cloneAmbushUntil', 'riddleOfSandReady'],
-  Virtuoso: ['numericResource', 'nextForgeAt', 'bloodsongProgress'],
+  Virtuoso: ['numericResource', 'bloodsongProgress'],
   Troubadour: ['numericResource', 'instruments', 'lastInstrument']
 });
 
@@ -1058,7 +1058,7 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
   );
 });
 
-test('Mesmer runtime UI exposes only the active specialization resources', () => {
+test('Mesmer runtime UI and ammo output expose only the active specialization state', () => {
   for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
     const runtime = mesmerProfession.resolveRuntime(config);
@@ -1077,6 +1077,16 @@ test('Mesmer runtime UI exposes only the active specialization resources', () =>
       ],
       active
     );
+
+    // Name-keyed ammo aliases live scheduler entries; inactive skills receive no synthetic charges.
+    const result = simulateGw2({ profession: mesmerProfession, config, rotation: [] });
+    const liveAmmo = [...result.schedulerState.ammo];
+    assert.deepEqual(
+      result.endState.ammo,
+      Object.fromEntries(liveAmmo.map(([id, ammo]) => [runtime.catalog.skillsById.get(id).name, ammo])),
+      active
+    );
+    assert.deepEqual(result.endState.ammoBySkillId, Object.fromEntries(liveAmmo), active);
   }
 });
 

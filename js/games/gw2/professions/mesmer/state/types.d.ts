@@ -76,7 +76,6 @@ export interface MesmerStateSnapshot {
   counterspellAvailable: boolean;
   availableFlips: [string, MesmerAvailableFlip][];
   autoattackChains: [string, SkillId][];
-  nextForgeAt: number;
   bloodsongProgress: number;
   sharperImagesProgress: number;
   masterFencerProgress: number;

@@ -1,32 +1,11 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
+import { defaultIsSkillAvailable, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { MesmerPrecastContext, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-// Enforce specialization and weaponmaster restrictions before a skill enters
-// either the build UI or runtime availability checks.
-export function isMesmerBuildSkillAvailable(
-  skill: MesmerSkill,
-  config: Pick<MesmerConfig, 'specialization' | 'weaponmasterTraining'>
-): boolean {
-  if (skill.id < 0) {
-    return !skill.specialization || skill.specialization === config.specialization;
-  }
-
-  if (skill.specialization && skill.type !== 'Weapon' && skill.specialization !== config.specialization) return false;
-  if (
-    skill.specialization &&
-    skill.type === 'Weapon' &&
-    !config.weaponmasterTraining &&
-    skill.specialization !== config.specialization
-  )
-    return false;
-  return true;
-}
 
 // Gate casts by build eligibility and the parent-controlled timing window for
 // flip skills; shared GW2 code owns autoattack-chain ordering.
@@ -41,7 +20,7 @@ export function mesmerAvailability(
   const runtime = mesmerRuntimeFor(context);
   const { state } = context;
   const at = context.start;
-  if (!isMesmerBuildSkillAvailable(skill, context.config)) {
+  if (!defaultIsSkillAvailable(skill, context.config)) {
     return {
       ready: false,
       retryAt: null,

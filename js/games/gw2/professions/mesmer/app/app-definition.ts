@@ -21,9 +21,6 @@ export const mesmerAppAdapter = defineProfessionApp({
       const build = app.build as MesmerApplicationBuild;
       const startsWithClones = mesmerProfession.ui.resourceViews({ specialization })[0]?.singular === 'clone';
       return { initialResource: startsWithClones ? 0 : build.initialResource };
-    },
-    buildConfigExtras() {
-      return { weaponmasterTraining: true };
     }
   },
   isSkillAvailable(skill, { specialization } = {}) {

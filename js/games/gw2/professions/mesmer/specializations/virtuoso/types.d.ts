@@ -3,7 +3,6 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 export interface MesmerVirtuosoState {
   numericResource: number;
-  nextForgeAt: number;
   bloodsongProgress: number;
 }
 

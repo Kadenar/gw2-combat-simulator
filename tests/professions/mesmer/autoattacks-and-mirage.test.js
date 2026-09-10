@@ -392,7 +392,6 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
     defaultSimulationConfig({
       specialization: 'Mirage',
       initialResource: 0,
-      weaponmasterTraining: true,
       primaryWeapon: '',
       secondaryWeapon: '',
       weaponSet2Primary: '',
@@ -411,7 +410,6 @@ test('split autoattacks preserve each full-chain cadence', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
     initialResource: 0,
-    weaponmasterTraining: true,
     primaryWeapon: '',
     secondaryWeapon: '',
     weaponSet2Primary: '',
@@ -577,6 +575,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
   assert.equal(result.steps[1].start, 0);
   assert.equal(result.endState.profession.availableFlips['Power Spike'], undefined);
   assert.equal(result.endState.ammo['Power Spike'], undefined);
+  assert.equal(result.endState.ammoBySkillId[ID.POWER_SPIKE], undefined);
   assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
 });
 
@@ -1341,16 +1340,14 @@ test('Mirage Mirror palette availability follows active ground mirrors', () => {
   const unavailable = mesmerProfession.ui.paletteSkillAvailability(
     {
       specialization: 'Mirage',
-      professionState: { availableMirrors: 0 },
-      build: { weaponmasterTraining: true }
+      professionState: { availableMirrors: 0 }
     },
     mirror
   );
   const available = mesmerProfession.ui.paletteSkillAvailability(
     {
       specialization: 'Mirage',
-      professionState: { availableMirrors: 1 },
-      build: { weaponmasterTraining: true }
+      professionState: { availableMirrors: 1 }
     },
     mirror
   );

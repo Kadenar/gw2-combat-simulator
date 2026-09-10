@@ -9,27 +9,16 @@ import { gw2BuildEditor } from '#gw2/app/build-editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { renderGearOptimizerView } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-view.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { defaultIsSkillAvailable } from '#gw2/professions/lib/availability.js';
 import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
 import type {
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
-  ProfessionSkillAvailabilityContext,
   ProfessionSlotLoadout
 } from '#gw2/app/build/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 
-/**
- * Default availability rule for shared-shell profession skill selectors.
- */
-export function defaultIsSkillAvailable(
-  skill: Skill,
-  { specialization }: ProfessionSkillAvailabilityContext = {}
-): boolean {
-  if (skill.simulatorExcluded) return false;
-  if (skill.type === 'Weapon') return true;
-  return !skill.specialization || skill.specialization === specialization;
-}
+export { defaultIsSkillAvailable } from '#gw2/professions/lib/availability.js';
 
 /**
  * Creates an offhand selector that prefers one weapon when it is available.

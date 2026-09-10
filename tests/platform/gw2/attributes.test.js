@@ -423,7 +423,7 @@ test('additive damage sigils sum into one modifier bucket', () => {
   assert.equal(sigils.strike, 1.08);
 });
 
-test('Mesmer browser simulations retain weaponmaster training', () => {
+test('Mesmer browser simulations allow weapons from other specializations', () => {
   const build = createDefaultBuild();
 
   build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
@@ -435,7 +435,6 @@ test('Mesmer browser simulations retain weaponmaster training', () => {
     attributeData: calcAttributes(build, [])
   };
 
-  assert.equal(mesmerAppAdapter.simulationConfig(app).weaponmasterTraining, true);
   assert.deepEqual(
     mesmerAppAdapter
       .runSimulation(app)

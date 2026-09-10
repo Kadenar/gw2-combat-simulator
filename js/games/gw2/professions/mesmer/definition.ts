@@ -1,4 +1,3 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createMesmerBuildDefaults,
@@ -7,40 +6,7 @@ import {
 } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/catalog/module-data.js';
 import { mesmerNativeModules } from '#gw2/professions/mesmer/modules.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-
-const applicationCatalog = assembleNativeApplicationCatalog(mesmerNativeModules, MESMER_NATIVE_CATALOG_OPTIONS);
-
-// Project canonical live ammo and full-charge defaults for skills outside the active runtime catalog.
-function projectMesmerSimulationEndState({
-  schedulerContext,
-  schedulerState
-}: {
-  readonly schedulerContext: MesmerSchedulerContext;
-  readonly schedulerState: MesmerSchedulerContext['state'];
-}): SchedulerRecord {
-  const runtimeSkillIds = new Set(schedulerContext.catalog.skills.map((skill) => String(skill.id)));
-  const ammo = Object.fromEntries(
-    applicationCatalog.skills.flatMap((skill) => {
-      const maximum = schedulerContext.maximumAmmoFor(skill);
-      if (!(maximum > 0)) return [];
-      const existing = schedulerState.ammo.get(skill.id);
-      if (!existing && runtimeSkillIds.has(String(skill.id))) return [];
-      const value = existing
-        ? structuredClone(existing)
-        : {
-            charges: maximum,
-            maximum,
-            rechargeDuration: schedulerContext.rechargeDurationFor(skill, 0),
-            nextRechargeAt: null
-          };
-      return [[skill.name, value] as const];
-    })
-  );
-  return { ammo };
-}
 
 export const mesmerProfession = defineNativeProfession({
   id: 'mesmer',
@@ -77,10 +43,7 @@ export const mesmerProfession = defineNativeProfession({
         decision: 'reset'
       }
     ]
-  },
-  simulation: Object.freeze({
-    projectEndState: projectMesmerSimulationEndState
-  }) as SchedulerRecord
+  }
 });
 
 export default mesmerProfession;

@@ -48,7 +48,6 @@ export function snapshotMesmerState(stateInput: unknown): MesmerStateSnapshot {
     counterspellAvailable: Boolean(state.counterspellAvailable),
     availableFlips: Object.entries(availableFlips),
     autoattackChains: Object.entries(autoattackChains),
-    nextForgeAt: Number(state.nextForgeAt ?? Infinity),
     bloodsongProgress: Number(state.bloodsongProgress || 0),
     sharperImagesProgress: Number(state.sharperImagesProgress || 0),
     masterFencerProgress: Number(state.masterFencerProgress || 0),

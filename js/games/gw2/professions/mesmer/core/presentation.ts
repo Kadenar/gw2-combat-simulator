@@ -2,7 +2,7 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { isMesmerBuildSkillAvailable } from '#gw2/professions/mesmer/core/mechanics/availability.js';
+import { defaultIsSkillAvailable } from '#gw2/professions/lib/availability.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import type {
@@ -17,8 +17,6 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerProfessionState } from '#gw2/professions/mesmer/state/types.js';
-
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';
@@ -128,14 +126,8 @@ export function mesmerPaletteSkillAvailability(
   context: MesmerUiContext = {},
   skill: Skill
 ): { available: boolean; message: string } {
-  const mesmerSkill = skill as MesmerSkill;
   const specialization = mesmerUiSpecialization(context);
-  if (
-    !isMesmerBuildSkillAvailable(mesmerSkill, {
-      specialization,
-      weaponmasterTraining: context.build?.weaponmasterTraining ?? context.config?.weaponmasterTraining ?? true
-    })
-  ) {
+  if (!defaultIsSkillAvailable(skill, { specialization })) {
     return {
       available: false,
       message: `${skill.name} is unavailable for ${specialization}.`
