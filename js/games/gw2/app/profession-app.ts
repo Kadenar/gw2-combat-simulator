@@ -325,7 +325,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     if (!tab) return;
     captureActiveBuildTab(this);
     this.baselineSimulationRunner.cancel();
-    this.gearOptimizerRunner?.cancel();
+    this.gearOptimizerRunner?.reset();
     this.randomDistributionRunner.cancel?.();
     this.modifierContributionRunner.cancel?.();
     this.relicComparisonRunner.cancel?.();

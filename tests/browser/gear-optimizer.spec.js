@@ -1,5 +1,42 @@
 import { expect, test } from '@playwright/test';
 
+// Switching builds clears completed results and previews and terminates an outgoing search.
+test('build switches discard optimizer results and active searches', async ({ page }) => {
+  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  const panel = page.locator('#gear-optimizer');
+  await addChoice(panel, 'food', '');
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+  await panel.getByRole('row', { name: 'Equipped setup', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-preview"]')).toBeVisible();
+
+  await page.locator('.build-tab-new').click();
+  await page.getByRole('button', { name: 'New blank build', exact: true }).click();
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await expect(panel.locator('[data-role="optimizer-results"]')).toBeEmpty();
+  await expect(panel.locator('[data-role="optimizer-preview"]')).toBeHidden();
+  await expect(panel.locator('.optimizer-feedback')).toBeHidden();
+  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request)).toBeNull();
+
+  // Start and switch in one task so cancellation does not depend on worker speed.
+  expect(
+    await page.evaluate(() => {
+      document.querySelector('#gear-optimizer form').requestSubmit();
+      const app = window.professionApp;
+      const running = app.gearOptimizerRunner.isRunning;
+      document.querySelector('.build-tab:not(.is-active) [data-build-tab-action="select"]').click();
+      return { running, stopped: !app.gearOptimizerRunner.isRunning, status: app.gearOptimizerRunner.state.status };
+    })
+  ).toEqual({ running: true, stopped: true, status: 'idle' });
+  await expect(panel.locator('[data-role="optimizer-results"]')).toBeEmpty();
+  await expect(panel.locator('[data-role="optimizer-preview"]')).toBeHidden();
+  await expect(panel.locator('.optimizer-feedback')).toBeHidden();
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+});
+
 // The optimizer must initialize and run comparisons without an Analysis host or renderer.
 test('optimizer works without the Analysis results container', async ({ page }) => {
   await page.route('**/mesmer.html', async (route) => {

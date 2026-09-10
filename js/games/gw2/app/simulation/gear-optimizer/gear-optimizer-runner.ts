@@ -92,6 +92,13 @@ export class GearOptimizerRunner {
     this.publish(true);
   }
 
+  /** Discard the outgoing build's search and stop its workers before another tab uses the shared panel. */
+  reset(): void {
+    this.request = null;
+    this.state = this.emptyState();
+    this.cancel();
+  }
+
   private publish(force = false): void {
     const now = performance.now();
     if (!force && now - this.lastPublished < 150) return;
