@@ -21,8 +21,6 @@ export type SkillInterruptMode = 'commit' | 'per-packet';
 
 export interface StrikeTick {
   readonly atMs: number;
-  /** Projectile launch offset; shares the impact's anchor and scaling and survives channel cancellation after launch. */
-  readonly launchAtMs?: number;
   readonly projectile?: boolean;
   readonly coefficient: number;
   readonly name?: string;

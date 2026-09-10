@@ -186,11 +186,9 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
       statusDuration: duration
     });
 
-    // Channel cancellation cannot recall a launched projectile. Impact order need not match launch order,
-    // so inspect every application even when an earlier impact belongs to an unlaunched packet.
+    // Cancellation keeps packets arriving at the boundary and drops pending impacts.
     for (const application of applications) {
-      const cancellationBoundary = perPacket ? (application.launchAt ?? application.at) : application.at;
-      if (cancelPendingEffects && cancellationBoundary > effectiveEnd + context.epsilon) continue;
+      if (cancelPendingEffects && application.at > effectiveEnd + context.epsilon) continue;
       observeEffect(context.emit(application.event), effect, index);
     }
   }

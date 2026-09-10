@@ -186,7 +186,7 @@ function normalizeAutoattackChains(
 /**
  * Validates explicit strike timelines and freezes each hit descriptor.
  */
-function normalizeStrikeTicks(value: unknown, projectile: boolean): readonly StrikeTick[] {
+function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError('Strike tick timelines require at least one hit.');
   }
@@ -205,18 +205,6 @@ function normalizeStrikeTicks(value: unknown, projectile: boolean): readonly Str
         throw new TypeError(`Strike tick ${index + 1} requires a non-negative coefficient.`);
       }
 
-      // A projectile may launch before impact, but cannot launch after it or use an invalid offset.
-      const launchAtMs = tick.launchAtMs == null ? null : Number(tick.launchAtMs);
-      if (launchAtMs != null) {
-        if (!(launchAtMs >= 0) || !Number.isFinite(launchAtMs) || launchAtMs > atMs) {
-          throw new TypeError(`Strike tick ${index + 1} requires a valid launchAtMs at or before impact.`);
-        }
-
-        if ((tick.projectile ?? projectile) !== true) {
-          throw new TypeError(`Strike tick ${index + 1} launchAtMs requires a projectile.`);
-        }
-      }
-
       if (atMs < previousAtMs) {
         throw new TypeError('Strike tick timelines must be chronological.');
       }
@@ -227,7 +215,6 @@ function normalizeStrikeTicks(value: unknown, projectile: boolean): readonly Str
         ...tick,
         atMs,
         coefficient,
-        ...(launchAtMs == null ? {} : { launchAtMs }),
         ...(metadata ? { metadata } : {})
       });
     })
@@ -346,7 +333,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
 
   const strikeTicks =
     normalizedEffect.type === 'strike' && normalizedEffect.ticks != null
-      ? normalizeStrikeTicks(normalizedEffect.ticks, normalizedEffect.projectile === true)
+      ? normalizeStrikeTicks(normalizedEffect.ticks)
       : null;
   const conditionTicks =
     normalizedEffect.type === 'condition' && normalizedEffect.ticks != null

@@ -462,8 +462,8 @@ test('interrupt modes distinguish whole-effect commits from per-packet channels'
   );
 });
 
-// Channel cancellation preserves launched follow-ups, while later pulses remain cancelled at either cast speed.
-test('per-packet channels retain launched projectiles beyond the interrupt', () => {
+// Simultaneous melee and projectile packets share one inclusive cancellation boundary.
+test('per-packet channels cancel simultaneous hit pairs together', () => {
   const pairedProfession = defineProfession({
     id: 'paired-channel',
     name: 'Paired Channel',
@@ -472,68 +472,17 @@ test('per-packet channels retain launched projectiles beyond the interrupt', () 
         {
           id: 990050,
           name: 'Paired Channel',
-          castTimeMs: 2000,
-          quicknessCastTimeMs: 1000,
+          castTimeMs: 1000,
+          unaffectedByQuickness: true,
           interruptMode: 'per-packet',
           effects: [
             {
               type: 'strike',
               weaponStrength: 1000,
-              ticks: [200, 600].flatMap((launch) => [
-                { atMs: launch, coefficient: 1 },
-                { atMs: launch + 100, launchAtMs: launch, projectile: true, coefficient: 0.5 }
+              ticks: [200, 600].flatMap((atMs) => [
+                { atMs, coefficient: 1 },
+                { atMs, projectile: true, coefficient: 0.5 }
               ]),
-              timingAnchor: 'castStart',
-              timingScale: 'cast'
-            }
-          ]
-        }
-      ]
-    })
-  });
-  for (const quickness of [false, true]) {
-    const scale = quickness ? 1 : 2;
-    for (const [cutoff, expected] of [
-      [199, []],
-      [200, [200, 300]],
-      [250, [200, 300]],
-      [600, [200, 300, 600, 700]]
-    ]) {
-      const result = simulateGw2({
-        profession: pairedProfession,
-        rotation: [{ name: 'Paired Channel', interruptMs: cutoff * scale }],
-        config: fixtureConfig({ boons: { quickness } }),
-        observationPolicy: { kind: 'tail', durationMs: 2000 }
-      });
-      assert.deepEqual(
-        result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => Math.round(event.at * 1000)),
-        expected.map((at) => at * scale)
-      );
-      assert.deepEqual(result.warnings, []);
-    }
-  }
-});
-
-// A later impact may have launched earlier, even when every impact occurs after cancellation.
-test('channel projectile filtering uses launch order independently of impact order', () => {
-  const projectileProfession = defineProfession({
-    id: 'projectile-order',
-    name: 'Projectile Order',
-    catalog: createCanonicalCatalog({
-      generated: [
-        {
-          id: 990051,
-          name: 'Projectiles',
-          castTimeMs: 1000,
-          interruptMode: 'per-packet',
-          effects: [
-            {
-              type: 'strike',
-              projectile: true,
-              ticks: [
-                { atMs: 300, launchAtMs: 250, coefficient: 1 },
-                { atMs: 500, launchAtMs: 100, coefficient: 1 }
-              ],
               timingAnchor: 'castStart',
               timingScale: 'fixed'
             }
@@ -542,13 +491,33 @@ test('channel projectile filtering uses launch order independently of impact ord
       ]
     })
   });
-  const result = createScheduler({ profession: projectileProfession, startingTime: 5 }).run([
-    { name: 'Projectiles', interruptMs: 200 }
-  ]);
-  assert.deepEqual(
-    result.events.filter((event) => event.type === 'damage').map((event) => event.at),
-    [5.5]
-  );
+  for (const [cutoff, expected] of [
+    [199, []],
+    [200, [200, 200]],
+    [250, [200, 200]],
+    [600, [200, 200, 600, 600]]
+  ]) {
+    const result = simulateGw2({
+      profession: pairedProfession,
+      rotation: [{ name: 'Paired Channel', interruptMs: cutoff }],
+      config: fixtureConfig(),
+      observationPolicy: { kind: 'tail', durationMs: 2000 }
+    });
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
+    assert.deepEqual(
+      hits.map((event) => Math.round(event.at * 1000)),
+      expected
+    );
+    assert.deepEqual(
+      hits.map((event) => event.coefficient),
+      expected.map((_, index) => (index % 2 ? 0.5 : 1))
+    );
+    assert.deepEqual(
+      hits.map((event) => event.projectile === true),
+      expected.map((_, index) => index % 2 === 1)
+    );
+    assert.deepEqual(result.warnings, []);
+  }
 });
 
 test('dead time includes entire attempted casts below declared commit cutoffs and excludes partial channels', () => {

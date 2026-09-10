@@ -476,7 +476,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   );
   assert.deepEqual(profile(quick, 'Whirling Wrath'), {
     cast: 1480,
-    ticks: [440, 480, 600, 640, 760, 800, 920, 960, 1080, 1120, 1240, 1280, 1400, 1440],
+    ticks: [480, 480, 640, 640, 800, 800, 960, 960, 1120, 1120, 1280, 1280, 1440, 1440],
     coefficient: 4.375
   });
   assert.deepEqual(profile(quick, 'Leap of Faith'), {
@@ -515,8 +515,8 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   assert.equal(tetherBreakdown.hits, 10);
 });
 
-// Whirling Wrath cancels at melee launches, so a launched projectile survives an immediate weapon interrupt.
-test('Whirling Wrath retains each launched melee and projectile pair', () => {
+// Each Whirling Wrath pair lands together and survives only when cancellation reaches its arrival.
+test('Whirling Wrath cancels melee and projectile pairs together', () => {
   const simulate = (rotation) =>
     simulateGw2({
       profession: guardianProfession,
@@ -530,6 +530,7 @@ test('Whirling Wrath retains each launched melee and projectile pair', () => {
       .map((event) => ({ at: event.at, coefficient: event.coefficient }));
   const full = strikes(simulate(['Whirling Wrath']));
   for (let index = 0; index < full.length; index += 2) {
+    assert.equal(full[index].at, full[index + 1].at);
     const interruptMs = Math.round(full[index].at * 1000);
     assert.deepEqual(strikes(simulate([{ name: 'Whirling Wrath', interruptMs }])), full.slice(0, index + 2));
     assert.deepEqual(

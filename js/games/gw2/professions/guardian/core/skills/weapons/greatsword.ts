@@ -42,12 +42,13 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     interruptMode: 'per-packet',
     // The catalog derives the unquickened cast from this measured Quickness duration.
     quicknessCastTimeMs: 1480,
-    // Each melee pulse launches its projectile; stopping the channel cannot recall that projectile.
+    // ponytail: land both hits at projectile arrival so cancellation uses one boundary per pair;
+    // restore separate launch timing only if the 40 ms melee lead needs to be modeled.
     effects: [
       strikeTimeline(
         Array.from({ length: 7 }, (_, index) => [
-          { atMs: 440 + index * 160, coefficient: 0.35 },
-          { atMs: 480 + index * 160, launchAtMs: 440 + index * 160, projectile: true, coefficient: 0.275 }
+          { atMs: 480 + index * 160, coefficient: 0.35 },
+          { atMs: 480 + index * 160, projectile: true, coefficient: 0.275 }
         ]).flat(),
         {
           timingAnchor: 'castStart',

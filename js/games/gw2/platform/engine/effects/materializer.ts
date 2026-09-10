@@ -22,7 +22,6 @@ export interface EffectEventBase extends SchedulerRecord {
 
 export interface MaterializedEffectApplication {
   readonly at: number;
-  readonly launchAt?: number;
   readonly event: SimulationEventInput;
 }
 
@@ -125,8 +124,6 @@ export function materializeSkillEffectApplications({
       const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt;
       applications.push({
         at,
-        // Launch and impact use the same already-scaled timeline and anchor.
-        ...(tick?.launchAtMs == null ? {} : { launchAt: origin + tick.launchAtMs / 1000 }),
         event: {
           ...effectBaseEvent,
           type: 'damage',
@@ -152,62 +149,38 @@ export function materializeSkillEffectApplications({
       });
     }
   } else if (effect.type === 'condition') {
-    if (Array.isArray(effect.ticks)) {
-      const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
-      const ticks = effect.ticks;
-      for (let applicationIndex = 1; applicationIndex <= ticks.length; applicationIndex += 1) {
-        const tick = ticks[applicationIndex - 1];
-        const at = origin + Number(tick.atMs) / 1000;
-        applications.push({
+    // Both authoring forms share packet construction; untimed repetitions still begin at cast completion.
+    const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
+    const count = ticks?.length ?? Math.max(1, Math.trunc(Number(effect.applications || 1)));
+    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
+    for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
+      const tick = ticks?.[applicationIndex - 1];
+      const packet = tick ?? effect;
+      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt + (applicationIndex - 1) * interval;
+      applications.push({
+        at,
+        event: {
+          ...effectBaseEvent,
           at,
-          event: {
-            ...effectBaseEvent,
-            at,
-            type: 'condition',
-            name: effect.name || `${skill.name} — ${tick.condition}`,
-            condition: tick.condition,
-            stacks: Number(tick.stacks),
-            duration: Number(tick.duration),
-            applicationIndex,
-            totalApplications: ticks.length,
-            ...(effect.damageKind != null ? { damageKind: effect.damageKind } : {}),
-            ...(tick.damageKind != null ? { damageKind: tick.damageKind } : {}),
-            ...(effect.projectile != null ? { projectile: effect.projectile } : {}),
-            ...(tick.projectile != null ? { projectile: tick.projectile } : {}),
-            ...(effect.target != null ? { target: effect.target } : {}),
-            ...nestedEffectMetadata(effect.metadata, tick.metadata),
-            ...comboMetadata,
-            ...comboFieldMetadata,
-            ...(tick.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
-          }
-        });
-      }
-    } else {
-      const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
-      const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
-      for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
-        const at = firstAt + (applicationIndex - 1) * interval;
-        applications.push({
-          at,
-          event: {
-            ...effectBaseEvent,
-            at,
-            type: 'condition',
-            name: effect.name || `${skill.name} — ${effect.condition}`,
-            condition: effect.condition,
-            stacks: Number(effect.stacks),
-            duration: Number(effect.duration),
-            applicationIndex,
-            totalApplications: count,
-            ...(effect.damageKind != null ? { damageKind: effect.damageKind } : {}),
-            ...(effect.projectile != null ? { projectile: effect.projectile } : {}),
-            ...(effect.target != null ? { target: effect.target } : {}),
-            ...nestedEffectMetadata(effect.metadata),
-            ...comboMetadata,
-            ...comboFieldMetadata
-          }
-        });
-      }
+          type: 'condition',
+          name: effect.name || `${skill.name} — ${packet.condition}`,
+          condition: packet.condition,
+          stacks: Number(packet.stacks),
+          duration: Number(packet.duration),
+          applicationIndex,
+          totalApplications: count,
+          ...(effect.damageKind != null ? { damageKind: effect.damageKind } : {}),
+          ...(tick?.damageKind != null ? { damageKind: tick.damageKind } : {}),
+          ...(effect.projectile != null ? { projectile: effect.projectile } : {}),
+          ...(tick?.projectile != null ? { projectile: tick.projectile } : {}),
+          ...(effect.target != null ? { target: effect.target } : {}),
+          ...nestedEffectMetadata(effect.metadata, tick?.metadata),
+          ...comboMetadata,
+          ...comboFieldMetadata,
+          ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
+        }
+      });
     }
   } else if (effect.type === 'control' || effect.type === 'blind') {
     const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));

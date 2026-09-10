@@ -53,35 +53,11 @@ function assertMode(mode: unknown, handlerId: string): SkillHandlerMode {
   return mode as SkillHandlerMode;
 }
 
-/**
- * Creates one immutable handler strategy.
- */
+/** Validates and freezes authored handlers using the catalog's normalization rules. */
 export function skillHandler<TContext extends object = SchedulerRecord>(
   options: SkillHandlerOptions<TContext> = {}
 ): Readonly<SkillHandlerStrategy<TContext>> {
-  assertFields(options, '<unregistered>');
-  const { mode, resolveMode = null, beforeEffects = null, afterEffect = null, afterEffects = null } = options;
-  assertMode(mode, '<unregistered>');
-  if (resolveMode != null && typeof resolveMode !== 'function') {
-    throw new TypeError('Skill handler resolveMode must be a function.');
-  }
-
-  for (const phase of HANDLER_PHASES) {
-    const handler = { beforeEffects, afterEffect, afterEffects }[phase];
-    if (handler == null) continue;
-    if (typeof handler !== 'function') {
-      throw new TypeError(`Skill handler ${phase} must be a function.`);
-    }
-  }
-
-  const strategy: SkillHandlerStrategy<TContext> = {
-    mode: assertMode(mode, '<unregistered>'),
-    ...(resolveMode ? { resolveMode } : {}),
-    ...(beforeEffects ? { beforeEffects } : {}),
-    ...(afterEffect ? { afterEffect } : {}),
-    ...(afterEffects ? { afterEffects } : {})
-  };
-  return Object.freeze(strategy);
+  return normalizeSkillHandler<TContext>('<unregistered>', options);
 }
 
 export function augmentSkillHandler<TContext extends object = SchedulerRecord>(
