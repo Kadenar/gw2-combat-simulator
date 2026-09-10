@@ -44,6 +44,7 @@ const HOOK_DEFINITIONS: readonly (readonly [string, HookCategory])[] = Object.fr
   ['onWeaponSwap', 'scheduler'],
   ['modifyCastDuration', 'cast'],
   ['modifyRechargeDuration', 'cast'],
+  ['commitRechargeDuration', 'cast'],
   ['modifyRechargeStart', 'cast'],
   ['modifyMaximumAmmo', 'cast'],
   ['modifyAttributes', 'attribute'],
@@ -157,8 +158,9 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
       );
   }
 
-  // Preparers and modifiers pass each result onward, preserving the current value when a hook returns undefined.
-  if (hookName === 'prepareEvent' || hookName.startsWith('modify')) {
+  // Recharge commitment also chains Core and elite contributions, but is invoked only for accepted casts.
+  // Preparers and modifiers preserve the current value when a hook returns undefined.
+  if (hookName === 'prepareEvent' || hookName === 'commitRechargeDuration' || hookName.startsWith('modify')) {
     return (context: SchedulerRecord, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);
@@ -446,6 +448,7 @@ export function defineProfession<TProfessionState extends object>(
     onWeaponSwap: schedulerHooks.onWeaponSwap,
     modifyCastDuration: castRules.modifyCastDuration,
     modifyRechargeDuration: castRules.modifyRechargeDuration,
+    commitRechargeDuration: castRules.commitRechargeDuration,
     modifyRechargeStart: castRules.modifyRechargeStart,
     modifyMaximumAmmo: castRules.modifyMaximumAmmo,
     modifyAttributes: attributeRules.modifyAttributes,
@@ -462,7 +465,7 @@ export function defineProfession<TProfessionState extends object>(
     const fallback =
       name === 'availability'
         ? READY_CAST
-        : name === 'prepareEvent' || name.startsWith('modify')
+        : name === 'prepareEvent' || name === 'commitRechargeDuration' || name.startsWith('modify')
           ? IDENTITY_SECOND_ARGUMENT
           : NOOP;
     hooks[name] = composeHooks(sources[name], name, fallback);

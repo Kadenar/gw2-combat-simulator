@@ -13,7 +13,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { initialize } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
-import { modifyRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
+import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
 import {
   evokerModifierRules,
   modifyEvokerAttributes
@@ -35,7 +35,7 @@ const evokerCastRules = Object.freeze({
     order: 30,
     handler: availability
   },
-  modifyRechargeDuration
+  commitRechargeDuration
 });
 
 /**

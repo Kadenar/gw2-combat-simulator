@@ -392,8 +392,14 @@ export interface NormalizedProfessionContract<
   readonly onEventScheduled: (context: SchedulerContext<TProfessionState>, event: SimulationEvent) => unknown;
   readonly onWeaponSwap: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly modifyCastDuration: (context: CastContext<TProfessionState>, duration: number) => number;
+  /** Pure persistent recharge calculation; querying must not consume profession state. */
   readonly modifyRechargeDuration: (
     context: SchedulerContext<TProfessionState> & SchedulerRecord,
+    duration: number
+  ) => number;
+  /** Consumes cast-only modifiers once at reservation acceptance, before overlapping casts can claim them. */
+  readonly commitRechargeDuration: (
+    context: CastContext<TProfessionState> & SchedulerRecord,
     duration: number
   ) => number;
   readonly modifyRechargeStart: (context: CastContext<TProfessionState> & SchedulerRecord, start: number) => number;

@@ -87,12 +87,13 @@ export function createCooldownController<TProfessionState extends object>({
   /**
    * Spends one charge and, when needed, starts the recharge timer.
    */
-  const spendAmmo = (skill: Skill, at: number): AmmoState | false => {
+  const spendAmmo = (skill: Skill, at: number, committedRechargeDuration?: number): AmmoState | false => {
     const ammo = refreshAmmo(skill, at);
     if (!ammo || ammo.charges <= 0) return false;
     ammo.charges -= 1;
     if (ammo.nextRechargeAt == null) {
-      ammo.rechargeDuration = Math.max(0, Number(rechargeDuration(skill, at) || 0));
+      // A cast carries its selected recharge through completion; direct resource spends still query at their anchor.
+      ammo.rechargeDuration = Math.max(0, Number(committedRechargeDuration ?? rechargeDuration(skill, at)) || 0);
       ammo.nextRechargeAt = at + ammo.rechargeDuration;
     }
 

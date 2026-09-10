@@ -180,7 +180,7 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
     state.chakInitiativeRefundUntil = at + (meticulous ? enhancedDuration : standardDuration);
   } else if (skill.id === ID.HOLO_DANCER_DECOY) {
     const expiresAt = at + (meticulous ? enhancedDuration : standardDuration);
-    // accumulate one entry per Decoy use; each entry will be consumed by the next utility cast (FIFO in modifyAntiquaryRechargeDuration)
+    // Accumulate one entry per Decoy use; accepted utility casts consume entries in grant order.
     state.holoUtilityCooldownReductionExpirations = [
       ...(state.holoUtilityCooldownReductionExpirations || []),
       expiresAt

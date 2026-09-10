@@ -132,7 +132,7 @@ export interface CooldownController {
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoState | null;
   setAmmoLockout(skill: Skill, readyAt: number, at?: number): AmmoState | null;
-  spendAmmo(skill: Skill, at: number): AmmoState | false;
+  spendAmmo(skill: Skill, at: number, committedRechargeDuration?: number): AmmoState | false;
 }
 
 export interface SchedulerTaskAccess {
@@ -217,6 +217,7 @@ export interface SchedulerContext<TProfessionState extends object = SchedulerRec
   tasks: SchedulerTaskAccess;
   cooldownController: CooldownController;
   castDurationFor(context: CastContext<TProfessionState>, skill: Skill): number;
+  /** Queries persistent recharge without reserving or consuming next-cast benefits. */
   rechargeDurationFor(skill: Skill, at?: number, details?: SchedulerRecord): number;
   maximumAmmoFor(skill: Skill): number;
   createActivationId(kind?: 'effect' | 'summon-attack' | string): string;

@@ -464,6 +464,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ...context,
       ...details,
       skill,
+      // Existing profession rules use start; non-cast queries use their explicit query time.
+      start: Number(details.start ?? at),
       at
     };
     const ammoRecharge = Number(skill.ammoRecharge || 0);
@@ -565,7 +567,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     active?.delete(reservation.id);
     if (active?.size === 0) inFlight.delete(skill.id);
     if (reservation.ammo) {
-      cooldownController.spendAmmo(skill, rechargeStart);
+      cooldownController.spendAmmo(skill, rechargeStart, rechargeDuration);
       if (ammoLockoutDuration > 0) {
         cooldownController.setAmmoLockout(skill, rechargeStart + ammoLockoutDuration, rechargeStart);
       }
@@ -950,11 +952,17 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // reporting can require zero damage only for the ambiguous case.
     const missingInterruptCommit =
       interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0;
-    const rechargeDuration = rechargeDurationFor(skill, effectiveEnd, {
+    const rechargeContext = {
       ...castContext,
       fullEnd,
       effectiveEnd
-    });
+    };
+    const persistentRechargeDuration = rechargeDurationFor(skill, effectiveEnd, rechargeContext);
+    // Reserve next-cast benefits synchronously, once, so queries, cancelled attempts,
+    // ammo lockouts, and overlapping casts cannot spend the same entitlement.
+    const rechargeDuration = cancelledBeforeCommit
+      ? persistentRechargeDuration
+      : Math.max(0, Number(activeProfession.commitRechargeDuration(rechargeContext, persistentRechargeDuration) || 0));
     const ammoLockoutDuration =
       castContext.ammo && Number(skill.ammo || 0) > 0
         ? rechargeDurationFor(skill, effectiveEnd, {

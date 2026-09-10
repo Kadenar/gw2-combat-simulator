@@ -167,21 +167,19 @@ export const antiquaryAttributeRules = Object.freeze({
   modifierRules: antiquaryModifierRules
 });
 
-function modifyAntiquaryRechargeDuration(context: ThiefPrecastContext, duration: number): number {
+/** Only accepted utility casts prune and spend the oldest live Holo-Dancer charge. */
+function commitAntiquaryRechargeDuration(context: ThiefPrecastContext, duration: number): number {
+  if (context.skill.type !== 'Utility') return duration;
   const state = antiquaryState.from(context);
   const multiplier = Number(balanceProfileFromContext(context, PROFILE.artifactWindows)?.rechargeMultiplier ?? 0.2);
   const expirations = (state.holoUtilityCooldownReductionExpirations || []).filter(
     (expiresAt) => Number(expiresAt) > context.start
   );
   state.holoUtilityCooldownReductionExpirations = expirations;
-  if (context.skill.type !== 'Utility' || expirations.length === 0) {
-    return duration;
-  }
-
   // consume the earliest slot; each Holo-Dancer Decoy use adds one entry, so stacking is supported
-  expirations.shift();
+  const consumed = expirations.shift();
   state.holoUtilityCooldownReductionExpiresAt = expirations.length ? Math.max(...expirations) : 0;
-  return duration * multiplier;
+  return duration * (consumed == null ? 1 : multiplier);
 }
 
 export const antiquaryCastRules = Object.freeze({
@@ -190,5 +188,5 @@ export const antiquaryCastRules = Object.freeze({
     order: 20,
     handler: antiquaryCastAvailability
   },
-  modifyRechargeDuration: modifyAntiquaryRechargeDuration
+  commitRechargeDuration: commitAntiquaryRechargeDuration
 });

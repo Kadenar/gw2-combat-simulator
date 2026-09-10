@@ -15,7 +15,7 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
  * skill, scaling its recharge by the profile multiplier. The window is
  * single-use and is cleared here as soon as one skill consumes it.
  */
-export function modifyRechargeDuration(
+export function commitRechargeDuration(
   context: ElementalistSchedulerContext & { skill?: Skill },
   duration: number
 ): number {

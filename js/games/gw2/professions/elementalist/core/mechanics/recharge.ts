@@ -7,18 +7,15 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistPrecastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 /**
- * Consume one-shot weapon recharge modifiers before applying persistent
- * attunement training and skill-specific recharge rules.
- *
- * Cast rule invoked for every recharge the scheduler is about to start; the
- * returned duration replaces the skill's catalog cooldown.
+ * Calculates persistent attunement and skill recharge rules without spending
+ * next-cast empowerments, including when queried for bulk cooldown reductions.
  */
 export function modifyElementalistRechargeDuration(
   context: ElementalistSchedulerContext & { skill?: Skill },
@@ -29,8 +26,6 @@ export function modifyElementalistRechargeDuration(
   // The summon owns this recharge: `mechanics/elementals/runtime.ts` starts the glyph cooldown
   // when the elemental expires, so the cast itself must not start one.
   if (skill.id === ID.GLYPH_OF_ELEMENTALS) return 0;
-  const state = professionCoreState(context);
-  const at = Number((context as unknown as SchedulerRecord).start ?? context.state.time ?? 0);
   // Rock Barrier holds its recharge until the stored barrier is released; the
   // release handler re-requests the duration with that flag set.
   if (skill.id === ID.ROCK_BARRIER && !(context as unknown as SchedulerRecord).rockBarrierRelease) {
@@ -43,30 +38,6 @@ export function modifyElementalistRechargeDuration(
   }
 
   let adjustedDuration = duration;
-  let weaponRechargeMultiplier = 1;
-  // Armed spear and pistol empowerments are one-shot: they are cleared as they
-  // are spent, so each applies to exactly one non-autoattack weapon skill.
-  if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear' && String(skill.slot || '') !== 'Weapon_1') {
-    weaponRechargeMultiplier *= balanceProfileValueFromContext(
-      context,
-      PROFILE.spearEmpowerments,
-      'rechargeMultiplier',
-      0.67
-    );
-    state.spearNextRechargeReduction = false;
-  }
-
-  if (state.dazingDischargeUntil > at && skillWeapon(skill) === 'Pistol' && String(skill.slot || '') !== 'Weapon_1') {
-    weaponRechargeMultiplier *= balanceProfileValueFromContext(
-      context,
-      PROFILE.dazingDischarge,
-      'rechargeMultiplier',
-      0.67
-    );
-    state.dazingDischargeUntil = 0;
-  }
-
-  adjustedDuration *= Math.max(0, weaponRechargeMultiplier);
   if (skill.id === ID.RIDE_THE_LIGHTNING) {
     adjustedDuration *= balanceProfileValueFromContext(context, PROFILE.rideTheLightning, 'rechargeMultiplier', 0.5);
   }
@@ -94,6 +65,24 @@ export function modifyElementalistRechargeDuration(
   return adjustedDuration;
 }
 
+/** Spends the eligible empowerment when a cast is accepted; its reservation retains the selected duration. */
+function commitElementalistRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
+  const skill = context.skill;
+  if (skill.type !== 'Weapon' || String(skill.slot || '') === 'Weapon_1') return duration;
+  const state = professionCoreState(context);
+  if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear') {
+    state.spearNextRechargeReduction = false;
+    return duration * balanceProfileValueFromContext(context, PROFILE.spearEmpowerments, 'rechargeMultiplier', 0.67);
+  }
+
+  if (state.dazingDischargeUntil > context.start && skillWeapon(skill) === 'Pistol') {
+    state.dazingDischargeUntil = 0;
+    return duration * balanceProfileValueFromContext(context, PROFILE.dazingDischarge, 'rechargeMultiplier', 0.67);
+  }
+
+  return duration;
+}
+
 /** Cast-rule bundle the Core module registers: the shared availability gate plus this module's recharge policy. */
 export const elementalistCoreCastRules = Object.freeze({
   availability: {
@@ -101,5 +90,6 @@ export const elementalistCoreCastRules = Object.freeze({
     order: 10,
     handler: elementalistCoreAvailability
   },
-  modifyRechargeDuration: modifyElementalistRechargeDuration
+  modifyRechargeDuration: modifyElementalistRechargeDuration,
+  commitRechargeDuration: commitElementalistRechargeDuration
 });
