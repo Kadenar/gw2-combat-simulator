@@ -120,11 +120,13 @@ function simulateDeclarativeGw2Pass({
     config,
     traits
   });
+  // Both outputs preserve phase order, with scheduling diagnostics before resolution diagnostics.
+  const warnings = [...new Set([...scheduled.warnings, ...resolved.warnings])];
   // Score output skips end-state and profession projections; scheduler and resolver state remain fresh per pass.
   if (output === 'score')
     return {
       ...(resolved as Gw2SimulationScore),
-      warnings: [...new Set([...scheduled.warnings, ...resolved.warnings])]
+      warnings
     };
   const reportingStarted = onPhase ? performance.now() : 0;
   const detailed = resolved as Gw2ResolverResult;
@@ -135,9 +137,7 @@ function simulateDeclarativeGw2Pass({
     endState: endState(runtimeProfession, config, scheduled, detailed),
     schedulerState: scheduled.state,
     snapshot: scheduled.snapshot,
-    // Preserve phase order so scheduling diagnostics appear before resolution
-    // diagnostics in the UI.
-    warnings: [...new Set([...scheduled.warnings, ...resolved.warnings])]
+    warnings
   };
   onPhase?.('reporting', performance.now() - reportingStarted);
   return result;

@@ -25,15 +25,12 @@ interface CastCount {
   count: number;
 }
 
-function addCastsToBreakdown(
-  ctx: Gw2ResolverRuntime,
-  events: readonly Gw2ResolverEvent[],
-  effectiveEnd: number
-): Map<string, CastCount> {
+// Count casts from the already-filtered reporting window so rows and events share the same boundary.
+function addCastsToBreakdown(ctx: Gw2ResolverRuntime, events: readonly Gw2ResolverEvent[]): Map<string, CastCount> {
   const countsById = new Map<string, number>();
   const output = new Map<string, CastCount>();
   for (const event of events) {
-    if (event.type !== 'action' || event.at > effectiveEnd + EPSILON) continue;
+    if (event.type !== 'action') continue;
     const id = String(event.skillId ?? event.sourceId);
     const name = event.name || event.skillName || String(event.sourceId);
     countsById.set(id, (countsById.get(id) || 0) + 1);
@@ -100,7 +97,7 @@ function buildResolverResult(
   if (!ctx.reporting) return score;
   const { output, ...numeric } = score;
   const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd + EPSILON) as Gw2ResolverEvent[];
-  const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
+  const casts = addCastsToBreakdown(ctx, effectiveEvents);
   return {
     ...numeric,
     breakdown: [...ctx.breakdown.values()].sort((left, right) => right.damage - left.damage),
@@ -128,10 +125,7 @@ function buildResolverResult(
     procSteps: ctx.procSteps
       .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
       .sort((left, right) => left.start - right.start),
-    warnings: [...new Set(ctx.warnings)],
-    casts: [...casts.values()]
-      .map(({ name, count }) => ({ name, count }))
-      .sort((left, right) => right.count - left.count),
+    casts: [...casts.values()].sort((left, right) => right.count - left.count),
     randomness: {
       mode: ctx.random.mode,
       seed: ctx.random.seed
