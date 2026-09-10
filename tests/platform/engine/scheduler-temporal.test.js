@@ -233,6 +233,92 @@ function temporalCatalog() {
   });
 }
 
+// Cast lineage persists through descendants; independent executions share only their own packet identity.
+test('cast and task activation scopes preserve overrides without joining independent recurrences', () => {
+  const marker = { type: 'marker', source: 'fixture', sourceId: 'lineage', actorType: 'effect' };
+  const profession = defineProfession({
+    id: 'activation-scope',
+    name: 'Activation Scope',
+    catalog: temporalCatalog(),
+    schedulerHooks: {
+      initialize(context) {
+        context.tasks.schedule({
+          type: 'fixture.lineage',
+          at: 0.1,
+          ownerId: 'owner-only',
+          payload: { label: 'independent' }
+        });
+        context.tasks.schedule({
+          type: 'fixture.lineage',
+          at: 0.15,
+          payload: { label: 'reservation', reservationId: 'reserved' }
+        });
+      },
+      onCastStart(context) {
+        context.emit({ ...marker, at: context.start, name: 'cast-default' });
+        context.emit({ ...marker, at: context.start, name: 'cast-override', activationId: 'event-override' });
+        for (const [label, payload] of [
+          ['inherited', {}],
+          ['overridden', { activationId: 'payload-override', reservationId: 'ignored' }],
+          ['cleared', { activationId: null }],
+          ['empty', { activationId: '' }]
+        ]) {
+          context.tasks.schedule({ type: 'fixture.lineage', at: 0.2, payload: { label, ...payload } });
+        }
+      },
+      onCastComplete(context) {
+        context.emit({ ...marker, at: context.effectiveEnd, name: 'cast-complete' });
+      },
+      taskHandlers: {
+        'fixture.lineage': (context, task) => {
+          const { label, child } = task.payload;
+          for (const packet of [1, 2]) context.emit({ ...marker, at: task.at, name: `${label}:${packet}` });
+          context.emit({ ...marker, at: task.at, name: `${label}:override`, activationId: 'task-event-override' });
+          if (!child) {
+            context.tasks.schedule({
+              type: 'fixture.lineage',
+              at: task.at + 0.01,
+              payload: { label: `${label}-child`, child: true }
+            });
+          }
+        }
+      }
+    }
+  });
+  const result = createScheduler({ profession }).run([{ name: 'Long Cast', offTarget: true }]);
+  const named = new Map(result.events.map((event) => [event.name, event]));
+  const castId = result.events.find((event) => event.type === 'action').activationId;
+  assert.deepEqual(result.warnings, []);
+  for (const name of ['cast-default', 'cast-complete', 'inherited:1', 'inherited-child:1']) {
+    assert.equal(named.get(name).activationId, castId);
+    assert.equal(named.get(name).offTarget, true);
+  }
+
+  assert.equal(named.get('cast-override').activationId, 'event-override');
+  assert.notEqual(named.get('cast-override').offTarget, true);
+  for (const [label, expectedId] of [
+    ['overridden', 'payload-override'],
+    ['reservation', 'reserved']
+  ]) {
+    assert.equal(named.get(`${label}:1`).activationId, expectedId);
+    assert.equal(named.get(`${label}-child:1`).activationId, expectedId);
+  }
+
+  const independentIds = [];
+  for (const label of ['independent', 'cleared', 'empty']) {
+    for (const execution of [label, `${label}-child`]) {
+      const first = named.get(`${execution}:1`);
+      assert.match(first.activationId, /^effect:/);
+      assert.equal(named.get(`${execution}:2`).activationId, first.activationId);
+      assert.equal(named.get(`${execution}:override`).activationId, 'task-event-override');
+      assert.notEqual(first.offTarget, true);
+      independentIds.push(first.activationId);
+    }
+  }
+
+  assert.equal(new Set(independentIds).size, independentIds.length);
+});
+
 test('tasks during a cast run before a later concurrent command', () => {
   const profession = defineProfession({
     id: 'temporal-order',

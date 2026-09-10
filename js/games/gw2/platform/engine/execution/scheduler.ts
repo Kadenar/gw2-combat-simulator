@@ -48,7 +48,7 @@ import type {
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionSource } from '#gw2/platform/engine/profession/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 interface CastReservation<TProfessionState extends object> {
   id: string;
@@ -510,6 +510,30 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   });
   context.cooldownController = cooldownController;
 
+  /** Defaults event lineage and optionally child-task lineage, preserving explicit overrides. */
+  function activationScopedOperations(
+    baseContext: SchedulerContext<TProfessionState>,
+    eventActivationId: string,
+    inheritedTaskActivationId: string | null
+  ): Pick<SchedulerContext<TProfessionState>, 'emit' | 'tasks'> {
+    return {
+      emit(event) {
+        return baseContext.emit({ activationId: eventActivationId, ...event });
+      },
+      tasks: inheritedTaskActivationId
+        ? {
+            ...baseContext.tasks,
+            schedule(task) {
+              return baseContext.tasks.schedule({
+                ...task,
+                payload: { activationId: inheritedTaskActivationId, ...(task.payload || {}) }
+              });
+            }
+          }
+        : baseContext.tasks
+    };
+  }
+
   /** Keeps cast-hook emissions and tasks attached to the cast's activation lineage. */
   function createCastLifecycleContext(
     reservation: CastReservation<TProfessionState>
@@ -537,24 +561,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       rechargeStart,
       rechargeReadyAt,
       reservationId,
-      emit(event) {
-        return context.emit({
-          activationId: reservationId,
-          ...event
-        });
-      },
-      tasks: {
-        ...context.tasks,
-        schedule(task) {
-          return context.tasks.schedule({
-            ...task,
-            payload: {
-              activationId: reservationId,
-              ...(task.payload || {})
-            }
-          });
-        }
-      }
+      ...activationScopedOperations(context, reservationId, reservationId)
     };
   }
 
@@ -664,30 +671,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
               ? task.payload.reservationId
               : null;
         const taskActivationId = inheritedActivationId || taskContext.createActivationId('effect');
-        const scopedTasks = inheritedActivationId
-          ? {
-              ...taskContext.tasks,
-              schedule(input: ScheduledTaskInput<SchedulerRecord>) {
-                return taskContext.tasks.schedule({
-                  ...input,
-                  payload: {
-                    activationId: inheritedActivationId,
-                    ...(input.payload || {})
-                  }
-                });
-              }
-            }
-          : taskContext.tasks;
+        // Independent recurring tasks must not pass their newly generated effect ID to the next execution.
         return handler(
           {
             ...taskContext,
-            tasks: scopedTasks,
-            emit(event: SimulationEventInput) {
-              return taskContext.emit({
-                activationId: taskActivationId,
-                ...event
-              });
-            }
+            ...activationScopedOperations(taskContext, taskActivationId, inheritedActivationId)
           },
           task
         );
