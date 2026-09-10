@@ -82,7 +82,6 @@ export function handleVirtueActivation(context: GuardianResolverContext, event: 
   professionCoreState(context).virtueReadyAt[virtue] = Number(event.passiveReadyAt || event.at);
   if (virtue === 'justice' && event.skillId === GUARDIAN_SKILL_IDS.JUSTICE) {
     professionCoreState(context).justiceActiveArmed = true;
-    professionCoreState(context).justiceArmed = true;
   }
 }
 
@@ -137,7 +136,6 @@ function applyJusticeBurn(
       !active && passiveBurnDuration != null ? passiveBurnDuration : (burn?.duration ?? (active ? 2 : 1.2))
     )
   });
-  professionCoreState(context).justiceBurns += 1;
   if (active) professionCoreState(context).justiceActiveBurns += 1;
   else professionCoreState(context).justicePassiveBurns += 1;
   // Proc rows use the owning virtue's artwork instead of the attack that triggered the burn.
@@ -177,7 +175,6 @@ export function reactToJusticeHitWithOptions(
   const state = professionCoreState(context);
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
-    state.justiceArmed = false;
     applyJusticeBurn(context, event, {
       active: true,
       skillId,

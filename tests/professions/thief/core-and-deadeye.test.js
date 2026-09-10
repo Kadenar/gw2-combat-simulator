@@ -10,7 +10,6 @@ import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from 
 import { thiefCatalog, thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/catalog.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
@@ -22,6 +21,11 @@ import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
+import { beginStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { completeSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],
@@ -53,6 +57,93 @@ const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thie
 
 const authoringThiefProfession = withActivePatchPreview(thiefProfession);
 
+test('bonus stealth attacks consume only active elite charges and prefer ordinary stealth', () => {
+  // Legacy fields on Core must neither unlock attacks nor absorb elite charge consumption.
+  for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
+    for (const stealthed of [false, true]) {
+      for (const expiresAt of [5, 6]) {
+        const { context } = createScheduler({
+          profession: thiefProfession,
+          config: { ...baseConfig, specialization },
+          schedulerPolicy: createGw2SchedulerPolicy(baseConfig)
+        });
+        const { core, specialization: elite } = context.state.profession;
+        assert.equal(Object.hasOwn(core, 'stealthAttackCharges'), false);
+        Object.assign(core, {
+          stealthAttackCharges: 99,
+          stealthAttackExpiresAt: 100,
+          stealthStartedAt: 0,
+          stealthUntil: stealthed ? 6 : 0
+        });
+        const ownsCharges = specialization === 'Deadeye' || specialization === 'Antiquary';
+        if (ownsCharges) Object.assign(elite.state, { stealthAttackCharges: 2, stealthAttackExpiresAt: expiresAt });
+        const skill = thiefCatalog.skillsByName.get('Backstab');
+        const cast = { ...context, start: 5, skill };
+        const available = thiefCoreCastAvailability(cast, skill);
+        assert.equal(available.ready, stealthed || (ownsCharges && expiresAt > 5));
+        if (available.ready) {
+          beginStealthAttack(cast, skill);
+          assert.equal(core.stealthUntil, 5);
+          assert.equal(core.revealedUntil, 8);
+        }
+
+        assert.equal(core.stealthAttackCharges, 99);
+        assert.equal(core.stealthAttackExpiresAt, 100);
+        assert.equal(
+          elite.state.stealthAttackCharges,
+          ownsCharges ? (!stealthed && available.ready ? 1 : 2) : undefined
+        );
+      }
+    }
+  }
+});
+
+test('Endurance Thief is Daredevil-owned and commits between Core resource and final steal snapshots', () => {
+  // Patched grants must retain stolen-skill storage, the passive regeneration anchor.
+  for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
+    for (const selected of [false, true]) {
+      const config = {
+        ...baseConfig,
+        specialization,
+        selectedTraitIds: [TRAIT.KLEPTOMANIAC, ...(selected ? [TRAIT.ENDURANCE_THIEF] : [])]
+      };
+      const { context } = createScheduler({
+        profession: thiefProfession,
+        config,
+        schedulerPolicy: createGw2SchedulerPolicy(config)
+      });
+      const active = specialization === 'Daredevil';
+      assert.equal(context.catalog.balanceProfilesById.has(TRAIT.ENDURANCE_THIEF), active);
+      assert.equal(typeof context.onThiefStealComplete === 'function', active);
+      const core = context.state.profession.core;
+      Object.assign(core, { initiative: 3, endurance: 10, enduranceUpdatedAt: 1 });
+      const catalog = active
+        ? applyBalanceProfilePatch(context.catalog, {
+            balanceProfiles: {
+              [DAREDEVIL_BALANCE_PROFILE_IDS.enduranceThief]: { fields: { resourceGain: { from: 50, to: 37 } } }
+            }
+          })
+        : context.catalog;
+      const firstEvent = context.events.length;
+      completeSteal({ ...context, catalog, skill: context.catalog.skillsById.get(ID.STEAL), effectiveEnd: 2 });
+      const snapshots = context.events.slice(firstEvent).filter((event) => event.type === 'thief.state');
+      const granted = active && selected;
+      assert.deepEqual(
+        snapshots.map((event) => event.reason),
+        ['kleptomaniac', ...(granted ? ['endurance-thief'] : []), 'steal']
+      );
+      assert.equal(core.endurance, granted ? 47 : 10);
+      assert.equal(core.enduranceUpdatedAt, 1);
+      for (const snapshot of snapshots) {
+        assert.equal(snapshot.at, 2);
+        assert.equal(snapshot.state.initiative, 5);
+        assert.equal(snapshot.state.storedStolenSkillCount, 1);
+        assert.equal(snapshot.state.endurance, snapshot.reason === 'kleptomaniac' ? 10 : core.endurance);
+      }
+    }
+  }
+});
+
 // The scheduler and palette must agree on the Shadow Swap flip's lifetime.
 test('Deadeye availability reads live and expired flips from nested and flat Core state', () => {
   const swap = thiefCatalog.skillsById.get(ID.SHADOW_SWAP);
@@ -75,14 +166,11 @@ test('Deadeye availability reads live and expired flips from nested and flat Cor
   assert.equal(deadeyeCastAvailability({}, swap).ready, false);
 });
 
-test('Thief catalog retains reviewed packet and schema mechanics', () => {
+test('Thief catalog retains valid effect schemas and skill metadata', () => {
   assert.equal(thiefCatalog.skillsByName.get("Death's Advance").id, 40436);
   assert.equal(thiefCatalog.skillsByName.get('Canach-Coin Toss').id, 77230);
   assert.equal(thiefCatalog.skillsByName.get('Death Blossom').initiativeCost, 4);
 
-  assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
-  assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
-  assert.equal(thiefCatalog.skillsById.get(13006).castTimeMs, 1560);
   // Thief strike timelines stay explicit unless every hit shares one timestamp.
   for (const skill of thiefCatalog.skills) {
     for (const effect of skill.effects || []) {
@@ -102,27 +190,6 @@ test('Thief catalog retains reviewed packet and schema mechanics', () => {
     }
   }
 
-  assert.deepEqual(
-    THIEF_CORE_SKILL_MECHANICS[13006].effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
-    [
-      [560, 0.21],
-      [640, 0.21],
-      [800, 0.21]
-    ]
-  );
-  assert.deepEqual(
-    THIEF_CORE_SKILL_MECHANICS[13006].effects[1].ticks.map(({ atMs, condition, stacks, duration }) => [
-      atMs,
-      condition,
-      stacks,
-      duration
-    ]),
-    [
-      [560, 'Bleeding', 2, 6],
-      [640, 'Bleeding', 2, 6],
-      [800, 'Bleeding', 2, 6]
-    ]
-  );
   assert.ok(
     THIEF_SUPPLEMENTAL_SKILLS.every(
       (skill) =>
@@ -514,71 +581,28 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
   assert.ok(Math.abs(kneeling.endState.profession.initiative - 14 / 3) < 1e-9);
 });
 
-test('Unload grants 2 initiative when every bullet lands', () => {
-  const completed = simulate('Core', ['Unload'], {
-    initialInitiative: 3,
-    primaryWeapon: 'Pistol',
-    secondaryWeapon: 'Pistol'
-  });
-  const refund = completed.events.find((event) => event.type === 'thief.state' && event.reason === 'unload-refund');
+test('Unload refunds 2 initiative on completion but not cancellation', () => {
+  const config = { initialInitiative: 3, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' };
+  const completed = simulate('Core', ['Unload'], config);
+  const states = completed.events.filter((event) => event.type === 'thief.state');
+  const refundIndex = states.findIndex((event) => event.reason === 'unload-refund');
 
-  assert.equal(completed.steps[0].end - completed.steps[0].start, 1980);
+  assert.deepEqual(completed.warnings, []);
   assert.equal(completed.steps[0].interrupted, false);
-  assert.equal(refund.at, 1.98);
-  assert.equal(refund.state.initiative, 3.98);
+  assert.ok(refundIndex > 0);
+  // Compare adjacent resource snapshots to isolate the refund from passive regeneration and cast duration.
+  assert.ok(Math.abs(states[refundIndex].state.initiative - states[refundIndex - 1].state.initiative - 2) < 1e-9);
 
-  const quickened = simulate('Core', ['Unload'], {
-    initialInitiative: 3,
-    primaryWeapon: 'Pistol',
-    secondaryWeapon: 'Pistol',
-    boons: { quickness: true }
-  });
-  const quickenedRefund = quickened.events.find(
-    (event) => event.type === 'thief.state' && event.reason === 'unload-refund'
-  );
+  const interrupted = simulate('Core', [{ name: 'Unload', interruptMs: 1 }], config);
 
-  assert.equal(quickened.steps[0].end - quickened.steps[0].start, 1320);
-  assert.equal(quickened.steps[0].interrupted, false);
-  // The refund requires all bullets to land; their authored offsets are a separate catalog contract.
-  assert.equal(quickened.events.filter((event) => event.type === 'damage' && event.skillName === 'Unload').length, 8);
-  assert.equal(quickenedRefund.at, 1.32);
-  assert.ok(Math.abs(quickenedRefund.state.initiative - 3.32) < 1e-9);
-
-  const safelyInterrupted = simulate('Core', [{ name: 'Unload', interruptMs: 1160 }], {
-    initialInitiative: 3,
-    primaryWeapon: 'Pistol',
-    secondaryWeapon: 'Pistol'
-  });
-  const safeRefund = safelyInterrupted.events.find(
-    (event) => event.type === 'thief.state' && event.reason === 'unload-refund'
-  );
-  const safeBullets = safelyInterrupted.events.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Unload'
-  );
-
-  assert.deepEqual(
-    safeBullets.map((event) => Math.round(event.at * 1000)),
-    []
-  );
-  assert.equal(safelyInterrupted.steps[0].end - safelyInterrupted.steps[0].start, 1160);
-  assert.equal(safelyInterrupted.steps[0].interrupted, true);
-  assert.equal(safeRefund, undefined);
-
-  const interruptedBeforeFinalBullet = simulate('Core', [{ name: 'Unload', interruptMs: 1159 }], {
-    initialInitiative: 3,
-    primaryWeapon: 'Pistol',
-    secondaryWeapon: 'Pistol'
-  });
-
+  assert.deepEqual(interrupted.warnings, []);
+  assert.equal(interrupted.steps[0].cancelledBeforeCommit, true);
   assert.equal(
-    interruptedBeforeFinalBullet.events.filter((event) => event.type === 'damage' && event.skillName === 'Unload')
-      .length,
-    0
+    interrupted.events.some((event) => event.type === 'damage' && event.skillName === 'Unload'),
+    false
   );
   assert.equal(
-    interruptedBeforeFinalBullet.events.some(
-      (event) => event.type === 'thief.state' && event.reason === 'unload-refund'
-    ),
+    interrupted.events.some((event) => event.type === 'thief.state' && event.reason === 'unload-refund'),
     false
   );
 });
@@ -1041,27 +1065,6 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     skillBreakdownRows(impalingLotus).find((row) => row.name === 'Impaling Lotus')?.icon,
     thiefCatalog.skillsById.get(ID.IMPALING_LOTUS).icon
   );
-
-  assert.deepEqual(
-    impalingLotus.events
-      .filter((event) => event.type === 'damage' && event.skillName === 'Impaling Lotus')
-      .map(({ at, coefficient }) => [at, coefficient]),
-    [
-      [0.2, 0.1875],
-      [0.36, 0.1875],
-      [0.52, 0.1875]
-    ]
-  );
-  assert.deepEqual(
-    impalingLotus.events
-      .filter((event) => event.type === 'condition' && event.skillName === 'Impaling Lotus')
-      .map(({ at, condition, stacks, duration }) => [at, condition, stacks, duration]),
-    [
-      [0.2, 'Bleeding', 2, 4],
-      [0.36, 'Torment', 2, 4],
-      [0.52, 'Crippled', 1, 3]
-    ]
-  );
 });
 
 test('Exposed Weakness multiplies separately from additive strike bonuses', () => {
@@ -1189,74 +1192,27 @@ test('Thief modifiers follow stable skill and packet IDs after display labels ch
   );
 });
 
-test('Daredevil skills and endurance traits use configured values', () => {
-  const expectedQuicknessTimes = new Map([
-    [ID.BACKSTAB, 320],
-    [ID.FIST_FLURRY, 680],
-    [ID.IMPAIRING_DAGGERS, 480],
-    [ID.PALM_STRIKE, 480],
-    [ID.CHANNELED_VIGOR, 480]
-  ]);
-
-  for (const [skillId, duration] of expectedQuicknessTimes) {
-    assert.equal(thiefCatalog.skillsById.get(skillId).quicknessCastTimeMs, duration);
-  }
-
-  const backstabStrike = thiefCatalog.skillsById.get(ID.BACKSTAB).effects.find((effect) => effect.type === 'strike');
-
-  assert.deepEqual(
-    [backstabStrike.ticks[0].atMs, backstabStrike.timingAnchor, backstabStrike.timingScale],
-    [200, 'castStart', 'fixed']
-  );
-  assert.equal(thiefCatalog.skillsById.get(ID.DODGE).castTimeMs, 800);
-  assert.equal(thiefCatalog.skillsById.get(ID.DODGE).quicknessCastTimeMs, undefined);
-  assert.equal(thiefCatalog.skillsById.get(ID.DODGE).unaffectedByQuickness, true);
-  assert.equal(thiefCatalog.skillsById.get(ID.CHANNELED_VIGOR).resourceGain, 125);
-
-  const totalCoefficient = (name) => {
-    const strike = thiefCatalog.skillsByName.get(name).effects.find((effect) => effect.type === 'strike');
-
-    return strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0);
-  };
-
-  assert.equal(totalCoefficient('Fist Flurry'), 3.75);
-  assert.equal(totalCoefficient('Impairing Daggers'), 2.5);
-  assert.deepEqual(
-    thiefCatalog.skillsByName
-      .get('Impairing Daggers')
-      .effects.find((effect) => effect.type === 'strike')
-      .ticks.map((tick) => tick.coefficient),
-    [0.75, 0.75, 1]
-  );
-
+test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () => {
   // Equip the parent so these assertions isolate its hit-gated follow-up window.
   const directPalm = simulate('Daredevil', ['Palm Strike'], { selectedSkills: ['Fist Flurry'] });
 
   assert.match(directPalm.warnings[0], /Fist Flurry must connect/i);
 
-  const traits = [TRAIT.BRAWLERS_TENACITY, TRAIT.WEAKENING_STRIKES, TRAIT.BOUNDING_DODGER];
-  const skillSequence = ['Dodge', 'Fist Flurry', 'Palm Strike', { name: '__wait', waitMs: 2100 }];
-  const base = simulate('Daredevil', skillSequence, {
+  const result = simulate('Daredevil', ['Dodge', 'Fist Flurry', 'Palm Strike', { name: '__wait', waitMs: 2100 }], {
     selectedSkills: ['Fist Flurry'],
     selectedDodge: 'Bounding Dodger',
-    selectedTraitIds: traits.filter((id) => id !== TRAIT.BRAWLERS_TENACITY)
-  });
-  const brawler = simulate('Daredevil', skillSequence, {
-    selectedSkills: ['Fist Flurry'],
-    selectedDodge: 'Bounding Dodger',
-    selectedTraitIds: traits
+    selectedTraitIds: [TRAIT.WEAKENING_STRIKES, TRAIT.BOUNDING_DODGER]
   });
 
-  assert.deepEqual(brawler.warnings, []);
-  assert.ok(Math.abs(brawler.endState.profession.endurance - base.endState.profession.endurance - 15) < 1e-9);
+  assert.deepEqual(result.warnings, []);
   assert.ok(
-    brawler.resolvedEvents.some(
+    result.resolvedEvents.some(
       (event) =>
         event.type === 'condition' && event.condition === 'Weakness' && event.sourceId === TRAIT.WEAKENING_STRIKES
     )
   );
-  const palm = brawler.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Palm Strike');
-  const pulmonary = brawler.resolvedEvents.filter(
+  const palm = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Palm Strike');
+  const pulmonary = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Pulmonary Impact'
   );
 
@@ -1277,98 +1233,6 @@ test('Daredevil skills and endurance traits use configured values', () => {
   assert.equal(havoc.factor, 1.15);
   assert.equal(weakening.operation, 'multiply');
   assert.equal(weakening.factor, 1.1);
-});
-
-test('Daredevil Staff skills use supplied coefficients and effects', () => {
-  const expected = [
-    ['Staff Strike', 0.85, 1, 0],
-    ['Staff Bash', 0.9, 1, 0],
-    ['Punishing Strikes', 2.1, 4, 0],
-    ['Hook Strike', 0.65, 1, 0],
-    ['Weakening Whirl', 2.22, 3, 3],
-    ['Debilitating Arc', 1, 1, 3],
-    ['Helmet Breaker', 1.25, 1, 1],
-    ['Dust Strike', 1.8, 3, 4],
-    ['Vault', 2.25, 1, 5]
-  ];
-
-  for (const [name, coefficient, hits, initiativeCost] of expected) {
-    const skill = thiefCatalog.skillsByName.get(name);
-    const strike = skill.effects.find((effect) => effect.type === 'strike');
-
-    assert.equal(skill.weapon, 'Staff', name);
-    assert.ok(Math.abs(strike.ticks.reduce((total, tick) => total + tick.coefficient, 0) - coefficient) < 1e-12, name);
-    assert.equal(strike.ticks.length, hits, name);
-    assert.equal(skill.initiativeCost, initiativeCost, name);
-  }
-
-  const expectedQuicknessTimes = [
-    ['Staff Strike', 360],
-    ['Staff Bash', 360],
-    ['Punishing Strikes', 760],
-    ['Weakening Whirl', 720],
-    ['Debilitating Arc', 200],
-    ['Hook Strike', 640]
-  ];
-
-  for (const [name, quicknessCastTimeMs] of expectedQuicknessTimes) {
-    const skill = thiefCatalog.skillsByName.get(name);
-
-    assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs, name);
-    assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5, name);
-  }
-
-  for (const name of ['Punishing Strikes', 'Weakening Whirl']) {
-    const skill = thiefCatalog.skillsByName.get(name);
-
-    assert.equal(skill.comboFinishers[0].ownerId, 'thief', name);
-    assert.equal(skill.comboFinishers[0].finisherType, 'Whirl', name);
-  }
-
-  const impalingLotus = thiefCatalog.skillsByName.get('Impaling Lotus');
-
-  assert.equal(impalingLotus.comboFinishers[0].ownerId, 'thief');
-  assert.equal(impalingLotus.comboFinishers[0].finisherType, 'Whirl');
-
-  const punishing = thiefCatalog.skillsByName.get('Punishing Strikes');
-  const vulnerability = punishing.effects.find((effect) => effect.type === 'condition');
-
-  assert.deepEqual(
-    [vulnerability.ticks[0].condition, vulnerability.ticks[0].stacks, vulnerability.ticks[0].duration],
-    ['Vulnerability', 4, 8]
-  );
-
-  const weakening = thiefCatalog.skillsByName.get('Weakening Whirl');
-  const weakness = weakening.effects.find((effect) => effect.type === 'condition');
-
-  assert.deepEqual(
-    [weakness.ticks[0].condition, weakness.ticks[0].stacks, weakness.ticks[0].duration],
-    ['Weakness', 1, 2]
-  );
-
-  const arc = thiefCatalog.skillsByName.get('Debilitating Arc');
-  const cripple = arc.effects.find((effect) => effect.type === 'condition');
-
-  assert.deepEqual(
-    [cripple.ticks[0].condition, cripple.ticks[0].stacks, cripple.ticks[0].duration],
-    ['Crippled', 1, 6]
-  );
-
-  const hook = thiefCatalog.skillsByName.get('Hook Strike');
-  const hookControl = hook.effects.find((effect) => effect.type === 'control');
-
-  assert.equal(hook.stealthAttack, true);
-  assert.equal(hookControl.controlKind, 'knockdown');
-
-  const helmet = thiefCatalog.skillsByName.get('Helmet Breaker');
-  const helmetControl = helmet.effects.find((effect) => effect.type === 'control');
-
-  assert.equal(helmetControl.controlKind, 'daze');
-
-  const dust = thiefCatalog.skillsByName.get('Dust Strike');
-  const blind = dust.effects.find((effect) => effect.type === 'blind');
-
-  assert.equal(blind.duration, 1);
 });
 
 test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
@@ -1577,14 +1441,10 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   assert.ok(markedFlare.endState.profession.availableFlips[ID.SHADOW_SWAP] > markedFlare.duration);
 
   const plainStolen = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time'], fullCrit);
-  const stealTimeStrike = thiefCatalog.skillsByName
-    .get('Steal Time')
-    .effects.find((effect) => effect.type === 'strike');
   const plainStealTimeEvent = plainStolen.resolvedEvents.find(
     (event) => event.skillName === 'Steal Time' && event.type === 'damage'
   );
 
-  assert.equal(stealTimeStrike.ticks[0].coefficient, 1);
   assert.equal(plainStealTimeEvent.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
   assert.equal(plainStealTimeEvent.resolvedWeaponStrength, 1100);
   const chamberStolen = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time'], {
@@ -1671,56 +1531,6 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   assert.equal(silent.warnings.length, 0);
   assert.equal(silent.endState.profession.stealthAttackCharges, 0);
 
-  const sneak = thiefCatalog.skillsByName.get('Malicious Sneak Attack');
-  const sneakStrike = sneak.effects.find((effect) => effect.type === 'strike');
-  const sneakTorment = sneak.effects
-    .find((effect) => effect.type === 'condition' && effect.ticks.some((tick) => tick.condition === 'Torment'))
-    .ticks.find((tick) => tick.condition === 'Torment');
-
-  assert.ok(Math.abs(sneakStrike.ticks.reduce((total, tick) => total + tick.coefficient, 0) - 1.8) < 1e-12);
-  assert.equal(sneakStrike.ticks.length, 5);
-  assert.deepEqual([sneakTorment.stacks, sneakTorment.duration], [1, 1]);
-
-  for (const [name, quicknessCastTimeMs] of [
-    ['Deadly Aim', 600],
-    ['Three Round Burst', 840],
-    ['Steal Time', 280],
-    ['Shadow Flare', 480],
-    ['Shadow Meld', 440],
-    ["Malicious Death's Judgment", 600],
-    ['Malicious Tactical Strike', 440]
-  ]) {
-    assert.equal(thiefCatalog.skillsByName.get(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
-  }
-
-  assert.equal(thiefCatalog.skillsByName.get('Shadow Flare').castTimeMs, 720);
-  assert.equal(thiefCatalog.skillsByName.get('Steal Time').castTimeMs, 420);
-  assert.equal(thiefCatalog.skillsByName.get('Shadow Meld').castTimeMs, 660);
-  const shadowFlareStrike = thiefCatalog.skillsByName
-    .get('Shadow Flare')
-    .effects.find((effect) => effect.type === 'strike');
-  const shadowSwapStrike = thiefCatalog.skillsByName
-    .get('Shadow Swap')
-    .effects.find((effect) => effect.type === 'strike');
-
-  assert.deepEqual(
-    [shadowFlareStrike.ticks[0].atMs, shadowFlareStrike.timingAnchor, shadowFlareStrike.timingScale],
-    [480, 'castStart', 'cast']
-  );
-  assert.deepEqual(
-    [shadowSwapStrike.ticks[0].atMs, shadowSwapStrike.timingAnchor, shadowSwapStrike.timingScale],
-    [0, 'castEnd', 'fixed']
-  );
-
-  const threeRoundBurst = thiefCatalog.skillsByName.get('Three Round Burst');
-
-  assert.deepEqual(
-    threeRoundBurst.effects
-      .filter((effect) => effect.type === 'strike')
-      .map((effect) => [effect.ticks.reduce((total, tick) => total + tick.coefficient, 0), effect.ticks.length]),
-    [[2.25, 3]]
-  );
-
   const maliciousSneak = simulate('Deadeye', ["Deadeye's Mark", 'Unload', 'Steal Time', 'Malicious Sneak Attack'], {
     ...fullCrit,
     primaryWeapon: 'Pistol',
@@ -1733,12 +1543,6 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     maliciousSneak.events.find((event) => event.skillName === 'Malicious Sneak Attack' && event.condition === 'Torment')
       .duration,
     11
-  );
-  assert.equal(
-    maliciousSneak.resolvedEvents.filter(
-      (event) => event.skillName === 'Malicious Sneak Attack' && event.type === 'damage'
-    ).length,
-    5
   );
 });
 

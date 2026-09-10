@@ -54,9 +54,14 @@ const GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<GuardianState>> 
   ...LUMINARY_PUBLIC_END_STATE_DEFAULTS
 });
 
-/** Aggregates Core and active-specialization state into the stable Guardian snapshot contract. */
-export function snapshotGuardianState(state: unknown): GuardianState {
-  return snapshotProfessionState<GuardianState>(state);
+/** Derives compatibility counters from detached combat state at the snapshot's observation time. */
+export function snapshotGuardianState(state: unknown, at: number): GuardianState {
+  const snapshot = snapshotProfessionState<GuardianState>(state);
+  snapshot.justiceArmed = Boolean(snapshot.justiceActiveArmed);
+  snapshot.justiceBurns = Number(snapshot.justiceActiveBurns || 0) + Number(snapshot.justicePassiveBurns || 0);
+  snapshot.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(snapshot, at);
+  snapshot.symbolicAvengerStacks = snapshot.symbolicAvengerExpirations.length;
+  return snapshot;
 }
 
 /** Public compatibility keys are composed from manifests owned by each Guardian vertical slice. */
@@ -73,7 +78,7 @@ export function projectGuardianEndState({
   schedulerState,
   resolverState
 }: GuardianEndStateProjectionOptions): SchedulerRecord {
-  const state = snapshotGuardianState(schedulerState.profession);
+  const state = flattenProfessionState<GuardianState>(schedulerState.profession);
   const resolver = flattenProfessionState(resolverState || {});
   const mutableState = state as unknown as SchedulerRecord;
 
@@ -81,9 +86,10 @@ export function projectGuardianEndState({
     if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];
   }
 
-  // Project live stacks even when the rotation ends with a wait after their last application.
-  state.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(state, schedulerState.time);
-  state.symbolicAvengerStacks = state.symbolicAvengerExpirations.length;
-
-  return projectPublicProfessionState(state, GUARDIAN_PUBLIC_END_STATE_KEYS, GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS);
+  // Derive mirrors only after resolver values win, including stacks expiring during a final wait.
+  return projectPublicProfessionState(
+    snapshotGuardianState(state, schedulerState.time),
+    GUARDIAN_PUBLIC_END_STATE_KEYS,
+    GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS
+  );
 }

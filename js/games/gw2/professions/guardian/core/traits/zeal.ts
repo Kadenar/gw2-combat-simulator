@@ -168,14 +168,13 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
     ]
       .sort((a, b) => b - a)
       .slice(0, Number(profile?.maximumStacks ?? 5));
-    state.symbolicAvengerStacks = state.symbolicAvengerExpirations.length;
     recordGuardianTraitProc(
       context,
       GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,
       'Symbolic Avenger',
       event.at,
       event.skillName,
-      `${state.symbolicAvengerStacks}/5 stacks`
+      `${state.symbolicAvengerExpirations.length}/5 stacks`
     );
   }
 

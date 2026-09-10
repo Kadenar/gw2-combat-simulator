@@ -16,7 +16,11 @@ import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js
 import { guardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import { reactToZealSymbolTraits } from '#gw2/professions/guardian/core/traits/zeal.js';
-import { projectGuardianEndState } from '#gw2/professions/guardian/state.js';
+import { projectGuardianEndState, snapshotGuardianState } from '#gw2/professions/guardian/state.js';
+import {
+  handleVirtueActivation,
+  reactToJusticeHitWithOptions
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
@@ -32,6 +36,46 @@ const config = {
   },
   target: { armor: 2597 }
 };
+
+test('Justice compatibility fields derive from resolver counters without entering combat state', () => {
+  // Activation and hits change canonical state; snapshots expose detached compatibility values.
+  const state = createGuardianCoreState();
+  const profession = { core: state, specialization: { kind: 'Core', state: {} } };
+  const context = {
+    profession,
+    helpers: { skillsById: guardianCatalog.skillsById },
+    applyCondition() {},
+    recordProc() {}
+  };
+  handleVirtueActivation(context, { virtue: 'justice', skillId: GUARDIAN_SKILL_IDS.JUSTICE, at: 0 });
+  const armed = snapshotGuardianState(profession, 0);
+  assert.equal(armed.justiceArmed, true);
+  assert.equal(armed.justiceBurns, 0);
+  for (let at = 1; at <= 6; at += 1) {
+    reactToJusticeHitWithOptions(context, { actorType: 'player', coefficient: 1, at }, { hitContext: {} });
+  }
+
+  assert.equal(state.justiceActiveBurns, 1);
+  assert.equal(state.justicePassiveBurns, 1);
+  assert.equal(state.justiceActiveArmed, false);
+  assert.equal(armed.justiceArmed, true);
+  for (const key of ['justiceArmed', 'justiceBurns', 'symbolicAvengerStacks']) {
+    assert.equal(Object.hasOwn(state, key), false);
+  }
+
+  const scheduler = { ...createGuardianCoreState(), justiceActiveArmed: true, justiceActiveBurns: 9 };
+  const projected = projectGuardianEndState({
+    schedulerState: { profession: scheduler, time: 6 },
+    // Ignore stale compatibility fields even when supplied by an older snapshot.
+    resolverState: { ...state, justiceArmed: true, justiceBurns: 99, symbolicAvengerStacks: 99 }
+  });
+  assert.equal(projected.justiceArmed, false);
+  assert.equal(projected.justiceBurns, 2);
+  assert.equal(projected.symbolicAvengerStacks, 0);
+  projected.virtueReadyAt.justice = 99;
+  assert.equal(state.virtueReadyAt.justice, 0);
+  assert.equal(scheduler.justiceActiveBurns, 9);
+});
 
 test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks independently', () => {
   // Stagger applications so expiry boundaries distinguish individual stacks from a shared refresh.
@@ -49,7 +93,7 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     reactToZealSymbolTraits(context, { type: 'damage', at, isSymbol: true });
   }
 
-  assert.equal(state.symbolicAvengerStacks, 5);
+  assert.equal(Object.hasOwn(state, 'symbolicAvengerStacks'), false);
   for (const [at, stacks] of [
     [15, 5],
     [15.999, 5],
@@ -60,6 +104,10 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     [20, 0]
   ]) {
     assert.equal(bonusAt(at), stacks * 0.01);
+    const snapshot = snapshotGuardianState(profession, at);
+    assert.equal(snapshot.symbolicAvengerStacks, stacks);
+    assert.equal(snapshot.symbolicAvengerExpirations.length, stacks);
+    assert.equal(state.symbolicAvengerExpirations.length, 5);
     const projected = projectGuardianEndState({ schedulerState: { profession, time: at }, resolverState: profession });
     assert.equal(projected.symbolicAvengerStacks, stacks);
     const items = guardianCoreUi.rotationStateSnapshot({ professionState: projected, atSeconds: at });

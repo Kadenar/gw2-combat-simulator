@@ -95,7 +95,8 @@ export const guardianCoreModule = defineNativeModule({
       castRules: guardianCoreCastRules,
       hooks: {
         ...guardianCoreExecutionHooks,
-        snapshot: (context: GuardianSchedulerContext) => snapshotGuardianState(context.state.profession)
+        snapshot: (context: GuardianSchedulerContext) =>
+          snapshotGuardianState(context.state.profession, context.state.time)
       }
     },
     resolution: {

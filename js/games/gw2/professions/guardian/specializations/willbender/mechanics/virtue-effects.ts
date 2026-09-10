@@ -50,7 +50,6 @@ function handleWillbenderVirtueTrigger(context: GuardianResolverContext, event: 
   if (virtue !== 'justice') return;
   const active = event.justiceActive !== false;
   const core = professionCoreState(context);
-  core.justiceBurns += 1;
   if (active) core.justiceActiveBurns += 1;
   else core.justicePassiveBurns += 1;
   // Burning is enqueued into the resolver's condition queue rather than emitted

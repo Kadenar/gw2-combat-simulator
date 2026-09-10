@@ -40,17 +40,14 @@ export interface GuardianCoreState {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
-  justiceArmed: boolean;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
-  justiceBurns: number;
   justiceActiveBurns: number;
   justicePassiveBurns: number;
   virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   lastVirtuePassiveWasReady: boolean;
   autoattackChains: Record<string, SkillId>;
   availableFlips: Record<string, number>;
-  symbolicAvengerStacks: number;
   symbolicAvengerExpirations: number[];
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;
@@ -62,6 +59,13 @@ export interface GuardianCoreState {
   spearIlluminatedArmed: boolean;
   spearIlluminatedUntil: number;
   spearLuminanceUntil: number;
+}
+
+/** Compatibility mirrors are derived at output boundaries, never maintained in combat state. */
+export interface GuardianCorePublicState extends GuardianCoreState {
+  justiceArmed: boolean;
+  justiceBurns: number;
+  symbolicAvengerStacks: number;
 }
 
 export interface GuardianFirebrandState {
@@ -123,7 +127,7 @@ export interface GuardianWillbenderState {
 
 export interface GuardianState
   extends
-    GuardianCoreState,
+    GuardianCorePublicState,
     GuardianDragonhunterState,
     GuardianFirebrandState,
     GuardianWillbenderState,
