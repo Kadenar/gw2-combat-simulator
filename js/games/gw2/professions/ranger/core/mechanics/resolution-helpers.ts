@@ -45,24 +45,8 @@ export function queueBleeding(
   name: string,
   stacks = 1
 ): void {
-  const petSource = isPetStrike(event);
-  // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
-  context.queue.enqueue({
-    ...petDerivedConditionMetadata(context, event),
-    type: 'condition',
-    at: event.at,
-    source: petSource ? 'ranger-pet' : 'Trait',
-    sourceId,
-    actorType: petSource ? 'summon' : 'effect',
-    ownerActorType: petSource ? undefined : 'player',
-    skillId: sourceId,
-    skillName: name,
-    name: `${name} — Bleeding`,
-    condition: 'Bleeding',
-    duration,
-    stacks,
-    triggeredBy: event.skillName
-  });
+  // Preserve the Bleeding row label while sharing condition ownership and packet construction.
+  queueCondition(context, event, 'Bleeding', duration, stacks, sourceId, name, `${name} — Bleeding`);
 }
 
 export function queueCondition(
@@ -72,7 +56,8 @@ export function queueCondition(
   duration: number,
   stacks: number,
   sourceId: number,
-  name: string
+  name: string,
+  displayName = `${name} - ${condition}`
 ): void {
   const petSource = isPetStrike(event);
   // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
@@ -86,7 +71,7 @@ export function queueCondition(
     ownerActorType: petSource ? undefined : 'player',
     skillId: sourceId,
     skillName: name,
-    name: `${name} - ${condition}`,
+    name: displayName,
     condition,
     duration,
     stacks,

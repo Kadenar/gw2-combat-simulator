@@ -5,7 +5,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -19,7 +19,8 @@ import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core
 import {
   combatStarted,
   emitElementalistProc,
-  emitProfiledBuff
+  emitProfiledBuff,
+  elementalistEventSkill
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistDerivedCondition,
@@ -137,6 +138,16 @@ export function applyStrengthOfStone(context: Gw2ResolverRuntime, event: Gw2Reso
   recordElementalistTraitProc(context, event, 'Strength of Stone');
 }
 
+/** Shares Elemental Shielding's profile defaults without coupling phase-specific boon application. */
+function elementalShieldingEffect(context: unknown) {
+  const effect = balanceProfileEffectFromContext(context, PROFILE.elementalShielding, 'boon', 0, 'Protection');
+  return {
+    kind: String(effect?.boon || 'Protection').toLowerCase(),
+    stacks: Number(effect?.stacks ?? 1),
+    duration: Number(effect?.duration ?? 3)
+  };
+}
+
 /** Grants scheduler-side Elemental Shielding protection for one aura application. */
 export function applySchedulerElementalShielding(
   context: ElementalistSchedulerContext,
@@ -145,20 +156,28 @@ export function applySchedulerElementalShielding(
   sourceId: Skill['id']
 ): void {
   if (hasTrait(context, 'Elemental Shielding')) {
-    emitProfiledBuff(context, at, PROFILE.elementalShielding, 'Protection', 'Protection', 1, 3, skillName, sourceId);
+    emitSkillBuff(context, elementalistEventSkill(context, skillName, sourceId), {
+      at,
+      source: skillName,
+      sourceId,
+      actorType: 'player',
+      skillName,
+      priority: 0,
+      ...elementalShieldingEffect(context)
+    });
   }
 }
 
 /** Grants resolver-side Elemental Shielding protection for one classified aura event. */
 export function applyResolverElementalShielding(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Elemental Shielding')) return;
-  const protection = balanceProfileEffectFromContext(context, PROFILE.elementalShielding, 'boon', 0, 'Protection');
+  const protection = elementalShieldingEffect(context);
   queueElementalistBuff(
     context,
     event,
-    String(protection?.boon || 'Protection'),
-    Number(protection?.stacks ?? 1),
-    Number(protection?.duration ?? 3),
+    protection.kind,
+    protection.stacks,
+    protection.duration,
     String(event.skillName || event.name || event.source || '')
   );
 }

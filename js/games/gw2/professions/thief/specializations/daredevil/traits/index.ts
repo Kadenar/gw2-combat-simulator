@@ -1,7 +1,7 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import type { SkillId, StrikeTick } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance } from '#gw2/professions/thief/core/mechanics/resource-events.js';
@@ -10,83 +10,11 @@ import { daredevilState } from '#gw2/professions/thief/specializations/daredevil
 
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 
-interface DaredevilDodgeEffectBase {
-  sourceId: SkillId;
-  stacks?: number;
-  duration?: number;
-  atMs?: number;
-}
-
-type DaredevilDodgeEffect = Readonly<
-  | (DaredevilDodgeEffectBase & {
-      type: 'strike';
-      coefficient?: number;
-      hits?: 1;
-      ticks?: readonly StrikeTick[];
-    })
-  | (DaredevilDodgeEffectBase & {
-      type: 'condition';
-      condition: string;
-    })
-  | (DaredevilDodgeEffectBase & {
-      type: 'boon';
-      boon: string;
-    })
->;
-
-const DAREDEVIL_DODGE_EFFECTS: Readonly<Partial<Record<ThiefDodge, readonly DaredevilDodgeEffect[]>>> = Object.freeze({
-  'Bounding Dodger': Object.freeze([
-    Object.freeze({
-      type: 'strike',
-      sourceId: TRAIT.BOUNDING_DODGER,
-      coefficient: 3.5,
-      hits: 1
-    })
-  ]),
-  'Lotus Training': Object.freeze([
-    Object.freeze({
-      type: 'strike',
-      sourceId: TRAIT.LOTUS_TRAINING,
-      ticks: [
-        { atMs: 200, coefficient: 0.1875 },
-        { atMs: 360, coefficient: 0.1875 },
-        { atMs: 520, coefficient: 0.1875 }
-      ]
-    }),
-    Object.freeze({
-      type: 'condition',
-      sourceId: TRAIT.LOTUS_TRAINING,
-      condition: 'Bleeding',
-      stacks: 2,
-      duration: 4,
-      atMs: 200
-    }),
-    Object.freeze({
-      type: 'condition',
-      sourceId: TRAIT.LOTUS_TRAINING,
-      condition: 'Torment',
-      stacks: 2,
-      duration: 4,
-      atMs: 360
-    }),
-    Object.freeze({
-      type: 'condition',
-      sourceId: TRAIT.LOTUS_TRAINING,
-      condition: 'Crippled',
-      stacks: 1,
-      duration: 3,
-      atMs: 520
-    })
-  ]),
-  'Unhindered Combatant': Object.freeze([
-    Object.freeze({
-      type: 'boon',
-      sourceId: TRAIT.UNHINDERED_COMBATANT,
-      boon: 'Swiftness',
-      stacks: 1,
-      duration: 8
-    })
-  ])
+// Dodge choice retains trait attribution while the balance profile owns every emitted effect.
+const DAREDEVIL_DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.freeze({
+  'Bounding Dodger': PROFILE.boundingDodger,
+  'Lotus Training': PROFILE.lotusTraining,
+  'Unhindered Combatant': PROFILE.unhinderedCombatant
 });
 
 // Only the physical utility skills grant Brawler's Tenacity endurance — not all Daredevil skills
@@ -99,13 +27,8 @@ const BRAWLERS_TENACITY_PHYSICAL_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.IMPAIRING_DAGGERS
 ]);
 
-function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: DaredevilDodgeEffect): void {
+function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, sourceId: SkillId, effect: SkillEffect): void {
   const state = daredevilState.from(context);
-  const profile = balanceProfileFromContext(context, effect.sourceId);
-  const authoredEffect =
-    effect.type === 'condition'
-      ? profile?.effects?.find((entry) => entry.type === 'condition' && entry.condition === effect.condition)
-      : balanceProfileEffect(profile, effect.type);
   // Remap trait names to the in-game skill names that appear in logs/UI
   const dodgeSkillName =
     state.selectedDodge === 'Bounding Dodger'
@@ -117,7 +40,7 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
   const common = {
     at,
     source: 'Trait',
-    sourceId: effect.sourceId,
+    sourceId,
     actorType: 'player',
     skillId: skill.id,
     skillName: dodgeSkillName,
@@ -126,8 +49,7 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
     name: dodgeSkillName
   } as const;
   if (effect.type === 'strike') {
-    const authoredStrike = balanceProfileEffect(profile, 'strike');
-    const ticks = authoredStrike?.ticks?.length ? authoredStrike.ticks : effect.ticks;
+    const ticks = effect.ticks;
     if (ticks?.length) {
       for (const [index, tick] of ticks.entries()) {
         const hitIndex = index + 1;
@@ -146,7 +68,7 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
       emitSkillDamage(context, {
         ...common,
         source: 'thief',
-        coefficient: Number(authoredStrike?.coefficient ?? effect.coefficient ?? 0),
+        coefficient: Number(effect.coefficient ?? 0),
         hits: 1,
         skillWeapon: 'Unequipped'
       });
@@ -156,19 +78,19 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
       ...common,
 
       name: `${dodgeSkillName} — ${effect.condition}`,
-      condition: effect.condition,
-      stacks: Number(authoredEffect?.stacks ?? effect.stacks ?? 1),
-      duration: Number(authoredEffect?.duration ?? effect.duration ?? 0)
+      condition: String(effect.condition || ''),
+      stacks: Number(effect.stacks ?? 1),
+      duration: Number(effect.duration ?? 0)
     });
-  } else {
+  } else if (effect.type === 'boon') {
     // Dodge boons use the canonical scheduled buff event consumed by the resolver.
     emitSkillBuff(context, skill, {
       ...common,
       name: `${dodgeSkillName} — ${effect.boon}`,
       boon: effect.boon,
-      kind: effect.boon.toLowerCase(),
-      stacks: Number(authoredEffect?.stacks ?? effect.stacks ?? 1),
-      duration: Number(authoredEffect?.duration ?? effect.duration ?? 0)
+      kind: String(effect.boon || '').toLowerCase(),
+      stacks: Number(effect.stacks ?? 1),
+      duration: Number(effect.duration ?? 0)
     });
   }
 }
@@ -197,8 +119,10 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
   }
 
   emitThiefStateSnapshot(context, context.effectiveEnd, 'daredevil-dodge');
-  for (const effect of DAREDEVIL_DODGE_EFFECTS[state.selectedDodge] || []) {
-    emitDodgeEffect(context, skill, effect);
+  const profileId = DAREDEVIL_DODGE_PROFILES[state.selectedDodge];
+  if (profileId == null) return;
+  for (const effect of balanceProfileFromContext(context, profileId)?.effects || []) {
+    emitDodgeEffect(context, skill, profileId, effect);
   }
 }
 

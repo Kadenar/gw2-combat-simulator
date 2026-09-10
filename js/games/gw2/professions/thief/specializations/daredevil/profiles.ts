@@ -43,9 +43,10 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           { atMs: 520, coefficient: 0.1875 }
         ]
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 4 },
-      { type: 'condition', condition: 'Torment', stacks: 2, duration: 4 },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 3 }
+      // Lotus conditions follow their individual projectiles from dodge start.
+      { type: 'condition', atMs: 200, condition: 'Bleeding', stacks: 2, duration: 4 },
+      { type: 'condition', atMs: 360, condition: 'Torment', stacks: 2, duration: 4 },
+      { type: 'condition', atMs: 520, condition: 'Crippled', stacks: 1, duration: 3 }
     ]
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.unhinderedCombatant, 'Unhindered Combatant', {

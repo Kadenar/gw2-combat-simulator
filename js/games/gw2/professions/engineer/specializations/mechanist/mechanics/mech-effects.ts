@@ -1,3 +1,4 @@
+import { isEngineerMechEvent as mechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -23,11 +24,7 @@ import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-defini
 
 /** Recognizes resolver events produced by the mech, including legacy summon packets inferred by mechanic slot. */
 function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
-  if (event.metadata?.engineerMech === true || event.application?.metadata?.engineerMech === true) return true;
-  if (event.actorType !== 'summon') return false;
-  const skill = resolverSkill(context, event.skillId ?? event.application?.skillId);
-  const slot = Number(skill?.mechanicSlot || 0);
-  return slot >= 1 && slot <= 3;
+  return mechEvent(event, () => resolverSkill(context, event.skillId ?? event.application?.skillId));
 }
 
 // The mech owns an independent Incendiary Powder tracker so its critical hits

@@ -45,7 +45,7 @@ import {
   gw2StatsForWeaponSet
 } from '#gw2/platform/combat/query/runtime-rules.js';
 import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
-import type { CanonicalCatalog, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastContext, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
@@ -203,7 +203,46 @@ export function createGw2SchedulerPolicy(
   }: CreateGw2SchedulerPolicyOptions = {}
 ): Readonly<Gw2SchedulerPolicy> {
   const materializer = createGw2TriggerMaterializer(config, { traits });
-  const comboMaterializer = createGw2ComboMaterializer(config);
+  // Combo predictions reuse ordinary boon scaling while supplying their own effect time and actor.
+  const boonDuration = (
+    context: SchedulerContext,
+    skillId: SkillId,
+    boon: string,
+    baseDuration: number,
+    event?: SimulationEvent
+  ): number => {
+    const weaponSet = context.state?.activeWeaponSet === 2 ? 2 : 1;
+    const runtime = {
+      ...materializer.state,
+      activeWeaponSet: weaponSet,
+      combatStartTime: context.combatStartTime,
+      profession: context.state.profession
+    };
+    const query = materializer.state.query as Readonly<Gw2CombatQuery> | null | undefined;
+    const stats = context.profession.modifyAttributes(
+      {
+        profession: context.profession,
+        config,
+        time: event?.at ?? context.state.time,
+        skillId,
+        sourceId: event?.sourceId ?? skillId,
+        actorType: event?.actorType ?? 'player',
+        ...(event ? { event } : {}),
+        traits,
+        query,
+        timeline: query?.timeline,
+        events: context.events,
+        runtime,
+        state: context.state
+      },
+      gw2StatsForWeaponSet(config, weaponSet)
+    ) as Gw2Stats;
+    return baseDuration * gw2BoonDurationMultiplier(boon, stats, gw2SigilSet(config, weaponSet));
+  };
+
+  const comboMaterializer = createGw2ComboMaterializer(config, (context, combo, boon, baseDuration) =>
+    boonDuration(context, combo.skillId ?? combo.sourceId, boon, baseDuration, combo)
+  );
   const eventPreparer = createGw2EventPreparer();
   const policy: Gw2SchedulerPolicy = {
     taskHandlers: Object.freeze({
@@ -266,34 +305,7 @@ export function createGw2SchedulerPolicy(
         return baseDuration;
       }
 
-      const weaponSet = _context.state?.activeWeaponSet === 2 ? 2 : 1;
-      const sigils = gw2SigilSet(config, weaponSet);
-      const staticStats = gw2StatsForWeaponSet(config, weaponSet);
-      const runtime = {
-        ...materializer.state,
-        activeWeaponSet: weaponSet,
-        combatStartTime: _context.combatStartTime,
-        profession: _context.state.profession
-      };
-      const query = materializer.state.query as Readonly<Gw2CombatQuery> | null | undefined;
-      const stats = _context.profession.modifyAttributes(
-        {
-          profession: _context.profession,
-          config,
-          time: _context.state.time,
-          skillId: _skill.id,
-          sourceId: _skill.id,
-          actorType: 'player',
-          traits,
-          query,
-          timeline: query?.timeline,
-          events: _context.events,
-          runtime,
-          state: _context.state
-        },
-        staticStats
-      ) as Gw2Stats;
-      return baseDuration * gw2BoonDurationMultiplier(String(boon), stats, sigils);
+      return boonDuration(_context, _skill.id, String(boon), baseDuration);
     },
 
     buffStacks(context, kind, at, configuredStacks, applications, defaultStacks) {

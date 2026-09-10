@@ -5,7 +5,7 @@ import {
   resolveComboAttempt,
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
-import { gw2BoonDurationMultiplier, gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
 import type {
   ComboFieldEvent,
@@ -88,16 +88,14 @@ export function createGw2ComboResolution({
         context.queue.enqueue(combo as Gw2ResolverEvent);
         for (const outcome of materializeComboOutcome(combo)) {
           if (outcome.type === 'buff' && outcome.fixedDuration !== true) {
-            const stats = context.query.statsAt(combo.at, combo as Gw2ResolverEvent, context);
             context.queue.enqueue({
               ...outcome,
-              duration:
-                Number(outcome.duration || 0) *
-                gw2BoonDurationMultiplier(
-                  String(outcome.kind || outcome.name || ''),
-                  stats,
-                  gw2SigilSet(context.config, context.activeWeaponSet)
-                )
+              duration: gw2ResolverBoonDuration(
+                context,
+                combo as Gw2ResolverEvent,
+                String(outcome.kind || outcome.name || ''),
+                Number(outcome.duration || 0)
+              )
             } as Gw2ResolverEvent);
           } else {
             context.queue.enqueue(outcome as Gw2ResolverEvent);

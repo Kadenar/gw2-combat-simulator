@@ -2,10 +2,8 @@
  * Owns Tempest resolver reactions to accepted Elementalist auras.
  * Core aura application and shared resolver helpers remain under Core mechanics.
  */
-import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { tempestAuraBoons } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
@@ -41,36 +39,12 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     recordElementalistTraitProc(context, event, 'Tempestuous Aria');
   }
 
-  // Balance data supplies the boon name/stacks/duration; the literal pair is the fallback identity.
-  if (hasTrait(context, 'Invigorating Torrents')) {
-    for (const [name, kind] of [
-      ['Vigor', 'Vigor'],
-      ['Regeneration', 'Regeneration']
-    ] as const) {
-      const effect = balanceProfileEffectFromContext(context, PROFILE.invigoratingTorrents, 'boon', 0, name);
-      queueElementalistBuff(
-        context,
-        event,
-        String(effect?.boon || kind),
-        Number(effect?.stacks ?? 1),
-        Number(effect?.duration ?? 5),
-        elementalistSourceSkill(event)
-      );
+  for (const trait of ['Invigorating Torrents', 'Elemental Bastion'] as const) {
+    if (!hasTrait(context, trait)) continue;
+    for (const boon of tempestAuraBoons(context, trait)) {
+      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, elementalistSourceSkill(event));
     }
 
-    recordElementalistTraitProc(context, event, 'Invigorating Torrents');
-  }
-
-  if (hasTrait(context, 'Elemental Bastion')) {
-    const alacrity = balanceProfileEffectFromContext(context, PROFILE.elementalBastion, 'boon', 0, 'Alacrity');
-    queueElementalistBuff(
-      context,
-      event,
-      String(alacrity?.boon || 'Alacrity'),
-      Number(alacrity?.stacks ?? 1),
-      Number(alacrity?.duration ?? 4),
-      elementalistSourceSkill(event)
-    );
-    recordElementalistTraitProc(context, event, 'Elemental Bastion');
+    recordElementalistTraitProc(context, event, trait);
   }
 }

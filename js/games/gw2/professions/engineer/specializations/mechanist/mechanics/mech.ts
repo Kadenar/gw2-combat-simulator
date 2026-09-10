@@ -1,3 +1,5 @@
+import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -83,6 +85,22 @@ function mechWeaponScaling(
   };
 }
 
+/** Native attacks and replay decoration share scaling fields without changing packet attribution or activation. */
+function mechDamageMetadata(
+  context: EngineerSchedulerContext | EngineerCastContext,
+  skillId: SkillId | null | undefined
+) {
+  const scaling = mechWeaponScaling(context, skillId);
+  return {
+    independentSummonStrike: true,
+    summonInheritsAttributes: true,
+    summonUsesProfessionModifiers: true,
+    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
+    summonDamagePerCoefficient: scaling.damagePerCoefficient,
+    weaponStrengthProfileId: scaling.profileId
+  };
+}
+
 interface MechAttackPayload extends SchedulerRecord {
   readonly phase: number;
 }
@@ -112,7 +130,6 @@ function emitMechStrike(
 ): void {
   // Resolve the mech's native weapon packet here while leaving inherited
   // attributes and live profession modifiers for damage resolution.
-  const scaling = mechWeaponScaling(context, skillId);
   emitSkillDamage(context, {
     at,
     source: 'engineer',
@@ -126,12 +143,7 @@ function emitMechStrike(
     hitIndex,
     totalHits,
     skillWeapon: 'Unequipped',
-    independentSummonStrike: true,
-    summonInheritsAttributes: true,
-    summonUsesProfessionModifiers: true,
-    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
-    summonDamagePerCoefficient: scaling.damagePerCoefficient,
-    weaponStrengthProfileId: scaling.profileId,
+    ...mechDamageMetadata(context, skillId),
     metadata: { engineerMech: true },
     mechBasicAttack: basicAttack
   });
@@ -142,12 +154,11 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
   if (context.config.specialization !== 'Mechanist' || event.actorType !== 'summon') return;
   // Infer ownership when replay packets lack the explicit engineerMech marker.
   const skill = context.catalog?.skillsById?.get(event.skillId ?? event.sourceId);
-  const slot = Number(skill?.mechanicSlot || 0);
   const engineerMech =
     event.metadata?.engineerMech === true ||
     (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId)) ||
     event.skillId === ID.JADE_BUSTER_CANNON ||
-    (slot >= 1 && slot <= 3);
+    isEngineerMechCommand(skill);
   if (!engineerMech) return;
 
   const updates: Record<string, unknown> = {
@@ -158,14 +169,8 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
   if (event.type === 'damage' && Number(event.coefficient) > 0) {
     const basicAttack =
       event.mechBasicAttack === true || (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId));
-    const scaling = mechWeaponScaling(context, event.skillId ?? event.sourceId);
     Object.assign(updates, {
-      independentSummonStrike: true,
-      summonInheritsAttributes: true,
-      summonUsesProfessionModifiers: true,
-      summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
-      summonDamagePerCoefficient: scaling.damagePerCoefficient,
-      weaponStrengthProfileId: scaling.profileId,
+      ...mechDamageMetadata(context, event.skillId ?? event.sourceId),
       mechBasicAttack: basicAttack
     });
   }
@@ -198,15 +203,8 @@ function recallMech(context: EngineerCastContext): void {
   emitEngineerStateSnapshot(context, at, 'recall-mech');
 }
 
-/** Identifies the F1-F3 skills that execute as jade mech commands. */
-export function isEngineerMechCommand(skill: EngineerSkill | undefined): boolean {
-  const slot = Number(skill?.mechanicSlot || 0);
-  return slot >= 1 && slot <= 3;
-}
-
 /** Emits the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
 function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
-  const scaling = mechWeaponScaling(context, ID.ROCKET_PUNCH_MECH);
   const strike = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'strike');
   const condition = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'condition');
   const control = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'control');
@@ -225,12 +223,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
-    independentSummonStrike: true,
-    summonInheritsAttributes: true,
-    summonUsesProfessionModifiers: true,
-    summonBasePower: balanceProfileValueFromContext(context, PROFILE.attackTiming, 'basePower', MECH_REFERENCE_POWER),
-    summonDamagePerCoefficient: scaling.damagePerCoefficient,
-    weaponStrengthProfileId: scaling.profileId,
+    ...mechDamageMetadata(context, ID.ROCKET_PUNCH_MECH),
     metadata: { engineerMech: true },
     explosion: true,
     activationId,

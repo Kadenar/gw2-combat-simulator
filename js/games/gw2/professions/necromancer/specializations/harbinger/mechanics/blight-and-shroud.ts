@@ -43,6 +43,26 @@ function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void 
   });
 }
 
+/** Shares Deathly Haste grants while retaining the triggering skill's completion time and attribution. */
+function emitDeathlyHaste(
+  context: NecromancerCastContext,
+  skill: NecromancerSkill,
+  attribution: { source?: string; sourceId?: NecromancerSkill['id'] } = {}
+): void {
+  const profile = balanceProfileFromContext(context, PROFILE.deathlyHaste);
+  for (const [index, kind] of ['quickness', 'fury'].entries()) {
+    const effect = balanceProfileEffect(profile, 'boon', index);
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      kind: String(effect?.boon || kind),
+      duration: Number(effect?.duration ?? 4),
+      stacks: Number(effect?.stacks ?? 1),
+      audience: { recipients: 'party', maximumRecipients: 5 },
+      ...attribution
+    });
+  }
+}
+
 /** Advances Blight and applies Harbinger shroud-entry and Dark Barrage cast traits. */
 function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = harbingerState.from(context);
@@ -60,26 +80,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       );
     }
 
-    if (hasTrait(context, TRAIT.DEATHLY_HASTE)) {
-      const profile = balanceProfileFromContext(context, PROFILE.deathlyHaste);
-      const quickness = balanceProfileEffect(profile, 'boon');
-      const fury = balanceProfileEffect(profile, 'boon', 1);
-      const recipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
-      emitSkillBuff(context, skill, {
-        at,
-        kind: String(quickness?.boon || 'quickness'),
-        duration: Number(quickness?.duration ?? 4),
-        stacks: Number(quickness?.stacks ?? 1),
-        ...recipients
-      });
-      emitSkillBuff(context, skill, {
-        at,
-        kind: String(fury?.boon || 'fury'),
-        duration: Number(fury?.duration ?? 4),
-        stacks: Number(fury?.stacks ?? 1),
-        ...recipients
-      });
-    }
+    if (hasTrait(context, TRAIT.DEATHLY_HASTE)) emitDeathlyHaste(context, skill);
 
     if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
       const profile = balanceProfileFromContext(context, PROFILE.implacableFoe);
@@ -101,28 +102,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 
   if (skill.id === ID.DARK_BARRAGE && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
-    const profile = balanceProfileFromContext(context, PROFILE.deathlyHaste);
-    const quickness = balanceProfileEffect(profile, 'boon');
-    const fury = balanceProfileEffect(profile, 'boon', 1);
-    const deathlyHaste = {
-      source: 'Trait',
-      sourceId: TRAIT.DEATHLY_HASTE,
-      audience: { recipients: 'party' as const, maximumRecipients: 5 }
-    };
-    emitSkillBuff(context, skill, {
-      at,
-      kind: String(quickness?.boon || 'quickness'),
-      duration: Number(quickness?.duration ?? 4),
-      stacks: Number(quickness?.stacks ?? 1),
-      ...deathlyHaste
-    });
-    emitSkillBuff(context, skill, {
-      at,
-      kind: String(fury?.boon || 'fury'),
-      duration: Number(fury?.duration ?? 4),
-      stacks: Number(fury?.stacks ?? 1),
-      ...deathlyHaste
-    });
+    emitDeathlyHaste(context, skill, { source: 'Trait', sourceId: TRAIT.DEATHLY_HASTE });
   }
 }
 

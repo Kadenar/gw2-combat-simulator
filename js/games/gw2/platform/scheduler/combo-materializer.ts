@@ -9,11 +9,6 @@ import {
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
 import { comboCombatMetadata, materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
-import {
-  gw2BoonDurationMultiplier,
-  gw2SigilSet,
-  gw2StatsForWeaponSet
-} from '#gw2/platform/combat/query/runtime-rules.js';
 
 import type { ScheduledTask, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -358,7 +353,10 @@ export function produceGw2OwnedComboEvents<TProfessionState extends object>(
 }
 
 /** Chronologically predicts combo results for scheduler facts and reactions. */
-export function createGw2ComboMaterializer(config: Gw2Config = {}) {
+export function createGw2ComboMaterializer(
+  config: Gw2Config,
+  boonDuration: (context: SchedulerContext, combo: ComboEvent, boon: string, baseDuration: number) => number
+) {
   const state = createGw2ComboRuntimeState();
   const random = createSimulationRandom(config.randomness);
 
@@ -407,18 +405,18 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
           schedulerPrediction: 'combo-result'
         }) as ComboEvent;
         for (const outcome of materializeComboOutcome(predictedCombo)) {
-          const boonDuration =
+          const duration =
             outcome.type === 'buff' && outcome.fixedDuration !== true
-              ? Number(outcome.duration || 0) *
-                gw2BoonDurationMultiplier(
+              ? boonDuration(
+                  context,
+                  predictedCombo,
                   String(outcome.kind || outcome.name || ''),
-                  gw2StatsForWeaponSet(config, context.state.activeWeaponSet),
-                  gw2SigilSet(config, context.state.activeWeaponSet)
+                  Number(outcome.duration || 0)
                 )
               : outcome.duration;
           context.emitDerived(predictedCombo, {
             ...outcome,
-            ...(boonDuration == null ? {} : { duration: boonDuration }),
+            ...(duration == null ? {} : { duration }),
             schedulerPrediction: 'combo-result'
           });
         }

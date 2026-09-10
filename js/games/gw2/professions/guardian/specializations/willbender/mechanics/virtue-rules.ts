@@ -18,7 +18,8 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import {
   activeLethalTempo,
-  gainLethalTempo
+  gainLethalTempo,
+  lethalTempoParameters
 } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtues.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 
@@ -96,12 +97,8 @@ export function applyWillbenderVirtueActivationTraits(
     virtue === 'justice' && tyrantsMomentum
       ? Number(balanceProfileEffect(tyrants, 'buff', 1)?.duration ?? 10)
       : Number(window?.duration ?? (virtue === 'justice' ? 8 : 6));
-  const lethalTempo = balanceProfileFromContext(context, PROFILE.lethalTempo);
-  const tempoDuration = Number(
-    balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration ?? (tyrantsMomentum ? 4 : 6)
-  );
   state[`${virtue}Until`] = at + duration;
-  gainLethalTempo(state, at, tyrantsMomentum, Number(lethalTempo?.maximumStacks ?? 5), tempoDuration);
+  gainLethalTempo(state, at, lethalTempoParameters(context));
   emitSkillBuff(context, {
     at,
     source: 'guardian',
@@ -235,16 +232,7 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
 // a completed Willbender virtue trigger.
 function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSkill: string): void {
   const state = willbenderState.from(context);
-  const tyrantsMomentum = hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
-  const lethalTempo = balanceProfileFromContext(context, PROFILE.lethalTempo);
-  const tyrants = balanceProfileFromContext(context, PROFILE.tyrantsMomentum);
-  gainLethalTempo(
-    state,
-    at,
-    tyrantsMomentum,
-    Number(lethalTempo?.maximumStacks ?? 5),
-    Number(balanceProfileEffect(tyrantsMomentum ? tyrants : lethalTempo, 'buff')?.duration ?? (tyrantsMomentum ? 4 : 6))
-  );
+  gainLethalTempo(state, at, lethalTempoParameters(context));
   emitSkillBuff(context, {
     at,
     source: 'guardian',

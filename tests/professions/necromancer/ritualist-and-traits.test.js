@@ -800,6 +800,23 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
     deathlyHaste.events.filter((event) => event.kind === 'quickness' && event.sourceId !== TRAIT.SOUL_BARBS).length,
     2
   );
+  // Entry retains its skill source; Dark Barrage's grants belong to the trait at cast completion.
+  for (const [skillId, sourceId] of [
+    [ID.HARBINGER_SHROUD, ID.HARBINGER_SHROUD],
+    [ID.DARK_BARRAGE, TRAIT.DEATHLY_HASTE]
+  ]) {
+    const action = deathlyHaste.events.find((event) => event.type === 'action' && event.skillId === skillId);
+    const boons = deathlyHaste.events.filter(
+      (event) => event.type === 'buff' && event.sourceId === sourceId && ['quickness', 'fury'].includes(event.kind)
+    );
+    assert.deepEqual(
+      boons.map((event) => event.kind),
+      ['quickness', 'fury']
+    );
+    assert.ok(boons.every((event) => event.at === action.endsAt && event.skillId === skillId));
+    if (skillId === ID.DARK_BARRAGE) assert.ok(boons.every((event) => event.source === 'Trait'));
+  }
+
   assert.ok(
     deathlyHaste.events
       .filter(

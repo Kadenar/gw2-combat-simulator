@@ -81,6 +81,55 @@ function resolve(events, config = {}) {
   });
 }
 
+test('combo boon resolution samples changing live concentration instead of configured stats', () => {
+  const events = [
+    field('fire:duration', 'Fire'),
+    {
+      type: 'buff',
+      at: 0.5,
+      source: 'Concentration Fixture',
+      sourceId: 'fixture.concentration',
+      actorType: 'player',
+      kind: 'concentration-fixture',
+      duration: 2,
+      stacks: 1
+    },
+    ...[0.25, 1, 3].map((at) =>
+      finisher(
+        `duration:${at}`,
+        { kind: 'field-id', fieldId: 'fire:duration' },
+        {
+          at,
+          effectAt: at,
+          finisherType: 'Blast'
+        }
+      )
+    )
+  ];
+  const result = resolveTestGw2Stream({
+    stream: buildScheduledEventStream({ events, rotationEndTime: 4 }),
+    config: { target: {}, stats: { concentration: 0 } },
+    traits: new Set(),
+    helpers,
+    query: {
+      ...query,
+      // A runtime-only buff changes the sampled stat until expiry; configured concentration stays zero.
+      statsAt(at, _event, runtime) {
+        const boosted = (runtime.boons.get('concentration-fixture') || []).some(
+          (application) => application.at <= at && application.expiresAt > at
+        );
+        return { ...query.statsAt(), concentration: boosted ? 750 : 0 };
+      }
+    }
+  });
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.type === 'buff' && event.kind === 'might')
+      .map((event) => event.duration),
+    [20, 30, 20]
+  );
+});
+
 test('Dark projectile and whirl siphons own their hits without inflating the finisher', () => {
   for (const [finisherType, flatStrikeBase, siphonName] of [
     ['Projectile', 202, 'Life Siphon Damage'],

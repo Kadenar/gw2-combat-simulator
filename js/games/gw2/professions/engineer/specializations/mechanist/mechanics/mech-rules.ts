@@ -1,3 +1,4 @@
+import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   balanceProfileFromContext,
   balanceProfileValueFromContext
@@ -53,17 +54,11 @@ export const { afterCast: mechanistAfterCast, ...mechanistAdvancedSchedulerHooks
 
 /** Recognizes native and replayed events that belong to the jade mech. */
 function engineerMechEvent(context: Gw2ModifierContext): boolean {
-  const event = engineerEvent(context);
-  if (event?.metadata?.engineerMech === true || event?.application?.metadata?.engineerMech === true) {
-    return true;
-  }
-
-  if (context.config?.specialization !== 'Mechanist' || event?.actorType !== 'summon') {
-    return false;
-  }
-
-  const slot = Number(eventSkill(context)?.mechanicSlot || 0);
-  return slot >= 1 && slot <= 3;
+  return isEngineerMechEvent(
+    engineerEvent(context),
+    () => eventSkill(context),
+    context.config?.specialization === 'Mechanist'
+  );
 }
 
 /** Checks the normalized active loadout for a named Mechanist signet. */

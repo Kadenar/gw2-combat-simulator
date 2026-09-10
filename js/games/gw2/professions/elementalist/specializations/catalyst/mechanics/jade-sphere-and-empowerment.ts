@@ -40,6 +40,12 @@ import {
 import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/traits/modifiers.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import {
+  empoweringAurasParameters,
+  elementalEpitomeEmpowerment,
+  elementalEpitomeAura,
+  elementalSynergyBoon
+} from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
 import type { CatalystEmpowermentPool } from '#gw2/professions/elementalist/build/types.js';
 
 const SPHERE_COST = 10;
@@ -373,7 +379,7 @@ export const catalystSkillMechanicHandlers = Object.freeze({
 function applyEmpoweringAuras(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   // Every aura gained adds an Empowering Auras stack buff.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
-    const duration = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
+    const { duration } = empoweringAurasParameters(context);
     const source = String(event.skillName || event.source || 'Aura');
     const sourceId = event.skillId ?? event.sourceId;
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
@@ -436,7 +442,7 @@ function scheduleExternalElementalEmpowerment(context: ElementalistSchedulerCont
 function applyElementalEpitomeAura(context: ElementalistSchedulerContext, event: SimulationEvent): boolean {
   // Elemental Epitome's other half: an aura gain also grants an empowerment stack.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Elemental Epitome')) {
-    const empowerment = balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, 'Empowerment');
+    const empowerment = elementalEpitomeEmpowerment(context);
     const source = String(event.skillName || event.source || 'Elemental Epitome');
     const sourceId = event.skillId ?? event.sourceId;
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
@@ -446,8 +452,7 @@ function applyElementalEpitomeAura(context: ElementalistSchedulerContext, event:
       actorType: 'player',
       kind: 'elemental empowerment',
       schedulerPrediction: event.schedulerPrediction,
-      stacks: Number(empowerment?.stacks ?? 1),
-      duration: Number(empowerment?.duration ?? 15),
+      ...empowerment,
       skillName: source
     });
     return true;
@@ -518,19 +523,11 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
     ) {
       state.elementalEpitomeReadyAt[attunement] =
         event.at + balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
-      const aura =
-        attunement === 'Fire'
-          ? (['Fire Aura', 4] as const)
-          : attunement === 'Water'
-            ? (['Frost Aura', 4] as const)
-            : attunement === 'Air'
-              ? (['Shocking Aura', 3] as const)
-              : (['Magnetic Aura', 3] as const);
-      const profiledAura = balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, attunement);
+      const aura = elementalEpitomeAura(context, attunement);
       applyElementalistAura(context as never, {
         at: event.at,
-        aura: String(profiledAura?.kind || aura[0]),
-        duration: Number(profiledAura?.duration ?? aura[1]),
+        aura: aura.aura,
+        duration: aura.duration,
         skillName: 'Elemental Epitome',
         sourceId: event.sourceId
       });
@@ -543,15 +540,13 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
       state.elementalSynergyReadyAt[attunement] =
         event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
       if (attunement === 'Fire' || attunement === 'Earth') {
-        const effect = balanceProfileEffectFromContext(context, PROFILE.elementalSynergy, 'boon', 0, attunement);
+        const boon = elementalSynergyBoon(context, attunement);
         emitSkillBuff(context, elementalistEventSkill(context, 'Elemental Synergy', event.sourceId), {
           at: event.at,
           source: 'Elemental Synergy',
           sourceId: event.sourceId,
           actorType: 'player',
-          kind: String(effect?.boon || (attunement === 'Fire' ? 'Might' : 'Stability')).toLowerCase(),
-          stacks: Number(effect?.stacks ?? (attunement === 'Fire' ? 6 : 2)),
-          duration: Number(effect?.duration ?? (attunement === 'Fire' ? 10 : 6)),
+          ...boon,
           skillName: 'Elemental Synergy'
         });
       } else if (attunement === 'Air') {

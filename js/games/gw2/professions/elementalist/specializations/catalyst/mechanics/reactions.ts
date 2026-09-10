@@ -30,6 +30,12 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import {
+  empoweringAurasParameters,
+  elementalEpitomeEmpowerment,
+  elementalEpitomeAura,
+  elementalSynergyBoon
+} from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
 
 /**
  * Convert resolved aura applications into Catalyst aura-stack traits and their
@@ -44,8 +50,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   // need new grants here. Both paths still refresh Empowering Auras' duration.
   const needsGrants = event.elementalistResolverGeneratedAura === true || event.type === 'aura';
   if (hasTrait(context, 'Empowering Auras')) {
-    const maximumStacks = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'maximumStacks', 5);
-    const duration = balanceProfileValueFromContext(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
+    const { maximumStacks, duration } = empoweringAurasParameters(context);
     const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
     const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
@@ -64,13 +69,13 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
     return;
   }
 
-  const empowerment = balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, 'Empowerment');
+  const empowerment = elementalEpitomeEmpowerment(context);
   queueElementalistBuff(
     context,
     event,
     'Elemental Empowerment',
-    Number(empowerment?.stacks ?? 1),
-    Number(empowerment?.duration ?? 15),
+    empowerment.stacks,
+    empowerment.duration,
     elementalistSourceSkill(event)
   );
 }
@@ -90,23 +95,8 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   if (hasTrait(context, 'Elemental Epitome') && isInternalCooldownReady(event.at, epitomeReadyAt)) {
     state.elementalEpitomeReadyAt[attunement] =
       event.at + balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
-    const aura =
-      attunement === 'Fire'
-        ? (['Fire Aura', 4] as const)
-        : attunement === 'Water'
-          ? (['Frost Aura', 4] as const)
-          : attunement === 'Air'
-            ? (['Shocking Aura', 3] as const)
-            : (['Magnetic Aura', 3] as const);
-    queueElementalistAura(
-      context,
-      event,
-      aura[0],
-      Number(
-        balanceProfileEffectFromContext(context, PROFILE.elementalEpitome, 'buff', 0, attunement)?.duration ?? aura[1]
-      ),
-      'Elemental Epitome'
-    );
+    const aura = elementalEpitomeAura(context, attunement);
+    queueElementalistAura(context, event, aura.canonicalAura, aura.duration, 'Elemental Epitome');
     recordElementalistTraitProc(context, event, 'Elemental Epitome');
   }
 
@@ -114,26 +104,9 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   if (hasTrait(context, 'Elemental Synergy') && isInternalCooldownReady(event.at, synergyReadyAt)) {
     state.elementalSynergyReadyAt[attunement] =
       event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
-    if (attunement === 'Fire') {
-      const might = balanceProfileEffectFromContext(context, PROFILE.elementalSynergy, 'boon', 0, 'Fire');
-      queueElementalistBuff(
-        context,
-        event,
-        String(might?.boon || 'Might'),
-        Number(might?.stacks ?? 6),
-        Number(might?.duration ?? 10),
-        'Elemental Synergy'
-      );
-    } else if (attunement === 'Earth') {
-      const stability = balanceProfileEffectFromContext(context, PROFILE.elementalSynergy, 'boon', 0, 'Earth');
-      queueElementalistBuff(
-        context,
-        event,
-        String(stability?.boon || 'Stability'),
-        Number(stability?.stacks ?? 2),
-        Number(stability?.duration ?? 6),
-        'Elemental Synergy'
-      );
+    if (attunement === 'Fire' || attunement === 'Earth') {
+      const boon = elementalSynergyBoon(context, attunement);
+      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, 'Elemental Synergy');
     } else if (attunement === 'Air') {
       Object.assign(
         core,

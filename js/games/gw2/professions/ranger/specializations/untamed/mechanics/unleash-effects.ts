@@ -1,3 +1,4 @@
+import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -21,14 +22,6 @@ export function handleUntamedState(context: RangerResolverContext, event: Ranger
 export const untamedEventHandlers = Object.freeze({
   'ranger.untamed-state': handleUntamedState
 });
-
-function isPetStrike(event: RangerResolverEvent): boolean {
-  return event.source === 'ranger-pet';
-}
-
-function isPlayerStrike(event: RangerResolverEvent): boolean {
-  return event.actorType === 'player' && !isPetStrike(event);
-}
 
 function queueTraitBuff(
   context: RangerResolverContext,

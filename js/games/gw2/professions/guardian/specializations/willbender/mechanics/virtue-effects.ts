@@ -1,31 +1,17 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
-import { gainLethalTempo } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtues.js';
+import {
+  gainLethalTempo,
+  lethalTempoParameters
+} from '#gw2/professions/guardian/specializations/willbender/mechanics/virtues.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-
-import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 
 function recordLethalTempo(context: GuardianResolverContext, at: number, sourceSkill: string | undefined): void {
   const state = willbenderState.from(context);
-  const tyrantsMomentum = hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
-  const lethalTempo = balanceProfileFromContext(context, PROFILE.lethalTempo);
-  const stacks = gainLethalTempo(
-    state,
-    at,
-    tyrantsMomentum,
-    Number(lethalTempo?.maximumStacks ?? 5),
-    Number(
-      balanceProfileEffect(
-        balanceProfileFromContext(context, tyrantsMomentum ? PROFILE.tyrantsMomentum : PROFILE.lethalTempo),
-        'buff'
-      )?.duration ?? (tyrantsMomentum ? 4 : 6)
-    )
-  );
+  const stacks = gainLethalTempo(state, at, lethalTempoParameters(context));
   context.recordProc(
     'trait',
     'Lethal Tempo',

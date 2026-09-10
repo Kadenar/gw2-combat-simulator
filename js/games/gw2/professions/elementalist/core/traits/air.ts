@@ -16,6 +16,7 @@ import type {
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/state.js';
 import {
   combatStarted,
+  elementalistEventSkill,
   emitElementalistProc,
   emitProfiledBuff,
   emitProfiledCondition
@@ -263,6 +264,18 @@ export function applyRagingStorm(context: Gw2ResolverRuntime, event: Gw2Resolver
   );
 }
 
+/** Both aura paths select the same profile effects before applying their own duration policy. */
+function zephyrsBoonEffects(context: unknown) {
+  return ['Fury', 'Swiftness'].map((name) => {
+    const effect = balanceProfileEffectFromContext(context, PROFILE.zephyrsBoon, 'boon', 0, name);
+    return {
+      kind: String(effect?.boon || name).toLowerCase(),
+      stacks: Number(effect?.stacks ?? 1),
+      duration: Number(effect?.duration ?? 5)
+    };
+  });
+}
+
 /** Grants scheduler-side Zephyr's Boon effects for one aura application. */
 export function applySchedulerZephyrsBoon(
   context: ElementalistSchedulerContext,
@@ -271,30 +284,24 @@ export function applySchedulerZephyrsBoon(
   sourceId: Skill['id']
 ): void {
   if (!hasTrait(context, "Zephyr's Boon")) return;
-  emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Fury', 'Fury', 1, 5, skillName, sourceId);
-  emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Swiftness', 'Swiftness', 1, 5, skillName, sourceId);
+  for (const boon of zephyrsBoonEffects(context)) {
+    emitSkillBuff(context, elementalistEventSkill(context, skillName, sourceId), {
+      at,
+      source: skillName,
+      sourceId,
+      actorType: 'player',
+      skillName,
+      priority: 0,
+      ...boon
+    });
+  }
 }
 
 /** Grants resolver-side Zephyr's Boon effects for one classified aura event. */
 export function applyResolverZephyrsBoon(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, "Zephyr's Boon")) return;
-  const fury = balanceProfileEffectFromContext(context, PROFILE.zephyrsBoon, 'boon', 0, 'Fury');
-  const swiftness = balanceProfileEffectFromContext(context, PROFILE.zephyrsBoon, 'boon', 0, 'Swiftness');
   const source = String(event.skillName || event.name || event.source || '');
-  queueElementalistBuff(
-    context,
-    event,
-    String(fury?.boon || 'Fury'),
-    Number(fury?.stacks ?? 1),
-    Number(fury?.duration ?? 5),
-    source
-  );
-  queueElementalistBuff(
-    context,
-    event,
-    String(swiftness?.boon || 'Swiftness'),
-    Number(swiftness?.stacks ?? 1),
-    Number(swiftness?.duration ?? 5),
-    source
-  );
+  for (const boon of zephyrsBoonEffects(context)) {
+    queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, source);
+  }
 }

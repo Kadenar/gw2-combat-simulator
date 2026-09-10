@@ -42,6 +42,7 @@ import { tempestModifierRules } from '#gw2/professions/elementalist/specializati
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
+import { tempestAuraBoons } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-boons.js';
 
 // Overloads that count for a full spear etching; Overload Water is not one of them.
 const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOAD_AIR, ID.OVERLOAD_EARTH]);
@@ -345,34 +346,18 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
   if (event.type !== 'elementalist.aura') return;
   const source = String(event.skillName || event.source || 'Aura');
   const sourceId = event.skillId ?? event.sourceId;
-  if (hasTrait(context, 'Invigorating Torrents')) {
-    for (const name of ['Vigor', 'Regeneration'] as const) {
-      const boon = balanceProfileEffectFromContext(context, PROFILE.invigoratingTorrents, 'boon', 0, name);
+  for (const trait of ['Invigorating Torrents', 'Elemental Bastion'] as const) {
+    if (!hasTrait(context, trait)) continue;
+    for (const boon of tempestAuraBoons(context, trait)) {
       emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
         at: event.at,
         source,
         sourceId,
         actorType: 'player',
-        kind: String(boon?.boon || name).toLowerCase(),
-        stacks: Number(boon?.stacks ?? 1),
-        duration: Number(boon?.duration ?? 5),
+        ...boon,
         skillName: source
       });
     }
-  }
-
-  if (hasTrait(context, 'Elemental Bastion')) {
-    const alacrity = balanceProfileEffectFromContext(context, PROFILE.elementalBastion, 'boon', 0, 'Alacrity');
-    emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
-      at: event.at,
-      source,
-      sourceId,
-      actorType: 'player',
-      kind: String(alacrity?.boon || 'Alacrity').toLowerCase(),
-      stacks: Number(alacrity?.stacks ?? 1),
-      duration: Number(alacrity?.duration ?? 4),
-      skillName: source
-    });
   }
 }
 

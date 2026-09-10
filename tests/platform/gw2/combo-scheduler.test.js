@@ -17,6 +17,92 @@ function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   });
 }
 
+test('combo boon predictions reuse profession duration modifiers at the combo time with finisher ownership', () => {
+  const profession = defineProfession({
+    id: 'combo-duration-fixture',
+    name: 'Combo Duration Fixture',
+    catalog: createCanonicalCatalog(),
+    attributeRules: {
+      // Distinct live bonuses make a wrong timestamp or player-forced actor observable.
+      modifyAttributes(context, stats) {
+        const bonus = context.time < 2 ? 0 : context.actorType === 'summon' ? 150 : 300;
+        if (context.actorType === 'summon') assert.equal(context.event.summonOwner, 'fixture-pet');
+        return { ...stats, concentration: Number(stats.concentration || 0) + bonus };
+      }
+    },
+    schedulerHooks: {
+      initialize(context) {
+        for (const fieldType of ['Fire', 'Smoke']) {
+          context.emit({
+            type: 'combo_field',
+            at: 0,
+            expiresAt: 5,
+            source: 'Fixture Field',
+            sourceId: 'fixture.field',
+            actorType: 'effect',
+            fieldId: fieldType,
+            fieldType,
+            ownerId: 'fixture',
+            ownerActorType: 'environment'
+          });
+        }
+
+        for (const [attemptId, effectAt, actorType, fieldId] of [
+          ['early', 1, 'player', 'Fire'],
+          ['late', 3, 'player', 'Fire'],
+          ['pet', 3, 'summon', 'Fire'],
+          ['fixed', 3, 'player', 'Smoke']
+        ]) {
+          context.emit({
+            type: 'combo_finisher',
+            at: 1,
+            effectAt,
+            source: 'Fixture Blast',
+            sourceId: 'fixture.blast',
+            actorType,
+            ...(actorType === 'summon' ? { summonOwner: 'fixture-pet' } : {}),
+            attemptId,
+            finisherType: 'Blast',
+            fieldBinding: { kind: 'field-id', fieldId },
+            chance: 1,
+            applications: 1,
+            successfulCombos: 1
+          });
+        }
+      }
+    }
+  });
+  const rotation = [{ type: 'wait', durationMs: 4000 }];
+  for (const [startingWeaponSet, expectedDurations] of [
+    [1, [20, 24, 22, 3]],
+    [2, [26, 30, 28, 3]]
+  ]) {
+    const config = {
+      startingWeaponSet,
+      weaponSetStats: [{ concentration: 0 }, { concentration: 300 }],
+      sigilSets: [{}, { boonDurationBonus: 10 }]
+    };
+    const predicted = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) }).run(
+      rotation
+    );
+    const resolved = simulateGw2({ profession, config, rotation });
+    assert.deepEqual(resolved.warnings, []);
+    for (const [events, prediction] of [
+      [predicted.events, true],
+      [resolved.resolvedEvents, false]
+    ]) {
+      const boons = events.filter((event) => event.type === 'buff' && event.comboId);
+      assert.equal(boons.length, 4); // Predictions must not become duplicate authoritative applications.
+      for (const [index, attemptId] of ['early', 'late', 'pet', 'fixed'].entries()) {
+        const boon = boons.find((event) => event.attemptId === attemptId);
+        assert.ok(Math.abs(boon.duration - expectedDurations[index]) < 1e-9, `${attemptId}, set ${startingWeaponSet}`);
+        assert.equal(boon.schedulerPrediction === 'combo-result', prediction);
+        assert.equal(boon.actorType, attemptId === 'pet' ? 'summon' : 'player');
+      }
+    }
+  }
+});
+
 test('cast-start field selection survives expiration but still requires a committed impact', () => {
   const catalog = createCanonicalCatalog({
     generated: [
