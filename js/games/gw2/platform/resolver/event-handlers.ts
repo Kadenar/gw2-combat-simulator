@@ -21,15 +21,11 @@ import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolutio
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
 
 interface CreateGw2ResolverEventHandlersOptions {
-  readonly hitResolution: {
-    readonly buildContext: Gw2HitResolution['buildHitResolutionContext'];
-    readonly apply: Gw2HitResolution['applyResolvedHit'];
-  };
-  readonly conditions: {
-    readonly activeStackCount: Gw2ConditionResolution['activeConditionStackCount'];
-    readonly tick: Gw2ConditionResolution['handleConditionTick'];
-    readonly environmentTick: Gw2ConditionResolution['handleEnvironmentConditionTick'];
-  };
+  readonly hitResolution: Gw2HitResolution;
+  readonly conditions: Pick<
+    Gw2ConditionResolution,
+    'activeConditionStackCount' | 'handleConditionTick' | 'handleEnvironmentConditionTick'
+  >;
   readonly reactions: Gw2ResolverReactionRegistry;
 }
 
@@ -72,7 +68,7 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
 }
 
 /**
- * Builds the complete standard GW2 numeric resolver handler set.
+ * Connects shared hit and condition resolvers directly to standard GW2 event handlers.
  *
  * Swap, control, and strike sigils are materialized by the shared GW2
  * scheduler policy. Resolver reactions own critical Air/Earth/Torment effects
@@ -83,12 +79,8 @@ export function createGw2ResolverEventHandlers({
   conditions,
   reactions
 }: CreateGw2ResolverEventHandlersOptions): Gw2ResolverEventHandlers {
-  const { buildContext: buildHitResolutionContext, apply: applyResolvedHit } = hitResolution;
-  const {
-    activeStackCount: activeConditionStackCount,
-    tick: handleConditionTick,
-    environmentTick: handleEnvironmentConditionTick
-  } = conditions;
+  const { buildHitResolutionContext, applyResolvedHit } = hitResolution;
+  const { activeConditionStackCount, handleConditionTick, handleEnvironmentConditionTick } = conditions;
   const handlers: Gw2ResolverEventHandlers = {
     ...createGw2ComboResolution({ reactions }),
     // These event types are canonical timeline/reporting records with no shared

@@ -59,13 +59,13 @@ test('resolver setup shares reactions and creates fresh profession state for eac
 test('shared buff handling prioritizes allied players over summon recipients', () => {
   const handlers = createGw2ResolverEventHandlers({
     hitResolution: {
-      buildContext: () => ({}),
-      apply: () => {}
+      buildHitResolutionContext: () => ({}),
+      applyResolvedHit: () => {}
     },
     conditions: {
-      activeStackCount: () => 0,
-      apply: () => {},
-      tick: () => ({})
+      activeConditionStackCount: () => 0,
+      handleConditionTick: () => ({}),
+      handleEnvironmentConditionTick: () => {}
     },
     reactions: { dispatch: () => {} }
   });

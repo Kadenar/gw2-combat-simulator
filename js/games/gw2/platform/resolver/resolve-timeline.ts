@@ -173,12 +173,8 @@ export function resolveGw2Timeline({
   const hits = createGw2HitResolution({ strikeMultiplier: extensions.strikeMultiplier });
   const conditions = createGw2ConditionResolution({ config, reactions: extensions.reactions });
   const commonHandlers = createGw2ResolverEventHandlers({
-    hitResolution: { buildContext: hits.buildHitResolutionContext, apply: hits.applyResolvedHit },
-    conditions: {
-      activeStackCount: conditions.activeConditionStackCount,
-      tick: conditions.handleConditionTick,
-      environmentTick: conditions.handleEnvironmentConditionTick
-    },
+    hitResolution: hits,
+    conditions,
     reactions: extensions.reactions
   });
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
