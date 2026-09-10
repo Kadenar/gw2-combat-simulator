@@ -123,9 +123,7 @@ export function applyHammerState(context: ElementalistCastContext, skill: Skill)
 
     for (const element of [single]) {
       state.hammerOrbs[element] = at + orbDuration;
-      state.hammerOrbGrantedBy[element] = skill.name;
       state.hammerOrbActivationIds[element] = context.reservationId;
-      state.hammerOrbBuffUntil[element] = at + orbDuration;
       // Only a newly created orb emits a buff; a refresh extended the existing one above.
       if (!previouslyActive.has(element)) {
         emitSkillBuff(context, skill, {
@@ -153,13 +151,11 @@ export function applyHammerState(context: ElementalistCastContext, skill: Skill)
     return expiresAt != null && expiresAt >= context.start;
   });
   for (const element of active) {
-    state.hammerOrbBuffUntil[element] = at + 1;
     for (const event of activeBuffEvents(context, `hammer ${element} orb`, at)) {
       context.replaceEvent(event, { duration: at + 1 - event.at });
     }
 
     state.hammerOrbs[element] = null;
-    state.hammerOrbGrantedBy[element] = null;
     state.hammerOrbActivationIds[element] = null;
   }
 }

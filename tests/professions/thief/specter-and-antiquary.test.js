@@ -16,6 +16,9 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { createAntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { handleThiefState } from '#gw2/professions/thief/state.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const baseConfig = Object.freeze({
@@ -748,6 +751,30 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   assert.deepEqual(limited.warnings, []);
   assert.equal(personalProcs(ID.SKALE_VENOM).length, 8);
   assert.equal(personalProcs(ID.DEVOURER_VENOM).length, 2);
+});
+
+test('Mistburn snapshots preserve spent charges until a new generation is granted', () => {
+  // Scheduler snapshots repeat grants; only a new application may refill resolver-consumed charges.
+  const result = simulate('Antiquary', ['Skritt Swipe', 'Mistburn Mortar']);
+  const snapshot = result.events.find((event) => event.type === 'thief.state' && event.state?.mistburnCharges > 0);
+  assert.ok(snapshot);
+  const state = createAntiquaryState();
+  const context = {
+    profession: { core: createThiefCoreState(), specialization: { kind: 'Antiquary', state } }
+  };
+
+  handleThiefState(context, snapshot);
+  assert.equal(state.mistburnCharges, snapshot.state.mistburnCharges);
+  state.mistburnCharges -= 1;
+  handleThiefState(context, { ...snapshot, at: snapshot.at + 0.1 });
+  assert.equal(state.mistburnCharges, snapshot.state.mistburnCharges - 1);
+
+  handleThiefState(context, {
+    ...snapshot,
+    at: snapshot.at + 0.2,
+    state: { ...snapshot.state, mistburnGeneration: snapshot.state.mistburnGeneration + 1 }
+  });
+  assert.equal(state.mistburnCharges, snapshot.state.mistburnCharges);
 });
 
 test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic', () => {

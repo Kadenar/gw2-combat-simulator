@@ -121,12 +121,10 @@ export interface AmalgamState {
   evolvedUntil: number;
   willingHostUntil: number;
   plasmaticStateUntil: number;
-  thornsUntil: number;
   rapaciousUntil: number;
   predatorUntil: number;
   titanicUntil: number;
   berserkerUntil: number;
-  activeStances: Record<string, number | boolean>;
 }
 
 export interface EngineerState extends EngineerCoreState, ScrapperState, HolosmithState, MechanistState, AmalgamState {}

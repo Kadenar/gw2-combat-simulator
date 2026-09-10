@@ -103,20 +103,13 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
     mergedBatches[skillId] = active;
   }
 
-  for (const generationField of Object.keys(incoming).filter((key) => key.endsWith('Generation'))) {
-    const prefix = generationField.slice(0, -'Generation'.length);
-    const chargesField = `${prefix}Charges`;
-    const expiresAtField = `${prefix}ExpiresAt`;
-    const owner = ownerFor(generationField);
-    const incomingGeneration = Number(incoming[generationField] || 0);
-    const currentGeneration = Number(owner[generationField] || 0);
-    if (
-      incomingGeneration === currentGeneration &&
-      Number(incoming[expiresAtField] || 0) > event.at &&
-      Object.hasOwn(owner, chargesField)
-    ) {
-      preserved[chargesField] = owner[chargesField] || 0;
-    }
+  // Repeated snapshots of the same Mortar application must not refill consumed Mistburn charges.
+  if (
+    context.profession.specialization.kind === 'Antiquary' &&
+    Number(incoming.mistburnGeneration || 0) === Number(specialization.mistburnGeneration || 0) &&
+    Number(incoming.mistburnExpiresAt || 0) > event.at
+  ) {
+    preserved.mistburnCharges = specialization.mistburnCharges || 0;
   }
 
   preserved.venomChargeBatches = mergedBatches;

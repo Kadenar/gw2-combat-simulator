@@ -17,8 +17,7 @@ import {
   completeRevenantWeaponCast,
   expireImperialGuard,
   observeRevenantWeaponEvent,
-  resetCoalescenceOfRuin,
-  updateRevenantWeaponState
+  resetCoalescenceOfRuin
 } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import {
   afterRevenantCast,
@@ -58,15 +57,6 @@ function onCastComplete(context: RevenantCastContext, skill: RevenantSkill): voi
   completeRevenantWeaponCast(context, skill);
 }
 
-/**
- * Updates weapon transitions before applying general Revenant after-cast
- * trait reactions.
- */
-function afterCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  updateRevenantWeaponState(context, skill);
-  afterRevenantCast(context, skill);
-}
-
 function advance(context: RevenantSchedulerContext, time: number): void {
   advanceRevenantEnergy(context, time);
   advanceRevenantSpearState(context, time);
@@ -104,7 +94,7 @@ export const revenantSchedulerHooks = Object.freeze({
   },
   onCastStart,
   onCastComplete,
-  afterCast,
+  afterCast: afterRevenantCast,
   /**
    * Makes legend swap immediately available after a global cooldown reset.
    */

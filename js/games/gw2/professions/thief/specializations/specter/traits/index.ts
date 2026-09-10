@@ -165,7 +165,6 @@ export function handleDarkSentry(
     state.darkSentryReadyAtByAlly[String(allyIndex)] = task.at + Number(profile?.internalCooldown ?? 1);
   }
 
-  state.darkSentryReadyAt = Math.max(0, ...Object.values(state.darkSentryReadyAtByAlly));
   emitSkillBuff(context, {
     at: task.at,
     source: 'Trait',

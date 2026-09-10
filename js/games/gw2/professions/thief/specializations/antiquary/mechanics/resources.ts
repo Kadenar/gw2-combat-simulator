@@ -30,7 +30,6 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
 
   if (Number(state.holoUtilityCooldownReductionExpiresAt || 0) <= target) {
     // bulk-clear the per-use expiration list once the last window has passed; individual uses are consumed in rules.ts
-    state.holoUtilityCooldownReduction = 0;
     state.holoUtilityCooldownReductionExpirations = [];
   }
 

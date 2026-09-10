@@ -183,12 +183,8 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
   const at = context.effectiveEnd;
   const state = amalgamState.from(context);
   const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
-  // Apply protocol-owned state before any trait reactions inspect the cast.
+  // Schedule the protocol's retaliation pulses before applying its trait payoffs.
   if (morphKind === 'thorns') {
-    state.thornsUntil = Math.max(
-      state.thornsUntil,
-      at + balanceProfileValueFromContext(context, PROFILE.morphs, 'durationMultiplier', 6)
-    );
     scheduleThornsRetaliation(context, skill, at);
   }
 

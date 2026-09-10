@@ -3,8 +3,8 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 /**
  * Revenant temporary weapon and flip state. The shared GW2 controller owns
- * canonical autoattack chains; this module owns Abyssal Strike, Imperial
- * Guard, True Strike, and the typed tasks that expire those follow-ups.
+ * canonical autoattack chains; this module owns Imperial Guard, True Strike,
+ * and the typed tasks that expire those follow-ups.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type {
@@ -14,17 +14,6 @@ import type {
   RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
-
-/** Updates the Revenant-specific Abyssal Strike sequence after shared chain handling. */
-export function updateRevenantWeaponState(context: RevenantCastContext, skill: RevenantSkill): void {
-  const state = professionCoreState(context);
-  if (context.action?.cancelled === true) return;
-  if (skill.id === ID.ABYSSAL_STRIKE) {
-    state.abyssalStrikeSecondCast = !state.abyssalStrikeSecondCast;
-  } else if (skill.type === 'Weapon' || Number(skill.castTimeMs || 0) > 0) {
-    state.abyssalStrikeSecondCast = false;
-  }
-}
 
 /** Resets Coalescence of Ruin when Drop the Hammer's delayed strike lands. */
 export function observeRevenantWeaponEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {

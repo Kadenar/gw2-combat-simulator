@@ -123,7 +123,6 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
 
   state.leadAttackExpirations = expirations;
   state.leadAttacksStacks = expirations.length;
-  state.leadAttacksUntil = expirations.length ? Math.max(...expirations) : 0;
 
   emitThiefStateSnapshot(context, at, 'lead-attacks');
 }

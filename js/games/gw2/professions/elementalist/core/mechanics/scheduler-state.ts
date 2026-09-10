@@ -35,7 +35,6 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
   for (const element of ELEMENTALIST_ATTUNEMENTS) {
     if (Number(state.hammerOrbs[element] || 0) < at) {
       state.hammerOrbs[element] = null;
-      state.hammerOrbGrantedBy[element] = null;
       state.hammerOrbActivationIds[element] = null;
     }
   }

@@ -614,10 +614,6 @@ test('Thorns damaging-field assumption creates six one-second retaliations', () 
     active.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Rapacious Strain').length,
     6
   );
-  assert.equal(
-    active.endState.profession.thornsUntil,
-    active.steps.find((step) => step.skill === 'Defensive Protocol: Thorns').end / 1000 + 6
-  );
 });
 
 test('Rapacious Strain follows Flux State packets beyond its half-second ICD', () => {

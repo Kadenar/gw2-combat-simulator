@@ -81,7 +81,7 @@ const specializationStateKeys = Object.freeze({
     'weakeningStrikeReady'
   ],
   Deadeye: ['markedTargetId', 'malice', 'maximumMalice', 'maleficentSevenTriggered'],
-  Specter: ['shadowForce', 'maximumShadowForce', 'shadowForcePoolCapacity', 'shadowShroudActive', 'darkSentryReadyAt'],
+  Specter: ['shadowForce', 'maximumShadowForce', 'shadowForcePoolCapacity', 'shadowShroudActive'],
   Antiquary: [
     'artifactSlots',
     'artifactUsesRemaining',

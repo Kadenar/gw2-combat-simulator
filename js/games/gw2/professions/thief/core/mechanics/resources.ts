@@ -52,7 +52,6 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     : Number(resources?.maximumStacks ?? 12);
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
-  state.leadAttacksUntil = state.leadAttackExpirations.length ? Math.max(...state.leadAttackExpirations) : 0;
   refreshVenomCharges(state, target);
 
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt || 0) <= target) {

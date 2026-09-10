@@ -1,5 +1,3 @@
-import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
 import type { RevenantConfig, RevenantCoreState } from '#gw2/professions/revenant/types.js';
 
@@ -22,7 +20,6 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     activeUpkeeps: [],
     availableFlips: {},
     autoattackChains: {},
-    abyssalStrikeSecondCast: false,
     endurance: 100,
     maximumEndurance: 100,
     enduranceUpdatedAt: 0,
@@ -36,10 +33,8 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     combatBeganAt: null,
     nextThrillOfCombatAt: null,
     exposeDefensesUsed: false,
-    selfConditionDurationMultiplier: hasTrait(config, TRAIT.PACT_OF_PAIN) ? 1.1 : 1,
     selfConditions: [],
     selfConditionCount: Math.max(0, Math.trunc(Number(config.selfConditionCount || 0))),
-    activeLegendSummons: {},
     traitProcReadyAt: {}
   };
 }
@@ -55,15 +50,12 @@ export const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreSt
   'activeUpkeeps',
   'availableFlips',
   'autoattackChains',
-  'abyssalStrikeSecondCast',
   'endurance',
   'maximumEndurance',
   'enchantedDaggers',
   'battleScars',
   'crushingAbyss',
   'combatBeganAt',
-  'selfConditionDurationMultiplier',
   'selfConditions',
-  'selfConditionCount',
-  'activeLegendSummons'
+  'selfConditionCount'
 ]);

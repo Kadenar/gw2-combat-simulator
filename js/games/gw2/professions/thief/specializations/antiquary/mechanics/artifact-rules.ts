@@ -180,7 +180,6 @@ function modifyAntiquaryRechargeDuration(context: ThiefPrecastContext, duration:
 
   // consume the earliest slot; each Holo-Dancer Decoy use adds one entry, so stacking is supported
   expirations.shift();
-  state.holoUtilityCooldownReduction = expirations.length ? 1 - multiplier : 0;
   state.holoUtilityCooldownReductionExpiresAt = expirations.length ? Math.max(...expirations) : 0;
   return duration * multiplier;
 }

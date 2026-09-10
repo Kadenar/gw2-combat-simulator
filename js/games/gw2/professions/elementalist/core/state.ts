@@ -77,9 +77,7 @@ export interface ElementalistCoreState {
   shatteringStoneHitsRemaining: number;
   shatteringStoneUntil: number;
   hammerOrbs: Record<ElementalistAttunement, number | null>;
-  hammerOrbGrantedBy: Record<ElementalistAttunement, string | null>;
   hammerOrbActivationIds: Record<ElementalistAttunement, string | null>;
-  hammerOrbBuffUntil: Record<ElementalistAttunement, number>;
   hammerOrbLastCastAt: number;
   etchings: Record<string, { stage: 'lesser' | 'full'; otherCasts: number } | null>;
   rockBarrierExpiresAt: number;
@@ -145,14 +143,12 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     shatteringStoneHitsRemaining: 0,
     shatteringStoneUntil: 0,
     hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
-    hammerOrbGrantedBy: { Fire: null, Water: null, Air: null, Earth: null },
     hammerOrbActivationIds: {
       Fire: null,
       Water: null,
       Air: null,
       Earth: null
     },
-    hammerOrbBuffUntil: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
     hammerOrbLastCastAt: Number.NEGATIVE_INFINITY,
     etchings: {},
     rockBarrierExpiresAt: 0,
@@ -227,8 +223,6 @@ export const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'shatteringStoneHitsRemaining',
   'shatteringStoneUntil',
   'hammerOrbs',
-  'hammerOrbGrantedBy',
-  'hammerOrbBuffUntil',
   'hammerOrbLastCastAt',
   'etchings',
   'rockBarrierExpiresAt',

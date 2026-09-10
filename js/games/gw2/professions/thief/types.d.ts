@@ -80,7 +80,6 @@ export interface ThiefCoreState {
   enduranceUpdatedAt: number;
   maximumHealth: number;
   leadAttacksStacks: number;
-  leadAttacksUntil: number;
   leadAttackExpirations: number[];
   fluidStrikesUntil: number;
   quickPocketsReadyAt: number;
@@ -136,7 +135,6 @@ export interface SpecterState {
   shadowForcePoolCapacity: number;
   shadowShroudActive: boolean;
   shadowForceUpdatedAt: number;
-  darkSentryReadyAt: number;
   darkSentryReadyAtByAlly: Record<string, number>;
 }
 
@@ -178,7 +176,6 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   mistburnGeneration: number;
   kryptisDamageUntil: number;
   chakInitiativeRefundUntil: number;
-  holoUtilityCooldownReduction: number;
   holoUtilityCooldownReductionExpiresAt: number;
   holoUtilityCooldownReductionExpirations: number[];
   forgedSurferGeneration: number;

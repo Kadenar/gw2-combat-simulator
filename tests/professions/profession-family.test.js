@@ -1244,7 +1244,7 @@ const engineerSlices = Object.freeze([
 const engineerSpecializationStateKeys = Object.freeze({
   Holosmith: ['heat', 'maximumHeat', 'photonForgeActive', 'overheated', 'solarFocusingLensStacks'],
   Mechanist: ['mech'],
-  Amalgam: ['selectedMorphSkillIds', 'evolvedUntil', 'plasmaticStateUntil', 'activeStances']
+  Amalgam: ['selectedMorphSkillIds', 'evolvedUntil', 'plasmaticStateUntil']
 });
 
 test('Engineer modules contribute disjoint runtime slices', () => {

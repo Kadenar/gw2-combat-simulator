@@ -126,7 +126,6 @@ export interface RevenantCoreState {
   activeUpkeeps: RevenantUpkeepState[];
   availableFlips: Record<string, number | boolean>;
   autoattackChains: Record<string, SkillId>;
-  abyssalStrikeSecondCast: boolean;
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
@@ -136,10 +135,8 @@ export interface RevenantCoreState {
   combatBeganAt: number | null;
   nextThrillOfCombatAt: number | null;
   exposeDefensesUsed: boolean;
-  selfConditionDurationMultiplier: number;
   selfConditions: RevenantSelfCondition[];
   selfConditionCount: number;
-  activeLegendSummons: Record<string, number>;
   traitProcReadyAt: Record<string, number | boolean>;
 }
 

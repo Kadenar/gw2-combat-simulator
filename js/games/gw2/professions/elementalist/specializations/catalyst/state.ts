@@ -12,7 +12,6 @@ export const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = 10;
  * cooldown timestamps for the traits that proc off auras, combos and control.
  */
 export interface CatalystState {
-  catalystBaseEmpowermentActive: boolean;
   energy: number;
   elementalEmpowermentExpiries: number[];
   elementalEmpowermentRefreshStarted: boolean;
@@ -33,7 +32,6 @@ export interface CatalystState {
 export const catalystState = defineProfessionSpecializationState(
   'Catalyst',
   (config: ElementalistConfig = {}): CatalystState => ({
-    catalystBaseEmpowermentActive: false,
     energy: Math.max(
       0,
       Math.min(CATALYST_MAXIMUM_ENERGY, Number(config.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY))
@@ -57,7 +55,6 @@ export const createCatalystState = catalystState.create;
 // Catalyst exposes active stack expiries alongside its resource and sphere timing so
 // insertion-aware UI can report the exact Elemental Empowerment stack count.
 export const CATALYST_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'catalystBaseEmpowermentActive',
   'energy',
   'elementalEmpowermentExpiries',
   'maximumEnergy',
@@ -67,7 +64,6 @@ export const CATALYST_PUBLIC_END_STATE_KEYS = Object.freeze([
 
 /** Values reported for the published Catalyst keys when Catalyst is not the active specialization. */
 export const CATALYST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<CatalystState>> = Object.freeze({
-  catalystBaseEmpowermentActive: false,
   energy: 0,
   elementalEmpowermentExpiries: [],
   maximumEnergy: CATALYST_MAXIMUM_ENERGY,

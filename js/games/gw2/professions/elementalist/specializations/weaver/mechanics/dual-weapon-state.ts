@@ -63,9 +63,7 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
   // buff is only emitted for an element that was not already orbiting.
   for (const element of elements) {
     state.hammerOrbs[element] = at + orbDuration;
-    state.hammerOrbGrantedBy[element] = skill.name;
     state.hammerOrbActivationIds[element] = context.reservationId;
-    state.hammerOrbBuffUntil[element] = at + orbDuration;
     if (!previouslyActive.has(element)) {
       emitSkillBuff(context, skill, {
         at,

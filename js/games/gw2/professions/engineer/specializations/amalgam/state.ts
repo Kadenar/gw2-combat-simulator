@@ -7,12 +7,10 @@ export const AMALGAM_PUBLIC_END_STATE_KEYS = Object.freeze([
   'evolvedUntil',
   'willingHostUntil',
   'plasmaticStateUntil',
-  'thornsUntil',
   'rapaciousUntil',
   'predatorUntil',
   'titanicUntil',
-  'berserkerUntil',
-  'activeStances'
+  'berserkerUntil'
 ] as const satisfies readonly (keyof AmalgamState)[]);
 
 export const AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AmalgamState>> = Object.freeze({
@@ -20,12 +18,10 @@ export const AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AmalgamSta
   evolvedUntil: 0,
   willingHostUntil: 0,
   plasmaticStateUntil: 0,
-  thornsUntil: 0,
   rapaciousUntil: 0,
   predatorUntil: 0,
   titanicUntil: 0,
-  berserkerUntil: 0,
-  activeStances: {}
+  berserkerUntil: 0
 });
 
 /** Creates an isolated Amalgam protocol and strain state from the selected morph configuration. */
@@ -38,12 +34,10 @@ export function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
     evolvedUntil: 0, // set by Evolve
     willingHostUntil: 0, // set by any morph cast (Willing Host trait)
     plasmaticStateUntil: 0, // set by Plasmatic State cast
-    thornsUntil: 0, // Thorns morph — enables Thorns Retaliation damage
     rapaciousUntil: 0, // Rapacious Strain (Thorns silver-lining strain)
     predatorUntil: 0, // Predator Strain (Shred silver-lining strain)
     titanicUntil: 0, // Titanic Strain (Obliterate silver-lining strain) — boosts might scaling
-    berserkerUntil: 0, // Berserker Strain (Demolish silver-lining strain)
-    activeStances: {}
+    berserkerUntil: 0 // Berserker Strain (Demolish silver-lining strain)
   };
 }
 
