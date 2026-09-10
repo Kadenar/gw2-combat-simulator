@@ -87,3 +87,41 @@ test('profession contract supports zero or multiple resource views', () => {
   assert.deepEqual(none.ui.resourceViews({}), []);
   assert.equal(multiple.ui.resourceViews({}).length, 2);
 });
+
+// State factories remain independent while the structured hooks operate on the resulting runtime state.
+test('structured definition containers preserve state, recharge rules, and resolver reactions', () => {
+  const profession = defineProfession({
+    id: 'structured',
+    name: 'Structured',
+    resources: {
+      createProfessionState: (config) => ({ charges: config.charges }),
+      createResolverState: () => ({ damage: 0 }),
+      projectEndState: ({ resolverState }) => ({ damage: resolverState.damage })
+    },
+    castRules: {
+      modifyRechargeDuration: [(_context, duration) => duration / 2, (_context, duration) => duration + 1]
+    },
+    resolverHooks: {
+      eventHandlers: {
+        'structured.damage': (context, event) => {
+          context.profession.damage += event.amount;
+        }
+      },
+      eventReactions: {
+        'damage.resolved': (context) => {
+          context.profession.damage += 1;
+        }
+      }
+    }
+  });
+  const schedulerState = profession.createProfessionState({ charges: 2 });
+  const resolverState = profession.createResolverState({});
+  const context = { profession: resolverState };
+  profession.eventHandlers['structured.damage'](context, { amount: 3 });
+  profession.eventReactions['damage.resolved'](context, {});
+
+  assert.deepEqual(schedulerState, { charges: 2 });
+  assert.deepEqual(profession.createResolverState({}), { damage: 0 });
+  assert.deepEqual(profession.projectEndState({ resolverState }), { damage: 4 });
+  assert.equal(profession.modifyRechargeDuration({}, 10), 6);
+});

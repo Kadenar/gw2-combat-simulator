@@ -31,7 +31,7 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await expect(tab).toHaveAttribute('aria-current', 'page');
   const strip = page.locator('#build-workspace-tabs');
   await expect(strip).toBeVisible();
-  expect(await strip.evaluate((element) => element.nextElementSibling?.id)).toBe('gear-optimizer-view');
+  await expect(page.locator('#app > header #build-workspace-tabs')).toBeVisible();
   await expect(strip.locator('#btn-export-build')).toBeVisible();
   await expect(strip.locator('#btn-import-build')).toBeVisible();
   await expect(page.locator('#gear-optimizer form')).toBeVisible();
