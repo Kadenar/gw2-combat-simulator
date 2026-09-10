@@ -31,7 +31,6 @@ export interface EffectMetadata {
   readonly dhuumfireDuration?: number;
   readonly dhuumfireInterval?: number;
   readonly engineerMech?: boolean;
-  readonly essenceBlastDamagePerSpirit?: number;
   readonly evtcSkillId?: SkillId;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;

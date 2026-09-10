@@ -519,9 +519,9 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
       at: impactAt,
       coefficient: Number(essence?.coefficient ?? 0.75),
       skillWeapon: activePrimaryWeapon(context),
+      // Snapshot the spirit count at activation; the modifier rule owns per-spirit scaling.
       metadata: {
-        activeSpirits: spirits,
-        essenceBlastDamagePerSpirit: Number(essence?.damageIncreasePerStack ?? 0.15)
+        activeSpirits: spirits
       }
     });
     return true;

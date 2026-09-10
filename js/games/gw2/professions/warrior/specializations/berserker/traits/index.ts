@@ -8,8 +8,6 @@ import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type {
   WarriorCastContext,
-  WarriorResolverContext,
-  WarriorResolverEvent,
   WarriorSchedulerContext,
   WarriorSimulationEvent,
   WarriorSkill
@@ -272,14 +270,6 @@ export function observeBerserkerEvent(context: WarriorSchedulerContext, event: W
     payload: { eventOrder: Number(event.eventOrder) },
     required: true
   });
-}
-
-export function reactToBerserkerAura(context: WarriorResolverContext, event: WarriorResolverEvent): void {
-  if (event.aura !== 'Fire Aura') return;
-  berserkerState.from(context).fireAuraUntil = Math.max(
-    berserkerState.from(context).fireAuraUntil,
-    event.at + Number(event.duration || 0)
-  );
 }
 
 // Resolve the delayed King of Fires hit only for the still-current aura

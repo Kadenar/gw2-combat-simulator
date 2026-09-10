@@ -24,7 +24,6 @@ export function createWarriorCoreState(config: WarriorConfig = {}): WarriorCoreS
     adrenaline,
     resource: adrenaline,
     maximumAdrenaline,
-    lastResourceAt: 0,
     endurance: 100,
     maximumEndurance: 100,
     enduranceUpdatedAt: 0,

@@ -34,7 +34,6 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): voi
   const virtue = VIRTUES_BY_SLOT[slot];
   if (!virtue) return;
   const state = professionCoreState(context);
-  state.lastVirtue = virtue;
   state.lastVirtuePassiveWasReady = Number(state.virtueReadyAt[virtue] || 0) <= context.effectiveEnd + context.epsilon;
   const passiveReadyAt = context.rechargeReadyAt ?? context.effectiveEnd;
   emitGuardianEvent(context, skill, 'guardian.virtue-activated', {

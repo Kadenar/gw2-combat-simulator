@@ -715,9 +715,10 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
   );
 
   const petHit = (result) => result.resolvedEvents.find((event) => event.skillId === ID.INTIMIDATING_HOWL).damage;
-  // Only received boons boost the pet: Call of the Wild is currently authored self-only, and party caps can exclude it.
+  // Only received boons boost the pet; allied players take priority under the party target cap.
   for (const [skill, allies, expectedFactor] of [
-    ['Call of the Wild', 0, 1],
+    ['Call of the Wild', 2, 1.03],
+    ['Call of the Wild', 4, 1],
     ['Sun Spirit', 2, 1.01],
     ['Sun Spirit', 4, 1]
   ]) {
@@ -731,8 +732,65 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
     };
     const baseline = simulate('Core', rotation, config);
     const bountiful = simulate('Core', rotation, { ...config, selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER] });
+    if (skill === 'Call of the Wild') {
+      // PvP's six-second Fury variant must not extend the PvE application's duration pool.
+      const fury = baseline.events.filter((event) => event.type === 'buff' && event.kind === 'fury');
+      assert.equal(
+        fury.reduce((duration, event) => duration + event.duration, 0),
+        12
+      );
+      assert.ok(fury.every((event) => event.resolvedAudience.alliedPlayerCount === allies));
+    }
+
     assert.ok(Math.abs(petHit(bountiful) / petHit(baseline) - expectedFactor) < 1e-9, `${skill}, ${allies} allies`);
   }
+});
+
+test("Hunter's Call builds Vulnerability one stack at each spaced hit", () => {
+  const result = simulate('Core', ["Hunter's Call", { type: 'wait', durationMs: 6000 }], {
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Warhorn',
+    target: { conditions: { Vulnerability: 0 } }
+  });
+  assert.deepEqual(result.warnings, []);
+  const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.HUNTERS_CALL);
+  const applications = result.events.filter((event) => event.type === 'condition' && event.skillId === ID.HUNTERS_CALL);
+  // Matching packets must build stacks over time, including after the cast has finished.
+  assert.ok(hits.length > 1);
+  assert.deepEqual(
+    applications.map((event) => event.at),
+    hits.map((event) => event.at)
+  );
+  assert.ok(
+    applications.every((event) => event.condition === 'Vulnerability' && event.stacks === 1 && event.duration === 5)
+  );
+  assert.ok(hits.slice(1).every((event, index) => event.at > hits[index].at));
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.HUNTERS_CALL);
+  assert.ok(hits.at(-1).at > action.endsAt);
+});
+
+test('Call of the Wild dazes, weakens, and resolves a blast combo at completion', () => {
+  const result = simulate('Core', ['Bonfire', 'Swap Weapons', 'Call of the Wild'], {
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Torch',
+    weaponSet2Primary: 'Axe',
+    weaponSet2Secondary: 'Warhorn'
+  });
+  assert.deepEqual(result.warnings, []);
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.CALL_OF_THE_WILD);
+  const daze = result.events.find((event) => event.type === 'control' && event.skillId === ID.CALL_OF_THE_WILD);
+  const weakness = result.events.find((event) => event.type === 'condition' && event.skillId === ID.CALL_OF_THE_WILD);
+  const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === ID.CALL_OF_THE_WILD);
+  assert.equal(daze.controlKind, 'daze');
+  assert.equal(daze.duration, 2);
+  assert.equal(daze.breakbar, 200);
+  assert.equal(weakness.condition, 'Weakness');
+  assert.equal(weakness.duration, 5);
+  assert.equal(combo.finisherType, 'Blast');
+  assert.equal(combo.fieldType, 'Fire');
+  assert.equal(daze.at, action.endsAt);
+  assert.equal(weakness.at, action.endsAt);
+  assert.equal(combo.at, action.endsAt);
 });
 
 test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', () => {

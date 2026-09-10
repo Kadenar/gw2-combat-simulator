@@ -146,8 +146,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'strike',
         coefficient: 0.75,
-        hits: 1,
-        damageIncreasePerStack: 0.15
+        hits: 1
       }
     ],
     type: 'Profession',
@@ -155,7 +154,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroud: 'ritualist',
     shroudSlot: 1,
     specialization: 'Ritualist',
-    // Custom: Emits the equipped-weapon strike with damage scaled by active spirits; see `ritualist/mechanics/spirits.ts`.
+    // Custom emission snapshots active spirits; the Ritualist modifier rule applies their damage increase.
     handlerId: 'necromancer.ritualist'
   },
   [ID.RITUALISTS_SHROUD]: {

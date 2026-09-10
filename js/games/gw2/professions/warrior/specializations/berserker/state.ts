@@ -18,6 +18,7 @@ export function createBerserkerState(): BerserkerState {
   return {
     berserkActive: false,
     berserkUntil: 0,
+    // Scheduler aura observation and detonation tasks own this window; resolver state leaves it at zero.
     fireAuraUntil: 0,
     kingOfFiresReadyAt: 0,
     kingOfFiresCriticalProgress: 0

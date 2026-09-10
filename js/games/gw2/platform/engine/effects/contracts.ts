@@ -11,7 +11,6 @@ const METADATA_VALUE_KINDS = Object.freeze({
   dhuumfireDuration: 'number',
   dhuumfireInterval: 'number',
   engineerMech: 'boolean',
-  essenceBlastDamagePerSpirit: 'number',
   evtcSkillId: 'skillId',
   hitboxIndex: 'number',
   largeHitboxOnly: 'boolean',

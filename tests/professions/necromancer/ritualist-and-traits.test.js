@@ -163,7 +163,6 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
   );
   assert.equal(essence.coefficient, 0.75);
   assert.equal(essence.metadata.activeSpirits, 3);
-  assert.equal(essence.metadata.essenceBlastDamagePerSpirit, 0.15);
   assert.equal(growth.length, 3);
   assert.equal(growthRow.hits, 3);
   assert.equal(growthRow.parentSkill, 'Anguish');

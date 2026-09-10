@@ -18,7 +18,6 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
       resolve: 0,
       courage: 0
     },
-    lastVirtue: '',
     lastVirtuePassiveWasReady: false,
     autoattackChains: {},
     availableFlips: {},

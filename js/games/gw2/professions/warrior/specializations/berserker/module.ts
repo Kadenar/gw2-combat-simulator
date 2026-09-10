@@ -9,7 +9,6 @@ import {
 } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import { berserkerUi } from '#gw2/professions/warrior/specializations/berserker/presentation.js';
-import { berserkerReactions } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk-effects.js';
 import { BERSERKER_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 
 export const berserkerModule = defineNativeModule({
@@ -25,9 +24,6 @@ export const berserkerModule = defineNativeModule({
       skillHandlers: berserkerSkillHandlers,
       castRules: berserkerCastRules,
       hooks: berserkerSchedulerHooks
-    },
-    resolution: {
-      reactions: berserkerReactions
     }
   },
   presentation: berserkerUi

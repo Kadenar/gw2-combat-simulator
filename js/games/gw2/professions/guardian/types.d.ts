@@ -47,7 +47,6 @@ export interface GuardianCoreState {
   justiceActiveBurns: number;
   justicePassiveBurns: number;
   virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
-  lastVirtue: string;
   lastVirtuePassiveWasReady: boolean;
   autoattackChains: Record<string, SkillId>;
   availableFlips: Record<string, number>;

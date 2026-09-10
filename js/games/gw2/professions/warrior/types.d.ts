@@ -31,7 +31,6 @@ export interface WarriorCoreState {
   adrenaline: number;
   resource: number;
   maximumAdrenaline: number;
-  lastResourceAt: number;
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
