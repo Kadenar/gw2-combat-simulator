@@ -34,7 +34,7 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import type { ReconstructedCommand, RotationReconstructionBase } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { replayInterruptDurationMs, retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 
 const TIMING_TOLERANCE_MS = 50;
@@ -68,7 +68,8 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
   const sourceObservedMs = Math.max(0, action.replayInterruptMs ?? action.end - action.start);
   if (sourceObservedMs === 0 && (action.status === 'instant' || action.status === 'unknown')) return null;
   const runtimeMs = action.replayDurationMs ?? quicknessRuntimeDurationMs(skill);
-  const observedMs = replayInterruptDurationMs(skill, sourceObservedMs);
+  // Snap every observed cancellation to the replay's 40 ms action grid, including per-packet channels.
+  const observedMs = quantizeGw2ActionTimingMs(sourceObservedMs);
   return observedMs < runtimeMs ? observedMs : null;
 }
 

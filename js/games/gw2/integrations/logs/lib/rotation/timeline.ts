@@ -103,8 +103,6 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let retainedCastEnd = origin;
   let previousCastStart: number | null = null;
   let pendingAftercast: { until: number; progressedTo: number } | null = null;
-  let interruptPaddingEnd = origin;
-  let interruptPaddingProgress = origin;
   // Log adapters use this scheduler projection when source cast boundaries differ from serial replay timing.
   let projectedTime = origin;
   let projectedReservedEnd = origin;
@@ -122,18 +120,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
   };
 
-  // Wait only after cancellation, preserving the rounded lane without delaying overlapping commands or reviving packets.
-  const appendInterruptPadding = (): void => {
-    appendWait(
-      interruptPaddingEnd -
-        (alignWaitsToSimulatorTiming ? Math.max(projectedTime, projectedReservedEnd) : interruptPaddingProgress)
-    );
-    interruptPaddingEnd = origin;
-    interruptPaddingProgress = origin;
-  };
-
   const appendPendingAftercastWait = (): void => {
-    appendInterruptPadding();
     if (!pendingAftercast) return;
     const waitMs = alignWaitsToSimulatorTiming
       ? quantizeWaitMs(pendingAftercast.until - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
@@ -143,7 +130,6 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   };
 
   const appendObservedIdle = (nextActionAt: number): void => {
-    appendInterruptPadding();
     const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
     const observedGapMs = nextActionAt - blockingEnd;
     const retainedTimingJitter =
@@ -231,13 +217,6 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       );
     }
 
-    if (interruptPaddingEnd > origin && concurrent) {
-      interruptPaddingProgress = Math.max(
-        interruptPaddingProgress,
-        at + (action.replayDurationMs ?? quicknessReferenceCastTimeMs(action.skill))
-      );
-    }
-
     rotation.push(command);
     if (alignWaitsToSimulatorTiming) {
       // Mechanic-owned charge intervals already define their replay occupancy.
@@ -270,15 +249,6 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
         projectedPreviousCastStart = projectedStart;
         projectedInstantReadyAt = Math.max(projectedInstantReadyAt, projectedStart + effectiveRuntimeMs);
         projectedBlockingEnd = Math.max(projectedBlockingEnd, projectedStart + retainedRuntimeMs);
-      }
-    }
-
-    if (action.skill?.interruptMode === 'per-packet' && command.interruptMs != null) {
-      const paddingMs = quantizeGw2ActionTimingMs(command.interruptMs) - command.interruptMs;
-      if (paddingMs > 0) {
-        const end = (alignWaitsToSimulatorTiming ? projectedTime : at) + command.interruptMs;
-        interruptPaddingEnd = Math.max(interruptPaddingEnd, end + paddingMs);
-        interruptPaddingProgress = at + command.interruptMs;
       }
     }
 

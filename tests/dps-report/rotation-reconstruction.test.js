@@ -211,7 +211,8 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
   );
 });
 
-test('preserves shortened per-packet cast durations from dps.report', () => {
+// Report imports retain shortened channels while snapping their replay durations to the action grid.
+test('quantizes shortened per-packet cast durations from dps.report', () => {
   const report = parseDpsReport({
     players: [
       {
@@ -243,7 +244,7 @@ test('preserves shortened per-packet cast durations from dps.report', () => {
   const casts = result.rotation.filter((command) => command.name === 'Whirling Wrath');
 
   assert.equal(casts[0].interruptMs, undefined);
-  assert.equal(casts[1].interruptMs, 1_401);
+  assert.equal(casts[1].interruptMs, 1_400);
 });
 
 test('shortened report inputs preserve elapsed time and obey scheduler cancellation contracts', () => {

@@ -8,8 +8,8 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { event, log } from '../helpers/evtc-fixture.js';
 
-// Synthetic launches distinguish cancellation from idle padding without depending on a saved rotation or cast-speed math.
-test('both log adapters pad raw channel cancellations without granting future launches or delaying overlap', () => {
+// Rounded imports use one cancellation boundary for damage and occupancy while retaining observed gaps and overlaps.
+test('both log adapters quantize channel and atomic cancellations to the same action grid', () => {
   for (const source of ['evtc', 'report']) {
     for (const interruptMode of ['per-packet', 'commit']) {
       const catalog = createCanonicalCatalog({
@@ -20,14 +20,14 @@ test('both log adapters pad raw channel cancellations without granting future la
             castTimeMs: 520,
             unaffectedByQuickness: true,
             interruptMode,
-            effects: [200, 400].map((launch) => ({
+            effects: [200, 400].map((atMs) => ({
               type: 'strike',
               timingAnchor: 'castStart',
               persistsAfterInterrupt: true,
-              interruptCommitMs: launch,
+              interruptCommitMs: atMs,
               ticks: [
-                { atMs: launch, coefficient: 1 },
-                { atMs: launch + 40, launchAtMs: launch, projectile: true, coefficient: 1 }
+                { atMs, coefficient: 1 },
+                { atMs, projectile: true, coefficient: 1 }
               ]
             }))
           },
@@ -35,8 +35,8 @@ test('both log adapters pad raw channel cancellations without granting future la
           { id: 3000, name: 'Blink', castTimeMs: 520, unaffectedByQuickness: true }
         ]
       });
-      const profession = defineProfession({ id: 'padding-contract', name: 'Padding Contract', catalog });
-      for (const duration of [397, 400, 403, 420, 519, 520]) {
+      const profession = defineProfession({ id: 'quantization-contract', name: 'Quantization Contract', catalog });
+      for (const duration of [379, 380, 381, 397, 400, 403, 420, 519, 520]) {
         for (const gap of [0, 200]) {
           const casts = [
             { id: 1000, start: 0, duration },
@@ -82,24 +82,23 @@ test('both log adapters pad raw channel cancellations without granting future la
                 );
           const replay = createScheduler({ profession }).run([...imported.rotation, { name: '__wait', waitMs: 1000 }]);
           const rounded = Math.round(duration / 40) * 40;
-          const elapsed = interruptMode === 'per-packet' ? duration : rounded;
           const label = `${source}, ${interruptMode}, duration ${duration}, gap ${gap}`;
           const channel = replay.steps.find((step) => step.skillId === 1000);
           const overlap = replay.steps.find((step) => step.skillId === 2000);
           const following = replay.steps.find((step) => step.skillId === 3000);
-          assert.equal(channel.end - channel.start, elapsed, label);
+          assert.equal(channel.end - channel.start, rounded, label);
           assert.equal(overlap.start, 160, label);
-          assert.equal(following.start, Math.max(elapsed, rounded) + gap, label);
+          assert.equal(following.start, rounded + gap, label);
           assert.deepEqual(
             replay.events
               .filter((event) => event.type === 'damage' && event.skillId === 1000)
               .map((event) => Math.round(event.at * 1000)),
-            elapsed < 400 ? [200, 240] : [200, 240, 400, 440],
+            rounded < 400 ? [200, 200] : [200, 200, 400, 400],
             label
           );
-          assert.equal(
-            imported.rotation.some((command) => command.name === '__wait' && command.waitMs === rounded - elapsed),
-            rounded > elapsed,
+          assert.deepEqual(
+            imported.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+            gap ? [gap] : [],
             label
           );
         }

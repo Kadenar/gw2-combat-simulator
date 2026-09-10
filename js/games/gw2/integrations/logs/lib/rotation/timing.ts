@@ -6,11 +6,6 @@ import {
   quantizeGw2ActionTimingMs
 } from '#gw2/platform/skills/timing.js';
 
-/** Preserve channel cancellation evidence so rounding cannot launch an extra packet; atomic casts keep tick snapping. */
-export function replayInterruptDurationMs(skill: Skill | null, durationMs: number): number {
-  return skill?.interruptMode === 'per-packet' ? Math.max(0, durationMs) : quantizeGw2ActionTimingMs(durationMs);
-}
-
 /** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
 export function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
   if (skill?.interruptMode === 'per-packet') return false;

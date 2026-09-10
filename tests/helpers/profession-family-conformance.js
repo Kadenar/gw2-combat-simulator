@@ -11,7 +11,6 @@ const EXECUTABLE_FAMILY_KEYS = Object.freeze([
   'eventReactions',
   'initialize',
   'availability',
-  'scheduleSkill',
   'modifyAttributes',
   'modifyStrikeDamage'
 ]);

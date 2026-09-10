@@ -14,7 +14,7 @@ import type {
 } from '#gw2/integrations/logs/lib/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { replayInterruptDurationMs, retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
@@ -172,7 +172,8 @@ function resolveAction(
 /** Preserves shortened inputs; the scheduler cancels damage unless explicit commit or per-packet rules permit it. */
 function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   const sourceDurationMs = action.end - action.start;
-  const interruptMs = replayInterruptDurationMs(action.skill, sourceDurationMs);
+  // Match EVTC imports by snapping channel and atomic cancellations to the same action grid.
+  const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
   const runtimeDurationMs = quicknessReferenceCastTimeMs(action.skill);
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
