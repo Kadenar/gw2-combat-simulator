@@ -33,7 +33,6 @@ const HOOK_DEFINITIONS: readonly (readonly [string, HookCategory])[] = Object.fr
   ['prepareEvent', 'scheduler'],
   ['initialize', 'scheduler'],
   ['availability', 'cast'],
-  ['scheduleSkill', 'cast'],
   ['afterCast', 'scheduler'],
   ['advance', 'scheduler'],
   ['snapshot', 'scheduler'],
@@ -156,17 +155,6 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
           }
         })()
       );
-  }
-
-  if (hookName === 'scheduleSkill') {
-    return (context: SchedulerRecord, skill: Skill) => {
-      let handled = false;
-      for (const hook of hooks) {
-        if (hook.handler(context, skill) === true) handled = true;
-      }
-
-      return handled;
-    };
   }
 
   // Preparers and modifiers pass each result onward, preserving the current value when a hook returns undefined.
@@ -447,7 +435,6 @@ export function defineProfession<TProfessionState extends object>(
     prepareEvent: schedulerHooks.prepareEvent,
     initialize: schedulerHooks.initialize,
     availability: castRules.availability,
-    scheduleSkill: castRules.scheduleSkill,
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,

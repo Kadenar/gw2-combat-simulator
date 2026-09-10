@@ -382,7 +382,6 @@ export interface NormalizedProfessionContract<
   ) => SimulationEventInput;
   readonly initialize: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly availability: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
-  readonly scheduleSkill: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => boolean | void;
   readonly afterCast: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly advance: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
   readonly snapshot: (context: SchedulerContext<TProfessionState>) => unknown;

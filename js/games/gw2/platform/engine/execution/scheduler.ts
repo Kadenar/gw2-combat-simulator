@@ -125,7 +125,7 @@ function cancelledBeforeEffectCommit<TProfessionState extends object>(
 
 /**
  * Expands declarative skill effects into canonical scheduled events. This is
- * only used when a profession hook does not fully handle the cast itself.
+ * only used when the skill handler does not replace declarative effects.
  */
 function scheduleDeclarativeEffects<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
@@ -1043,10 +1043,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     const handler = activeProfession.skillHandlerFor?.(skill);
     const handlerMode = resolveSkillHandlerMode(handler, lifecycleContext, skill);
     const handlerState = handler?.beforeEffects?.(lifecycleContext, skill);
-    // The profession-level hook remains for schedulers that still own their
-    // complete event materialization; catalog handlers use explicit strategies.
-    const professionHandled = activeProfession.scheduleSkill(lifecycleContext, skill) === true;
-    if (handlerMode !== SKILL_HANDLER_MODES.REPLACE && !professionHandled) {
+    // Replacing handlers own emission; all other casts retain their declarative effects.
+    if (handlerMode !== SKILL_HANDLER_MODES.REPLACE) {
       scheduleDeclarativeEffects(
         context,
         skill,
