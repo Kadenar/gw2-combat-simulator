@@ -6,14 +6,8 @@ import {
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
-import type {
-  EngineerMechAttributes,
-  EngineerSimulationEvent,
-  EngineerSkill,
-  EngineerState
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerSimulationEvent, EngineerSkill, EngineerState } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
 export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEvent | undefined {
@@ -64,9 +58,4 @@ export function activeEngineerSpecializationState(
 ): boolean {
   const state = engineerSpecializationState(context, expectedKind);
   return Number(state?.[field] || 0) > context.time;
-}
-
-/** Clones mutable combat attributes while retaining Engineer mech attribute fields. */
-export function cloneEngineerAttributes(attributes: SchedulerRecord): EngineerMechAttributes & SchedulerRecord {
-  return { ...attributes } as EngineerMechAttributes & SchedulerRecord;
 }

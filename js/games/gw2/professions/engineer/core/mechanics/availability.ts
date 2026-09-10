@@ -6,12 +6,7 @@ import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/cor
 import { engineerEnduranceReadyAt } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import { denySkillCast as denyEngineerCast, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import type { EngineerConfig, EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
-
-/** Returns the normalized names of slot skills currently equipped by the Engineer build. */
-export function selectedEngineerSkillNames(config: EngineerConfig): Set<string> {
-  return new Set(selectedSkillNameSet(config.selectedSkills));
-}
+import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, toolbelt, and specialization cast prerequisites. */
 export function engineerCoreCastAvailability(
@@ -103,7 +98,7 @@ export function engineerCoreCastAvailability(
   }
 
   if (skill.handlerId === 'engineer.kit-equip') {
-    if (!selectedEngineerSkillNames(context.config).has(skill.kitName || skill.name)) {
+    if (!selectedSkillNameSet(context.config.selectedSkills).has(skill.kitName || skill.name)) {
       return denyEngineerCast(skill, 'engineer.kit-not-equipped', 'the kit is not selected in a slot.');
     }
 
@@ -131,7 +126,7 @@ export function engineerCoreCastAvailability(
   if (
     skill.toolbeltParentName &&
     skill.countsAsToolbeltSkill !== false &&
-    !selectedEngineerSkillNames(context.config).has(skill.toolbeltParentName)
+    !selectedSkillNameSet(context.config.selectedSkills).has(skill.toolbeltParentName)
   ) {
     return denyEngineerCast(skill, 'engineer.toolbelt-parent', `${skill.toolbeltParentName} is not equipped.`);
   }

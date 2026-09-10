@@ -87,5 +87,3 @@ export const revenantRenegadeEventReactions = Object.freeze({
   damage: reactToDamage,
   life_siphon: modifyLifeSiphon
 });
-
-export const renegadeEventHandlers = Object.freeze({});

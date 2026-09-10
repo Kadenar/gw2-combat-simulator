@@ -4,9 +4,9 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefEventSkill, thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import {
   initializeDeadeyeMalice,
@@ -103,7 +103,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.ONE_IN_THE_CHAMBER) &&
-      Boolean(thiefEventSkill(context)?.categories?.includes('stolen skill'))
+      Boolean(eventSkill(context)?.categories?.includes('stolen skill'))
   },
   {
     id: 'thief.shadow-flare-marked',
@@ -113,7 +113,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       markedTarget(context) &&
-      SHADOW_FLARE_SKILL_IDS.has(Number(thiefEventSkill(context)?.id))
+      SHADOW_FLARE_SKILL_IDS.has(Number(eventSkill(context)?.id))
   },
   {
     id: 'thief.malicious-backstab-position',
@@ -123,7 +123,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      thiefEventSkill(context)?.id === ID.MALICIOUS_BACKSTAB &&
+      eventSkill(context)?.id === ID.MALICIOUS_BACKSTAB &&
       Boolean(context.config?.target?.defiant)
   },
   {
@@ -148,7 +148,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       markedTarget(context) &&
-      MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(Number(thiefEventSkill(context)?.id))
+      MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(Number(eventSkill(context)?.id))
   }
 ]);
 

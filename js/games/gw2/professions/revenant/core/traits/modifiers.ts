@@ -22,8 +22,6 @@ import {
 import {
   afterRevenantCast,
   handleImpossibleOddsStrike,
-  initializeRevenantTraits,
-  modifyRevenantCastDuration,
   modifyRevenantRechargeDuration,
   observeRevenantEvent
 } from '#gw2/professions/revenant/core/traits/index.js';
@@ -69,7 +67,7 @@ function onEventScheduled(context: RevenantSchedulerContext, event: RevenantSimu
 }
 
 /**
- * Revenant availability, cast-duration, and recharge-duration rules.
+ * Revenant availability and recharge-duration rules; cast speed uses shared policy.
  */
 export const revenantCastRules = Object.freeze({
   availability: {
@@ -77,7 +75,6 @@ export const revenantCastRules = Object.freeze({
     order: 10,
     handler: revenantCastAvailability
   },
-  modifyCastDuration: modifyRevenantCastDuration,
   modifyRechargeDuration: modifyRevenantRechargeDuration
 });
 
@@ -85,7 +82,6 @@ export const revenantCastRules = Object.freeze({
  * Revenant scheduler lifecycle hooks and typed task dispatch table.
  */
 export const revenantSchedulerHooks = Object.freeze({
-  initialize: initializeRevenantTraits,
   advance,
   prepareEvent: {
     id: 'revenant.hitbox',

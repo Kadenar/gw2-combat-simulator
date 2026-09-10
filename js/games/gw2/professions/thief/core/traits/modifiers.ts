@@ -26,15 +26,10 @@ import { thiefCoreTaskHandlers } from '#gw2/professions/thief/core/mechanics/tas
 import { applyThiefWeaponSwapEffects } from '#gw2/professions/thief/core/execution/actions.js';
 import { observeThievesGuildCombatEvent } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierHooks, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { ThiefCoreState, ThiefPrecastContext, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-
-export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined {
-  return eventSkill(context);
-}
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
   return readProfessionCoreState<ThiefCoreState>(context.runtime?.profession);
@@ -120,7 +115,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.DEADLY_AIM) &&
-      thiefEventSkill(context)?.weapon === 'Pistol'
+      eventSkill(context)?.weapon === 'Pistol'
   },
   {
     id: 'thief.larcenous-strike-boonless',
@@ -129,7 +124,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: 1.2,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      thiefEventSkill(context)?.id === ID.LARCENOUS_STRIKE &&
+      eventSkill(context)?.id === ID.LARCENOUS_STRIKE &&
       targetBoonless(context)
   },
   {
@@ -171,7 +166,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: 2,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      thiefEventSkill(context)?.id === ID.BACKSTAB &&
+      eventSkill(context)?.id === ID.BACKSTAB &&
       Boolean(context.config?.target?.defiant)
   },
   {
@@ -253,7 +248,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
       result.power += Number(profile?.attributeBonus ?? 80);
     }
 
-    if (Number(state.revealedUntil || 0) > context.time && !thiefEventSkill(context)?.stealthAttack) {
+    if (Number(state.revealedUntil || 0) > context.time && !eventSkill(context)?.stealthAttack) {
       result.power += Number(profile?.attributePerStack ?? 120);
     }
   }

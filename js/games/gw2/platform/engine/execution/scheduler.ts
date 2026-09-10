@@ -17,7 +17,6 @@ import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { compareQueuedEvents } from '#kernel/events/queue.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
-import { cloneProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import type {
@@ -510,9 +509,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     maximumAmmo: maximumAmmoFor
   });
   context.cooldownController = cooldownController;
-  context.castDurationFor = castDurationFor;
-  context.rechargeDurationFor = rechargeDurationFor;
-  context.maximumAmmoFor = maximumAmmoFor;
 
   /** Keeps cast-hook emissions and tasks attached to the cast's activation lineage. */
   function createCastLifecycleContext(
@@ -747,8 +743,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     activeProfession.advance(context, target);
     state.time = target;
   }
-
-  context.advanceTo = advanceTo;
 
   function engineAvailability(skill: Skill, at: number): { ammo: AmmoState | null; result: AvailabilityResult } {
     const ammo = cooldownController.refreshAmmo(skill, at);
@@ -1233,7 +1227,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     steps.sort((left, right) => left.ri - right.ri);
     // Emit the scheduler's completed history in the same order used by resolver queues.
     events.sort(compareQueuedEvents);
-    const snapshot = activeProfession.snapshot(context) ?? cloneProfessionState(state.profession);
+    const snapshot = activeProfession.snapshot(context) ?? structuredClone(state.profession);
     return {
       context,
       state,

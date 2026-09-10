@@ -352,10 +352,6 @@ export function createGw2SchedulerPolicy(
       // start for skills whose recharge anchor is cast end or an effect event.
       // Recharge speed is a rate, so elapsed duration is divided by it.
       return baseDuration / Math.max(Number.EPSILON, rate);
-    },
-
-    maximumAmmo(_context, skill, baseMaximum) {
-      return baseMaximum ?? Number(skill.ammo || 0);
     }
   };
   return Object.freeze(policy);

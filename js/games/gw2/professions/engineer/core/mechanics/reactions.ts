@@ -6,10 +6,10 @@ import {
 import { handleEngineerState } from '#gw2/professions/engineer/state.js';
 import {
   engineerCoreCriticalHitDefinitions,
-  handleEngineerDodge,
   reactToEngineerCondition,
   reactToEngineerDamage
 } from '#gw2/professions/engineer/core/traits/index.js';
+import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives.js';
 
 /** Re-exports Core resolver helpers used by Engineer traits and specialization reactions. */
 export {
@@ -25,7 +25,8 @@ export {
 // event handlers fire when a specific event type is dequeued during resolution
 export const engineerCoreResolverEventHandlers = Object.freeze({
   'engineer.state': handleEngineerState,
-  'engineer.dodge': handleEngineerDodge,
+  // A resolved dodge rearms the trait for the next eligible strike.
+  'engineer.dodge': resetExplosiveEntrance,
   'engineer.lightning-rod-pulse': handleLightningRodPulse,
   'engineer.conduit-surge': handleConduitSurge,
   'engineer.electric-artillery': handleElectricArtillery

@@ -72,8 +72,8 @@ function grantScoundrelsLuck(context: ThiefSchedulerContext, at: number): void {
     !isInternalCooldownReady(at, Number(state.scoundrelsLuckReadyAt || 0)) // ICD prevents banking more than one charge per 20s window
   )
     return;
-  state.scoundrelsLuck = 1; // capped at 1: a second Swipe within the ICD does not stack another charge
   const profile = balanceProfileFromContext(context, PROFILE.scoundrelsLuck);
+  // Refresh to the profile cap without banking charges from earlier Swipes.
   state.scoundrelsLuck = Number(profile?.maximumStacks ?? 1);
   state.scoundrelsLuckReadyAt = at + Number(profile?.internalCooldown ?? 20);
 }

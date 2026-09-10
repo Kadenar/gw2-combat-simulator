@@ -32,8 +32,6 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
-export { snapshotWarriorState } from '#gw2/professions/warrior/state.js';
-
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = { ...attributes } as WarriorModifierAttributes;
   const staticRulesApplied = professionStaticRulesApplied(context.config);

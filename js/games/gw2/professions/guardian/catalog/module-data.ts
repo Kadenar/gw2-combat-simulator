@@ -7,7 +7,6 @@ import { GUARDIAN_BUNDLE_SKILLS } from '#gw2/professions/guardian/data/guardian-
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { TRAITS } from '#gw2/professions/guardian/data/traits-data.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(
@@ -135,13 +134,10 @@ const WEAPON_DATA = defineProfessionWeapons({
   Torch: 'oh'
 });
 
-interface GuardianModuleDataOptions extends ProfessionModuleDataOptions {
-  readonly autoattackChains?: NativeAutoattackChains;
-}
-
+/** Composes module skills and profiles; the profession definition owns autoattack-chain overrides. */
 export function createGuardianModuleData(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], autoattackChains }: GuardianModuleDataOptions
+  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions
 ) {
   return createNativeModuleData({
     id,
@@ -152,7 +148,6 @@ export function createGuardianModuleData(
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    ...(id === 'Core' ? WEAPON_DATA : {}),
-    ...(autoattackChains ? { autoattackChains } : {})
+    ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }

@@ -23,8 +23,7 @@ import {
   applyGrenadier,
   applyShrapnel,
   applyShortFuse,
-  applySteelPackedPowder,
-  resetExplosiveEntrance
+  applySteelPackedPowder
 } from '#gw2/professions/engineer/core/traits/explosives.js';
 import {
   applyEngineerToolbeltTraits,
@@ -63,11 +62,6 @@ function isExplosion(context: EngineerResolverContext, event: EngineerResolverEv
     skill?.kit === 'Grenade Kit' ||
     skill?.id === ID.DEVASTATOR
   );
-}
-
-/** Preserves the registered dodge handler identity while delegating the trait-owned reset. */
-export function handleEngineerDodge(context: EngineerResolverContext): void {
-  resetExplosiveEntrance(context);
 }
 
 /** Dispatches damage reactions in their established causal order. */

@@ -8,12 +8,7 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/query/runtime-rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  activeBoonStacks,
-  cloneEngineerAttributes,
-  engineerEvent,
-  eventSkill
-} from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { activeBoonStacks, engineerEvent, eventSkill } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
@@ -115,7 +110,7 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 
 /** Replaces player attributes with the mech's inherited attribute set for mech-owned events. */
 function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
-  const modified = cloneEngineerAttributes(attributes);
+  const modified = { ...attributes };
   if (!engineerMechEvent(context)) return modified;
   const mightStacks = activeBoonStacks(context, 'might');
   // The mech inherits base player stats, not boon-amplified ones. Strip might

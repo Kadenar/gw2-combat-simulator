@@ -2,10 +2,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { onResolvingDamage, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
 import { renegadeSkillHandlers } from '#gw2/professions/revenant/specializations/renegade/execution/index.js';
-import {
-  renegadeEventHandlers,
-  revenantRenegadeEventReactions
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/reactions.js';
+import { revenantRenegadeEventReactions } from '#gw2/professions/revenant/specializations/renegade/mechanics/reactions.js';
 import {
   renegadeAttributeRules,
   renegadeCastRules,
@@ -46,10 +43,7 @@ export const renegadeModule = defineNativeModule({
           order: 10,
           handler: revenantRenegadeEventReactions.life_siphon
         })
-      ],
-      hooks: {
-        eventHandlers: renegadeEventHandlers
-      }
+      ]
     }
   },
   presentation: renegadeUi

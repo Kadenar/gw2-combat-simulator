@@ -1,5 +1,5 @@
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { cloneProfessionState, flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -71,7 +71,7 @@ function endState(
     ammoBySkillId,
     activeWeaponSet: scheduled.state.activeWeaponSet,
     // Projection lets a profession hide resolver-only bookkeeping.
-    profession: cloneProfessionState(simulationProjection.profession ?? projected ?? resolved.profession)
+    profession: structuredClone(simulationProjection.profession ?? projected ?? resolved.profession)
   };
 }
 

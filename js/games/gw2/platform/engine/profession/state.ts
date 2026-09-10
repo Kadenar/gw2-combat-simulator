@@ -206,7 +206,3 @@ export function defineProfessionSpecializationState<
     }
   });
 }
-
-export function cloneProfessionState(value: unknown): unknown {
-  return structuredClone(value);
-}

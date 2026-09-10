@@ -46,14 +46,6 @@ function attackerInsightApplications(
     : 1;
 }
 
-function attackerInsightFromBoonRemoval(
-  context: WarriorSchedulerContext | WarriorResolverContext,
-  event: WarriorSimulationEvent | WarriorResolverEvent
-): { attempted: number; removed: number; applications: number } {
-  const { attempted, removed } = warriorBoonRemovalCounts(context, event);
-  return { attempted, removed, applications: removed };
-}
-
 function triggerMagebaneTether(
   context: WarriorSchedulerContext | WarriorResolverContext,
   state: {
@@ -76,7 +68,7 @@ function triggerMagebaneTether(
 export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.actorType !== 'player') return;
   if (event.type === 'warrior.boon-removal') {
-    const { applications } = attackerInsightFromBoonRemoval(context, event);
+    const { removed: applications } = warriorBoonRemovalCounts(context, event);
     if (applications > 0 && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(context, spellbreakerState.from(context), event.at, applications);
     }

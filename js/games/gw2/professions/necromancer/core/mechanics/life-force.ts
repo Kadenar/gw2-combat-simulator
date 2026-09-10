@@ -73,7 +73,6 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   state.shroudEnteredAt = 0;
   if (exitId != null) {
     delete state.availableFlips[exitId];
-    delete state.availableFlips[String(exitId)];
   }
 
   // Specialization callbacks run before shared exit traits and the visible weapon transition.

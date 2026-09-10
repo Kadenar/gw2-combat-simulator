@@ -3,10 +3,7 @@ import {
   gainCoreWarriorAdrenaline,
   spendCoreWarriorAdrenaline
 } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
-import {
-  gainBladeswornFlow,
-  bladeswornGainsAdrenalineOnHit
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
+import { gainBladeswornFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import { spendBerserkerAdrenaline } from '#gw2/professions/warrior/specializations/berserker/mechanics/adrenaline.js';
 import { spendParagonAdrenaline } from '#gw2/professions/warrior/specializations/paragon/mechanics/adrenaline.js';
 import { spendSpellbreakerAdrenaline } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/adrenaline.js';
@@ -50,9 +47,9 @@ export function applyWarriorSkillResource(context: WarriorCastContext, skill: Wa
   return spent;
 }
 
-/** Reports whether ordinary strike packets feed the active slice's resource loop. */
+/** Ordinary strikes grant adrenaline except on Bladesworn, which generates passive Flow. */
 export function warriorGainsAdrenalineOnHit(context: WarriorSchedulerContext): boolean {
-  return specializationKind(context) === 'Bladesworn' ? bladeswornGainsAdrenalineOnHit() : true;
+  return specializationKind(context) !== 'Bladesworn';
 }
 
 /** Applies deferred strike-resource gains through the active family policy. */

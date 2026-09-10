@@ -20,7 +20,6 @@ import {
 import { observeEngineerMineFieldEvent } from '#gw2/professions/engineer/core/mechanics/mine-field.js';
 import {
   activeBoonStacks,
-  cloneEngineerAttributes,
   engineerEvent,
   engineerRuntimeState,
   engineerSchedulerState,
@@ -266,7 +265,7 @@ export function compileEngineerModifierRules(rules: readonly Gw2ModifierRule[]) 
 
 /** Applies Core Engineer's static and runtime-dependent attribute changes to a fresh attribute snapshot. */
 function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
-  const modified = cloneEngineerAttributes(attributes);
+  const modified = { ...attributes };
   // buildAttributesApplied guard: prevents double-counting when the build calculator already applied these bonuses
   const buildAttributesApplied = professionStaticRulesApplied(context.config);
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {

@@ -32,7 +32,6 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   RevenantCastContext,
-  RevenantPrecastContext,
   RevenantRechargeContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
@@ -109,14 +108,6 @@ export function handleImpossibleOddsStrike(
     skillWeapon: 'Unequipped',
     canTriggerCriticalSigils: true
   });
-}
-
-/** Seeds trait-owned proc state that depends on the selected build. */
-export function initializeRevenantTraits(_context: RevenantSchedulerContext): void {}
-
-/** Applies active trait/state cast-speed changes to a base duration. */
-export function modifyRevenantCastDuration(_context: RevenantPrecastContext, duration: number): number {
-  return duration;
 }
 
 /** Applies trait-specific recharge multipliers after shared Alacrity policy. */

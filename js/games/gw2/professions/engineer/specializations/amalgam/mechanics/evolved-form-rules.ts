@@ -7,14 +7,13 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import {
   activeBoonStacks,
   activeEngineerSpecializationState,
-  cloneEngineerAttributes,
   eventSkill
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/traits/modifiers.js';
 
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { EngineerEvolveAttributePool, EngineerMaximumAmmoContext } from '#gw2/professions/engineer/types.js';
 
@@ -97,8 +96,8 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 ]);
 
 /** Applies Evolve and Titanic bonuses before finalizing Sharpshooter's replacement attribute. */
-function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
-  const modified = cloneEngineerAttributes(attributes);
+function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+  const modified = { ...attributes };
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
       ? balanceProfileValueFromContext(context, PROFILE.evolve, 'coefficientMultiplier', 1.2)
