@@ -853,6 +853,13 @@ test('Spear Symbol of Luminance keeps all spear skills illuminated while active'
   assert.equal(symbolThenHelio.steps[0].end, 440);
   // The window empowers Helio Rush even though nothing armed it beforehand.
   assert.ok(symbolThenHelio.endState.profession.spearLuminanceUntil > 0);
+  // Both spear proc notifications declare effect ownership before reaching timeline consumers.
+  for (const name of ['Symbol of Luminance', 'Illuminated']) {
+    const proc = symbolThenHelio.events.find((event) => event.type === 'proc' && event.name === name);
+    assert.ok(proc, `${name} proc must be emitted`);
+    assert.equal(proc.actorType, 'effect');
+  }
+
   assert.equal(
     symbolThenHelio.procSteps.some((step) => step.skill === 'Illuminated' && step.sourceSkill === 'Helio Rush'),
     true

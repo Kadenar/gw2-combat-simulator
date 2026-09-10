@@ -175,7 +175,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
 }
 
 /**
- * Emits a skill proc entry for the rotation timeline.
+ * Emits an effect-owned skill proc for the timeline without inferring ownership from its display source.
  */
 function emitProc(
   context: GuardianCastContext,
@@ -192,6 +192,7 @@ function emitProc(
     name,
     sourceSkill,
     source: 'Skill',
+    actorType: 'effect',
     sourceId: `guardian.${name.toLowerCase().replace(/\s+/g, '-')}`,
     icon,
     detail
