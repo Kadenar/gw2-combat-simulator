@@ -206,15 +206,6 @@ export function necromancerBuildAvailability(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill
 ): Readonly<AvailabilityResult> {
-  // Reject catalog and specialization mismatches before evaluating trait replacements.
-  if (skill.simulatorExcluded) {
-    return deny(skill, 'necromancer.simulator-excluded', 'it is excluded from simulation.');
-  }
-
-  if (skill.type !== 'Weapon' && skill.specialization && skill.specialization !== specialization(context)) {
-    return deny(skill, 'necromancer.specialization', `requires the ${skill.specialization} specialization.`);
-  }
-
   if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(context, TRAIT.LINGERING_CURSE)) {
     return deny(
       skill,

@@ -1,5 +1,5 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
@@ -49,7 +49,7 @@ function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvai
     return false;
   }
 
-  return defaultIsSkillAvailable(skill, context);
+  return true;
 }
 
 /**

@@ -1,5 +1,7 @@
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
+import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import type {
   ProfessionFamilyDefinition,
   ProfessionModuleCatalogFragment,
@@ -230,6 +232,21 @@ function compileNativeModule(
     appendOrderedHook(schedulerHooks, 'afterCast', controller.castLifecycle as NativeSchedulerMechanic);
   }
 
+  // Every native runtime includes Core; reject ineligible commands before profession state gates run.
+  if (module.id === 'Core') {
+    appendOrderedHook(castRules, 'availability', {
+      phase: 'scheduler',
+      hook: 'availability',
+      id: 'gw2.build-eligibility',
+      order: -2000,
+      handler(context: { readonly config: { readonly specialization?: string } }, skill: Skill) {
+        return isBuildSkillAvailable(skill, context.config)
+          ? CAST_READY
+          : denyCast('gw2.build-unavailable', `${skill.name} is unavailable for this build.`);
+      }
+    });
+  }
+
   const resolverHooks = { ...((resolution.hooks || {}) as SchedulerRecord) };
   const reactions = {
     ...((resolverHooks.eventReactions || {}) as SchedulerRecord)
@@ -272,6 +289,22 @@ function compileNativeModule(
   const modifiers = Array.isArray(mechanics.modifiers) ? { modifierRules: mechanics.modifiers } : mechanics.modifiers;
   const presentation =
     typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
+  const ui = { ...(presentation as Partial<ProfessionUiContract> | undefined) };
+  if (module.id === 'Core') {
+    const paletteAvailability = ui.paletteSkillAvailability;
+    // Family previews without a selected build infer the skill's specialization, as UI composition does.
+    ui.paletteSkillAvailability = (context, skill) => {
+      const config = context.config as { readonly specialization?: string } | undefined;
+      const build = context.build as { readonly specialization?: string } | undefined;
+      const specialization = String(
+        context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core'
+      );
+      return isBuildSkillAvailable(skill, { specialization })
+        ? (paletteAvailability?.(context, skill) ?? { available: true, message: '' })
+        : { available: false, message: `${skill.name} is unavailable for this build.` };
+    };
+  }
+
   return {
     id: module.id,
     catalog: fragment,
@@ -285,7 +318,7 @@ function compileNativeModule(
     castRules,
     schedulerHooks,
     resolverHooks,
-    ui: presentation as Partial<ProfessionUiContract> | undefined
+    ui
   };
 }
 

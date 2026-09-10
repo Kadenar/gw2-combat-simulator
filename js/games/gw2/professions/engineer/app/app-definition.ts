@@ -3,7 +3,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
@@ -41,11 +41,6 @@ export const engineerAppAdapter = defineProfessionApp({
         selectedMorphSkillIds: [...build.selectedMorphSkillIds]
       };
     }
-  },
-  // The synthetic weapon-swap action remains available so an Engineer can leave an active kit.
-  isSkillAvailable(skill, context) {
-    if (skill.id === -3) return true;
-    return defaultIsSkillAvailable(skill, context);
   },
   defaultOffhand: preferOffhand('Pistol')
 });

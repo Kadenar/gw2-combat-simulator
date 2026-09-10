@@ -9,16 +9,16 @@ import { gw2BuildEditor } from '#gw2/app/build-editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { renderGearOptimizerView } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-view.js';
-import { defaultIsSkillAvailable } from '#gw2/professions/lib/availability.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
 import type {
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
+  ProfessionSkillAvailabilityContext,
   ProfessionSlotLoadout
 } from '#gw2/app/build/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-
-export { defaultIsSkillAvailable } from '#gw2/professions/lib/availability.js';
 
 /**
  * Creates an offhand selector that prefers one weapon when it is available.
@@ -50,7 +50,7 @@ export function defineProfessionApp({
   },
   resetPrompt = `Reset the ${profession.name} build, skills, and rotation?`,
   runtime = {},
-  isSkillAvailable = defaultIsSkillAvailable,
+  isSkillAvailable,
   defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || ''
 }: DefineProfessionAppOptions): Readonly<Gw2AppAdapter> {
   const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules);
@@ -94,7 +94,9 @@ export function defineProfessionApp({
     assumptionControls: (profession.ui.assumptionControls ||
       Object.freeze([])) as readonly ProfessionAssumptionControl[],
     weaponSkillMatchesSet: profession.ui.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
-    isSkillAvailable,
+    // Profession filters may add restrictions, but cannot bypass shared build eligibility.
+    isSkillAvailable: (skill: Skill, context: ProfessionSkillAvailabilityContext = {}) =>
+      isBuildSkillAvailable(skill, context) && (isSkillAvailable?.(skill, context) ?? true),
     defaultOffhand
   });
 }

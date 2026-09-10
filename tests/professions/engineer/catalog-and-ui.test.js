@@ -953,7 +953,7 @@ test('Engineer contextual weapon follow-ups are not standalone selections', () =
 
   const deniedGrenade = simulate('Core', ['Rifle Burst Grenade']);
 
-  assert.match(deniedGrenade.warnings[0], /activates automatically/);
+  assert.match(deniedGrenade.warnings[0], /unavailable for this build/);
 
   for (const [parent, flip] of [
     ['Magnetic Shield', 'Magnetic Inversion'],

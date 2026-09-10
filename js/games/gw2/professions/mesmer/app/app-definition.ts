@@ -24,7 +24,6 @@ export const mesmerAppAdapter = defineProfessionApp({
     }
   },
   isSkillAvailable(skill, { specialization } = {}) {
-    if (skill.simulatorExcluded) return false;
     return !skill.ambush || specialization === 'Mirage';
   },
   defaultOffhand() {

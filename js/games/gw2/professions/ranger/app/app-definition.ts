@@ -1,5 +1,5 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
@@ -28,7 +28,6 @@ export const rangerAppAdapter = defineProfessionApp({
     }
   },
   isSkillAvailable(skill, context = {}) {
-    if (!defaultIsSkillAvailable(skill, context)) return false;
     if (skill.unleashedAmbushSkill && context.specialization !== 'Untamed') {
       return false;
     }

@@ -8,7 +8,7 @@ import { denySkillCast as denyEngineerCast, selectedSlotSkillAvailability } from
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-/** Enforces Core Engineer resource, kit, flip, toolbelt, and specialization cast prerequisites. */
+/** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */
 export function engineerCoreCastAvailability(
   context: EngineerPrecastContext,
   skill: EngineerSkill
@@ -16,7 +16,6 @@ export function engineerCoreCastAvailability(
   const selection = selectedSlotSkillAvailability(context, skill);
   if (selection) return selection;
   const state = professionCoreState(context);
-  const specialization = String(context.config.specialization || 'Core');
   if (skill.id === ID.DODGE) {
     const enduranceCost = balanceProfileValueFromContext(
       context,
@@ -59,15 +58,6 @@ export function engineerCoreCastAvailability(
     );
   }
 
-  if (skill.simulatorExcluded) {
-    // skills marked simulatorExcluded fire automatically from their parent; manual queuing would double them
-    return denyEngineerCast(
-      skill,
-      'engineer.contextual-skill',
-      'this skill activates automatically from its parent skill.'
-    );
-  }
-
   if (skill.id === ID.SWAP_WEAPONS) {
     // engineers have no weapon swap except to exit a kit back to baseline weapons
     return state.activeKit
@@ -77,15 +67,6 @@ export function engineerCoreCastAvailability(
           'engineer.weapon-swap-disabled',
           'engineers can use weapon swap only to leave an active kit.'
         );
-  }
-
-  if (
-    skill.specialization &&
-    skill.type !== 'Weapon' &&
-    // weapon skills are shared across specializations on the weapon bar; only utility/heal/elite are gated
-    String(skill.specialization).toLowerCase() !== specialization.toLowerCase()
-  ) {
-    return denyEngineerCast(skill, 'engineer.wrong-specialization', `requires ${skill.specialization}.`);
   }
 
   if (skill.kit) {

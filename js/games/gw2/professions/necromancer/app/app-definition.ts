@@ -3,7 +3,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 // runtime config mapping, persistence metadata, and shared-shell adapter
 // behavior to the engine contract exported by ../definition.js.
 
-import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -29,13 +29,12 @@ export const necromancerAppAdapter = defineProfessionApp({
   },
   // Keep trait-replaced scepter skills mutually exclusive in the browser catalog.
   isSkillAvailable(skill, context = {}) {
-    if (skill.simulatorExcluded) return false;
     const lingeringCurse = getActiveTraits(context.build?.specializations || []).some(
       (trait) => trait.name === 'Lingering Curse'
     );
     if (skill.id === ID.FEAST_OF_CORRUPTION) return !lingeringCurse;
     if (skill.id === ID.DEVOURING_DARKNESS) return lingeringCurse;
-    return defaultIsSkillAvailable(skill, context);
+    return true;
   },
   defaultOffhand: preferOffhand('Dagger')
 });

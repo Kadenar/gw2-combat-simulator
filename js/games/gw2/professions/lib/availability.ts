@@ -4,16 +4,6 @@ import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-/** Shares build eligibility across selectors and runtime; Weaponmaster Training is always active. */
-export function defaultIsSkillAvailable(
-  skill: Skill,
-  { specialization }: { readonly specialization?: string } = {}
-): boolean {
-  if (skill.simulatorExcluded) return false;
-  if (skill.type === 'Weapon') return true;
-  return !skill.specialization || skill.specialization === specialization;
-}
-
 /** Reject unequipped slot skills before state gates; flips inherit their root's selection. */
 export function selectedSlotSkillAvailability(
   context: { readonly config: Gw2Config; readonly catalog: CanonicalCatalog },

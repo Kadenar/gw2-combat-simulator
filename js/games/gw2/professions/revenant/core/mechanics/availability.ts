@@ -88,10 +88,6 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     return denyRevenantSkill(skill, 'revenant.inactive-legend', 'invoke the matching legend first.');
   }
 
-  if (skill.specialization && skill.type !== 'Weapon' && skill.specialization !== specialization) {
-    return denyRevenantSkill(skill, 'revenant.wrong-specialization', `requires ${skill.specialization}.`);
-  }
-
   if (skill.handlerId === 'revenant.upkeep-release' && !state.availableFlips[skill.id]) {
     return denyRevenantSkill(skill, 'revenant.upkeep-inactive', 'activate the matching upkeep skill first.');
   }

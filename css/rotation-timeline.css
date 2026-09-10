@@ -524,7 +524,13 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   overflow: visible;
   position: relative;
   cursor: grab;
-  transition: all 0.12s;
+  /* Hide immediately with the template skeleton; only animate card styling, never visibility. */
+  transition:
+    transform 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s,
+    opacity 0.12s,
+    filter 0.12s;
   flex-shrink: 0;
 }
 

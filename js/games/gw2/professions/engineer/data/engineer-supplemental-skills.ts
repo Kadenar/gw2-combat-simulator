@@ -2,6 +2,7 @@
  * API-omitted skill identity and display metadata.
  *
  * Combat coefficients, costs, timing, and effects belong in owner-local skills.ts files.
+ * Specialization labels use canonical names so shared build eligibility matches toolbelt skills.
  */
 export interface EngineerSupplementalSkill {
   readonly id: number;
@@ -1047,7 +1048,7 @@ const records: EngineerSupplementalSkill[] = [
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blade_Burst.png',
     type: 'Profession',
     slot: 'Action',
-    specialization: 'holosmith',
+    specialization: 'Holosmith',
     categories: ['tool belt', 'holosmith'],
     nextChainId: null,
     flipSkillId: null,
@@ -1102,7 +1103,7 @@ const records: EngineerSupplementalSkill[] = [
     icon: 'https://render.guildwars2.com/file/3C2B5C060DA920011A20ACDB96DB155D4BDE2A04/103434.png',
     type: 'Action',
     slot: 'Action',
-    specialization: 'holosmith',
+    specialization: 'Holosmith',
     categories: ['holosmith'],
     nextChainId: null,
     flipSkillId: null,
@@ -1116,7 +1117,7 @@ const records: EngineerSupplementalSkill[] = [
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cauterize.png',
     type: 'Profession',
     slot: 'Profession_1',
-    specialization: 'holosmith',
+    specialization: 'Holosmith',
     categories: ['tool belt', 'holosmith'],
     nextChainId: null,
     flipSkillId: null,
@@ -1236,7 +1237,7 @@ const records: EngineerSupplementalSkill[] = [
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Particle_Accelerator.png',
     type: 'Profession',
     slot: 'Action',
-    specialization: 'holosmith',
+    specialization: 'Holosmith',
     categories: ['tool belt', 'holosmith'],
     nextChainId: null,
     flipSkillId: null,

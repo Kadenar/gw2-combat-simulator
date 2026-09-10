@@ -20,18 +20,18 @@ import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
-import { defaultIsSkillAvailable } from '#gw2/professions/lib/availability.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 
 test('shared build eligibility allows elite weapons while restricting slot skills and actions', () => {
   // Synthetic actions follow their skill type, so negative IDs need no separate rule.
   const context = { specialization: 'Mirage' };
-  assert.equal(defaultIsSkillAvailable({ type: 'Weapon', specialization: 'Virtuoso' }, context), true);
-  assert.equal(defaultIsSkillAvailable({ type: 'Utility', specialization: 'Chronomancer' }, context), false);
-  assert.equal(defaultIsSkillAvailable({ type: 'Utility', specialization: 'Mirage' }, context), true);
-  assert.equal(defaultIsSkillAvailable({ id: -4, type: 'Action', specialization: 'Chronomancer' }, context), false);
-  assert.equal(defaultIsSkillAvailable({ id: -1, type: 'Action', specialization: 'Mirage' }, context), true);
-  assert.equal(defaultIsSkillAvailable({ type: 'Utility' }), true);
-  assert.equal(defaultIsSkillAvailable({ type: 'Weapon', simulatorExcluded: true }, context), false);
+  assert.equal(isBuildSkillAvailable({ type: 'Weapon', specialization: 'Virtuoso' }, context), true);
+  assert.equal(isBuildSkillAvailable({ type: 'Utility', specialization: 'Chronomancer' }, context), false);
+  assert.equal(isBuildSkillAvailable({ type: 'Utility', specialization: 'Mirage' }, context), true);
+  assert.equal(isBuildSkillAvailable({ id: -4, type: 'Action', specialization: 'Chronomancer' }, context), false);
+  assert.equal(isBuildSkillAvailable({ id: -1, type: 'Action', specialization: 'Mirage' }, context), true);
+  assert.equal(isBuildSkillAvailable({ type: 'Utility' }), true);
+  assert.equal(isBuildSkillAvailable({ type: 'Weapon', simulatorExcluded: true }, context), false);
 });
 
 const queryProfession = defineProfession({

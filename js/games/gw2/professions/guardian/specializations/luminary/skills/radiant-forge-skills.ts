@@ -24,7 +24,9 @@ export const LUMINARY_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     specialization: 'Luminary',
     castTimeMs: 0,
     cooldown: 0,
-    simulatorExcluded: true,
+    // Reconstruction actions must remain castable; palette visibility is a separate concern.
+    paletteAction: false,
+    simulatorExcluded: false,
     effects: []
   },
   ...[
@@ -42,14 +44,15 @@ export const LUMINARY_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     specialization: 'Luminary',
     castTimeMs: 0,
     cooldown: 0,
-    simulatorExcluded: true,
+    paletteAction: false,
+    simulatorExcluded: false,
     effects: []
   }))
 ]);
 
 export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID]: {
-    simulatorExcluded: true,
+    simulatorExcluded: false,
     castTimeMs: 0,
     effects: []
   },
@@ -57,7 +60,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     Object.values(LUMINARY_INITIAL_STATE_SKILL_IDS).map((skillId) => [
       skillId,
       {
-        simulatorExcluded: true,
+        simulatorExcluded: false,
         castTimeMs: 0,
         effects: []
       }

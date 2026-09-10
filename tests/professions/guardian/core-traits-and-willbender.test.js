@@ -857,7 +857,6 @@ test('non-DPS Guardian slot skills are excluded from the simulator surface', () 
     'Wall of Reflection',
     'Contemplation of Purity',
     '"Stand Your Ground!"',
-    'Valorous Stance',
     'Stalwart Stance',
     'Mantra of Lore',
     'Hallowed Ground',
@@ -867,6 +866,11 @@ test('non-DPS Guardian slot skills are excluded from the simulator surface', () 
   for (const name of excludedNames) {
     assert.equal(guardianCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
   }
+
+  // Valorous Stance has simulated boons, so only its loadout selection is hidden.
+  const valorousStance = guardianCatalog.skillsByName.get('Valorous Stance');
+  assert.equal(valorousStance.simulatorExcluded, false);
+  assert.equal(valorousStance.slotSelectable, false);
 
   const migrated = migrateGuardianBuild({
     ...createGuardianBuildDefaults(),

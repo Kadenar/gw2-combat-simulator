@@ -35,11 +35,6 @@ export function guardianBuildAvailability(
   context: GuardianPrecastContext,
   skill: GuardianSkill
 ): Readonly<AvailabilityResult> {
-  const specialization = selectedGuardianSpecialization(context) || 'Core';
-  if (skill.type !== 'Weapon' && skill.specialization && specialization !== skill.specialization) {
-    return denySkillCast(skill, 'guardian.specialization', `requires the ${skill.specialization} specialization.`);
-  }
-
   // Share equipped-slot validation, including parent selection for mantra flips.
   const selection = selectedSlotSkillAvailability(context, skill);
   if (selection) return selection;

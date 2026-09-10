@@ -1182,7 +1182,7 @@ test('Abyssal Strike uses 520ms Quickness timing for both spear swings', () => {
     secondaryWeapon: ''
   });
 
-  assert.match(hidden.warnings[0], /use Abyssal Strike/);
+  assert.match(hidden.warnings[0], /unavailable for this build/);
 });
 
 test('Searing Fissure resolves its initial packet and three field pulses', () => {

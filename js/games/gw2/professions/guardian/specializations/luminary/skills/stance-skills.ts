@@ -61,6 +61,9 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     ]
   },
   [ID.VALOROUS_STANCE]: {
+    // This non-DPS stance has simulated boons; hide it from loadout slots without blocking recorded casts.
+    simulatorExcluded: false,
+    slotSelectable: false,
     castTimeMs: 250,
     // Activation grants the stance's defensive boons to nearby allies.
     effects: [

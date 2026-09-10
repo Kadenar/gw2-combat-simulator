@@ -2,7 +2,6 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { defaultIsSkillAvailable } from '#gw2/professions/lib/availability.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import type {
@@ -14,7 +13,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerProfessionState } from '#gw2/professions/mesmer/state/types.js';
 
@@ -122,21 +121,6 @@ export function mesmerEventLogRow(
   return present ? present(event) : undefined;
 }
 
-export function mesmerPaletteSkillAvailability(
-  context: MesmerUiContext = {},
-  skill: Skill
-): { available: boolean; message: string } {
-  const specialization = mesmerUiSpecialization(context);
-  if (!defaultIsSkillAvailable(skill, { specialization })) {
-    return {
-      available: false,
-      message: `${skill.name} is unavailable for ${specialization}.`
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Core Mesmer effect labels, colors, and patch-aware stack caps to result views. */
@@ -183,6 +167,5 @@ export const mesmerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
           plural: 'clones',
           maximum: 3
         })
-      : [],
-  paletteSkillAvailability: mesmerPaletteSkillAvailability
+      : []
 });

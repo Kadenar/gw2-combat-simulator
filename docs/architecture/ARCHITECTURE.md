@@ -122,6 +122,14 @@ invalid specialization-only IDs, unused handlers, and handlers owned by the wron
 Weapon skills default to Core runtime ownership for Weaponmaster-style access; a module may explicitly declare
 exceptions in `specializationOnlySkillIds`.
 
+`platform/builds/skill-eligibility.ts` owns baseline build eligibility: excluded skills cannot be selected or cast,
+weapon skills are shared across specializations, and other skills require their declared specialization. Native
+composition installs this gate in Core's runtime and palette availability for every profession; runtime rejection
+precedes profession state checks and uses `gw2.build-unavailable`. Browser adapters always apply the same gate before
+optional profession filters. Profession callbacks add mechanic-specific restrictions, never repeat or override the
+baseline. Palette previews without a selected build retain the UI convention of inferring the skill's specialization.
+Equipped-slot checks, weapon variants, resources, cooldowns, and dynamic state remain separate contracts.
+
 The normal author workflow is:
 
 1. Author raw mechanics and feature behavior in the owning Core or elite directory.
@@ -334,7 +342,8 @@ The scheduler skips declarative emission for replacing handlers, and the catalog
 Mesmer clone attacks, resource gains, expected procs, and Continuum expiry are profession-owned typed tasks on that
 clock. Mesmer selects every exceptional cast through a stable-ID handler and stores scheduler-local controllers
 explicitly on its context; it has no all-skills scheduling hook or module-level runtime registry. Scheduler and UI
-availability share pure profession predicates. Mesmer does not own a scheduler, resolver wrapper, or result builder.
+availability inherit the shared build-eligibility gate and add profession mechanics. Mesmer does not own a scheduler,
+resolver wrapper, or result builder.
 
 ## Events
 
