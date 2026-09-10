@@ -12,7 +12,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistSchedulerContext
+  ElementalistSchedulerContext,
+  ElementalistResolverContext
 } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -24,7 +25,6 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistDerivedCondition,
-  elementalistResolverCoreState,
   queueElementalistBuff,
   recordElementalistTraitProc
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
@@ -115,9 +115,9 @@ export function applyWrittenInStone(
 }
 
 /** Applies Strength of Stone after an already-classified immobilize event. */
-export function applyStrengthOfStone(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Strength of Stone')) return;
-  const state = elementalistResolverCoreState(context);
+  const state = professionCoreState(context);
   if (!isInternalCooldownReady(event.at, Number(state.procReadyAt.strengthOfStone || 0))) return;
   state.procReadyAt.strengthOfStone =
     event.at + balanceProfileValueFromContext(context, PROFILE.strengthOfStone, 'internalCooldown', 3);

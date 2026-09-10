@@ -1,18 +1,8 @@
 /** Shared resolver-side state, attribution, boon, and condition helpers for Elementalist behavior. */
 import { EPSILON } from '#kernel/core/clock.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-
-/** Resolves Core state whether the resolver stores it directly or under the Core module namespace. */
-export function elementalistResolverCoreState(context: Gw2ResolverRuntime): ElementalistCoreState {
-  const profession = context.profession as {
-    core?: ElementalistCoreState;
-  } & SchedulerRecord;
-  return profession.core || (profession as unknown as ElementalistCoreState);
-}
 
 /** Returns the best available display name for the skill behind a resolver event. */
 export function elementalistSourceSkill(event: Gw2ResolverEvent): string {

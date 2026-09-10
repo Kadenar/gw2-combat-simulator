@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
+import { applyElementalistResolverBuff } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
@@ -34,6 +35,23 @@ test('Elementalist runtimes keep elite state in the active specialization slice'
         assert.equal(Object.hasOwn(state.specialization.state, key), owner === active, `${active}:${owner}:${key}`);
       }
     }
+  }
+});
+
+// Resolver buffs must mutate Core without leaking fields into an elite's state.
+test('Elementalist resolver buffs update only the owned Core state', () => {
+  for (const specialization of ['Core', ...Object.keys(SPECIALIZATION_STATE_KEYS)]) {
+    const config = { specialization };
+    const profession = elementalistProfession.resolveRuntime(config).createProfessionState(config);
+    const eliteBefore = structuredClone(profession.specialization.state);
+    applyElementalistResolverBuff(
+      { profession },
+      { kind: 'shattering stone', at: 2, stacks: 3, duration: 5, resolvedAudience: { includesSelf: true } }
+    );
+    assert.equal(profession.core.shatteringStoneHitsRemaining, 3);
+    assert.equal(profession.core.shatteringStoneUntil, 7);
+    assert.equal(Object.hasOwn(profession, 'shatteringStoneHitsRemaining'), false);
+    assert.deepEqual(profession.specialization.state, eliteBefore);
   }
 });
 

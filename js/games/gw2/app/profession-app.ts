@@ -1,4 +1,5 @@
 import { bindPageControls, normalizeSelectedSkills } from '#gw2/app/build/index.js';
+import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
 import {
   captureActiveBuildTab,
   loadBuildWorkspace,
@@ -226,6 +227,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   /** Commits cheap build derivations now and assigns the immutable revision used by worker results. */
   private prepareSimulationState(): number {
     recordRotationHistory(this);
+    // Optimizer results can contain zero or one allocation; keep both editor rows before recalculating.
+    if (this.build.infusions.length !== 2) this.build.infusions = normalizeInfusions(this.build.infusions, []);
     normalizeSelectedSkills(this);
     this.adapter.recalculate(this);
     this.buildRevision += 1;

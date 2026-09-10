@@ -207,11 +207,7 @@ export function initializeWarriorTraits(context: WarriorSchedulerContext): void 
     hasTrait(context, TRAIT.FURIOUS) ||
     hasTrait(context, TRAIT.SUNDERING_BURST)
   ) {
-    (
-      context.schedulerPolicy as unknown as {
-        requireCriticalFacts?: () => void;
-      }
-    ).requireCriticalFacts?.();
+    context.schedulerPolicy.requireCriticalFacts?.();
   }
 }
 

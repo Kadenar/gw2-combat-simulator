@@ -1,6 +1,7 @@
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefCoreState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 interface DeadeyeAvailabilityContext {
   readonly state?: { readonly profession?: unknown };
@@ -10,12 +11,8 @@ interface DeadeyeAvailabilityContext {
 export function deadeyeCastAvailability(context: DeadeyeAvailabilityContext, skill: ThiefSkill): AvailabilityResult {
   if (skill.id === ID.SHADOW_SWAP) {
     // Shadow Swap is a flip skill that only appears after Shadow Flare lands; block it directly rather than relying on the flip expiry in weapon-state.ts
-    const profession = context.state?.profession as {
-      readonly core?: { readonly availableFlips?: Record<string, number> };
-      readonly availableFlips?: Record<string, number>;
-    };
-    // Context may carry a flat ThiefState (UI path) or a structured ThiefRuntimeState (scheduler path)
-    const flips = profession?.core?.availableFlips || profession?.availableFlips;
+    // The palette supplies flat state; scheduling supplies the nested Core slice.
+    const flips = readProfessionCoreState<ThiefCoreState>(context.state?.profession).availableFlips;
     const expiresAt = Number(flips?.[String(ID.SHADOW_SWAP)] || 0);
     if (expiresAt <= Number(context.start || 0)) {
       return {

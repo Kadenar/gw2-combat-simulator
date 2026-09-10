@@ -21,11 +21,7 @@ export const berserkerSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
     // King of Fires needs resolved critical facts before the Berserker event observer runs.
     if (hasTrait(context, TRAIT.KING_OF_FIRES)) {
-      (
-        context.schedulerPolicy as unknown as {
-          requireCriticalFacts?: () => void;
-        }
-      ).requireCriticalFacts?.();
+      context.schedulerPolicy.requireCriticalFacts?.();
     }
   },
   advance: {

@@ -17,7 +17,8 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistSchedulerContext
+  ElementalistSchedulerContext,
+  ElementalistResolverContext
 } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -28,7 +29,6 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistDerivedCondition,
-  elementalistResolverCoreState,
   queueElementalistBuff,
   recordElementalistTraitProc
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
@@ -265,8 +265,8 @@ export function applyElementalLockdown(context: ElementalistSchedulerContext, ev
 }
 
 /** Materializes Arcane Precision after its registered critical-hit reaction succeeds. */
-export function applyArcanePrecision(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const attunement = elementalistResolverCoreState(context).primaryAttunement;
+export function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+  const attunement = professionCoreState(context).primaryAttunement;
   const condition = balanceProfileEffectFromContext(context, PROFILE.arcanePrecision, 'condition', 0, attunement);
   const fallback = {
     Fire: { condition: 'Burning', duration: 1.5 },

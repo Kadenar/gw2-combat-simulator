@@ -9,6 +9,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 
 export interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
@@ -161,6 +162,8 @@ export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> &
   SchedulerRecord & {
     readonly catalog: CanonicalCatalog<WarriorSkill>;
     readonly config: WarriorConfig;
+    /** Lets trait initialization request GW2 critical facts when the policy provides them. */
+    readonly schedulerPolicy: Partial<Pick<Gw2SchedulerPolicy, 'requireCriticalFacts'>>;
   };
 
 export type WarriorCastContext = CastLifecycleContext<WarriorRuntimeState> & {

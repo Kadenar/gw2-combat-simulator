@@ -521,7 +521,7 @@ function normalizeSelectedSkills(
   return normalized;
 }
 
-function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[]): Gw2BuildInfusion[] {
+export function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[]): Gw2BuildInfusion[] {
   const source = Array.isArray(value) ? value : fallback;
   const valid = source.filter((entry) => isPlainObject(entry) && listedName(INFUSION_STATS, entry.stat));
   if (source.length && !valid.length) return normalizeInfusions(fallback, []);

@@ -18,6 +18,7 @@ import { daredevilModifierRules } from '#gw2/professions/thief/specializations/d
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
@@ -51,6 +52,28 @@ const simulate = createProfessionSimulator(thiefProfession, baseConfig);
 const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thiefCatalog, patch), patch);
 
 const authoringThiefProfession = withActivePatchPreview(thiefProfession);
+
+// The scheduler and palette must agree on the Shadow Swap flip's lifetime.
+test('Deadeye availability reads live and expired flips from nested and flat Core state', () => {
+  const swap = thiefCatalog.skillsById.get(ID.SHADOW_SWAP);
+  const flare = thiefCatalog.skillsById.get(ID.SHADOW_FLARE);
+  for (const nested of [false, true]) {
+    for (const expiresAt of [undefined, 4, 5, 6]) {
+      const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: expiresAt } };
+      const context = { start: 5, state: { profession: nested ? { core } : core } };
+      const result = deadeyeCastAvailability(context, swap);
+      assert.equal(result.ready, expiresAt > 5);
+      if (!result.ready) {
+        assert.equal(result.code, 'thief.shadow-flare');
+        assert.equal(result.retryAt, null);
+      }
+
+      assert.equal(deadeyeCastAvailability(context, flare).ready, true);
+    }
+  }
+
+  assert.equal(deadeyeCastAvailability({}, swap).ready, false);
+});
 
 test('Thief catalog retains reviewed packet and schema mechanics', () => {
   assert.equal(thiefCatalog.skillsByName.get("Death's Advance").id, 40436);

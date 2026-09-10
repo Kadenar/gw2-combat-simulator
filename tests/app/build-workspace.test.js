@@ -121,7 +121,7 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   assert.equal(restored.tabs[1].session.results, null);
 });
 
-test('workspace save and load preserve an explicitly empty infusion selection', async (t) => {
+test('workspace save and load give empty infusion selections two unequipped rows', async (t) => {
   const values = storage(t);
   const warrior = await loadProfessionAppAdapter('warrior');
   const build = warrior.profession.createBuildDefaults();
@@ -139,10 +139,65 @@ test('workspace save and load preserve an explicitly empty infusion selection', 
   saveBuildWorkspace(app);
   const saved = JSON.parse(values.get(workspaceStorageKey(warrior))).tabs[0].build;
   const restored = loadBuildWorkspace(warrior).tabs[0].build;
-  const emptyRows = warrior.profession.createBuildDefaults().infusions.map(({ stat }) => ({ stat, count: 0 }));
+  const emptyRows = [
+    { stat: 'Power', count: 0 },
+    { stat: 'Precision', count: 0 }
+  ];
   assert.deepEqual(saved.infusions, emptyRows);
   assert.deepEqual(restored.infusions, emptyRows);
   assert.deepEqual(build.infusions, []);
+});
+
+// Legacy presets often have unused rows before their equipped stats; keep allocations when shrinking the editor.
+test('workspace loading compacts legacy infusion rows and caps allocations to two stats', async (t) => {
+  const values = storage(t);
+  const warrior = await loadProfessionAppAdapter('warrior');
+  const build = warrior.profession.createBuildDefaults();
+  for (const [infusions, expected] of [
+    [
+      [
+        { stat: 'Power', count: 0 },
+        { stat: 'Precision', count: 0 },
+        { stat: 'Condition Damage', count: 18 }
+      ],
+      [
+        { stat: 'Condition Damage', count: 18 },
+        { stat: 'Power', count: 0 }
+      ]
+    ],
+    [
+      [
+        { stat: 'Power', count: 4 },
+        { stat: 'Power', count: 8 },
+        { stat: 'Expertise', count: 99 }
+      ],
+      [
+        { stat: 'Power', count: 12 },
+        { stat: 'Expertise', count: 6 }
+      ]
+    ],
+    [
+      [
+        { stat: 'Power', count: 2 },
+        { stat: 'Precision', count: 6 },
+        { stat: 'Expertise', count: 10 }
+      ],
+      [
+        { stat: 'Expertise', count: 10 },
+        { stat: 'Precision', count: 6 }
+      ]
+    ],
+    [
+      [{ stat: 'Expertise', count: 4 }],
+      [
+        { stat: 'Expertise', count: 4 },
+        { stat: 'Power', count: 0 }
+      ]
+    ]
+  ]) {
+    values.set(warrior.storageKey, JSON.stringify({ ...build, infusions }));
+    assert.deepEqual(loadBuildWorkspace(warrior).tabs[0].build.infusions, expected);
+  }
 });
 
 test('legacy missing and malformed infusion selections still receive defaults', async (t) => {
