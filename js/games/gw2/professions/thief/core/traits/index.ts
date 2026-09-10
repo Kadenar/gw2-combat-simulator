@@ -1,10 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { gainThiefEndurance } from '#gw2/professions/thief/core/mechanics/resource-events.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { applyFluidStrikes, applyHardToCatch } from '#gw2/professions/thief/core/traits/acrobatics.js';
 import {
@@ -55,17 +50,10 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
   applyHiddenThief(context, at);
 }
 
-/** Applies steal-completion resource traits while retaining the elite compatibility call. */
+/** Applies Core steal resources before the active specialization grant and the final stolen-skill snapshot. */
 export function applyStealCompletionTraits(context: ThiefCastContext, at: number): void {
   applyKleptomaniac(context, at);
-  if (hasTrait(context.config, TRAIT.ENDURANCE_THIEF)) {
-    gainThiefEndurance(
-      context,
-      Number(balanceProfileFromContext(context, PROFILE.enduranceThief)?.resourceGain ?? 50),
-      at,
-      'endurance-thief'
-    );
-  }
+  context.onThiefStealComplete?.(context);
 }
 
 /** Dispatches initiative, movement, and dual-wield trait state at cast completion. */

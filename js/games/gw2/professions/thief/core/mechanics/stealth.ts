@@ -8,7 +8,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import type {
   ThiefCastContext,
-  ThiefCoreState,
   ThiefPrecastContext,
   ThiefScheduledTask,
   ThiefSchedulerContext,
@@ -17,6 +16,11 @@ import type {
   ThiefStealthAttackChargeState
 } from '#gw2/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+
+/** Reads optional attack charges from the active specialization without borrowing Core fields. */
+export function thiefStealthAttackChargeState(context: ThiefSchedulerContext): Partial<ThiefStealthAttackChargeState> {
+  return context.state.profession.specialization.state as Partial<ThiefStealthAttackChargeState>;
+}
 
 export const THIEF_BREAK_STEALTH_TASK = 'thief.break-stealth-on-strike';
 
@@ -90,14 +94,7 @@ export function handleStealthBreakingStrike(
 // apply leave-stealth traits and Revealed from one cast-start transition.
 export function beginStealthAttack(context: ThiefPrecastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
-  const specialization = context.state.profession.specialization;
-  const specializationState = specialization.state as Partial<ThiefStealthAttackChargeState>;
-  const stealthAttackState: Partial<ThiefStealthAttackChargeState> = Object.hasOwn(
-    specializationState,
-    'stealthAttackCharges'
-  )
-    ? specializationState
-    : (state as ThiefCoreState & Partial<ThiefStealthAttackChargeState>);
+  const stealthAttackState = thiefStealthAttackChargeState(context);
   const stealthed =
     state.stealthStartedAt <= context.start &&
     state.stealthUntil > context.start &&

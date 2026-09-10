@@ -9,14 +9,12 @@ import { thiefTrapCastAvailability } from '#gw2/professions/thief/core/mechanics
 import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { denySkillCast as deny, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import type {
-  ThiefCoreState,
-  ThiefPrecastContext,
-  ThiefSkill,
-  ThiefStealthAttackChargeState
-} from '#gw2/professions/thief/types.js';
+import type { ThiefCoreState, ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { THIEF_BREAK_STEALTH_TASK } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import {
+  THIEF_BREAK_STEALTH_TASK,
+  thiefStealthAttackChargeState
+} from '#gw2/professions/thief/core/mechanics/stealth.js';
 
 function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
@@ -35,14 +33,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   const selection = selectedSlotSkillAvailability(context, skill);
   if (selection) return selection;
   const state = professionCoreState(context);
-  const specialization = context.state.profession.specialization;
-  const specializationState = specialization.state as Partial<ThiefStealthAttackChargeState>;
-  const stealthAttackState: Partial<ThiefStealthAttackChargeState> = Object.hasOwn(
-    specializationState,
-    'stealthAttackCharges'
-  )
-    ? specializationState
-    : (state as ThiefCoreState & Partial<ThiefStealthAttackChargeState>);
+  const stealthAttackState = thiefStealthAttackChargeState(context);
   if (skill.id === ID.DODGE) {
     return state.endurance + Number(context.epsilon || 0.0001) >= 50
       ? { ready: true }

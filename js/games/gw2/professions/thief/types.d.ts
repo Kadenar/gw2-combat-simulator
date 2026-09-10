@@ -249,6 +249,8 @@ export interface ThiefSkill extends Skill {
 }
 
 export type ThiefSchedulerContext = SchedulerContext<ThiefRuntimeState> & {
+  /** Active specialization completion runs after Core steal resources and before its final snapshot. */
+  onThiefStealComplete?: (context: ThiefCastContext) => void;
   readonly catalog: CanonicalCatalog<ThiefSkill>;
   readonly config: ThiefConfig;
 };
@@ -259,11 +261,12 @@ export type ThiefPrecastContext = CastContext<ThiefRuntimeState> & {
   readonly skill: ThiefSkill;
 };
 
-export type ThiefCastContext = CastLifecycleContext<ThiefRuntimeState> & {
-  readonly catalog: CanonicalCatalog<ThiefSkill>;
-  readonly config: ThiefConfig;
-  readonly skill: ThiefSkill;
-};
+export type ThiefCastContext = CastLifecycleContext<ThiefRuntimeState> &
+  Pick<ThiefSchedulerContext, 'onThiefStealComplete'> & {
+    readonly catalog: CanonicalCatalog<ThiefSkill>;
+    readonly config: ThiefConfig;
+    readonly skill: ThiefSkill;
+  };
 
 export type ThiefResourceContext = ThiefSchedulerContext & {
   readonly start?: number;

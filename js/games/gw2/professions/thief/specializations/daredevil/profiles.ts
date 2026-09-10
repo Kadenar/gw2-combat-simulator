@@ -9,6 +9,7 @@ export const DAREDEVIL_BALANCE_PROFILE_IDS = Object.freeze({
   lotusTraining: TRAIT.LOTUS_TRAINING,
   unhinderedCombatant: TRAIT.UNHINDERED_COMBATANT,
   staffMaster: TRAIT.STAFF_MASTER,
+  enduranceThief: TRAIT.ENDURANCE_THIEF,
   brawlersTenacity: TRAIT.BRAWLERS_TENACITY,
   weakeningStrikes: TRAIT.WEAKENING_STRIKES
 });
@@ -51,6 +52,9 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.unhinderedCombatant, 'Unhindered Combatant', {
     effects: [{ type: 'boon', boon: 'Swiftness', stacks: 1, duration: 8 }]
+  }),
+  trait(DAREDEVIL_BALANCE_PROFILE_IDS.enduranceThief, 'Endurance Thief', {
+    resourceGain: 50
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.staffMaster, 'Staff Master', {
     resourceGain: 2

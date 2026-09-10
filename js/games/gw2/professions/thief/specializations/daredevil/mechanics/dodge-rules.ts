@@ -13,11 +13,13 @@ import { daredevilCastAvailability } from '#gw2/professions/thief/specialization
 import { updatePalmStrikeWindow } from '#gw2/professions/thief/specializations/daredevil/mechanics/palm-strike.js';
 import {
   applyDaredevilDodge,
+  applyEnduranceThief,
   beginDaredevilTraits
 } from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
 
 function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
   const state = professionCoreState(context);
+  context.onThiefStealComplete = applyEnduranceThief;
   // Daredevil owns both its third dodge and the dynamic health conversion from Marauder's Resilience.
   state.maximumEndurance = Number(
     balanceProfileFromContext(context, 'thief.daredevil.resources')?.maximumStacks ?? 150

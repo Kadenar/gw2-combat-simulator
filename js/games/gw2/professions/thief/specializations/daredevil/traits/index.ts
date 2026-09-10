@@ -180,3 +180,14 @@ export function beginDaredevilTraits(context: ThiefCastContext, skill: ThiefSkil
   spendDaredevilTraitResources(context, skill);
   applyWeakeningStrike(context, skill);
 }
+
+/** Grants Daredevil's selected on-steal endurance at completion, before the final Core snapshot. */
+export function applyEnduranceThief(context: ThiefCastContext): void {
+  if (!hasTrait(context.config, TRAIT.ENDURANCE_THIEF)) return;
+  gainThiefEndurance(
+    context,
+    Number(balanceProfileFromContext(context, PROFILE.enduranceThief)?.resourceGain ?? 50),
+    context.effectiveEnd,
+    'endurance-thief'
+  );
+}

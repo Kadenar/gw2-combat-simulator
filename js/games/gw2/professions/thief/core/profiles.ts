@@ -25,7 +25,6 @@ export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   sleightOfHand: TRAIT.SLEIGHT_OF_HAND,
   hiddenThief: TRAIT.HIDDEN_THIEF,
   kleptomaniac: TRAIT.KLEPTOMANIAC,
-  enduranceThief: TRAIT.ENDURANCE_THIEF,
   leadAttacks: TRAIT.LEAD_ATTACKS,
   fluidStrikes: TRAIT.FLUID_STRIKES,
   hardToCatch: TRAIT.HARD_TO_CATCH,
@@ -220,9 +219,6 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.kleptomaniac, 'Kleptomaniac', {
     resourceGain: 2
-  }),
-  trait(THIEF_CORE_BALANCE_PROFILE_IDS.enduranceThief, 'Endurance Thief', {
-    resourceGain: 50
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.leadAttacks, 'Lead Attacks', {
     maximumStacks: 15,
