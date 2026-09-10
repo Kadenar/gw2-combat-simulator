@@ -26,23 +26,9 @@ import type {
   EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSimulationEvent,
-  EngineerSkill,
-  HolosmithState
+  EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
-
-interface HeatSegment {
-  readonly start: number;
-  readonly end: number;
-  readonly startHeat: number;
-  readonly rate: number;
-}
-
-interface HighHeatInterval {
-  readonly start: number;
-  readonly end: number;
-  readonly endsAbove: boolean;
-}
 
 interface PhotonForgeHeatPayload extends SchedulerRecord {
   readonly skillId: string | number;
@@ -101,67 +87,6 @@ function nextPassiveHeatTick(at: number): number {
   return Math.round((at + HOLOSMITH_HEAT.heatTickInterval) * 1e9) / 1e9;
 }
 
-// Records one linear heat segment and advances state.heat.
-// When cooling, clamps end time so heat never goes below zero (avoids negative segments).
-function appendHeatSegment(
-  segments: HeatSegment[],
-  state: HolosmithState,
-  start: number,
-  end: number,
-  rate: number
-): void {
-  if (!(end > start)) return;
-  const startHeat = Number(state.heat || 0);
-  let segmentEnd = end;
-  if (rate < 0 && startHeat + (end - start) * rate < 0) {
-    segmentEnd = start + startHeat / -rate;
-  }
-
-  segments.push({
-    start,
-    end: segmentEnd,
-    startHeat,
-    rate
-  });
-  state.heat = Math.max(0, Math.min(state.maximumHeat, startHeat + (segmentEnd - start) * rate));
-}
-
-/** Clips a linear heat segment to the portion above ECSU's might threshold. */
-function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
-  const heatThreshold = HOLOSMITH_HEAT.enhancedCapacityThreshold;
-  const endHeat = segment.startHeat + (segment.end - segment.start) * segment.rate;
-  // Rising heat begins eligibility at the threshold crossing and remains eligible through the segment end.
-  if (segment.rate > 0) {
-    if (endHeat <= heatThreshold) return null;
-    return {
-      start:
-        segment.startHeat > heatThreshold
-          ? segment.start
-          : segment.start + (heatThreshold - segment.startHeat) / segment.rate,
-      end: segment.end,
-      endsAbove: true
-    };
-  }
-
-  // Falling heat ends eligibility at its threshold crossing and records whether the next segment stays eligible.
-  if (segment.rate < 0) {
-    if (segment.startHeat <= heatThreshold) return null;
-    return {
-      start: segment.start,
-      end: endHeat > heatThreshold ? segment.end : segment.start + (segment.startHeat - heatThreshold) / -segment.rate,
-      endsAbove: endHeat > heatThreshold
-    };
-  }
-
-  // Flat segments are either wholly eligible or wholly below threshold.
-  if (segment.startHeat <= heatThreshold) return null;
-  return {
-    start: segment.start,
-    end: segment.end,
-    endsAbove: true
-  };
-}
-
 /** Emits one profiled Enhanced Capacity Storage Unit might pulse. */
 function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number): void {
   const boon = balanceProfileEffectFromContext(context, PROFILE.enhancedCapacity, 'boon');
@@ -179,35 +104,6 @@ function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number
     duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', balanceProfileValue(boon, 'duration', 6)),
     stacks: balanceProfileValue(boon, 'stacks', 2)
   });
-}
-
-/** Materializes ECSU might across high-heat segments while carrying pulse readiness between calls. */
-function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, segments: readonly HeatSegment[]): void {
-  if (!hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) return;
-  const state = holosmithState.from(context);
-  let readyAt = state.enhancedCapacityMightReadyAt;
-  // Walk chronological high-heat intervals while retaining cadence across contiguous eligible segments.
-  for (const segment of segments) {
-    const interval = highHeatInterval(segment);
-    if (!interval) {
-      readyAt = null;
-      continue;
-    }
-
-    if (readyAt == null || Number(readyAt) < interval.start - context.epsilon) {
-      readyAt = interval.start;
-    }
-
-    // Emit every due pulse inside the interval, then carry the next boundary into later calls.
-    while (Number(readyAt) <= interval.end + context.epsilon) {
-      emitEnhancedCapacityMight(context, Number(readyAt));
-      readyAt = Number(readyAt) + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
-    }
-
-    if (!interval.endsAbove) readyAt = null;
-  }
-
-  state.enhancedCapacityMightReadyAt = readyAt;
 }
 
 /** Emits the first ECSU might pulse immediately when a discrete heat gain crosses the threshold. */
@@ -342,27 +238,33 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   if (photonicBlastingModule) emitPhotonicBlastingModuleEffects(context, effectAt);
 }
 
-/** Advances continuous heat bookkeeping to a target time without crossing discrete cadence tasks. */
+/** Advances ECSU pulses over constant heat between discrete heat/cooling tasks. */
 export function advancePhotonForgeState(context: EngineerSchedulerContext, target: number): void {
   const state = holosmithState.from(context);
   const from = Number(state.heatUpdatedAt || 0);
   if (target <= from) return;
   const previousHeat = state.heat;
-  const previousForgeActive = state.photonForgeActive;
-  const previousOverheated = state.overheated;
-  const segments: HeatSegment[] = [];
+  const heat = Number(state.heat || 0);
+  state.heat = Math.max(0, Math.min(state.maximumHeat, heat));
+  if (hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
+    let readyAt = state.enhancedCapacityMightReadyAt;
+    if (heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) {
+      readyAt = null;
+    } else {
+      if (readyAt == null || Number(readyAt) < from - context.epsilon) readyAt = from;
+      // Include the boundary before same-time heat tasks run, retaining the next pulse across advances.
+      while (Number(readyAt) <= target + context.epsilon) {
+        emitEnhancedCapacityMight(context, Number(readyAt));
+        readyAt =
+          Number(readyAt) + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
+      }
+    }
 
-  // Passive gain and cooling are discrete 100 ms tasks. Keep heat flat between
-  // those boundaries so heat-tier pulses observe the value active in each interval.
-  appendHeatSegment(segments, state, from, target, 0);
+    state.enhancedCapacityMightReadyAt = readyAt;
+  }
 
-  materializeEnhancedCapacityMight(context, segments);
   state.heatUpdatedAt = target;
-  if (
-    state.heat !== previousHeat ||
-    state.photonForgeActive !== previousForgeActive ||
-    state.overheated !== previousOverheated
-  ) {
+  if (state.heat !== previousHeat) {
     emitEngineerStateSnapshot(context, target, 'passive-heat');
   }
 }

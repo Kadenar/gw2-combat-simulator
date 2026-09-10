@@ -15,7 +15,11 @@ import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { holosmithProfileStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
-import { engineerPhotonForgeSkillHandlers } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
+import {
+  advancePhotonForgeState,
+  engineerPhotonForgeSkillHandlers,
+  handlePhotonForgeHeat
+} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
 import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { createMechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
@@ -41,6 +45,63 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+
+test('ECSU carries pulse readiness, resets at the threshold, and restarts on a discrete crossing', () => {
+  // Split advances must preserve the cadence; returning above the threshold grants an immediate pulse.
+  const config = { initialHeat: 101, selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT] };
+  const state = createHolosmithState(config);
+  const events = [];
+  const context = {
+    config,
+    epsilon: 1e-9,
+    state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Holosmith', state } } },
+    events,
+    emit: (event) => {
+      events.push(event);
+      return event;
+    }
+  };
+  advancePhotonForgeState(context, 0.25);
+  assert.equal(state.enhancedCapacityMightReadyAt, 1);
+  advancePhotonForgeState(context, 1);
+  advancePhotonForgeState(context, 1);
+  state.heat = 100;
+  advancePhotonForgeState(context, 1.1);
+  assert.equal(state.enhancedCapacityMightReadyAt, null);
+
+  state.photonForgeActive = true;
+  handlePhotonForgeHeat(context, { at: 1.1, payload: { amount: 1 } });
+  assert.equal(state.enhancedCapacityMightReadyAt, 2.1);
+  advancePhotonForgeState(context, 2.1);
+  assert.deepEqual(
+    events.filter((event) => event.type === 'buff').map((event) => event.at),
+    [0, 1, 1.1, 2.1]
+  );
+
+  // Removing segment bookkeeping must retain normalization and its public state snapshot.
+  for (const [at, heat, expected] of [
+    [2.2, 200, 150],
+    [2.3, -1, 0]
+  ]) {
+    state.heat = heat;
+    advancePhotonForgeState(context, at);
+    assert.equal(state.heat, expected);
+    assert.equal(events.at(-1).state.heat, expected);
+  }
+});
+
+test('ECSU emits a due boundary pulse before same-time cooling drops heat to the threshold', () => {
+  // Cooling reaches 100 at four seconds; that boundary still belongs to the preceding high-heat interval.
+  const result = simulate('Holosmith', [{ type: 'wait', durationMs: 5000 }], {
+    initialHeat: 105,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+  const pulses = result.events.filter(
+    (event) => event.type === 'buff' && event.sourceId === TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+  );
+  assert.ok(pulses.some((event) => event.at === 4));
+  assert.ok(pulses.every((event) => event.at <= 4));
+});
 
 test('Photon Forge heat generation and cooling use current piecewise rates', () => {
   const beforeFirstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 99 }]);
