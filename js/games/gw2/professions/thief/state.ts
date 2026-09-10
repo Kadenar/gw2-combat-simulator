@@ -84,7 +84,11 @@ export function projectThiefEndState({
       ...(state.holoUtilityCooldownReductionExpirations || []).filter((expiresAt) => expiresAt > schedulerState.time)
     )
   };
-  return projectPublicProfessionState(publicState, THIEF_PUBLIC_END_STATE_KEYS, INACTIVE_STATE_DEFAULTS);
+  return projectPublicProfessionState<typeof publicState, keyof typeof publicState>(
+    publicState,
+    THIEF_PUBLIC_END_STATE_KEYS,
+    INACTIVE_STATE_DEFAULTS
+  );
 }
 
 // Resolver snapshots are routed back to whichever runtime slice declares each field, preserving scheduler ownership.
