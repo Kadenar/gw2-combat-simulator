@@ -145,10 +145,8 @@ export function radiantForgeAvailability(context: GuardianPrecastContext, skill:
 /**
  * Enters or exits Radiant Forge and emits the corresponding state and
  * weapon-bar transition events.
- *
- * Always true because this replacing handler owns the cast.
  */
-function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boolean {
+function radiantForge(context: GuardianCastContext, skill: GuardianSkill): void {
   const entering = skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   const state = luminaryState.from(context);
   if (!entering) {
@@ -180,19 +178,15 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
     radiantWeapon: state.radiantWeapon
   });
   emitForgeTransition(context, skill);
-  return true;
 }
 
 /**
  * Applies state changes and conditional virtue bonuses after a radiant weapon
- * commits, including cancellation of its remaining animation.
- *
- * True for uncommitted casts; otherwise false so declared
- * effects remain authoritative.
+ * commits, even when its remaining aftercast is cancelled.
  */
-function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): boolean {
+function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): void {
   // Use the scheduler's commit decision so cancelled aftercast preserves weapon state and linked virtue output.
-  if (context.action.cancelled) return true;
+  if (context.action.cancelled) return;
   if (skill.radiantWeapon && skill.flipParentId == null) {
     const state = luminaryState.from(context);
     state.radiantWeapon = skill.radiantWeapon;
@@ -242,8 +236,6 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   if (skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK && luminaryState.from(context).radiantCourageShieldArmed) {
     luminaryState.from(context).radiantCourageShieldArmed = false;
   }
-
-  return false;
 }
 
 /** Consumes Justice once at the first committed hammer impact, preserving that cast's ownership for the extra hit. */

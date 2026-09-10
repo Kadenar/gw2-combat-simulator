@@ -168,9 +168,3 @@ export function handleRevenantUpkeepPulse(
     payload
   });
 }
-
-/** Raw Core upkeep callbacks consumed by the Core handler registry. */
-export const revenantUpkeepSkillHandlers = Object.freeze({
-  'revenant.upkeep': toggleRevenantUpkeep,
-  'revenant.upkeep-release': releaseRevenantUpkeep
-});

@@ -1,11 +1,10 @@
 /**
- * Owns synthetic Core Revenant action behavior for legend swap, dodge, and Ancient Echo.
+ * Owns synthetic Core Revenant action behavior for dodge and Ancient Echo.
  * Action declarations live in `skills/actions.ts`; registration lives in `index.ts`.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
-import { swapRevenantLegend } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Pays the profession-wide endurance cost for a dodge. */
@@ -14,12 +13,6 @@ export function performRevenantDodge(context: RevenantCastContext, skill: Revena
   Object.assign(state, spendEndurance(state, Number(skill.resourceCost || 0), context.start, state.maximumEndurance));
   emitRevenantStateSnapshot(context, context.start, reason);
 }
-
-/** Raw profession-wide callbacks consumed by the central handler registry. */
-export const revenantCoreSkillHandlers = Object.freeze({
-  'revenant.legend-swap': swapRevenantLegend,
-  'revenant.dodge': performRevenantDodge
-});
 
 /** Grants Ancient Echo's profession-wide Energy refund. */
 export function gainAncientEchoEnergy(context: RevenantCastContext): void {

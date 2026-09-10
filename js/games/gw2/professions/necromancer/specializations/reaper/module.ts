@@ -27,7 +27,7 @@ export const reaperModule = defineNativeModule({
       additional: [[ID.LIFE_REND, ID.LIFE_SLASH, ID.LIFE_REAP]]
     }
   }),
-  // Reaper adds no persistent specialization state; both phases share the same empty factory.
+  // Each phase gets isolated trait clocks: Chilling Victory advances in the scheduler, Chilling Nova in the resolver.
   state: { scheduler: reaperState.create, resolver: reaperState.create },
   mechanics: {
     modifiers: reaperAttributeRules,

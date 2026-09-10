@@ -20,9 +20,8 @@ export function createLuminaryState(): GuardianLuminaryState {
     radiantResolveArmed: false,
     radiantCourageSwordArmed: false,
     radiantCourageShieldArmed: false,
-    // Effulgent Stance tracking lives in scheduler state so the strike-count
-    // window is checked in real time; the detonation event then replays it
-    // into resolver state for damage calculation.
+    // Resolver handlers activate the stance, count resolved strikes, and consume
+    // the stacks at detonation; the scheduler only emits its boundary events.
     effulgentActiveUntil: 0,
     effulgentStacks: 0
   };

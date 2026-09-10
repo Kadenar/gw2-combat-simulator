@@ -19,16 +19,15 @@ function activePrimaryWeapon(context: GuardianCastContext): string {
   return String(gw2ActivePrimaryWeapon(context.config, weaponSet) || '');
 }
 
-function activateDragonhunterVirtue(context: GuardianCastContext, skill: GuardianSkill): boolean {
+function activateDragonhunterVirtue(context: GuardianCastContext, skill: GuardianSkill): void {
   // Delegates virtue state transitions to the shared core handler first,
   // then appends Dragonhunter-specific logic only for Wings of Resolve.
   guardianVirtueSkillHandlers['guardian.virtue'](context, skill);
-  if (skill.id !== ID.WINGS_OF_RESOLVE) return false;
+  if (skill.id !== ID.WINGS_OF_RESOLVE) return;
   applySoaringDevastation(context, skill, activePrimaryWeapon(context));
-  return false;
 }
 
-function activateSpearOfJustice(context: GuardianCastContext, skill: GuardianSkill): boolean {
+function activateSpearOfJustice(context: GuardianCastContext, skill: GuardianSkill): void {
   const at = context.effectiveEnd;
   const tetherDuration = bigGameHunterTetherDuration(context);
   const tetherUntil = at + tetherDuration;
@@ -49,13 +48,6 @@ function activateSpearOfJustice(context: GuardianCastContext, skill: GuardianSki
       totalApplications: tetherDuration
     });
   }
-
-  return true;
-}
-
-function prepareSpearOfJustice(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  guardianVirtueSkillHandlers['guardian.virtue'](context, skill);
-  return false;
 }
 
 function decorateSpearOfJusticeStrike(
@@ -69,18 +61,17 @@ function decorateSpearOfJusticeStrike(
   });
 }
 
-function activateHuntersVerdict(context: GuardianCastContext, skill: GuardianSkill): boolean {
+function activateHuntersVerdict(context: GuardianCastContext, skill: GuardianSkill): void {
   // Collapses the tether window to the current cast end so the resolver skips
   // any pre-emitted justice pulses that would have fired after this point.
   dragonhunterState.from(context).tetherUntil = context.effectiveEnd;
   emitGuardianEvent(context, skill, 'guardian.dragonhunter-tether-broken');
-  return false;
 }
 
 export const dragonhunterSkillHandlers = Object.freeze({
-  // replaceSkill: handler fully owns the emitted event profile (no declarative effects run)
+  // Keep the declarative strike between shared virtue activation and tether pulse emission.
   'guardian.dragonhunter-justice': augmentSkill({
-    beforeEffects: prepareSpearOfJustice,
+    beforeEffects: guardianVirtueSkillHandlers['guardian.virtue'],
     afterEffect: decorateSpearOfJusticeStrike,
     afterEffects: activateSpearOfJustice
   }),

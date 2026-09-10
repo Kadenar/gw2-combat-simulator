@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
-import { skillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
+import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/catalog/module-data.js';
 import { harbingerResolverEventReactions } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight-effects.js';
 import {
@@ -18,26 +18,12 @@ import { HARBINGER_BALANCE_PROFILES } from '#gw2/professions/necromancer/special
 
 /** Materializes Harbinger skills whose runtime state replaces declarative packets. */
 const harbingerSkillHandlers = new Map([
-  [
-    'necromancer.elixir',
-    skillHandler({
-      mode: SKILL_HANDLER_MODES.REPLACE,
-      beforeEffects: necromancerBlightSkillHandlers['necromancer.elixir']
-    })
-  ],
-  [
-    'necromancer.blight-skill',
-    skillHandler({
-      mode: SKILL_HANDLER_MODES.REPLACE,
-      beforeEffects: necromancerBlightSkillHandlers['necromancer.blight-skill']
-    })
-  ],
+  ['necromancer.elixir', replaceSkillHandler(necromancerBlightSkillHandlers['necromancer.elixir'])],
+  ['necromancer.blight-skill', replaceSkillHandler(necromancerBlightSkillHandlers['necromancer.blight-skill'])],
   [
     'necromancer.dark-barrage',
-    skillHandler({
-      mode: SKILL_HANDLER_MODES.AUGMENT,
-      resolveMode: darkBarrageHandlerMode,
-      beforeEffects: darkBarrage
+    augmentSkillHandler(darkBarrage, {
+      resolveMode: darkBarrageHandlerMode
     })
   ]
 ]);

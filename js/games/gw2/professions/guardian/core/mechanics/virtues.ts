@@ -28,14 +28,11 @@ const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null,
 /**
  * Activates the virtue represented by the skill's profession slot and emits
  * the neutral resolver transition decorated by active elite modules.
- *
- * False when the virtue was handled; false also rejects an
- * unrecognized profession slot without emitting a transition.
  */
-function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): boolean {
+function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): void {
   const slot = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
   const virtue = VIRTUES_BY_SLOT[slot];
-  if (!virtue) return false;
+  if (!virtue) return;
   const state = professionCoreState(context);
   state.lastVirtue = virtue;
   state.lastVirtuePassiveWasReady = Number(state.virtueReadyAt[virtue] || 0) <= context.effectiveEnd + context.epsilon;
@@ -48,17 +45,14 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): boo
     ...(skill.id === GUARDIAN_SKILL_IDS.RADIANT_JUSTICE ? { priority: 10 } : {})
   });
   state.virtueReadyAt[virtue] = passiveReadyAt;
-  return false;
 }
 
 /**
  * Clears all Guardian virtue cooldowns after Renewed Focus completes and emits
  * a resolver refresh event.
- *
- * Always true because this replacing handler owns the cast.
  */
-function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
+function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): void {
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   for (const virtue of context.catalog.skills.filter(
     (candidate) => candidate.categories?.includes('Virtue') && /^Profession_[1-3]$/.test(String(candidate.slot || ''))
   )) {
@@ -66,7 +60,6 @@ function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): boole
   }
 
   emitGuardianEvent(context, skill, 'guardian.virtues-refreshed');
-  return true;
 }
 
 /**

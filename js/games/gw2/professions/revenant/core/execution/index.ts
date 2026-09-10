@@ -3,13 +3,11 @@ import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantCastContext, RevenantSimulationEvent, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import {
-  gainAncientEchoEnergy,
-  revenantCoreSkillHandlers as rawCoreHandlers
-} from '#gw2/professions/revenant/core/execution/actions.js';
+import { gainAncientEchoEnergy, performRevenantDodge } from '#gw2/professions/revenant/core/execution/actions.js';
+import { swapRevenantLegend } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { activateEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
 import { revenantSpearSkillHandlers } from '#gw2/professions/revenant/core/execution/spear.js';
-import { revenantUpkeepSkillHandlers } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { toggleRevenantUpkeep, releaseRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { activateBlossomingAura, detonateBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 
 const handlers = Object.freeze({
@@ -17,19 +15,19 @@ const handlers = Object.freeze({
   'revenant.detonate-blossoming-aura': replaceSkill<RevenantCastContext>({ afterEffects: detonateBlossomingAura }),
   'revenant.weapon-swap': gw2WeaponSwapSkillHandler,
   'revenant.legend-swap': replaceSkill<RevenantCastContext>({
-    afterEffects: rawCoreHandlers['revenant.legend-swap'] as SkillHandlerPhase<RevenantCastContext>
+    afterEffects: swapRevenantLegend as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.dodge': replaceSkill<RevenantCastContext>({
-    beforeEffects: rawCoreHandlers['revenant.dodge'] as SkillHandlerPhase<RevenantCastContext>
+    beforeEffects: performRevenantDodge as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.enchanted-daggers': replaceSkill<RevenantCastContext>({
     afterEffects: activateEnchantedDaggers as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.upkeep': replaceSkill<RevenantCastContext>({
-    afterEffects: revenantUpkeepSkillHandlers['revenant.upkeep'] as SkillHandlerPhase<RevenantCastContext>
+    afterEffects: toggleRevenantUpkeep as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.upkeep-release': replaceSkill<RevenantCastContext>({
-    afterEffects: revenantUpkeepSkillHandlers['revenant.upkeep-release'] as SkillHandlerPhase<RevenantCastContext>
+    afterEffects: releaseRevenantUpkeep as SkillHandlerPhase<RevenantCastContext>
   }),
   'revenant.spear-recharge': augmentSkill<RevenantCastContext>({
     afterEffect: (context, skill, event) =>

@@ -3,10 +3,9 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 /**
  * Shared primitives for every necromancer skill handler.
  *
- * State snapshots and timed-resource mutators for blight/carapace/shades and life force
- *     (`purgeTimedState`, `addCarapace`, `addSoulShards`,
- *     `consumeSoulShards`, `gainNecromancerLifeForce`),
- *     plus the module-composed creature-summon reaction dispatcher.
+ * Owns Core carapace, Soul Shard, and life-force mutations and their snapshots,
+ * plus the module-composed creature-summon reaction dispatcher.
+ * Specialization modules own blight and shade state.
  *
  * Handlers depend on this module; it must not depend on them.
  */

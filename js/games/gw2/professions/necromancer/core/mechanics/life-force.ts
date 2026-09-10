@@ -8,11 +8,11 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 /**
  * Life-force resource clock and cast finalization.
  *
- * `advanceNecromancerState` integrates everything that happens between two
- * points in time: shroud life-force drain (and auto-exit on depletion), * specialization-owned resource clocks, Signet of Undeath/Vampirism passives, * Eternal Life regen, and Lich Form expiry. `leaveShroud` performs
- * the shroud-exit bookkeeping (recharge, Soul Barbs, weapon swap). `finalize-
- * NecromancerCast` runs after each cast to advance the clock and apply skill
- * life-force gain. Called on a tight loop, so it stays allocation-light.
+ * `advanceNecromancerState` integrates shroud drain and depletion, signet
+ * passives, Eternal Life regeneration, and Lich expiry, while delegating elite
+ * resource clocks to their owners. `leaveShroud` handles recharge, Soul Barbs,
+ * and weapon transitions. `finalizeNecromancerCast` advances the clock and
+ * applies skill life-force gains after a cast.
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { syncNecromancerResources } from '#gw2/professions/necromancer/core/state.js';

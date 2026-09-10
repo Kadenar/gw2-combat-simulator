@@ -100,10 +100,8 @@ export function tomePageAvailability(context: GuardianPrecastContext, skill: Gua
 /**
  * Closes the active tome and emits the state transition consumed by the
  * resolver.
- *
- * Always true to indicate the state-only action completed.
  */
-function stowTome(context: GuardianCastContext, skill: GuardianSkill): boolean {
+function stowTome(context: GuardianCastContext, skill: GuardianSkill): void {
   firebrandState.from(context).activeTome = '';
   // Reset Swift Scholar bookkeeping on stow; the streak only counts consecutive
   // pages within a single uninterrupted tome session.
@@ -117,19 +115,15 @@ function stowTome(context: GuardianCastContext, skill: GuardianSkill): boolean {
   emitGuardianEvent(context, skill, 'guardian.tome-stowed', {
     activeTome: ''
   });
-  return true;
 }
 
 /**
  * Pays a completed tome skill's page cost, arms Ashes when appropriate, closes
  * an exhausted tome, and emits the resulting resource snapshot.
- *
- * True when interrupted; false after a completed page use.
  */
-function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  // Interrupted casts must not spend pages; returning true signals the handler
-  // chain that the cast was aborted (consistent with augmentSkill semantics).
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
+function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
+  // Interrupted casts retain their pages and do not activate page-use bonuses.
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
   // The regen timer only ticks while below maximum; spending a page from a full
@@ -291,7 +285,6 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
         }
       : {})
   });
-  return false;
 }
 
 /**

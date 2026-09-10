@@ -89,7 +89,8 @@ function enhancedSkill(context: RevenantSchedulerContext, skill: RevenantSkill):
   return enhancedId == null ? undefined : skillById(context, enhancedId);
 }
 
-function replacesBandTogetherEffects(context: RevenantCastContext, skill: RevenantSkill): boolean {
+/** Selects the enhanced profile before the cast consumes Band Together readiness. */
+export function replacesBandTogetherEffects(context: RevenantCastContext, skill: RevenantSkill): boolean {
   return isBandTogetherReady(renegadeState.from(context), context.start) && enhancedSkill(context, skill) != null;
 }
 
@@ -280,14 +281,3 @@ export function completeBandTogether(
   emitProfileEffects(context, bandTogether, bandTogether);
   emitRevenantStateSnapshot(context, context.effectiveEnd, 'band-together');
 }
-
-/** Raw Renegade callbacks consumed by the module handler registry. */
-export const revenantAssassinRenegadeSkillHandlers = Object.freeze({
-  'revenant.heroic-command': castHeroicCommand,
-  'revenant.orders-from-above': castOrdersFromAbove,
-  'revenant.band-together': Object.freeze({
-    beforeEffects: beginBandTogether,
-    replacesEffects: replacesBandTogetherEffects,
-    afterEffects: completeBandTogether
-  })
-});
