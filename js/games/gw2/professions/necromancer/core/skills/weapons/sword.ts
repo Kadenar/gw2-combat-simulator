@@ -63,11 +63,10 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         hits: 1
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 2
-        }
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 2
       }
     ]
   },
@@ -188,11 +187,10 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'cast'
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 5
-        },
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 5,
         atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'

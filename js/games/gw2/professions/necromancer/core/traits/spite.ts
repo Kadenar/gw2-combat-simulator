@@ -117,8 +117,17 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
     coefficient,
     noCrit: true
   });
+}
+
+/** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
+export function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  if (event.actorType !== 'effect' || event.sourceId !== TRAIT.CHILL_OF_DEATH) return;
+  const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
   context.queue.enqueue({
-    type: 'necromancer.chill',
+    type: 'condition',
+    condition: 'Chilled',
+    stacks: 1,
+    name: 'Lesser Spinal Shivers — Chilled',
     at: event.at,
     source: 'Trait',
     sourceId: TRAIT.CHILL_OF_DEATH,

@@ -31,11 +31,10 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 8
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 4
-        }
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 4
       }
     ]
   },

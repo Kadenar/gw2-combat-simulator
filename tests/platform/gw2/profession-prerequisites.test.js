@@ -794,15 +794,19 @@ test('Guardian and Necromancer classify every known custom event', () => {
             reason: 'shroud-entered',
             state: { lifeForce: 75, activeShroud: 'reaper' }
           },
+          { type: 'necromancer.summon-attack', at: 3 }
+        ],
+        resolvedEvents: [
           {
-            type: 'necromancer.chill',
+            type: 'condition',
+            condition: 'Chilled',
+            stacks: 1,
+            name: 'Spinal Shivers — Chilled',
             at: 1,
             skillName: 'Spinal Shivers',
             duration: 5
-          },
-          { type: 'necromancer.summon-attack', at: 3 }
+          }
         ],
-        resolvedEvents: [],
         endState: { profession: {} }
       },
       { specialization: 'Core' },
@@ -825,9 +829,9 @@ test('Guardian and Necromancer classify every known custom event', () => {
 
     assert.deepEqual(
       necromancerRows.map((row) => row.type),
-      ['necromancer.state', 'necromancer.chill']
+      ['necromancer.state', 'condition']
     );
-    assert.match(necromancerRows[1].description, /Spinal Shivers \(5\.0s\)/);
+    assert.match(necromancerRows[1].description, /CONDITION Chilled x1 \(5\.00s\) \[Spinal Shivers\]/);
     assert.equal(warnings.length, 0);
   } finally {
     console.warn = originalWarn;

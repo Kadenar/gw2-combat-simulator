@@ -399,24 +399,18 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SIGNET_OF_UNDEATH]: {
     castTimeMs: 500,
-    effects: [
-      {
-        type: 'custom',
-        eventType: 'necromancer.revive',
-        event: {}
-      }
-    ],
+    // Reviving allies is outside the simulation; casting still consumes time and starts recharge.
+    effects: [],
     lifeForceGain: 0
   },
   [ID.SPECTRAL_GRASP]: {
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 4
-        }
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 4
       }
     ],
     lifeForceGain: 15

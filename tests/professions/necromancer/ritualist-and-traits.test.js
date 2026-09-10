@@ -1080,6 +1080,22 @@ test('modifier candidates include every active Necromancer trait', () => {
   assert.deepEqual(candidateNames, activeTraitNames);
 });
 
+// Undeath's resource clock survives removal of its unmodeled revive event and respects active recharge.
+test('Signet of Undeath grants four life force per passive pulse and suspends during recharge', () => {
+  const config = { initialResource: 0, selectedSkills: ['Signet of Undeath'] };
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  const first = simulate('Core', [wait(3000)], config);
+  const second = simulate('Core', [wait(3000), wait(3000)], config);
+  const recharging = simulate('Core', ['Signet of Undeath', wait(6000)], config);
+  const resumed = simulate('Core', ['Signet of Undeath', wait(78000)], config);
+  for (const result of [first, second, recharging, resumed]) assert.deepEqual(result.warnings, []);
+  assert.equal(first.endState.profession.lifeForce, 4);
+  assert.equal(second.endState.profession.lifeForce, 8);
+  assert.equal(recharging.endState.profession.lifeForce, 0);
+  assert.ok(recharging.endState.cooldowns['Signet of Undeath'].remaining > 0);
+  assert.equal(resumed.endState.profession.lifeForce, 4);
+});
+
 test('signet passives and Soul Battery are profession-owned resources', () => {
   const signets = simulate('Core', [{ type: 'wait', durationMs: 3100 }], {
     initialResource: 0,

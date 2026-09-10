@@ -1,6 +1,4 @@
 import {
-  handleNecromancerChillEvent,
-  handleNecromancerReviveEvent,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack
 } from '#gw2/professions/necromancer/core/mechanics/event-handlers.js';
@@ -19,8 +17,6 @@ import {
  */
 export const necromancerCoreResolverEventHandlers = Object.freeze({
   'necromancer.state': handleNecromancerStateEvent,
-  'necromancer.chill': handleNecromancerChillEvent,
-  'necromancer.revive': handleNecromancerReviveEvent,
   'necromancer.summon-attack': handleNecromancerSummonAttack,
   'necromancer.taste-for-blood-grant': reactToTasteForBloodGrant,
   'necromancer.taste-for-blood-allied-hit': reactToTasteForBloodAlliedHit,

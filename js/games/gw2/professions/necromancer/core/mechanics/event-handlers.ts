@@ -6,18 +6,11 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  *     with the snapshot carried on a `necromancer.state` event, restoring
  *     scheduler-owned fields while preserving resolver fields and merging carapace
  *     stacks (see mergeExpiryStacks).
- *   - `handleNecromancerChillEvent` canonicalizes internal chill packets.
  *   - `handleNecromancerSummonAttack` materializes a queued minion
  *     autoattack into a damage event, dropping it if the summon has expired.
  */
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 import { restoreNecromancerStateSlice } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
-
-/**
- * Declares revive-only skills as supported without changing combat state,
- * because allied downstate and revive progress are outside this simulator.
- */
-export function handleNecromancerReviveEvent(): void {}
 
 // Union independently observed expiry stacks while preserving the largest multiplicity at each timestamp.
 function mergeExpiryStacks(left: readonly number[] = [], right: readonly number[] = []): number[] {
@@ -51,27 +44,6 @@ export function handleNecromancerStateEvent(
   restoreNecromancerStateSlice(context.profession.specialization.state, snapshot);
   // Carapace is observed in both phases; preserve the greatest multiplicity of each expiry.
   core.carapaceExpiries = mergeExpiryStacks(core.carapaceExpiries, resolverCarapace);
-}
-
-/** Converts the internal Necromancer chill packet into a canonical target condition event. */
-export function handleNecromancerChillEvent(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent
-): void {
-  // Custom chill packets become canonical conditions so Core and active-specialization reactions share one path.
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    name: `${event.skillName || event.name || 'Necromancer'} — Chilled`,
-    skillName: event.skillName,
-    condition: 'Chilled',
-    stacks: Number(event.stacks ?? 1),
-    duration: Number(event.duration || 0),
-    source: event.source,
-    sourceId: event.sourceId,
-    actorType: event.actorType,
-    triggeredBy: event.triggeredBy
-  });
 }
 
 /** Drops stale summon packets, then materializes attacks whose owner and generation remain active. */

@@ -214,28 +214,15 @@ function necromancerCorePaletteAvailability(
   return { available: true, message: '' };
 }
 
-/** Formats Necromancer-specific state and chill events while hiding internal lifecycle packets. */
+/** Formats Necromancer-specific state events while hiding internal lifecycle packets. */
 export function necromancerEventLogRow(
   _context: NecromancerUiContext,
   event: NecromancerSimulationEvent
 ): ProfessionEventLogDescriptor | null | undefined {
-  if (event?.type === 'necromancer.chill') {
-    const duration = Math.max(0, Number(event.duration || 0));
-    return {
-      type: event.type,
-      description:
-        `CHILLED ${event.skillName || event.name || 'Target'}` + `${duration > 0 ? ` (${duration.toFixed(1)}s)` : ''}`,
-      className: 'condition',
-      order: 70,
-      flags: []
-    };
-  }
-
   // Internal lifecycle and per-recipient trigger packets only support combat
   // resolution; hiding them keeps bookkeeping out of the player event log.
   if (
     [
-      'necromancer.revive',
       'necromancer.summon-attack',
       'necromancer.taste-for-blood-grant',
       'necromancer.taste-for-blood-allied-hit',

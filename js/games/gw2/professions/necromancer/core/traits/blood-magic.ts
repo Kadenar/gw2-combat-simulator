@@ -347,14 +347,19 @@ export function applyTransfusion(context: NecromancerCastContext, skill: Necroma
     duration: 4,
     icon: lesserChilblainsIcon
   });
-  context.emit({
-    type: 'necromancer.chill',
+  // Queue unscaled Chill after the strike and poison so shared condition reactions own its application.
+  emitSkillCondition(context, skill, {
+    condition: 'Chilled',
+    stacks: 1,
+    name: 'Lesser Chilblains — Chilled',
     at: context.effectiveEnd,
     source: 'Trait',
     sourceId: TRAIT.TRANSFUSION,
     actorType: 'effect',
-    skillId: skill.id,
+    skillId: ID.LESSER_CHILBLAINS,
     skillName: 'Lesser Chilblains',
+    parentSkillName: skill.name,
+    triggeredBy: skill.name,
     duration: 2
   });
 }

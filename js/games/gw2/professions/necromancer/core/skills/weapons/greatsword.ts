@@ -28,11 +28,10 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         persistsAfterInterrupt: true
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 4
-        },
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 4,
         atMs: 1440,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -103,11 +102,10 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         timingScale: 'cast'
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 2
-        },
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 2,
         atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast'

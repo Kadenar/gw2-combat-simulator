@@ -48,20 +48,10 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
     for (let proc = 0; proc < application.quantity; proc += 1) {
       const profile = balanceProfileFromContext(context, PROFILE.chillingNova);
       const strike = balanceProfileEffect(profile, 'strike');
-      const chill = balanceProfileEffect(profile, 'condition');
       queueTraitCoefficientDamage(context, event, {
         name: 'Chilling Nova',
         traitId: TRAIT.CHILLING_NOVA,
         coefficient: Number(strike?.coefficient ?? 1.125)
-      });
-      context.queue.enqueue({
-        type: 'necromancer.chill',
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.CHILLING_NOVA,
-        actorType: 'effect',
-        skillName: 'Chilling Nova',
-        duration: Number(chill?.duration ?? 2)
       });
     }
   }
@@ -73,6 +63,23 @@ function reactToDamage(
   event: NecromancerResolverEvent,
   details: NecromancerResolverReactionDetails = {}
 ): void {
+  // The resolved Nova strike queues its condition after sibling strikes, preserving their pre-Chill state.
+  if (event.actorType === 'effect' && event.sourceId === TRAIT.CHILLING_NOVA) {
+    const chill = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.chillingNova), 'condition');
+    context.queue.enqueue({
+      type: 'condition',
+      condition: 'Chilled',
+      stacks: 1,
+      name: 'Chilling Nova — Chilled',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.CHILLING_NOVA,
+      actorType: 'effect',
+      skillName: 'Chilling Nova',
+      duration: Number(chill?.duration ?? 2)
+    });
+  }
+
   resolveSummonOwnedComboFinisher(context, event);
   chillingNovaCriticalHit.handler(context, event, details);
 }
@@ -100,7 +107,10 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
 
   const chill = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.shiversOfDread), 'condition');
   context.queue.enqueue({
-    type: 'necromancer.chill',
+    type: 'condition',
+    condition: 'Chilled',
+    stacks: 1,
+    name: 'Shivers of Dread — Chilled',
     at: event.at,
     source: 'Trait',
     sourceId: TRAIT.SHIVERS_OF_DREAD,

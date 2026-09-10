@@ -17,6 +17,7 @@ import {
 } from '#gw2/professions/necromancer/core/traits/curses.js';
 import {
   applyChillOfDeath,
+  applyChillOfDeathCondition,
   applyMaliciousSwarm,
   applyReapersMight,
   applySignetsOfSuffering,
@@ -105,6 +106,7 @@ export function reactToNecromancerCoreDamage(
   event: NecromancerResolverEvent,
   details: NecromancerResolverReactionDetails = {}
 ): void {
+  applyChillOfDeathCondition(context, event);
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);

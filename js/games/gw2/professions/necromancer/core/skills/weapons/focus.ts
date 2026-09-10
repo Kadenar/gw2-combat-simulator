@@ -31,11 +31,10 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
         name: 'Spinal Shivers — Damage—No Boons'
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 5
-        }
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 5
       }
     ]
   },

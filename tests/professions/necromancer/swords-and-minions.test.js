@@ -784,7 +784,9 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
   );
   assert.equal(grasp.endState.profession.lifeForce, 10);
   assert.equal(
-    grasp.events.some((event) => event.type === 'necromancer.chill' && event.skillId === ID.GRASPING_DARKNESS),
+    grasp.events.some(
+      (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.GRASPING_DARKNESS
+    ),
     true
   );
   assert.equal(

@@ -183,9 +183,15 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   if (activeSignetOfUndeath(context)) {
     const passive = balanceProfileFromContext(context, PROFILE.signetOfUndeathPassive);
     const interval = Number(passive?.pulseInterval ?? 3);
+    const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_UNDEATH) || 0);
+    const passiveWhileRecharging = hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING) && Boolean(state.activeShroud);
     // A zero interval disables recurring pulses instead of advancing a clock by zero.
     while (interval > 0 && state.signetNextLifeForceAt <= end + context.epsilon) {
-      if (state.signetNextLifeForceAt > start + context.epsilon) {
+      // Casting suspends the passive during recharge, with the same shroud-trait exception as Vampirism.
+      if (
+        state.signetNextLifeForceAt > start + context.epsilon &&
+        (cooldownReadyAt <= state.signetNextLifeForceAt + context.epsilon || passiveWhileRecharging)
+      ) {
         gainNecromancerLifeForce(context, Number(passive?.lifeForceGain || 0), state.signetNextLifeForceAt);
       }
 

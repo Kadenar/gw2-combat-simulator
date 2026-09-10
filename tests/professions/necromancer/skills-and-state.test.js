@@ -48,6 +48,94 @@ const applyNecromancerPatch = (patch) => applyBalanceProfilePatch(applySkillPatc
 
 const authoringNecromancerProfession = withActivePatchPreview(necromancerProfession);
 
+// Each producer enters canonical condition resolution once, retaining its source and natural lifetime.
+test('Necromancer Chill producers retain duration scaling and chained trait attribution', () => {
+  for (const [specialization, rotation, selectedTraitIds, skillName, sourceId, duration] of [
+    ['Core', ['Spinal Shivers'], [], 'Spinal Shivers', ID.SPINAL_SHIVERS, 5],
+    ['Reaper', ['Spectral Grasp'], [], 'Spectral Grasp', ID.SPECTRAL_GRASP, 4],
+    ['Reaper', ['"Suffer!"'], [], '"Suffer!"', ID.SUFFER, 3],
+    ['Core', ['Death Shroud', 'Life Transfer'], [TRAIT.TRANSFUSION], 'Lesser Chilblains', TRAIT.TRANSFUSION, 2],
+    [
+      'Reaper',
+      ["Reaper's Shroud", 'Infusing Terror', 'Terrify'],
+      [TRAIT.SHIVERS_OF_DREAD],
+      'Shivers of Dread',
+      TRAIT.SHIVERS_OF_DREAD,
+      2
+    ]
+  ]) {
+    const result = simulate(specialization, rotation, {
+      initialResource: 100,
+      selectedTraitIds: [
+        ...selectedTraitIds,
+        TRAIT.BITTER_CHILL,
+        ...(specialization === 'Reaper' ? [TRAIT.DEATHLY_CHILL] : [])
+      ],
+      stats: { expertise: 750 },
+      target: { conditions: { Chilled: false, Vulnerability: 0 } }
+    });
+    assert.deepEqual(result.warnings, []);
+    const chill = result.resolvedEvents.find((event) => event.condition === 'Chilled' && event.skillName === skillName);
+    assert.ok(chill, skillName);
+    assert.equal(chill.type, 'condition');
+    assert.equal(chill.stacks, 1);
+    assert.equal(chill.duration, duration);
+    assert.equal(chill.effectiveDuration, duration * 1.5);
+    assert.equal(chill.naturalExpiresAt, chill.at + duration * 1.5);
+    assert.equal(chill.sourceId, sourceId);
+    assert.equal(chill.actorType, selectedTraitIds.length ? 'effect' : 'player');
+    for (const traitId of [TRAIT.BITTER_CHILL, ...(specialization === 'Reaper' ? [TRAIT.DEATHLY_CHILL] : [])]) {
+      const followup = result.resolvedEvents.find(
+        (event) => event.sourceId === traitId && event.triggeredBy === skillName
+      );
+      assert.ok(followup, `${skillName}: ${traitId}`);
+      assert.equal(followup.at, chill.at);
+      assert.ok(result.resolvedEvents.indexOf(followup) > result.resolvedEvents.indexOf(chill));
+    }
+
+    if (sourceId === TRAIT.TRANSFUSION) {
+      assert.equal(chill.skillId, ID.LESSER_CHILBLAINS);
+      assert.equal(chill.triggeredBy, 'Life Transfer');
+    }
+  }
+});
+
+// Both trait strikes must precede their Chill-driven carapace and Vulnerability gains at the same timestamp.
+test('Chill of Death and Chilling Nova preserve sibling strike ordering', () => {
+  const selectedTraitIds = [TRAIT.CHILL_OF_DEATH, TRAIT.CHILLING_NOVA, TRAIT.BITTER_CHILL, TRAIT.DEATHLY_CHILL];
+  const config = {
+    stats: { precision: 3000, expertise: 750 },
+    target: { health: 1000000, startingHealthFraction: 0.4, conditions: { Chilled: true, Vulnerability: 0 } }
+  };
+  const rotation = ['Gravedigger', 'Gravedigger'];
+  const baseline = simulate('Reaper', rotation, { ...config, selectedTraitIds });
+  const result = simulate('Reaper', rotation, {
+    ...config,
+    selectedTraitIds: [...selectedTraitIds, TRAIT.CORRUPTERS_FERVOR, TRAIT.DEADLY_STRENGTH]
+  });
+  assert.deepEqual(baseline.warnings, []);
+  assert.deepEqual(result.warnings, []);
+  const firstChillIndex = result.resolvedEvents.findIndex((event) => event.condition === 'Chilled');
+  assert.ok(firstChillIndex >= 0);
+  for (const traitId of [TRAIT.CHILL_OF_DEATH, TRAIT.CHILLING_NOVA]) {
+    const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.sourceId === traitId);
+    const chill = result.resolvedEvents.find((event) => event.condition === 'Chilled' && event.sourceId === traitId);
+    assert.ok(strike);
+    assert.ok(chill);
+    assert.equal(strike.at, chill.at);
+    assert.ok(result.resolvedEvents.indexOf(strike) < firstChillIndex);
+    assert.equal(
+      strike.damage,
+      baseline.resolvedEvents.find((event) => event.type === 'damage' && event.sourceId === traitId).damage
+    );
+    assert.equal(chill.effectiveDuration, (traitId === TRAIT.CHILLING_NOVA ? 2 : 5) * 1.5);
+  }
+
+  const nextStrike = (simulation) =>
+    simulation.resolvedEvents.findLast((event) => event.type === 'damage' && event.skillId === ID.GRAVEDIGGER);
+  assert.ok(nextStrike(result).damage > nextStrike(baseline).damage);
+});
+
 test('Necromancer modules expose isolated balance-profile authoring', () => {
   const modules = new Map(authoringNecromancerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
 
@@ -88,6 +176,9 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
 
   const preview = applyNecromancerPatch({
     skills: {
+      [ID.SPECTRAL_GRASP]: {
+        effects: [{ effectIndex: 0, duration: { from: 4, to: 6 } }]
+      },
       [ID.NIGHTMARE_WEAPON]: {
         effects: [
           {
@@ -126,6 +217,8 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
   });
 
   assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks, 4);
+  assert.equal(preview.skillsById.get(ID.SPECTRAL_GRASP).effects[0].duration, 6);
+  assert.equal(necromancerCatalog.skillsById.get(ID.SPECTRAL_GRASP).effects[0].duration, 4);
   assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].audience.maximumRecipients, 6);
   assert.equal(preview.skillsById.get(ID.RIGOR_MORTIS).effects[0].ticks[0].coefficient, 0.3);
   assert.equal(preview.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade).effects[0].coefficient, 0.7);
@@ -443,9 +536,10 @@ test('core heals remain selectable and castable without requiring damage effects
   }
 });
 
-test('every non-heal catalog skill has mechanics', () => {
+test('catalog skills with simulated active effects have mechanics', () => {
   for (const skill of necromancerCatalog.skills) {
-    if (skill.type === 'Heal') continue;
+    // Healing and Signet of Undeath's revive do not need target-combat effects.
+    if (skill.type === 'Heal' || skill.id === ID.SIGNET_OF_UNDEATH) continue;
     assert.equal(
       Boolean(
         skill.handlerId ||
@@ -572,7 +666,11 @@ test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigg
   assert.equal(result.steps.filter((step) => step.skill === 'Gravedigger').length, 2);
   assert.equal(
     result.events.some(
-      (event) => event.type === 'necromancer.chill' && event.skillName === 'Chilling Scythe' && event.duration === 2
+      (event) =>
+        event.type === 'condition' &&
+        event.condition === 'Chilled' &&
+        event.skillName === 'Chilling Scythe' &&
+        event.duration === 2
     ),
     true
   );
@@ -649,7 +747,7 @@ test('sword autoattack advances through Deathly Enervation before returning to E
     (event) => event.type === 'damage' && event.skillId === ID.DEATHLY_ENERVATION
   );
   const deathlyChill = completed.events.find(
-    (event) => event.type === 'necromancer.chill' && event.skillId === ID.DEATHLY_ENERVATION
+    (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.DEATHLY_ENERVATION
   );
 
   assert.deepEqual(
@@ -1183,7 +1281,9 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
   assert.equal(chain.endState.profession.soulShards, 2);
   assert.equal(chain.endState.profession.lifeForce, 5);
   assert.equal(
-    chain.events.some((event) => event.type === 'necromancer.chill' && event.skillId === ID.SINISTER_STAB),
+    chain.events.some(
+      (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.SINISTER_STAB
+    ),
     true
   );
   assert.equal(expired.endState.profession.soulShards, 0);
@@ -1329,7 +1429,9 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png'
   );
   assert.equal(
-    result.events.some((event) => event.type === 'necromancer.chill' && event.skillId === ID.ISOLATE),
+    result.events.some(
+      (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.ISOLATE
+    ),
     true
   );
   assert.equal(

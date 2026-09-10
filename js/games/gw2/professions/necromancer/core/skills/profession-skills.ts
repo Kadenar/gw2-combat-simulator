@@ -144,11 +144,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         duration: 8
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 3
-        }
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 3
       }
     ],
     type: 'Profession',
@@ -261,11 +260,10 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         hits: 1
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 4
-        }
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 4
       }
     ],
     cooldown: 8

@@ -97,11 +97,10 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'cast'
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
-        event: {
-          duration: 2
-        },
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 2,
         atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -172,14 +171,13 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'cast'
       },
       {
-        type: 'custom',
-        eventType: 'necromancer.chill',
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
         atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        event: {
-          duration: 3
-        }
+        duration: 3
       },
       {
         type: 'condition',

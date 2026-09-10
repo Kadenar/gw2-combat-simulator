@@ -26,7 +26,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       { type: 'strike', coefficient: 3, hits: 1 },
       { type: 'control', controlKind: 'control' },
-      { type: 'custom', eventType: 'necromancer.chill', event: { duration: 4 } }
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4 }
     ]
   },
   [ID.YOUR_SOUL_IS_MINE]: {
@@ -38,7 +38,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 0,
     effects: [
       { type: 'strike', coefficient: 1.5, hits: 1 },
-      { type: 'custom', eventType: 'necromancer.chill', event: { duration: 3 } }
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3 }
     ],
     // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.condition-transfer'
