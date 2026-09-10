@@ -130,7 +130,6 @@ export interface SoulbeastState {
   oneWolfPackUntil: number;
   oneWolfPackReadyAt: number;
   goForTheEyesReadyAt: number;
-  beastlyWardenReadyAt: number;
   goForTheThroatReadyAt: number;
   bestialRageReadyAt: number;
   essenceOfSpeedReadyAt: number;

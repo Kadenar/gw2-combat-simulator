@@ -11,8 +11,9 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+// Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
+import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import {
-  CONJURED_WEAPONS,
   EVOKER_NO_CHARGE_SKILLS,
   EVOKER_NO_CHARGE_SPEAR_SKILLS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';

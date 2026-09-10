@@ -49,9 +49,8 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
     utility: 'Toxic Tuning Crystal',
     jadeBotCore: true,
     infusions: [
-      { stat: 'Power', count: 0 },
-      { stat: 'Precision', count: 0 },
-      { stat: 'Condition Damage', count: 18 }
+      { stat: 'Condition Damage', count: 18 },
+      { stat: 'Power', count: 0 }
     ],
     specializations: [
       { name: 'Explosives', traits: '3-2-3' },

@@ -522,29 +522,27 @@ function normalizeSelectedSkills(
 }
 
 function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[]): Gw2BuildInfusion[] {
-  if (!Array.isArray(value)) return clone([...fallback]);
-  // remaining tracks the budget across entries so total count never exceeds 18.
+  const source = Array.isArray(value) ? value : fallback;
+  const valid = source.filter((entry) => isPlainObject(entry) && listedName(INFUSION_STATS, entry.stat));
+  if (source.length && !valid.length) return normalizeInfusions(fallback, []);
+  // Fold legacy duplicate stats and retain the two largest allocations before dropping unused rows.
+  const byStat = new Map<string, number>();
+  for (const entry of valid) {
+    byStat.set(entry.stat, (byStat.get(entry.stat) || 0) + clamp(Math.trunc(Number(entry.count) || 0), 0, 18));
+  }
+
+  const entries = [...byStat].map(([stat, count]) => ({ stat, count }));
+  if (entries.length > 2) entries.sort((a, b) => b.count - a.count);
   let remaining = 18;
-  const infusions = value
-    .filter((entry) => isPlainObject(entry) && listedName(INFUSION_STATS, entry.stat))
-    .map((entry) => {
-      const infusion = entry as SchedulerRecord;
-      // Clamp each entry against the remaining budget rather than rejecting it,
-      // so partially valid saves degrade gracefully.
-      const count = clamp(Math.trunc(Number(infusion.count) || 0), 0, remaining);
-      remaining -= count;
-      return { stat: infusion.stat as string, count };
-    });
-  // Preserve an explicit empty selection; only unreadable nonempty lists need defaults.
-  if (value.length && !infusions.length) return clone([...fallback]);
-  // Ensure the canonical stat rows are always present (count 0 when absent)
-  // so the gear panel never collapses to a single infusion type.
-  const present = new Set(infusions.map((infusion) => infusion.stat));
-  for (const entry of fallback) {
-    if (!present.has(entry.stat)) {
-      infusions.push({ stat: entry.stat, count: 0 });
-      present.add(entry.stat);
-    }
+  const infusions = entries.slice(0, 2).map(({ stat, count }) => {
+    count = Math.min(count, remaining);
+    remaining -= count;
+    return { stat, count };
+  });
+  // Empty or single-stat builds still expose exactly two rows without adding attribute bonuses.
+  for (const stat of INFUSION_STATS) {
+    if (infusions.length === 2) break;
+    if (!infusions.some((entry) => entry.stat === stat)) infusions.push({ stat, count: 0 });
   }
 
   return infusions;

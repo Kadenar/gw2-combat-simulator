@@ -26,7 +26,6 @@ export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState 
     oneWolfPackUntil: 0,
     oneWolfPackReadyAt: 0,
     goForTheEyesReadyAt: 0,
-    beastlyWardenReadyAt: 0,
     goForTheThroatReadyAt: 0,
     bestialRageReadyAt: 0,
     essenceOfSpeedReadyAt: 0,

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/index.js';
+import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { applySchedulerZephyrsBoon, applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/traits/air.js';
 import {
   applySchedulerElementalShielding,
@@ -12,6 +16,65 @@ import { applyCatalystResolverAura } from '#gw2/professions/elementalist/special
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+
+test('real and synthetic Air entry honor trait gates and patched buff versus boon durations', () => {
+  // Superspeed must read its buff profile without concentration scaling; Resistance scales once.
+  for (const duration of [9, 0]) {
+    const catalog = applyBalanceProfilePatch(elementalistCatalog, {
+      balanceProfiles: {
+        [CORE.oneWithAir]: { effects: [{ type: 'buff', name: 'Superspeed', duration }] },
+        [CORE.inscription]: { effects: [{ type: 'boon', name: 'Air Entry', duration: 7, stacks: 2 }] }
+      }
+    });
+    for (const selected of [[], ['One with Air'], ['Inscription'], ['One with Air', 'Inscription']]) {
+      for (const synthetic of [false, true]) {
+        const events = [];
+        const skill = { id: 1, name: 'Air entry' };
+        const config = { stats: { concentration: 750 } };
+        const context = {
+          catalog,
+          config,
+          traits: new Set(selected),
+          effectiveEnd: 4,
+          state: {
+            time: 4,
+            activeWeaponSet: 1,
+            profession: { core: {}, specialization: { kind: 'Evoker', state: {} } }
+          },
+          profession: { modifyAttributes: (_context, stats) => stats },
+          schedulerPolicy: createGw2SchedulerPolicy(config),
+          emit: (event) => events.push(event)
+        };
+        if (synthetic) triggerSpecializedElementEntry(context, skill, 'Air');
+        else {
+          applyElementalistAttunementTraits(context, {
+            at: 4,
+            skill,
+            previous: 'Water',
+            target: 'Air',
+            dualAttunement: false,
+            shouldTrigger: () => true
+          });
+        }
+
+        const buffs = events.filter((event) => event.type === 'buff');
+        assert.deepEqual(
+          buffs.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
+          [
+            ...(selected.includes('One with Air') ? [{ kind: 'superspeed', stacks: 1, duration }] : []),
+            ...(selected.includes('Inscription') ? [{ kind: 'resistance', stacks: 2, duration: 10.5 }] : [])
+          ]
+        );
+        for (const event of buffs) {
+          assert.equal(event.at, 4);
+          assert.equal(event.sourceId, skill.id);
+          assert.equal(event.skillName, skill.name);
+          assert.equal(event.actorType, 'player');
+        }
+      }
+    }
+  }
+});
 
 test('Core and Tempest aura boons use patched effects and scale once in each phase', () => {
   for (const [trait, profileId, names, schedule, resolve] of [

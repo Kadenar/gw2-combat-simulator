@@ -35,6 +35,7 @@ import {
   triggerElectricDischarge,
   triggerSunspot
 } from '#gw2/professions/elementalist/core/traits/index.js';
+import { applyInscriptionAirEntry, applyOneWithAir } from '#gw2/professions/elementalist/core/traits/air.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { OFF_ATTUNEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -176,33 +177,9 @@ export function triggerSpecializedElementEntry(
     }
   } else if (element === 'Air') {
     triggerElectricDischarge(context as never, at, skill.id);
-    if (hasTrait(context, 'One with Air')) {
-      const superspeed = balanceProfileEffectFromContext(context, CORE_PROFILE.oneWithAir, 'buff', 0, 'Superspeed');
-      emitSkillBuff(context, skill, {
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: String(superspeed?.kind || 'Superspeed').toLowerCase(),
-        stacks: Number(superspeed?.stacks ?? 1),
-        duration: Number(superspeed?.duration ?? 3),
-        skillName: skill.name
-      });
-    }
-
-    if (hasTrait(context, 'Inscription')) {
-      const resistance = balanceProfileEffectFromContext(context, CORE_PROFILE.inscription, 'boon', 0, 'Air Entry');
-      emitSkillBuff(context, skill, {
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: String(resistance?.boon || 'Resistance').toLowerCase(),
-        stacks: Number(resistance?.stacks ?? 1),
-        duration: Number(resistance?.duration ?? 3),
-        skillName: skill.name
-      });
-    }
+    // Synthetic entry shares the Air grants; Fresh Air below has its own entry semantics.
+    applyOneWithAir(context, at, skill);
+    applyInscriptionAirEntry(context, at, skill);
 
     if (hasTrait(context, 'Fresh Air')) {
       const freshAir = balanceProfileEffectFromContext(context, CORE_PROFILE.freshAir, 'buff');

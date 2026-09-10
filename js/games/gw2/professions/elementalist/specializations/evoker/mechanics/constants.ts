@@ -36,8 +36,6 @@ export const EVOKER_NO_CHARGE_SKILLS: ReadonlySet<SkillId> = new Set([
 ]);
 /** Shared icon for every Electric Enchantment proc entry in the log. */
 export const ELECTRIC_ENCHANTMENT_ICON = 'https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png';
-/** Conjure bundles; their weapon skills never generate familiar charges. */
-export const CONJURED_WEAPONS = new Set(['Frost Bow', 'Lightning Hammer', 'Fiery Greatsword']);
 /** Fallback boon package Altruistic Aspect grants per meditation skill when the balance profile has no matching effect. */
 export const ALTRUISTIC_ASPECT_BOONS: ReadonlyMap<SkillId, readonly [kind: string, stacks: number, duration: number]> =
   new Map([

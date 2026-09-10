@@ -49,8 +49,7 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
     jadeBotCore: true,
     infusions: [
       { stat: 'Power', count: 18 },
-      { stat: 'Precision', count: 0 },
-      { stat: 'Condition Damage', count: 0 }
+      { stat: 'Precision', count: 0 }
     ],
     specializations: [
       { name: 'Skirmishing', traits: '1-2-3' },

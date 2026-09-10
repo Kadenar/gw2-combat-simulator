@@ -37,9 +37,8 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
     utility: 'Toxic Tuning Crystal',
     jadeBotCore: true,
     infusions: [
-      { stat: 'Power', count: 0 },
-      { stat: 'Precision', count: 0 },
-      { stat: 'Condition Damage', count: 18 }
+      { stat: 'Condition Damage', count: 18 },
+      { stat: 'Power', count: 0 }
     ],
     specializations: [
       { name: 'Corruption', traits: '1-3-3' },

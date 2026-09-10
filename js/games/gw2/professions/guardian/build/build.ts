@@ -50,8 +50,7 @@ export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
     jadeBotCore: true,
     infusions: [
       { stat: 'Power', count: 18 },
-      { stat: 'Precision', count: 0 },
-      { stat: 'Condition Damage', count: 0 }
+      { stat: 'Precision', count: 0 }
     ],
     specializations: [
       { name: 'Radiance', traits: '3-3-3' },

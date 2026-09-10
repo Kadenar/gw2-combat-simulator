@@ -88,11 +88,20 @@ export function applyFreshAirAttunementEntry(
   });
 }
 
-/** Grants One with Air's superspeed after entering Air. */
+/** Reads Superspeed as a buff so profile overrides apply without boon-duration scaling. */
 export function applyOneWithAir(context: ElementalistSchedulerContext, at: number, skill: Skill): void {
-  if (hasTrait(context, 'One with Air')) {
-    emitProfiledBuff(context, at, PROFILE.oneWithAir, 'Superspeed', 'Superspeed', 1, 3, skill.name, skill.id);
-  }
+  if (!hasTrait(context, 'One with Air')) return;
+  const superspeed = balanceProfileEffectFromContext(context, PROFILE.oneWithAir, 'buff', 0, 'Superspeed');
+  emitSkillBuff(context, skill, {
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: 'player',
+    kind: String(superspeed?.kind || 'Superspeed').toLowerCase(),
+    stacks: Number(superspeed?.stacks ?? 1),
+    duration: Number(superspeed?.duration ?? 3),
+    skillName: skill.name
+  });
 }
 
 /** Grants Inscription's dedicated Resistance effect after entering Air. */

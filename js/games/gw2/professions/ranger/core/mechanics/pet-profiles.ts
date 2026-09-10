@@ -29,15 +29,10 @@ export interface PetAutoProfile {
   readonly ignoresAlacrity?: boolean;
 }
 
+/** Fixed pet baselines used by Wuthering Wind; live pet attacks supply their own scaling metadata. */
 export const RANGER_PET_STRIKE_SCALING = Object.freeze({
   basePower: 1524,
-  basePrecision: 1524,
-  baseFerocity: 0,
-  baseConditionDamage: 1000,
-  baseExpertise: 0,
-  criticalChance: (1524 - 1000) / 2100,
-  criticalDamage: 1.5,
-  damagePerCoefficient: (2880 * 1524) / 2597
+  baseConditionDamage: 1000
 });
 
 const DEFAULT_PET_BASE_ATTRIBUTES: RangerPetAttributes = Object.freeze({
