@@ -36,8 +36,6 @@ export function createRenegadeState(): RenegadeState {
       // readyAt enforces the per-hit internal cooldown between Razorclaw bleeds
       readyAt: 0
     },
-    // Specialization timers stay with Renegade so Core upkeep and trait state remains profession-generic.
-    soulcleaveNextAlliedProcAt: null,
     endlessEnmityReadyAt: 0,
     bloodFuryReadyAt: 0,
     soulcleaveReadyAt: 0

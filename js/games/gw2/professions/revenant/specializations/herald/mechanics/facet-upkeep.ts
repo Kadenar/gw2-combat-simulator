@@ -131,7 +131,7 @@ export function heraldFacetConsumeId(skill: RevenantSkill, activeLegendId: strin
   return (MECHANICS.facetConsumeBySkillId as Readonly<Record<SkillId, SkillId>>)[skill.id];
 }
 
-/** Arms the consume flip and transfers recurring boon pulses to Herald's scheduler task. */
+/** Arms the consume flip and starts Herald's own recurring boon pulse task. */
 export function afterHeraldFacetCast(context: RevenantCastContext, skill: RevenantSkill): void {
   if (!skill.facet) return;
   const state = professionCoreState(context);
@@ -139,7 +139,6 @@ export function afterHeraldFacetCast(context: RevenantCastContext, skill: Revena
   if (!active) return;
   const consumeId = heraldFacetConsumeId(skill, state.activeLegendId);
   if (consumeId != null) state.availableFlips[consumeId] = true;
-  context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
   if (!skill.upkeepPulse) return;
   context.tasks.schedule({
     type: 'revenant.herald-facet-pulse',

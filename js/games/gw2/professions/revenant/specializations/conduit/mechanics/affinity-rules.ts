@@ -45,6 +45,7 @@ import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,
+  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -216,70 +217,63 @@ function afterConduitCast(context: RevenantCastContext, skill: RevenantSkill): v
   afterConduitTraitCast(context, skill);
   if (skill.handlerId !== 'revenant.upkeep') return;
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
-  const state = conduitState.from(context);
-  const upkeepKey = String(skill.id);
-  // Initialize the Conduit-owned cadence only once per upkeep activation.
-  if (active && state.upkeepAffinityNextAt[upkeepKey] == null) {
-    // Affinity ticks 3 s after the upkeep begins; subsequent ticks are advanced in advanceConduitUpkeep.
-    state.upkeepAffinityNextAt[upkeepKey] = context.effectiveEnd + 3;
+  if (!active) return;
+  // Upkeep ticks follow Energy settlement but precede cast completion (-100), as they did in advance.
+  context.tasks.schedule({
+    type: 'revenant.conduit-upkeep-affinity',
+    at: context.effectiveEnd + 3,
+    priority: -200,
+    ownerId: `revenant.upkeep:${skill.id}`,
+    payload: { skillId: skill.id }
+  });
+  if (skill.id === ID.IMPOSSIBLE_ODDS) {
+    context.tasks.schedule({
+      type: 'revenant.conduit-upkeep-daggers',
+      at: context.effectiveEnd + 1,
+      priority: -190,
+      ownerId: `revenant.upkeep:${skill.id}`,
+      payload: { skillId: skill.id }
+    });
+  }
+}
+
+/** Own each deadline in the queue so idle waits cannot skip or backdate upkeep ticks. */
+function handleConduitUpkeep(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<{ skillId: RevenantSkill['id'] }>
+): void {
+  const skillId = task.payload?.skillId;
+  if (skillId == null || !professionCoreState(context).activeUpkeeps.some((active) => active.skillId === skillId))
+    return;
+  const skill = context.catalog.skillsById.get(skillId);
+  if (!skill) return;
+  const affinityTick = task.type === 'revenant.conduit-upkeep-affinity';
+  if (affinityTick) {
+    gainConduitAffinity(context, 1, 'enigmatic-upkeep');
+  } else {
+    emitLesserEnchantedDaggers(context, skill, task.at);
   }
 
-  if (active && skill.id === ID.IMPOSSIBLE_ODDS && state.impossibleOddsLesserDaggersNextAt == null) {
-    // Impossible Odds also fires Lesser Enchanted Daggers every 1 s; first proc is 1 s after activation.
-    state.impossibleOddsLesserDaggersNextAt = context.effectiveEnd + 1;
-  }
+  context.tasks.schedule({
+    type: task.type,
+    at: task.at + (affinityTick ? 3 : 1),
+    priority: task.priority,
+    ownerId: task.ownerId,
+    payload: { skillId }
+  });
 }
 
 function completeConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
   completeBeguilingHaze(context, skill);
 }
 
-function advanceConduitUpkeep(context: RevenantSchedulerContext, target: number): void {
+function advanceConduitForm(context: RevenantSchedulerContext, target: number): void {
   const state = conduitState.from(context);
   if (state.cosmicWisdomUntil > 0 && target >= state.cosmicWisdomUntil) {
     // Form expiry clears the form name and restores native energy costs in the same tick.
     state.cosmicWisdomUntil = 0;
     state.conduitForm = '';
     syncConduitEnergyCostOverrides(context);
-  }
-
-  const activeUpkeeps = professionCoreState(context).activeUpkeeps;
-  const activeIds = new Set(activeUpkeeps.map((active) => String(active.skillId)));
-  for (const skillId of Object.keys(state.upkeepAffinityNextAt)) {
-    if (!activeIds.has(skillId)) delete state.upkeepAffinityNextAt[skillId];
-  }
-
-  if (!activeIds.has(String(ID.IMPOSSIBLE_ODDS))) state.impossibleOddsLesserDaggersNextAt = null;
-
-  for (const active of activeUpkeeps) {
-    const upkeepKey = String(active.skillId);
-    const nextAffinityAt = state.upkeepAffinityNextAt[upkeepKey];
-    if (
-      nextAffinityAt != null &&
-      // epsilon prevents floating-point drift from skipping an affinity tick at exactly the boundary.
-      target + context.epsilon >= nextAffinityAt
-    ) {
-      gainConduitAffinity(context, 1, 'enigmatic-upkeep');
-      state.upkeepAffinityNextAt[upkeepKey] += 3;
-    }
-
-    if (
-      active.skillId === ID.IMPOSSIBLE_ODDS &&
-      state.impossibleOddsLesserDaggersNextAt != null &&
-      target + context.epsilon >= state.impossibleOddsLesserDaggersNextAt
-    ) {
-      const skill = context.catalog.skillsById.get(active.skillId);
-      if (skill) {
-        // While loop handles multiple elapsed ticks if the advance step spans more than 1 s.
-        while (
-          state.impossibleOddsLesserDaggersNextAt != null &&
-          target + context.epsilon >= state.impossibleOddsLesserDaggersNextAt
-        ) {
-          emitLesserEnchantedDaggers(context, skill, state.impossibleOddsLesserDaggersNextAt);
-          state.impossibleOddsLesserDaggersNextAt += 1;
-        }
-      }
-    }
   }
 }
 
@@ -357,9 +351,9 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
 
 export const conduitSchedulerHooks = Object.freeze({
   advance: {
-    id: 'revenant.conduit-upkeep',
+    id: 'revenant.conduit-form-expiry',
     order: 20,
-    handler: advanceConduitUpkeep
+    handler: advanceConduitForm
   },
   afterCast: {
     id: 'revenant.conduit-upkeep-start',
@@ -393,6 +387,8 @@ export const conduitSchedulerHooks = Object.freeze({
     }
   },
   taskHandlers: Object.freeze({
+    'revenant.conduit-upkeep-affinity': handleConduitUpkeep,
+    'revenant.conduit-upkeep-daggers': handleConduitUpkeep,
     'revenant.affinity-hit': handleConduitAffinityHit
   })
 });

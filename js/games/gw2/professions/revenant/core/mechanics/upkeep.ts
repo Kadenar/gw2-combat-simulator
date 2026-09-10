@@ -99,13 +99,19 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
     emitEmbraceTheDarknessPulse(context, skill, active, context.start + Number(effectFirstAtMs(strike) || 0) / 1000);
   }
 
-  context.tasks.schedule({
-    type: 'revenant.upkeep-pulse',
-    at:
-      skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(at + context.epsilon) + 1 : at + pulseIntervalForUpkeep(skill),
-    ownerId: `revenant.upkeep:${skill.id}`,
-    payload: { skillId: skill.id }
-  });
+  // Core schedules only its packet producers; specialization cadences own their own queue deadlines.
+  if (skill.id === ID.EMBRACE_THE_DARKNESS || VENGEFUL_HAMMERS_IDS.has(skill.id)) {
+    context.tasks.schedule({
+      type: 'revenant.upkeep-pulse',
+      at:
+        skill.id === ID.EMBRACE_THE_DARKNESS
+          ? Math.floor(at + context.epsilon) + 1
+          : at + pulseIntervalForUpkeep(skill),
+      ownerId: `revenant.upkeep:${skill.id}`,
+      payload: { skillId: skill.id }
+    });
+  }
+
   emitRevenantStateSnapshot(context, at, 'upkeep-enabled');
 }
 
@@ -159,6 +165,8 @@ export function handleRevenantUpkeepPulse(
         canCrit: null
       });
     }
+  } else {
+    return;
   }
 
   context.tasks.schedule({

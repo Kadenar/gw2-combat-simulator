@@ -32,6 +32,8 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
       ? Number(chargedMists.resourceGain || 0)
       : Number(skill.resourceGain || 0);
   state.energyUpdatedAt = at;
+  // Retire every departing upkeep owner before a later activation can reuse the same skill ID.
+  for (const active of state.activeUpkeeps) context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);
   state.activeUpkeeps = [];
   clearRevenantLegendFlips(context);
   context.emit({

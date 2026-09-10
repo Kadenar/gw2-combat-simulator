@@ -141,7 +141,6 @@ export interface RenegadeState {
   kallasFervorMaximumStacks: number;
   renegadeCriticalProgress: number;
   razorclawsRage: RevenantChargeState;
-  soulcleaveNextAlliedProcAt: number | null;
   endlessEnmityReadyAt: number;
   bloodFuryReadyAt: number;
   soulcleaveReadyAt: number;
@@ -161,8 +160,6 @@ export interface ConduitState {
   beguilingHazeReadyAt: number;
   beguilingHazeMainReservations: string[];
   energyCostOverrides: Record<string, number>;
-  upkeepAffinityNextAt: Record<string, number>;
-  impossibleOddsLesserDaggersNextAt: number | null;
   mistfireReadyAt: number;
 }
 

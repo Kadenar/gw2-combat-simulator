@@ -1105,7 +1105,6 @@ const revenantSpecializationStateKeys = Object.freeze({
     'kallasFervor',
     'renegadeCriticalProgress',
     'razorclawsRage',
-    'soulcleaveNextAlliedProcAt',
     'endlessEnmityReadyAt',
     'bloodFuryReadyAt',
     'soulcleaveReadyAt'
@@ -1119,8 +1118,6 @@ const revenantSpecializationStateKeys = Object.freeze({
     'beguilingHazeReadyAt',
     'beguilingHazeMainReservations',
     'energyCostOverrides',
-    'upkeepAffinityNextAt',
-    'impossibleOddsLesserDaggersNextAt',
     'mistfireReadyAt'
   ]
 });

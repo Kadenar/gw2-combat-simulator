@@ -38,9 +38,6 @@ export function createConduitState(): ConduitState {
     beguilingHazeMainReservations: [],
     // Only populated during Mesmer form; cleared on form exit so native legend skill costs are restored.
     energyCostOverrides: {},
-    // Conduit-local timers keep affinity and dagger cadence out of shared upkeep records.
-    upkeepAffinityNextAt: {},
-    impossibleOddsLesserDaggersNextAt: null,
     mistfireReadyAt: 0
   };
 }

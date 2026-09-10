@@ -20,7 +20,6 @@ import {
   grantKallasFervor,
   activeKallasFervorStacks
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import {
   RENEGADE_PROFILE_IDS,
   RENEGADE_SPIRIT_BOON_PROFILE_ID
@@ -38,6 +37,7 @@ import {
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   RevenantCastContext,
+  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -136,63 +136,61 @@ function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): 
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
   if (!active) return;
   const allies = gw2AlliedPlayerAssumptions(context.config);
-  // The specialization-local timer is null when there are no allies, suppressing allied-proc advance logic.
-  // Math.max(1, 1/strikesPerSecond) ensures the first allied proc is at least 1s after upkeep starts
-  // so the initial cast's own resolver hit doesn't immediately claim the first allied Soulcleave proc.
-  renegadeState.from(context).soulcleaveNextAlliedProcAt =
-    allies.count && allies.strikesPerSecond ? context.effectiveEnd + Math.max(1, 1 / allies.strikesPerSecond) : null;
+  if (!allies.count || !allies.strikesPerSecond) return;
+  // Start at least one second after activation; preserve the old pre-completion advance ordering.
+  context.tasks.schedule({
+    type: 'revenant.soulcleave-allied-proc',
+    at: context.effectiveEnd + Math.max(1, 1 / allies.strikesPerSecond),
+    priority: -200,
+    ownerId: `revenant.upkeep:${skill.id}`
+  });
 }
 
-function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number): void {
+/** Deliver each allied proc at its own deadline, with upkeep ownership handling release and starvation. */
+function handleSoulcleaveAlliedProc(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === ID.SOULCLEAVES_SUMMIT);
-  const state = renegadeState.from(context);
-  if (!active) {
-    state.soulcleaveNextAlliedProcAt = null;
-    return;
-  }
-
-  if (state.soulcleaveNextAlliedProcAt == null || target + context.epsilon < state.soulcleaveNextAlliedProcAt) {
-    return;
-  }
+  if (!active) return;
 
   const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
   const allies = gw2AlliedPlayerAssumptions(context.config);
   if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return;
-  // Loop catches up all missed intervals when the scheduler jumps ahead (e.g., after a long cast)
-  while (state.soulcleaveNextAlliedProcAt != null && target + context.epsilon >= state.soulcleaveNextAlliedProcAt) {
-    const at = state.soulcleaveNextAlliedProcAt;
-    for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
-      for (const effect of proc.effects || []) {
-        const applications = materializeSkillEffectApplications({
-          skill: proc,
-          effect,
-          start: at,
-          fullEnd: at,
-          baseEvent: {
-            source: 'revenant',
-            sourceId: skill.id,
-            actorType: effect.actorType || 'effect',
-            skillId: skill.id,
-            skillName: skill.name
-          },
-          skillWeaponFallback: 'Unequipped'
+  const at = task.at;
+  for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
+    for (const effect of proc.effects || []) {
+      const applications = materializeSkillEffectApplications({
+        skill: proc,
+        effect,
+        start: at,
+        fullEnd: at,
+        baseEvent: {
+          source: 'revenant',
+          sourceId: skill.id,
+          actorType: effect.actorType || 'effect',
+          skillId: skill.id,
+          skillName: skill.name
+        },
+        skillWeaponFallback: 'Unequipped'
+      });
+      for (const application of applications) {
+        context.emit({
+          ...application.event,
+          name: String(application.event.name || proc.name).replace(
+            "Soulcleave's Summit — ",
+            `Soulcleave's Summit — Ally ${allyIndex} `
+          )
         });
-        for (const application of applications) {
-          context.emit({
-            ...application.event,
-            name: String(application.event.name || proc.name).replace(
-              "Soulcleave's Summit — ",
-              `Soulcleave's Summit — Ally ${allyIndex} `
-            )
-          });
-        }
       }
     }
-
-    // Advance by whichever is larger: the 1s internal cooldown or the ally's natural strike interval, preventing proc rates from exceeding what allies can realistically trigger
-    state.soulcleaveNextAlliedProcAt += Math.max(Math.max(0, Number(proc.cooldown || 0)), 1 / allies.strikesPerSecond);
   }
+
+  // The next deadline respects both the proc cooldown and the ally's natural strike interval.
+  context.tasks.schedule({
+    type: task.type,
+    at: task.at + Math.max(Math.max(0, Number(proc.cooldown || 0)), 1 / allies.strikesPerSecond),
+    priority: task.priority,
+    ownerId: task.ownerId
+  });
 }
 
 function observeRenegadeEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
@@ -230,11 +228,6 @@ export const renegadeSchedulerHooks = Object.freeze({
     order: 20,
     handler: initializeRenegadeTraits
   },
-  advance: {
-    id: 'revenant.renegade-upkeep',
-    order: 20,
-    handler: advanceRenegadeUpkeep
-  },
   afterCast: {
     id: 'revenant.renegade-upkeep-start',
     order: 20,
@@ -250,6 +243,7 @@ export const renegadeSchedulerHooks = Object.freeze({
     }
   },
   taskHandlers: Object.freeze({
+    'revenant.soulcleave-allied-proc': handleSoulcleaveAlliedProc,
     [RENEGADE_CRITICAL_TRAITS_TASK]: handleRenegadeCriticalTraitsTask,
     [RENEGADE_RAZORCLAW_PROC_TASK]: handleRazorclawProcTask
   })

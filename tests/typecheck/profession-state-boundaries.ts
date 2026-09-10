@@ -51,10 +51,10 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<VindicatorState, 'activeLegendId'>>,
   Assert<Owns<VindicatorState, 'reaversCurseUntil'>>,
   Assert<Rejects<RevenantCoreState, 'reaversCurseUntil'>>,
-  Assert<Owns<RenegadeState, 'soulcleaveNextAlliedProcAt'>>,
-  Assert<Rejects<RevenantCoreState, 'soulcleaveNextAlliedProcAt'>>,
-  Assert<Owns<ConduitState, 'upkeepAffinityNextAt'>>,
-  Assert<Rejects<RevenantCoreState, 'upkeepAffinityNextAt'>>
+  Assert<Owns<RenegadeState, 'soulcleaveReadyAt'>>,
+  Assert<Rejects<RevenantCoreState, 'soulcleaveReadyAt'>>,
+  Assert<Owns<ConduitState, 'affinity'>>,
+  Assert<Rejects<RevenantCoreState, 'affinity'>>
 ];
 
 declare const context: EngineerSchedulerContext;
