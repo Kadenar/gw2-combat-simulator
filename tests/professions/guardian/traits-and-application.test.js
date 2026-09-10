@@ -12,6 +12,11 @@ import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/buil
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
+import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import { guardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
+import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
+import { reactToZealSymbolTraits } from '#gw2/professions/guardian/core/traits/zeal.js';
+import { projectGuardianEndState } from '#gw2/professions/guardian/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
@@ -27,6 +32,46 @@ const config = {
   },
   target: { armor: 2597 }
 };
+
+test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks independently', () => {
+  // Stagger applications so expiry boundaries distinguish individual stacks from a shared refresh.
+  const state = createGuardianCoreState();
+  const profession = { core: state, specialization: { kind: 'Core', state: {} } };
+  const context = {
+    profession,
+    traits: new Set([GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER]),
+    catalog: guardianCatalog,
+    recordProc() {}
+  };
+  const rule = guardianCoreAttributeRules.modifierRules.find((entry) => entry.id === 'guardian.symbolic-avenger');
+  const bonusAt = (time) => rule.amount({ runtime: { profession }, time }, rule.target, rule.parameters);
+  for (const at of [0, 1, 2, 3, 4, 5]) {
+    reactToZealSymbolTraits(context, { type: 'damage', at, isSymbol: true });
+  }
+
+  assert.equal(state.symbolicAvengerStacks, 5);
+  for (const [at, stacks] of [
+    [15, 5],
+    [15.999, 5],
+    [16, 4],
+    [17, 3],
+    [18, 2],
+    [19, 1],
+    [20, 0]
+  ]) {
+    assert.equal(bonusAt(at), stacks * 0.01);
+    const projected = projectGuardianEndState({ schedulerState: { profession, time: at }, resolverState: profession });
+    assert.equal(projected.symbolicAvengerStacks, stacks);
+    const items = guardianCoreUi.rotationStateSnapshot({ professionState: projected, atSeconds: at });
+    assert.equal(items.length, stacks ? 1 : 0);
+    if (stacks) assert.ok(items[0].value.startsWith(`${stacks}/5`));
+  }
+
+  // A new symbol must discard expired stacks instead of resurrecting the old count.
+  reactToZealSymbolTraits(context, { type: 'damage', at: 20, isSymbol: true });
+  assert.equal(bonusAt(20), 0.01);
+  assert.equal(bonusAt(35), 0);
+});
 
 test('Zeal symbol traits emit their full profiles and stack damage', () => {
   const symbols = simulateGw2({

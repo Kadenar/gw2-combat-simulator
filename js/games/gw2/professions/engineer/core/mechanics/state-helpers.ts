@@ -1,4 +1,3 @@
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import {
@@ -73,7 +72,7 @@ export function queueDamage(
     weaponStrengthProfileId
   }: QueueDamageOptions
 ): void {
-  const damage = enqueueOrdered(context.queue, {
+  const damage = context.queue.enqueue({
     type: 'damage',
     at,
     name,
@@ -128,7 +127,7 @@ export function queueBuff(
   { name, kind, stacks, duration, sourceId = event.skillId, actorType = 'player' }: QueueBuffOptions
 ): void {
   const adjustedDuration = gw2ResolverBoonDuration(context, event, kind, duration);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     name,

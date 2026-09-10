@@ -1,5 +1,4 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -109,7 +108,7 @@ function applyUnsuspectingStrikeBonus(context: ThiefResolverContext, application
   const maximum = Number(context.config?.target?.health || 0);
   const damage = targetHealthLoss(context.config, context);
   if (!(maximum > 0) || damage / maximum < 0.1) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       ...application,
       type: 'condition',
       name: 'Unsuspecting Strike - Bonus Bleeding',

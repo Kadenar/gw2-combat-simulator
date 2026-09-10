@@ -1,5 +1,4 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -58,8 +57,7 @@ function detonateLightAura(context: GuardianResolverContext, event: GuardianReso
   if (!lightAuraActive(state, event.at, epsilon)) return false;
   const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sovereignOfLight), 'strike');
   state.lightAuraUntil = 0;
-  enqueueOrdered(
-    context.queue,
+  context.queue.enqueue(
     buildGuardianStrike({
       at: event.at,
       priority: -15,

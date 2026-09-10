@@ -15,7 +15,7 @@ import { normalizeObservationPolicy, observationEndTime } from '#kernel/executio
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
-import { sortQueuedEvents } from '#kernel/events/queue.js';
+import { compareQueuedEvents } from '#kernel/events/queue.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
 import { cloneProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
@@ -1223,7 +1223,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // lifetime or stop conditions.
     advanceTo(resolutionEnd);
     steps.sort((left, right) => left.ri - right.ri);
-    sortQueuedEvents(events);
+    // Emit the scheduler's completed history in the same order used by resolver queues.
+    events.sort(compareQueuedEvents);
     const snapshot = activeProfession.snapshot(context) ?? cloneProfessionState(state.profession);
     return {
       context,

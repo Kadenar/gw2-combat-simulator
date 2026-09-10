@@ -1,6 +1,5 @@
 /** Owns Core Ranger Marksmanship opening-strike and target-health trait behavior. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -32,7 +31,7 @@ export function consumeOpeningStrike(context: RangerResolverContext, event: Rang
   if (player) state.playerOpeningStrikeReady = false;
   else state.petOpeningStrikeReady = false;
   const openingStrike = profileEffect(context, PROFILE.openingStrike, 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'Trait',
@@ -88,7 +87,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Ranger
     `${stacks} might`,
     context.helpers.skillsById?.get(TRAIT.HUNTERS_GAZE)?.icon || ''
   );
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     source: 'Trait',

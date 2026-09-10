@@ -1,38 +1,30 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  createEventQueue,
-  enqueueOrdered,
-  sortQueuedEvents,
-  StableEventQueue,
-  takeNextEvent
-} from '#kernel/events/queue.js';
+import { compareQueuedEvents, StableEventQueue } from '#kernel/events/queue.js';
 
 // A distinct module URL reproduces queues crossing independently loaded class copies.
-test('queue helpers accept a queue from an independently loaded module', async () => {
-  const { createEventQueue: createIndependentQueue } = await import(
+test('queues from independently loaded modules retain their enqueue and dequeue contract', async () => {
+  const { StableEventQueue: IndependentQueue } = await import(
     `${import.meta.resolve('#kernel/events/queue.js')}?independent-copy`
   );
   const later = { at: 2 };
   const earlier = { at: 1 };
-  const queue = createIndependentQueue([later]);
+  const queue = new IndependentQueue([later]);
 
   assert.equal(queue instanceof StableEventQueue, false);
-  assert.equal(enqueueOrdered(queue, earlier), earlier);
-  assert.equal(createEventQueue(queue), queue);
-  assert.equal(sortQueuedEvents(queue), queue);
-  assert.equal(takeNextEvent(queue), earlier);
-  assert.equal(takeNextEvent(queue), later);
-  assert.equal(takeNextEvent(queue), undefined);
+  assert.equal(queue.enqueue(earlier), earlier);
+  assert.equal(queue.dequeue(), earlier);
+  assert.equal(queue.dequeue(), later);
+  assert.equal(queue.dequeue(), undefined);
 });
 
 // Event queues preserve priority and causal insertion order independently of game rules.
 test('same-time queued events retain stable insertion order', () => {
-  const queue = [];
+  const queue = new StableEventQueue();
 
-  enqueueOrdered(queue, { type: 'damage', at: 1, name: 'first' });
-  enqueueOrdered(queue, { type: 'damage', at: 1, name: 'second' });
-  enqueueOrdered(queue, {
+  queue.enqueue({ type: 'damage', at: 1, name: 'first' });
+  queue.enqueue({ type: 'damage', at: 1, name: 'second' });
+  queue.enqueue({
     type: 'damage',
     at: 1,
     priority: -1,
@@ -40,34 +32,34 @@ test('same-time queued events retain stable insertion order', () => {
   });
 
   assert.deepEqual(
-    queue.map((event) => event.name),
+    Array.from({ length: queue.length }, () => queue.dequeue().name),
     ['priority', 'first', 'second']
   );
 });
 
 test('heap event queues preserve priority and stable insertion order', () => {
-  const queue = createEventQueue([
+  const queue = new StableEventQueue([
     { type: 'damage', at: 2, name: 'later' },
     { type: 'damage', at: 1, name: 'first' },
     { type: 'damage', at: 1, name: 'second' }
   ]);
 
-  enqueueOrdered(queue, {
+  queue.enqueue({
     type: 'damage',
     at: 1,
     priority: -1,
     name: 'priority'
   });
-  enqueueOrdered(queue, { type: 'damage', at: 1, name: 'third' });
+  queue.enqueue({ type: 'damage', at: 1, name: 'third' });
 
   const names = [];
 
-  while (queue.length) names.push(takeNextEvent(queue).name);
+  while (queue.length) names.push(queue.dequeue().name);
   assert.deepEqual(names, ['priority', 'first', 'second', 'third', 'later']);
 });
 
-// Mixed metadata must use the same total order for bulk sorting and incremental insertion.
-test('mixed causal tags sort before untagged events with stable ties in arrays and heaps', () => {
+// Heap construction and incremental insertion must agree with the scheduler history comparator.
+test('mixed causal tags retain stable ties in bulk and incremental heaps', () => {
   const events = [
     { at: 1, name: 'tagged-3', causalOrder: 3 },
     { at: 1, name: 'untagged-A' },
@@ -76,16 +68,26 @@ test('mixed causal tags sort before untagged events with stable ties in arrays a
     { at: 1, name: 'tagged-2', causalOrder: 2 }
   ];
 
-  for (const queue of [sortQueuedEvents([...events]), createEventQueue(events), [], createEventQueue()]) {
+  for (const queue of [new StableEventQueue(events), new StableEventQueue()]) {
     if (!queue.length) {
-      for (const event of events) enqueueOrdered(queue, event);
+      for (const event of events) queue.enqueue(event);
     }
 
-    enqueueOrdered(queue, { at: 1, name: 'tagged-2-tie', causalOrder: 2 });
-    enqueueOrdered(queue, { at: 1, name: 'invalid-tag', causalOrder: Number.NaN });
+    queue.enqueue({ at: 1, name: 'tagged-2-tie', causalOrder: 2 });
+    queue.enqueue({ at: 1, name: 'invalid-tag', causalOrder: Number.NaN });
 
     const names = [];
-    while (queue.length) names.push(takeNextEvent(queue).name);
+    while (queue.length) names.push(queue.dequeue().name);
+    assert.deepEqual(
+      names,
+      [
+        ...events,
+        { at: 1, name: 'tagged-2-tie', causalOrder: 2 },
+        { at: 1, name: 'invalid-tag', causalOrder: Number.NaN }
+      ]
+        .sort(compareQueuedEvents)
+        .map((event) => event.name)
+    );
     assert.deepEqual(names, [
       'tagged-1',
       'tagged-2',
@@ -101,37 +103,42 @@ test('mixed causal tags sort before untagged events with stable ties in arrays a
 test('heap event queues keep derived causal order local to each queue', () => {
   // Consume enough fallback insertions to expose implementations that share
   // an ordering counter across otherwise independent simulations.
-  const warmup = createEventQueue([{ type: 'damage', at: 0, name: 'warmup', eventOrder: 0 }]);
+  const warmup = new StableEventQueue([{ type: 'damage', at: 0, name: 'warmup', eventOrder: 0 }]);
 
-  takeNextEvent(warmup);
+  warmup.dequeue();
   for (let index = 0; index < 20; index += 1) {
-    enqueueOrdered(warmup, {
+    warmup.enqueue({
       type: 'damage',
       at: 0,
       name: `warmup-derived-${index}`
     });
   }
 
-  const queue = createEventQueue([
+  const queue = new StableEventQueue([
     { type: 'damage', at: 1, name: 'cause', eventOrder: 10 },
     { type: 'damage', at: 1, name: 'untagged' },
     { type: 'damage', at: 1, name: 'unrelated', eventOrder: 11 }
   ]);
 
-  assert.equal(takeNextEvent(queue).name, 'cause');
+  assert.equal(queue.dequeue().name, 'cause');
+  // Explicit causal placement wins over the current cause and the event's emission order.
+  queue.enqueue({ at: 1, name: 'explicit', causalOrder: 12, eventOrder: 9 });
 
-  enqueueOrdered(queue, {
+  queue.enqueue({
     type: 'damage',
     at: 1,
     name: 'derived'
   });
-  assert.equal(takeNextEvent(queue).name, 'derived');
+  assert.equal(queue.dequeue().name, 'derived');
 
-  enqueueOrdered(queue, {
+  queue.enqueue({
     type: 'damage',
     at: 1,
     name: 'nested-derived'
   });
-  assert.deepEqual([takeNextEvent(queue).name, takeNextEvent(queue).name], ['nested-derived', 'unrelated']);
-  assert.equal(takeNextEvent(queue).name, 'untagged');
+  assert.deepEqual(
+    [queue.dequeue().name, queue.dequeue().name, queue.dequeue().name],
+    ['nested-derived', 'unrelated', 'explicit']
+  );
+  assert.equal(queue.dequeue().name, 'untagged');
 });

@@ -1,4 +1,3 @@
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
@@ -112,7 +111,7 @@ function createResolvedCriticalSigilEffects(
       proc.effect === 'strike'
         ? createSigilStrikeEvent(name, proc, sourceSkill)
         : createSigilConditionEvent(name, proc, sourceSkill);
-    enqueueOrdered(ctx.queue, { ...effect, at: event.at } as Gw2ResolverEvent);
+    ctx.queue.enqueue({ ...effect, at: event.at } as Gw2ResolverEvent);
     ctx.recordProc('sigil', `Sigil of ${name}`, event.at, sourceSkill, '', String(proc.icon || ''));
   }
 }
@@ -167,7 +166,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
     } as Gw2ResolverEvent;
   }
 
-  enqueueOrdered(ctx.queue, foodEvent);
+  ctx.queue.enqueue(foodEvent);
   ctx.recordProc(
     'food',
     proc.name,

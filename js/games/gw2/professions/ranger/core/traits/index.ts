@@ -1,6 +1,5 @@
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -331,7 +330,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
   triggerStrengthOfThePack(context, event);
   if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
     // The base packet owns three stacks; movement impairment contributes the documented two more.
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at: event.at,
       source: 'ranger',
@@ -355,7 +354,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
   ) {
     const cripple = profileEffect(context, PROFILE.trappersExpertise, 'condition');
     state.trapCrippleActivations[event.activationId] = true;
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at: event.at,
       source: 'Trait',
@@ -396,7 +395,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
       balanceProfileFromContext(context, PROFILE.lightOnYourFeet),
       'condition'
     );
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at: event.at,
       source: 'Trait',

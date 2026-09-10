@@ -15,6 +15,7 @@ import {
   guardianCastAvailability
 } from '#gw2/professions/guardian/core/mechanics/availability.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 type GuardianRechargeModifierContext = GuardianSchedulerContext &
@@ -238,11 +239,11 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       damagePerStack: 0.01
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      Math.min(parameters.maximumStacks, Number(guardianRuntimeState(context).symbolicAvengerStacks || 0)) *
-      parameters.damagePerStack,
-    when: (context) =>
-      hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER) &&
-      Number(guardianRuntimeState(context).symbolicAvengerUntil || 0) > context.time
+      Math.min(
+        parameters.maximumStacks,
+        activeSymbolicAvengerExpirations(guardianRuntimeState(context), context.time).length
+      ) * parameters.damagePerStack,
+    when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)
   },
   {
     id: 'guardian.fiery-wrath',

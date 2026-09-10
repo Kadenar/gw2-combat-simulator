@@ -1,6 +1,5 @@
 /** Owns imperative Core Necromancer Blood Magic trait behavior for ordered dispatcher calls. */
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedEffectRecipients, gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -32,7 +31,7 @@ function queueBloodMagicLifeSteal(
   event: NecromancerResolverEvent,
   { name, traitId, flatStrikeBase, flatStrikePowerCoeff, icon }: TraitDamageDefinition
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     name,

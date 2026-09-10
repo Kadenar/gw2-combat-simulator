@@ -5,6 +5,7 @@ import {
 } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import {
+  activeSymbolicAvengerExpirations,
   GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
   GUARDIAN_CORE_RESOLVER_END_STATE_KEYS
 } from '#gw2/professions/guardian/core/state.js';
@@ -79,6 +80,10 @@ export function projectGuardianEndState({
   for (const key of GUARDIAN_RESOLVER_END_STATE_KEYS) {
     if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];
   }
+
+  // Project live stacks even when the rotation ends with a wait after their last application.
+  state.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(state, schedulerState.time);
+  state.symbolicAvengerStacks = state.symbolicAvengerExpirations.length;
 
   return projectPublicProfessionState(state, GUARDIAN_PUBLIC_END_STATE_KEYS, GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }

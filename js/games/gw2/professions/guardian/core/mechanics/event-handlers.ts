@@ -37,7 +37,7 @@ const GUARDIAN_STRIKE_DEFAULTS = Object.freeze({
 
 /**
  * Builds a guardian strike (damage) event with the canonical field layout so
- * scheduler-side (context.emit) and resolver-side (enqueueOrdered) callers
+ * scheduler-side (context.emit) and resolver-side (context.queue.enqueue) callers
  * share one definition instead of retyping ~15 fields per site. Callers pass
  * the values that vary — at, sourceId, skillId, skillName, name, coefficient,
  * and per-pulse hitIndex/totalHits — plus any extras (isSymbol, triggeredBy,

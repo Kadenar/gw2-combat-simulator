@@ -82,8 +82,7 @@ test('Guardian snapshots combine core and elite active state', () => {
       guardianProfession,
       'Willbender',
       {
-        symbolicAvengerStacks: 3,
-        symbolicAvengerUntil: 9,
+        symbolicAvengerExpirations: [4, 7, 8, 9],
         justiceUntil: 8,
         resolveUntil: 7,
         courageUntil: 3,

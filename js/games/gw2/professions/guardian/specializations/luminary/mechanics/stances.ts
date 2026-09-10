@@ -1,5 +1,4 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
@@ -138,8 +137,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
   state.effulgentActiveUntil = 0;
   state.effulgentStacks = 0;
   context.recordProc('skill', 'Effulgent Stance', event.at, 'Effulgent Stance', `${stacks}/10 stacks`);
-  enqueueOrdered(
-    context.queue,
+  context.queue.enqueue(
     buildGuardianStrike({
       at: event.at,
       priority: 5,
@@ -153,7 +151,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
     })
   );
   if (stacks === maximumStacks) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'control',
       at: event.at,
       priority: 6,

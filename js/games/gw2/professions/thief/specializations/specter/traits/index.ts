@@ -1,7 +1,6 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -218,7 +217,7 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
   const strike = balanceProfileEffect(profile, 'strike');
   for (let stack = 1; stack <= stacks; stack += 1) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'damage',
       at: application.at,
       source: 'Trait',

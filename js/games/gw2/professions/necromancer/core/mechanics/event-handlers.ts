@@ -10,7 +10,6 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  *   - `handleNecromancerSummonAttack` materializes a queued minion
  *     autoattack into a damage event, dropping it if the summon has expired.
  */
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 import { captureNecromancerStatePreserver } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
@@ -89,7 +88,7 @@ export function handleNecromancerChillEvent(
   event: NecromancerResolverEvent
 ): void {
   // Custom chill packets become canonical conditions so Core and active-specialization reactions share one path.
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     name: `${event.skillName || event.name || 'Necromancer'} — Chilled`,
@@ -132,7 +131,7 @@ export function materializeNecromancerSummonAttack(
   event: NecromancerResolverEvent
 ): void {
   // Materialize the strike first so same-timestamp secondary effects retain scheduler ordering.
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     source: event.source,
@@ -167,7 +166,7 @@ export function materializeNecromancerSummonAttack(
   // Follow the strike with its optional condition and control payloads.
   if (Array.isArray(event.onHitCondition)) {
     const [condition, stacks, duration] = event.onHitCondition;
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at: event.at,
       source: event.source,
@@ -184,7 +183,7 @@ export function materializeNecromancerSummonAttack(
   }
 
   if (event.controlKind) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'control',
       at: event.at,
       source: event.source,

@@ -3,7 +3,6 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -24,7 +23,7 @@ function scheduleMassMomentumPulse(context: EngineerResolverContext, at: number)
   const scheduledAt = Number(state.massMomentumPulseAt || 0);
   if (scheduledAt > 0 && scheduledAt <= at + EPSILON) return;
   state.massMomentumPulseAt = at;
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'engineer.mass-momentum-pulse',
     at,
     source: 'Trait',

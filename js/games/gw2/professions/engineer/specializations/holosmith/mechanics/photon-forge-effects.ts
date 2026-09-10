@@ -3,7 +3,6 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
 import { queueBuff } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
 import {
@@ -48,7 +47,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   // Each field pulse emits a paired explosion and burning application at the same timestamp.
   for (let pulse = 0; pulse < packets; pulse += 1) {
     const at = event.at + pulse * interval;
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'damage',
       at,
       name: 'Field Damage',
@@ -66,7 +65,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
       enhancedCapacityTier,
       holosmithStrikeFactor: strikeFactor
     });
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at,
       name: `${event.skillName} — Burning`,
@@ -113,7 +112,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'damage',
       at,
       name: 'Laser Disk',
@@ -130,7 +129,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
       enhancedCapacityTier,
       holosmithStrikeFactor: strikeFactor
     });
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at,
       name: `${event.skillName} - Bleeding`,
@@ -172,7 +171,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   const condition = balanceProfileEffectFromContext(context, PROFILE.launchWallHeatTier, 'condition');
   // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'damage',
       at,
       name: 'Launch Wall',
@@ -190,7 +189,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
       enhancedCapacityTier,
       holosmithStrikeFactor: strikeFactor
     });
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at,
       name: `${event.skillName} - Vulnerability`,
@@ -230,7 +229,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;
-    const damage = enqueueOrdered(context.queue, {
+    const damage = context.queue.enqueue({
       type: 'damage',
       at,
       name: 'Refraction Cutter Blade',
@@ -267,7 +266,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
       ambiguousFieldSelection: 'oldest'
     });
     // Pair the blade's bleed with the same delayed impact and application index.
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at,
       name: `${event.skillName} - Bleeding`,

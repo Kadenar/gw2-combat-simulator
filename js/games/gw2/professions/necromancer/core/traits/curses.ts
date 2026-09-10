@@ -1,7 +1,6 @@
 /** Owns imperative Core Necromancer Curses trait behavior for ordered dispatcher calls. */
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -52,7 +51,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
 
 export function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition !== 'Chilled' || !hasTrait(context, TRAIT.BITTER_CHILL)) return;
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     name: 'Bitter Chill',

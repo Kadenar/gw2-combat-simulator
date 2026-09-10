@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createEventQueue } from '#kernel/events/queue.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
@@ -115,7 +115,7 @@ test('condition stage runs once after state and ticks, including profession and 
     reactions: extensions.reactions,
     config: { target: { conditions: { Bleeding: 1 } } }
   });
-  const queue = createEventQueue();
+  const queue = new StableEventQueue();
   const context = createGw2ResolverRuntimeState({
     config: {
       relic: 'Fractal',

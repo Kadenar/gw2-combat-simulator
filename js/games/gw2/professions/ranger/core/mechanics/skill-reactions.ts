@@ -1,6 +1,5 @@
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -25,7 +24,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: R
 
   state.poisonousStrikesCharges -= 1;
   const poison = profileEffect(context, PROFILE.poisonousStrikes, 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     ...petDerivedConditionMetadata(context, event),
     type: 'condition',
     at: event.at,
@@ -53,7 +52,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Ra
 
   state.sharpeningStoneExpirations.shift();
   const bleeding = profileEffect(context, PROFILE.sharpeningStone, 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'ranger',
@@ -80,7 +79,7 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
   );
   if (!active) return;
   const might = profileEffect(context, PROFILE.strengthOfThePack, 'boon');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     source: 'ranger',

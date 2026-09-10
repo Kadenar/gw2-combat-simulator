@@ -2,7 +2,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/state/boons.js';
@@ -103,7 +102,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Ran
     `${duration}s, +40% pet strike damage`,
     context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById?.get(ID.SIC_EM)?.icon || ''
   );
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     source: 'Trait',

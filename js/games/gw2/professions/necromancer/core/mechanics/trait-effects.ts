@@ -1,5 +1,4 @@
 /** Shares resolver-side Necromancer trait effects without coupling trait-line modules to the public dispatcher. */
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
@@ -61,7 +60,7 @@ export function queueTraitCoefficientDamage(
   event: NecromancerResolverEvent,
   { name, traitId, coefficient, noCrit = true, damageKind, icon }: TraitCoefficientDefinition
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     name,
@@ -91,7 +90,7 @@ export function applyTraitVulnerability(
   event: NecromancerResolverEvent,
   { name, traitId, stacks, duration }: TraitVulnerabilityDefinition
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     name,

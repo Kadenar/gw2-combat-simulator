@@ -1,4 +1,3 @@
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -48,7 +47,7 @@ export function queueBleeding(
 ): void {
   const petSource = isPetStrike(event);
   // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     ...petDerivedConditionMetadata(context, event),
     type: 'condition',
     at: event.at,
@@ -77,7 +76,7 @@ export function queueCondition(
 ): void {
   const petSource = isPetStrike(event);
   // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     ...petDerivedConditionMetadata(context, event),
     type: 'condition',
     at: event.at,

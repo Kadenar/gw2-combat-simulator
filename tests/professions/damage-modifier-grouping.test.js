@@ -93,8 +93,7 @@ test('Guardian additive and multiplicative modifiers use separate buckets', () =
       totals: { strike: 0, condition: 0 },
       profession: {
         resolutionUntil: 10,
-        symbolicAvengerUntil: 10,
-        symbolicAvengerStacks: 5
+        symbolicAvengerExpirations: [6, 7, 8, 9, 10]
       },
       boons: new Map(),
       conditionState: new Map()

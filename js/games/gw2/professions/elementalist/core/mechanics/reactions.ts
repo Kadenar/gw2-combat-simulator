@@ -3,7 +3,6 @@ import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -66,7 +65,7 @@ export function queueElementalistAura(
   duration: number,
   skillName: string
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'elementalist.aura',
     at: event.at,
     source: skillName,

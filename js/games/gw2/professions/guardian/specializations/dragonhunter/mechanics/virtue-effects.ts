@@ -1,5 +1,4 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -34,7 +33,7 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
     return;
   }
 
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'guardian',
@@ -95,7 +94,7 @@ export function reactToDragonhunterJusticeHit(
   // priority: 5 ensures this Vulnerability condition sorts after zero-priority damage
   // events at the same timestamp so modifiers can pick it up on the next resolve tick.
   const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bigGameHunter), 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     priority: 5,
@@ -143,7 +142,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
   const heavyLight = balanceProfileFromContext(context, PROFILE.heavyLight);
   const stability = balanceProfileEffect(heavyLight, 'boon');
   state.heavyLightReadyAt = event.at + Number(heavyLight?.internalCooldown ?? 1);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     priority: 5,

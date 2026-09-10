@@ -1,3 +1,4 @@
+import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
@@ -17,7 +18,7 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
       actorType: 'player',
       ...overrides
     });
-    const ctx = { relic: createRelicRuntime('Mirage'), config: {}, combatStartTime: 3, queue: [] };
+    const ctx = { relic: createRelicRuntime('Mirage'), config: {}, combatStartTime: 3, queue: new StableEventQueue() };
     recordPassiveRelicTimeline(
       ctx,
       [
@@ -34,11 +35,12 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
       ],
       8
     );
+    const queued = Array.from({ length: ctx.queue.length }, () => ctx.queue.dequeue());
     assert.deepEqual(
-      ctx.queue.map((event) => event.at),
+      queued.map((event) => event.at),
       [4, 5.001]
     );
-    for (const event of ctx.queue) {
+    for (const event of queued) {
       assert.equal(event.condition, 'Torment');
       assert.equal(event.stacks, 2);
       assert.equal(event.duration, 6);

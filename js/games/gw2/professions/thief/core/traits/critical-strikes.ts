@@ -1,6 +1,5 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
@@ -41,7 +40,7 @@ function queueThiefBoon(
     readonly audience?: EffectAudience;
   }
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     source: 'Trait',
@@ -77,7 +76,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
       active.has(application) ? { ...application, expiresAt: application.expiresAt + duration } : application
     )
   );
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'proc',
     at: event.at,
     source: 'Trait',

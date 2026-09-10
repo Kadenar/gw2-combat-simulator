@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createEventQueue } from '#kernel/events/queue.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { createEventStream } from '#kernel/events/stream.js';
 import { normalizeObservationPolicy, observationEndTime } from '#kernel/execution/observation.js';
 
@@ -13,7 +13,7 @@ test('kernel event streams keep caller identity and queue equal-time events stab
     { kind: 'fake.action', payload: { id: 3 }, at: 5 }
   ];
   const stream = createEventStream('fake.events', 2, events);
-  const queue = createEventQueue(stream.events);
+  const queue = new StableEventQueue(stream.events);
 
   assert.equal(stream.kind, 'fake.events');
   assert.equal(stream.version, 2);

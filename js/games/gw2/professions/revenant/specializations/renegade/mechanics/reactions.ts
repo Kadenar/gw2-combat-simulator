@@ -3,7 +3,6 @@ import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/m
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -65,7 +64,7 @@ function reactToDamage(context: RevenantResolverContext, event: RevenantResolver
         skillWeaponFallback: 'Unequipped'
       });
       for (const application of applications) {
-        enqueueOrdered(context.queue, {
+        context.queue.enqueue({
           ...application.event,
           triggeredBy: event.skillName
         } as RevenantResolverEvent);

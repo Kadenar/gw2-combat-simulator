@@ -1,4 +1,3 @@
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -46,7 +45,7 @@ export function grantMaulAttackOfOpportunity(
   recipient: 'pet' | 'player'
 ): void {
   if (!isPlayerStrike(event) || (event.skillId !== ID.MAUL && event.skillId !== ID.MAUL_ID_46629)) return;
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     source: 'ranger',

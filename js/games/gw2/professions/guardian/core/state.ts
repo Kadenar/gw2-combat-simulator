@@ -23,7 +23,7 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
     autoattackChains: {},
     availableFlips: {},
     symbolicAvengerStacks: 0,
-    symbolicAvengerUntil: 0,
+    symbolicAvengerExpirations: [],
     symbolIgnitionStartsAt: -1,
     symbolIgnitionUntil: -1,
     symbolIgnitionReadyAt: 0,
@@ -35,6 +35,11 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
     spearIlluminatedUntil: 0,
     spearLuminanceUntil: 0
   };
+}
+
+/** Each Symbolic Avenger stack expires independently, including between symbol hits. */
+export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreState>, at: number): number[] {
+  return (state.symbolicAvengerExpirations || []).filter((expiresAt) => expiresAt > at);
 }
 
 /** Declares the Core-owned portion of Guardian's stable public end-state contract. */
@@ -54,7 +59,7 @@ export const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreSt
   'symbolIgnitionUntil',
   'symbolIgnitionReadyAt',
   'symbolicAvengerStacks',
-  'symbolicAvengerUntil',
+  'symbolicAvengerExpirations',
   'zealotsResolutionReadyAt',
   'resolutionUntil',
   'spearIlluminatedArmed',
@@ -72,7 +77,7 @@ export const GUARDIAN_CORE_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianCore
   'justicePassiveBurns',
   'virtueReadyAt',
   'symbolicAvengerStacks',
-  'symbolicAvengerUntil',
+  'symbolicAvengerExpirations',
   'zealotsResolutionReadyAt',
   'resolutionUntil'
 ]);

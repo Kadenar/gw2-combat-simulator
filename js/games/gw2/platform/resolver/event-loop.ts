@@ -1,5 +1,4 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { sortQueuedEvents, takeNextEvent } from '#kernel/events/queue.js';
 import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 
@@ -95,10 +94,9 @@ export function runGw2ResolverEventLoop(ctx: Gw2ResolverRuntime, handlerRegistry
   let lethalActivationKey: string | null = null;
   // A zero-health start is already lethal and must not grant a free opening hit.
   if (targetHealthLoss(ctx.config, ctx) >= hp) ctx.deathTime = 0;
-  sortQueuedEvents(queue);
-
+  // The runtime queue maintains chronological and causal placement as handlers enqueue derived events.
   while (queue.length > 0) {
-    const event = takeNextEvent(queue);
+    const event = queue.dequeue();
     if (!event) break;
     if (event.at > ctx.horizon + EPSILON) break;
     if (ctx.deathTime != null) {

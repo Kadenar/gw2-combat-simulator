@@ -1,3 +1,4 @@
+import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -33,7 +34,7 @@ function traitContext(selectedTraitIds = [], config = {}) {
     },
     activeWeaponSet: 1,
     events,
-    queue: [],
+    queue: new StableEventQueue(),
     boons: new Map(),
     resolved: [],
     epsilon: 0.0001,
@@ -119,7 +120,9 @@ test('Potent Poison adjusts each moved player poison packet', () => {
     condition: 'Immobilized',
     skillName: 'Panic Strike'
   });
-  assert.equal(panic.context.queue.find((event) => event.sourceId === TRAIT.PANIC_STRIKE).stacks, 2);
+  const poison = panic.context.queue.dequeue();
+  assert.equal(poison.sourceId, TRAIT.PANIC_STRIKE);
+  assert.equal(poison.stacks, 2);
 });
 
 test('Kleptomaniac restores initiative on steal completion', () => {
@@ -164,8 +167,9 @@ test('Unrelenting Strikes retains its critical threshold reaction', () => {
   const reaction = thiefCoreCriticalReactions.unrelentingStrikes;
   assert.equal(reaction.when(context, event, { hitContext: { critEligible: true } }), true);
   reaction.handler(context, event, {}, { quantity: 1 });
-  assert.equal(context.queue[0].kind, 'fury');
-  assert.equal(context.queue[0].audience.recipients, 'party');
+  const fury = context.queue.dequeue();
+  assert.equal(fury.kind, 'fury');
+  assert.equal(fury.audience.recipients, 'party');
 });
 
 test('No Quarter extends active self Fury for each threshold proc', () => {
@@ -189,7 +193,7 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
     { quantity: 1 }
   );
   assert.equal(context.boons.get('fury')[0].expiresAt, 7);
-  assert.equal(context.queue[0].sourceId, TRAIT.NO_QUARTER);
+  assert.equal(context.queue.dequeue().sourceId, TRAIT.NO_QUARTER);
 });
 
 test('No Quarter uses the shared timeline epsilon at Fury expiration', () => {
@@ -232,8 +236,9 @@ test("Assassin's Fury queues Might from self Fury", () => {
       recipientCount: 1
     }
   });
-  assert.equal(context.queue[0].kind, 'might');
-  assert.equal(context.queue[0].stacks, 3);
+  const might = context.queue.dequeue();
+  assert.equal(might.kind, 'might');
+  assert.equal(might.stacks, 3);
 });
 
 test('Spider Venom remains a base effect and Leeching Venoms stays nested after it', () => {
@@ -248,7 +253,7 @@ test('Spider Venom remains a base effect and Leeching Venoms stays nested after 
   withTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ generation: 1, charges: 1, expiresAt: 10 }];
   reactToThiefCoreDamage(withTrait.context, strike);
   assert.equal(withTrait.conditions[0].skillId, ID.SPIDER_VENOM);
-  assert.equal(withTrait.context.queue[0].sourceId, TRAIT.LEECHING_VENOMS);
+  assert.equal(withTrait.context.queue.dequeue().sourceId, TRAIT.LEECHING_VENOMS);
 });
 
 test('Shadow Siphoning reacts only to cataloged stealth attacks', () => {
@@ -262,7 +267,7 @@ test('Shadow Siphoning reacts only to cataloged stealth attacks', () => {
     skillId: stealthAttack.id,
     skillName: stealthAttack.name
   });
-  assert.equal(context.queue[0].sourceId, TRAIT.SHADOW_SIPHONING);
+  assert.equal(context.queue.dequeue().sourceId, TRAIT.SHADOW_SIPHONING);
 });
 
 test('Panic Strike applies immobilize then its poison follow-up', () => {
@@ -276,7 +281,7 @@ test('Panic Strike applies immobilize then its poison follow-up', () => {
   });
   assert.equal(conditions[0].condition, 'Immobilized');
   reactToThiefCoreCondition(context, conditions[0]);
-  assert.equal(context.queue[0].condition, 'Poisoned');
+  assert.equal(context.queue.dequeue().condition, 'Poisoned');
 });
 
 test('Cloaked in Shadow siphons from applied Blindness', () => {
@@ -288,8 +293,9 @@ test('Cloaked in Shadow siphons from applied Blindness', () => {
     condition: 'Blindness',
     skillName: 'Blind Test'
   });
-  assert.equal(context.queue[0].sourceId, TRAIT.CLOAKED_IN_SHADOW);
-  assert.equal(context.queue[0].lifeSiphon, true);
+  const siphon = context.queue.dequeue();
+  assert.equal(siphon.sourceId, TRAIT.CLOAKED_IN_SHADOW);
+  assert.equal(siphon.lifeSiphon, true);
 });
 
 test('steal activation preserves its cross-line event order', () => {

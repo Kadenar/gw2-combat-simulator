@@ -3,7 +3,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
-import { createEventQueue } from '#kernel/events/queue.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
@@ -521,7 +521,7 @@ test('environment scheduling preserves permanent status counts without duplicati
   });
   const context = {
     horizon: 2,
-    queue: createEventQueue(),
+    queue: new StableEventQueue(),
     conditionState: new Map(),
     environmentConditions: new Map()
   };

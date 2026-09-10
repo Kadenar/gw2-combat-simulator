@@ -1,7 +1,6 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -28,7 +27,7 @@ export function handleNecromancerPainfulBond(
       // Only the first application schedules the tick chain; stacked applications preserve its one-second cadence.
       const firstPulseAt = event.at + Number(definition?.initialDelay ?? 0.004);
       state.painfulBondPulseAnchorAt = firstPulseAt;
-      enqueueOrdered(context.queue, {
+      context.queue.enqueue({
         ...event,
         at: firstPulseAt,
         mode: 'tick'
@@ -42,7 +41,7 @@ export function handleNecromancerPainfulBond(
 
   // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
   if (event.at < Number(state.painfulBondUntil || 0) - EPSILON) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'damage',
       at: event.at,
       name: 'Painful Bond',
@@ -66,7 +65,7 @@ export function handleNecromancerPainfulBond(
   const nextAt = event.at + Number(definition?.pulseInterval ?? 1);
   // Zero interval stops the recurring chain after the initial pulse.
   if (nextAt > event.at && nextAt <= context.horizon + EPSILON) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       ...event,
       at: nextAt,
       mode: 'tick'

@@ -1,5 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { createEventQueue } from '#kernel/events/queue.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { assertScheduledEventStream as assertPlatformStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from '#gw2/platform/resolver/event-loop.js';
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
@@ -193,7 +193,7 @@ export function resolveGw2Timeline({
     reactions: extensions.reactions
   });
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
-  const queue = createEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));
+  const queue = new StableEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));
   const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
   const ctx = createGw2ResolverRuntimeState({
     reporting: output !== 'score',

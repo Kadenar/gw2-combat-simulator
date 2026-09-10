@@ -1,6 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -60,7 +59,7 @@ export function queueSoulbeastBuff(
   name: string,
   sourceId: number
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     source: 'Trait',
@@ -96,7 +95,7 @@ function queueCondition(
   sourceId: number,
   name: string
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'Trait',
@@ -127,7 +126,7 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Ra
 
   core.poisonousStrikesCharges -= 1;
   const poison = profileEffect(context, CORE_PROFILE.poisonousStrikes, 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'ranger',
@@ -161,7 +160,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
     const strike = balanceProfileEffect(profile, 'strike');
     // 1-second ICD between echoes even within a single multi-hit skill.
     state.oneWolfPackReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'damage',
       at: event.at + Number(profile?.initialDelay ?? 0.28),
       source: 'ranger',
@@ -251,7 +250,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
     const profile = balanceProfileFromContext(context, PROFILE.goForTheEyes);
     const blind = balanceProfileEffect(profile, 'blind');
     state.goForTheEyesReadyAt = event.at + Number(profile?.internalCooldown ?? 12);
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'blind',
       at: event.at,
       source: 'Trait',
@@ -339,7 +338,7 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
   }
 
   const strike = profileEffect(context, PROFILE.predatorsCunning, 'strike');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     source: 'Trait',
@@ -372,7 +371,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Rang
 
   const profile = balanceProfileFromContext(context, PROFILE.essenceOfSpeed);
   state.essenceOfSpeedReadyAt = event.at + Number(profile?.internalCooldown ?? 5);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'ranger.boon-extension',
     at: event.at,
     source: 'Trait',

@@ -1,7 +1,6 @@
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -82,7 +81,7 @@ export function triggerPoisonMaster(context: RangerResolverContext, event: Range
 
   state.poisonMasterPetAttackReady = false;
   const poison = profileEffect(context, PROFILE.poisonMaster, 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'Trait',
@@ -139,7 +138,7 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
   const profile = balanceProfileFromContext(context, PROFILE.carnivore);
   const strike = balanceProfileEffect(profile, 'strike');
   state.carnivoreReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     source: 'Trait',

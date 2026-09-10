@@ -1,4 +1,3 @@
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -41,7 +40,7 @@ function queueTraitBuff(
   name: string,
   party = false
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     source: 'Trait',
@@ -67,7 +66,7 @@ function queueTraitCondition(
   sourceId: number,
   name: string
 ): void {
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'Trait',

@@ -1,5 +1,4 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -55,7 +54,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
         traitId: TRAIT.CHILLING_NOVA,
         coefficient: Number(strike?.coefficient ?? 1.125)
       });
-      enqueueOrdered(context.queue, {
+      context.queue.enqueue({
         type: 'necromancer.chill',
         at: event.at,
         source: 'Trait',
@@ -100,7 +99,7 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
   }
 
   const chill = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.shiversOfDread), 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'necromancer.chill',
     at: event.at,
     source: 'Trait',

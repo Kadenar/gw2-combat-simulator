@@ -1,4 +1,3 @@
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 import {
   normalizeComboFinisherType,
@@ -45,7 +44,7 @@ export function enqueueGw2OwnedComboFinisher(
     .filter((field) => field.ownerId === options.ownerId && field.at <= at && field.expiresAt > at)
     .sort((left, right) => left.at - right.at);
   const { field, ambiguous } = selectComboFieldForFinisher(fields, options);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'combo_finisher',
     at,
     effectAt: Number(options.effectAt ?? at),
@@ -86,11 +85,11 @@ export function createGw2ComboResolution({
         }
       });
       for (const combo of combos) {
-        enqueueOrdered(context.queue, combo as Gw2ResolverEvent);
+        context.queue.enqueue(combo as Gw2ResolverEvent);
         for (const outcome of materializeComboOutcome(combo)) {
           if (outcome.type === 'buff' && outcome.fixedDuration !== true) {
             const stats = context.query.statsAt(combo.at, combo as Gw2ResolverEvent, context);
-            enqueueOrdered(context.queue, {
+            context.queue.enqueue({
               ...outcome,
               duration:
                 Number(outcome.duration || 0) *
@@ -101,7 +100,7 @@ export function createGw2ComboResolution({
                 )
             } as Gw2ResolverEvent);
           } else {
-            enqueueOrdered(context.queue, outcome as Gw2ResolverEvent);
+            context.queue.enqueue(outcome as Gw2ResolverEvent);
           }
         }
       }

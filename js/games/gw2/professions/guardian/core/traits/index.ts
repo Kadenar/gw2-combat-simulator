@@ -1,7 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -138,7 +137,7 @@ function reactToSymbolOfIgnition(context: GuardianResolverContext, event: Guardi
   if (!isInternalCooldownReady(event.at, Number(state.symbolIgnitionReadyAt || 0))) return;
 
   state.symbolIgnitionReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     priority: 5,

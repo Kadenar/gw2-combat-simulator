@@ -1,4 +1,3 @@
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { applyEngineerDerivedCondition, queueDamage } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
 import type {
@@ -56,7 +55,7 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
     name: 'Conduit Surge',
     coefficient: 1.2
   });
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     name: 'Conduit Surge — Burning',
@@ -80,7 +79,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     coefficient: isFocused ? 1.5 : 1,
     explosion: true
   });
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     name: 'Electric Artillery — Burning',

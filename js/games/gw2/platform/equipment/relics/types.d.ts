@@ -37,7 +37,7 @@ export interface Gw2RelicContext extends SchedulerRecord {
   readonly config: Gw2RelicConfig;
   readonly totals: { strike: number; condition: number };
   readonly resolved: SchedulerRecord[];
-  readonly queue: SimulationEvent[] | StableEventQueue<SimulationEvent>;
+  readonly queue: StableEventQueue<SimulationEvent>;
   readonly combatStartTime?: number | null;
   readonly relic?: Gw2RelicRuntime;
   recordProc(

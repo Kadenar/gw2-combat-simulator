@@ -5,7 +5,6 @@
  */
 
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
@@ -251,7 +250,7 @@ function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2RelicRule
         activationTimes.push(at);
         ctx.recordProc('relic', name, at, cast.skillName, 'activated', '', null, at + 6);
         if (director) {
-          enqueueOrdered(ctx.queue, {
+          ctx.queue.enqueue({
             type: 'condition',
             at,
             source: 'Relic',
@@ -440,7 +439,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         Number(state.buffUntil)
       );
       const explosionAt = event.at + 0.68;
-      enqueueOrdered(ctx.queue, {
+      ctx.queue.enqueue({
         type: 'damage',
         at: explosionAt,
         name: 'Bloodstone Explosion',
@@ -457,7 +456,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         canCrit: true,
         triggeredBy: event.skillName
       });
-      enqueueOrdered(ctx.queue, {
+      ctx.queue.enqueue({
         type: 'condition',
         at: explosionAt,
         name: 'Bloodstone Explosion — Bleeding',
@@ -709,7 +708,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         const at = dodge.at;
         if (!isInternalCooldownReady(at, readyAt)) continue;
         readyAt = at + 1;
-        enqueueOrdered(ctx.queue, {
+        ctx.queue.enqueue({
           type: 'condition',
           at,
           source: 'Relic',
@@ -865,7 +864,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       }
 
       // Steamshrieker is a shared relic: every profession's successful player-owned water blast or leap burns once.
-      enqueueOrdered(ctx.queue, {
+      ctx.queue.enqueue({
         type: 'condition',
         at: event.at,
         source: 'Relic',

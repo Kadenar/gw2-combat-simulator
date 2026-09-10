@@ -181,7 +181,7 @@ export interface Gw2ResolverHelpers extends Record<string, unknown> {
   >;
 }
 
-export type Gw2EventQueue = Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
+export type Gw2EventQueue = StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends Record<string, unknown> {
   readonly reporting: boolean;

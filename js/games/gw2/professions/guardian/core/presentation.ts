@@ -2,6 +2,7 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
@@ -41,8 +42,9 @@ export function guardianUiState(context: GuardianUiContext = {}): Partial<Guardi
 function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
   const state = guardianUiState(context);
   const at = guardianSnapshotAt(context);
-  const remaining = Number(state.symbolicAvengerUntil || 0) - at;
-  const stacks = Math.max(0, Math.min(5, Math.trunc(Number(state.symbolicAvengerStacks || 0))));
+  const expirations = activeSymbolicAvengerExpirations(state, at);
+  const remaining = Math.max(0, ...expirations) - at;
+  const stacks = expirations.length;
   return remaining > 0 && stacks > 0
     ? [
         {

@@ -1,7 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -138,7 +137,7 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
     return;
   const profile = balanceProfileFromContext(context, PROFILE.panicStrike);
   const poison = balanceProfileEffect(profile, 'condition', 1);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: application.at,
     source: 'Trait',

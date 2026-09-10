@@ -11,7 +11,6 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -258,7 +257,7 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     event.at + balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'internalCooldown', 1);
   const strike = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'strike');
   const chilled = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'condition');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     source: 'Shattering Ice Proc',
@@ -271,7 +270,7 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     triggeredBy: event.skillName
   });
 
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     source: 'Shattering Ice Proc',

@@ -2,7 +2,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -52,7 +51,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
   state.traitProcReadyAt.lesserSignetMight = event.at + Number(signetMastery?.internalCooldown ?? 20);
   for (const effect of signetMastery?.effects || []) {
     const kind = String(effect.boon || effect.kind || '');
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'buff',
       at: event.at + EPSILON,
       priority: -5,

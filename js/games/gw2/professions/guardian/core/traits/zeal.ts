@@ -2,7 +2,6 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
@@ -10,9 +9,9 @@ import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.j
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import {
   emitGuardianProc,
-  guardianResolverEpsilon,
   guardianResolverState,
   guardianTraitIcon,
   isGuardianSymbolSkill,
@@ -128,8 +127,7 @@ function queueLesserSymbolOfResolution(
   if (!ticks?.length) throw new Error("Zealot's Resolution requires an explicit strike timeline.");
   for (const [index, tick] of ticks.entries()) {
     const pulseAt = at + Number(tick.atMs) / 1000;
-    enqueueOrdered(
-      context.queue,
+    context.queue.enqueue(
       buildGuardianStrike({
         at: pulseAt,
         sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
@@ -163,15 +161,14 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
   const state = guardianResolverState(context);
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
     const profile = balanceProfileFromContext(context, PROFILE.symbolicAvenger);
-    if (event.at >= state.symbolicAvengerUntil - guardianResolverEpsilon(context)) {
-      state.symbolicAvengerStacks = 0;
-    }
-
-    state.symbolicAvengerStacks = Math.min(
-      Number(profile?.maximumStacks ?? 5),
-      Number(state.symbolicAvengerStacks || 0) + 1
-    );
-    state.symbolicAvengerUntil = event.at + Number(profile?.pulseInterval ?? 15);
+    // At the cap, replace only the shortest remaining stack instead of refreshing the entire buff.
+    state.symbolicAvengerExpirations = [
+      ...activeSymbolicAvengerExpirations(state, event.at),
+      event.at + Number(profile?.pulseInterval ?? 15)
+    ]
+      .sort((a, b) => b - a)
+      .slice(0, Number(profile?.maximumStacks ?? 5));
+    state.symbolicAvengerStacks = state.symbolicAvengerExpirations.length;
     recordGuardianTraitProc(
       context,
       GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,
@@ -187,7 +184,7 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
     hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
   ) {
     // Lesser Symbol applies target Vulnerability directly so it shares condition duration and stacking rules.
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'condition',
       at: event.at,
       source: 'guardian',

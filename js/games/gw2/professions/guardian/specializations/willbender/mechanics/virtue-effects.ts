@@ -1,6 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -70,7 +69,7 @@ function handleWillbenderVirtueTrigger(context: GuardianResolverContext, event: 
   else core.justicePassiveBurns += 1;
   // Burning is enqueued into the resolver's condition queue rather than emitted
   // directly so it respects the condition-application ordering alongside other burns.
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     priority: 5,

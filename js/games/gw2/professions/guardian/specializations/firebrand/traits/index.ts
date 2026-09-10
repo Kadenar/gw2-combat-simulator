@@ -2,7 +2,6 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -312,7 +311,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
     // resetting would skip a burn that should have fired at the next hit.
     state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : 0;
     state.ashesExpiresAt = event.at + duration;
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'guardian.ashes-expired',
       at: state.ashesExpiresAt,
       priority: 10,
@@ -332,7 +331,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
       internalCooldown: Number(ashes?.internalCooldown ?? 1)
     });
     if (proc) {
-      enqueueOrdered(context.queue, {
+      context.queue.enqueue({
         type: 'condition',
         at: proc.at,
         priority: 5,

@@ -1,3 +1,4 @@
+import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
@@ -52,7 +53,7 @@ test('Amalgam resolver procs honor authored poison, strike and ICD edits, includ
       helpers: catalog,
       traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
       profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
-      queue: [],
+      queue: new StableEventQueue(),
       applyCondition: (event) => conditions.push(event)
     };
     const event = {
@@ -66,12 +67,12 @@ test('Amalgam resolver procs honor authored poison, strike and ICD edits, includ
     amalgamResolverEventReactions.damage(context, event);
     assert.equal(conditions[0].duration, duration);
     assert.equal(conditions[0].stacks, stacks);
-    assert.equal(context.queue[0].coefficient, coefficient);
     assert.equal(context.profession.core.traitProcReadyAt.rapacious, cooldown);
     amalgamResolverEventReactions.damage(context, { ...event, at: 0.5 });
     assert.equal(context.queue.length, cooldown === 0 ? 2 : 1);
     amalgamResolverEventReactions.damage(context, { ...event, at: 1.201 });
     assert.equal(context.queue.length, cooldown === 0 ? 3 : 2);
+    assert.equal(context.queue.dequeue().coefficient, coefficient);
   }
 });
 
@@ -85,7 +86,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
   const context = {
     helpers: catalog,
     traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
-    queue: [],
+    queue: new StableEventQueue(),
     profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
     applyCondition: (event) => conditions.push(event)
   };
@@ -97,7 +98,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
     skillId: 77103,
     skillName: 'Offensive Protocol: Shred'
   });
-  const proc = context.queue.shift();
+  const proc = context.queue.dequeue();
   // Separate player packets at the same timestamp remain eligible when the ICD is disabled.
   amalgamResolverEventReactions.damage(context, {
     type: 'damage',
@@ -108,7 +109,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
     skillName: 'Offensive Protocol: Shred'
   });
   assert.equal(context.queue.length, 1);
-  context.queue.shift();
+  context.queue.dequeue();
   amalgamResolverEventReactions.damage(context, proc);
   assert.equal(context.queue.length, 0);
   assert.ok(conditions.some((condition) => condition.triggeredBy === 'Rapacious Strain'));

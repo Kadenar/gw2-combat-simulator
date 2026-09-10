@@ -1,7 +1,6 @@
 /** Owns imperative Core Necromancer Spite trait behavior for ordered dispatcher calls. */
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -32,7 +31,7 @@ export function applyReapersMight(
 ): void {
   if (!hasTrait(context, TRAIT.REAPERS_MIGHT) || !firstHit || !shroudSkillOne) return;
   const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.reapersMight), 'boon');
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     name: "Reaper's Might",
@@ -58,7 +57,7 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
   const profile = balanceProfileFromContext(context, PROFILE.siphonedPower);
   const effect = balanceProfileEffect(profile, 'boon');
   professionCoreState(context).traitProcReadyAt.siphonedPower = event.at + Number(profile?.cooldown ?? 1);
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at: event.at,
     name: 'Siphoned Power',
@@ -118,7 +117,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
     coefficient,
     noCrit: true
   });
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'necromancer.chill',
     at: event.at,
     source: 'Trait',

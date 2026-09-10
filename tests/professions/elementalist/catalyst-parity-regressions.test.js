@@ -1,3 +1,4 @@
+import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -258,7 +259,7 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
   const context = {
     profession: { specialization: { kind: 'Catalyst', state } },
     config: {},
-    queue: []
+    queue: new StableEventQueue()
   };
   state.shatteringIceUntil = 10;
 
@@ -304,12 +305,13 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
     coefficient: 0.6
   });
 
+  const queued = Array.from({ length: context.queue.length }, () => context.queue.dequeue());
   assert.deepEqual(
-    context.queue.filter((event) => event.type === 'damage').map((event) => event.triggeredBy),
+    queued.filter((event) => event.type === 'damage').map((event) => event.triggeredBy),
     ['Electric Discharge', 'Deploy Jade Sphere (Air)']
   );
   assert.deepEqual(
-    context.queue.filter((event) => event.type === 'condition').map((event) => event.triggeredBy),
+    queued.filter((event) => event.type === 'condition').map((event) => event.triggeredBy),
     ['Electric Discharge', 'Deploy Jade Sphere (Air)']
   );
   assert.equal(state.shatteringIceReadyAt, 3.001);

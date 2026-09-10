@@ -1,6 +1,5 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -42,7 +41,7 @@ function queueNightmareWeapon(
   const strike = balanceProfileEffect(definition, 'strike');
   const vulnerability = balanceProfileEffect(definition, 'condition');
   // Materialize both components at the triggering strike's timestamp before recording the combined proc.
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     name: 'Nightmare Weapon',
@@ -63,7 +62,7 @@ function queueNightmareWeapon(
     triggeredBy: event.skillName,
     triggeredByAlly: event.triggeredByAlly
   });
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'condition',
     at: event.at,
     name: 'Nightmare Weapon',
@@ -96,7 +95,7 @@ function queueSplinterWeapon(
 ): void {
   const strike = balanceProfileEffect(definition, 'strike');
   // Queue the derived strike first, then expose the same trigger through proc reporting.
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'damage',
     at: event.at,
     name: 'Splinter Weapon',

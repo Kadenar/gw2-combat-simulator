@@ -1,3 +1,4 @@
+import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -60,7 +61,7 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     },
     activeWeaponSet: 1,
     epsilon: 0.0001,
-    queue: [],
+    queue: new StableEventQueue(),
     resolved: [],
     boons: new Map(),
     events,

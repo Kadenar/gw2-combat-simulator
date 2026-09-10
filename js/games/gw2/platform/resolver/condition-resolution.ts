@@ -1,5 +1,4 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
@@ -94,7 +93,7 @@ export function createGw2ConditionResolution({
         damageTicks: []
       });
       for (let at = startsAt + 1; at <= ctx.horizon + EPSILON; at += 1) {
-        enqueueOrdered(ctx.queue, {
+        ctx.queue.enqueue({
           type: 'condition_tick',
           at,
           source: 'Environment',
@@ -124,7 +123,7 @@ export function createGw2ConditionResolution({
     const observableFullTicks = Math.floor(observableDuration + EPSILON);
     const fullTicks = Math.min(naturalFullTicks, observableFullTicks);
     for (let index = 1; index <= fullTicks; index += 1) {
-      enqueueOrdered(ctx.queue, {
+      ctx.queue.enqueue({
         type: 'condition_tick',
         at: application.at + index,
         source: application.source,
@@ -141,7 +140,7 @@ export function createGw2ConditionResolution({
     // A fractional packet is real only when the condition naturally expires
     // within the observation window.
     if (remainder > EPSILON && application.naturalExpiresAt <= ctx.horizon + EPSILON) {
-      enqueueOrdered(ctx.queue, {
+      ctx.queue.enqueue({
         type: 'condition_tick',
         at: application.naturalExpiresAt,
         source: application.source,

@@ -52,7 +52,7 @@ export interface GuardianCoreState {
   autoattackChains: Record<string, SkillId>;
   availableFlips: Record<string, number>;
   symbolicAvengerStacks: number;
-  symbolicAvengerUntil: number;
+  symbolicAvengerExpirations: number[];
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;
   symbolIgnitionReadyAt: number;

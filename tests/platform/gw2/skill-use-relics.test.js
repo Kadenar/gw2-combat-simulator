@@ -1,3 +1,4 @@
+import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
@@ -32,7 +33,7 @@ test('both preparation buffs combine with the combat relic and stop triggering a
     },
     relic: createRelicRuntime('Claw'),
     combatStartTime: 2,
-    queue: [],
+    queue: new StableEventQueue(),
     recordProc: (...args) => procs.push(args)
   };
   ctx.relic.state.buffUntil = 10;
@@ -88,7 +89,7 @@ test('instant preparation at the combat timestamp respects marker ordering', () 
     config: { relic: '', precastRelics: ['Director'] },
     relic: createRelicRuntime(''),
     combatStartTime: 0,
-    queue: [],
+    queue: new StableEventQueue(),
     recordProc: (...args) => procs.push(args)
   };
   const action = (eventOrder) => ({
@@ -117,7 +118,7 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
       relic: createRelicRuntime(relic),
       config: { relic, precastRelics: [relic], target: { conditions: { Vulnerability: 1 } } },
       combatStartTime: 4,
-      queue: [],
+      queue: new StableEventQueue(),
       recordProc: (...args) => procs.push(args)
     };
     const cast = (endsAt, overrides = {}) => ({
@@ -161,8 +162,9 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
     assert.equal(strike(4, { actorType: 'summon' }), 1);
     assert.equal(strike(4, { actorType: 'effect', ownerActorType: 'player' }), multiplier);
     if (relic === 'Director') {
+      const queued = Array.from({ length: ctx.queue.length }, () => ctx.queue.dequeue());
       assert.ok(
-        ctx.queue.every((event) => event.condition === 'Vulnerability' && event.stacks === 8 && event.duration === 8)
+        queued.every((event) => event.condition === 'Vulnerability' && event.stacks === 8 && event.duration === 8)
       );
       ctx.config.target.conditions = {};
       assert.equal(strike(4), 1);

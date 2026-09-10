@@ -1,6 +1,5 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import {
@@ -52,7 +51,7 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
     const interval = Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
     if (!(interval > 0)) return;
     state.righteousNextMightAt = event.at + interval;
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       type: 'guardian.righteous-instincts-tick',
       at: state.righteousNextMightAt,
       priority: -10,
@@ -82,7 +81,7 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
     state.righteousNextMightAt > event.at &&
     state.righteousNextMightAt <= Number(state.resolutionUntil || 0) + guardianResolverEpsilon(context)
   ) {
-    enqueueOrdered(context.queue, {
+    context.queue.enqueue({
       ...event,
       at: state.righteousNextMightAt
     });

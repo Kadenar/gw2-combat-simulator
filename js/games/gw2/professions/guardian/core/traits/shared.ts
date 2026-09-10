@@ -1,6 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
-import { enqueueOrdered } from '#kernel/events/queue.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -123,7 +122,7 @@ export function queueGuardianResolverBuff(
     duration,
     stacks
   } as GuardianResolverEvent;
-  enqueueOrdered(context.queue, {
+  context.queue.enqueue({
     type: 'buff',
     at,
     priority,
