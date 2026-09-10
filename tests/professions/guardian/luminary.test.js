@@ -3,12 +3,14 @@ import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { radiantForgeAvailability } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
 import { createLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import { handleRadiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
 
 const config = {
   stats: {
@@ -27,6 +29,42 @@ const PLAYER_AUDIENCE = Object.freeze({
   alliedPlayerCount: 0,
   companionIds: [],
   recipientCount: 1
+});
+
+// Reductions cap at readiness and leave unrelated or already-ready cooldowns alone.
+test('Illuminating Inspiration delegates capped reductions for the three radiant virtues', () => {
+  const ids = GUARDIAN_SKILL_IDS;
+  for (const enabled of [false, true]) {
+    const settings = {
+      specialization: 'Luminary',
+      selectedTraitIds: enabled ? [GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION] : []
+    };
+    const state = {
+      time: 10,
+      profession: guardianProfession.resolveRuntime(settings).createProfessionState(settings),
+      ammo: new Map(),
+      cooldowns: new Map([
+        [ids.RADIANT_JUSTICE, 20],
+        [ids.RADIANT_RESOLVE, 12],
+        [ids.RADIANT_COURAGE, 8],
+        [-999, 99]
+      ])
+    };
+    const context = {
+      config: settings,
+      catalog: guardianCatalog,
+      state,
+      effectiveEnd: 9.999,
+      epsilon: 0.0001,
+      emit: () => {},
+      cooldownController: createCooldownController({ state, rechargeDuration: () => 10 })
+    };
+    handleRadiantWeaponEquipped(context, guardianCatalog.skillsById.get(ids.DAZZLING_HAMMER));
+    assert.equal(state.cooldowns.get(ids.RADIANT_JUSTICE), enabled ? 16 : 20);
+    assert.equal(state.cooldowns.get(ids.RADIANT_RESOLVE), enabled ? 10 : 12);
+    assert.equal(state.cooldowns.get(ids.RADIANT_COURAGE), 8);
+    assert.equal(state.cooldowns.get(-999), 99);
+  }
 });
 
 test('committed disc cancellation preserves the illuminated shock wave', () => {

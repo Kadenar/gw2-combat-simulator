@@ -43,16 +43,11 @@ const RADIANT_VIRTUE_IDS: ReadonlySet<SkillId> = new Set([
   GUARDIAN_SKILL_IDS.RADIANT_COURAGE
 ]);
 
+/** Delegates capped virtue reductions to the cooldown owner, retaining its ready-time representation. */
 function reduceVirtueCooldowns(context: GuardianSchedulerContext, at: number, reduction: number): void {
   for (const skillId of RADIANT_VIRTUE_IDS) {
-    const readyAt = Number(context.state.cooldowns.get(skillId) || 0);
-    if (!(readyAt > at + context.epsilon)) continue;
-    const reduced = Math.max(at, readyAt - reduction);
-    if (reduced <= at + context.epsilon) {
-      context.state.cooldowns.delete(skillId);
-    } else {
-      context.state.cooldowns.set(skillId, reduced);
-    }
+    const skill = context.catalog.skillsById.get(skillId);
+    if (skill) context.cooldownController.reduceSkillRecharge(skill, reduction, at);
   }
 }
 

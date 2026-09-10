@@ -30,7 +30,7 @@ export const heraldModule = defineNativeModule({
     skillMechanics: HERALD_BASE_SKILL_MECHANICS,
     balanceProfiles: HERALD_BALANCE_PROFILES
   }),
-  // Scheduler and resolver share the same (empty) state factory; Herald needs no resolver-private fields.
+  // The factory gives each phase independent Elevated Compassion and Shared Empowerment ICDs.
   state: { scheduler: heraldState.create, resolver: heraldState.create },
   mechanics: {
     modifiers: heraldAttributeRules,

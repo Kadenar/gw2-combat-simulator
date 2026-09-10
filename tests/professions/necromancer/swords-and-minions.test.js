@@ -4,8 +4,60 @@ import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+
+// Advancing in smaller windows must neither restart allied clocks nor duplicate their boundary events.
+test('allied attack clocks preserve independent intervals across partitioned and repeated advances', () => {
+  const run = (targets, selectedTraitIds, combatStartTime = 1) => {
+    const config = { specialization: 'Core', selectedTraitIds, allies: { count: 2, strikesPerSecond: 4 } };
+    const events = [];
+    const context = {
+      config,
+      catalog: necromancerCatalog,
+      state: { profession: necromancerProfession.resolveRuntime(config).createProfessionState(config) },
+      epsilon: 0.0001,
+      hasExplicitCombatStart: true,
+      combatStartTime,
+      events,
+      emit: (event) => {
+        events.push(event);
+        return event;
+      }
+    };
+    for (const at of targets) advanceNecromancerState(context, at);
+    return events.filter((event) => event.type.endsWith('-allied-hit'));
+  };
+
+  for (const traits of [
+    [TRAIT.VAMPIRIC_PRESENCE],
+    [TRAIT.OVERFLOWING_THIRST],
+    [TRAIT.VAMPIRIC_PRESENCE, TRAIT.OVERFLOWING_THIRST],
+    []
+  ]) {
+    const whole = run([3], traits);
+    const partitioned = run([0, 0.75, 1, 1.125, 1.25, 1.25, 1.5, 2.125, 3, 3], traits);
+    for (const [trait, type, interval] of [
+      [TRAIT.VAMPIRIC_PRESENCE, 'necromancer.vampiric-presence-allied-hit', 0.5],
+      [TRAIT.OVERFLOWING_THIRST, 'necromancer.taste-for-blood-allied-hit', 0.25]
+    ]) {
+      const expected = [];
+      if (traits.includes(trait)) {
+        for (let at = 1 + interval; at <= 3; at += interval) expected.push([at, 1], [at, 2]);
+      }
+
+      for (const events of [whole, partitioned]) {
+        assert.deepEqual(
+          events.filter((event) => event.type === type).map((event) => [event.at, event.allyIndex]),
+          expected
+        );
+      }
+    }
+
+    assert.deepEqual(run([3], traits, null), []);
+  }
+});
 
 const baseConfig = Object.freeze({
   stats: {

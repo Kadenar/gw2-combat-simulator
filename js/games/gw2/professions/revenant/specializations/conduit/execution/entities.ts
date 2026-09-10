@@ -34,6 +34,21 @@ function sharedWisdomEffect(context: RevenantSchedulerContext, trigger: string):
   );
 }
 
+/** Grants one entity-specific Shared Wisdom boon at cast completion; Twin Moon retains its per-hit grants. */
+function emitCompletionSharedWisdom(context: RevenantCastContext, skill: RevenantSkill, trigger: string): void {
+  if (!hasTrait(context, TRAIT.SHARED_WISDOM)) return;
+  const shared = sharedWisdomEffect(context, trigger);
+  if (shared?.type === 'boon' && shared.boon) {
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      name: `${skill.name} — ${shared.boon}`,
+      kind: shared.boon,
+      duration: Number(shared.duration || 0),
+      stacks: Number(shared.stacks ?? 1)
+    });
+  }
+}
+
 /** Emits Beguiling Haze or consumes one of its follow-up charges. */
 export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantSkill): void {
   const followUp = beginBeguilingHaze(context);
@@ -41,36 +56,15 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
   const strike = effectByType(profile, 'strike');
   const tick = strike?.type === 'strike' ? strikeEffectTicks(strike)[0] : undefined;
   const at = context.start + Math.max(0, Number(tick?.atMs || 0)) / 1000;
-  if (followUp) {
-    emitSkillDamage(context, skill, {
-      at,
-      coefficient: Number(tick?.coefficient || 0),
-      name: 'Beguiling Haze — Follow-Up',
-      skillWeapon: conduitSkillWeapon(context, skill),
-      canCrit: null
-    });
-  } else {
-    emitSkillDamage(context, skill, {
-      at,
-      coefficient: Number(tick?.coefficient || 0),
-      name: 'Beguiling Haze',
-      skillWeapon: conduitSkillWeapon(context, skill),
-      canCrit: null
-    });
-  }
+  emitSkillDamage(context, skill, {
+    at,
+    coefficient: Number(tick?.coefficient || 0),
+    name: followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze',
+    skillWeapon: conduitSkillWeapon(context, skill),
+    canCrit: null
+  });
 
-  if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
-    const shared = sharedWisdomEffect(context, 'beguiling-haze');
-    if (shared?.type === 'boon' && shared.boon) {
-      emitSkillBuff(context, skill, {
-        at: context.effectiveEnd,
-        name: `${skill.name} — ${shared.boon}`,
-        kind: shared.boon,
-        duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks ?? 1)
-      });
-    }
-  }
+  emitCompletionSharedWisdom(context, skill, 'beguiling-haze');
 }
 
 function activeSelfConditions(context: RevenantCastContext, at: number): number {
@@ -126,18 +120,7 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
     });
   }
 
-  if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
-    const shared = sharedWisdomEffect(context, 'hex-eater-vortex');
-    if (shared?.type === 'boon' && shared.boon) {
-      emitSkillBuff(context, skill, {
-        at: context.effectiveEnd,
-        name: `${skill.name} — ${shared.boon}`,
-        kind: shared.boon,
-        duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks ?? 1)
-      });
-    }
-  }
+  emitCompletionSharedWisdom(context, skill, 'hex-eater-vortex');
 
   emitRevenantStateSnapshot(context, at, 'hex-eater-vortex');
 }
@@ -175,18 +158,7 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
     }
   }
 
-  if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
-    const shared = sharedWisdomEffect(context, 'gladiators-defense');
-    if (shared?.type === 'boon' && shared.boon) {
-      emitSkillBuff(context, skill, {
-        at: context.effectiveEnd,
-        name: `${skill.name} — ${shared.boon}`,
-        kind: shared.boon,
-        duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks ?? 1)
-      });
-    }
-  }
+  emitCompletionSharedWisdom(context, skill, 'gladiators-defense');
 }
 
 /** Emits both Twin Moon attackers and every equipped-legend resonance. */

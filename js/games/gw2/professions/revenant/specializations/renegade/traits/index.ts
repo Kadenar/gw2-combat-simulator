@@ -188,7 +188,7 @@ export function modifyRenegadeCastDuration(context: RevenantPrecastContext, dura
 }
 
 export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext, duration: number): number {
-  // All for One halves Band Together's recharge only when the empowered version was just used; checking the state here (before the window clears) is safe because the window was consumed in beforeEffects, which runs before the recharge hook fires
+  // Cast preparation queries recharge while Band Together is still ready; beforeEffects consumes the window afterward.
   const allForOne = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.allForOne);
   return context.skill?.handlerId === 'revenant.band-together' &&
     isBandTogetherReady(
