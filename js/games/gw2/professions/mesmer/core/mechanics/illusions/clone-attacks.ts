@@ -55,7 +55,7 @@ export function createCloneAttackScheduler({
   };
 
   // Schedule one clone-owned attack cycle with identity and generation metadata
-  // so shatters or replacement clones can invalidate stale packets.
+  // so shatters or replacement clones can invalidate stale packets; ownership never depends on the source label.
   const scheduleAttack = (clone: MesmerClone, at: number): void => {
     const attack = attackFor(clone);
     const step = sequenceStep(clone, attack);
@@ -88,6 +88,8 @@ export function createCloneAttackScheduler({
       {
         cloneId: clone.id,
         source: 'Clone',
+        actorType: 'summon',
+        summonKind: 'clone',
         summonOwner: clone.ownerId
       }
     );
@@ -95,6 +97,8 @@ export function createCloneAttackScheduler({
       addCondition(skillName, impactAt, condition, 'Clone', '', {
         cloneId: clone.id,
         skillId: step.id,
+        actorType: 'summon',
+        summonKind: 'clone',
         summonOwner: clone.ownerId
       });
     }

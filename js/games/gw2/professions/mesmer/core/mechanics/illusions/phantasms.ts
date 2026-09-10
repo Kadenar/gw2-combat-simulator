@@ -195,7 +195,7 @@ export function createPhantasmEffectController({
     const policy = phantasmPolicy();
 
     // Lifecycle events use the latest entity's timestamp so the "complete" marker
-    // fires after every entity in the batch has finished attacking.
+    // fires after every entity in the batch has finished attacking. They retain explicit phantasm ownership.
     const damageAt = Math.max(...executions.map((item) => item.damageAt));
     const repeatDamageAt = Math.max(...executions.map((item) => item.repeatDamageAt));
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
@@ -210,12 +210,16 @@ export function createPhantasmEffectController({
 
     addEvent({
       type: 'mesmer.phantasm-summoned',
+      actorType: 'summon',
+      summonKind: 'phantasm',
       at: execution.summonAt,
       name: skill.name,
       count
     });
     addEvent({
       type: 'mesmer.phantasm-attack',
+      actorType: 'summon',
+      summonKind: 'phantasm',
       at: damageAt,
       name: skill.name,
       count,
@@ -244,12 +248,16 @@ export function createPhantasmEffectController({
 
     addEvent({
       type: 'mesmer.phantasm-resummoned',
+      actorType: 'summon',
+      summonKind: 'phantasm',
       at: execution.spawnAt,
       name: skill.name,
       count
     });
     addEvent({
       type: 'mesmer.phantasm-attack',
+      actorType: 'summon',
+      summonKind: 'phantasm',
       at: repeatDamageAt,
       name: skill.name,
       count,

@@ -1,4 +1,3 @@
-import { gw2ActorTypeForSource } from '#gw2/platform/combat/state/event-ownership.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import {
   emitSkillBuff,
@@ -26,18 +25,10 @@ interface MesmerEventEmitterOptions {
   readonly weaponStrength: Readonly<Record<string, number>>;
 }
 
-/** Keeps display labels optional while making canonical actor and summon ownership authoritative. */
-function ownership(source: string, explicitActor: unknown, explicitSummon: unknown) {
-  const summonKind: MesmerSummonKind | undefined =
-    explicitSummon === 'clone' || explicitSummon === 'phantasm'
-      ? explicitSummon
-      : source === 'Clone'
-        ? 'clone'
-        : source === 'Phantasm'
-          ? 'phantasm'
-          : undefined;
+/** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
+function ownership(actorType: SimulationActorType | undefined, summonKind: MesmerSummonKind | undefined) {
   return {
-    actorType: (explicitActor || (summonKind ? 'summon' : gw2ActorTypeForSource(source))) as SimulationActorType,
+    actorType: actorType ?? (summonKind ? 'summon' : 'player'),
     ...(summonKind ? { summonKind } : {})
   };
 }
@@ -65,7 +56,7 @@ export function createMesmerEventEmitters({
   const addEvent: MesmerAddEvent = (event) => {
     const source = String(event.source || context.profession.id);
     const sourceId = event.sourceId ?? event.skillId ?? event.skillName ?? event.name ?? event.type;
-    const canonical = { ...event, source, sourceId };
+    const canonical = { ...event, source, sourceId, ...ownership(event.actorType, event.summonKind) };
     if (event.type === 'buff') return emitSkillBuff(emissionContext, canonical as never);
     if (event.type === 'control') return emitSkillControl(emissionContext, canonical as never);
     return emit(canonical as SimulationEventInput);
@@ -93,11 +84,7 @@ export function createMesmerEventEmitters({
 
   const addCondition: MesmerAddCondition = (skillName, at, condition, source = 'Player', label = '', extra = {}) => {
     const skill = skillForCondition(skillName, extra);
-    const baseOwnership = ownership(
-      String(extra.source || source),
-      extra.actorType,
-      extra.summonKind ?? condition.summonKind
-    );
+    const baseOwnership = ownership(extra.actorType, extra.summonKind ?? condition.summonKind);
     const fields = supplementalFields(extra, ['actorType', 'skillId', 'skillName', 'source', 'sourceId', 'summonKind']);
     const ticks = condition.ticks?.length
       ? condition.ticks
@@ -132,7 +119,7 @@ export function createMesmerEventEmitters({
 
   const addDamage: MesmerAddDamage = (skill, at, group, extra = {}) => {
     const source = String(group.source || extra.source || 'Player');
-    const baseOwnership = ownership(source, group.actorType || extra.actorType, group.summonKind || extra.summonKind);
+    const baseOwnership = ownership(group.actorType ?? extra.actorType, group.summonKind ?? extra.summonKind);
     const explicit = String(group.weapon || '');
     const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
     const strength = baseOwnership.actorType === 'summon' ? weaponStrength[normalized] : undefined;

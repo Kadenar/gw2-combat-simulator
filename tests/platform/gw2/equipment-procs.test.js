@@ -580,6 +580,12 @@ test('Relic of Akeem triggers on control against five confusion stacks', () => {
   );
   assert.ok(result.breakdown.some((entry) => entry.name === 'Relic of Akeem — Confusion' && entry.conditionDamage > 0));
   assert.ok(result.breakdown.some((entry) => entry.name === 'Relic of Akeem — Torment' && entry.conditionDamage > 0));
+  // Both Akeem applications declare effect ownership without relying on the Relic source label.
+  const applications = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Relic of Akeem'
+  );
+  assert.ok(applications.length > 0);
+  assert.ok(applications.every((event) => event.actorType === 'effect'));
 });
 
 test('Relic of Akeem is reported when its trigger ends the rotation', () => {

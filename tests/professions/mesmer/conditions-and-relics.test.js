@@ -265,6 +265,8 @@ test('Ineptitude applies confusion for each direct blind on a normal target', ()
   assert.equal(ineptitude[0].duration, 5);
   assert.equal(ineptitude[0].stacks, 2);
   assert.equal(ineptitude[1].skillName, 'Signet of Midnight');
+  // Resolver-created conditions must carry ownership before damage and modifier queries consume them.
+  assert.ok(ineptitude.every((event) => event.actorType === 'player'));
 });
 
 test('Ineptitude direct blinds ignore the defiant-target interval', () => {

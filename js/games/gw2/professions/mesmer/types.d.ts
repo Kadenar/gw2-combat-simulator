@@ -258,11 +258,9 @@ export type MesmerSkillCompletionHandler = (
 export type MesmerShatterResolvedHandler = (context: MesmerCastContext, resolution: MesmerShatterResolution) => void;
 
 export type MesmerAddEvent = (
-  event: SchedulerRecord & {
+  event: MesmerEventExtra & {
     readonly type: string;
     readonly at: number;
-    readonly source?: string;
-    readonly sourceId?: SkillId;
   }
 ) => SimulationEvent | null;
 

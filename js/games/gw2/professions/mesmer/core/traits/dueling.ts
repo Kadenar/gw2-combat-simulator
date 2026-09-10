@@ -57,7 +57,7 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
     count > 1 ? `${detail}, ${count} strikes` : detail
   );
   // Resolve Ineptitude immediately so nested condition hooks observe the
-  // confusion application during the originating blind/control reaction.
+  // confusion application during the originating blind/control reaction, with explicit player attribution.
   context.applyCondition({
     type: 'condition',
     at: event.at,
@@ -66,7 +66,8 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
     condition: String(effect?.condition || 'Confusion'),
     duration: Number(effect?.duration ?? 5),
     stacks: Number(effect?.stacks ?? 2) * count,
-    source: 'Player'
+    source: 'Player',
+    actorType: 'player'
   });
 }
 

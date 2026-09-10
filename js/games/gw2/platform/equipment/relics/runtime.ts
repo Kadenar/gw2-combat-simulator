@@ -298,6 +298,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
       state.readyAt = event.at + 10;
       ctx.recordProc('relic', 'Relic of Akeem', event.at, event.skillName);
+      // Relic conditions carry their own actor identity instead of relying on source-label inference.
       applyCondition(ctx, {
         type: 'condition',
         at: event.at,
@@ -306,7 +307,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         condition: 'Confusion',
         duration: 10,
         stacks: 2,
-        source: 'Relic'
+        source: 'Relic',
+        actorType: 'effect'
       });
       applyCondition(ctx, {
         type: 'condition',
@@ -316,7 +318,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         condition: 'Torment',
         duration: 10,
         stacks: 2,
-        source: 'Relic'
+        source: 'Relic',
+        actorType: 'effect'
       });
     }
   }),

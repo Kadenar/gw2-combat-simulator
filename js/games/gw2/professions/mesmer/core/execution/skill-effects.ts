@@ -61,7 +61,7 @@ export function createSkillSpecialEffectController({
   const consumeClarity = (skill: MesmerSkill, castStart: number): boolean =>
     consumeMesmerClarity(state, skill, castStart);
 
-  // Snapshot clone-owned Axes packets when the cast is registered so earlier impacts are observable immediately.
+  // Snapshot explicitly clone-owned Axes packets when the cast is registered so earlier impacts are observable immediately.
   const schedule = (skill: MesmerSkill, at: number, castStart = at): void => {
     if (skill.id !== ID.AXES_OF_SYMMETRY) return;
     const axeClones = professionCoreState(state).clones.filter(
@@ -86,6 +86,8 @@ export function createSkillSpecialEffectController({
         {
           cloneId: clone.id,
           source: 'Clone',
+          actorType: 'summon',
+          summonKind: 'clone',
           name: `${skill.name} — Clone`
         }
       );
@@ -95,7 +97,7 @@ export function createSkillSpecialEffectController({
         { name: 'Confusion', duration: 6, stacks: 1 },
         'Clone',
         `${skill.name} — Clone`,
-        { cloneId: clone.id, skillId: skill.id }
+        { cloneId: clone.id, skillId: skill.id, actorType: 'summon', summonKind: 'clone' }
       );
     }
   };

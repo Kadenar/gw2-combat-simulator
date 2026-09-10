@@ -159,6 +159,7 @@ export function createMirageActionController({
         weapon,
         blade: false
       };
+      // Explicit summon ownership keeps clone ambush packets independent of their display labels.
       const impactAt = at + Number(ambush.clone.castTimeMs || 0) / 1000;
       addDamage(
         pseudo,
@@ -181,13 +182,17 @@ export function createMirageActionController({
           cloneId: clone.id,
           weaponStrength: attack.weaponStrength,
           source: 'Clone',
+          actorType: 'summon',
+          summonKind: 'clone',
           name: `${ambush.name} — Clone`
         }
       );
       for (const condition of ambush.clone.conditions || []) {
         addCondition(`${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
           cloneId: clone.id,
-          skillId: ambush.id
+          skillId: ambush.id,
+          actorType: 'summon',
+          summonKind: 'clone'
         });
       }
 

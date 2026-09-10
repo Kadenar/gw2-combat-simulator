@@ -77,10 +77,12 @@ export function handleDeadlyBladesCriticalTask(
     sourceId: TRAIT.DEADLY_BLADES,
     sourceSkill: event.skillName
   });
+  // The relic observation belongs to the trait effect, independent of its display-oriented source label.
   context.emitDerived(event, {
     type: 'weakness_vulnerability',
     at: event.at,
     source: 'Trait',
+    actorType: 'effect',
     sourceId: TRAIT.DEADLY_BLADES,
     skillName: event.skillName
   });
