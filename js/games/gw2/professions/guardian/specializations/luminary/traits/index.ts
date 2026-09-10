@@ -6,7 +6,10 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
-import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  guardianVirtueForSlot,
+  reactToJusticeHitWithOptions
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { recordRadiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import {
   observeLuminaryLightFields,
@@ -141,15 +144,6 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   }
 }
 
-function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
-  if (!RADIANT_VIRTUE_IDS.has(skill.id)) return null;
-  // Virtues are identified by the trailing digit in their slot name
-  // ("Profession_1" → justice, "Profession_2" → resolve, "Profession_3" → courage)
-  // rather than by skill ID, because each virtue has multiple IDs across game patches.
-  const slot = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
-  return ([null, 'justice', 'resolve', 'courage'] as const)[slot] || null;
-}
-
 function resetRadiantWeaponCooldowns(context: GuardianSchedulerContext, virtue: GuardianVirtue): boolean {
   const ids =
     virtue === 'justice'
@@ -164,7 +158,7 @@ function resetRadiantWeaponCooldowns(context: GuardianSchedulerContext, virtue: 
 // Route a completed Luminary virtue through its shared activation traits and
 // virtue-specific illumination effects.
 function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: GuardianSkill): void {
-  const virtue = virtueFor(skill);
+  const virtue = RADIANT_VIRTUE_IDS.has(skill.id) ? guardianVirtueForSlot(skill.slot) : null;
   if (!virtue) return;
   const at = context.effectiveEnd;
   const state = luminaryState.from(context);

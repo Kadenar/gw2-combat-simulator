@@ -6,6 +6,8 @@
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
+import { denySkillCast } from '#gw2/professions/lib/availability.js';
+import { retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -128,12 +130,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   if (!skill.overload) return { ready: true };
   const state = professionCoreState(context);
   if (skill.attunement !== state.primaryAttunement) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'elementalist.tempest-attunement',
-      reason: `${skill.name} is unavailable — requires ${String(skill.attunement)} attunement.`
-    };
+    return denySkillCast(skill, 'elementalist.tempest-attunement', `requires ${String(skill.attunement)} attunement.`);
   }
 
   // Transcendent Tempest shortens the dwell, and alacrity speeds the singularity's formation.
@@ -146,12 +143,11 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   const startingAttunementReady = state.attunementEnteredAt < 0;
   const readyAt = startingAttunementReady ? context.start : state.attunementEnteredAt + dwell;
   return readyAt > context.start + context.epsilon
-    ? {
-        ready: false,
-        retryAt: readyAt,
-        code: 'elementalist.tempest-dwell',
-        reason: `${skill.name} is unavailable until the attunement singularity forms.`
-      }
+    ? retryCast(
+        readyAt,
+        'elementalist.tempest-dwell',
+        `${skill.name} is unavailable until the attunement singularity forms.`
+      )
     : { ready: true };
 }
 

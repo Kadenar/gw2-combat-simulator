@@ -29,8 +29,15 @@ function handleHolosmithAfterCast(context: EngineerCastContext, skill: EngineerS
   }
 }
 
-/** Registers Holosmith heat initialization, observation, advancement, cast, and task hooks. */
-export const holosmithSchedulerHooks = Object.freeze({
+/** Runs kit transitions and dodge-triggered Thermal Release Valve after skill effects. */
+export const holosmithAfterCast = Object.freeze({
+  id: 'engineer.holosmith-after-cast',
+  order: 30,
+  handler: handleHolosmithAfterCast
+});
+
+/** Registers Holosmith heat initialization, observation, advancement, and task hooks. */
+export const holosmithAdvancedSchedulerHooks = Object.freeze({
   initialize: {
     id: 'engineer.photon-forge-initialize',
     order: 20,
@@ -46,23 +53,12 @@ export const holosmithSchedulerHooks = Object.freeze({
     order: 20,
     handler: advancePhotonForgeState
   },
-  afterCast: {
-    id: 'engineer.holosmith-after-cast',
-    order: 30,
-    handler: handleHolosmithAfterCast
-  },
   taskHandlers: Object.freeze({
     'engineer.photon-forge-heat': handlePhotonForgeHeat,
     'engineer.photon-forge-overheat-penalty': handlePhotonForgeOverheatPenalty,
     'engineer.photon-forge-passive-heat': handlePhotonForgePassiveHeat
   })
 });
-
-/**
- * Splits `afterCast` into the cast lifecycle, where dodge-triggered TRV has cast context,
- * while retaining context-free hooks in the advanced scheduler contract.
- */
-export const { afterCast: holosmithAfterCast, ...holosmithAdvancedSchedulerHooks } = holosmithSchedulerHooks;
 
 /** Applies an authored skill factor before ordinary condition-duration bonuses are capped. */
 function modifyHolosmithConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {

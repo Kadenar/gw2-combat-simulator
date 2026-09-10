@@ -2,7 +2,10 @@
 import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { guardianVirtueSkillHandlers } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  guardianVirtueForSlot,
+  guardianVirtueSkillHandlers
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import type { GuardianCastContext, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { applyWillbenderVirtueActivationTraits } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
@@ -14,17 +17,11 @@ const FLAME_ID_BY_VIRTUE: Readonly<Record<GuardianVirtue, number>> = Object.free
   courage: ID.WILLBENDER_FLAMES_COURAGE
 });
 
-function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
-  // Slot strings are "Profession_1/2/3"; the trailing digit maps directly to virtue order.
-  const slot = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
-  return ([null, 'justice', 'resolve', 'courage'] as const)[slot] || null;
-}
-
 function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianSkill): void {
   // Run the core virtue handler first (cooldown tracking, passive arming) before
   // willbender-specific overrides; order matters because core sets virtueReadyAt.
   guardianVirtueSkillHandlers['guardian.virtue'](context, skill);
-  const virtue = virtueFor(skill);
+  const virtue = guardianVirtueForSlot(skill.slot);
   if (!virtue) return;
 
   // Justice impact fires 40 ms before cast end; Courage impact fires after the

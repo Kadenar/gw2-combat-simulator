@@ -11,7 +11,10 @@ import { emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/even
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
-import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  guardianVirtueForSlot,
+  reactToJusticeHitWithOptions
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
 
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import type {
@@ -29,14 +32,6 @@ const DORMANT_PROFILE_BY_VIRTUE: Readonly<Record<GuardianVirtue, string>> = Obje
   courage: PROFILE.tomeCourage
 });
 
-function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
-  if (!/^Tome of /.test(skill.name)) return null;
-  // Slot is "Profession_1/2/3"; extract the trailing digit to index into the
-  // virtue order (1=justice, 2=resolve, 3=courage).
-  const slot = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
-  return ([null, 'justice', 'resolve', 'courage'] as const)[slot] || null;
-}
-
 function isFinalMantraCharge(context: GuardianCastContext, skill: GuardianSkill): boolean {
   // Canonical IDs decide charge identity; unfamiliar custom skills retain the description/ammo fallback.
   const mantra = MANTRAS.find(({ rootId, normalId, finalId }) =>
@@ -51,7 +46,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
   const at = context.effectiveEnd;
   const state = firebrandState.from(context);
   const coreState = professionCoreState(context);
-  const virtue = virtueFor(skill);
+  const virtue = /^Tome of /.test(skill.name) ? guardianVirtueForSlot(skill.slot) : null;
   if (virtue) {
     const passiveWasReady = state.tomeDormantReadyAt[virtue] <= at + context.epsilon;
     state.activeTome = virtue;

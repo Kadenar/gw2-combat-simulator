@@ -24,7 +24,14 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { EngineerRechargeContext } from '#gw2/professions/engineer/types.js';
 
-export const mechanistSchedulerHooks = Object.freeze({
+/** Applies mech cast traits after the skill's effects have been emitted. */
+export const mechanistAfterCast = Object.freeze({
+  id: 'engineer.mech-traits',
+  order: 30,
+  handler: applyEngineerMechCastTraits
+});
+
+export const mechanistAdvancedSchedulerHooks = Object.freeze({
   initialize: {
     id: 'engineer.mech-initialize',
     order: 10,
@@ -35,17 +42,10 @@ export const mechanistSchedulerHooks = Object.freeze({
     order: 10,
     handler: observeEngineerMechEvent
   },
-  afterCast: {
-    id: 'engineer.mech-traits',
-    order: 30,
-    handler: applyEngineerMechCastTraits
-  },
   taskHandlers: Object.freeze({
     'engineer.mech-attack': handleEngineerMechAttack
   })
 });
-
-export const { afterCast: mechanistAfterCast, ...mechanistAdvancedSchedulerHooks } = mechanistSchedulerHooks;
 
 /** Recognizes native and replayed events that belong to the jade mech. */
 function engineerMechEvent(context: Gw2ModifierContext): boolean {

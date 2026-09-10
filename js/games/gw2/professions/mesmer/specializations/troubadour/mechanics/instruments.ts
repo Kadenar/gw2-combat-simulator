@@ -1,5 +1,5 @@
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import {
@@ -8,22 +8,9 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import type { MesmerCastContext, MesmerRuntime, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
+import type { MesmerCastContext, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-const conditionFromProfile = (
-  runtime: MesmerRuntime,
-  id: number | string,
-  fallback: { name: string; duration: number; stacks: number }
-) => {
-  const effect = profileEffect(runtime, id, 'condition');
-  return {
-    name: String(effect?.condition || fallback.name),
-    duration: Number(effect?.duration ?? fallback.duration),
-    stacks: Number(effect?.stacks ?? fallback.stacks)
-  };
-};
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
 function instrumentAttack(
@@ -74,11 +61,12 @@ function instrumentAttack(
     });
   }
 
+  // Shared condition lookup preserves authored zeros and this instrument's fallback values.
   if (data.instrument === 'Flute' && runtime.traits.has(TRAIT.MAYHEM)) {
     runtime.addCondition(
       skill.name,
       damageAt,
-      conditionFromProfile(runtime, TRAIT.MAYHEM, {
+      mesmerConditionFromProfile(context, TRAIT.MAYHEM, {
         name: 'Torment',
         duration: 5,
         stacks: 4
@@ -279,7 +267,7 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
       runtime.addCondition(
         skill.name,
         damageAt,
-        conditionFromProfile(runtime, TRAIT.ALTERED_CHORD, {
+        mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, {
           name: 'Confusion',
           duration: 8,
           stacks: 5

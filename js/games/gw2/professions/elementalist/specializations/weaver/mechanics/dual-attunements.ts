@@ -7,6 +7,8 @@
  * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
  * pulses, and the traits that react to swaps and dual-skill completions.
  */
+import { denySkillCast } from '#gw2/professions/lib/availability.js';
+import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
@@ -93,12 +95,7 @@ function initialize(context: ElementalistSchedulerContext): void {
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (skill.id === ID.UNRAVEL && !hasTrait(context, 'Elements of Rage')) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'elementalist.weaver-elements-of-rage',
-      reason: `${skill.name} is unavailable — requires Elements of Rage.`
-    };
+    return denySkillCast(skill, 'elementalist.weaver-elements-of-rage', `requires Elements of Rage.`);
   }
 
   const hammerAvailability = weaverHammerAvailability(context, skill);
@@ -131,14 +128,12 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
             ? required[0] === secondary
             : core.primaryAttunement === secondary && required[0] === core.primaryAttunement;
     if (!available) {
-      return {
-        ready: false,
-        retryAt: null,
-        code: unravelActive ? 'elementalist.unravel-attunement' : 'elementalist.weaver-attunement',
-        reason: unravelActive
+      return denyCast(
+        unravelActive ? 'elementalist.unravel-attunement' : 'elementalist.weaver-attunement',
+        unravelActive
           ? `${skill.name} is unavailable - requires ${core.primaryAttunement} while Unravel is active.`
           : `${skill.name} is unavailable - requires ${attunement} in the matching Weaver hand.`
-      };
+      );
     }
   }
 
@@ -148,12 +143,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   const state = weaverState.from(context);
   return state.perfectWeaveUntil > context.start + context.epsilon
     ? { ready: true }
-    : {
-        ready: false,
-        retryAt: null,
-        code: 'elementalist.weaver-perfect-weave',
-        reason: `${skill.name} is unavailable — requires Perfect Weave.`
-      };
+    : denySkillCast(skill, 'elementalist.weaver-perfect-weave', `requires Perfect Weave.`);
 }
 
 // React to scheduled events: Elemental Pursuit on player control effects, and

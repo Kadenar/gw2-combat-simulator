@@ -3,6 +3,7 @@
  * The cataloged weapon fragments live in
  * `skills/weapons/hammer.ts`.
  */
+import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
@@ -94,35 +95,30 @@ export function weaverHammerAvailability(
   const retryAt =
     state.hammerOrbLastCastAt + balanceProfileValueFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
   if (retryAt > context.start + context.epsilon) {
-    return {
-      ready: false,
+    return retryCast(
       retryAt,
-      code: 'elementalist.hammer-orb-lockout',
-      reason: `${skill.name} is unavailable - the shared orb lockout ends at ${retryAt.toFixed(3)}.`
-    };
+      'elementalist.hammer-orb-lockout',
+      `${skill.name} is unavailable - the shared orb lockout ends at ${retryAt.toFixed(3)}.`
+    );
   }
 
   if (
     elements.some((element) => state.hammerOrbs[element] != null && Number(state.hammerOrbs[element]) >= context.start)
   ) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'elementalist.hammer-orb-active',
-      reason: `${skill.name} is unavailable - Grand Finale must consume the active orb first.`
-    };
+    return denyCast(
+      'elementalist.hammer-orb-active',
+      `${skill.name} is unavailable - Grand Finale must consume the active orb first.`
+    );
   }
 
   // Final gate: the skill's element pair must match the two attuned hands.
   const secondary = weaverState.from(context).secondaryAttunement || state.primaryAttunement;
   return elements.includes(state.primaryAttunement) && elements.includes(secondary)
     ? { ready: true }
-    : {
-        ready: false,
-        retryAt: null,
-        code: 'elementalist.weaver-attunement',
-        reason: `${skill.name} is unavailable - requires its matching dual attunement.`
-      };
+    : denyCast(
+        'elementalist.weaver-attunement',
+        `${skill.name} is unavailable - requires its matching dual attunement.`
+      );
 }
 
 /** Consumes and grants pistol bullets for Weaver's dual-attunement weapon skills. */

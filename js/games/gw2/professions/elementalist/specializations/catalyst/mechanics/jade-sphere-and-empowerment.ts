@@ -8,6 +8,7 @@
  *
  * The resolver counterparts live in `mechanics/reactions.ts`.
  */
+import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
@@ -130,23 +131,16 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   const state = catalystState.from(context);
   const core = professionCoreState(context);
   if (skill.attunement !== core.primaryAttunement) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'elementalist.catalyst-attunement',
-      reason: `${skill.name} is unavailable - requires ${String(skill.attunement)} attunement.`
-    };
+    return denyCast(
+      'elementalist.catalyst-attunement',
+      `${skill.name} is unavailable - requires ${String(skill.attunement)} attunement.`
+    );
   }
 
   const sphereCost = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', SPHERE_COST);
   return state.energy >= sphereCost
     ? { ready: true }
-    : {
-        ready: false,
-        retryAt: null,
-        code: 'elementalist.catalyst-energy',
-        reason: `${skill.name} is unavailable - requires ${sphereCost} energy.`
-      };
+    : denyCast('elementalist.catalyst-energy', `${skill.name} is unavailable - requires ${sphereCost} energy.`);
 }
 
 // Spend sphere energy and schedule its attunement-specific field, pulses, and

@@ -5,6 +5,7 @@
  * the capture point for the pre-swap attunement recharge snapshot that
  * `attunements.ts` later consumes.
  */
+import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -30,12 +31,10 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
   const attunement = targetAttunement(skill);
   if (attunement) {
     if (hasTrait(context, 'Specialized Elements')) {
-      return {
-        ready: false,
-        retryAt: null,
-        code: 'elementalist.specialized-elements',
-        reason: `${skill.name} is unavailable - attunement swapping is disabled by Specialized Elements.`
-      };
+      return denyCast(
+        'elementalist.specialized-elements',
+        `${skill.name} is unavailable - attunement swapping is disabled by Specialized Elements.`
+      );
     }
 
     // capture remaining recharge before the swap fires so applyEvokerAttunementRechargePolicy can preserve shorter cooldowns
@@ -52,24 +51,21 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
 
   // the one retryable denial: nothing may start until the familiar cast in flight ends
   if (state.activeFamiliarCast && context.start < state.activeFamiliarCast.endsAt - context.epsilon) {
-    return {
-      ready: false,
-      retryAt: state.activeFamiliarCast.endsAt,
-      code: 'elementalist.evoker-familiar-cast',
-      reason: `${skill.name} waits for the active familiar cast to finish.`
-    };
+    return retryCast(
+      state.activeFamiliarCast.endsAt,
+      'elementalist.evoker-familiar-cast',
+      `${skill.name} waits for the active familiar cast to finish.`
+    );
   }
 
   // anything that is not a familiar skill is unconstrained by Evoker state
   const element = FAMILIAR_ELEMENTS.get(skill.id);
   if (!element) return { ready: true };
   if (state.element !== element) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'elementalist.evoker-element',
-      reason: `${skill.name} is unavailable - the ${element} familiar is not selected.`
-    };
+    return denyCast(
+      'elementalist.evoker-element',
+      `${skill.name} is unavailable - the ${element} familiar is not selected.`
+    );
   }
 
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
@@ -77,22 +73,15 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
     const requiredEmpowered = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3);
     return state.empowered < requiredEmpowered && state.charges >= state.maximumCharges
       ? { ready: true }
-      : {
-          ready: false,
-          retryAt: null,
-          code: 'elementalist.evoker-basic',
-          reason: `${skill.name} is unavailable - requires ${state.maximumCharges} charges and no empowered familiar.`
-        };
+      : denyCast(
+          'elementalist.evoker-basic',
+          `${skill.name} is unavailable - requires ${state.maximumCharges} charges and no empowered familiar.`
+        );
   }
 
   // empowered familiar requires 3 empowered stacks built up from basic familiar casts
   const requiredEmpowered = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3);
   return state.empowered >= requiredEmpowered
     ? { ready: true }
-    : {
-        ready: false,
-        retryAt: null,
-        code: 'elementalist.evoker-empowered',
-        reason: `${skill.name} is unavailable - requires three empowered charges.`
-      };
+    : denyCast('elementalist.evoker-empowered', `${skill.name} is unavailable - requires three empowered charges.`);
 }

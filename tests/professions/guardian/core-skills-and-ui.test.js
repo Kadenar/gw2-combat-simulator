@@ -8,6 +8,7 @@ import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/bui
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/core/profiles.js';
 import { observeGuardianScheduledEvent } from '#gw2/professions/guardian/core/traits/index.js';
@@ -29,6 +30,23 @@ const config = {
   },
   target: { armor: 2597 }
 };
+
+// Slot decoding preserves trailing-digit compatibility and leaves skill eligibility to callers.
+test('Guardian virtue slots decode consistently and reject unmapped slots', () => {
+  for (const [slot, virtue] of [
+    ['Profession_1', 'justice'],
+    ['Profession_2', 'resolve'],
+    ['Profession_3', 'courage'],
+    ['custom_12', 'resolve'],
+    ['Profession_0', null],
+    ['Profession_4', null],
+    ['Profession_1_extra', null],
+    ['', null],
+    [undefined, null]
+  ]) {
+    assert.equal(guardianVirtueForSlot(slot), virtue);
+  }
+});
 
 test('a committed Strike cancel preserves its pending hit and advances the autoattack chain', () => {
   const strike = guardianCatalog.skillsByName.get('Strike');

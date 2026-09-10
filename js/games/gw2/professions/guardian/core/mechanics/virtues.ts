@@ -25,13 +25,17 @@ interface JusticeHitDependencies {
 
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
+/** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */
+export function guardianVirtueForSlot(slot: GuardianSkill['slot']): GuardianVirtue | null {
+  return VIRTUES_BY_SLOT[Number(String(slot || '').match(/(\d)$/)?.[1] || 0)] || null;
+}
+
 /**
  * Activates the virtue represented by the skill's profession slot and emits
  * the neutral resolver transition decorated by active elite modules.
  */
 function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): void {
-  const slot = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
-  const virtue = VIRTUES_BY_SLOT[slot];
+  const virtue = guardianVirtueForSlot(skill.slot);
   if (!virtue) return;
   const state = professionCoreState(context);
   state.lastVirtuePassiveWasReady = Number(state.virtueReadyAt[virtue] || 0) <= context.effectiveEnd + context.epsilon;
