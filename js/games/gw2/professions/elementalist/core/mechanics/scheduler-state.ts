@@ -10,8 +10,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
   extendPersistingFlamesField,
-  observeElementalistTraitEvent,
-  processFreshAirCandidates
+  observeElementalistTraitEvent
 } from '#gw2/professions/elementalist/core/traits/index.js';
 import { observeElementalistElementalEvent } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { updateEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
@@ -24,11 +23,10 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
   observeElementalistTraitEvent(context, event);
 }
 
-// Advance probabilistic trait progress and endurance, then expire transient
+// Advance endurance, then expire transient
 // auras, orbs, chains, and conjures at the requested scheduler timestamp.
 export function advanceElementalistState(context: ElementalistSchedulerContext, at: number): void {
   const state = professionCoreState(context);
-  processFreshAirCandidates(context, at);
   updateEndurance(context, state, at);
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
   // Expire hammer orbs together with the metadata Grand Finale reads from them.

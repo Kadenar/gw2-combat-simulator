@@ -34,6 +34,19 @@ test('build template tiles preserve trait variants alongside their weapons', () 
   }
 });
 
+test('power template tiles retain Inferno alongside weapons and other trait variants', () => {
+  for (const [label, name, weapons] of [
+    ['Inferno (Scepter/Dagger)', 'Power', 'Inferno Scepter & Dagger'],
+    ['Inferno (Scepter/Dagger) - BTTH', 'Power', 'Inferno Scepter & Dagger - BTTH'],
+    ['Inferno Alacrity (Scepter/Focus)', 'Power Alacrity', 'Inferno Scepter & Focus'],
+    ['Power (Scepter/Dagger)', 'Power', 'Inferno Scepter & Dagger']
+  ]) {
+    const content = templateTileContent({ label, build: 'b-inferno-tempest.json' });
+    assert.equal(content.name, name);
+    assert.equal(content.weapons, weapons);
+  }
+});
+
 test('build template actions expose only configured Snow Crows links', () => {
   assert.match(
     templateSnowCrowsLink({ snowCrowsUrl: 'https://snowcrows.com/builds/example?role=power&weapon=hammer' }),

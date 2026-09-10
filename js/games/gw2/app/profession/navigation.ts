@@ -66,17 +66,6 @@ function mountAnalysisView(root: Document): void {
   results.setAttribute('aria-labelledby', 'analysis-view-title');
 }
 
-/** Groups the profession title into the top-left brand block. */
-function mountHeaderBrand(root: Document, header: HTMLElement): void {
-  if (header.querySelector('.header-brand')) return;
-  const title = header.querySelector('h1');
-  if (!title) return;
-  const brand = root.createElement('div');
-  brand.className = 'header-brand';
-  title.before(brand);
-  brand.append(title);
-}
-
 /**
  * Applies a view: sets `body[data-simulator-view]`, resets the rotation
  * workspace when leaving it, and marks the matching tab active/`aria-current`.
@@ -113,7 +102,7 @@ function viewportScrollPosition(root: Document): ScrollPosition {
 /**
  * Mounts the shared Professions / Workspace / Analysis navigation into the
  * simulator header. No-op unless the header exists, a profession is set, and the
- * tabs are not already mounted. Mounts the brand block and analysis heading,
+ * tabs are not already mounted. Mounts the analysis heading,
  * builds the landing-page link and simulator tabs, and
  * wires hash/history-driven view switching with per-view scroll restoration.
  */
@@ -162,7 +151,6 @@ export function mountSimulatorNavigation(root: Document = document): void {
     restoreScrollPosition(view, position);
   };
 
-  mountHeaderBrand(root, header);
   for (const section of ['professions', 'workspace', 'analysis', 'gear-optimizer'] as const) {
     const route = simulatorViewHref(pathname, section);
     const view = section === 'professions' ? undefined : section;

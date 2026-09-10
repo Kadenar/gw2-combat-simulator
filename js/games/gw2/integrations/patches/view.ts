@@ -64,8 +64,7 @@ function overviewRows(entries: readonly PatchOverviewEntry[]): string {
 export function mountPatchPreviewControls(app: ProfessionAppState): void {
   const preview = app.profession.preview;
   const header = document.querySelector('body[data-profession] #app > header');
-  const brand = header?.querySelector('.header-brand');
-  if (!preview || !header || !brand || header.querySelector('.patch-preview-picker')) {
+  if (!preview || !header || header.querySelector('.patch-preview-picker')) {
     return;
   }
 
@@ -105,8 +104,8 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
   }
 
   control.append(options);
-  // Keep the version picker in the brand flow so the sticky header reserves space for it.
-  brand.append(control);
+  // Keep version selection beside navigation without depending on the removed title block.
+  header.insertBefore(control, header.querySelector('.community-actions'));
 }
 
 export function renderPatchComparison(container: HTMLElement, app: ProfessionAppState): void {

@@ -2,9 +2,7 @@
 
 /* Build tabs share one editor and contain their own overflow at every viewport width. */
 .build-workspace-tabs {
-  /* Span a full row in both the standalone grid and embedded flex header. */
-  grid-column: 1 / -1;
-  grid-row: 4;
+  /* Span a full row below navigation and help. */
   width: 100%;
   display: flex;
   /* Align to the tab tops so a horizontal scrollbar cannot shift the adjacent buttons. */
@@ -412,10 +410,6 @@
   gap: 4px;
 }
 
-.build-templates .presets-group-label {
-  min-width: 92px;
-}
-
 .presets-group-btns.template-preset-list {
   min-width: 0;
   flex: 1;
@@ -648,21 +642,6 @@
   .build-templates-header .template-actions-hint {
     display: none;
   }
-
-  .build-templates .presets-group {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .build-templates .presets-group-label {
-    min-width: 0;
-    text-align: left;
-  }
-
-  .template-preset-list,
-  .template-preset {
-    width: 100%;
-  }
 }
 
 .build-templates-dialog {
@@ -703,8 +682,9 @@
 
 /* ─── Shared build-template preset groups ─── */
 .presets-group {
+  /* Put specialization labels above their lists instead of reserving an empty left column. */
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
 }
 
@@ -719,8 +699,7 @@
   color: var(--accent-dim);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  min-width: 58px;
-  text-align: right;
+  text-align: left;
   flex-shrink: 0;
 }
 

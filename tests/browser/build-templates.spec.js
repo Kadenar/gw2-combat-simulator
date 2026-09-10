@@ -259,9 +259,10 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
   await expect(power.locator('.template-preset-name')).toHaveText('Sword & Dagger');
   await expect(power.locator('.template-preset-dps')).toHaveText('12,345 DPS');
   await expect(power.locator('.template-preset-boon')).toHaveCount(0);
-  await expect(boon.locator('.template-preset-name')).toHaveText(['Spear', 'Staff']);
+  await expect(boon.locator('.template-preset-name')).toHaveText(['Power Spear', 'Condition Staff']);
   await expect(boon.locator('.template-preset-boon')).toHaveText(['Quickness', 'Alacrity']);
   await expect(mirage.locator('.template-subgroup > summary')).toHaveText(['Condition']);
+  await expect(mirage.locator('.template-preset-name')).toHaveText('Axe');
 
   await power.locator(':scope > summary').focus();
   await page.keyboard.press('Enter');
@@ -282,14 +283,14 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
   await selectFilter('data-template-filter', 'power');
   await expect(mirage).toBeHidden();
   await expect(chrono.locator('.template-subgroup:not([hidden]) > summary')).toHaveText(['Power', 'Boon']);
-  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText(['Spear']);
+  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText(['Power Spear']);
   await selectFilter('data-template-boon-filter', 'alacrity');
   await expect(chrono).toBeHidden();
   await expect(templates.locator('.template-filter-empty')).toBeVisible();
   await selectFilter('data-template-filter', 'all');
   await expect(boon).toBeVisible();
   await expect(power).toBeHidden();
-  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText(['Staff']);
+  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText(['Condition Staff']);
   await selectFilter('data-template-specialization-filter', 'Mirage');
   await expect(templates.locator('.template-filter-empty')).toBeVisible();
   await selectFilter('data-template-boon-filter', 'all');

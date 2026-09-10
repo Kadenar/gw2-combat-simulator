@@ -311,6 +311,40 @@ test('Fresh Air resets both Air Attunement and Overload Air', () => {
   assert.equal(result.endState.cooldowns['Overload Air'], undefined);
 });
 
+test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode', () => {
+  // No critical-triggered equipment should be needed to sample Fresh Air's hits.
+  const result = runNative({
+    lines: [['Fire'], ['Air', '1-1-2'], ['Tempest']],
+    rotation: [6000, 'Overload Air', 'Fire Attunement', 'Flame Uprising', 'Ring of Fire'],
+    startAttunement: 'Air',
+    sigils: ['', ''],
+    food: '',
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      simulationMode: 'stochastic'
+    }
+  });
+  const procs = result.events.filter((event) => event.type === 'elementalist.fresh-air');
+
+  assert.equal(result.randomness.mode, 'stochastic');
+  assert.ok(procs.length > 0);
+  for (const proc of procs) {
+    assert.ok(
+      result.events.some(
+        (event) =>
+          event.type === 'damage' &&
+          event.at === proc.at &&
+          event.skillName === proc.sourceSkill &&
+          event.didCrit === true
+      )
+    );
+  }
+
+  assert.equal(result.endState.profession.attunementReadyAt.Air, procs[0].at);
+  assert.equal(result.endState.cooldowns['Air Attunement'], undefined);
+  assert.equal(result.endState.cooldowns['Overload Air'], undefined);
+});
+
 test('Fresh Air lookahead preserves a scheduled reset across an intervening attunement', () => {
   const result = runNative({
     lines: [['Fire'], ['Air', '3-3-2'], ['Tempest', '3-1-2']],

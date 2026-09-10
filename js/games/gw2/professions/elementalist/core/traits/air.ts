@@ -179,6 +179,12 @@ export function observeFreshAir(context: ElementalistSchedulerContext, event: Si
     sourceId: event.skillId ?? event.sourceId,
     sourceSkill: String(event.skillName || event.source || '')
   });
+  // Resolve discrete procs after the materializer stores the hit's shared critical result at priority -60.
+  context.tasks.schedule({
+    type: 'elementalist.fresh-air-critical',
+    at: Math.max(context.state.time, event.at),
+    priority: -40
+  });
 }
 
 /** Resolves Fresh Air candidates in event order and resets Air on the first successful proc. */

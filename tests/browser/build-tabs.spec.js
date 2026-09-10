@@ -7,6 +7,37 @@ async function openWorkspace(page, viewport = { width: 1440, height: 1000 }) {
   await expect(page.locator('#build-workspace-tabs')).toBeVisible();
 }
 
+// Standalone and embedded pages share a compact header without mounting obsolete title markup.
+test('profession headers share the embed layout without a title block', async ({ page }) => {
+  for (const width of [1786, 700, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    const layouts = [];
+    for (const suffix of ['', '?embed=1']) {
+      await page.goto(`/guardian.html${suffix}`);
+      await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+      const header = page.locator('#app > header');
+      await expect(header.locator('h1, .header-brand, .home-link')).toHaveCount(0);
+      await expect(header.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
+      await expect(header.locator('.community-actions')).toBeInViewport({ ratio: 1 });
+      await expect(header.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
+      layouts.push(
+        await header.evaluate((element) => {
+          const style = getComputedStyle(element);
+          return [
+            style.display,
+            style.flexWrap,
+            style.gap,
+            style.paddingInline,
+            element.getBoundingClientRect().height
+          ];
+        })
+      );
+    }
+
+    expect(layouts[0]).toEqual(layouts[1]);
+  }
+});
+
 async function newBuild(page) {
   await page.locator('.build-tab-new').click();
   await page.getByRole('button', { name: 'New blank build', exact: true }).click();

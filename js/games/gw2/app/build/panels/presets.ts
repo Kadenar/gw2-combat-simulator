@@ -73,10 +73,12 @@ export function templateTileContent(preset: BuildTemplatePreset): {
   const benchmarkDps = Number(preset.benchmarkDps);
   // Keep trailing variant labels visible so builds with the same weapons remain distinguishable.
   const variant = weaponMatch ? preset.label.slice(detailsStart + weaponMatch[0].length).trim() : '';
+  // Keep Inferno visible beside the weapons so power presets remain distinguishable in the picker.
+  const inferno = category === 'power' && /\binferno\b/i.test(`${preset.label} ${preset.build}`);
 
   return {
     name,
-    weapons: [weapons, variant].filter(Boolean).join(' '),
+    weapons: [inferno ? 'Inferno' : '', weapons, variant].filter(Boolean).join(' '),
     dps:
       Number.isFinite(benchmarkDps) && benchmarkDps > 0 ? `${Math.round(benchmarkDps).toLocaleString('en-US')} DPS` : ''
   };
@@ -122,12 +124,14 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
   const content = templateTileContent(preset);
   const category = templateCategory(preset);
   const boon = templateBoon(preset);
+  // Boon groups mix damage types, so qualify their names while other groups supply that context.
+  const qualifier = boon === 'none' ? '' : category === 'power' ? 'Power ' : category === 'condi' ? 'Condition ' : '';
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';
   return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false" title="${label}">
-        <span class="template-preset-name">${esc(content.weapons || content.name)}</span>
+        <span class="template-preset-name">${esc(content.weapons ? qualifier + content.weapons : content.name)}</span>
         ${boon === 'none' ? '' : `<span class="template-preset-boon">${boon[0].toUpperCase()}${boon.slice(1)}</span>`}
         ${content.dps ? `<span class="template-preset-dps">${esc(content.dps)}</span>` : ''}
       </button>

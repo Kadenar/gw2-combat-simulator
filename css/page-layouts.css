@@ -484,6 +484,13 @@
   }
 }
 
+/* Use two columns on small screens so wider platform fonts cannot push navigation outside the viewport. */
+@media (max-width: 360px) {
+  body[data-profession] .simulator-view-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* ---------------------------------------------------------------------------
    Embedded mode (?embed=1) — strips standalone-site chrome so the tool blends
    into a host page (e.g. an iframe on another site). Tune the hidden set here.
@@ -501,37 +508,9 @@ html.embed {
   display: none;
 }
 
-/* Keep standalone titles and the floating DPS badge out of embedded simulator pages. */
-.embed header h1,
+/* Keep the floating DPS badge out of embedded simulator pages. */
 .embed .floating-dps {
   display: none;
-}
-
-/* Separate navigation from help actions in the narrower host without overlapping either group. */
-.embed body[data-profession] #app > header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px 24px;
-  /* Give the sticky surface a slight inset so controls stay clear of its edges. */
-  padding-inline: 8px;
-}
-
-.embed body[data-profession] #app > header .header-brand {
-  display: none;
-}
-
-.embed body[data-profession] #app > header .community-actions {
-  position: static;
-  flex-wrap: wrap;
-  margin: 0 0 0 auto;
-}
-
-/* Use two columns on small screens so wider platform fonts cannot push navigation outside the viewport. */
-@media (max-width: 360px) {
-  body[data-profession] .simulator-view-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 .embed .landing-shell,
