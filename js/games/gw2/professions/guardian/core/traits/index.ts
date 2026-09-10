@@ -5,6 +5,7 @@ import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
@@ -188,10 +189,14 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
   }
 }
 
-export function reactToGuardianDamageTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+export function reactToGuardianDamageTraits(
+  context: GuardianResolverContext,
+  event: GuardianResolverEvent,
+  details: NativeResolvedDamageDetails = {}
+): void {
   reactToSymbolOfIgnition(context, event);
   reactToZealSymbolTraits(context, event);
-  reactToZealotsResolution(context, event);
+  reactToZealotsResolution(context, event, details.hitContext?.damage ?? 0);
 }
 
 export function reactToGuardianBuffTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {

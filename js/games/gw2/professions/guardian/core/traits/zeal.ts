@@ -6,6 +6,7 @@ import { enqueueOrdered } from '#kernel/events/queue.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
@@ -72,6 +73,11 @@ export function applyFuriousFocus(
   virtueSlot: string,
   at: number
 ): void {
+  // Spear's symbol forms before its strike and tether; cancelling the aftercast must not move that activation.
+  if (skill.id === GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE) {
+    at = context.start + projectCastRelativeEffectTimingMs(skill, (context.fullEnd - context.start) * 1000, 480) / 1000;
+  }
+
   if (
     virtueSlot !== 'Profession_1' ||
     !hasTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS) ||
@@ -197,12 +203,15 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
   }
 }
 
-// Trigger the lesser symbol only after cumulative damage crosses the configured
-// target-health threshold, with guards against recursion and repeated ICD hits.
-export function reactToZealotsResolution(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+// The enemy must already be below the threshold before this strike; the crossing hit cannot trigger the symbol.
+export function reactToZealotsResolution(
+  context: GuardianResolverContext,
+  event: GuardianResolverEvent,
+  hitDamage: number
+): void {
   const state = guardianResolverState(context);
   const targetHealth = Number(context.config.target?.health ?? 0);
-  const damageDone = targetHealthLoss(context.config, context);
+  const damageDone = targetHealthLoss(context.config, context) - hitDamage;
   if (
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||
