@@ -1,54 +1,12 @@
-import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
-import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
-import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
-import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
-/**
- * Resolves a hand-built canonical stream in architecture tests without a
- * profession-specific resolver wrapper.
- */
-export function resolveTestGw2Stream({ stream, config, traits, query, helpers, professionReactions = {} }) {
-  const extensions = createGw2ResolverExtensions({
-    config,
-    events: stream.events,
-    professionReactions
-  });
-  const hits = createGw2HitResolution({
-    strikeMultiplier: extensions.strikeMultiplier
-  });
-  const conditions = createGw2ConditionResolution({
-    reactions: extensions.reactions,
-    config
-  });
-  const commonHandlers = createGw2ResolverEventHandlers({
-    hitResolution: {
-      buildContext: hits.buildHitResolutionContext,
-      apply: hits.applyResolvedHit
-    },
-    conditions: {
-      activeStackCount: conditions.activeConditionStackCount,
-      tick: conditions.handleConditionTick,
-      environmentTick: conditions.handleEnvironmentConditionTick
-    },
-    reactions: extensions.reactions
-  });
+const profession = defineProfession({ id: 'resolver-fixture', name: 'Resolver fixture' });
 
+/** Resolves focused streams through production setup while retaining explicit query and reaction fixtures. */
+export function resolveTestGw2Stream({ professionReactions = {}, ...options }) {
   return resolveGw2Timeline({
-    stream,
-    config,
-    traits,
-    query,
-    helpers,
-    createRuntimeState: (options) =>
-      createGw2ResolverRuntimeState({
-        ...options,
-        applyCondition: conditions.applyCondition,
-        createEquipmentState: extensions.createEquipmentState
-      }),
-    commonHandlers,
-    beforeResolveTimeline: extensions.beforeResolveTimeline,
-    initializeEnvironment: conditions.initializeEnvironment
+    profession: { ...profession, eventReactions: professionReactions },
+    ...options
   });
 }

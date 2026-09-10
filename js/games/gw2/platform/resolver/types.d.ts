@@ -21,6 +21,7 @@ import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
 import type { Gw2EventDraft, Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 
 export type Gw2ResolverEvent = SimulationEvent & {
   readonly name?: string;
@@ -332,7 +333,6 @@ export interface Gw2ResolverReactionRegistry {
 
 export interface Gw2ResolverExtensions {
   readonly reactions: Gw2ResolverReactionRegistry;
-  readonly createEquipmentState: (config: Gw2Config) => Pick<Gw2ResolverRuntime, 'relic' | 'sigil' | 'food'>;
   readonly strikeMultiplier: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
   readonly conditionDurationBonus: (context: Gw2QueryRuntime | null | undefined, at: number) => number;
   readonly beforeResolveTimeline: (
@@ -389,18 +389,11 @@ export interface ResolveGw2TimelineOptions {
   readonly output?: 'detailed' | 'score';
   readonly stream: ScheduledEventStream;
   readonly config: Gw2Config;
+  readonly profession: Gw2ProfessionContract;
   readonly traits: ReadonlySet<string | number>;
-  readonly query: Readonly<Gw2CombatQuery>;
-  readonly helpers: Gw2ResolverHelpers;
-  readonly createRuntimeState: (
-    options: Omit<CreateGw2ResolverRuntimeStateOptions, 'applyCondition' | 'createEquipmentState'>
-  ) => Gw2ResolverRuntime;
-  readonly commonHandlers: Gw2ResolverEventHandlers;
-  readonly reactions?: Gw2ResolverReactionRegistry;
-  readonly beforeResolveTimeline: Gw2ResolverExtensions['beforeResolveTimeline'];
-  readonly initializeEnvironment: Gw2ConditionResolution['initializeEnvironment'];
-  readonly professionHandlers?: Gw2ResolverEventHandlers;
-  readonly professionState?: object;
+  /** Focused resolver tests can supply combat facts independently of profession attributes. */
+  readonly query?: Readonly<Gw2CombatQuery>;
+  readonly helpers?: Gw2ResolverHelpers;
 }
 
 export interface CreateGw2ResolverRuntimeStateOptions {
@@ -414,6 +407,5 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly professionState?: object;
   readonly warnings?: string[];
   readonly applyCondition: Gw2ConditionResolution['applyCondition'];
-  readonly createEquipmentState: Gw2ResolverExtensions['createEquipmentState'];
   readonly reactions?: Gw2ResolverReactionRegistry;
 }

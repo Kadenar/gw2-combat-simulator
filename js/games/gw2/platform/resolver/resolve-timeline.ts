@@ -3,6 +3,13 @@ import { createEventQueue } from '#kernel/events/queue.js';
 import { assertScheduledEventStream as assertPlatformStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from '#gw2/platform/resolver/event-loop.js';
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
+import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 
 import type {
@@ -150,38 +157,65 @@ export function resolveGw2Timeline({
   output = 'detailed',
   stream,
   config,
+  profession,
   traits,
-  query,
-  helpers,
-  createRuntimeState,
-  commonHandlers,
-  reactions,
-  beforeResolveTimeline,
-  initializeEnvironment,
-  professionHandlers = {},
-  professionState = {}
+  query: queryOverride,
+  helpers
 }: ResolveGw2TimelineOptions): Gw2ResolverResult | Gw2SimulationScore {
-  if (typeof createRuntimeState !== 'function') {
-    throw new TypeError('GW2 timeline resolver requires createRuntimeState.');
-  }
-
   const started = onPhase ? performance.now() : 0;
 
   const scheduled = assertPlatformStream(stream);
+  if (!profession?.id) throw new TypeError('GW2 timeline resolver requires a profession.');
+  // Assemble common mechanics once so queries, handlers, and runtime callbacks share the same reactions.
+  const extensions = createGw2ResolverExtensions({
+    config,
+    events: scheduled.events,
+    professionReactions: profession.eventReactions
+  });
+  const query =
+    queryOverride ??
+    createGw2CombatQuery({
+      profession,
+      config,
+      events: scheduled.events,
+      traits,
+      conditionDurationBonus: extensions.conditionDurationBonus
+    });
+  const hits = createGw2HitResolution({ strikeMultiplier: extensions.strikeMultiplier });
+  const conditions = createGw2ConditionResolution({ config, reactions: extensions.reactions });
+  const commonHandlers = createGw2ResolverEventHandlers({
+    hitResolution: { buildContext: hits.buildHitResolutionContext, apply: hits.applyResolvedHit },
+    conditions: {
+      activeStackCount: conditions.activeConditionStackCount,
+      tick: conditions.handleConditionTick,
+      environmentTick: conditions.handleEnvironmentConditionTick
+    },
+    reactions: extensions.reactions
+  });
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
   const queue = createEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));
   const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
-  const ctx = createRuntimeState({
+  const ctx = createGw2ResolverRuntimeState({
     reporting: output !== 'score',
     config,
     traits,
     horizon: resolutionEndTime,
     query,
-    helpers,
+    helpers: helpers ?? {
+      conditionName: canonicalTargetConditionName,
+      skillsById: profession.catalog?.skillsById || new Map(),
+      skillsByName: profession.catalog?.skillsByName || new Map(),
+      balanceProfilesById: profession.catalog?.balanceProfilesById || new Map()
+    },
     queue,
-    professionState,
+    // Resolution always starts at time zero; scheduler mutations arrive through chronological events.
+    professionState:
+      typeof profession.createResolverState === 'function'
+        ? profession.createResolverState(config)
+        : profession.createProfessionState(config),
     warnings: [...(handoff.warnings || [])],
-    reactions
+    applyCondition: conditions.applyCondition,
+    reactions: extensions.reactions
   });
   if (handoff.hasExplicitCombatStart) {
     ctx.combatStartTime = handoff.combatStartTime;
@@ -189,8 +223,8 @@ export function resolveGw2Timeline({
 
   // Ambient target conditions join the queue only after the explicit combat
   // boundary is known, so they cannot create a player combat-start window.
-  initializeEnvironment(ctx);
-  beforeResolveTimeline(ctx, scheduled.events, resolutionEndTime);
+  conditions.initializeEnvironment(ctx);
+  extensions.beforeResolveTimeline(ctx, scheduled.events, resolutionEndTime);
 
   for (const event of scheduled.events) {
     if (event.type === 'proc') {
@@ -208,7 +242,7 @@ export function resolveGw2Timeline({
 
   const registry = createGw2ResolverHandlerRegistry({
     commonHandlers,
-    professionHandlers
+    professionHandlers: profession.eventHandlers
   });
   runGw2ResolverEventLoop(ctx, registry);
 

@@ -1,5 +1,5 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import { createRelicRuntime, createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import {
   recordPassiveRelicTimeline,
   relicConditionDurationBonus,
@@ -35,17 +35,6 @@ export function createGw2ResolverExtensions({
 
   return Object.freeze({
     reactions,
-    createEquipmentState(currentConfig: Gw2Config) {
-      return {
-        relic: createRelicRuntime(currentConfig.relic),
-        sigil: {
-          severanceUntil: 0,
-          criticalProgress: 0,
-          readyAt: new Map()
-        },
-        food: { criticalProgress: 0, readyAt: 0 }
-      };
-    },
     strikeMultiplier: relicStrikeMultiplier,
     conditionDurationBonus,
     beforeResolveTimeline: recordPassiveRelicTimeline

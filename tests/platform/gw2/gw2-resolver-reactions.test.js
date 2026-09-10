@@ -139,8 +139,7 @@ test('condition stage runs once after state and ticks, including profession and 
     },
     helpers: { conditionName: (value) => String(value) },
     queue,
-    applyCondition: conditions.applyCondition,
-    createEquipmentState: extensions.createEquipmentState
+    applyCondition: conditions.applyCondition
   });
 
   assert.equal(typeof context.applyCondition, 'function');

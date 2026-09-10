@@ -1,6 +1,7 @@
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
@@ -26,10 +27,8 @@ export function createGw2ResolverRuntimeState({
   professionState = {},
   warnings = [],
   applyCondition,
-  createEquipmentState,
   reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
-  const equipment = createEquipmentState(config);
   const runtime: Gw2ResolverRuntime = {
     reporting,
     config,
@@ -58,10 +57,11 @@ export function createGw2ResolverRuntimeState({
     deathTime: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     combo: createGw2ComboRuntimeState(),
-    relic: equipment.relic,
+    // Equipment state belongs to this resolution pass, including repeated runs with the same configuration.
+    relic: createRelicRuntime(config.relic),
     profession: professionState,
-    sigil: equipment.sigil,
-    food: equipment.food,
+    sigil: { severanceUntil: 0, criticalProgress: 0, readyAt: new Map() },
+    food: { criticalProgress: 0, readyAt: 0 },
     random: createSimulationRandom(config.randomness),
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,

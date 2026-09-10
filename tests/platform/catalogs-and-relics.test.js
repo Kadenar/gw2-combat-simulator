@@ -4,7 +4,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import {
   createRelicRuntime,
   createRelicTimelineRuntime,
@@ -524,10 +524,11 @@ test('shared relic behavior resolves triggering skills by stable id', () => {
   );
 });
 
-test('resolver extensions create isolated state only for the selected relic', () => {
+// Runtime construction owns fresh equipment state independently of shared relic rules.
+test('resolver runtimes create isolated state only for the selected relic', () => {
   const createRuntime = (relic) =>
-    createGw2ResolverExtensions({ config: { relic } }).createEquipmentState({
-      relic
+    createGw2ResolverRuntimeState({
+      config: { relic }
     });
   const thief = createRuntime('Thief');
   const anotherThief = createRuntime('Thief');
@@ -547,6 +548,10 @@ test('resolver extensions create isolated state only for the selected relic', ()
 
   thief.relic.state.stacks = 3;
   assert.equal(anotherThief.relic.state.stacks, 0);
+  thief.sigil.readyAt.set('Air', 5);
+  thief.food.criticalProgress = 0.5;
+  assert.equal(anotherThief.sigil.readyAt.size, 0);
+  assert.equal(anotherThief.food.criticalProgress, 0);
 });
 
 test('Severance critical contributions are data-driven and expire exactly', () => {

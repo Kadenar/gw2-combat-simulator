@@ -5,11 +5,55 @@ import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
+import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '../../fixtures/test-profession.js';
+
+// Repeated resolution starts from resolver state and connects both runtime and condition dispatch to profession hooks.
+test('resolver setup shares reactions and creates fresh profession state for each pass', () => {
+  const profession = defineProfession({
+    id: 'resolver-setup',
+    name: 'Resolver Setup',
+    resources: {
+      createProfessionState: () => ({ count: 100 }),
+      createResolverState: () => ({ count: 0 })
+    },
+    resolverHooks: {
+      eventHandlers: {
+        'fixture.trigger': (context, event) => {
+          context.dispatchReaction('control.resolved', event);
+          context.applyCondition({ ...event, type: 'condition', condition: 'Weakness', stacks: 1, duration: 1 });
+        }
+      },
+      eventReactions: {
+        'control.resolved': (context) => {
+          context.profession.count += 1;
+        },
+        'condition.applied': (context) => {
+          context.profession.count += 10;
+        }
+      }
+    }
+  });
+  const options = {
+    profession,
+    config: {},
+    traits: new Set(),
+    stream: buildScheduledEventStream({
+      events: [{ type: 'fixture.trigger', at: 0, source: 'Fixture', sourceId: 'fixture.trigger', actorType: 'player' }],
+      rotationEndTime: 1
+    })
+  };
+  const first = resolveGw2Timeline(options);
+  assert.equal(first.profession.count, 11);
+  first.profession.count = 99;
+  const second = resolveGw2Timeline(options);
+  assert.equal(second.profession.count, 11);
+  assert.notEqual(first.profession, second.profession);
+});
 
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
 test('shared buff handling prioritizes allied players over summon recipients', () => {

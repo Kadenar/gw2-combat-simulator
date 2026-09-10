@@ -3,17 +3,11 @@ import { cloneProfessionState, flattenProfessionState } from '#gw2/platform/engi
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
-import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
-import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
-import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { isSchedulerComboPrediction } from '#gw2/platform/combos/events.js';
 import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type {
   Gw2DeclarativeSimulationOptions,
@@ -118,69 +112,13 @@ function simulateDeclarativeGw2Pass({
       (event) => !isSchedulerSigilPrediction(event) && !isSchedulerComboPrediction(event)
     )
   };
-  const extensions = createGw2ResolverExtensions({
-    config,
-    events: resolverStream.events,
-    professionReactions: runtimeProfession.eventReactions
-  });
-  const query = createGw2CombatQuery({
-    profession: runtimeProfession,
-    config,
-    events: resolverStream.events,
-    traits,
-    conditionDurationBonus: extensions.conditionDurationBonus
-  });
-  const hitResolution = createGw2HitResolution({
-    strikeMultiplier: extensions.strikeMultiplier
-  });
-  const conditionResolution = createGw2ConditionResolution({
-    reactions: extensions.reactions,
-    config
-  });
-  const commonHandlers = createGw2ResolverEventHandlers({
-    hitResolution: {
-      buildContext: hitResolution.buildHitResolutionContext,
-      apply: hitResolution.applyResolvedHit
-    },
-    conditions: {
-      activeStackCount: conditionResolution.activeConditionStackCount,
-      tick: conditionResolution.handleConditionTick,
-      environmentTick: conditionResolution.handleEnvironmentConditionTick
-    },
-    reactions: extensions.reactions
-  });
   const resolved = resolveGw2Timeline({
     onPhase,
     output,
     stream: resolverStream,
+    profession: runtimeProfession,
     config,
-    traits,
-    query,
-    helpers: {
-      // Keep resolver condition names consistent with the shared target-state queries.
-      conditionName: canonicalTargetConditionName,
-      skillsById: runtimeProfession.catalog?.skillsById || new Map(),
-      skillsByName: runtimeProfession.catalog?.skillsByName || new Map(),
-      balanceProfilesById: runtimeProfession.catalog?.balanceProfilesById || new Map()
-    },
-    createRuntimeState(options) {
-      return createGw2ResolverRuntimeState({
-        ...options,
-        applyCondition: conditionResolution.applyCondition,
-        createEquipmentState: extensions.createEquipmentState
-      });
-    },
-    commonHandlers,
-    reactions: extensions.reactions,
-    beforeResolveTimeline: extensions.beforeResolveTimeline,
-    initializeEnvironment: conditionResolution.initializeEnvironment,
-    professionHandlers: runtimeProfession.eventHandlers,
-    professionState:
-      // Resolver state is always time-zero state. Scheduler changes that matter
-      // during numeric resolution must be represented by chronological events.
-      typeof runtimeProfession.createResolverState === 'function'
-        ? runtimeProfession.createResolverState(config)
-        : runtimeProfession.createProfessionState(config)
+    traits
   });
   // Score output skips end-state and profession projections; scheduler and resolver state remain fresh per pass.
   if (output === 'score')
