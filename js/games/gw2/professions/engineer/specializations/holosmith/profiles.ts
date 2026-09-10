@@ -40,11 +40,7 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     id: HOLOSMITH_BALANCE_PROFILE_IDS.overheat,
     name: 'Photon Forge Overheat',
     profileKind: 'mechanic',
-    minimumStacks: 3,
-    threshold: 8,
     maximumStacks: 15,
-    pulseInterval: 0.5,
-    durationMultiplier: 2.5,
     effects: []
   },
   trait(HOLOSMITH_BALANCE_PROFILE_IDS.thermalReleaseValve, 'Thermal Release Valve', {

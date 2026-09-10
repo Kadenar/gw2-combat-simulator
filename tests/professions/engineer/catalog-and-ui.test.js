@@ -33,6 +33,9 @@ import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapp
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
+import { engineerFlipSkillHandlers } from '#gw2/professions/engineer/core/mechanics/skill-flips.js';
+import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
+import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -60,6 +63,65 @@ function mechanic(name) {
 const applyEngineerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(engineerCatalog, patch), patch);
 
 const authoringEngineerProfession = withActivePatchPreview(engineerProfession);
+
+test('Engineer palette flips require explicit consumable targets and ignore raw API flips', () => {
+  // Every declared parent must arm only its palette target, then consume it once.
+  const events = [];
+  const core = createEngineerCoreState();
+  const context = {
+    catalog: engineerCatalog,
+    config: {},
+    state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
+    start: 2,
+    effectiveEnd: 3,
+    events,
+    emit: (event) => events.push(event)
+  };
+  const arm = engineerFlipSkillHandlers['engineer.arm-flip'];
+  const consume = engineerFlipSkillHandlers['engineer.consume-flip'];
+  for (const skill of engineerCatalog.skills.filter((candidate) => candidate.handlerId === 'engineer.arm-flip')) {
+    const flip = engineerCatalog.skillsById.get(skill.paletteFlipSkillId);
+    assert.ok(flip, skill.name);
+    assert.equal(engineerCoreCastAvailability(context, flip).ready, false);
+    arm(context, { ...skill, flipSkillId: ID.RIFLE_BURST });
+    assert.equal(engineerCoreCastAvailability(context, flip).ready, true);
+    assert.equal(core.availableFlips[ID.RIFLE_BURST], undefined);
+    assert.equal(events.at(-1).at, 3);
+    consume(context, flip);
+    assert.equal(engineerCoreCastAvailability(context, flip).ready, false);
+  }
+
+  const before = structuredClone(core.availableFlips);
+  const eventCount = events.length;
+  for (const paletteFlipSkillId of [undefined, null, NaN, Infinity, 0, -1, 'missing', ID.RIFLE_BURST]) {
+    assert.throws(
+      () => arm(context, { name: 'Malformed parent', paletteFlipSkillId, flipSkillId: ID.MAGNETIC_INVERSION }),
+      /requires a paletteFlipSkillId referencing a consumable flip/
+    );
+    assert.deepEqual(core.availableFlips, before);
+    assert.equal(events.length, eventCount);
+  }
+});
+
+test('Overheat authoring retains the live penalty and rejects obsolete saved controls', () => {
+  // Sparse saved edits remain valid for the live field; removed no-op controls fail explicitly without mutating inputs.
+  const id = HOLOSMITH_BALANCE_PROFILE_IDS.overheat;
+  const profile = authoringEngineerProfession.patchAuthoring.modules
+    .find((module) => module.id === 'Holosmith')
+    .balanceProfiles.find((entry) => entry.id === id);
+  assert.deepEqual(Object.keys(profile.patchableFields), ['maximumStacks']);
+  const live = { balanceProfiles: { [id]: { fields: { maximumStacks: { from: 15, to: 9 } } } } };
+  assert.equal(authoringEngineerProfession.validatePatch(live), true);
+  assert.equal(applyEngineerPatch(live).balanceProfilesById.get(id).maximumStacks, 9);
+  for (const field of ['minimumStacks', 'threshold', 'pulseInterval', 'durationMultiplier']) {
+    const saved = JSON.parse(JSON.stringify({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }));
+    assert.throws(() => authoringEngineerProfession.validatePatch(saved), new RegExp(`does not expose ${field}`));
+    assert.equal(saved.balanceProfiles[id].fields[field], 1);
+    assert.equal(Object.hasOwn(engineerCatalog.balanceProfilesById.get(id), field), false);
+  }
+
+  assert.equal(engineerCatalog.balanceProfilesById.get(id).maximumStacks, 15);
+});
 
 // Check evaluated offsets so generated timelines and direct status effects are covered too.
 test('Engineer authored effect offsets use ordered 40 ms action ticks', () => {

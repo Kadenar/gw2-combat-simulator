@@ -8,12 +8,13 @@ import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engine
 
 /** Makes an explicitly declared palette follow-up available after its parent cast completes. */
 function armFlip(context: EngineerCastContext, skill: EngineerSkill): void {
-  // paletteFlipSkillId explicitly declares a palette flip; flipSkillId is the raw API
-  // field which conflates palette flips with chain skills. Fall back to flipSkillId
-  // only for skills not yet annotated with an explicit paletteFlipSkillId.
-  const flipSkillId = Number(skill.paletteFlipSkillId ?? skill.flipSkillId);
-  if (!Number.isFinite(flipSkillId)) return;
-  professionCoreState(context).availableFlips[flipSkillId] = true;
+  // Raw API flips also describe chains; require an authored, consumable palette follow-up.
+  const flip = skill.paletteFlipSkillId == null ? undefined : context.catalog.skillsById.get(skill.paletteFlipSkillId);
+  if (!flip || flip.handlerId !== 'engineer.consume-flip') {
+    throw new TypeError(`Engineer skill ${skill.name} requires a paletteFlipSkillId referencing a consumable flip.`);
+  }
+
+  professionCoreState(context).availableFlips[flip.id] = true;
   // effectiveEnd: flip becomes available after the cast completes, not when it starts
   emitEngineerStateSnapshot(context, context.effectiveEnd, 'arm-flip');
 }
