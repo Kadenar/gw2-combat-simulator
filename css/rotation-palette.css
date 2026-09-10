@@ -179,27 +179,27 @@
 }
 
 .active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(1) {
-  background-image: url('@assets/elementalist/evoker/Ring1.png');
+  background-image: url('@images/elementalist/evoker/Ring1.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(2) {
-  background-image: url('@assets/elementalist/evoker/Ring2.png');
+  background-image: url('@images/elementalist/evoker/Ring2.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(3) {
-  background-image: url('@assets/elementalist/evoker/Ring3.png');
+  background-image: url('@images/elementalist/evoker/Ring3.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(4) {
-  background-image: url('@assets/elementalist/evoker/Ring4.png');
+  background-image: url('@images/elementalist/evoker/Ring4.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(5) {
-  background-image: url('@assets/elementalist/evoker/Ring5.png');
+  background-image: url('@images/elementalist/evoker/Ring5.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(6) {
-  background-image: url('@assets/elementalist/evoker/Ring6.png');
+  background-image: url('@images/elementalist/evoker/Ring6.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-'][class*='-ready'] {
@@ -211,23 +211,23 @@
 }
 
 .active-resource-pips[class*='elementalist-evoker-fire-'] {
-  --evoker-ready-ring: url('@assets/elementalist/evoker/Fire.png');
-  --evoker-ready-familiar: url('@assets/elementalist/evoker/FamiliarFire.png');
+  --evoker-ready-ring: url('@images/elementalist/evoker/Fire.png');
+  --evoker-ready-familiar: url('@images/elementalist/evoker/FamiliarFire.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-water-'] {
-  --evoker-ready-ring: url('@assets/elementalist/evoker/Water.png');
-  --evoker-ready-familiar: url('@assets/elementalist/evoker/FamiliarWater.png');
+  --evoker-ready-ring: url('@images/elementalist/evoker/Water.png');
+  --evoker-ready-familiar: url('@images/elementalist/evoker/FamiliarWater.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-air-'] {
-  --evoker-ready-ring: url('@assets/elementalist/evoker/Air.png');
-  --evoker-ready-familiar: url('@assets/elementalist/evoker/FamiliarAir.png');
+  --evoker-ready-ring: url('@images/elementalist/evoker/Air.png');
+  --evoker-ready-familiar: url('@images/elementalist/evoker/FamiliarAir.png');
 }
 
 .active-resource-pips[class*='elementalist-evoker-earth-'] {
-  --evoker-ready-ring: url('@assets/elementalist/evoker/Earth.png');
-  --evoker-ready-familiar: url('@assets/elementalist/evoker/FamiliarEarth.png');
+  --evoker-ready-ring: url('@images/elementalist/evoker/Earth.png');
+  --evoker-ready-familiar: url('@images/elementalist/evoker/FamiliarEarth.png');
 }
 
 .active-resource-pips:is(
@@ -240,7 +240,7 @@
   [class*='elementalist-evoker-air-2'],
   [class*='elementalist-evoker-earth-2']
 ) {
-  --evoker-inner-one: url('@assets/elementalist/evoker/Charge1.png');
+  --evoker-inner-one: url('@images/elementalist/evoker/Charge1.png');
 }
 
 .active-resource-pips:is(
@@ -249,7 +249,7 @@
   [class*='elementalist-evoker-air-2'],
   [class*='elementalist-evoker-earth-2']
 ) {
-  --evoker-inner-two: url('@assets/elementalist/evoker/Charge2.png');
+  --evoker-inner-two: url('@images/elementalist/evoker/Charge2.png');
 }
 
 .active-resource-pips:is(

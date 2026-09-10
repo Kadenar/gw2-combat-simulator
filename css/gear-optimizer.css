@@ -12,25 +12,30 @@ body[data-profession][data-simulator-view='gear-optimizer']
   color: var(--text-dim);
   font-size: 12px;
 }
-/* Keep the character's equipment, artwork and shared stats readable without widening the result table. */
+/* Frame the loadout around full-height artwork, with compact equipment and attribute rails. */
 .optimizer-preview {
-  padding: 20px;
+  --accent: #39cfff;
+  --border: #203744;
+  --border-light: #345064;
+  --text-dim: #9eafc0;
+  --bg-deep: #0b141b;
+  --bg-panel-alt: #101c25;
+  padding: 16px 24px 0;
   border-top: 1px solid var(--border);
+  background: radial-gradient(ellipse at 45% 40%, #15303c 0, #0c171e 55%, #0b131a 100%);
 }
-.optimizer-preview-heading {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--text-bright);
-}
-.optimizer-preview-heading > strong {
-  color: var(--accent);
-}
-/* Keep the preview status beside the title as supporting text. */
+.optimizer-preview-heading,
 .optimizer-preview-title {
   display: flex;
   align-items: baseline;
   gap: 10px;
+}
+.optimizer-preview-heading {
+  justify-content: space-between;
+  color: var(--text-bright);
+}
+.optimizer-preview-heading > strong {
+  color: var(--accent);
 }
 .optimizer-preview-title > span {
   color: var(--text-dim);
@@ -39,103 +44,246 @@ body[data-profession][data-simulator-view='gear-optimizer']
 }
 .optimizer-character {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(160px, 1.5fr) minmax(280px, 1.3fr);
-  align-items: start;
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: minmax(240px, 0.95fr) minmax(240px, 1.4fr) minmax(360px, 1.15fr);
+  align-items: stretch;
+  min-height: 780px;
+  margin-top: 16px;
 }
 .optimizer-preview-equipment,
 .optimizer-preview-details {
-  display: grid;
-  gap: 16px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
+.optimizer-preview-equipment {
+  padding-right: 16px;
+}
+.optimizer-preview-details {
+  padding-left: 18px;
+  background: linear-gradient(90deg, #0b141bd9, #0b141b);
+}
 .optimizer-preview-card {
-  padding: 14px;
-  background: var(--bg-panel-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.optimizer-preview-card:first-child {
+  padding-top: 0;
+}
+.optimizer-preview-card:last-child {
+  border-bottom: 0;
+}
+.optimizer-preview-section-title,
+.optimizer-preview .attr-section h4,
+.optimizer-preview .attribute-effects-title,
+.optimizer-preview .attribute-effects legend {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.optimizer-preview-equipment .optimizer-preview-section-title {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  letter-spacing: 3px;
 }
 .optimizer-preview-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
   padding: 8px 0;
   overflow-wrap: anywhere;
+}
+.optimizer-preview-equipment > :first-child .optimizer-preview-item + .optimizer-preview-item {
+  border-top: 1px solid var(--border);
 }
 .optimizer-preview-item-icon {
   flex: 0 0 60px;
   object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: 2px;
 }
-/* Rune and sigil icons stay with their armor or weapon instead of adding separate labeled rows. */
+.optimizer-preview-item > div {
+  min-width: 0;
+}
+.optimizer-preview-item strong {
+  display: block;
+  color: var(--text-bright);
+  font-size: 14px;
+  line-height: 1.3;
+}
+.optimizer-preview-slot {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+/* Keep upgrades attached to their armor or weapon, including both sigils on a two-handed weapon. */
 .optimizer-preview-upgrade {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 3px;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: 12px;
 }
 .optimizer-preview-upgrade img {
   flex: 0 0 16px;
 }
+.optimizer-preview-weapon-group h5 {
+  margin-top: 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+}
 .optimizer-preview-weapon-group + .optimizer-preview-weapon-group {
   border-top: 1px solid var(--border);
   margin-top: 8px;
-  padding-top: 8px;
+  padding-top: 4px;
+}
+.optimizer-preview-weapons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
 }
 .optimizer-preview-item:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-/* Keep equipment names readable beside the 60px icons. */
-.optimizer-preview-item strong {
-  margin: 3px 0;
-  color: var(--text-bright);
-  font-size: 18px;
-}
 .optimizer-preview-portrait {
-  position: sticky;
-  top: calc(var(--profession-header-height, 80px) + 20px);
-  text-align: center;
-  color: var(--text-bright);
+  position: relative;
+  min-width: 0;
+  isolation: isolate;
+}
+/* Reuse a rough paint mask for the image and its offset underpainting, without changing profession assets. */
+.optimizer-preview-portrait::before {
+  content: '';
+  position: absolute;
+  inset: -8px -16px;
+  z-index: -1;
+  background: linear-gradient(145deg, #1a4759 5%, #12333e 45%, #071117 90%);
+  mask: url('../images/optimizer-brush-mask.svg') center / 100% 100% no-repeat;
+  transform: rotate(-3deg);
+  opacity: 0.8;
 }
 .optimizer-preview-portrait img {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-height: 500px;
-  object-fit: contain;
-  margin-bottom: 12px;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  mask: url('../images/optimizer-brush-mask.svg') center / 100% 100% no-repeat;
 }
 .optimizer-preview-trinkets {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 .optimizer-preview-trinkets .optimizer-preview-item {
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   text-align: center;
+}
+.optimizer-preview-trinkets .optimizer-preview-item-icon {
+  flex-basis: auto;
+  width: min(100%, 48px);
+  height: auto;
+  aspect-ratio: 1;
+}
+.optimizer-preview-trinkets strong,
+.optimizer-preview-consumables strong {
+  font-size: 11px;
+}
+.optimizer-preview-consumables {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.optimizer-preview-consumables .optimizer-preview-item {
+  gap: 8px;
+}
+.optimizer-preview-consumables .optimizer-preview-item-icon {
+  flex-basis: 40px;
+  width: 40px;
+  height: 40px;
+}
+.optimizer-preview-infusions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+.optimizer-preview-infusions strong {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-dim);
 }
 .optimizer-preview-attributes {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
-.optimizer-preview-attributes .attr-row {
-  gap: 6px;
+.optimizer-preview .attr-row {
+  min-height: 23px;
+  padding: 3px 0;
+  border-color: var(--border);
+  font-size: 12px;
+}
+.optimizer-preview .attr-val {
+  text-align: right;
+}
+.optimizer-preview .attribute-effects {
+  font-size: 12px;
+}
+.optimizer-preview .attribute-effects-title small {
+  margin-left: 6px;
+  font-size: 10px;
+}
+.optimizer-preview .attribute-effects fieldset {
+  margin-top: 8px;
+}
+/* The first group sits directly under Attribute Preview, as in the equipment reference. */
+.optimizer-preview .attribute-effects fieldset:first-child legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.optimizer-preview .attribute-effect {
+  grid-template-columns: minmax(90px, 1fr) 60px minmax(0, 1.5fr);
+  min-height: 22px;
+  gap: 10px;
+}
+.optimizer-preview .attribute-effect small {
+  font-size: 11px;
+}
+.optimizer-preview .attribute-effect input {
+  accent-color: var(--accent);
 }
 .optimizer-preview-weapon-set {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 18px;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
   font-size: 12px;
 }
 .optimizer-preview-weapon-set[hidden] {
   display: none;
 }
 .gear-optimizer .optimizer-preview-weapon-set select {
-  width: auto;
+  width: 64px;
+}
+.gear-optimizer .optimizer-preview .attr-duration-details {
+  min-height: 24px;
+  padding: 2px 10px;
 }
 .gear-optimizer tr[data-preview] {
   cursor: pointer;
@@ -144,20 +292,41 @@ body[data-profession][data-simulator-view='gear-optimizer']
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .optimizer-character {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    min-height: 0;
+    gap: 24px;
   }
   .optimizer-preview-portrait {
     display: none;
   }
+  .optimizer-preview-equipment,
+  .optimizer-preview-details {
+    padding: 0;
+    background: none;
+  }
 }
-@media (max-width: 600px) {
+@media (max-width: 650px) {
   .optimizer-preview {
     padding: 12px;
   }
+  .optimizer-preview-heading {
+    flex-wrap: wrap;
+  }
   .optimizer-character {
     grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .optimizer-preview-trinkets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .optimizer-preview-consumables .optimizer-preview-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .optimizer-preview .attr-row {
+    font-size: 11px;
   }
 }
 body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
