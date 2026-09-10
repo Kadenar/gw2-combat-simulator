@@ -206,7 +206,9 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.adapter.buildEditor?.updateSelection?.(this);
     // Rotation-only edits keep the resolved builder intact until the worker can paint the new commands and results
     // together; otherwise every edit briefly collapses result-derived timeline rows and causes visible flicker.
-    const deferRotationRender = !rebuildStatic || options.deferRotationRender === true;
+    // Empty rotations have no resolved rows to preserve; clear them before a cold worker finishes loading.
+    const deferRotationRender =
+      this.build.rotation.length > 0 && (!rebuildStatic || options.deferRotationRender === true);
     if (deferRotationRender) {
       this.deferredRotationRenderRevision = revision;
       renderRotationComparison(this);

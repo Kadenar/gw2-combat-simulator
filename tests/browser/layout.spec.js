@@ -15,6 +15,32 @@ async function openTemplates(page) {
   await expect(page.locator('#build-templates-dialog')).toBeVisible();
 }
 
+// Clearing a restored rotation must update the editor in the click handler, before the first worker result.
+test('clearing a freshly loaded rotation paints immediately and preserves undo', async ({ page }) => {
+  await openSimulator(page);
+  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
+
+  const cleared = await page.evaluate(() => {
+    document.getElementById('btn-sim-clear').click();
+    const app = window.professionApp;
+    return {
+      empty: document.getElementById('rotation-timeline').classList.contains('is-empty'),
+      commands: app.build.rotation.length,
+      pending: app.buildRevision !== app.resultRevision,
+      undoEnabled: !document.getElementById('btn-sim-undo').disabled
+    };
+  });
+  expect(cleared).toEqual({ empty: true, commands: 0, pending: true, undoEnabled: true });
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
+  await page.locator('#btn-sim-undo').click();
+  await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
+});
+
 // The real palette must show projected endurance under Mirage Dodge without exposing an ammo counter.
 test('Mirage dodge displays its continuously regenerated endurance', async ({ page }) => {
   await openSimulator(page);

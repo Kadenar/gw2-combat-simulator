@@ -168,6 +168,7 @@ test('rotation-only changes paint the builder once with their matching result', 
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     initialRenderGeneration: 0,
     deferredRotationRenderRevision: null,
+    build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
     buildRevision: 2,
     resultRevision: 1,
     simulationStatus: 'idle',
@@ -240,7 +241,7 @@ test('build edits continue when browser storage rejects writes', (t) => {
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     initialRenderGeneration: 0,
     deferredRotationRenderRevision: null,
-    build: { rotation: [], selectedSkills: {} },
+    build: { rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkills: {} },
     buildRevision: 0,
     simulationStatus: 'idle',
     simulationError: '',
