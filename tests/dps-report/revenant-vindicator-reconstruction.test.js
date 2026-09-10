@@ -38,7 +38,6 @@ function simulate(rotation, sigil) {
       specialization: 'Vindicator',
       selectedLegends: ['LegendaryAssassin', 'LegendaryAlliance'],
       startingLegend: 'LegendaryAssassin',
-      selectedDodge: 'Death Drop',
       initialEnergy: 50,
       sigilSets: [{ names: [sigil] }, { names: [] }],
       stats: { power: 2000, precision: 1500, ferocity: 500, vitality: 1000 },

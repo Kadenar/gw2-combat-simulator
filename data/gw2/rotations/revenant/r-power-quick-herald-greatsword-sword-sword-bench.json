@@ -10,933 +10,1199 @@
   },
   "rotation": [
     {
-      "name": "Facet of Nature"
+      "type": "cast",
+      "skillId": 29371
     },
     {
-      "name": "Facet of Elements"
+      "type": "cast",
+      "skillId": 27014
     },
     {
-      "name": "Facet of Strength"
+      "type": "cast",
+      "skillId": 26644
     },
     {
-      "name": "Facet of Chaos"
+      "type": "cast",
+      "skillId": 27760
     },
     {
-      "name": "True Nature",
+      "type": "cast",
       "skillId": 51696
     },
     {
-      "name": "Eternity's Requiem",
+      "type": "cast",
       "skillId": 62929
     },
     {
-      "name": "__combat_start",
-      "offset": 334
+      "type": "combat-start",
+      "concurrentOffsetMs": 334
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Chaotic Release"
+      "type": "cast",
+      "skillId": 28075
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Impossible Odds",
-      "offset": 198
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 198
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation",
-      "interruptMs": 420
+      "type": "cast",
+      "skillId": 29233,
+      "interruptAfterMs": 420
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Facet of Strength",
-      "offset": 483
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 483
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 118
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 118
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Facet of Darkness",
-      "offset": 363
+      "type": "cast",
+      "skillId": 28379,
+      "concurrentOffsetMs": 363
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Facet of Chaos",
-      "offset": 77
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 77
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Chaotic Release"
+      "type": "cast",
+      "skillId": 28075
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Facet of Nature",
-      "offset": 77
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 77
     },
     {
-      "name": "True Nature",
+      "type": "cast",
       "skillId": 51696
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Facet of Strength"
+      "type": "cast",
+      "skillId": 26644
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 330
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 330
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Impossible Odds",
-      "offset": 159
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 159
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation",
-      "interruptMs": 480
+      "type": "cast",
+      "skillId": 29233,
+      "interruptAfterMs": 480
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Facet of Strength"
+      "type": "cast",
+      "skillId": 26644
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 82
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 82
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Facet of Darkness",
-      "offset": 322
+      "type": "cast",
+      "skillId": 28379,
+      "concurrentOffsetMs": 322
     },
     {
-      "name": "Facet of Chaos",
-      "offset": 80
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Chaotic Release"
+      "type": "cast",
+      "skillId": 28075
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Facet of Nature",
-      "offset": 91
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 91
     },
     {
-      "name": "True Nature",
+      "type": "cast",
       "skillId": 51696
     },
     {
-      "name": "Facet of Strength",
-      "offset": 166
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 166
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 176
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 176
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Impossible Odds",
-      "offset": 161
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 161
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation",
-      "interruptMs": 480
+      "type": "cast",
+      "skillId": 29233,
+      "interruptAfterMs": 480
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Facet of Strength",
-      "offset": 404
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 404
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 163
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 163
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Facet of Darkness",
-      "offset": 359
+      "type": "cast",
+      "skillId": 28379,
+      "concurrentOffsetMs": 359
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Facet of Chaos",
-      "offset": 175
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 175
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Chaotic Release"
+      "type": "cast",
+      "skillId": 28075
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Facet of Nature",
-      "offset": 283
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 283
     },
     {
-      "name": "True Nature",
+      "type": "cast",
       "skillId": 51696
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Facet of Strength"
+      "type": "cast",
+      "skillId": 26644
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 320
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Impossible Odds",
-      "offset": 235
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 235
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Facet of Strength"
+      "type": "cast",
+      "skillId": 26644
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 193
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 193
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Facet of Darkness",
-      "offset": 285
+      "type": "cast",
+      "skillId": 28379,
+      "concurrentOffsetMs": 285
     },
     {
-      "name": "Facet of Chaos",
-      "offset": 35
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 35
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Chaotic Release"
+      "type": "cast",
+      "skillId": 28075
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Facet of Nature",
-      "offset": 240
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "True Nature",
+      "type": "cast",
       "skillId": 51696
     },
     {
-      "name": "Facet of Strength",
-      "offset": 231
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 231
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 193
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 193
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Impossible Odds",
-      "offset": 184
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 184
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Facet of Strength",
-      "offset": 368
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 368
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 121
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 121
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Facet of Chaos",
-      "offset": 283
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 283
     },
     {
-      "name": "Facet of Darkness",
-      "offset": 37
+      "type": "cast",
+      "skillId": 28379,
+      "concurrentOffsetMs": 37
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Mist Slash"
+      "type": "cast",
+      "skillId": 62688
     },
     {
-      "name": "Arcing Mists"
+      "type": "cast",
+      "skillId": 62752
     },
     {
-      "name": "Chaotic Release"
+      "type": "cast",
+      "skillId": 28075
     },
     {
-      "name": "Phantom's Onslaught",
+      "type": "cast",
       "skillId": 62895
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Facet of Nature",
-      "offset": 245
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 245
     },
     {
-      "name": "True Nature",
+      "type": "cast",
       "skillId": 51696
     },
     {
-      "name": "Mist Swing"
+      "type": "cast",
+      "skillId": 62913
     },
     {
-      "name": "Facet of Strength"
+      "type": "cast",
+      "skillId": 26644
     },
     {
-      "name": "Burst of Strength"
+      "type": "cast",
+      "skillId": 28113
     },
     {
-      "name": "Facet of Elements",
-      "offset": 201
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 201
     },
     {
-      "name": "Elemental Blast"
+      "type": "cast",
+      "skillId": 27162
     },
     {
-      "name": "Mist Unleashed"
+      "type": "cast",
+      "skillId": 62692
     },
     {
-      "name": "Eternity's Requiem"
+      "type": "cast",
+      "skillId": 62929
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Impossible Odds",
-      "offset": 239
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 239
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     }
   ]
 }

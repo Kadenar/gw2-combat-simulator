@@ -34,8 +34,6 @@ const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
-  selectedDodge: 'Death Drop',
-  allianceSide: 'luxon',
   stats: {
     power: 2000,
     precision: 1500,

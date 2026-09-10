@@ -52,8 +52,6 @@ const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
-  selectedDodge: 'Death Drop',
-  allianceSide: 'luxon',
   stats: {
     power: 2000,
     precision: 1500,
@@ -1199,17 +1197,6 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   assert.equal(starvation?.at, 1);
   assert.equal(starved.schedulerState.cooldowns.get(impossible.id) - starvation.at, impossible.starvationCooldown);
   assert.equal(starved.endState.profession.activeUpkeeps.length, 0);
-});
-
-test('Alliance Tactics switches the legal Vindicator skill side', () => {
-  const result = simulate('Vindicator', ["Nomad's Advance", 'Alliance Tactics', 'Tree Song'], {
-    selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.ALLIANCE,
-    initialEnergy: 100
-  });
-
-  assert.equal(result.warnings.length, 0);
-  assert.equal(result.endState.profession.allianceSide, 'kurzick');
 });
 
 test('Spear of Archemorus applies torment with its delayed impact', () => {

@@ -1,4 +1,4 @@
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import type {
@@ -97,36 +97,16 @@ function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnaps
 
 export const vindicatorUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   rotationStateSnapshot: vindicatorStateSnapshot,
-  paletteGroups: (context: RevenantUiContext) => {
-    const state = revenantUiState(context);
-    return [
-      {
-        id: 'revenant-profession-specialization',
-        label: 'F',
-        // Expose the relevant endurance action while keeping Alliance Tactics out of the simulator palette.
-        skillIds: [SKILL.ENERGY_MELD],
-        color: '#a84f54',
-        resourceAnchor: true
-      },
-      // Kurzick skill group is only shown while on the Kurzick side; Luxon skills appear in the main bar.
-      ...(state.activeLegendId === LEGEND.ALLIANCE && state.allianceSide === 'kurzick'
-        ? [
-            {
-              id: 'revenant-alliance-kurzick',
-              label: 'Kurz',
-              skillIds: [
-                SKILL.SELFLESS_SPIRIT,
-                SKILL.BATTLE_DANCE,
-                SKILL.TREE_SONG,
-                SKILL.AWAKENING,
-                SKILL.URN_OF_SAINT_VIKTOR
-              ],
-              color: '#7696c7'
-            }
-          ]
-        : [])
-    ];
-  },
+  // Alliance has one supported skill bar; the specialization group only adds Energy Meld.
+  paletteGroups: () => [
+    {
+      id: 'revenant-profession-specialization',
+      label: 'F',
+      skillIds: [SKILL.ENERGY_MELD],
+      color: '#a84f54',
+      resourceAnchor: true
+    }
+  ],
   resourceViews: (context: RevenantUiContext) => {
     const state = revenantUiState(context);
     return [

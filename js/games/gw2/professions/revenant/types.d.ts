@@ -43,16 +43,11 @@ export interface RevenantSkill extends Skill {
   readonly pulseInterval?: number;
 }
 
-export type RevenantDodge = 'Death Drop' | 'Saint of zu Heltzer' | 'Imperial Impact';
-export type RevenantAllianceSide = 'luxon' | 'kurzick';
-
 export interface RevenantBuild extends Gw2Build {
   assumptions?: ProfessionBuildAssumptions;
   specializations?: RevenantSpecializationSelection[];
   selectedLegends?: string[];
   startingLegend?: string;
-  selectedDodge?: RevenantDodge;
-  allianceSide?: RevenantAllianceSide;
   initialEnergy?: number;
   playerHealthFraction?: number;
 }
@@ -61,8 +56,6 @@ export interface RevenantCanonicalBuild extends Gw2CanonicalBuild {
   assumptions: SchedulerRecord;
   selectedLegends: string[];
   startingLegend: string;
-  selectedDodge: RevenantDodge;
-  allianceSide: RevenantAllianceSide;
   initialEnergy: number;
 }
 
@@ -70,8 +63,6 @@ export interface RevenantApplicationBuild extends Gw2ApplicationBuild {
   initialEnergy: number;
   selectedLegends: string[];
   startingLegend: string;
-  selectedDodge: RevenantDodge;
-  allianceSide: RevenantAllianceSide;
 }
 
 export interface RevenantConfig extends Gw2Config {
@@ -79,8 +70,6 @@ export interface RevenantConfig extends Gw2Config {
   readonly selectedLegends?: readonly string[];
   readonly startingLegend?: string;
   readonly initialEnergy?: number;
-  readonly allianceSide?: RevenantAllianceSide;
-  readonly selectedDodge?: RevenantDodge;
   readonly selfConditionCount?: number;
   readonly targetsHit?: number;
   readonly targetCount?: number;
@@ -159,8 +148,6 @@ export interface RenegadeState {
 }
 
 export interface VindicatorState {
-  allianceSide: RevenantAllianceSide;
-  selectedDodge: RevenantDodge;
   reaversCurseUntil: number;
   forerunnerOfDeathUntil: number;
 }

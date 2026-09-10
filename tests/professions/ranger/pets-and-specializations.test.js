@@ -11,6 +11,7 @@ import {
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createRangerBuildDefaults,
@@ -39,7 +40,6 @@ import {
 import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { GALESHOT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { rangerCoreCastRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
 import { soulbeastCastRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
 import { untamedCastRules } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/state.js';
@@ -654,30 +654,24 @@ test('Ranger party boons prioritize players before the active pet', () => {
 });
 
 test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
-  const context = (skill) => ({
-    skill,
-    traits: new Set([TRAIT.PACK_ALPHA]),
-    state: {
-      time: 0,
-      profession: { core: { quickDrawUntil: 0 } }
+  // Canonical skill ownership lets Core apply Pack Alpha without elite cancellation hooks.
+  for (const specialization of ['Core', 'Soulbeast', 'Untamed']) {
+    const context = (selectedTraitIds) =>
+      createScheduler({ profession: rangerProfession, config: { specialization, selectedTraitIds } }).context;
+    const baseline = context([]);
+    const packAlpha = context([TRAIT.PACK_ALPHA]);
+    const skills = baseline.catalog.skills.filter(
+      (skill) => skill.cooldown > 0 && (skill.petSkill || skill.beastmodeSkill || skill.unleashedPetSkill)
+    );
+    assert.ok(skills.some((skill) => skill.petSkill));
+    if (specialization === 'Soulbeast') assert.ok(skills.some((skill) => skill.beastmodeSkill));
+    if (specialization === 'Untamed') assert.ok(skills.some((skill) => skill.unleashedPetSkill));
+    for (const skill of skills) {
+      assert.equal(Boolean(skill.petSkill && (skill.beastmodeSkill || skill.unleashedPetSkill)), false, skill.name);
+      const expected = baseline.rechargeDurationFor(skill, 0) * (skill.petSkill ? 0.8 : 1);
+      assert.ok(Math.abs(packAlpha.rechargeDurationFor(skill, 0) - expected) < 1e-9, skill.name);
     }
-  });
-  const recharge = (skill) => rangerCoreCastRules.modifyRechargeDuration(context(skill), 10);
-
-  assert.equal(recharge({ name: 'Pet skill', petSkill: true }), 8);
-  const unleashedPetSkill = {
-    name: 'Unleashed pet skill',
-    petSkill: true,
-    unleashedPetSkill: true
-  };
-  const beastmodeSkill = {
-    name: 'Beastmode skill',
-    petSkill: true,
-    beastmodeSkill: true
-  };
-
-  assert.equal(untamedCastRules.modifyRechargeDuration(context(unleashedPetSkill), recharge(unleashedPetSkill)), 10);
-  assert.equal(soulbeastCastRules.modifyRechargeDuration(context(beastmodeSkill), recharge(beastmodeSkill)), 10);
+  }
 });
 
 test("Pack Alpha improves only the Pig's five documented attributes", () => {

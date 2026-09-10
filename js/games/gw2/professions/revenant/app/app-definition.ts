@@ -23,9 +23,7 @@ export const revenantAppAdapter = defineProfessionApp({
     buildConfigExtras: (app) => ({
       initialEnergy: (app.build as RevenantApplicationBuild).initialEnergy,
       selectedLegends: [...(app.build as RevenantApplicationBuild).selectedLegends],
-      startingLegend: (app.build as RevenantApplicationBuild).startingLegend,
-      selectedDodge: (app.build as RevenantApplicationBuild).selectedDodge,
-      allianceSide: (app.build as RevenantApplicationBuild).allianceSide
+      startingLegend: (app.build as RevenantApplicationBuild).startingLegend
     })
   },
   defaultOffhand: preferOffhand('Sword')

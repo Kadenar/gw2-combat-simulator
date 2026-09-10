@@ -1100,7 +1100,7 @@ const revenantSpecializationStateKeys = Object.freeze({
     'bloodFuryReadyAt',
     'soulcleaveReadyAt'
   ],
-  Vindicator: ['allianceSide', 'selectedDodge', 'reaversCurseUntil', 'forerunnerOfDeathUntil'],
+  Vindicator: [ 'reaversCurseUntil', 'forerunnerOfDeathUntil'],
   Conduit: [
     'affinity',
     'cosmicWisdomUntil',
@@ -1228,7 +1228,6 @@ test('Revenant runtime UI and public projection preserve their contracts', () =>
   });
 
   assert.equal(result.endState.profession.affinity, 0);
-  assert.equal(result.endState.profession.allianceSide, 'luxon');
   assert.equal(result.endState.profession.bandTogetherReady, false);
   assert.deepEqual(result.endState.profession.kallasFervor, []);
 });

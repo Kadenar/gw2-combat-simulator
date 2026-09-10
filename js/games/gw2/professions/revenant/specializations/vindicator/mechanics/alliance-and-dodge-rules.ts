@@ -1,4 +1,3 @@
-import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -11,7 +10,6 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { denySkillCast as denyRevenantSkill } from '#gw2/professions/lib/availability.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/professions/revenant/core/traits/index.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import {
@@ -26,9 +24,7 @@ import {
 } from '#gw2/professions/revenant/specializations/vindicator/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -85,20 +81,14 @@ function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2
 
 function observeVindicatorEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   if (event.type === 'revenant.state' && event.reason === 'dodge') {
-    // The dodge state event carries the animation-start timestamp; pass it through so completeVindicatorDodge can offset the strike by dodgeStrikeDelay from that origin.
+    // Landing-only Dodge inputs supply the strike-profile origin in the dodge state event.
     const skill = context.catalog.skillsById.get(ID.DODGE) as RevenantSkill | undefined;
     if (skill) completeVindicatorDodge(context, skill, event.at);
     return;
   }
 
   if (event.type !== 'sigil_swap') return;
-  const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
-  // Reset alliance side to config default on every swap; mid-fight flips are relative to current state.
-  if (coreState.activeLegendId === LEGEND.ALLIANCE) {
-    state.allianceSide = context.config.allianceSide === 'kurzick' ? 'kurzick' : 'luxon';
-  }
-
   // Invocation effects only fire when swapping INTO Alliance and within combat.
   if (coreState.activeLegendId !== LEGEND.ALLIANCE || !revenantCombatActive(context, event.at)) {
     return;
@@ -125,52 +115,14 @@ export const vindicatorAttributeRules = Object.freeze({
   modifyAttributes: modifyVindicatorAttributes
 });
 
-// Skill sets are mutually exclusive; a skill appears in at most one of these sets.
-const LUXON = new Set<SkillId>([
-  ID.SELFISH_SPIRIT,
-  ID.NOMADS_ADVANCE,
-  ID.SCAVENGER_BURST,
-  ID.REAVERS_RAGE,
-  ID.SPEAR_OF_ARCHEMORUS
-]);
-const KURZICK = new Set<SkillId>([
-  ID.SELFLESS_SPIRIT,
-  ID.BATTLE_DANCE,
-  ID.TREE_SONG,
-  ID.AWAKENING,
-  ID.URN_OF_SAINT_VIKTOR
-]);
-
-function vindicatorCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
-  const state = vindicatorState.from(context);
-  // Skills that are not in either set (e.g. dodge, Energy Meld) are always allowed.
-  const wrongSide =
-    professionCoreState(context).activeLegendId === LEGEND.ALLIANCE &&
-    ((LUXON.has(skill.id) && state.allianceSide !== 'luxon') ||
-      (KURZICK.has(skill.id) && state.allianceSide !== 'kurzick'));
-  return wrongSide
-    ? denyRevenantSkill(
-        skill,
-        'revenant.alliance-side',
-        `switch to the ${LUXON.has(skill.id) ? 'Luxon' : 'Kurzick'} side.`
-      )
-    : { ready: true as const };
-}
-
 export const vindicatorCastRules = Object.freeze({
-  availability: {
-    id: 'revenant.vindicator-availability',
-    // order 20 runs after core energy/recharge checks (order 10) so we can assume the skill is otherwise castable.
-    order: 20,
-    handler: vindicatorCastAvailability
-  },
   modifyCastDuration: modifyVindicatorCastDuration,
   modifyRechargeDuration: modifyVindicatorRechargeDuration
 });
 export const vindicatorSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'revenant.vindicator-dodge',
-    // order 20 matches the cast-rules order; keeps hook and availability at the same priority tier.
+    // Run specialization event effects after Core observes the scheduled event.
     order: 20,
     handler: observeVindicatorEvent
   }

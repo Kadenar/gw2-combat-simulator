@@ -14,12 +14,11 @@ import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.j
  * This module supplies Revenant defaults and configures the shared GW2 build
  * codec for migration, normalization, validation, and app-facing conversion.
  * It delegates slot-skill structure to the legend loadout and constrains
- * starting Energy, Vindicator dodge choice, and Alliance starting side.
+ * starting Energy.
  */
 
 export const REVENANT_BUILD_SCHEMA_VERSION = 3;
 export const REVENANT_PROFESSION_ID = 'revenant';
-const REVENANT_DODGES = Object.freeze(['Death Drop', 'Saint of zu Heltzer', 'Imperial Impact'] as const);
 
 // Seed a schema-current Revenant preset with a legal legend pair, complete
 // resources, assumptions, equipment, and rotation fields.
@@ -50,8 +49,6 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
     selectedSkills: {},
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
     startingLegend: LEGEND.ASSASSIN,
-    selectedDodge: 'Death Drop',
-    allianceSide: 'luxon',
     ...createCommonBuildDefaults({
       assumptions: {
         hitboxSize: 'small'
@@ -68,22 +65,20 @@ const revenantBuildCodec = createProfessionBuildCodec<RevenantCanonicalBuild>({
   createDefaults: createRevenantBuildDefaults,
   slotLoadout: revenantLegendLoadout,
   assumptionControls: REVENANT_ASSUMPTION_CONTROLS,
-  // Legend resources and Vindicator choices use the same schema in both paths.
+  // Shared resources use the same schema in both persistence paths.
   extraFields: {
     initialEnergy: {
       type: 'number',
       minimum: 0,
       maximum: 100
-    },
-    selectedDodge: {
-      type: 'enum',
-      values: REVENANT_DODGES
-    },
-    allianceSide: {
-      type: 'enum',
-      values: ['luxon', 'kurzick'],
-      validationMessage: 'allianceSide must be luxon or kurzick.'
     }
+  },
+  // Dodge replacements come from traits and Alliance starts on Luxon; discard obsolete choices on every load.
+  normalizeExtra(build) {
+    delete build.selectedDodge;
+    delete build.selectedDodgeSkillId;
+    delete build.allianceSide;
+    return build;
   }
 });
 

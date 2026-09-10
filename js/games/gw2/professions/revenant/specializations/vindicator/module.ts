@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
+import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { performRevenantDodge } from '#gw2/professions/revenant/core/execution/actions.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -11,8 +11,7 @@ import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revena
 import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
 import {
   performEnergyMeld,
-  completeVindicatorDodge,
-  switchAllianceTactics
+  completeVindicatorDodge
 } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 import {
   vindicatorAttributeRules,
@@ -33,9 +32,6 @@ const vindicatorSkillHandlers = new Map(
         beforeEffects: (context, skill) => performRevenantDodge(context, skill, 'dodge-jump'),
         afterEffects: (context, skill) =>
           completeVindicatorDodge(context, skill, context.start + VINDICATOR_AIRBORNE_MS / 1000)
-      }),
-      'revenant.alliance-tactics': augmentSkill<RevenantCastContext>({
-        afterEffects: switchAllianceTactics
       })
     })
   )

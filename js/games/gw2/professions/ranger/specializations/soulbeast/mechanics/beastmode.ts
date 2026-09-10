@@ -274,20 +274,6 @@ export const soulbeastCastRules = Object.freeze({
     id: 'ranger.soulbeast-availability',
     order: 20,
     handler: soulbeastCastAvailability
-  },
-  // Merged skills are player actions, so undo Core's pet-only Pack Alpha recharge modifier.
-  modifyRechargeDuration(context: RangerSchedulerContext & { skill?: RangerSkill }, duration: number): number {
-    if (!context.skill?.petSkill || !context.skill.beastmodeSkill || !hasTrait(context, TRAIT.PACK_ALPHA)) {
-      return duration;
-    }
-
-    return (
-      duration /
-      Math.max(
-        Number.EPSILON,
-        balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'rechargeMultiplier', 0.8)
-      )
-    );
   }
 });
 

@@ -52,8 +52,6 @@ const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
-  selectedDodge: 'Death Drop',
-  allianceSide: 'luxon',
   stats: {
     power: 2000,
     precision: 1500,
@@ -170,7 +168,6 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   const vindicatorIds = professionSkillIds('Vindicator', [LEGEND.ALLIANCE, LEGEND.ASSASSIN], LEGEND.ALLIANCE);
 
   assert.equal(vindicatorIds.filter((id) => revenantCatalog.skillsById.get(id)?.name === 'Energy Meld').length, 1);
-  assert.equal(vindicatorIds.includes(SKILL.ALLIANCE_TACTICS), false);
   // Verify the rendered tile, since catalog flip-family expansion can replace an explicitly listed skill.
   const vindicatorTiles = displayedSkillTiles(
     { profession: revenantProfession, skills: revenantCatalog.skills },
@@ -178,10 +175,6 @@ test('profession palette deduplicates actions and shows only active Conduit rele
     { specialization: 'Vindicator', build: { ...baseConfig, startingLegend: LEGEND.ALLIANCE } }
   );
   assert.equal(vindicatorTiles.filter((skill) => skill.name === 'Energy Meld').length, 1);
-  assert.equal(
-    vindicatorTiles.some((skill) => skill.id === SKILL.ALLIANCE_TACTICS),
-    false
-  );
 
   for (const activeLegendId of [...REVENANT_CORE_LEGEND_IDS, LEGEND.ENTITY]) {
     const selectedLegends =

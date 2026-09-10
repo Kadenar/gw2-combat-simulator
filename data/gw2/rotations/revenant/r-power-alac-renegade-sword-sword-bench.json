@@ -1,844 +1,1079 @@
 {
   "rotation": [
     {
-      "name": "Enchanted Daggers"
+      "type": "cast",
+      "skillId": 26937
     },
     {
-      "name": "Swap Legends"
+      "type": "cast",
+      "skillId": -4
     },
     {
-      "name": "Breakrazor's Bastion",
+      "type": "cast",
       "skillId": 45686
     },
     {
-      "name": "__wait",
-      "waitMs": 500
+      "type": "wait",
+      "durationMs": 500
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "__combat_start",
-      "offset": 600
+      "type": "combat-start",
+      "concurrentOffsetMs": 600
     },
     {
-      "name": "Icerazor's Ire",
+      "type": "cast",
       "skillId": 40485,
-      "offset": 600
+      "concurrentOffsetMs": 600
     },
     {
-      "name": "Orders from Above",
-      "offset": 100
+      "type": "cast",
+      "skillId": 45537,
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Swap Legends",
-      "offset": 100
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Impossible Odds"
+      "type": "cast",
+      "skillId": 27107
     },
     {
-      "name": "Citadel Bombardment"
+      "type": "cast",
+      "skillId": 42836
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Shackling Wave"
-    },
-    {
-      "name": "Deathstrike",
-      "skillId": 27074
-    },
-    {
-      "name": "Citadel Bombardment"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Orders from Above",
-      "offset": 100
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Impossible Odds"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Shackling Wave"
-    },
-    {
-      "name": "Deathstrike",
-      "skillId": 27074
-    },
-    {
-      "name": "Citadel Bombardment"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Orders from Above",
-      "offset": 100
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Razorclaw's Rage",
-      "skillId": 42949,
-      "offset": 100
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Citadel Bombardment"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Impossible Odds",
-      "offset": 100
-    },
-    {
-      "name": "Shackling Wave"
-    },
-    {
-      "name": "Deathstrike",
-      "skillId": 27074
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Orders from Above",
-      "offset": 100
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Citadel Bombardment"
-    },
-    {
-      "name": "Razorclaw's Rage",
-      "skillId": 42949,
-      "offset": 100
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Shackling Wave"
-    },
-    {
-      "name": "Deathstrike",
-      "skillId": 27074
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Impossible Odds",
-      "offset": 100
-    },
-    {
-      "name": "Orders from Above",
-      "offset": 100
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Citadel Bombardment"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Shackling Wave"
-    },
-    {
-      "name": "Deathstrike",
-      "skillId": 27074
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Citadel Bombardment"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Orders from Above",
-      "offset": 100
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade",
+      "type": "cast",
       "skillId": 29256
     },
     {
-      "name": "Icerazor's Ire",
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
       "skillId": 40485
     },
     {
-      "name": "Swap Legends",
-      "offset": 100
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "Impossible Odds",
-      "offset": 100
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Chilling Isolation"
-    },
-    {
-      "name": "Preparation Thrust"
-    },
-    {
-      "name": "Brutal Blade"
-    },
-    {
-      "name": "Rift Slash"
-    },
-    {
-      "name": "Shackling Wave"
-    },
-    {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 42836
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Citadel Bombardment"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 45537,
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Swap Legends",
-      "offset": 100
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Icerazor's Ire",
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
       "skillId": 40485
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Razorclaw's Rage",
+      "type": "cast",
+      "skillId": 27107
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 28472
+    },
+    {
+      "type": "cast",
+      "skillId": 27074
+    },
+    {
+      "type": "cast",
+      "skillId": 42836
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 40485
+    },
+    {
+      "type": "cast",
+      "skillId": 45537,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
       "skillId": 42949,
-      "offset": 100
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Orders from Above",
-      "offset": 100
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 42836
     },
     {
-      "name": "Darkrazor's Daring",
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 40485
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 28472
+    },
+    {
+      "type": "cast",
+      "skillId": 27074
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 45537,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 40485
+    },
+    {
+      "type": "cast",
+      "skillId": 42836
+    },
+    {
+      "type": "cast",
+      "skillId": 42949,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 28472
+    },
+    {
+      "type": "cast",
+      "skillId": 27074
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 40485
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 45537,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 42836
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 40485
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 28472
+    },
+    {
+      "type": "cast",
+      "skillId": 27074
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 42836
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 45537,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 40485
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 28472
+    },
+    {
+      "type": "cast",
+      "skillId": 27074
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 42836
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 40485
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 42949,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 45537,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
+      "skillId": 29233
+    },
+    {
+      "type": "cast",
+      "skillId": 29057
+    },
+    {
+      "type": "cast",
+      "skillId": 29256
+    },
+    {
+      "type": "cast",
+      "skillId": 28964
+    },
+    {
+      "type": "cast",
       "skillId": 41220
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Icerazor's Ire",
+      "type": "cast",
       "skillId": 40485,
-      "offset": 100
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Swap Legends",
-      "offset": 100
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Chilling Isolation"
+      "type": "cast",
+      "skillId": 29233
     },
     {
-      "name": "Impossible Odds",
-      "offset": 100
+      "type": "cast",
+      "skillId": 27107,
+      "concurrentOffsetMs": 100
     },
     {
-      "name": "Citadel Bombardment"
+      "type": "cast",
+      "skillId": 42836
     },
     {
-      "name": "Shackling Wave"
+      "type": "cast",
+      "skillId": 28472
     },
     {
-      "name": "Deathstrike",
+      "type": "cast",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     },
     {
-      "name": "Brutal Blade"
+      "type": "cast",
+      "skillId": 29256
     },
     {
-      "name": "Rift Slash"
+      "type": "cast",
+      "skillId": 28964
     },
     {
-      "name": "Preparation Thrust"
+      "type": "cast",
+      "skillId": 29057
     }
   ]
 }

@@ -3,61 +3,6 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.SELFLESS_SPIRIT]: {
-    castTimeMs: 1500,
-    cooldown: 10,
-    ammo: 5,
-    energyCost: 10,
-    effects: [],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'kurzick'
-  },
-  [ID.URN_OF_SAINT_VIKTOR]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
-    handlerId: 'revenant.upkeep',
-    castTimeMs: 0,
-    cooldown: 2,
-    energyCost: 0,
-    upkeepCost: 5,
-    pulseInterval: 1,
-    effects: [],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'kurzick'
-  },
-  [ID.SAINTS_SHIELD]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'alacrity',
-        duration: 4,
-        stacks: 1
-      }
-    ]
-  },
-  [ID.BATTLE_DANCE]: {
-    castTimeMs: 250,
-    cooldown: 3,
-    energyCost: 15,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 5,
-        stacks: 1
-      }
-    ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'kurzick'
-  },
   [ID.SELFISH_SPIRIT]: {
     castTimeMs: 1500,
     cooldown: 10,
@@ -86,55 +31,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         stacks: 1
       }
     ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'luxon'
-  },
-  [ID.DROP_URN_OF_SAINT_VIKTOR]: {
-    castTimeMs: 1000,
-    cooldown: 1,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'Regeneration',
-        duration: 12,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'Protection',
-        duration: 4,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'Resistance',
-        duration: 4,
-        stacks: 1
-      }
-    ],
     legendId: 'LegendaryAlliance'
-  },
-  [ID.AWAKENING]: {
-    castTimeMs: 0,
-    cooldown: 10,
-    energyCost: 15,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 4,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 1,
-        stacks: 1
-      }
-    ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'kurzick'
   },
   [ID.NOMADS_ADVANCE]: {
     castTimeMs: 960,
@@ -157,8 +54,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         stacks: 1
       }
     ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'luxon'
+    legendId: 'LegendaryAlliance'
   },
   [ID.REAVERS_RAGE]: {
     castTimeMs: 500,
@@ -191,23 +87,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         duration: 1.5
       }
     ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'luxon'
-  },
-  [ID.TREE_SONG]: {
-    castTimeMs: 1000,
-    cooldown: 3,
-    energyCost: 15,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 8,
-        stacks: 1
-      }
-    ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'kurzick'
+    legendId: 'LegendaryAlliance'
   },
   [ID.SPEAR_OF_ARCHEMORUS]: {
     quicknessCastTimeMs: 480,
@@ -233,8 +113,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         persistsAfterInterrupt: true
       }
     ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'luxon'
+    legendId: 'LegendaryAlliance'
   },
   [ID.SCAVENGER_BURST]: {
     castTimeMs: 750,
@@ -268,7 +147,6 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         stacks: 1
       }
     ],
-    legendId: 'LegendaryAlliance',
-    allianceSide: 'luxon'
+    legendId: 'LegendaryAlliance'
   }
 });

@@ -17,7 +17,7 @@ test('Condition Renegade spear preset counts opener damage from the first hit', 
   );
 
   assert.equal(
-    saved.rotation.some((entry) => entry?.name === '__combat_start'),
+    saved.rotation.some((entry) => entry?.type === 'combat-start'),
     false
   );
 });

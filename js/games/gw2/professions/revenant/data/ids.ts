@@ -95,17 +95,11 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   TRUE_NATURE_ID_51713: 51713, // True Nature
   TRUE_NATURE_ID_51714: 51714, // True Nature
   ANCIENT_ECHO: 55029, // Ancient Echo
-  SELFLESS_SPIRIT: 62680, // Selfless Spirit
-  URN_OF_SAINT_VIKTOR: 62687, // Urn of Saint Viktor
   MIST_SLASH: 62688, // Mist Slash
   MIST_UNLEASHED: 62692, // Mist Unleashed
-  BATTLE_DANCE: 62702, // Battle Dance
   SELFISH_SPIRIT: 62719, // Selfish Spirit
-  ALLIANCE_TACTICS: 62729, // Alliance Tactics
-  DROP_URN_OF_SAINT_VIKTOR: 62738, // Drop Urn of Saint Viktor
   ARCING_MISTS: 62752, // Arcing Mists
   ENERGY_MELD: 62757, // Energy Meld
-  AWAKENING: 62796, // Awakening
   TRUE_STRIKE: 62828, // True Strike
   NOMADS_ADVANCE: 62832, // Nomad's Advance
   REAVERS_RAGE: 62878, // Reaver's Rage
@@ -114,7 +108,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   MIST_SWING: 62913, // Mist Swing
   IMPERIAL_GUARD: 62921, // Imperial Guard
   ETERNITYS_REQUIEM: 62929, // Eternity's Requiem
-  TREE_SONG: 62941, // Tree Song
   SPEAR_OF_ARCHEMORUS: 62942, // Spear of Archemorus
   SCAVENGER_BURST: 62962, // Scavenger Burst
   BLOSSOMING_AURA: 71816, // Blossoming Aura

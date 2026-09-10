@@ -12,6 +12,8 @@ const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
   Mesmer: Object.freeze([10197, 10200, 10201, 10203, 10236, 62573]),
   Necromancer: Object.freeze([10612, 40274, 42917]),
   Ranger: Object.freeze([12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256]),
+  // The simulator supports the Luxon Alliance bar, without Kurzick skills or side switching.
+  Revenant: Object.freeze([62680, 62687, 62702, 62729, 62738, 62796, 62941]),
   Thief: Object.freeze([13020, 13035, 13096, 76784, 76808, 76879, 77361]),
   Warrior: Object.freeze([14368, 14403, 14413, 14479, 76769, 76934])
 });
@@ -69,6 +71,11 @@ export async function updateProfessionApiData(
     config,
     fetchImpl
   });
+
+  // Omitted skills must not remain reachable through a supported skill's flip link.
+  for (const skill of snapshot.skills) {
+    if (omittedSkillIds.includes(skill.flipSkillId)) skill.flipSkillId = null;
+  }
 
   await writeProfessionSnapshot({
     output,

@@ -2778,39 +2778,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     flipSkillId: null
   },
   {
-    id: 62680,
-    name: 'Selfless Spirit',
-    description: 'Legendary Alliance. Heal allies in an area.',
-    icon: 'https://render.guildwars2.com/file/3F9F107D2DE406A636B1960A3D94A97BDD292115/2491621.png',
-    type: 'Heal',
-    weapon: '',
-    slot: 'Heal',
-    specialization: 'Vindicator',
-    categories: [],
-    recharge: 10,
-    ammo: 5,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 62687,
-    name: 'Urn of Saint Viktor',
-    description:
-      'Legendary Alliance. Become the Urn of Saint Viktor, taking continuous damage while healing nearby allies. You take reduced damage while in this state, but you cannot be healed.',
-    icon: 'https://render.guildwars2.com/file/317EB806A8487B77040BC0C673A59096F396EEE4/2491625.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: 'Vindicator',
-    categories: [],
-    recharge: 2,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: 62738
-  },
-  {
     id: 62688,
     name: 'Mist Slash',
     description: 'Swing your greatsword again, inflicting vulnerability.',
@@ -2843,22 +2810,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     flipSkillId: null
   },
   {
-    id: 62702,
-    name: 'Battle Dance',
-    description: 'Legendary Alliance. Evade backward, granting boons to allies.',
-    icon: 'https://render.guildwars2.com/file/56A31080722DD2630E72D8D64E0D1EDD25E528AD/2491608.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Vindicator',
-    categories: [],
-    recharge: 3,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 62719,
     name: 'Selfish Spirit',
     description:
@@ -2871,39 +2822,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     categories: [],
     recharge: 10,
     ammo: 4,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: 62680
-  },
-  {
-    id: 62729,
-    name: 'Alliance Tactics',
-    description: 'Swap your Legendary Alliance Stance skills.',
-    icon: 'https://render.guildwars2.com/file/DE01C14360F2E7E81C336241C7D6ED6FA14DA005/2491605.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_2',
-    specialization: '',
-    categories: [],
-    recharge: 3,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 62738,
-    name: 'Drop Urn of Saint Viktor',
-    description:
-      'Slam your Urn into the ground, ending the ability. Grant boons and heals allies based on your health threshold.',
-    icon: 'https://render.guildwars2.com/file/0CD2A5C3AA46D97FF19CDEB50D3841E429EACF9C/2491609.png',
-    type: 'Elite',
-    weapon: '',
-    slot: 'Elite',
-    specialization: 'Vindicator',
-    categories: [],
-    recharge: 1,
-    ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null
@@ -2935,22 +2853,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     specialization: '',
     categories: [],
     recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: 62729
-  },
-  {
-    id: 62796,
-    name: 'Awakening',
-    description: 'Legendary Alliance. Break stun on nearby allies and grant protection.',
-    icon: 'https://render.guildwars2.com/file/6719DBBC4AD2B29CAB33C30B62DC990E07A79A9E/2491607.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Vindicator',
-    categories: [],
-    recharge: 10,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
@@ -2987,7 +2889,7 @@ export const SKILLS: readonly RevenantSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 62702
+    flipSkillId: null
   },
   {
     id: 62878,
@@ -3003,7 +2905,7 @@ export const SKILLS: readonly RevenantSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 62796
+    flipSkillId: null
   },
   {
     id: 62891,
@@ -3088,23 +2990,6 @@ export const SKILLS: readonly RevenantSkill[] = [
     flipSkillId: null
   },
   {
-    id: 62941,
-    name: 'Tree Song',
-    description:
-      'Legendary Alliance. Grant regeneration and cleanse conditions from allies in the targeted area, healing them for each condition removed. Gain endurance for each affected ally, and gain additional endurance for each condition removed.',
-    icon: 'https://render.guildwars2.com/file/1E0A36E2061E093D6F1769C11A1709E02AD10C0A/2491623.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Vindicator',
-    categories: [],
-    recharge: 3,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 62942,
     name: 'Spear of Archemorus',
     description:
@@ -3119,7 +3004,7 @@ export const SKILLS: readonly RevenantSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 62687
+    flipSkillId: null
   },
   {
     id: 62962,
@@ -3136,7 +3021,7 @@ export const SKILLS: readonly RevenantSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 62941
+    flipSkillId: null
   },
   {
     id: 71816,

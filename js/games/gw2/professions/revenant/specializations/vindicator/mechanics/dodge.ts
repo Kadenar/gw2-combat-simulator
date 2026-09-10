@@ -5,7 +5,7 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
  * Revenant dodge execution.
  *
  * Pays the core or Vindicator endurance cost, snapshots the new resource
- * state, and emits the selected dodge replacement's delayed strike from the
+ * state, and emits the selected dodge replacement's landing effect from the
  * immutable profile in this specialization's mechanics module.
  */
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -18,15 +18,14 @@ import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/l
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-function skillById(context: RevenantSchedulerContext, id: string | number): RevenantSkill | undefined {
-  return context.catalog.skillsById.get(id);
-}
-
-function selectedDodgeSkill(context: RevenantSchedulerContext): RevenantSkill | undefined {
-  return skillById(
-    context,
-    vindicatorState.from(context).selectedDodge === 'Imperial Impact' ? ID.IMPERIAL_IMPACT : ID.DEATH_DROP
-  );
+/** Derives the landing profile from Vindicator's grandmaster trait so no separate dodge choice can drift. */
+export function selectedDodgeSkill(context: RevenantSchedulerContext): RevenantSkill | undefined {
+  const skillId = hasTrait(context, TRAIT.SAINT_OF_ZU_HELTZER)
+    ? ID.SAINTS_SHIELD
+    : hasTrait(context, TRAIT.VASSALS_OF_THE_EMPIRE)
+      ? ID.IMPERIAL_IMPACT
+      : ID.DEATH_DROP;
+  return context.catalog.skillsById.get(skillId);
 }
 
 /** Applies Energy Meld's selected Vindicator trait package. */
@@ -81,30 +80,39 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   emitRevenantStateSnapshot(context, at, 'energy-meld');
 }
 
-/** Toggles the active Luxon/Kurzick Alliance skill side. */
-export function switchAllianceTactics(context: RevenantCastContext): void {
-  const state = vindicatorState.from(context);
-  const at = context.effectiveEnd;
-  state.allianceSide = state.allianceSide === 'luxon' ? 'kurzick' : 'luxon';
-  // State snapshot propagates the new side to the resolver for availability checks.
-  emitRevenantStateSnapshot(context, at, 'alliance-tactics');
-}
-
 /** Emits the configured Vindicator dodge replacement at cast completion. */
-export function completeVindicatorDodge(context: RevenantSchedulerContext, skill: RevenantSkill, start: number): void {
+export function completeVindicatorDodge(
+  context: RevenantSchedulerContext,
+  skill: RevenantSkill,
+  strikeProfileOrigin: number
+): void {
   const state = vindicatorState.from(context);
-  const dodge = state.selectedDodge;
   const profile = selectedDodgeSkill(context);
-  const effect = profile?.effects?.find((candidate) => candidate.type === 'strike');
-  // Guard against a missing or zero-damage entry so a misconfigured dodge produces no event.
-  if (effect?.type !== 'strike' || !(strikeEffectCoefficient(effect) > 0)) return;
-  // Strike timestamp is relative to the start of the dodge animation, not the end of the cast window.
-  const at = start + Math.max(0, Number(effectFirstAtMs(effect) || 0)) / 1000;
+  const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
+  // Ignore missing effects or disabled strikes without synthesizing fallback damage.
+  if (!profile || !effect || (effect.type === 'strike' && !(strikeEffectCoefficient(effect) > 0))) return;
+  // Full jumps offset this origin by airborne time; landing-only inputs begin at the landing animation.
+  const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
+  const at = strikeProfileOrigin + Math.max(0, Number(offset || 0)) / 1000;
   // epsilon tolerance absorbs floating-point drift when reaversCurseUntil and at are nominally equal.
   const reaversCurse =
     hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
   // Consume the buff immediately so a rapid second dodge cannot double-dip.
   if (reaversCurse) state.reaversCurseUntil = 0;
+  // Support dodges use the shared boon emitter for duration scaling and allied-player targeting, with no strike.
+  if (effect.type === 'boon') {
+    emitSkillBuff(context, profile, {
+      at,
+      kind: String(effect.boon || ''),
+      duration: effect.duration,
+      stacks: effect.stacks,
+      audience: effect.audience
+    });
+    emitRevenantStateSnapshot(context, at, 'vindicator-dodge-impact');
+    return;
+  }
+
+  if (effect.type !== 'strike') return;
   const reaversCurseProfile = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
   // Capture forerunner state before the Death Drop below may extend it for this same hit.
   const previousForerunnerUntil = Number(state.forerunnerOfDeathUntil || 0);
@@ -114,8 +122,8 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     sourceId: skill.id,
     actorType: 'player',
     skillId: skill.id,
-    skillName: dodge,
-    name: dodge,
+    skillName: profile.name,
+    name: profile.name,
     coefficient:
       strikeEffectCoefficient(effect) *
       (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier ?? 1)) : 1),
@@ -126,7 +134,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     // Baking the flag into the event avoids a resolver time-comparison race when events replay out of order.
     forerunnerOfDeathActive: previousForerunnerUntil > at
   });
-  if (dodge === 'Death Drop' && hasTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
+  if (profile.id === ID.DEATH_DROP && hasTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
     const forerunner = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath);
     const forerunnerEffect = forerunner?.effects?.find((candidate) => candidate.type === 'buff');
     const duration = Math.max(0, Number(forerunnerEffect?.duration));

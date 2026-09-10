@@ -5,674 +5,1376 @@
     "notes": "Pre-combat Spiritcrush; Facet heal/utilities and Facet of Nature begin active."
   },
   "rotation": [
-    "Facet of Light",
-    "Facet of Darkness",
-    "Facet of Elements",
-    "Facet of Strength",
-    "Facet of Chaos",
-    "Facet of Nature",
-    "Spiritcrush",
-    "Sevenshot",
     {
-      "name": "__combat_start",
-      "offset": 440
-    },
-    "Elemental Blast",
-    "Burst of Strength",
-    {
-      "name": "Swap Legends",
-      "offset": 200
-    },
-    "Embrace the Darkness",
-    {
-      "name": "Swap Weapons",
-      "offset": 440
+      "type": "cast",
+      "skillId": 27220
     },
     {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Searing Fissure",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Misery Swipe",
-      "interruptMs": 360
-    },
-    "Temporal Rift",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    "Manifest Toxin",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Swap Legends",
-      "offset": 840
-    },
-    "Facet of Elements",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 120
-    },
-    "Burst of Strength",
-    {
-      "name": "Searing Fissure",
-      "interruptMs": 520
+      "type": "cast",
+      "skillId": 28379
     },
     {
-      "name": "Swap Weapons",
-      "offset": 520
+      "type": "cast",
+      "skillId": 27014
     },
-    "Spiritcrush",
-    "Bloodbane Path",
-    "Sevenshot",
-    "Scorchrazor",
     {
-      "name": "Facet of Chaos",
-      "offset": 120
+      "type": "cast",
+      "skillId": 26644
     },
-    "Shattershot",
     {
-      "name": "Facet of Nature",
-      "offset": 200
+      "type": "cast",
+      "skillId": 27760
     },
-    "Shattershot",
-    "Shattershot",
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "cast",
+      "skillId": 29371
     },
-    "Bloodbane Path",
-    "Shattershot",
-    "Shattershot",
-    "Shattershot",
-    "Chaotic Release",
     {
-      "name": "True Nature",
+      "type": "cast",
+      "skillId": 43993
+    },
+    {
+      "type": "cast",
+      "skillId": 41829
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 28287
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": 27066,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 28409
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 27014
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": 28357,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 43993
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 41829
+    },
+    {
+      "type": "cast",
+      "skillId": 41820
+    },
+    {
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 28075
+    },
+    {
+      "type": "cast",
       "skillId": 51696
     },
-    "Bloodbane Path",
     {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Spiritcrush",
-    "Sevenshot",
-    {
-      "name": "Facet of Elements",
-      "offset": 280
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 240
-    },
-    "Burst of Strength",
-    {
-      "name": "Swap Legends",
-      "offset": 240
-    },
-    "Embrace the Darkness",
-    {
-      "name": "Swap Weapons",
-      "offset": 400
+      "type": "cast",
+      "skillId": 40175
     },
     {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Searing Fissure",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Misery Swipe",
-      "interruptMs": 360
-    },
-    "Temporal Rift",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    "Manifest Toxin",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Swap Legends",
-      "offset": 840
-    },
-    "Facet of Elements",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 120
-    },
-    "Burst of Strength",
-    {
-      "name": "Searing Fissure",
-      "interruptMs": 520
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Swap Weapons",
-      "offset": 520
+      "type": "cast",
+      "skillId": 43993
     },
-    "Spiritcrush",
-    "Bloodbane Path",
-    "Sevenshot",
-    "Scorchrazor",
     {
-      "name": "Facet of Chaos",
-      "offset": 120
+      "type": "cast",
+      "skillId": 41829
     },
-    "Shattershot",
     {
-      "name": "Facet of Nature",
-      "offset": 200
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 280
     },
-    "Shattershot",
-    "Shattershot",
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "cast",
+      "skillId": 27162
     },
-    "Bloodbane Path",
-    "Shattershot",
-    "Shattershot",
-    "Shattershot",
-    "Chaotic Release",
     {
-      "name": "True Nature",
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28287
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": 27066,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 28409
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 27014
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": 28357,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 43993
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 41829
+    },
+    {
+      "type": "cast",
+      "skillId": 41820
+    },
+    {
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 28075
+    },
+    {
+      "type": "cast",
       "skillId": 51696
     },
-    "Bloodbane Path",
     {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Spiritcrush",
-    "Sevenshot",
-    {
-      "name": "Facet of Elements",
-      "offset": 280
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 240
-    },
-    "Burst of Strength",
-    {
-      "name": "Swap Legends",
-      "offset": 240
-    },
-    "Embrace the Darkness",
-    {
-      "name": "Swap Weapons",
-      "offset": 400
+      "type": "cast",
+      "skillId": 40175
     },
     {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Searing Fissure",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Misery Swipe",
-      "interruptMs": 360
-    },
-    "Temporal Rift",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    "Manifest Toxin",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Swap Legends",
-      "offset": 840
-    },
-    "Facet of Elements",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 120
-    },
-    "Burst of Strength",
-    {
-      "name": "Searing Fissure",
-      "interruptMs": 520
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Swap Weapons",
-      "offset": 520
+      "type": "cast",
+      "skillId": 43993
     },
-    "Spiritcrush",
-    "Bloodbane Path",
-    "Sevenshot",
-    "Scorchrazor",
     {
-      "name": "Facet of Chaos",
-      "offset": 120
+      "type": "cast",
+      "skillId": 41829
     },
-    "Shattershot",
     {
-      "name": "Facet of Nature",
-      "offset": 200
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 280
     },
-    "Shattershot",
-    "Shattershot",
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "cast",
+      "skillId": 27162
     },
-    "Bloodbane Path",
-    "Shattershot",
-    "Shattershot",
-    "Shattershot",
-    "Chaotic Release",
     {
-      "name": "True Nature",
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28287
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": 27066,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 28409
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 27014
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": 28357,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 43993
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 41829
+    },
+    {
+      "type": "cast",
+      "skillId": 41820
+    },
+    {
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 28075
+    },
+    {
+      "type": "cast",
       "skillId": 51696
     },
-    "Bloodbane Path",
     {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Spiritcrush",
-    "Sevenshot",
-    {
-      "name": "Facet of Elements",
-      "offset": 280
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 240
-    },
-    "Burst of Strength",
-    {
-      "name": "Swap Legends",
-      "offset": 240
-    },
-    "Embrace the Darkness",
-    {
-      "name": "Swap Weapons",
-      "offset": 400
+      "type": "cast",
+      "skillId": 40175
     },
     {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Searing Fissure",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Misery Swipe",
-      "interruptMs": 360
-    },
-    "Temporal Rift",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    "Manifest Toxin",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Swap Legends",
-      "offset": 840
-    },
-    "Facet of Elements",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 120
-    },
-    "Burst of Strength",
-    {
-      "name": "Searing Fissure",
-      "interruptMs": 520
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Swap Weapons",
-      "offset": 520
+      "type": "cast",
+      "skillId": 43993
     },
-    "Spiritcrush",
-    "Bloodbane Path",
-    "Sevenshot",
-    "Scorchrazor",
     {
-      "name": "Facet of Chaos",
-      "offset": 120
+      "type": "cast",
+      "skillId": 41829
     },
-    "Shattershot",
     {
-      "name": "Facet of Nature",
-      "offset": 200
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 280
     },
-    "Shattershot",
-    "Shattershot",
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "cast",
+      "skillId": 27162
     },
-    "Bloodbane Path",
-    "Shattershot",
-    "Shattershot",
-    "Shattershot",
-    "Chaotic Release",
     {
-      "name": "True Nature",
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28287
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": 27066,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 28409
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 27014
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": 28357,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 43993
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 41829
+    },
+    {
+      "type": "cast",
+      "skillId": 41820
+    },
+    {
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 28075
+    },
+    {
+      "type": "cast",
       "skillId": 51696
     },
-    "Bloodbane Path",
     {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Spiritcrush",
-    "Sevenshot",
-    {
-      "name": "Facet of Elements",
-      "offset": 280
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 240
-    },
-    "Burst of Strength",
-    {
-      "name": "Swap Legends",
-      "offset": 240
-    },
-    "Embrace the Darkness",
-    {
-      "name": "Swap Weapons",
-      "offset": 400
+      "type": "cast",
+      "skillId": 40175
     },
     {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Searing Fissure",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Misery Swipe",
-      "interruptMs": 360
-    },
-    "Temporal Rift",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    "Manifest Toxin",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Swap Legends",
-      "offset": 840
-    },
-    "Facet of Elements",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 120
-    },
-    "Burst of Strength",
-    {
-      "name": "Searing Fissure",
-      "interruptMs": 520
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Swap Weapons",
-      "offset": 520
+      "type": "cast",
+      "skillId": 43993
     },
-    "Spiritcrush",
-    "Bloodbane Path",
-    "Sevenshot",
-    "Scorchrazor",
     {
-      "name": "Facet of Chaos",
-      "offset": 120
+      "type": "cast",
+      "skillId": 41829
     },
-    "Shattershot",
     {
-      "name": "Facet of Nature",
-      "offset": 200
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 280
     },
-    "Shattershot",
-    "Shattershot",
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "cast",
+      "skillId": 27162
     },
-    "Bloodbane Path",
-    "Shattershot",
-    "Shattershot",
-    "Shattershot",
-    "Chaotic Release",
     {
-      "name": "True Nature",
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28287
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": 27066,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 28409
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 27014
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": 28357,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 43993
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 41829
+    },
+    {
+      "type": "cast",
+      "skillId": 41820
+    },
+    {
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 29371,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40175
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 28075
+    },
+    {
+      "type": "cast",
       "skillId": 51696
     },
-    "Bloodbane Path",
     {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Spiritcrush",
-    "Sevenshot",
-    {
-      "name": "Facet of Elements",
-      "offset": 280
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 240
-    },
-    "Burst of Strength",
-    {
-      "name": "Swap Legends",
-      "offset": 240
-    },
-    "Embrace the Darkness",
-    {
-      "name": "Swap Weapons",
-      "offset": 400
+      "type": "cast",
+      "skillId": 40175
     },
     {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Searing Fissure",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Misery Swipe",
-      "interruptMs": 360
-    },
-    "Temporal Rift",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    "Manifest Toxin",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "Manifest Toxin",
-      "interruptMs": 520
-    },
-    "Searing Fissure",
-    "Misery Swipe",
-    "Anguish Swipe",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
-    "Echoing Eruption",
-    {
-      "name": "Swap Legends",
-      "offset": 840
-    },
-    "Facet of Elements",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
-    "Elemental Blast",
-    {
-      "name": "Facet of Strength",
-      "offset": 120
-    },
-    "Burst of Strength",
-    {
-      "name": "Searing Fissure",
-      "interruptMs": 520
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Swap Weapons",
-      "offset": 520
+      "type": "cast",
+      "skillId": 43993
     },
-    "Spiritcrush",
-    "Sevenshot",
     {
-      "name": "Facet of Chaos",
-      "offset": 440
+      "type": "cast",
+      "skillId": 41829
     },
-    "Chaotic Release",
-    "Shattershot",
-    "Shattershot",
-    "Shattershot"
+    {
+      "type": "cast",
+      "skillId": 27014,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 28287
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": 27066,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 28409
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "cast",
+      "skillId": 26666,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 28357
+    },
+    {
+      "type": "cast",
+      "skillId": 27066
+    },
+    {
+      "type": "cast",
+      "skillId": 26730
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 27964
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 27014
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 27162
+    },
+    {
+      "type": "cast",
+      "skillId": 26644,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 28113
+    },
+    {
+      "type": "cast",
+      "skillId": 28357,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 43993
+    },
+    {
+      "type": "cast",
+      "skillId": 41829
+    },
+    {
+      "type": "cast",
+      "skillId": 27760,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 28075
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    },
+    {
+      "type": "cast",
+      "skillId": 40497
+    }
   ]
 }

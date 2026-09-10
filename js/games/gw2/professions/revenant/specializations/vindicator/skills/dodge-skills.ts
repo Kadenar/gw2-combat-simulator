@@ -9,10 +9,10 @@ export const VINDICATOR_LANDING_MS = 200;
 export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
   id: 23275,
   name: 'Dodge Jump',
-  displayName: 'Dodge + Death Drop',
+  displayName: 'Dodge + Landing',
   icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
   description:
-    '600 ms airborne dodge + 200 ms landing. Endurance is spent at takeoff; Death Drop hits 760 ms after takeoff.',
+    '600 ms airborne dodge + 200 ms landing. Endurance is spent at takeoff; the selected dodge effect resolves on landing.',
   type: 'Action',
   slot: 'Action',
   specialization: 'Vindicator',
@@ -27,6 +27,25 @@ export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
 });
 
 export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Saint's Shield replaces dodge damage with a party alacrity application at the landing effect point.
+  [ID.SAINTS_SHIELD]: {
+    castTimeMs: VINDICATOR_LANDING_MS,
+    unaffectedByQuickness: true,
+    cooldown: 0,
+    energyCost: 0,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'alacrity',
+        duration: 4,
+        stacks: 1,
+        atMs: 160,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
+  },
   [ID.DEATH_DROP]: {
     castTimeMs: VINDICATOR_LANDING_MS,
     unaffectedByQuickness: true,

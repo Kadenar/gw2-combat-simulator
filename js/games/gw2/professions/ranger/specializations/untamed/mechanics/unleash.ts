@@ -15,7 +15,6 @@ import type {
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
@@ -122,20 +121,6 @@ export const untamedCastRules = Object.freeze({
     id: 'ranger.untamed-availability',
     order: 20,
     handler: untamedCastAvailability
-  },
-  // Unleashed pet skills belong to Untamed's replacement bar, not the Core pet recharge contract.
-  modifyRechargeDuration(context: RangerSchedulerContext & { skill?: RangerSkill }, duration: number): number {
-    if (!context.skill?.petSkill || !context.skill.unleashedPetSkill || !hasTrait(context, TRAIT.PACK_ALPHA)) {
-      return duration;
-    }
-
-    return (
-      duration /
-      Math.max(
-        Number.EPSILON,
-        balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'rechargeMultiplier', 0.8)
-      )
-    );
   }
 });
 

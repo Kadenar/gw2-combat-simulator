@@ -59,8 +59,6 @@
   "selectedSkills": {},
   "selectedLegends": ["LegendaryDragon", "LegendaryDemon"],
   "startingLegend": "LegendaryDragon",
-  "selectedDodge": "Death Drop",
-  "allianceSide": "luxon",
   "assumptions": {
     "might": 25,
     "fury": true,

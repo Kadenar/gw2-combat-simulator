@@ -60,8 +60,6 @@
   "selectedSkills": {},
   "selectedLegends": ["LegendaryAssassin", "LegendaryEntity"],
   "startingLegend": "LegendaryAssassin",
-  "selectedDodge": "Death Drop",
-  "allianceSide": "luxon",
   "assumptions": {
     "simulationMode": "deterministic",
     "might": 25,
