@@ -132,6 +132,11 @@ export function calculateBuffedAttributes(
     if (control.kind === 'condition') targetConditions[field] = count;
   }
 
+  // Anonymous types count for Target the Weak without activating separate condition-specific traits.
+  for (let index = 0; index < Number(values.targetTheWeak || 0); index++) {
+    targetConditions[`preview-condition-${index}`] = 1;
+  }
+
   if ('attunement' in values) core.primaryAttunement = values.attunement;
   if ('secondaryAttunement' in values) spec.secondaryAttunement = values.secondaryAttunement;
   if ('evokerElement' in values) queryConfig.evokerElement = values.evokerElement;

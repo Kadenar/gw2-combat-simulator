@@ -55,12 +55,11 @@ export function renderAttributeStats(
 ): void {
   const controls = attributeEffectControls(app);
   const values = normalizeAttributePreview(controls, input);
-  // Start collapsed, retaining the user's choice when the existing panel refreshes.
-  const expanded = previewContainer.querySelector<HTMLDetailsElement>('.attribute-effects')?.open === true;
   let durationDetails = container.querySelector('.attr-duration-details')?.getAttribute('aria-expanded') === 'true';
   const baseline = calculateBuffedAttributes(app);
   container.innerHTML = '<div class="attribute-values"></div>';
-  const previewHtml = `<details class="attribute-effects"${expanded ? ' open' : ''}><summary>Attribute Preview <small>Preview only</small></summary><div class="attribute-effect-groups">${[
+  // Keep preview controls visible across refreshes without a disclosure step.
+  const previewHtml = `<section class="attribute-effects" aria-label="Attribute preview"><h4 class="attribute-effects-title">Attribute Preview <small>Preview only</small></h4><div class="attribute-effect-groups">${[
     'Boons',
     'Attunement',
     'Trait conditionals',
@@ -85,7 +84,7 @@ export function renderAttributeStats(
             .join('')}</fieldset>`
         : '';
     })
-    .join('')}</div></details>`;
+    .join('')}</div></section>`;
   if (previewContainer === container) container.insertAdjacentHTML('beforeend', previewHtml);
   else previewContainer.innerHTML = previewHtml;
   const update = (): void => {

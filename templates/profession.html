@@ -33,85 +33,99 @@
       <!-- One editor owns the complete build and rotation flow so its sections share one contiguous surface. -->
       <section class="build-editor panel">
         <section class="build-section">
-          <!-- Keep gear controls and calculated attributes on one shared surface, separated only by column dividers. -->
+          <!-- Group build choices, equipment, and live attributes in reading order without duplicating their controls. -->
           <div class="gear-panel">
+            <section class="skills-section skill-selection-section workspace-build-choices">
+              <div class="workspace-traits workspace-card">
+                <div class="workspace-traits-heading">
+                  <h3>Traits</h3>
+                  <div class="build-io-btns">
+                    <span class="build-template-import-host"></span>
+                    <!-- Document minus/plus icons distinguish exporting and importing without arrow glyphs. -->
+                    <button id="btn-export-build" class="btn btn-io">
+                      <svg
+                        class="btn-icon"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6" />
+                      </svg>
+                      Export
+                    </button>
+                    <button id="btn-import-build" class="btn btn-io">
+                      <svg
+                        class="btn-icon"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6m-3-3v6" />
+                      </svg>
+                      Import
+                    </button>
+                    <button id="btn-reset-build" class="btn btn-clear">Reset</button>
+                    <input type="file" id="import-file-input" accept=".json" hidden />
+                  </div>
+                </div>
+                <div id="traits-panel" class="traits-panel-inline"></div>
+              </div>
+              <div class="selectable-skills-panel workspace-card">
+                <div class="selectable-skills-title">Skills</div>
+                <div id="skill-bar" class="skill-bar selectable-skills-bar"></div>
+              </div>
+            </section>
             <div class="gear-main">
-              <div class="panel-hdr">
-                <div class="gear-heading">
-                  <h3>Gear</h3>
-                  <div id="gear-set-all" class="gear-set-all"></div>
-                </div>
-                <div class="build-io-btns">
-                  <!-- Document minus/plus icons distinguish exporting and importing without arrow glyphs. -->
-                  <button id="btn-export-build" class="btn btn-io">
-                    <svg
-                      class="btn-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.75"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6" />
-                    </svg>
-                    Export
-                  </button>
-                  <button id="btn-import-build" class="btn btn-io">
-                    <svg
-                      class="btn-icon"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.75"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6m-3-3v6" />
-                    </svg>
-                    Import
-                  </button>
-                  <button id="btn-reset-build" class="btn btn-clear">Reset</button>
-                  <input type="file" id="import-file-input" accept=".json" hidden />
-                </div>
-              </div>
               <div class="gear-columns">
-                <div id="gear-slots" class="gear-col"></div>
-                <div id="equipment-info" class="gear-col"></div>
-                <div id="weapon-select" class="gear-col weapon-select"></div>
+                <section class="gear-loadout workspace-card">
+                  <div class="gear-loadout-heading">
+                    <h3>Gear loadout</h3>
+                    <div id="gear-set-all" class="gear-set-all"></div>
+                  </div>
+                  <div class="gear-loadout-body">
+                    <div class="gear-loadout-controls">
+                      <div id="gear-slots" class="gear-col"></div>
+                      <div id="weapon-select" class="gear-col weapon-select"></div>
+                      <!-- Infusions follow weapons; consumables sit between upgrades and trinkets. -->
+                      <section id="infusion-info" class="equipment-infusions workspace-card"></section>
+                    </div>
+                    <div class="gear-extras">
+                      <div id="equipment-info" class="gear-col"></div>
+                      <section id="consumable-info" class="equipment-consumables workspace-card"></section>
+                      <div id="trinket-slots" class="gear-col"></div>
+                    </div>
+                  </div>
+                </section>
               </div>
-              <!-- Preview controls sit below gear while their calculated values stay in the attributes column. -->
-              <div id="attribute-preview"></div>
             </div>
+            <!-- Keep calculated attributes and preview controls permanently visible. -->
             <div class="attributes-panel">
-              <div class="attributes-header">
-                <h3>Attributes</h3>
-                <label for="attribute-weapon-set" {{weapon-set-hidden}}>
+              <!-- Align weapon-set selection with Primary so preview controls follow the stats directly. -->
+              <div class="attributes-body">
+                <label class="attribute-preview-weapon-set" for="attribute-weapon-set" {{weapon-set-hidden}}>
                   <span>Weapon set</span>
                   <select id="attribute-weapon-set" class="gear-select">
                     <option value="1">1</option>
                     {{weapon-set-two}}
                   </select>
                 </label>
+                <div id="attributes-list"></div>
+                <div id="attribute-preview" class="workspace-card"></div>
               </div>
-              <div id="attributes-list"></div>
               <p class="attribute-note">{{attribute-note}}</p>
             </div>
-          </div>
-        </section>
-
-        <!-- Keep build choices beside traits; weapon and profession-mechanic previews are already available in the rotation palette. -->
-        <section class="skills-section skill-selection-section">
-          <div id="traits-panel" class="traits-panel-inline"></div>
-          <div class="selectable-skills-panel">
-            <div class="selectable-skills-title">Skills</div>
-            <div id="skill-bar" class="skill-bar selectable-skills-bar"></div>
           </div>
         </section>
 

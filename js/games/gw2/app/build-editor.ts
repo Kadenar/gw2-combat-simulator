@@ -27,9 +27,9 @@ export const gw2BuildEditor: BuildEditor<ProfessionAppState> = Object.freeze({
   initialize: initBuildTemplates,
   updateSelection: updateTemplateSelection,
   bindControls(app: ProfessionAppState) {
-    // Keep in-game build import beside the remaining build choices after removing the preview-only combat layout.
-    const title = document.querySelector<HTMLElement>('.selectable-skills-title');
-    if (!title) throw new Error('Selectable skills header is missing.');
+    // Keep build import beside Traits for every profession without a separate toolbar.
+    const title = document.querySelector<HTMLElement>('.build-template-import-host');
+    if (!title) throw new Error('Build import host is missing.');
     if (title.querySelector('.build-template-import')) return;
 
     const button = document.createElement('button');

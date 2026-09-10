@@ -2,6 +2,7 @@
 
 // ─── Relic Data ───────────────────────────────────────────────────────────────
 // Runtime owns behavior; trigger text summarizes both activation and payoff for equipment UI.
+// Item icons from the GW2 API supply shared artwork for equipment controls and result rows.
 export const RELIC_DATA = {
   // Both slot-skill relics can carry their remaining buff duration through a Combat Start marker.
   Director: {
@@ -45,7 +46,11 @@ export const RELIC_DATA = {
     cooldown: 1,
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_the_Mirage.png'
   },
-  'Mist Stranger': { trigger: 'Extra flat damage on every hit', cooldown: 0 },
+  'Mist Stranger': {
+    trigger: 'Extra flat damage on every hit',
+    cooldown: 0,
+    icon: 'https://render.guildwars2.com/file/2DA75566B948AADFAB0CCF2198F205AF9AE82031/3709381.png'
+  },
   Nourys: {
     trigger: 'Gain 1 stack every 3s in combat (10 stacks → 5s damage buff)',
     cooldown: 0,
@@ -90,7 +95,7 @@ export const RELIC_DATA = {
   Deadeye: {
     trigger: 'Use a cantrip skill (+10% strike damage for 8s)',
     cooldown: 0,
-    icon: 'https://render.guildwars2.com/file/A36DB29059090F04E4565724E3673CFD189E6177/1770000.png'
+    icon: 'https://render.guildwars2.com/file/060151B961CE56CB9546E7B6AF33B0A318426372/3122342.png'
   },
   Eagle: {
     trigger: '+10% strike damage against foes below 50% health',
@@ -115,7 +120,8 @@ export const RELIC_DATA = {
   Warrior: {
     trigger: 'Reduce weapon swap recharge by 25%',
     cooldown: 0,
-    weaponSwapRechargeMultiplier: 0.75
+    weaponSwapRechargeMultiplier: 0.75,
+    icon: 'https://render.guildwars2.com/file/1D3CF82C05450A605921F6EB9D0AC23421C9CFA5/3122375.png'
   }
 };
 

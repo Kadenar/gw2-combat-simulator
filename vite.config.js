@@ -57,8 +57,6 @@ const professionPages = {
   }
 };
 
-const professionPageTemplate = readFileSync(path.resolve('templates', 'profession.html'), 'utf8');
-
 // Public entry points; the local authoring page is added only to development builds below.
 const pageEntries = ['index.html', ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)];
 
@@ -82,7 +80,8 @@ function renderProfessionPages() {
         }
 
         const name = professionId[0].toUpperCase() + professionId.slice(1);
-        return professionPageTemplate
+        // Read on each transform so template edits cannot leave stale markup paired with updated CSS.
+        return readFileSync(path.resolve('templates', 'profession.html'), 'utf8')
           .replaceAll('{{profession-id}}', professionId)
           .replaceAll('{{profession-name}}', name)
           .replaceAll('{{attribute-note}}', page.attributeNote)

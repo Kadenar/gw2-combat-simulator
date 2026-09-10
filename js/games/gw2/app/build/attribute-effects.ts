@@ -274,7 +274,7 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
     ['Weakness', 'Superior Elements'],
     ['Vulnerability', 'Decimate Defenses']
   ]) {
-    if (has(required) && !has('Target the Weak'))
+    if (has(required))
       add({
         key: `condition:${name}`,
         label: `Target ${name}`,
@@ -286,18 +286,14 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
       });
   }
 
-  if (has('Target the Weak')) {
-    for (const name of CANONICAL_TARGET_CONDITIONS)
-      add({
-        key: `condition:${name}`,
-        label: name,
-        group: 'Target conditions',
-        kind: 'condition',
-        field: name,
-        max: name === 'Vulnerability' ? 25 : undefined,
-        description: 'Target the Weak'
-      });
-  }
+  // Only name conditions needed by other traits; the remaining types share one count.
+  const namedConditions = controls.filter((control) => control.kind === 'condition').length;
+  trait('Target the Weak', {
+    key: 'targetTheWeak',
+    kind: 'special',
+    max: CANONICAL_TARGET_CONDITIONS.length - namedConditions,
+    description: namedConditions ? 'Other condition types; Critical Chance' : 'Condition types; Critical Chance'
+  });
 
   for (const name of [
     'Bane Signet',

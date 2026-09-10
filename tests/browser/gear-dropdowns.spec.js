@@ -55,6 +55,8 @@ test('equipment dropdowns support typed prefixes, cycling, cancellation, and key
   await page.keyboard.press('Enter');
   await expect(menu).toBeHidden();
   await expect(select).toHaveValue("Viper's");
+  await expect(trigger.locator('img')).toHaveCount(1);
+  await expect(display.locator('..').locator('.gear-equipped-name')).toHaveText("Viper's");
   expect(await page.evaluate(() => window.professionApp.build.gear.Helm)).toBe("Viper's");
 
   await trigger.click();

@@ -108,7 +108,8 @@ test('GW2 contributes build-code controls that use a review dialog instead of br
   assert.doesNotMatch(pageControls, /\bprompt\s*\(/);
   assert.match(pageControls, /buildEditor\.bindControls/);
   assert.doesNotMatch(pageControls, /\.selectable-skills-title|Import GW2 Build/);
-  assert.match(buildEditor, /\.selectable-skills-title/);
+  // The shared Gear header keeps import reachable when the profession's skills panel is hidden.
+  assert.match(buildEditor, /\.build-template-import-host/);
   assert.match(buildEditor, /build-template-import/);
   assert.match(buildEditor, /title\.append\(button\)/);
   assert.doesNotMatch(pageControls, /importBuildButton\.insertAdjacentElement/);

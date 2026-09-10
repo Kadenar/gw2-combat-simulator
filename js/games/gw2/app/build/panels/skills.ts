@@ -315,6 +315,9 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   };
   const view = loadout.view(context);
   const skillBar = requiredElement('skill-bar');
+  // Name the retained legend selectors independently of their hidden, fixed skill rows.
+  const title = skillBar.parentElement?.querySelector('.selectable-skills-title');
+  if (title) title.textContent = view.label;
 
   // Keep Revenant slots icon-only
   const slotHtml = (skill: Skill, index: number, child = false): string => {

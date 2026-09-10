@@ -115,7 +115,21 @@ export const ARMOR_ICONS: Readonly<Record<string, Readonly<Record<string, string
   }
 };
 
+/** Match the selected attribute to its +5 Agony Infusion item icon from the GW2 API. */
+export const INFUSION_ICONS: Readonly<Record<string, string>> = {
+  Power: 'https://render.guildwars2.com/file/1B18A669E1900107755B12ABAA7DD2071E974C53/511835.png',
+  Precision: 'https://render.guildwars2.com/file/57F96C19D8380892B754F776322F30A6EB4EF2B4/511848.png',
+  'Condition Damage': 'https://render.guildwars2.com/file/110F6F3CCE9129BEA23E0D44754630BCECC90838/511850.png',
+  Expertise: 'https://render.guildwars2.com/file/110F6F3CCE9129BEA23E0D44754630BCECC90838/511850.png',
+  Concentration: 'https://render.guildwars2.com/file/79FB4479F4A0E9DB923E48CAB1F777F8F70B974F/511834.png',
+  'Healing Power': 'https://render.guildwars2.com/file/79FB4479F4A0E9DB923E48CAB1F777F8F70B974F/511834.png',
+  Vitality: 'https://render.guildwars2.com/file/66EC922E1AA5340FB5A63D997D92655775B524AA/511845.png',
+  Toughness: 'https://render.guildwars2.com/file/4DF43AFD06A460A19C90B011D3157BA969AD21CE/511844.png'
+};
+
 export const GEAR_ICONS: Readonly<Record<string, string>> = {
+  // The default skin has no API unlock item; use its matching wiki icon (game file 2595061).
+  JadeBot: 'https://wiki.guildwars2.com/images/b/bf/Jade_Bot_%28skin%29.png',
   Ring: 'https://render.guildwars2.com/file/EAA61AAF9BEF031104FD063C0A301A520EF5F5E6/1614682.png',
   Accessory: 'https://render.guildwars2.com/file/741D3F520D1DFD7BB9A35AD50FC75152D2B3CA6B/1614709.png',
   Amulet: 'https://render.guildwars2.com/file/4944FD054FD80D805B0BFFB2DA60363A7DD31FDB/1614376.png',

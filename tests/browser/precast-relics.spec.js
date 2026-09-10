@@ -30,12 +30,27 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   const picker = page.locator('.gear-panel #precast-relics');
   await expect(picker).toBeVisible();
   await expect(picker.locator('.optimizer-picker-empty')).toHaveText('No precast relics');
-  const select = picker.getByRole('combobox', { name: 'Add precast relics' });
-  await select.selectOption({ label: await select.locator('option[data-choice="Mount Balrior"]').textContent() });
-  await select.selectOption({ label: await select.locator('option[data-choice="Director"]').textContent() });
+  const select = picker.locator('#optimizer-add-precastRelics');
+  await expect(select).toHaveCSS('opacity', '0');
+  const add = picker.getByRole('button', { name: 'Add precast relics', exact: true });
+  await expect(add).toHaveText('+');
+  for (const name of ['Mount Balrior', 'Director']) {
+    await add.click();
+    await picker
+      .getByRole('option')
+      .filter({ has: page.locator('.gear-option-name', { hasText: name }) })
+      .click();
+    await expect(add).toBeFocused();
+  }
+
   await ready();
   await expect(picker.locator('.optimizer-choice')).toHaveCount(2);
   await expect(select.locator('option[data-choice="Director"]')).toBeDisabled();
+  await add.click();
+  await expect(
+    picker.getByRole('option').filter({ has: page.locator('.gear-option-name', { hasText: 'Director' }) })
+  ).toBeDisabled();
+  await page.keyboard.press('Escape');
   expect(await page.evaluate(() => window.professionApp.build.relic)).toBe('');
   const procs = await page.evaluate(() =>
     window.professionApp.results.procSteps.filter((step) => step.type === 'relic_proc').map((step) => step.skill)
@@ -51,6 +66,12 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   await ready();
   await expect(picker.locator('.optimizer-choice')).toHaveCount(1);
   await expect(select.locator('option[data-choice="Director"]')).toBeEnabled();
+  await expect(add).toBeFocused();
+  await add.click();
+  await expect(
+    picker.getByRole('option').filter({ has: page.locator('.gear-option-name', { hasText: 'Director' }) })
+  ).toBeEnabled();
+  await page.keyboard.press('Escape');
   expect(await page.evaluate(() => window.professionApp.build.precastRelics)).toEqual(['Mount Balrior']);
   expect(
     await page.evaluate(() =>
