@@ -280,21 +280,14 @@ export interface ProfessionResourceDefinition<TProfessionState extends object = 
 export interface ProfessionSchedulerHookDefinition {
   readonly prepareEvent?: unknown;
   readonly initialize?: unknown;
-  readonly availability?: unknown;
-  readonly scheduleSkill?: unknown;
   readonly afterCast?: unknown;
   readonly advance?: unknown;
   readonly snapshot?: unknown;
-  readonly projectEndState?: unknown;
   readonly onCastStart?: unknown;
   readonly onCastComplete?: unknown;
   readonly onCooldownReset?: unknown;
   readonly onEventScheduled?: unknown;
   readonly onWeaponSwap?: unknown;
-  readonly modifyCastDuration?: unknown;
-  readonly modifyRechargeDuration?: unknown;
-  readonly modifyRechargeStart?: unknown;
-  readonly modifyMaximumAmmo?: unknown;
   readonly taskHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
   readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
 }
@@ -316,10 +309,6 @@ export interface ProfessionDefinition<TProfessionState extends object = Schedule
   readonly resolverHooks?: ProfessionResolverHookDefinition;
   readonly ui?: Partial<ProfessionUiContract> & SchedulerRecord;
   readonly simulation?: SchedulerRecord | null;
-  readonly createProfessionState?: (config: Readonly<SchedulerConfig>) => TProfessionState;
-  readonly createResolverState?: (config: Readonly<SchedulerConfig>) => object;
-  readonly eventHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
-  readonly eventReactions?: Readonly<Record<string, unknown>>;
 }
 
 export interface ProfessionModuleCatalogFragment {

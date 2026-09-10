@@ -22,42 +22,42 @@ interface OrderedHook {
 }
 
 type EventReaction = (context: SchedulerRecord, event: SchedulerRecord, details?: SchedulerRecord) => unknown;
-type HookCategory = 'scheduler' | 'cast' | 'attribute';
+type HookCategory = 'scheduler' | 'cast' | 'attribute' | 'resource';
 
 /**
- * Single source of truth for hook names and the composition families each one
- * belongs to. Array order defines hook order; the family arrays below are
- * derived, so adding a hook can no longer silently miss a subset list.
+ * Each hook belongs to one definition container; state projection belongs to
+ * resources. Derive composition lists from this order so new hooks cannot
+ * silently miss a subset list.
  */
-const HOOK_DEFINITIONS: readonly (readonly [string, readonly HookCategory[]])[] = Object.freeze([
-  ['prepareEvent', ['scheduler']],
-  ['initialize', ['scheduler']],
-  ['availability', ['scheduler', 'cast']],
-  ['scheduleSkill', ['scheduler', 'cast']],
-  ['afterCast', ['scheduler']],
-  ['advance', ['scheduler']],
-  ['snapshot', ['scheduler']],
-  ['projectEndState', ['scheduler']],
-  ['onCastStart', ['scheduler']],
-  ['onCastComplete', ['scheduler']],
-  ['onCooldownReset', ['scheduler']],
-  ['onEventScheduled', ['scheduler']],
-  ['onWeaponSwap', ['scheduler']],
-  ['modifyCastDuration', ['scheduler', 'cast']],
-  ['modifyRechargeDuration', ['scheduler', 'cast']],
-  ['modifyRechargeStart', ['scheduler', 'cast']],
-  ['modifyMaximumAmmo', ['scheduler', 'cast']],
-  ['modifyAttributes', ['attribute']],
-  ['modifyCriticalChance', ['attribute']],
-  ['modifyCriticalDamage', ['attribute']],
-  ['modifyStrikeDamage', ['attribute']],
-  ['modifyConditionDamage', ['attribute']],
-  ['modifyConditionBaseDuration', ['attribute']],
-  ['modifyConditionDuration', ['attribute']]
+const HOOK_DEFINITIONS: readonly (readonly [string, HookCategory])[] = Object.freeze([
+  ['prepareEvent', 'scheduler'],
+  ['initialize', 'scheduler'],
+  ['availability', 'cast'],
+  ['scheduleSkill', 'cast'],
+  ['afterCast', 'scheduler'],
+  ['advance', 'scheduler'],
+  ['snapshot', 'scheduler'],
+  ['projectEndState', 'resource'],
+  ['onCastStart', 'scheduler'],
+  ['onCastComplete', 'scheduler'],
+  ['onCooldownReset', 'scheduler'],
+  ['onEventScheduled', 'scheduler'],
+  ['onWeaponSwap', 'scheduler'],
+  ['modifyCastDuration', 'cast'],
+  ['modifyRechargeDuration', 'cast'],
+  ['modifyRechargeStart', 'cast'],
+  ['modifyMaximumAmmo', 'cast'],
+  ['modifyAttributes', 'attribute'],
+  ['modifyCriticalChance', 'attribute'],
+  ['modifyCriticalDamage', 'attribute'],
+  ['modifyStrikeDamage', 'attribute'],
+  ['modifyConditionDamage', 'attribute'],
+  ['modifyConditionBaseDuration', 'attribute'],
+  ['modifyConditionDuration', 'attribute']
 ]);
 
 const hookNamesWith = (category: HookCategory): readonly string[] =>
-  Object.freeze(HOOK_DEFINITIONS.filter(([, categories]) => categories.includes(category)).map(([name]) => name));
+  Object.freeze(HOOK_DEFINITIONS.filter(([, owner]) => owner === category).map(([name]) => name));
 
 const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
 export const SCHEDULER_HOOK_NAMES = hookNamesWith('scheduler');
@@ -395,12 +395,10 @@ export function defineProfession<TProfessionState extends object>(
   const ui = definition.ui || {};
   assertCallbackContainer(build, ['createBuildDefaults', 'migrateBuild', 'validateBuild'], 'build');
   assertCallbackContainer(resources, ['createProfessionState', 'createResolverState', 'projectEndState'], 'resources');
-  assertOptionalCallback(definition as unknown as SchedulerRecord, 'createProfessionState', 'definition');
-  assertOptionalCallback(definition as unknown as SchedulerRecord, 'createResolverState', 'definition');
   assertUiDefinition(ui);
   assertHandlerMap(schedulerHooks.taskHandlers, 'schedulerHooks.taskHandlers');
   assertHandlerMap(schedulerHooks.skillMechanicHandlers, 'schedulerHooks.skillMechanicHandlers');
-  assertHandlerMap(resolverHooks.eventHandlers || definition.eventHandlers, 'resolverHooks.eventHandlers');
+  assertHandlerMap(resolverHooks.eventHandlers, 'resolverHooks.eventHandlers');
   const skillMechanicHandlers = Object.freeze({ ...(schedulerHooks.skillMechanicHandlers || {}) });
   for (const type of Object.keys(skillMechanicHandlers)) {
     if (Object.hasOwn(schedulerHooks.taskHandlers || {}, type)) {
@@ -448,21 +446,21 @@ export function defineProfession<TProfessionState extends object>(
   const sources: SchedulerRecord = {
     prepareEvent: schedulerHooks.prepareEvent,
     initialize: schedulerHooks.initialize,
-    availability: castRules.availability ?? schedulerHooks.availability,
-    scheduleSkill: castRules.scheduleSkill ?? schedulerHooks.scheduleSkill,
+    availability: castRules.availability,
+    scheduleSkill: castRules.scheduleSkill,
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,
-    projectEndState: resources.projectEndState ?? schedulerHooks.projectEndState,
+    projectEndState: resources.projectEndState,
     onCastStart: schedulerHooks.onCastStart,
     onCastComplete: schedulerHooks.onCastComplete,
     onCooldownReset: schedulerHooks.onCooldownReset,
     onEventScheduled: schedulerHooks.onEventScheduled,
     onWeaponSwap: schedulerHooks.onWeaponSwap,
-    modifyCastDuration: castRules.modifyCastDuration ?? schedulerHooks.modifyCastDuration,
-    modifyRechargeDuration: castRules.modifyRechargeDuration ?? schedulerHooks.modifyRechargeDuration,
-    modifyRechargeStart: castRules.modifyRechargeStart ?? schedulerHooks.modifyRechargeStart,
-    modifyMaximumAmmo: castRules.modifyMaximumAmmo ?? schedulerHooks.modifyMaximumAmmo,
+    modifyCastDuration: castRules.modifyCastDuration,
+    modifyRechargeDuration: castRules.modifyRechargeDuration,
+    modifyRechargeStart: castRules.modifyRechargeStart,
+    modifyMaximumAmmo: castRules.modifyMaximumAmmo,
     modifyAttributes: attributeRules.modifyAttributes,
     modifyCriticalChance: attributeRules.modifyCriticalChance,
     modifyCriticalDamage: attributeRules.modifyCriticalDamage,
@@ -500,17 +498,17 @@ export function defineProfession<TProfessionState extends object>(
       })),
     migrateBuild: build.migrateBuild || ((saved: SchedulerRecord) => saved),
     validateBuild: build.validateBuild || (() => ({ valid: true, errors: [] })),
-    createProfessionState: resources.createProfessionState || definition.createProfessionState || (() => ({})),
-    createResolverState: resources.createResolverState || definition.createResolverState || null,
+    createProfessionState: resources.createProfessionState || (() => ({})),
+    createResolverState: resources.createResolverState || null,
     taskHandlers: Object.freeze({
       ...(schedulerHooks.taskHandlers || {})
     }),
     skillMechanicHandlers,
     ...hooks,
     eventHandlers: Object.freeze({
-      ...(resolverHooks.eventHandlers || definition.eventHandlers || {})
+      ...(resolverHooks.eventHandlers || {})
     }),
-    eventReactions: createEventReactions(resolverHooks.eventReactions || definition.eventReactions),
+    eventReactions: createEventReactions(resolverHooks.eventReactions),
     paletteGroups: normalizedUi.paletteGroups,
     resourceViews,
     ui: Object.freeze(normalizedUi),
