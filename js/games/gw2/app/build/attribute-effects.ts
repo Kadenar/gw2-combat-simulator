@@ -164,15 +164,17 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
   }
 
   if (app.adapter.id === 'necromancer' && specialization !== 'Scourge') {
-    add({
-      key: 'shroud',
-      label: 'Shroud',
-      group: 'Trait conditionals',
-      kind: 'special',
-      description:
-        ['Death Perception', "Reaper's Onslaught"].filter((name) => has(name)).join(', ') ||
-        'Shroud-dependent attributes'
-    });
+    // Offer shroud only when the loadout has an attribute effect to preview, and name its sources.
+    const shroudEffects = ['Death Perception', "Reaper's Onslaught"].filter((name) => has(name));
+    if (skills.has('Signet of Spite')) shroudEffects.push('Signet of Spite');
+    if (shroudEffects.length)
+      add({
+        key: 'shroud',
+        label: 'Shroud',
+        group: 'Trait conditionals',
+        kind: 'special',
+        description: shroudEffects.join(', ')
+      });
   }
 
   if (app.adapter.id === 'elementalist') {
