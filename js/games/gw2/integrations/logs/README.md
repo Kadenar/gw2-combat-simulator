@@ -16,3 +16,6 @@ Every successful log import returns this notice once:
 
 Native saved-rotation imports do not receive the notice. See the adapter READMEs and
 [EI alignment](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) for evidence rules and coverage limits.
+
+For upstream parser updates, follow [Keeping log imports aligned with EI](EI-PARSER-MAINTENANCE.md), including the
+update workflow, local ownership map, validation steps, and pinned source references.
