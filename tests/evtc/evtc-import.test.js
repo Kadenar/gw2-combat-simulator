@@ -6,6 +6,7 @@ import { deflateRawSync } from 'node:zlib';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc-rotation-import.js';
 import { applyRotationImportPreview, previewRotationFile } from '#gw2/app/build/io/rotation-import-dialog.js';
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
+import { decompressEvtcInput } from '#gw2/integrations/logs/evtc/decompression.js';
 import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { event, expandedEvtcFixture, log } from '../helpers/evtc-fixture.js';
 
@@ -69,6 +70,72 @@ function zipEvtc(bytes) {
 
   return result;
 }
+
+test('ZIP inflation cancels before forged size metadata can exhaust the expansion budget', async (t) => {
+  const payload = new Uint8Array(1024 * 1024);
+  const archive = zipEvtc(payload);
+  const view = new DataView(archive.buffer);
+  const centralOffset = view.getUint32(archive.length - 6, true);
+  const declaredSize = view.getUint32(centralOffset + 20, true) * 10;
+  const NativeDecompressionStream = globalThis.DecompressionStream;
+  let emittedBytes = 0;
+  let largestChunk = 0;
+  let cancelled = false;
+
+  // Count native output without prefetching so the check measures early cancellation, not just eventual rejection.
+  t.mock.method(globalThis, 'DecompressionStream', function (format) {
+    const stream = new NativeDecompressionStream(format);
+    const reader = stream.readable.getReader();
+
+    return {
+      writable: stream.writable,
+      readable: new ReadableStream(
+        {
+          async pull(controller) {
+            const { done, value } = await reader.read();
+            if (done) {
+              controller.close();
+              return;
+            }
+
+            emittedBytes += value.byteLength;
+            largestChunk = Math.max(largestChunk, value.byteLength);
+            controller.enqueue(value);
+          },
+          cancel() {
+            cancelled = true;
+            return reader.cancel();
+          }
+        },
+        { highWaterMark: 0 }
+      )
+    };
+  });
+
+  await assert.rejects(decompressEvtcInput(archive), { code: 'ZIP_BOMB' });
+  assert.equal(emittedBytes, 0);
+  view.setUint32(centralOffset + 24, declaredSize, true);
+  await assert.rejects(decompressEvtcInput(archive), { code: 'INVALID_ZIP' });
+  assert.equal(cancelled, true);
+  assert.ok(emittedBytes > declaredSize);
+  assert.ok(emittedBytes <= declaredSize + largestChunk);
+  assert.ok(emittedBytes < payload.byteLength);
+});
+
+test('ZIP inflation accepts valid output and retains size and CRC validation', async () => {
+  const payload = expandedEvtcFixture();
+  const archive = zipEvtc(payload);
+  const view = new DataView(archive.buffer);
+  const centralOffset = view.getUint32(archive.length - 6, true);
+
+  assert.deepEqual(await decompressEvtcInput(archive), new Uint8Array(payload));
+  // Overstated sizes still fail after inflation, and a matching size still requires a valid checksum.
+  view.setUint32(centralOffset + 24, payload.length + 1, true);
+  await assert.rejects(decompressEvtcInput(archive), { code: 'INVALID_ZIP', message: /expected/ });
+  view.setUint32(centralOffset + 24, payload.length, true);
+  view.setUint32(centralOffset + 16, (view.getUint32(centralOffset + 16, true) ^ 1) >>> 0, true);
+  await assert.rejects(decompressEvtcInput(archive), { code: 'INVALID_ZIP', message: /CRC/ });
+});
 
 const catalog = {
   skills: [

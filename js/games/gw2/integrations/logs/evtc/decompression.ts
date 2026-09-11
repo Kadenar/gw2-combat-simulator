@@ -66,7 +66,7 @@ async function inflateRaw(compressed: Uint8Array, maximumBytes: number): Promise
     total += value.byteLength;
     if (total > maximumBytes) {
       await reader.cancel();
-      throw new EvtcError('EXPANDED_SIZE_EXCEEDED', 'The expanded EVTC file exceeds the 512 MiB safety limit.');
+      throw new EvtcError('INVALID_ZIP', 'The ZIP entry exceeds its declared expanded size.');
     }
 
     chunks.push(value);
@@ -149,7 +149,8 @@ async function expandZip(bytes: Uint8Array): Promise<Uint8Array> {
   if (compressionMethod === 0) {
     expanded = compressed.slice();
   } else if (compressionMethod === 8) {
-    expanded = await inflateRaw(compressed, EVTC_FILE_LIMITS.maximumExpandedBytes);
+    // The declared size already satisfies the global and ratio limits; enforce it while streaming to bound forged ZIPs.
+    expanded = await inflateRaw(compressed, expandedSize);
   } else {
     throw new EvtcError('UNSUPPORTED_COMPRESSION', `ZIP compression method ${compressionMethod} is not supported.`, {
       compressionMethod
