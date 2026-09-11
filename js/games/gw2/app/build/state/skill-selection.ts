@@ -44,10 +44,13 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
     Utility3: 'Utility',
     Elite: 'Elite'
   };
+  // Repair duplicate picks and keep fallback choices from displacing skills equipped in later slots.
+  const selected = new Set<string>();
   for (const [slot, type] of Object.entries(slotTypes)) {
     const current = app.skillByName.get(app.build.selectedSkills[slot]);
     const allowed =
       current &&
+      !selected.has(current.name) &&
       current.type === type &&
       isSlotSkillSelectable(app, current, spec) &&
       (!current.specialization || current.specialization === spec) &&
@@ -60,6 +63,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
         app.skills.find(
           (skill) =>
             skill.type === type &&
+            !Object.values(app.build.selectedSkills).includes(skill.name) &&
             isSlotSkillSelectable(app, skill, spec) &&
             (!skill.specialization || skill.specialization === spec) &&
             app.adapter.isSkillAvailable(skill, {
@@ -68,5 +72,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
             })
         )?.name || '';
     }
+
+    selected.add(app.build.selectedSkills[slot]);
   }
 }

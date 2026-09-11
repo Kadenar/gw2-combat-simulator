@@ -63,7 +63,6 @@ test('skill strip above traits replaces equipped skills without queuing casts', 
   const skills = await page.locator('.selectable-skills-panel').boundingBox();
   const traits = await page.locator('.workspace-traits').boundingBox();
   expect(skills.y + skills.height).toBeLessThanOrEqual(traits.y);
-  const selected = {};
   for (const key of ['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']) {
     const slot = page.locator(`#skill-bar [data-key="${key}"]`);
     const before = await page.evaluate(() => window.professionApp.build.rotation);
@@ -71,10 +70,10 @@ test('skill strip above traits replaces equipped skills without queuing casts', 
     const picker = slot.locator('.sbar-dropdown.open');
     await expect(picker).toBeVisible();
     const option = picker.locator('button[aria-pressed="false"]:not(:disabled)').first();
-    selected[key] = await option.getAttribute('data-name');
+    const replacement = await option.getAttribute('data-name');
     await option.click();
     await expect(picker).toHaveCount(0);
-    await expect(slot.locator('.sbar-icon')).toHaveAttribute('title', selected[key]);
+    await expect(slot.locator('.sbar-icon')).toHaveAttribute('title', replacement);
     expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual(before);
   }
 
@@ -89,9 +88,47 @@ test('skill strip above traits replaces equipped skills without queuing casts', 
   await expect(page.locator('.rotation-skill-picker')).toHaveCount(0);
   await paletteHeal.click();
   await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
+  const selected = await page.evaluate(() => window.professionApp.build.selectedSkills);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   expect(await page.evaluate(() => window.professionApp.build.selectedSkills)).toMatchObject(selected);
+});
+
+// Equipped choices swap in either direction, while repeated selections preserve the loadout.
+test('utility selections swap slots and normalization repairs duplicate or unavailable picks', async ({ page }) => {
+  await page.goto('/necromancer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const selected = await page.evaluate(() => window.professionApp.build.selectedSkills);
+  for (const [destination, source] of [
+    ['Utility1', 'Utility2'],
+    ['Utility3', 'Utility1'],
+    ['Utility2', 'Utility3'],
+    ['Utility2', 'Utility2']
+  ]) {
+    const slot = page.locator(`#skill-bar [data-key="${destination}"]`);
+    await slot.locator('.sbar-icon').click();
+    await slot.getByRole('button', { name: selected[source], exact: true }).click();
+    [selected[destination], selected[source]] = [selected[source], selected[destination]];
+    expect(await page.evaluate(() => window.professionApp.build.selectedSkills)).toEqual(selected);
+    await expect(slot.locator('.sbar-icon')).toHaveAttribute('title', selected[destination]);
+    await expect(slot.locator('.sbar-icon')).toBeFocused();
+  }
+
+  // Normalization must also reserve valid later picks when repairing earlier invalid slots.
+  for (const invalid of [selected.Utility1, 'Unavailable utility']) {
+    const repaired = await page.evaluate((name) => {
+      const app = window.professionApp;
+      app.build.selectedSkills.Utility1 = name;
+      app.build.selectedSkills.Utility2 = name;
+      app.changed();
+      return app.build.selectedSkills;
+    }, invalid);
+    expect(repaired.Utility3).toBe(selected.Utility3);
+    const utilities = [repaired.Utility1, repaired.Utility2, repaired.Utility3];
+    expect(utilities.every(Boolean)).toBe(true);
+    expect(new Set(utilities).size).toBe(3);
+    expect(utilities).not.toContain('Unavailable utility');
+  }
 });
 
 // A flipped skill still edits its equipped root through the selector above traits.

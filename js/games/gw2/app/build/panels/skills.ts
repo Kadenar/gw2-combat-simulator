@@ -163,7 +163,7 @@ export function renderSkills(app: ProfessionAppState): void {
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
                   .map(
                     (skill) =>
-                      `<button type="button" class="dd-item" data-name="${esc(skill.name)}" aria-pressed="${skill.name === current?.name}"${Object.entries(app.build.selectedSkills).some(([slot, name]) => slot !== key && name === skill.name) ? ' disabled title="Equipped in another slot"' : ''}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
+                      `<button type="button" class="dd-item" data-name="${esc(skill.name)}" aria-pressed="${skill.name === current?.name}"><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
                   )
                   .join('')}</div>
             </div>`;
@@ -209,6 +209,11 @@ export function renderSkills(app: ProfessionAppState): void {
         const key = slot.dataset.key;
         const name = item.dataset.name;
         if (!key || !name) return;
+        // Swap an already-equipped skill into this slot without duplicating it or losing the previous pick.
+        const conflict = Object.keys(app.build.selectedSkills).find(
+          (other) => other !== key && app.build.selectedSkills[other] === name
+        );
+        if (conflict) app.build.selectedSkills[conflict] = app.build.selectedSkills[key];
         app.build.selectedSkills[key] = name;
         app.changed();
         skillBar.querySelector<HTMLElement>(`[data-key="${key}"] .sbar-icon`)?.focus();
