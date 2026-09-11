@@ -105,8 +105,12 @@ function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: Thief
 
 function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
+  // Spend the attack's malice before Malicious Intent seeds the next malice cycle.
+  state.malice = 0;
+  state.maleficentSevenTriggered = false;
+  emitThiefStateSnapshot(context, event.at, 'malice-spent');
+
   if (hasTrait(context.config, TRAIT.MALICIOUS_INTENT)) {
-    // Malicious Intent grants 2 malice on consumption before zeroing it out, allowing Maleficent Seven to trigger one final time
     state.malice = Math.min(
       state.maximumMalice,
       state.malice + Number(balanceProfileFromContext(context, PROFILE.maliciousIntent)?.resourceGain ?? 2)
@@ -114,10 +118,6 @@ function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: Thi
     applyMaleficentSeven(context, event.at);
     emitThiefStateSnapshot(context, event.at, 'malicious-intent');
   }
-
-  state.malice = 0;
-  state.maleficentSevenTriggered = false;
-  emitThiefStateSnapshot(context, event.at, 'malice-spent');
 }
 
 export function resolveDeadeyeMaliceHit(

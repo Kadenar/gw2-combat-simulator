@@ -267,7 +267,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
   const maliciousRatio = skillDamage(marked, 'Malicious Backstab') / skillDamage(unmarked, 'Malicious Backstab');
 
   assert.ok(Math.abs(maliciousRatio - 1.5) < 1e-9, maliciousRatio);
-  assert.equal(marked.endState.profession.malice, 0);
+  assert.equal(marked.endState.profession.malice, 2);
 
   const rifleConfig = {
     selectedSkills: ['Shadow Meld'],
@@ -291,8 +291,8 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
   const deathsJudgmentRatio =
     skillDamage(markedRifle, "Malicious Death's Judgment") / skillDamage(unmarkedRifle, "Malicious Death's Judgment");
 
-  assert.ok(Math.abs(deathsJudgmentRatio - 1.5) < 1e-9, deathsJudgmentRatio);
-  assert.equal(markedRifle.endState.profession.malice, 0);
+  assert.ok(Math.abs(deathsJudgmentRatio - 1.4) < 1e-9, deathsJudgmentRatio);
+  assert.equal(markedRifle.endState.profession.malice, 2);
 });
 
 test('Revealed Training does not empower the stealth attack that reveals the thief', () => {

@@ -16,7 +16,6 @@ import {
   applyMaliciousAshenAssaultCondition,
   applyDeadeyesMarkTraits,
   applyDeadeyeStolenSkillTraits,
-  deadeyeStealthAttackMaliceBonus,
   initialDeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -58,11 +57,9 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
 
 function prepareDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSkill): DeadeyeHandlerState {
   const state = deadeyeState.from(context);
-  // Malicious Intent's bonus applies only when the target is already marked; snapshot effective malice before beginStealthAttack clears stealth
-  const maliciousIntentMalice =
-    state.markedTargetId && state.markExpiresAt > context.start ? deadeyeStealthAttackMaliceBonus(context) : 0;
+  // Only existing malice empowers this attack; Malicious Intent grants its stacks after consumption.
   const handlerState = {
-    malice: Math.min(state.maximumMalice, Math.max(0, Number(state.malice || 0)) + maliciousIntentMalice)
+    malice: Math.min(state.maximumMalice, Math.max(0, Number(state.malice || 0)))
   };
   beginStealthAttack(context, skill);
   return handlerState;

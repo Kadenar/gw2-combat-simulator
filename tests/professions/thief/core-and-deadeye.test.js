@@ -1257,7 +1257,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   });
 
   assert.equal(consumed.warnings.length, 0);
-  assert.equal(consumed.endState.profession.malice, 0);
+  assert.equal(consumed.endState.profession.malice, 2);
 
   const selectableStolenSkills = simulate('Deadeye', ["Deadeye's Mark"]);
   const selectableStolenGroup = thiefProfession.ui
@@ -1352,6 +1352,34 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   assert.equal(expired.endState.profession.malice, 0);
 });
 
+test('Malicious Intent grants malice after a stealth attack consumes its existing stacks', () => {
+  // Six stacks must empower the attack without the post-consumption grant triggering Maleficent Seven.
+  const result = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Cloak and Dagger', 'Malicious Backstab'], {
+    selectedTraitIds: [TRAIT.MALICIOUS_INTENT, TRAIT.MALEFICENT_SEVEN],
+    stats: { precision: 5000 }
+  });
+  const hit = result.events.find((event) => event.skillName === 'Malicious Backstab' && event.type === 'damage');
+  const transitions = result.events.filter(
+    (event) => event.type === 'thief.state' && ['malice-spent', 'malicious-intent'].includes(event.reason)
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(hit.deadeyeMaliceSnapshot, 6);
+  assert.deepEqual(
+    transitions.map((event) => [event.reason, event.state.malice, event.at]),
+    [
+      ['malice-spent', 0, hit.at],
+      ['malicious-intent', 2, hit.at]
+    ]
+  );
+  assert.equal(result.endState.profession.malice, 2);
+  assert.equal(result.endState.profession.maleficentSevenTriggered, false);
+  assert.equal(
+    result.events.some((event) => event.name?.includes('Maleficent Seven')),
+    false
+  );
+});
+
 test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const criticalConfig = {
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
@@ -1408,7 +1436,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const mercyStep = mercyShot.steps.find((step) => step.skill === 'Mercy');
   const maliceSpent = mercyShot.events.find((event) => event.type === 'thief.state' && event.reason === 'malice-spent');
 
-  assert.equal(mercyEvent.deadeyeMaliceSnapshot, 5);
+  assert.equal(mercyEvent.deadeyeMaliceSnapshot, 4);
   assert.equal(mercyEvent.damage, ordinaryEvent.damage);
   assert.equal(maliceSpent.at, mercyEvent.at);
   assert.ok(maliceSpent.at > mercyStep.start / 1000);
@@ -1539,10 +1567,12 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   });
 
   assert.equal(maliciousSneak.warnings.length, 0);
+  // Multiple hits consume malice only once, leaving the trait's grant for the next attack.
+  assert.equal(maliciousSneak.endState.profession.malice, 2);
   assert.equal(
     maliciousSneak.events.find((event) => event.skillName === 'Malicious Sneak Attack' && event.condition === 'Torment')
       .duration,
-    11
+    9
   );
 });
 

@@ -16,11 +16,6 @@ export function initialDeadeyeMalice(context: ThiefCastContext): number {
     : 0;
 }
 
-// Additional malice added to the snapshot before a stealth attack resolves (same trait, same value — two separate game effects)
-export function deadeyeStealthAttackMaliceBonus(context: ThiefCastContext): number {
-  return initialDeadeyeMalice(context);
-}
-
 /** Applies the malice-scaled condition owned by Malicious Ashen Assault. */
 export function applyMaliciousAshenAssaultCondition(
   context: ThiefCastContext,
