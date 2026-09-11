@@ -9,6 +9,7 @@ import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/plat
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/lib/traits.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 
 export type RangerSpecializationSelection = ProfessionTraitSelection;
 
@@ -80,6 +81,8 @@ export interface RangerCoreState {
   maximumEndurance: number;
   enduranceUpdatedAt: number;
   availableFlips: Record<string, number>;
+  stealthUntil: number;
+  revealedUntil: number;
   autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
   tailWindReadyAt: number;
@@ -88,6 +91,7 @@ export interface RangerCoreState {
   quickDrawReadyAt: number;
   quickDrawUntil: number;
   trapCrippleActivations: Record<string, boolean>;
+  pendingFrostTrapEvents: SimulationEventInput[];
   bloodThirstCharges: number;
   rejuvenationReadyAt: number;
   childOfEarthReadyAt: number;

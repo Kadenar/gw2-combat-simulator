@@ -86,7 +86,8 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
     petSkill: true
   },
   [ID.STALK]: {
-    effects: [],
+    // Jaguar grants its ranger stealth, enabling spear attacks without spending Panther's Prowl.
+    effects: [{ type: 'buff', kind: 'stealth', duration: 3, stacks: 1 }],
     quicknessCastTimeMs: 333,
     petSkill: true
   },

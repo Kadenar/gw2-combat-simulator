@@ -34,8 +34,12 @@ import {
   rangerPetTaskHandlers
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';
+import { prepareRangerTrapEvent, triggerRangerPrecastTrap } from '#gw2/professions/ranger/core/mechanics/traps.js';
 import {
   completeRangerWeaponSkill,
+  beginRangerStealthAttack,
+  observeRangerStealthEvent,
+  rangerWeaponTaskHandlers,
   updateRangerWeaponState
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 
@@ -48,7 +52,7 @@ const rangerCoreExecutionHooks = Object.freeze({
       prepareRangerPetEvent(
         context,
         prepareGw2BuffCompanionCandidates(
-          event,
+          prepareRangerTrapEvent(context, event),
           professionCoreState(context).petActive ? [rangerPetCompanionId(context)] : []
         )
       )
@@ -61,16 +65,21 @@ const rangerCoreExecutionHooks = Object.freeze({
   onCastStart: {
     id: 'ranger.pet-command',
     order: 10,
-    handler: beginRangerPetCommand
+    handler(context: RangerCastContext, skill: RangerSkill): void {
+      beginRangerPetCommand(context, skill);
+      beginRangerStealthAttack(context, skill);
+    }
   },
   onEventScheduled: {
     id: 'ranger.core-events',
     order: 10,
     handler(context: RangerSchedulerContext, event: SimulationEvent): void {
+      triggerRangerPrecastTrap(context, event);
       observeRangerPetEvent(context, event);
+      observeRangerStealthEvent(context, event);
     }
   },
-  taskHandlers: rangerPetTaskHandlers,
+  taskHandlers: { ...rangerPetTaskHandlers, ...rangerWeaponTaskHandlers },
   snapshot: (context: RangerSchedulerContext) => snapshotRangerState(context.state.profession),
   afterCast: {
     id: 'ranger.weapon-state',

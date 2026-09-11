@@ -1,36 +1,58 @@
-/** Canonical Core ranger skill fragments; measured Quickness timings define their action windows. */
+/** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DRAKES_SWIPE]: {
+    flipSkillId: null,
+    // Separate contact from recovery; per-packet cancellation retains only contacts already reached.
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
         coefficient: 1.1,
-        hits: 1
+        hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 333
+    quicknessCastTimeMs: 520
   },
   [ID.FALCONS_STOOP]: {
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
         coefficient: 1.95,
-        hits: 1
+        hits: 1,
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 4
+        duration: 4,
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 560
+    quicknessCastTimeMs: 600
   },
   [ID.PANTHERS_PROWL]: {
+    ammo: 2,
+    ammoRecharge: 10,
     effects: [
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1
+      },
       {
         type: 'boon',
         boon: 'swiftness',
@@ -42,32 +64,46 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.WARCLAWS_ENGAGE]: {
     evades: true,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
         coefficient: 2.75,
-        hits: 1
+        hits: 1,
+        atMs: 840,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
       }
     ],
-    quicknessCastTimeMs: 800
+    quicknessCastTimeMs: 960
   },
   [ID.CHEETAHS_STRIKE]: {
+    flipSkillId: null,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
         coefficient: 1.8,
-        hits: 1
+        hits: 1,
+        atMs: 560,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'boon',
         boon: 'swiftness',
         duration: 3,
-        stacks: 1
+        stacks: 1,
+        atMs: 560,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 500
+    quicknessCastTimeMs: 760
   },
   [ID.MONGOOSES_FRENZY]: {
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -85,20 +121,27 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     quicknessCastTimeMs: 667
   },
   [ID.WYVERNS_LASH]: {
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
         coefficient: 1.4,
-        hits: 1
+        hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 2
+        duration: 2,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 333
+    quicknessCastTimeMs: 440
   }
 });
 
@@ -112,10 +155,9 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_2',
-    // The 740 ms activation commits before 260 ms of recovery; committed cancels retain that recovery.
+    // Both EVTC animation segments are one attack; cancellation drops pending hits, not earlier contacts.
     quicknessCastTimeMs: 1000,
-    interruptCommitMs: 740,
-    retainsCastLockoutAfterInterrupt: true,
+    interruptMode: 'per-packet',
     recharge: 5,
     cooldown: 5,
     flipParentId: ID.MONGOOSES_FRENZY,
@@ -125,19 +167,16 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         type: 'strike',
         // Snap each strike to the nearest 40 ms action tick while preserving its coefficient.
         ticks: [
-          { atMs: 240, coefficient: 1.25 },
-          { atMs: 440, coefficient: 1.25 },
-          { atMs: 680, coefficient: 2.5 }
+          { atMs: 400, coefficient: 1.25 },
+          { atMs: 720, coefficient: 1.25 },
+          { atMs: 960, coefficient: 2.5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 3,
-        duration: 8,
-        atMs: 740,
+        ticks: [400, 720, 960].map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 1, duration: 8 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -152,6 +191,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     weapon: 'Spear',
     slot: 'Weapon_3',
     quicknessCastTimeMs: 500,
+    interruptMode: 'per-packet',
     recharge: 7,
     cooldown: 7,
     flipParentId: ID.FALCONS_STOOP,
@@ -186,7 +226,8 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_4',
-    quicknessCastTimeMs: 800,
+    quicknessCastTimeMs: 960,
+    interruptMode: 'per-packet',
     recharge: 12,
     cooldown: 12,
     flipParentId: ID.WARCLAWS_ENGAGE,
@@ -197,6 +238,9 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         type: 'strike',
         coefficient: 3.67,
         hits: 1,
+        atMs: 840,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -207,7 +251,10 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: 'daze',
+        atMs: 840,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
@@ -220,6 +267,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     weapon: 'Spear',
     slot: 'Weapon_5',
     quicknessCastTimeMs: 333,
+    interruptMode: 'per-packet',
     recharge: 20,
     cooldown: 20,
     flipParentId: ID.PANTHERS_PROWL,
@@ -237,10 +285,19 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         duration: 2
       },
       {
+        // The four-second net reapplies a one-second cripple instead of one long application.
         type: 'condition',
-        condition: 'Crippled',
+        ticks: [0, 1000, 2000, 3000].map((atMs) => ({ atMs, condition: 'Crippled', stacks: 1, duration: 1 })),
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        // Spider's Web aids the active pet, not the ranger's own movement boons.
+        type: 'buff',
+        kind: 'superspeed',
         stacks: 1,
-        duration: 4
+        duration: 3,
+        audience: { recipients: 'summons', affectsSelf: false }
       }
     ]
   }

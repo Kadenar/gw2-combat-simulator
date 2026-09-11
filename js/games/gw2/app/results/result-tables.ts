@@ -36,6 +36,7 @@ export interface SkillBreakdownRow {
 interface GroupedSkillBreakdown {
   name: string;
   sourceSkill: string;
+  sourceSkills: Set<string>;
   parentSkill: string;
   icon: string;
   skillId: SkillId | null;
@@ -246,6 +247,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     const current = grouped.get(groupKey) || {
       name,
       sourceSkill,
+      sourceSkills: new Set<string>(),
       parentSkill,
       icon,
       skillId,
@@ -266,6 +268,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
       current.sourceId = sourceId;
     }
 
+    current.sourceSkills.add(sourceSkill);
     current.strike += Number(entry.strikeDamage || 0);
     current.condition += Number(entry.conditionDamage || 0);
     current.hits += Number(entry.hits || 0);
@@ -280,9 +283,15 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
       // Older breakdown producers supplied casts directly; use that only when
       // no canonical action count is available. Child effects are not casts
       // of their parent skill even when the resolver preserves that skill ID.
-      const casts = Number(actionCounts.get(entry.sourceSkill) ?? (entry.parentSkill ? 0 : entry.fallbackCasts));
+      // A shared row can contain distinct range variants; count each source's actions once.
+      const sources = [...entry.sourceSkills];
+      const casts = sources.some((source) => actionCounts.has(source))
+        ? sources.reduce((total, source) => total + Number(actionCounts.get(source) || 0), 0)
+        : entry.parentSkill
+          ? 0
+          : entry.fallbackCasts;
       const total = entry.strike + entry.condition;
-      const castTime = Number(actionDurations.get(entry.sourceSkill) || 0);
+      const castTime = sources.reduce((total, source) => total + Number(actionDurations.get(source) || 0), 0);
       return {
         name: entry.name,
         key: skillBreakdownKey(entry.group, entry.name),

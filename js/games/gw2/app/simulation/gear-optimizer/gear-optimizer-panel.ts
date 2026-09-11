@@ -284,7 +284,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           .join('')}</div>
       </fieldset>
       <details class="optimizer-section optimizer-forced-slots"><summary>Force slots</summary>
-        <p>Choose a stat prefix to require it in that slot for every result. Unforced slots use Equipment stats.</p>
+        <p>Choose a stat prefix to require it in that slot for every result.</p>
         <div class="optimizer-forced-grid">${slots
           .map((slot) => {
             // Use only usable weapon slots, with set labels that distinguish alternate equipment.

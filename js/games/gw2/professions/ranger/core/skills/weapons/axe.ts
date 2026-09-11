@@ -191,6 +191,8 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     effects: [
       {
         type: 'strike',
+        // Range changes the return timing, but both variants belong to the same damage breakdown row.
+        damageBreakdownName: 'Path of Scars',
         ticks: [
           { atMs: 400, coefficient: 1.2 },
           { atMs: 1640, coefficient: 1.2 }

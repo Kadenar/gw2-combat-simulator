@@ -10,7 +10,10 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/hammer-variants.js';
 import { rangerEnduranceReadyAt } from '#gw2/professions/ranger/core/mechanics/resources.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
-import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import {
+  RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
+  rangerSpearStealthAvailable
+} from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
@@ -44,10 +47,20 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
   const flipParent = skill.flipParentId == null ? null : context.catalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
+  // Spear choices can come from any stealth source; do not misidentify the base attack as their prerequisite.
+  if (isSpearStealthAttack || spearStealthFlipId != null) {
+    const available = rangerSpearStealthAvailable(state, context.start);
+    if (isSpearStealthAttack && !available)
+      return denySkillCast(skill, 'ranger.flip-inactive', "use Panther's Prowl or gain stealth first.");
+    if (!isSpearStealthAttack && available)
+      return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active stealth attack.');
+    return { ready: true };
+  }
+
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
-    (flipParent?.flipSkillId === skill.id || isSpearStealthAttack) &&
+    flipParent?.flipSkillId === skill.id &&
     Number(state.availableFlips[Number(skill.id)] || 0) <= context.start
   ) {
     return denySkillCast(skill, 'ranger.flip-inactive', `use ${flipParent?.name || 'its opening weapon skill'} first.`);
@@ -56,10 +69,9 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
-    ((skill.flipSkillId != null &&
-      skill.flipSkillId !== skill.nextChainId &&
-      Number(state.availableFlips[Number(skill.flipSkillId)] || 0) > context.start) ||
-      (spearStealthFlipId != null && Number(state.availableFlips[spearStealthFlipId] || 0) > context.start))
+    skill.flipSkillId != null &&
+    skill.flipSkillId !== skill.nextChainId &&
+    Number(state.availableFlips[Number(skill.flipSkillId)] || 0) > context.start
   ) {
     return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
   }

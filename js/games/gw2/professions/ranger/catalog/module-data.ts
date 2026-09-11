@@ -16,7 +16,7 @@ const apiSkills = SKILLS as readonly RangerSkill[];
 const petSkills = RANGER_PET_SKILLS as readonly RangerSkill[];
 const allSkills = [...apiSkills, ...petSkills, ...RANGER_SUPPLEMENTAL_SKILLS];
 
-const simulatorExcludedSkillIds = new Set<SkillId>([ID.BEES_STING, ID.EXPLODING_SPORE, ID.WUTHERING_WIND]);
+const simulatorExcludedSkillIds = new Set<SkillId>([ID.EXPLODING_SPORE, ID.WUTHERING_WIND]);
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.WORLDLY_IMPACT_ID_42809,

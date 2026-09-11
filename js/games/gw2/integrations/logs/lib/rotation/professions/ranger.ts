@@ -20,8 +20,8 @@ function actionId(action: RecordedLogAction): number {
   return action.canonicalSkillId ?? action.rawSkillId;
 }
 
-/** Collapses Ranger's split smash animations into their single simulator inputs. */
-function mergeSmashes(actions: readonly RecordedLogAction[]): RecordedLogAction[] {
+/** Collapses split hammer and spear animations before either importer interprets their cancellations. */
+function mergeWeaponAnimations(actions: readonly RecordedLogAction[]): RecordedLogAction[] {
   return mergeCompositeActions(
     actions,
     [
@@ -34,6 +34,12 @@ function mergeSmashes(actions: readonly RecordedLogAction[]): RecordedLogAction[
         startId: ID.UNLEASHED_OVERBEARING_SMASH,
         finishId: UNLEASHED_OVERBEARING_SMASH_FINISH_ID,
         maximumGapMs: SIGNAL_WINDOW_MS
+      },
+      {
+        startId: ID.WOLFS_ONSLAUGHT,
+        finishId: 73043,
+        maximumGapMs: SIGNAL_WINDOW_MS,
+        dropUnmatchedFinish: true
       }
     ],
     (action, finish) => ({
@@ -45,8 +51,7 @@ function mergeSmashes(actions: readonly RecordedLogAction[]): RecordedLogAction[
         Number(action.expectedDurationMs || action.end - action.start) +
         Number(finish.expectedDurationMs || finish.end - finish.start),
       canonicalSkillId: action.rawSkillId,
-      canonicalName:
-        action.rawSkillId === ID.UNLEASHED_OVERBEARING_SMASH ? 'Unleashed Overbearing Smash' : 'Overbearing Smash'
+      canonicalName: action.rawName
     })
   );
 }
@@ -56,7 +61,7 @@ function normalizeRangerSignals(
   context: LogActionNormalizationContext,
   actions: readonly RecordedLogAction[]
 ): RecordedLogAction[] {
-  const normalized = mergeSmashes(actions)
+  const normalized = mergeWeaponAnimations(actions)
     .filter((action) => {
       if (SIMULATOR_OWNED_SKILL_IDS.has(action.rawSkillId)) return false;
       return (

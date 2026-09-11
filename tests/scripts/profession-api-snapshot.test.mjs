@@ -308,7 +308,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
       ],
       mesmer: [10197, 10200, 10201, 10203, 10236, 62573],
       necromancer: [10583, 10609, 10612, 10685, 10687, 40274, 42917, 76752, 76941, 77022],
-      ranger: [12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256],
+      ranger: [12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256, 72920],
       revenant: [62680, 62687, 62702, 62729, 62738, 62796, 62941, 72931],
       thief: [13020, 13035, 13096, 76784, 76808, 76879, 77361],
       warrior: [
@@ -330,6 +330,23 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
         });
       }
 
+      if (professionName === 'ranger') {
+        fixture.profession.weapons = {
+          ...fixture.profession.weapons,
+          Spear: { skills: [{ id: 72922, slot: 'Weapon_1' }] }
+        };
+        fixture.profession.skills.push({ id: 72922 });
+        fixture.skills.push({
+          id: 72922,
+          name: "Drake's Swipe",
+          type: 'Weapon',
+          flags: [GW2_SKILL_FLAGS.TERRESTRIAL_ONLY],
+          slot: 'Weapon_1',
+          flip_skill: 72920,
+          description: "Chain. Swing your spear. If your enemy is far away, use Bee's Sting instead."
+        });
+      }
+
       const snapshot = await updateProfessionApiData(professionName, {
         fetchImpl: createFixtureFetch([], fixture),
         snapshotDate: '2026-07-27',
@@ -344,6 +361,12 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
       );
       if (professionName === 'engineer') {
         assert.equal(snapshot.skills.find((skill) => skill.id === 63095).description, 'Fire the cannon.');
+      }
+
+      if (professionName === 'ranger') {
+        const swipe = snapshot.skills.find((skill) => skill.id === 72922);
+        assert.equal(swipe.description, 'Chain. Swing your spear.');
+        assert.equal(swipe.flipSkillId, null);
       }
     }
   } finally {

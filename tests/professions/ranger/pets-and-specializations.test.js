@@ -1479,7 +1479,7 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
       primaryWeapon: 'Spear',
       secondaryWeapon: ''
     }).warnings.join(' '),
-    /use Mongoose's Frenzy first/
+    /use Panther's Prowl or gain stealth first/
   );
   assert.ok(ordinary.every((name) => paletteAfter([]).includes(name)));
   assert.ok(stealth.every((name) => paletteAfter(["Panther's Prowl"]).includes(name)));

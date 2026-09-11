@@ -4,7 +4,12 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { eventSkill as gw2EventSkill, hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import {
+  eventSkill as gw2EventSkill,
+  hasSelectedSkill,
+  targetConditionActive,
+  targetHealthFraction
+} from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
 import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -385,6 +390,30 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
       Boolean(
         context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken
       )
+  },
+  {
+    // Spear bonuses are evaluated at impact so live conditions and the health threshold affect the correct hit.
+    id: 'ranger.falcons-stoop-disabled',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.2,
+    when: (context) =>
+      eventSkill(context)?.id === ID.FALCONS_STOOP &&
+      Boolean(
+        context.config?.target?.defiant ||
+        context.config?.target?.disabled ||
+        context.config?.target?.defianceBroken ||
+        targetConditionActive(context, 'Immobilized')
+      )
+  },
+  {
+    id: 'ranger.spear-leap-low-health',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.2,
+    when: (context) =>
+      (eventSkill(context)?.id === ID.WARCLAWS_ENGAGE || eventSkill(context)?.id === ID.PREDATORS_AMBUSH) &&
+      targetHealthFraction(context) < 0.5
   },
   {
     id: 'ranger.stalkers-strike-movement-impaired',

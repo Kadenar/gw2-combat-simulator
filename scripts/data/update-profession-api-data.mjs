@@ -14,7 +14,9 @@ const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
   ]),
   Mesmer: Object.freeze([10197, 10200, 10201, 10203, 10236, 62573]),
   Necromancer: Object.freeze([10583, 10609, 10612, 10685, 10687, 40274, 42917, 76752, 76941, 77022]),
-  Ranger: Object.freeze([12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256]),
+  Ranger: Object.freeze([
+    12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256, 72920
+  ]),
   // The simulator supports the Luxon Alliance bar, without Kurzick skills or side switching.
   Revenant: Object.freeze([62680, 62687, 62702, 62729, 62738, 62796, 62941, 72931]),
   Thief: Object.freeze([13020, 13035, 13096, 76784, 76808, 76879, 77361]),
@@ -87,6 +89,10 @@ export async function updateProfessionApiData(
   // Omitted skills must not remain reachable through a supported skill's flip link.
   for (const skill of snapshot.skills) {
     if (omittedSkillIds.includes(skill.flipSkillId)) skill.flipSkillId = null;
+    // Ranger spear supports the melee chain only; API refreshes must not advertise its omitted ranged fallback.
+    if (normalizedProfession === 'Ranger' && skill.weapon === 'Spear') {
+      skill.description = skill.description.replace(/ If your enemy is far away, use Bee's Sting instead\./g, '');
+    }
   }
 
   await writeProfessionSnapshot({

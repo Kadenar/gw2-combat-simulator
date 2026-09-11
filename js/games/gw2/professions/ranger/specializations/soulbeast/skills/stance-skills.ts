@@ -17,6 +17,8 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.ONE_WOLF_PACK]: {
+    // The stance commits before recovery ends, so cancelling after activation retains its proc window.
+    interruptCommitMs: 280,
     effects: [],
     quicknessCastTimeMs: 360,
     // Custom: Opens the One Wolf Pack proc window with stance-duration traits; see `soulbeast/execution/index.ts`.

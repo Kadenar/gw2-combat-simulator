@@ -3990,25 +3990,9 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 72920,
-    name: "Bee's Sting",
-    description: 'Ranged.Throw your spear.',
-    icon: 'https://render.guildwars2.com/file/414A30909FE90ABA80BD36D4426DE80B5A081710/3379171.png',
-    type: 'Weapon',
-    weapon: 'Spear',
-    slot: 'Weapon_1',
-    specialization: '',
-    categories: [],
-    recharge: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 72922,
     name: "Drake's Swipe",
-    description: "Chain. Swing your spear. If your enemy is far away, use Bee's Sting instead.",
+    description: 'Chain. Swing your spear.',
     icon: 'https://render.guildwars2.com/file/414A30909FE90ABA80BD36D4426DE80B5A081710/3379171.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -4019,7 +4003,7 @@ export const SKILLS: readonly RangerSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: 73112,
-    flipSkillId: 72920
+    flipSkillId: null
   },
   {
     id: 72928,
@@ -4075,8 +4059,7 @@ export const SKILLS: readonly RangerSkill[] = [
   {
     id: 73087,
     name: "Cheetah's Strike",
-    description:
-      "Chain. Heave your spear, gaining swiftness if you strike an enemy. If your enemy is far away, use Bee's Sting instead.",
+    description: 'Chain. Heave your spear, gaining swiftness if you strike an enemy.',
     icon: 'https://render.guildwars2.com/file/E2CF3E65CFD875E103D8F260A2806642A644AEFE/3379173.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -4087,7 +4070,7 @@ export const SKILLS: readonly RangerSkill[] = [
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 72920
+    flipSkillId: null
   },
   {
     id: 73110,
@@ -4108,8 +4091,7 @@ export const SKILLS: readonly RangerSkill[] = [
   {
     id: 73112,
     name: "Wyvern's Lash",
-    description:
-      "Chain. Strike with your spear, crippling your foe. If your enemy is far away, use Bee's Sting instead.",
+    description: 'Chain. Strike with your spear, crippling your foe.',
     icon: 'https://render.guildwars2.com/file/D2C90A1160383EE7487A4F652C02C7525698CDD3/3379172.png',
     type: 'Weapon',
     weapon: 'Spear',

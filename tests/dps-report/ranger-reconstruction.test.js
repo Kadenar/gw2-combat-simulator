@@ -4,6 +4,8 @@ import test from 'node:test';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { event, log } from '../helpers/evtc-fixture.js';
 
 // Fixtures retain only the Ranger signals needed to prove each report correction.
 function reportFixture(profession, rotation, skillMap, options = {}) {
@@ -95,4 +97,37 @@ test('normalizes Galeshot swap, pet, and automatic report signals', () => {
     result.actions.every((action) => action.supportedByCatalog),
     true
   );
+});
+
+test('both log adapters merge a spear follow-through without inventing another input', () => {
+  // Two animations belong to one attack; use a minimal source sequence rather than a saved-log shape assertion.
+  const rows = [
+    { id: 73030, skills: [{ castTime: 0, duration: 750, timeGained: 0 }] },
+    { id: 73043, skills: [{ castTime: 750, duration: 250, timeGained: 0 }] },
+    { id: 73043, skills: [{ castTime: 2000, duration: 250, timeGained: 0 }] }
+  ];
+  const skills = { s73030: { name: "Wolf's Onslaught" }, s73043: { name: "Wolf's Onslaught" } };
+  const report = reportFixture('Soulbeast', rows, skills);
+  const fixture = log({
+    agents: [{ ...log().agents[0], profession: 4, elite: 55 }],
+    skills: [
+      { id: 73030, name: "Wolf's Onslaught" },
+      { id: 73043, name: "Wolf's Onslaught" }
+    ],
+    events: rows.flatMap(({ id, skills: casts }) =>
+      casts.flatMap(({ castTime, duration }) => [
+        event({ time: castTime, stateChange: 67, skillId: id, value: duration }),
+        event({ time: castTime + duration, stateChange: 68, skillId: id, value: duration, activation: 5 })
+      ])
+    )
+  });
+  for (const result of [
+    reconstructDpsReportRotation(report, rangerCatalog),
+    reconstructEvtcRotation(fixture, rangerCatalog, { includeCombatStart: false })
+  ]) {
+    assert.equal(result.actions.length, 1);
+    assert.equal(result.actions[0].skillId, 73030);
+    assert.equal(result.actions[0].durationMs, 1000);
+    assert.equal(result.rotation.filter((command) => command.skillId === 73030).length, 1);
+  }
 });

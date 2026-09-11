@@ -1,6 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileEffectFromContext as profileEffect,
@@ -144,10 +144,11 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
 
   // One Wolf Pack must not trigger from its own echo or from effect-sourced hits to avoid infinite recursion.
   if (
-    event.actorType !== 'effect' &&
+    isPlayerStrike(event) &&
     event.sourceId !== ID.ONE_WOLF_PACK_STRIKE &&
     activeSoulbeastBuff(context, 'one-wolf-pack', event.at) &&
-    isInternalCooldownReady(event.at, state.oneWolfPackReadyAt)
+    // Periodic hits exactly one interval apart can each trigger an echo; tolerate floating-point drift.
+    event.at + EPSILON >= state.oneWolfPackReadyAt
   ) {
     const profile = balanceProfileFromContext(context, PROFILE.oneWolfPack);
     const strike = balanceProfileEffect(profile, 'strike');
@@ -167,8 +168,8 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
       hits: Number(strike?.hits ?? 1),
       hitIndex: 1,
       totalHits: Number(strike?.hits ?? 1),
-      skillWeapon: event.skillWeapon || 'Unequipped',
-      weaponStrengthProfileId: event.weaponStrengthProfileId,
+      // Echoes use the stance's nonweapon strength, independent of the attack that triggered them.
+      skillWeapon: 'Unequipped',
       canCrit: true,
       triggeredBy: event.skillName
     });

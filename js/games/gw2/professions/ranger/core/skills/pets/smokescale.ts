@@ -7,6 +7,10 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SMOKE_CLOUD]: {
+    // The pet's persistent field lets ranger leap/blast finishers grant ordinary stealth.
+    comboFields: [
+      { ownerId: 'ranger', ownerActorType: 'summon', fieldType: 'Smoke', duration: 5, startAnchor: 'castEnd' }
+    ],
     effects: [],
     quicknessCastTimeMs: 500,
     petSkill: true

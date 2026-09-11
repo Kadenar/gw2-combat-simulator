@@ -14,13 +14,21 @@ import type {
   ProfessionUiContract
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { RangerSkill, RangerUiContext, RangerUiSelection } from '#gw2/professions/ranger/types.js';
+import type {
+  RangerCoreState,
+  RangerSkill,
+  RangerUiContext,
+  RangerUiSelection
+} from '#gw2/professions/ranger/types.js';
 import {
   isRangerHammerVariant,
   normalizeRangerHammerSkillIds,
   RANGER_HAMMER_VARIANT_PAIRS
 } from '#gw2/professions/ranger/core/mechanics/hammer-variants.js';
-import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import {
+  RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
+  rangerSpearStealthAvailable
+} from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 
 let rangerCatalog: Readonly<CanonicalCatalog>;
 
@@ -183,10 +191,20 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   const flipParent = skill.flipParentId == null ? null : rangerCatalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
+  // Share the scheduler's spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
+  if (isSpearStealthAttack || spearStealthFlipId != null) {
+    const available = rangerSpearStealthAvailable(state as Partial<RangerCoreState>, Number(context.time || 0));
+    if (isSpearStealthAttack && !available)
+      return { available: false, message: "Use Panther's Prowl or gain stealth first" };
+    if (!isSpearStealthAttack && available)
+      return { available: false, message: 'Use or wait out the active stealth attack' };
+    return { available: true, message: '' };
+  }
+
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
-    (flipParent?.flipSkillId === skill.id || isSpearStealthAttack) &&
+    flipParent?.flipSkillId === skill.id &&
     Number(availableFlips[String(skill.id)] || 0) <= Number(context.time || 0)
   ) {
     return { available: false, message: `Use ${flipParent?.name || 'its opening weapon skill'} first` };
@@ -195,11 +213,9 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
-    ((skill.flipSkillId != null &&
-      skill.flipSkillId !== skill.nextChainId &&
-      Number(availableFlips[String(skill.flipSkillId)] || 0) > Number(context.time || 0)) ||
-      (spearStealthFlipId != null &&
-        Number(availableFlips[String(spearStealthFlipId)] || 0) > Number(context.time || 0)))
+    skill.flipSkillId != null &&
+    skill.flipSkillId !== skill.nextChainId &&
+    Number(availableFlips[String(skill.flipSkillId)] || 0) > Number(context.time || 0)
   ) {
     return { available: false, message: 'Use or wait out the active follow-up skill' };
   }

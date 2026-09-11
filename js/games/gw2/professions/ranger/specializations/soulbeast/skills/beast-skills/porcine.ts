@@ -29,15 +29,22 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.BRUTAL_CHARGE_ID_46432]: {
     castTimeMs: 0,
+    // The queued charge contacts after travel; damage and knockdown must refresh Claw at impact, not activation.
     effects: [
       {
         type: 'strike',
         coefficient: 0.67,
-        hits: 1
+        hits: 1,
+        atMs: 680,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
-        controlKind: 'knockdown'
+        controlKind: 'knockdown',
+        atMs: 680,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   }

@@ -184,7 +184,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   TORMENTING_VISIONS: 72636, // Tormenting Visions
   STARING_VOID: 72851, // Staring Void
   OWLS_FLIGHT: 72913, // Owl's Flight
-  BEES_STING: 72920, // Bee's Sting
   DRAKES_SWIPE: 72922, // Drake's Swipe
   FALCONS_STOOP: 72928, // Falcon's Stoop
   SPIDERS_WEB: 72993, // Spider's Web
